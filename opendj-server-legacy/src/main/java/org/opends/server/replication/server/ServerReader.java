@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -311,7 +311,8 @@ public class ServerReader extends DirectoryThread
   private void logException(Exception e)
   {
     if (logger.isTraceEnabled())
-      logger.trace(
-          "In " + getName() + " " + stackTraceToSingleLineString(e));
+    {
+      logger.trace("In " + getName() + " " + stackTraceToSingleLineString(e));
+    }
   }
 }

@@ -109,7 +109,9 @@ public class ParentInheritance {
                numLevels=1;
               levels[0]=0;
             }
-    } else parse(pattern);
+    } else {
+      parse(pattern);
+    }
 }
 
     /**

@@ -128,7 +128,9 @@ public class TargAttrFilterList {
             //handling.
             int semicolon = attributeName.indexOf(';');
             if (semicolon != -1)
-                attributeName=attributeName.substring(0, semicolon);
+            {
+              attributeName=attributeName.substring(0, semicolon);
+            }
             String filterString=matcher.group(filterPos);
             AttributeType attrType = DirectoryServer.getAttributeType(attributeName);
             if (attrType == null) {

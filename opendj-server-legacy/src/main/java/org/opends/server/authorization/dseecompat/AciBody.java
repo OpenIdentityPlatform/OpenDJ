@@ -229,8 +229,9 @@ public class AciBody {
     public boolean hasAccessType(EnumAccessType accessType) {
         List<PermBindRulePair>pairs=getPermBindRulePairs();
          for(PermBindRulePair p : pairs) {
-             if(p.hasAccessType(accessType))
+             if(p.hasAccessType(accessType)) {
                  return true;
+             }
          }
          return false;
     }
@@ -246,8 +247,9 @@ public class AciBody {
     public boolean hasRights(int rights) {
         List<PermBindRulePair>pairs=getPermBindRulePairs();
         for(PermBindRulePair p : pairs) {
-            if(p.hasRights(rights))
+            if(p.hasRights(rights)) {
                 return true;
+            }
         }
         return false;
     }
@@ -291,10 +293,12 @@ public class AciBody {
         List<PermBindRulePair>pairs=getPermBindRulePairs();
         for(PermBindRulePair p : pairs) {
             if(evalCtx.isDenyEval() &&
-                    (p.hasAccessType(EnumAccessType.ALLOW)))
+                    (p.hasAccessType(EnumAccessType.ALLOW))) {
                 continue;
-            if(!p.hasRights(getEvalRights(evalCtx)))
+            }
+            if(!p.hasRights(getEvalRights(evalCtx))) {
                 continue;
+            }
             res=p.getBindRule().evaluate(evalCtx);
             // The evaluation result could be FAIL. Stop processing and return
             //FAIL. Maybe an internal search failed.
@@ -343,26 +347,27 @@ public class AciBody {
    */
   private int getEvalRights(AciEvalContext evalCtx) {
     if(evalCtx.hasRights(ACI_WRITE) &&
-            evalCtx.hasRights(ACI_SELF))
+            evalCtx.hasRights(ACI_SELF)) {
       return ACI_SELF;
-    else  if(evalCtx.hasRights(ACI_COMPARE))
+    } else  if(evalCtx.hasRights(ACI_COMPARE)) {
       return ACI_COMPARE;
-    else if(evalCtx.hasRights(ACI_SEARCH))
+    } else if(evalCtx.hasRights(ACI_SEARCH)) {
       return ACI_SEARCH;
-    else if(evalCtx.hasRights(ACI_READ))
+    } else if(evalCtx.hasRights(ACI_READ)) {
       return ACI_READ;
-    else if(evalCtx.hasRights(ACI_DELETE))
+    } else if(evalCtx.hasRights(ACI_DELETE)) {
       return ACI_DELETE;
-    else if(evalCtx.hasRights(ACI_ADD))
+    } else if(evalCtx.hasRights(ACI_ADD)) {
       return ACI_ADD;
-    else if(evalCtx.hasRights(ACI_WRITE))
+    } else if(evalCtx.hasRights(ACI_WRITE)) {
       return ACI_WRITE;
-    else if(evalCtx.hasRights(ACI_PROXY))
+    } else if(evalCtx.hasRights(ACI_PROXY)) {
       return ACI_PROXY;
-    else if(evalCtx.hasRights(ACI_IMPORT))
+    } else if(evalCtx.hasRights(ACI_IMPORT)) {
       return ACI_IMPORT;
-    else if(evalCtx.hasRights(ACI_EXPORT))
+    } else if(evalCtx.hasRights(ACI_EXPORT)) {
       return ACI_EXPORT;
+    }
     return ACI_NULL;
   }
 

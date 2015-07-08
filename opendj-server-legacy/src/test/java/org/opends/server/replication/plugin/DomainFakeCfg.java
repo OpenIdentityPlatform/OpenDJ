@@ -119,7 +119,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.assuredSdLevel = assuredSdLevel;
     this.assuredTimeout = assuredTimeout;
     if (refUrls != null)
+    {
       this.refUrls = refUrls;
+    }
   }
 
   /** {@inheritDoc} */

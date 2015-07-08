@@ -99,8 +99,8 @@ public class TestUtilities {
     if (p.waitFor() != 0) {
       ByteStringBuilder stdOut = new ByteStringBuilder();
       ByteStringBuilder stdErr = new ByteStringBuilder();
-      while(stdOut.append(p.getInputStream(), 512) > 0);
-      while(stdErr.append(p.getErrorStream(), 512) > 0);
+      while(stdOut.append(p.getInputStream(), 512) > 0) {}
+      while(stdErr.append(p.getErrorStream(), 512) > 0) {}
       throw new IllegalStateException(
           "setup server process failed:\n" +
           "exit value: " + p.exitValue() + "\n" +

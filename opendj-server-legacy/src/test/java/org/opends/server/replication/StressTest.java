@@ -267,7 +267,9 @@ public class StressTest extends ReplicationTestCase
         {
           ReplicationMsg msg = broker.receive();
           if (msg == null)
+          {
             break;
+          }
           count ++;
         }
       } catch (Exception e)
@@ -318,10 +320,13 @@ public class StressTest extends ReplicationTestCase
     {
       Attribute attr;
       if (reader == null)
+      {
         attr = Attributes.create("received-messages", "not yet started");
+      }
       else
-        attr = Attributes.create("received-messages", String
-            .valueOf(reader.getCurrentCount()));
+      {
+        attr = Attributes.create("received-messages", String.valueOf(reader.getCurrentCount()));
+      }
       List<Attribute> list = new LinkedList<>();
       list.add(attr);
       attr = Attributes.create("base-dn", "ou=People," + TEST_ROOT_DN_STRING);

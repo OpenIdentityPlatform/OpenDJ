@@ -2245,7 +2245,9 @@ private static String _buildAciValue(String attr, String... aciFields) {
     ldif.append("changetype: modify").append(EOL);
     ldif.append("add: " + attr).append(EOL);
     for(String aci : acis)
-        ldif.append(aci).append(EOL);
+    {
+      ldif.append(aci).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }
@@ -2342,7 +2344,9 @@ private static String _buildAciValue(String attr, String... aciFields) {
     argList.add("-f");
     argList.add(tempFile.getAbsolutePath());
     if(contFlag)
-        argList.add("-c");
+    {
+      argList.add("-c");
+    }
     if(proxyDN != null) {
         argList.add("-Y");
         argList.add("dn:" + proxyDN);
@@ -2376,7 +2380,9 @@ private static String _buildAciValue(String attr, String... aciFields) {
     ldif.append("newrdn: " + newRDN).append(EOL);
     ldif.append("deleteoldrdn: " + deleteOldRDN).append(EOL);
     if(newSuperior != null)
-       ldif.append("newsuperior: " + newSuperior).append(EOL);
+    {
+      ldif.append("newsuperior: " + newSuperior).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }
@@ -2535,11 +2541,17 @@ private static String _buildAciValue(String attr, String... aciFields) {
         ldif.append("userpassword: ").append(password).append(EOL);
         for(String attr : attrs) {
             if(attr.startsWith("ldap://"))
-                ldif.append("labeledURI: ").append(attr).append(EOL);
+            {
+              ldif.append("labeledURI: ").append(attr).append(EOL);
+            }
             else if(attr.startsWith("cn=group"))
-                ldif.append("seeAlso: ").append(attr).append(EOL);
+            {
+              ldif.append("seeAlso: ").append(attr).append(EOL);
+            }
             else
-               ldif.append("manager: ").append(attr).append(EOL);
+            {
+              ldif.append("manager: ").append(attr).append(EOL);
+            }
         }
         ldif.append(EOL);
         return ldif.toString();
@@ -2558,7 +2570,9 @@ private static String _buildAciValue(String attr, String... aciFields) {
     ldif.append("objectclass: groupOfNames").append(EOL);
     ldif.append("objectclass: top").append(EOL);
     for(String member : members)
-        ldif.append("member: " + member).append(EOL);
+    {
+      ldif.append("member: " + member).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }

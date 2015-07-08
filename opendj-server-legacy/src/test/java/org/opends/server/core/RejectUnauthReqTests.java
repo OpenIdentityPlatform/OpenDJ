@@ -76,6 +76,7 @@ public class RejectUnauthReqTests extends CoreTestCase
         "description: Reject Test Case");
     String[] args = null;
     if (authentication)
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -91,7 +92,9 @@ public class RejectUnauthReqTests extends CoreTestCase
           "-f",
           filePath,
       };
+    }
     else
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -103,6 +106,7 @@ public class RejectUnauthReqTests extends CoreTestCase
           "-f",
           filePath,
       };
+    }
     return LDAPModify.mainModify(args, false, null, null);
   }
 
@@ -125,6 +129,7 @@ public class RejectUnauthReqTests extends CoreTestCase
         "description: New Description");
     String[] args = null;
     if (authentication)
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -139,7 +144,9 @@ public class RejectUnauthReqTests extends CoreTestCase
           "-f",
           path
       };
+    }
     else
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -150,6 +157,7 @@ public class RejectUnauthReqTests extends CoreTestCase
           "-f",
           path
       };
+    }
     return LDAPModify.mainModify(args, false, null, null);
   }
 
@@ -169,6 +177,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     String[] args = null;
     if (authentication)
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -183,7 +192,9 @@ public class RejectUnauthReqTests extends CoreTestCase
           "o:test",
           "o=test"
       };
+    }
     else
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -194,6 +205,7 @@ public class RejectUnauthReqTests extends CoreTestCase
           "o:test",
           "o=test"
       };
+    }
 
     return LDAPCompare.mainCompare(args, false, null, null);
   }
@@ -217,6 +229,7 @@ public class RejectUnauthReqTests extends CoreTestCase
             "newrdn: o=mod_rejectTestCase", "deleteoldrdn: 0");
     String[] args = null;
     if (authentication)
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -231,7 +244,9 @@ public class RejectUnauthReqTests extends CoreTestCase
           "-f",
           path
       };
+    }
     else
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -242,6 +257,7 @@ public class RejectUnauthReqTests extends CoreTestCase
           "-f",
           path
       };
+    }
     return LDAPModify.mainModify(args, false, null, null);
   }
 
@@ -261,6 +277,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     String[] args = null;
     if (authentication)
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -276,7 +293,9 @@ public class RejectUnauthReqTests extends CoreTestCase
           "password",
           "o=mod_rejectTestCase,o=test"
       };
+    }
     else
+    {
       args = new String[]
       {
           "--noPropertiesFile",
@@ -286,6 +305,7 @@ public class RejectUnauthReqTests extends CoreTestCase
           String.valueOf(TestCaseUtils.getServerLdapPort()),
           "o=mod_rejectTestCase,o=test"
       };
+    }
     return LDAPDelete.mainDelete(args, false, null, null);
   }
 

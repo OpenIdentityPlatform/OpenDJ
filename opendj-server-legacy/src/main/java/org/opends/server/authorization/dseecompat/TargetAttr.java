@@ -113,7 +113,9 @@ public class TargetAttr {
             String attribute = attr.toLowerCase();
             if(attribute.equals("*")) {
                 if(!allUserAttributes)
-                    allUserAttributes=true;
+                {
+                  allUserAttributes=true;
+                }
                 else {
                     LocalizableMessage message =
                         WARN_ACI_TARGETATTR_INVALID_ATTR_TOKEN.get(attrStr);
@@ -121,7 +123,9 @@ public class TargetAttr {
                 }
             } else if(attribute.equals("+")) {
                 if(!allOpAttributes)
-                    allOpAttributes=true;
+                {
+                  allOpAttributes=true;
+                }
                 else {
                     LocalizableMessage message =
                         WARN_ACI_TARGETATTR_INVALID_ATTR_TOKEN.get(attrStr);
@@ -133,9 +137,13 @@ public class TargetAttr {
                     attrType = DirectoryServer.getDefaultAttributeType(attribute);
                 }
                 if(attrType.isOperational())
-                    opAttributes.add(attrType);
+                {
+                  opAttributes.add(attrType);
+                }
                 else
-                    attributes.add(attrType);
+                {
+                  attributes.add(attrType);
+                }
             }
         }
     }

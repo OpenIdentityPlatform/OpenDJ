@@ -227,11 +227,21 @@ public class MatchedValuesControlTest
       subInitialTestCurrent = null;
       subAnyTestCurrent     = null;
       subFinalTestCurrent   = null;
-      if ((i & 0x8) != 0) attTypeCurrent        = attTypeTest;
-      if ((i & 0x8) != 0) rawAttTypeTestCurrent = rawAttTypeTest;
-      if ((i & 0x4) != 0) subInitialTestCurrent = subInitialTest;
-      if ((i & 0x2) != 0) subAnyTestCurrent     = subAnyTest;
-      if ((i & 0x1) != 0) subFinalTestCurrent   = subFinalTest;
+      if ((i & 0x8) != 0) {
+        attTypeCurrent        = attTypeTest;
+      }
+      if ((i & 0x8) != 0) {
+        rawAttTypeTestCurrent = rawAttTypeTest;
+      }
+      if ((i & 0x4) != 0) {
+        subInitialTestCurrent = subInitialTest;
+      }
+      if ((i & 0x2) != 0) {
+        subAnyTestCurrent     = subAnyTest;
+      }
+      if ((i & 0x1) != 0) {
+        subFinalTestCurrent   = subFinalTest;
+      }
 
       if (attTypeCurrent == null)
       {
@@ -716,11 +726,21 @@ public class MatchedValuesControlTest
       attTypeTestCurrent = null;
       attValueTestCurrent = null ;
 
-      if ((i & 0x4) != 0) attTypeTestCurrent = attTypeTest;
-      if ((i & 0x4) != 0) rawAttTypeTestCurrent = rawAttTypeTest;
-      if ((i & 0x2) != 0) rawMatchingRuleidTestCurrent = matchingRuleIdTest;
-      if ((i & 0x2) != 0) matchingRuleidTestCurrent = matchingRule ;
-      if ((i & 0x1) != 0) attValueTestCurrent = attValueTest;
+      if ((i & 0x4) != 0) {
+        attTypeTestCurrent = attTypeTest;
+      }
+      if ((i & 0x4) != 0) {
+        rawAttTypeTestCurrent = rawAttTypeTest;
+      }
+      if ((i & 0x2) != 0) {
+        rawMatchingRuleidTestCurrent = matchingRuleIdTest;
+      }
+      if ((i & 0x2) != 0) {
+        matchingRuleidTestCurrent = matchingRule ;
+      }
+      if ((i & 0x1) != 0) {
+        attValueTestCurrent = attValueTest;
+      }
 
       boolean exceptionExpected = (attTypeTestCurrent == null)
           || (attValueTestCurrent == null) || (matchingRuleidTestCurrent == null);

@@ -332,11 +332,17 @@ public class GenerationIdTest extends ReplicationTestCase
     if (all)
     {
       if (replServerId != replServerId1)
+      {
         servers.add("localhost:" + getRSPort(replServerId1));
+      }
       if (replServerId != replServerId2)
+      {
         servers.add("localhost:" + getRSPort(replServerId2));
+      }
       if (replServerId != replServerId3)
+      {
         servers.add("localhost:" + getRSPort(replServerId3));
+      }
     }
     int rsPort = getRSPort(replServerId);
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
@@ -1012,7 +1018,9 @@ public class GenerationIdTest extends ReplicationTestCase
       if (replServer1.getGenerationId(baseDN) == expectedGenId
           && replServer2.getGenerationId(baseDN) == expectedGenId
           && replServer3.getGenerationId(baseDN) == expectedGenId)
+      {
         break;
+      }
       wait++;
       Thread.sleep(100);
     }

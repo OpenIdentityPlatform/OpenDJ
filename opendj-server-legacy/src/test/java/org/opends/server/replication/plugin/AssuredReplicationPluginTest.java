@@ -757,7 +757,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
         1, testcase);
       if (rsGroupId != 1)
+      {
         replicationServer.setAssured(false);
+      }
       replicationServer.start(TIMEOUT_SCENARIO);
 
       long startTime;
@@ -866,7 +868,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
         true, testcase);
       if (rsGroupId != 1)
+      {
         replicationServer.setAssured(false);
+      }
       replicationServer.start(TIMEOUT_SCENARIO);
 
       long startTime;
@@ -983,8 +987,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     do
     {
       nsec++;
-      if (nsec == 10) // 10 seconds timeout
+      if (nsec == 10)
+      {
         fail(testCase + ": timeout waiting for domain connection to fake RS after " + nsec + " seconds.");
+      }
       Thread.sleep(1000);
     } while (!rs.isHandshakeOk());
   }
@@ -999,8 +1005,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     do
     {
       nsec++;
-      if (nsec == 10) // 10 seconds timeout
+      if (nsec == 10)
+      {
         fail(testCase + ": timeout waiting for scenario to be exectued on fake RS after " + nsec + " seconds.");
+      }
       Thread.sleep(1000);
     } while (!rs.isScenarioExecuted());
   }
@@ -1143,7 +1151,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
 
         if (rsGroupId == 2)
-           fail("Should only go here for RS with same group id as DS");
+        {
+          fail("Should only go here for RS with same group id as DS");
+        }
 
         // Ack received, replay has occurred
         assertNotNull(DirectoryServer.getEntry(entry.getName()));
@@ -1166,7 +1176,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       {
         // Expected
         if (rsGroupId == 1)
-           fail("Should only go here for RS with group id different from DS one");
+        {
+          fail("Should only go here for RS with group id different from DS one");
+        }
 
         return;
       }
@@ -1468,7 +1480,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     do
     {
       if (count++>0)
+      {
         Thread.sleep(100);
+      }
       final SearchRequest request = newSearchRequest(dn, SearchScope.WHOLE_SUBTREE, monitorFilter);
       op = connection.processSearch(request);
     }
@@ -1497,7 +1511,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     List<Attribute> attrs = entry.getAttribute(assuredAttr);
     if (attrs == null || attrs.isEmpty())
+    {
       return Collections.emptyMap();
+    }
 
     // Parse and store values
     Map<Integer,Integer> resultMap = new HashMap<>();
@@ -1525,8 +1541,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       Thread.sleep(50);
       ii++;
       if (ii>10)
+      {
         assertEquals(operation.getResultCode(), expectedResult,
             operation.getErrorMessage().toString());
+      }
     }
   }
 }

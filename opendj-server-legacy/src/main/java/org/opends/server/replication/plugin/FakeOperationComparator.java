@@ -39,7 +39,9 @@ public class FakeOperationComparator implements Comparator<FakeOperation>
   public int compare(FakeOperation op1, FakeOperation op2)
   {
     if (op1 == null)
+    {
       return -1;
+    }
     return op1.getCSN().compareTo(op2.getCSN());
   }
 }

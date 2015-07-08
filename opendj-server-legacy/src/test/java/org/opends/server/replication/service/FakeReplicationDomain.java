@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -155,7 +155,9 @@ public class FakeReplicationDomain extends ReplicationDomain
             ERR_BACKEND_EXPORT_ENTRY.get("", ""));
       }
       if (ret>0)
+      {
         importString.append(new String(buffer, 0, ret));
+      }
     }
     while (ret >= 0);
   }
@@ -164,7 +166,9 @@ public class FakeReplicationDomain extends ReplicationDomain
   public boolean processUpdate(UpdateMsg updateMsg)
   {
     if (queue != null)
+    {
       queue.add(updateMsg);
+    }
     return true;
   }
 

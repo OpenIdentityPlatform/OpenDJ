@@ -383,12 +383,16 @@ public class LDIFSearch
       //Single '+', never return objectclass.
       if(allOperationalAttrs && objectClassNames.isEmpty() &&
          attributeNames.isEmpty())
+      {
         includeObjectclassAttrs=false;
+      }
       //If "objectclass" isn't specified in the attributes to return, then
       //don't include objectclass attribute.
       if(!attributeNames.isEmpty() && objectClassNames.isEmpty() &&
          !attributeNames.contains("objectclass"))
-         includeObjectclassAttrs=false;
+      {
+        includeObjectclassAttrs=false;
+      }
     }
 
 

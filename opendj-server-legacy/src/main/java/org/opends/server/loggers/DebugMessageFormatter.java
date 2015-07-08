@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -135,7 +135,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -148,7 +151,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -161,7 +167,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -174,7 +183,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -187,7 +199,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -200,7 +215,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -213,7 +231,10 @@ class DebugMessageFormatter
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
     for (int i= 0; i < array.length; i++) {
-      if (i > 0) buffer.append(", ");
+      if (i > 0)
+      {
+        buffer.append(", ");
+      }
       buffer.append(array[i]);
     }
     buffer.append(" ]");
@@ -229,7 +250,10 @@ class DebugMessageFormatter
     boolean firstElement= true;
     while (iter.hasNext()) {
       Object lValue= iter.next();
-      if (!firstElement) buffer.append(", ");
+      if (!firstElement)
+      {
+        buffer.append(", ");
+      }
       buffer.append(decorateArg(lValue));
       firstElement= false;
     }
@@ -246,7 +270,10 @@ class DebugMessageFormatter
     boolean firstEntry= true;
     while (iter.hasNext()) {
       Map.Entry entry= (Map.Entry)iter.next();
-      if (!firstEntry) buffer.append(", ");
+      if (!firstEntry)
+      {
+        buffer.append(", ");
+      }
       buffer.append(decorateArg(entry.getKey()));
       buffer.append("=");
       buffer.append(decorateArg(entry.getValue()));

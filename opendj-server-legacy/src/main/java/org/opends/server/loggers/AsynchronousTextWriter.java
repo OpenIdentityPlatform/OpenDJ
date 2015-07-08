@@ -257,7 +257,10 @@ class AsynchronousTextWriter
     }
 
     // Shutdown the wrapped writer.
-    if (shutdownWrapped && writer != null) writer.shutdown();
+    if (shutdownWrapped && writer != null)
+    {
+      writer.shutdown();
+    }
 
     DirectoryServer.deregisterShutdownListener(this);
   }

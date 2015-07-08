@@ -159,12 +159,14 @@ public class DirectoryRMIServerSocketFactory implements
    */
   public boolean equals(Object obj)
   {
-    if (obj == null)
-      return false;
     if (obj == this)
+    {
       return true;
+    }
     if (!(obj instanceof DirectoryRMIServerSocketFactory))
+    {
       return false;
+    }
     DirectoryRMIServerSocketFactory that =
       (DirectoryRMIServerSocketFactory) obj;
     return (getClass().equals(that.getClass()) && checkParameters(that));

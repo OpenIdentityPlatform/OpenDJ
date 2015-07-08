@@ -82,7 +82,10 @@ public abstract class AuthenticationPolicy
     {
       for (Attribute a : attrList)
       {
-        if (a.isEmpty()) continue;
+        if (a.isEmpty())
+        {
+          continue;
+        }
 
         ByteString v = a.iterator().next();
         DN subentryDN;

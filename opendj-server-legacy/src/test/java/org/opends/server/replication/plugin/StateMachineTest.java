@@ -154,9 +154,13 @@ public class StateMachineTest extends ReplicationTestCase
       // Test connection
       boolean connected = false;
       if (rd != null)
+      {
         connected = rd.isConnected();
+      }
       else
+      {
         connected = rb.isConnected();
+      }
 
       if (connected)
       {
@@ -394,9 +398,18 @@ public class StateMachineTest extends ReplicationTestCase
     } finally
     {
       endTest();
-      if (bw != null) bw.shutdown();
-      if (br3 != null) br3.shutdown();
-      if (br2 != null) br2.shutdown();
+      if (bw != null)
+      {
+        bw.shutdown();
+      }
+      if (br3 != null)
+      {
+        br3.shutdown();
+      }
+      if (br2 != null)
+      {
+        br2.shutdown();
+      }
     }
   }
 
@@ -670,8 +683,14 @@ public class StateMachineTest extends ReplicationTestCase
     {
       // Finalize test
       endTest();
-      if (bw != null) bw.shutdown();
-      if (br != null) br.shutdown();
+      if (bw != null)
+      {
+        bw.shutdown();
+      }
+      if (br != null)
+      {
+        br.shutdown();
+      }
     }
   }
 
@@ -1006,7 +1025,9 @@ public class StateMachineTest extends ReplicationTestCase
     public void pause()
     {
       if (isPaused())
+      {
         return; // Already suspended
+      }
       suspended.set(true);
       // Wait for all messages sent
       while (!sessionDone.get())
@@ -1135,12 +1156,16 @@ public class StateMachineTest extends ReplicationTestCase
           ReplicationMsg msg = rb.receive(); // Allow more messages to be sent by broker writer
           rb.updateWindowAfterReplay();  // Allow RS to send more messages to broker
           if (msg != null)
+          {
             debugInfo("Broker " + serverId + " reader received: " + msg);
+          }
           lastMsg = msg;
         } catch (SocketTimeoutException ex)
         {
           if (shutdown)
+          {
             return;
+          }
         }
       }
       debugInfo("Broker " + serverId + " reader thread is dying");

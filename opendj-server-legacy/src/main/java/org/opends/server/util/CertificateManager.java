@@ -204,13 +204,19 @@ public final class CertificateManager {
     Enumeration<String> aliasEnumeration = null;
     KeyStore keyStore = getKeyStore();
     if (keyStore == null)
+    {
       return null;
+    }
     aliasEnumeration = keyStore.aliases();
     if (aliasEnumeration == null)
+    {
       return new String[0];
+    }
     ArrayList<String> aliasList = new ArrayList<>();
     while (aliasEnumeration.hasMoreElements())
+    {
       aliasList.add(aliasEnumeration.nextElement());
+    }
     String[] aliases = new String[aliasList.size()];
     return aliasList.toArray(aliases);
   }

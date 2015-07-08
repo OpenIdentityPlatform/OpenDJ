@@ -116,7 +116,9 @@ public class HistoricalAttributeValue
        // modifications were done to the entries.
       attrType = DirectoryServer.getSchema().getAttributeType(attrString);
       if (attrType == null)
+      {
         attrType = DirectoryServer.getDefaultAttributeType(attrString);
+      }
     }
     else
     {

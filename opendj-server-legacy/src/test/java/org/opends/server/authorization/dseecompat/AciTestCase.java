@@ -230,7 +230,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add(filter);
     String[] attrs=attr.split("\\s+");
     for(String a : attrs)
-     argList.add(a);
+    {
+      argList.add(a);
+    }
     String[] args = new String[argList.size()];
     oStream.reset();
     int retVal =
@@ -299,14 +301,11 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add("sub");
     argList.add(filter);
     if(attr != null) {
-      String[] attrs=attr.split("\\s+");
-      for(String a : attrs)
-        argList.add(a);
+      Collections.addAll(argList, attr.split("\\s+"));
     }
     String[] args = new String[argList.size()];
     oStream.reset();
-    int retVal =
-         LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
+    int retVal = LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
     Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
     return oStream.toString();
   }
@@ -320,8 +319,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   protected void LDIFModify(String ldif, String bindDn, String bindPassword,
       String controlStr, int expectedRc) throws Exception
   {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, expectedRc,
-        false);
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, expectedRc, false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword)
@@ -462,7 +460,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =LDAPModify.mainModify(args, false, oStream, oStream);
     if (expectedRc != -1)
+    {
       Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
+    }
   }
 
   protected void deleteAttrFromEntry(String dn, String attr) throws Exception {
@@ -493,7 +493,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     ldif.append("newrdn: ").append(newRDN).append(EOL);
     ldif.append("deleteoldrdn: ").append(deleteOldRDN).append(EOL);
     if(newSuperior != null)
-       ldif.append("newsuperior: ").append(newSuperior).append(EOL);
+    {
+      ldif.append("newsuperior: ").append(newSuperior).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }
@@ -504,7 +506,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     ldif.append("changetype: modify").append(EOL);
     ldif.append("delete: ").append(attr).append(EOL);
     for(String aci : acis)
+    {
       ldif.append(attr).append(":").append(aci).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }
@@ -514,7 +518,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     ldif.append("dn: ").append(dn).append(EOL);
     ldif.append("changetype: add").append(EOL);
     for(String l : lines)
-       ldif.append(l).append(EOL);
+    {
+      ldif.append(l).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }
@@ -525,7 +531,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     ldif.append("changetype: modify").append(EOL);
     ldif.append("add: ").append(attr).append(EOL);
     for(String aci : acis)
+    {
       ldif.append(attr).append(":").append(aci).append(EOL);
+    }
     ldif.append(EOL);
     return ldif.toString();
   }
@@ -725,12 +733,18 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
       while(true) {
         String s = br.readLine();
         if(s == null)
+        {
           break;
+        }
         if(s.startsWith("dn:"))
+        {
           continue;
+        }
         String[] a=s.split(": ");
         if(a.length != 2)
+        {
           break;
+        }
         attrMap.put(a[0].toLowerCase(),a[1]);
       }
     } catch (IOException e) {

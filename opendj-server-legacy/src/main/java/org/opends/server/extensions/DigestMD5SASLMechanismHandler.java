@@ -252,12 +252,13 @@ public class DigestMD5SASLMechanismHandler
   private String
   getQOP(DigestMD5SASLMechanismHandlerCfg configuration) {
       QualityOfProtection QOP = configuration.getQualityOfProtection();
-      if(QOP.equals(QualityOfProtection.CONFIDENTIALITY))
-          return "auth-conf";
-      else if(QOP.equals(QualityOfProtection.INTEGRITY))
-          return "auth-int";
-      else
-          return "auth";
+      if(QOP.equals(QualityOfProtection.CONFIDENTIALITY)) {
+        return "auth-conf";
+      } else if(QOP.equals(QualityOfProtection.INTEGRITY)) {
+        return "auth-int";
+      } else {
+        return "auth";
+      }
   }
 
 

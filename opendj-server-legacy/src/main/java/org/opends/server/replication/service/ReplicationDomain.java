@@ -439,8 +439,10 @@ public abstract class ReplicationDomain
   private void receiveChangeStatus(ChangeStatusMsg csMsg)
   {
     if (logger.isTraceEnabled())
+    {
       logger.trace("Replication domain " + getBaseDN() +
         " received change status message:\n" + csMsg);
+    }
 
     ServerStatus reqStatus = csMsg.getRequestedStatus();
 
@@ -485,8 +487,9 @@ public abstract class ReplicationDomain
         break;
       default:
         if (logger.isTraceEnabled())
-          logger.trace("updateDomainForNewStatus: unexpected status: " +
-            status);
+        {
+          logger.trace("updateDomainForNewStatus: unexpected status: " + status);
+        }
     }
   }
 
@@ -790,10 +793,12 @@ public abstract class ReplicationDomain
             receiveEntryBytes() method.
             */
             if (logger.isTraceEnabled())
+            {
               logger.trace(
                   "[IE] processErrorMsg:" + getServerId() +
                   " baseDN: " + getBaseDN() +
                   " Error Msg received: " + errorMsg);
+            }
 
             if (errorMsg.getCreationTime() > ieCtx.startTime)
             {
@@ -1050,7 +1055,9 @@ public abstract class ReplicationDomain
     public void run()
     {
       if (logger.isTraceEnabled())
+      {
         logger.trace("[IE] starting " + getName());
+      }
       try
       {
         initializeRemote(serverIdToInitialize, serverIdToInitialize, null,
@@ -1065,7 +1072,9 @@ public abstract class ReplicationDomain
       }
 
       if (logger.isTraceEnabled())
+      {
         logger.trace("[IE] ending " + getName());
+      }
     }
   }
 
@@ -1305,7 +1314,9 @@ public abstract class ReplicationDomain
     private void setAckVal(int serverId, int numAck)
     {
       if (logger.isTraceEnabled())
+      {
         logger.trace("[IE] setAckVal[" + serverId + "]=" + numAck);
+      }
 
       this.ackVals.put(serverId, numAck);
 
@@ -1329,8 +1340,10 @@ public abstract class ReplicationDomain
     public int getSlowestServer()
     {
       if (logger.isTraceEnabled())
+      {
         logger.trace("[IE] getSlowestServer" + slowestServerId
             + " " + this.ackVals.get(slowestServerId));
+      }
 
       return this.slowestServerId;
     }
@@ -1512,9 +1525,11 @@ public abstract class ReplicationDomain
       }
 
       if (logger.isTraceEnabled())
+      {
         logger.trace("[IE] In " + broker.getReplicationMonitorInstanceName()
             + " export ends with connected=" + broker.isConnected()
             + " exportRootException=" + exportRootException);
+      }
 
       if (exportRootException != null)
       {
@@ -1534,8 +1549,9 @@ public abstract class ReplicationDomain
             // We are still disconnected, so we wait for the listener thread
             // to reconnect - wait 10s
             if (logger.isTraceEnabled())
-              logger.trace(
-                "[IE] Exporter wait for reconnection by the listener thread");
+            {
+              logger.trace("[IE] Exporter wait for reconnection by the listener thread");
+            }
             int att=0;
             while (!broker.shuttingDown()
                 && !broker.isConnected()
@@ -1626,8 +1642,9 @@ public abstract class ReplicationDomain
     final Set<Integer> replicasWeAreWaitingFor = new HashSet<>(ieCtx.startList);
 
     if (logger.isTraceEnabled())
-      logger.trace(
-      "[IE] wait for start replicasWeAreWaitingFor=" + replicasWeAreWaitingFor);
+    {
+      logger.trace("[IE] wait for start replicasWeAreWaitingFor=" + replicasWeAreWaitingFor);
+    }
 
     int waitResultAttempt = 0;
     boolean done;
@@ -1637,11 +1654,13 @@ public abstract class ReplicationDomain
       for (DSInfo dsi : getReplicaInfos().values())
       {
         if (logger.isTraceEnabled())
+        {
           logger.trace(
             "[IE] wait for start dsId " + dsi.getDsId()
             + " " + dsi.getStatus()
             + " " + dsi.getGenerationId()
             + " " + getGenerationID());
+        }
         if (ieCtx.startList.contains(dsi.getDsId()))
         {
           if (dsi.getStatus() != ServerStatus.FULL_UPDATE_STATUS)
@@ -1669,8 +1688,9 @@ public abstract class ReplicationDomain
     ieCtx.failureList.addAll(replicasWeAreWaitingFor);
 
     if (logger.isTraceEnabled())
-      logger.trace(
-        "[IE] wait for start ends with " + ieCtx.failureList);
+    {
+      logger.trace("[IE] wait for start ends with " + ieCtx.failureList);
+    }
   }
 
   /**
@@ -1683,8 +1703,9 @@ public abstract class ReplicationDomain
     final Set<Integer> replicasWeAreWaitingFor = new HashSet<>(ieCtx.startList);
 
     if (logger.isTraceEnabled())
-      logger.trace(
-        "[IE] wait for end replicasWeAreWaitingFor=" + replicasWeAreWaitingFor);
+    {
+      logger.trace("[IE] wait for end replicasWeAreWaitingFor=" + replicasWeAreWaitingFor);
+    }
 
     /*
     In case some new servers appear during the init, we want them to be
@@ -1759,8 +1780,9 @@ public abstract class ReplicationDomain
     ieCtx.failureList.addAll(replicasWeAreWaitingFor);
 
     if (logger.isTraceEnabled())
-      logger.trace(
-        "[IE] wait for end ends with " + ieCtx.failureList);
+    {
+      logger.trace("[IE] wait for end ends with " + ieCtx.failureList);
+    }
   }
 
   /**
@@ -2005,8 +2027,9 @@ public abstract class ReplicationDomain
       throws IOException
   {
     if (logger.isTraceEnabled())
-      logger.trace("[IE] Entering exportLDIFEntry entry=" +
-          Arrays.toString(lDIFEntry));
+    {
+      logger.trace("[IE] Entering exportLDIFEntry entry=" + Arrays.toString(lDIFEntry));
+    }
 
     // build the message
     ImportExportContext ieCtx = importExportContext.get();
@@ -2041,13 +2064,17 @@ public abstract class ReplicationDomain
       int slowestCnt = ieCtx.ackVals.get(slowestServerId);
 
       if (logger.isTraceEnabled())
+      {
         logger.trace("[IE] Entering exportLDIFEntry waiting " +
             " our=" + ourLastExportedCnt + " slowest=" + slowestCnt);
+      }
 
       if ((ourLastExportedCnt - slowestCnt) > ieCtx.initWindow)
       {
         if (logger.isTraceEnabled())
+        {
           logger.trace("[IE] Entering exportLDIFEntry waiting");
+        }
 
         // our export is too far beyond the slowest importer - let's wait
         try { Thread.sleep(100); }
@@ -2068,14 +2095,17 @@ public abstract class ReplicationDomain
       else
       {
         if (logger.isTraceEnabled())
+        {
           logger.trace("[IE] slowest got to us => stop waiting");
+        }
         break;
       }
     } // Waiting the slowest loop
 
     if (logger.isTraceEnabled())
-      logger.trace("[IE] Entering exportLDIFEntry pub entry="
-          + Arrays.toString(lDIFEntry));
+    {
+      logger.trace("[IE] Entering exportLDIFEntry pub entry=" + Arrays.toString(lDIFEntry));
+    }
 
     boolean sent = broker.publish(entryMessage, false);
 

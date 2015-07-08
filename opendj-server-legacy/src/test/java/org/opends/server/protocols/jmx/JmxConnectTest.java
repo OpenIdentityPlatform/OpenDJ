@@ -509,8 +509,11 @@ public class JmxConnectTest extends JmxTestCase {
     String[] credentials;
     if ((user == null) && (password == null)) {
       credentials = null;
-    } else
+    }
+    else
+    {
       credentials = new String[] { user, password };
+    }
     env.put("jmx.remote.credentials", credentials);
 
     env.put("jmx.remote.x.client.connection.check.period", 0);
@@ -543,8 +546,11 @@ public class JmxConnectTest extends JmxTestCase {
     String[] credentials;
     if ((user == null) && (password == null)) {
       credentials = null;
-    } else
+    }
+    else
+    {
       credentials = new String[] { user, password };
+    }
     env.put("jmx.remote.credentials", credentials);
 
     // Provide the Trust manager.
@@ -601,7 +607,9 @@ public class JmxConnectTest extends JmxTestCase {
     Attribute status = (Attribute) mbsc.getAttribute(name,
         "ds-cfg-enabled");
     if (status != null)
+    {
       status.getValue();
+    }
     Attribute attr = new Attribute(
         "ds-cfg-enabled", enabled);
     mbsc.setAttribute(name, attr);

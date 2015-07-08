@@ -446,7 +446,9 @@ public class AciListenerManager implements
       {
         int validAcis = aciList.addAci(internalSearch.getSearchEntries(), failedACIMsgs);
         if (!failedACIMsgs.isEmpty())
+        {
           logMsgsSetLockDownMode(failedACIMsgs);
+        }
         logger.debug(INFO_ACI_ADD_LIST_ACIS, validAcis, baseDN);
       }
     }
@@ -530,7 +532,9 @@ public class AciListenerManager implements
       logger.warn(WARN_ACI_SERVER_DECODE_FAILED, msg);
     }
     if (!inLockDownMode)
+    {
       setLockDownMode();
+    }
   }
 
 

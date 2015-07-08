@@ -256,9 +256,11 @@ implements AciTargetMatchContext, AciEvalContext {
             && operation instanceof SearchOperation)
         {
           hasGetEffectiveRightsControl = true;
-          if (getEffectiveRightsControl.getAuthzDN() == null)
+          if (getEffectiveRightsControl.getAuthzDN() == null) {
             this.authzid = getClientDN();
-          else this.authzid = getEffectiveRightsControl.getAuthzDN();
+          } else {
+            this.authzid = getEffectiveRightsControl.getAuthzDN();
+          }
           this.specificAttrs = getEffectiveRightsControl.getAttributes();
         }
 
@@ -268,13 +270,17 @@ implements AciTargetMatchContext, AciEvalContext {
         String allUserAttrs=
                   (String)operation.getAttachment(ALL_USER_ATTRS_MATCHED);
         if(allUserAttrs != null)
+        {
           evalAllAttributes |= ACI_USER_ATTR_STAR_MATCHED;
+        }
         //If an ACI evaluated because of an Targetattr="+", then the
         //AciHandler.maySend method signaled this via adding this attachment
         //string.
         String allOpAttrs=(String)operation.getAttachment(ALL_OP_ATTRS_MATCHED);
         if(allOpAttrs != null)
+        {
           evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
+        }
       }
 
       //Reference the current authorization entry, so it can be put back
@@ -433,9 +439,10 @@ implements AciTargetMatchContext, AciEvalContext {
     /** {@inheritDoc} */
     @Override
     public String getDecidingAciName() {
-      if(this.decidingAci != null)
-         return this.decidingAci.getName();
-      else return null;
+      if(this.decidingAci != null) {
+        return this.decidingAci.getName();
+      }
+      return null;
     }
 
   /** {@inheritDoc} */
@@ -575,9 +582,13 @@ implements AciTargetMatchContext, AciEvalContext {
     @Override
     public DN getClientDN() {
       if(this.useAuthzid)
+      {
         return this.authzid;
+      }
       else if (this.authorizationEntry != null)
+      {
         return this.authorizationEntry.getName();
+      }
       return DN.rootDN();
     }
 
@@ -748,26 +759,46 @@ implements AciTargetMatchContext, AciEvalContext {
     @Override
     public String rightToString() {
       if(hasRights(ACI_SEARCH))
+      {
         return "search";
+      }
       else if(hasRights(ACI_COMPARE))
+      {
         return "compare";
+      }
       else if(hasRights(ACI_READ))
+      {
         return "read";
+      }
       else if(hasRights(ACI_DELETE))
+      {
         return "delete";
+      }
       else if(hasRights(ACI_ADD))
+      {
         return "add";
+      }
       else if(hasRights(ACI_WRITE))
+      {
         return "write";
+      }
       else if(hasRights(ACI_PROXY))
+      {
         return "proxy";
+      }
       else if(hasRights(ACI_IMPORT))
+      {
         return "import";
+      }
       else if(hasRights(ACI_EXPORT))
+      {
         return "export";
+      }
       else if(hasRights(ACI_WRITE) &&
               hasRights(ACI_SELF))
+      {
         return "selfwrite";
+      }
       return null;
   }
 
@@ -778,8 +809,11 @@ implements AciTargetMatchContext, AciEvalContext {
       if(v == ACI_FOUND_USER_ATTR_RULE) {
         evalAllAttributes |= ACI_FOUND_USER_ATTR_RULE;
         evalAllAttributes &= ~ACI_USER_ATTR_STAR_MATCHED;
-      } else
+      }
+      else
+      {
         evalAllAttributes |= ACI_USER_ATTR_STAR_MATCHED;
+      }
     }
   }
 
@@ -790,8 +824,11 @@ implements AciTargetMatchContext, AciEvalContext {
       if(v == ACI_FOUND_OP_ATTR_RULE) {
         evalAllAttributes |= ACI_FOUND_OP_ATTR_RULE;
         evalAllAttributes &= ~ACI_OP_ATTR_PLUS_MATCHED;
-      } else
+      }
+      else
+      {
         evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
+      }
     }
   }
 
@@ -836,9 +873,13 @@ implements AciTargetMatchContext, AciEvalContext {
   @Override
   public void clearEvalAttributes(int v) {
     if(v == 0)
+    {
       evalAllAttributes=0;
+    }
     else
+    {
       evalAllAttributes &= ~v;
+    }
   }
 
   /** {@inheritDoc} */

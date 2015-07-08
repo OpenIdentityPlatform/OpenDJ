@@ -115,8 +115,10 @@ public class PasswordControlTest
     Set<Integer> keys = exceptedValues.keySet() ;
     for (int i=-10 ; i< 10 ; i++)
     {
-      if (keys.contains(i)) continue ;
-      assertNull(PasswordPolicyErrorType.valueOf(i));
+      if (!keys.contains(i))
+      {
+        assertNull(PasswordPolicyErrorType.valueOf(i));
+      }
     }
   }
 

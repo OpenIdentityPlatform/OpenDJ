@@ -290,9 +290,13 @@ public final class Crypt
       int a = IP[j] - 1;
       int b = block[a];
       if (j <= 31)
+      {
         _c._L[j] = b;
+      }
       else
+      {
         _c._R[j - 32] = b;
+      }
     }
     /*
      * Perform an encryption operation 16 times.
@@ -320,7 +324,9 @@ public final class Crypt
        * key bits.
        */
       for (int j = 0; j < 48; j++)
+      {
         _c._preS[j] = _c._R[_c._E[j] - 1] ^ _c._KS[i][j];
+      }
       /*
        * The pre-select bits are now considered in 8 groups of 6 bits each. The
        * 8 selection functions map these 6-bit quantities into 4-bit quantities
@@ -344,7 +350,9 @@ public final class Crypt
        * The new R is L ^ f(R, K). The f here has to be permuted first, though.
        */
       for (int j = 0; j < 32; j++)
+      {
         _c._R[j] = _c._L[j] ^ _c._f[P[j] - 1];
+      }
       /*
        * Finally, the new L (the original R) is copied back.
        */
@@ -426,7 +434,9 @@ public final class Crypt
     {
       int c = pw[n];
       for (int j = 0; j < 7; j++, i++)
+      {
         _c._ablock[i] = (c >> (6 - j)) & 01;
+      }
       i++;
     }
 
@@ -440,8 +450,14 @@ public final class Crypt
     {
       int c = salt[i];
       _c._iobuf[i] = c;
-      if (c > 'Z') c -= 6;
-      if (c > '9') c -= 7;
+      if (c > 'Z')
+      {
+        c -= 6;
+      }
+      if (c > '9')
+      {
+        c -= 7;
+      }
       c -= '.';
       for (int j = 0; j < 6; j++)
       {
@@ -455,7 +471,9 @@ public final class Crypt
     }
 
     for (int i = 0; i < 25; i++)
+    {
       encrypt(_c._ablock, 0);
+    }
 
     int i;
     for (i = 0; i < 11; i++)
@@ -467,12 +485,21 @@ public final class Crypt
         c |= _c._ablock[6 * i + j];
       }
       c += '.';
-      if (c > '9') c += 7;
-      if (c > 'Z') c += 6;
+      if (c > '9')
+      {
+        c += 7;
+      }
+      if (c > 'Z')
+      {
+        c += 6;
+      }
       _c._iobuf[i + 2] = c;
     }
     _c._iobuf[i + 2] = 0;
-    if (_c._iobuf[1] == 0) _c._iobuf[1] = _c._iobuf[0];
+    if (_c._iobuf[1] == 0)
+    {
+      _c._iobuf[1] = _c._iobuf[0];
+    }
     return (_c._iobuf);
   }
 }

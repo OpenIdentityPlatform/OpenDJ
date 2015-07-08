@@ -293,13 +293,17 @@ public class AttrHistoricalSingle extends AttrHistorical
     case DEL:
       this.deleteTime = csn;
       if (value != null)
+      {
         this.value = value;
+      }
       break;
 
     case REPL:
       this.addTime = this.deleteTime = csn;
       if (value != null)
+      {
         this.value = value;
+      }
       break;
 
     case DELATTR:

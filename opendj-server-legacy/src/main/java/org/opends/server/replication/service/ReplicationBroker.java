@@ -759,8 +759,9 @@ public class ReplicationBroker
        * out which one is the best to connect to.
        */
       if (logger.isTraceEnabled())
-        debugInfo("phase 1 : will perform PhaseOneH with each RS in order to "
-            + "elect the preferred one");
+      {
+        debugInfo("phase 1 : will perform PhaseOneH with each RS in order to elect the preferred one");
+      }
 
       // Get info from every available replication servers
       Map<Integer, ReplicationServerInfo> rsInfos =
@@ -779,8 +780,9 @@ public class ReplicationBroker
 
         // Best found, now initialize connection to this one (handshake phase 1)
         if (logger.isTraceEnabled())
-          debugInfo("phase 2 : will perform PhaseOneH with the preferred RS="
-              + evals.getBestRS());
+        {
+          debugInfo("phase 2 : will perform PhaseOneH with the preferred RS=" + evals.getBestRS());
+        }
 
         final ConnectedRS electedRS = performPhaseOneHandshake(
             evals.getBestRS().getServerURL(), true);
@@ -1584,7 +1586,9 @@ public class ReplicationBroker
       {
         eval.accept(rsId, rsInfo);
         if (!rsInfo.serverState.isEmpty())
+        {
           emptyState = false;
+        }
       }
       else if (rsInfo.getGenerationId() == -1)
       {
@@ -2548,8 +2552,9 @@ public class ReplicationBroker
                 }
                 logger.info(message);
                 if (logger.isTraceEnabled())
-                  debugInfo("best replication servers evaluation results: "
-                      + evals);
+                {
+                  debugInfo("best replication servers evaluation results: " + evals);
+                }
                 reStart(true);
               }
 
@@ -2656,8 +2661,9 @@ public class ReplicationBroker
   public void stop()
   {
     if (logger.isTraceEnabled())
-      debugInfo("is stopping and will close the connection to RS("
-          + getRsServerId() + ")");
+    {
+      debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
+    }
 
     synchronized (startStopLock)
     {
@@ -3204,7 +3210,9 @@ public class ReplicationBroker
     else
     {
       if (logger.isTraceEnabled())
+      {
         debugInfo("is not configured to send CSN heartbeat interval");
+      }
     }
   }
 

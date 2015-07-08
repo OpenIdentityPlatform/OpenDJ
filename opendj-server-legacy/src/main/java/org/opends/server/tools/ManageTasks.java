@@ -324,14 +324,20 @@ public class ManageTasks extends ConsoleApplication {
           getOutputStream().println();
           MenuResult<TaskEntry> r =
                   new PrintTaskInfo(task.getValue()).invoke(this);
-          if (r.isAgain()) return 1;
+          if (r.isAgain())
+          {
+            return 1;
+          }
         } else if (summary.isPresent()) {
           getOutputStream().println();
           printSummaryTable();
         } else if (cancel.isPresent()) {
           MenuResult<TaskEntry> r =
                   new CancelTask(cancel.getValue()).invoke(this);
-          if (r.isAgain()) return 1;
+          if (r.isAgain())
+          {
+            return 1;
+          }
         } else if (!isInteractive()) {
            // no-prompt option
            getOutputStream().println();

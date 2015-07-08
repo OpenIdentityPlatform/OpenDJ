@@ -231,7 +231,9 @@ public class DependencyTest extends ReplicationTestCase
     {
       remove(replServer);
       if (domain != null)
+      {
         MultimasterReplication.deleteDomain(baseDN);
+      }
     }
   }
 
@@ -335,7 +337,9 @@ public class DependencyTest extends ReplicationTestCase
     {
       remove(replServer);
       if (domain != null)
+      {
         MultimasterReplication.deleteDomain(baseDN);
+      }
     }
   }
 
@@ -483,7 +487,9 @@ public class DependencyTest extends ReplicationTestCase
     {
       remove(replServer);
       if (domain != null)
+      {
         MultimasterReplication.deleteDomain(baseDN);
+      }
     }
   }
 
@@ -579,7 +585,9 @@ public class DependencyTest extends ReplicationTestCase
     {
       remove(replServer);
       if (domain != null)
+      {
         MultimasterReplication.deleteDomain(baseDN);
+      }
     }
   }
 

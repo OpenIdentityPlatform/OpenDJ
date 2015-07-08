@@ -129,7 +129,10 @@ public class PersistentSearchControlTest extends ControlsTestCase
     Set<Integer> keys = exceptedValues.keySet() ;
     for (int i=-10 ; i< 10 ; i++)
     {
-      if (keys.contains(i)) continue ;
+      if (keys.contains(i))
+      {
+        continue;
+      }
       try
       {
         PersistentSearchChangeType.valueOf(i);

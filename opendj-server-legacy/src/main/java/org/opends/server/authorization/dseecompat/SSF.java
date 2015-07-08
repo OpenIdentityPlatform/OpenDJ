@@ -78,35 +78,44 @@ public class SSF implements KeywordBindRule {
      *         context evaluation.
      */
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
-        EnumEvalResult matched=EnumEvalResult.FALSE;
         int currentSSF = evalCtx.getCurrentSSF();
-        switch (type) {
-        case EQUAL_BINDRULE_TYPE:
-        case NOT_EQUAL_BINDRULE_TYPE:
-            if (currentSSF == ssf)
-                matched=EnumEvalResult.TRUE;
-            break;
-
-        case LESS_OR_EQUAL_BINDRULE_TYPE:
-            if (currentSSF <= ssf)
-                matched=EnumEvalResult.TRUE;
-            break;
-
-        case LESS_BINDRULE_TYPE:
-            if (currentSSF < ssf)
-                matched=EnumEvalResult.TRUE;
-            break;
-
-        case GREATER_OR_EQUAL_BINDRULE_TYPE:
-            if (currentSSF >= ssf)
-                matched=EnumEvalResult.TRUE;
-            break;
-
-        case GREATER_BINDRULE_TYPE:
-            if (currentSSF > ssf)
-                matched=EnumEvalResult.TRUE;
-        }
+        EnumEvalResult matched = getMatched(currentSSF);
         return matched.getRet(type, false);
+    }
+
+    private EnumEvalResult getMatched(int currentSSF) {
+      switch (type) {
+      case EQUAL_BINDRULE_TYPE:
+      case NOT_EQUAL_BINDRULE_TYPE:
+          if (currentSSF == ssf) {
+            return EnumEvalResult.TRUE;
+          }
+          break;
+
+      case LESS_OR_EQUAL_BINDRULE_TYPE:
+          if (currentSSF <= ssf) {
+            return EnumEvalResult.TRUE;
+          }
+          break;
+
+      case LESS_BINDRULE_TYPE:
+          if (currentSSF < ssf) {
+            return EnumEvalResult.TRUE;
+          }
+          break;
+
+      case GREATER_OR_EQUAL_BINDRULE_TYPE:
+          if (currentSSF >= ssf) {
+            return EnumEvalResult.TRUE;
+          }
+          break;
+
+      case GREATER_BINDRULE_TYPE:
+          if (currentSSF > ssf) {
+            return EnumEvalResult.TRUE;
+          }
+      }
+      return EnumEvalResult.FALSE;
     }
 
     /** {@inheritDoc} */

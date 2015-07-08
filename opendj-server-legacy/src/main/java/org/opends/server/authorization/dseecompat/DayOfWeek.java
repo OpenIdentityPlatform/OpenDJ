@@ -95,7 +95,9 @@ public class DayOfWeek  implements KeywordBindRule {
         EnumDayOfWeek dayofweek
             = EnumDayOfWeek.getDayOfWeek(calendar.get(Calendar.DAY_OF_WEEK));
         if(days.contains(dayofweek))
-            matched=EnumEvalResult.TRUE;
+        {
+          matched=EnumEvalResult.TRUE;
+        }
         return matched.getRet(type, false);
     }
 

@@ -80,7 +80,9 @@ public class LightweightServerHandler
     this.dsInfo = dsInfo;
 
     if (logger.isTraceEnabled())
+    {
       debugInfo("()");
+    }
   }
 
   /**
@@ -108,7 +110,9 @@ public class LightweightServerHandler
   public void startHandler()
   {
     if (logger.isTraceEnabled())
+    {
       debugInfo("start");
+    }
     DirectoryServer.deregisterMonitorProvider(this);
     DirectoryServer.registerMonitorProvider(this);
   }
@@ -119,7 +123,9 @@ public class LightweightServerHandler
   public void stopHandler()
   {
     if (logger.isTraceEnabled())
+    {
       debugInfo("stop");
+    }
     DirectoryServer.deregisterMonitorProvider(this);
   }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -52,18 +52,16 @@ public class StopMsg extends ReplicationMsg
   {
     // First byte is the type
     if (in[0] != MSG_TYPE_STOP)
-      throw new DataFormatException("input is not a valid Stop message: " +
-        in[0]);
+    {
+      throw new DataFormatException("input is not a valid Stop message: " + in[0]);
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    return new byte[]
-      {
-        MSG_TYPE_STOP
-      };
+    return new byte[] { MSG_TYPE_STOP };
   }
 
   /** {@inheritDoc} */

@@ -845,7 +845,9 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
         AttributeType attrType =
             DirectoryServer.getAttributeType(attrTypeString);
     if (attrType == null)
+    {
       attrType = DirectoryServer.getDefaultAttributeType(attrTypeString);
+    }
     return attrType;
   }
 

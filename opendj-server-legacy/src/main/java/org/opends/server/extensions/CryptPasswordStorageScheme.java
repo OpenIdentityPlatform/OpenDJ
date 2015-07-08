@@ -142,7 +142,9 @@ public class CryptPasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
 
     return ByteString.wrap(digestBytes);
@@ -204,7 +206,9 @@ public class CryptPasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
     return ByteString.valueOf(output);
   }
@@ -229,7 +233,9 @@ public class CryptPasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
     return ByteString.valueOf(output);
   }
@@ -302,7 +308,9 @@ public class CryptPasswordStorageScheme
     finally
     {
       if (plaintextPasswordBytes != null)
+      {
         Arrays.fill(plaintextPasswordBytes, (byte) 0);
+      }
     }
 
     return userPWDigestBytes.equals(storedPassword);
@@ -342,7 +350,9 @@ public class CryptPasswordStorageScheme
     finally
     {
       if (plaintextPasswordBytes != null)
+      {
         Arrays.fill(plaintextPasswordBytes, (byte) 0);
+      }
     }
   }
 
@@ -364,7 +374,9 @@ public class CryptPasswordStorageScheme
     finally
     {
       if (plaintextPasswordBytes != null)
+      {
         Arrays.fill(plaintextPasswordBytes, (byte) 0);
+      }
     }
   }
 

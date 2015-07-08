@@ -87,8 +87,10 @@ public class GetEffectiveRightsRequestControl extends Control
       // class with null authzDN and attribute list, else try to
       // decode the value.
       if (value == null)
+      {
         return new GetEffectiveRightsRequestControl(isCritical, (DN)null,
             (List<AttributeType>)null);
+      }
       else
       {
         ASN1Reader reader = ASN1.getReader(value);
@@ -101,7 +103,9 @@ public class GetEffectiveRightsRequestControl extends Control
           String lowerAuthzIDString = authzIDString.toLowerCase();
           //Make sure authzId starts with "dn:" and is a valid DN.
           if (lowerAuthzIDString.startsWith("dn:"))
+          {
             authzDN = DN.valueOf(authzIDString.substring(3));
+          }
           else {
             LocalizableMessage message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID.get(
                 lowerAuthzIDString);

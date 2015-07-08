@@ -163,9 +163,13 @@ public class MonitorTest extends ReplicationTestCase
     if (all)
     {
       if (changelogId != changelog1ID)
+      {
         servers.add("localhost:" + getChangelogPort(changelog1ID));
+      }
       if (changelogId != changelog2ID)
+      {
         servers.add("localhost:" + getChangelogPort(changelog2ID));
+      }
     }
     int chPort = getChangelogPort(changelogId);
     String chDir = "monitorTest" + changelogId + suffix + "Db";

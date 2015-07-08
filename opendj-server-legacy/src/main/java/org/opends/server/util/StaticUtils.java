@@ -121,7 +121,10 @@ public final class StaticUtils
    */
   public static byte[] getBytes(String s)
   {
-    if (s == null) return null;
+    if (s == null)
+    {
+      return null;
+    }
 
     try
     {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -209,11 +209,17 @@ public enum EnumRight {
         // ALL already existed when they got added. For compatibility reasons
         // with existing deployments, they were not included in ALL.
         if (hasRights(rightsMask, ACI_EXPORT))
-            results.add(EXPORT);
+        {
+          results.add(EXPORT);
+        }
         if (hasRights(rightsMask, ACI_IMPORT))
-            results.add(IMPORT);
+        {
+          results.add(IMPORT);
+        }
         if (hasRights(rightsMask, ACI_PROXY))
-            results.add(PROXY);
+        {
+          results.add(PROXY);
+        }
 
         if (hasRights(rightsMask, ACI_ALL)) {
             results.add(ALL);
@@ -221,19 +227,33 @@ public enum EnumRight {
         }
         // the remaining rights are already included in ALL
         if (hasRights(rightsMask, ACI_READ))
-            results.add(READ);
+        {
+          results.add(READ);
+        }
         if (hasRights(rightsMask, ACI_WRITE))
-            results.add(WRITE);
+        {
+          results.add(WRITE);
+        }
         if (hasRights(rightsMask, ACI_ADD))
-            results.add(ADD);
+        {
+          results.add(ADD);
+        }
         if (hasRights(rightsMask, ACI_DELETE))
-            results.add(DELETE);
+        {
+          results.add(DELETE);
+        }
         if (hasRights(rightsMask, ACI_SEARCH))
-            results.add(SEARCH);
+        {
+          results.add(SEARCH);
+        }
         if (hasRights(rightsMask, ACI_COMPARE))
-            results.add(COMPARE);
-        if (hasRights(rightsMask, ACI_SELF)) // included in WRITE
-            results.add(SELFWRITE);
+        {
+          results.add(COMPARE);
+        }
+        if (hasRights(rightsMask, ACI_SELF))
+        {
+          results.add(SELFWRITE);
+        }
         return results;
     }
 

@@ -162,20 +162,24 @@ public class PatternIP {
         IPType ipType=IPType.IPv4;
         byte[] prefixBytes;
         String addrStr;
-        if(expr.indexOf(':') != -1)
+        if(expr.indexOf(':') != -1) {
             ipType = IPType.IPv6;
+        }
         if(expr.indexOf('/') != -1) {
             String prefixStr=null;
             String[] s = expr.split("[/]", -1);
-            if(s.length == 2) prefixStr=s[1];
+            if(s.length == 2) {
+                prefixStr=s[1];
+            }
             int prefix = getPrefixValue(ipType, s.length, expr, prefixStr);
             prefixBytes=getPrefixBytes(prefix, ipType);
             addrStr=s[0];
         } else if(expr.indexOf('+') != -1) {
             String netMaskStr=null;
             String[] s = expr.split("[+]", -1);
-            if(s.length == 2)
+            if(s.length == 2) {
                 netMaskStr=s[1];
+            }
             prefixBytes=getNetmaskBytes(netMaskStr, s.length, expr);
             addrStr=s[0];
         } else {
@@ -183,13 +187,12 @@ public class PatternIP {
             prefixBytes=getPrefixBytes(prefix, ipType);
             addrStr=expr;
         }
-        //Set the bit set size fo IN6ADDRSZ even though only 4 positions are
-        //used.
+        // Set the bit set size fo IN6ADDRSZ even though only 4 positions are used.
         BitSet wildCardBitSet = new BitSet(IN6ADDRSZ);
         byte[] addrBytes;
-        if(ipType == IPType.IPv4)
-            addrBytes = procIPv4Addr(addrStr, wildCardBitSet, expr);
-        else {
+        if(ipType == IPType.IPv4) {
+          addrBytes = procIPv4Addr(addrStr, wildCardBitSet, expr);
+        } else {
             addrBytes=procIPv6Addr(addrStr, expr);
             //The IPv6 address processed above might be a IPv4-compatible
             //address, in which case only 4 bytes will be returned in the
@@ -233,8 +236,9 @@ public class PatternIP {
                     WARN_ACI_SYNTAX_INVALID_PREFIX_FORMAT.get(expr);
                 throw new AciException(message);
             }
-            if(prefixStr != null)
+            if(prefixStr != null) {
                 prefix = Integer.parseInt(prefixStr);
+            }
             //Must be between 0 to maxprefix.
             if((prefix < 0) || (prefix > maxPrefix)) {
                 LocalizableMessage message =
@@ -261,8 +265,9 @@ public class PatternIP {
     private static byte[] getPrefixBytes(int prefix, IPType ipType) {
         int i;
         int maxSize=IN4ADDRSZ;
-        if(ipType==IPType.IPv6)
+        if(ipType==IPType.IPv6) {
             maxSize= IN6ADDRSZ;
+        }
         byte[] prefixBytes=new byte[maxSize];
         for(i=0;prefix > 8 ; i++) {
             prefixBytes[i] = (byte) 0xff;
@@ -276,7 +281,7 @@ public class PatternIP {
      * Process the specified netmask string. Only pertains to IPv4 address
      * expressions.
      *
-     * @param netmaskStr String represntation of the netmask parsed from the
+     * @param netmaskStr String representation of the netmask parsed from the
      *                   address expression.
      * @param numParts The number of parts in the IP address expression.
      *                 1 if there isn't a netmask, and 2 if there is. Anything
@@ -342,8 +347,9 @@ public class PatternIP {
             }
             for(int i=0; i < IN4ADDRSZ; i++) {
                 String quad=s[i].trim();
-                if(quad.equals("*"))
+                if(quad.equals("*")) {
                     wildCardBitSet.set(i) ;
+                }
                 else {
                     long val=Integer.parseInt(quad);
                     //must be between 0-255
@@ -406,13 +412,16 @@ public class PatternIP {
             ipType=IPType.IPv6;
             Inet6Address addr6 = (Inet6Address) remoteAddr;
             addressBytes= addr6.getAddress();
-            if(addr6.isIPv4CompatibleAddress())
+            if(addr6.isIPv4CompatibleAddress()) {
                 ipType=IPType.IPv4;
+            }
         }
-        if(ipType != this.ipType)
+        if(ipType != this.ipType) {
             return EnumEvalResult.FALSE;
-        if(matchAddress(addressBytes))
+        }
+        if(matchAddress(addressBytes)) {
             matched=EnumEvalResult.TRUE;
+        }
         return matched;
     }
 
@@ -426,13 +435,16 @@ public class PatternIP {
      *         parsed from the IP bind rule expression.
      */
     private boolean matchAddress(byte[] addrBytes) {
-        if(wildCardBitSet.cardinality() == IN4ADDRSZ)
+        if(wildCardBitSet.cardinality() == IN4ADDRSZ) {
             return true;
+        }
         for(int i=0;i <rulePrefixBytes.length; i++) {
             if (!wildCardBitSet.get(i)
                 && (ruleAddrBytes[i] & rulePrefixBytes[i]) !=
                     (addrBytes[i] & rulePrefixBytes[i]))
+            {
               return false;
+            }
         }
         return true;
     }

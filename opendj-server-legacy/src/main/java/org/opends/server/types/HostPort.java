@@ -498,20 +498,30 @@ public final class HostPort
   public boolean equals(Object obj)
   {
     if (obj == null)
+    {
       return false;
+    }
     if (obj == this)
+    {
       return true;
+    }
     if (getClass() != obj.getClass())
+    {
       return false;
+    }
 
     HostPort other = (HostPort) obj;
     if (normalizedHost == null)
     {
       if (other.normalizedHost != null)
+      {
         return false;
+      }
     }
     else if (!normalizedHost.equals(other.normalizedHost))
+    {
       return false;
+    }
 
     return port == other.port;
   }

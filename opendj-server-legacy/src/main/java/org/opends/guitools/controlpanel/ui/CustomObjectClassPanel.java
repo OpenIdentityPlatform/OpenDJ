@@ -247,7 +247,10 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       public void parentObjectClassesChanged(
           SuperiorObjectClassesChangedEvent ev)
       {
-        if (ignoreChangeEvents) return;
+        if (ignoreChangeEvents)
+        {
+          return;
+        }
         updateAttributesWithParent(true);
         checkEnableSaveChanges();
         if (ev.getNewObjectClasses().size() > 1)
@@ -903,26 +906,26 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private void checkEnableSaveChanges()
   {
-    if (ignoreChangeEvents) return;
-    boolean changed;
+    if (!ignoreChangeEvents)
+    {
+      saveChanges.setEnabled(hasChanged());
+    }
+  }
 
+  private boolean hasChanged()
+  {
     if (objectClass != null)
     {
       try
       {
-        changed = !objectClass.toString().equals(
-            getNewObjectClass().toString());
+        return !objectClass.toString().equals(getNewObjectClass().toString());
       }
       catch (Throwable t)
       {
-        changed = true;
+        return true;
       }
     }
-    else
-    {
-      changed = false;
-    }
-    saveChanges.setEnabled(changed);
+    return false;
   }
 
   private Set<String> getAliases()

@@ -541,7 +541,10 @@ public final class VersionCompatibilityIssue {
           Collection<Integer> excludeIds, BuildInformation current,
           BuildInformation neu)
   {
-    if (excludeIds == null) excludeIds = Collections.emptySet();
+    if (excludeIds == null)
+    {
+      excludeIds = Collections.emptySet();
+    }
     List<VersionCompatibilityIssue> issueList = new ArrayList<>();
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       if (!excludeIds.contains(evt.getCause().getId())) {

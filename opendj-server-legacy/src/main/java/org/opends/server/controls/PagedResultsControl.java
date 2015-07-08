@@ -171,9 +171,13 @@ public class PagedResultsControl extends Control
 
     this.size   = size;
     if(cookie == null)
-        this.cookie=ByteString.empty();
+    {
+      this.cookie=ByteString.empty();
+    }
     else
-        this.cookie = cookie;
+    {
+      this.cookie = cookie;
+    }
   }
 
 

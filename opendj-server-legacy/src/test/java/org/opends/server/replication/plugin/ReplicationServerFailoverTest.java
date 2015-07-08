@@ -298,7 +298,9 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
         String serverStr = rd.getReplicationServer();
         rdPort = HostPort.valueOf(serverStr).getPort();
         if (rdPort == rsPort)
+        {
           rightPort = true;
+        }
       }
       if (connected && rightPort)
       {
@@ -389,7 +391,9 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   {
     // First check that the Replication domain is connected
     if (!rd.isConnected())
+    {
       return -1;
+    }
 
     String serverStr = rd.getReplicationServer();
     return HostPort.valueOf(serverStr).getPort();

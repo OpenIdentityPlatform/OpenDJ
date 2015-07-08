@@ -152,7 +152,9 @@ public class SHA1PasswordStorageScheme
       finally
       {
         if (plaintextBytes != null)
+        {
           Arrays.fill(plaintextBytes, (byte) 0);
+        }
       }
     }
 
@@ -194,7 +196,9 @@ public class SHA1PasswordStorageScheme
       finally
       {
         if (plaintextBytes != null)
+        {
           Arrays.fill(plaintextBytes, (byte) 0);
+        }
       }
     }
 
@@ -231,7 +235,9 @@ public class SHA1PasswordStorageScheme
       finally
       {
         if (plaintextPasswordBytes != null)
+        {
           Arrays.fill(plaintextPasswordBytes, (byte) 0);
+        }
       }
     }
 

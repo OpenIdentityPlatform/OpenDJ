@@ -583,7 +583,9 @@ public class Aci implements Comparable<Aci>
       int pos=0, length=oidStr.length();
       char c;
       if("*".equals(oidStr))
+      {
         return;
+      }
       boolean lastWasPeriod = false;
       while ((pos < length) && ((c = oidStr.charAt(pos++)) != ' ')) {
         if (c == '.') {
@@ -597,8 +599,9 @@ public class Aci implements Comparable<Aci>
           LocalizableMessage message =
               WARN_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(oidStr, c, pos-1);
           throw new AciException(message);
-        }  else
+        } else {
           lastWasPeriod = false;
+        }
       }
     }
 
