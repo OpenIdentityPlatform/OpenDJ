@@ -78,4 +78,4 @@ public class StartServerTask extends StartStopTask
     args.add("0");
     return args;
   }
-};
+}

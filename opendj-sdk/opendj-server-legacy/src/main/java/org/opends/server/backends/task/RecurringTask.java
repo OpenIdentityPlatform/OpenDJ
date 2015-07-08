@@ -101,7 +101,7 @@ public class RecurringTask
         = {31,29,31,30,31,30,31,31,30,31,30,31};
 
   /** Task tab fields. */
-  private static enum TaskTab {MINUTE, HOUR, DAY, MONTH, WEEKDAY};
+  private static enum TaskTab {MINUTE, HOUR, DAY, MONTH, WEEKDAY}
 
   private static final int MINUTE_INDEX = 0;
   private static final int HOUR_INDEX = 1;

@@ -91,14 +91,9 @@ public class GenericConstraint extends Constraint {
         return true;
       }
     }
+  }
 
-  };
-
-
-
-  /**
-   * The server-side constraint handler.
-   */
+  /** The server-side constraint handler. */
   private class ServerHandler extends ServerConstraintHandler {
 
     /** Private constructor. */
@@ -106,9 +101,6 @@ public class GenericConstraint extends Constraint {
       // No implementation required.
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean isUsable(ServerManagedObject<?> managedObject,
         Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -119,8 +111,7 @@ public class GenericConstraint extends Constraint {
         return true;
       }
     }
-
-  };
+  }
 
   /** The client-side constraint handler. */
   private final ClientConstraintHandler clientHandler = new ClientHandler();

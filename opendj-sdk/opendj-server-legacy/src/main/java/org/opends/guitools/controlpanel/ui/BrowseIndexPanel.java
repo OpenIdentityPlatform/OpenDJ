@@ -915,13 +915,9 @@ implements IndexModifiedListener
       hmImages.put(classes[i],
           Utilities.createImageIcon(IconPool.IMAGE_PATH+"/"+ocPaths[i]));
     }
-  };
+  }
 
-  /**
-   * Specific class used to render the nodes in the tree.  It uses specific
-   * icons for the nodes.
-   *
-   */
+  /** Specific class used to render the nodes in the tree.  It uses specific icons for the nodes. */
   protected class IndexTreeCellRenderer extends TreeCellRenderer
   {
     private ImageIcon readOnlyIndexIcon =

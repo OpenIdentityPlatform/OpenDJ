@@ -243,14 +243,11 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     "facsimiletelephonenumber"});
     hmOrdereredAttrNames.put("organization", new String[]{"o", "description"});
     hmOrdereredAttrNames.put("domain", new String[]{"dc", "description"});
-  };
+  }
 
   private LocalizableMessage NAME = INFO_CTRL_PANEL_NAME_LABEL.get();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public SimplifiedViewEntryPanel()
   {
     super();

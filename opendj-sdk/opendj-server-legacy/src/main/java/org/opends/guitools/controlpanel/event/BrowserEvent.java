@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.guitools.controlpanel.event;
 
 import java.util.EventObject;
@@ -32,41 +31,28 @@ import java.util.EventObject;
  * This class defines an event for the browser.  It basically it is used to
  * communicate between the BrowserController and the NodeRefresher classes.
  * @author jvergara
- *
  */
 public class BrowserEvent extends EventObject
 {
   private static final long serialVersionUID = 6476274376887062526L;
 
-  /**
-   * The different types of events that we can have.
-   *
-   */
+  /** The different types of events that we can have. */
   public enum Type
   {
-    /**
-     * Update of the entry started.
-     */
+    /** Update of the entry started. */
     UPDATE_START,
-    /**
-     * Update of the entry ended.
-     */
+    /** Update of the entry ended. */
     UPDATE_END,
-    /**
-     * Insert of children started.
-     */
+    /** Insert of children started. */
     INSERT_CHILDREN_START,
-    /**
-     * Insert of children ended.
-     */
+    /** Insert of children ended. */
     INSERT_CHILDREN_END,
     /**
      * The specified size limit (max number of children to be returned) in the
      * BrowserController was reached.
      */
     SIZE_LIMIT_REACHED
-
-  };
+  }
 
   private Type type;
 

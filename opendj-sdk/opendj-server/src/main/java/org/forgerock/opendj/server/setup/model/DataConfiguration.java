@@ -49,7 +49,7 @@ class DataConfiguration {
          * Automatically generated data entries.
          */
         AUTOMATICALLY_GENERATED
-    };
+    }
 
     /** Default name of directory base DN. */
     static final String DEFAULT_DIRECTORY_BASE_DN = "dc=example,dc=com";

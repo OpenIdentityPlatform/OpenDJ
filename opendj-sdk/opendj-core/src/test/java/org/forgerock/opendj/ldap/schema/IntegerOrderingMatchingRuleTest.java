@@ -108,7 +108,7 @@ public class IntegerOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
         private Sign(byte mask) {
             this.mask = mask;
         }
-    };
+    }
 
     private int length(int i) {
         return i;

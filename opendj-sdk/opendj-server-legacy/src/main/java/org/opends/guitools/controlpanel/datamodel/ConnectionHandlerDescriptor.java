@@ -46,83 +46,48 @@ public class ConnectionHandlerDescriptor
 {
   private Set<CustomSearchResult> monitoringEntries = Collections.emptySet();
 
-  /**
-   * Enumeration used to represent the state of the listener.
-   */
+  /** Enumeration used to represent the state of the listener. */
   public enum State
   {
-    /**
-     * The listener is enabled.
-     */
+    /** The listener is enabled. */
     ENABLED,
-    /**
-     * The listener is disabled.
-     */
+    /** The listener is disabled. */
     DISABLED,
-    /**
-     * The state of the listener is unknown.
-     */
+    /** The state of the listener is unknown. */
     UNKNOWN
-  };
+  }
 
-  /**
-   * Enumeration used to represent the Protocol of the listener.
-   *
-   */
+  /** Enumeration used to represent the Protocol of the listener. */
   public enum Protocol
   {
-    /**
-     * LDAP protocol.
-     */
+    /** LDAP protocol. */
     LDAP(INFO_CTRL_PANEL_CONN_HANDLER_LDAP.get()),
-    /**
-     * LDAP accepting Start TLS protocol.
-     */
+    /** LDAP accepting Start TLS protocol. */
     LDAP_STARTTLS(INFO_CTRL_PANEL_CONN_HANDLER_LDAP_STARTTLS.get()),
-    /**
-     * LDAP secure protocol.
-     */
+    /** LDAP secure protocol. */
     LDAPS(INFO_CTRL_PANEL_CONN_HANDLER_LDAPS.get()),
-    /**
-     * HTTP protocol.
-     */
+    /** HTTP protocol. */
     HTTP(INFO_CTRL_PANEL_CONN_HANDLER_HTTP.get()),
-    /**
-     * HTTP secure protocol.
-     */
+    /** HTTP secure protocol. */
     HTTPS(INFO_CTRL_PANEL_CONN_HANDLER_HTTPS.get()),
-    /**
-     * JMX protocol.
-     */
+    /** JMX protocol. */
     JMX(INFO_CTRL_PANEL_CONN_HANDLER_JMX.get()),
-    /**
-     * JMX secure protocol.
-     */
+    /** JMX secure protocol. */
     JMXS(INFO_CTRL_PANEL_CONN_HANDLER_JMXS.get()),
-    /**
-     * LDIF protocol.
-     */
+    /** LDIF protocol. */
     LDIF(INFO_CTRL_PANEL_CONN_HANDLER_LDIF.get()),
-    /**
-     * SNMP protocol.
-     */
+    /** SNMP protocol. */
     SNMP(INFO_CTRL_PANEL_CONN_HANDLER_SNMP.get()),
     /**
      * Replication protocol.  Even if in the configuration is not considered
      * as a listener, we display it on the table.
      */
     REPLICATION(INFO_CTRL_PANEL_CONN_HANDLER_REPLICATION.get()),
-    /**
-     * Secure replication protocol.
-     */
+    /** Secure replication protocol. */
     REPLICATION_SECURE(INFO_CTRL_PANEL_CONN_HANDLER_REPLICATION_SECURE.get()),
-    /**
-     * Admin connector protocol.
-     */
+    /** Admin connector protocol. */
     ADMINISTRATION_CONNECTOR(INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get()),
-    /**
-     * Other protocol.
-     */
+    /** Other protocol. */
     OTHER(INFO_CTRL_PANEL_CONN_HANDLER_OTHER.get());
 
     private LocalizableMessage displayMessage;

@@ -586,5 +586,5 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     {
       return getCommandLinePath("export-ldif");
     }
-  };
+  }
 }

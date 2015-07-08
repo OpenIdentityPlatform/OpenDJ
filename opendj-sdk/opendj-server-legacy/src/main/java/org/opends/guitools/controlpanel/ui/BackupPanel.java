@@ -822,5 +822,5 @@ public class BackupPanel extends BackupListPanel
     {
       return getCommandLinePath("backup");
     }
-  };
+  }
 }

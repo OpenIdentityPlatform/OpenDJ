@@ -52,7 +52,7 @@ public class CategorizedComboBoxElement
      * Regular type.
      */
     REGULAR
-  };
+  }
 
   /**
    * Constructor.
