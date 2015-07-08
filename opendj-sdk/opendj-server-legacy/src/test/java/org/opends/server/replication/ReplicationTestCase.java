@@ -256,7 +256,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     checkConnection(30, broker, port);
 
     if (timeout != 0)
+    {
       broker.setSoTimeout(timeout);
+    }
   }
 
   /**
@@ -292,7 +294,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected void deleteEntry(DN dn) throws Exception
   {
     if (dn.parent().rdn().toString().equalsIgnoreCase("cn=domains"))
+    {
       deleteEntry(DN.valueOf("cn=external changelog," + dn));
+    }
 
     DeleteOperation op = connection.processDelete(dn);
     assertTrue(op.getResultCode() == SUCCESS || op.getResultCode() == NO_SUCH_OBJECT,
@@ -351,7 +355,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     // Check for unexpected replication config/objects left
     if (callParanoiaCheck)
+    {
       paranoiaCheck();
+    }
   }
 
   /**
@@ -513,7 +519,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     do
     {
       if (count++>0)
+      {
         Thread.sleep(100);
+      }
       op = connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
     }
     while (op.getSearchEntries().isEmpty() && (count<100));
@@ -533,7 +541,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     boolean found = false;
     int count = timeout/100;
     if (count<1)
+    {
       count=1;
+    }
 
     do
     {
@@ -564,7 +574,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     int count = timeout/200;
     if (count<1)
+    {
       count=1;
+    }
     Thread.sleep(50);
     boolean found = DirectoryServer.entryExists(dn);
     while ((count> 0) && (found != exist))

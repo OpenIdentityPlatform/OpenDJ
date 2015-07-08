@@ -127,7 +127,9 @@ public class RC4PasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
   }
 
@@ -165,7 +167,9 @@ public class RC4PasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
 
     return ByteString.valueOf(buffer);

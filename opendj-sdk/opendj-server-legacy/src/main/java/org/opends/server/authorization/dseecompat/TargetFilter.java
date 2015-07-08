@@ -83,7 +83,9 @@ public class TargetFilter {
         boolean ret;
         ret=matchesFilter(matchCtx.getResourceEntry());
         if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-            ret = !ret;
+        {
+          ret = !ret;
+        }
         return ret;
     }
 

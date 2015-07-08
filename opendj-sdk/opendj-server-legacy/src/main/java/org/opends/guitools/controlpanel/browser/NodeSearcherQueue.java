@@ -90,7 +90,10 @@ class NodeSearcherQueue implements Runnable {
    * @param nodeTask the task to be added.
    */
   public synchronized void queue(AbstractNodeTask nodeTask) {
-    if (nodeTask == null) throw new IllegalArgumentException("null argument");
+    if (nodeTask == null)
+    {
+      throw new IllegalArgumentException("null argument");
+    }
     waitingQueue.add(nodeTask);
     notify();
 //    System.out.println("Queued " + nodeTask + " in " + _name);
@@ -106,7 +109,10 @@ class NodeSearcherQueue implements Runnable {
    * @param node the node whose associated tasks must be cancelled.
    */
   public synchronized void cancelForNode(BasicNode node) {
-    if (node == null) throw new IllegalArgumentException("null argument");
+    if (node == null)
+    {
+      throw new IllegalArgumentException("null argument");
+    }
     // Remove all the associated tasks from the waiting queue
     for (int i = waitingQueue.size()-1; i >= 0; i--) {
       AbstractNodeTask task = waitingQueue.get(i);
@@ -203,7 +209,10 @@ class NodeSearcherQueue implements Runnable {
    * @param task the task to be flushed.
    */
   private synchronized void flush(AbstractNodeTask task) {
-    if (task == null) throw new IllegalArgumentException("null argument");
+    if (task == null)
+    {
+      throw new IllegalArgumentException("null argument");
+    }
     workingList.remove(task.getNode());
     cancelList.remove(task.getNode());
     notify();

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -482,13 +482,21 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     final String indent = "\n    ";
     final StringBuilder sb = new StringBuilder();
     sb.append("{");
-    if (prettyPrint) sb.append(indent);
+    if (prettyPrint) {
+      sb.append(indent);
+    }
     sb.append("\"code\": ").append(re.getCode()).append(",");
-    if (prettyPrint) sb.append(indent);
+    if (prettyPrint) {
+      sb.append(indent);
+    }
     sb.append("\"message\": \"").append(re.getMessage()).append("\",");
-    if (prettyPrint) sb.append(indent);
+    if (prettyPrint) {
+      sb.append(indent);
+    }
     sb.append("\"reason\": \"").append(re.getReason()).append("\"");
-    if (prettyPrint) sb.append("\n");
+    if (prettyPrint) {
+      sb.append("\n");
+    }
     sb.append("}");
     return sb.toString();
   }

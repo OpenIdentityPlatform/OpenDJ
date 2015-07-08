@@ -161,9 +161,11 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
     {
       // Sanity check: this should never happen
       if (logger.isTraceEnabled())
+      {
         logger.trace("Received unexpected ack from server id: "
           + ackingServerId + " ack message: " + ackMsg);
-        return false;
+      }
+      return false;
     } else
     {
       // Analyze received ack and update info for the ack to be later computed

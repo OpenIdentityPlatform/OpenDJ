@@ -91,9 +91,9 @@ public class Permission {
                 separatorPattern.split(rights.replaceAll("\\s", ""));
             for (String r : rightsStr) {
                 EnumRight right = EnumRight.decode(r);
-                if (right != null)
-                    this.rights|= EnumRight.getMask(right);
-                else {
+                if (right != null) {
+                  this.rights|= EnumRight.getMask(right);
+                } else {
                     LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_RIGHTS_KEYWORD.get(rights);
                     throw new AciException(message);

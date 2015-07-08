@@ -64,8 +64,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
    * Test the normalization and the approximate comparison.
    */
   @Test(dataProvider= "acceptableValues")
-  public void testAcceptableValues(String value, Boolean result)
-         throws Exception
+  public void testAcceptableValues(String value, Boolean result) throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
 
@@ -80,8 +79,8 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
       syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
 
     if (liveResult != result)
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value +
-          "reason : " + reason);
-
+    {
+      fail(syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
+    }
   }
 }

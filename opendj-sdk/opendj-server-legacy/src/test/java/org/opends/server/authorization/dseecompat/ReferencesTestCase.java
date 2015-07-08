@@ -189,24 +189,23 @@ public class ReferencesTestCase extends AciTestCase{
    * @param resultString The string containing the results from the search.
    * @return True if the "SearchReference" string is seen in the results.
    */
-  protected boolean
-  isRefMap(String resultString) {
-    boolean ret=false;
+  protected boolean isRefMap(String resultString) {
     StringReader r=new StringReader(resultString);
     BufferedReader br=new BufferedReader(r);
     try {
       while(true) {
         String s = br.readLine();
         if(s == null)
+        {
           break;
+        }
         if(s.startsWith("SearchReference")) {
-          ret=true;
-          break;
+          return true;
         }
       }
     } catch (IOException e) {
       Assert.assertEquals(0, 1,  e.getMessage());
     }
-    return ret;
+    return false;
   }
 }

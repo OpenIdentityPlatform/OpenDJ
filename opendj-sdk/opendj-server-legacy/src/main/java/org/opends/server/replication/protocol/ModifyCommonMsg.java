@@ -122,7 +122,9 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   protected byte[] encodeMods(List<Modification> mods)
   {
     if ((mods == null) || (mods.size() == 0))
+    {
       return new byte[0];
+    }
 
     ByteStringBuilder byteBuilder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(byteBuilder);

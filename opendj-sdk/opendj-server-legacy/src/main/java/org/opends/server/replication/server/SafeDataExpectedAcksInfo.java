@@ -85,8 +85,10 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
      {
        // Sanity check: this should never happen
         if (logger.isTraceEnabled())
+        {
           logger.trace("Received unexpected SD ack from DS id: "
           + ackingServer.getServerId() + " ack message: " + ackMsg);
+        }
         return false;
      }
 
@@ -97,8 +99,10 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
     {
       // Sanity check: this should never happen
       if (logger.isTraceEnabled())
+      {
         logger.trace("Received unexpected ack from server id: " +
           ackingServerId + " ack message: " + ackMsg);
+      }
       return false;
     } else
     {

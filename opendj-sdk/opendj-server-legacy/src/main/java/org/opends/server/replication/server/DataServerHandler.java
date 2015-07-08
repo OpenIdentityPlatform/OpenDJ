@@ -423,7 +423,9 @@ public class DataServerHandler extends ServerHandler
         // The session initiator decides whether to use SSL.
         // Until here session is encrypted then it depends on the negotiation
         if (!sessionInitiatorSSLEncryption)
+        {
           session.stopEncryption();
+        }
 
         // wait and process StartSessionMsg from remote RS
         StartSessionMsg inStartSessionMsg =

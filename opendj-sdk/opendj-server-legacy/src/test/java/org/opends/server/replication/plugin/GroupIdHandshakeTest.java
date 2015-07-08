@@ -162,7 +162,9 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
         String serverStr = rd.getReplicationServer();
         rdPort = HostPort.valueOf(serverStr).getPort();
         if (rdPort == rsPort)
+        {
           rightPort = true;
+        }
       }
       if (connected && rightPort)
       {
@@ -219,8 +221,11 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       replServers.add("localhost:" + rs1Port);
       replServers.add("localhost:" + rs2Port);
       replServers.add("localhost:" + rs3Port);
-    } else
+    }
+    else
+    {
       fail("Unknown test case: " + testCase);
+    }
 
     return replServers;
   }
@@ -248,7 +253,9 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
         replServers.add("localhost:" + rs3Port);
       }
       else
+      {
         fail("Unknown test case: " + testCase);
+      }
     }
     else if (serverId == RS2_ID)
     {
@@ -263,8 +270,11 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
         // 3 servers used for this test case.
         replServers.add("localhost:" + rs1Port);
         replServers.add("localhost:" + rs3Port);
-      } else
+      }
+      else
+      {
         fail("Unknown test case: " + testCase);
+      }
     }
     else if (serverId == RS3_ID)
     {
@@ -276,7 +286,9 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
         replServers.add("localhost:" + rs3Port);
       }
       else
+      {
         fail("Invalid test case: " + testCase);
+      }
     }
     else
     {

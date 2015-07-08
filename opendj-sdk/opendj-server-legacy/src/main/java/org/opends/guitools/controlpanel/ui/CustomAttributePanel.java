@@ -1068,25 +1068,26 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private void checkEnableSaveChanges()
   {
-    if (ignoreChangeEvents) return;
-    boolean changed;
+    if (!ignoreChangeEvents)
+    {
+      saveChanges.setEnabled(hasChanged());
+    }
+  }
 
+  private boolean hasChanged()
+  {
     if (attribute != null)
     {
       try
       {
-        changed = !attribute.toString().equals(getNewAttribute().toString());
+        return !attribute.toString().equals(getNewAttribute().toString());
       }
       catch (Throwable t)
       {
-        changed = true;
+        return true;
       }
     }
-    else
-    {
-      changed = false;
-    }
-    saveChanges.setEnabled(changed);
+    return false;
   }
 
   private String getAttributeName()

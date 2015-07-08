@@ -398,13 +398,21 @@ public class AciTargets {
     private static SearchScope createScope(String expression)
     throws AciException {
         if(expression.equalsIgnoreCase("base"))
-                return SearchScope.BASE_OBJECT;
+        {
+          return SearchScope.BASE_OBJECT;
+        }
         else if(expression.equalsIgnoreCase("onelevel"))
-            return SearchScope.SINGLE_LEVEL;
+        {
+          return SearchScope.SINGLE_LEVEL;
+        }
         else if(expression.equalsIgnoreCase("subtree"))
-            return SearchScope.WHOLE_SUBTREE;
+        {
+          return SearchScope.WHOLE_SUBTREE;
+        }
         else if(expression.equalsIgnoreCase("subordinate"))
-            return SearchScope.SUBORDINATES;
+        {
+          return SearchScope.SUBORDINATES;
+        }
         else {
             LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION.get(expression);
@@ -472,12 +480,16 @@ public class AciTargets {
                 targAttrFilters.hasMask(TARGATTRFILTERS_ADD)) ||
               (matchCtx.hasRights(ACI_DELETE) &&
                targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
-                ret=targAttrFilters.isApplicableAddDel(matchCtx);
+            {
+              ret=targAttrFilters.isApplicableAddDel(matchCtx);
+            }
             else if((matchCtx.hasRights(ACI_WRITE_ADD) &&
                      targAttrFilters.hasMask(TARGATTRFILTERS_ADD)) ||
                     (matchCtx.hasRights(ACI_WRITE_DELETE) &&
                     targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
-                ret=targAttrFilters.isApplicableMod(matchCtx, aci);
+            {
+              ret=targAttrFilters.isApplicableMod(matchCtx, aci);
+            }
         }
         return ret;
     }
@@ -519,7 +531,9 @@ public class AciTargets {
             }
             if (isFirstAttr && targetAttr == null
                 && aci.getTargets().getTargAttrFilters() == null)
-                targetMatchCtx.setEntryTestRule(true);
+            {
+              targetMatchCtx.setEntryTestRule(true);
+            }
         }
         return ret;
     }
@@ -583,13 +597,17 @@ public class AciTargets {
                 (!targets.getTarget().isPattern())) {
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op != EnumTargetOperator.NOT_EQUALITY)
-                targetDN=targets.getTarget().getDN();
+            {
+              targetDN=targets.getTarget().getDN();
+            }
         }
         //Check if the scope is correct.
         switch(targets.getTargetScope().asEnum()) {
         case BASE_OBJECT:
             if(!targetDN.equals(entryDN))
-                return false;
+            {
+              return false;
+            }
             break;
         case SINGLE_LEVEL:
             /*
@@ -599,11 +617,15 @@ public class AciTargets {
              * Non-standard interpretation of onelevel in ACI targetScope.
              */
             if(!targetDN.equals(entryDN.parent()))
-                return false;
+            {
+              return false;
+            }
             break;
         case WHOLE_SUBTREE:
             if(!entryDN.isDescendantOf(targetDN))
-                return false;
+            {
+              return false;
+            }
             break;
         case SUBORDINATES:
             if ((entryDN.size() <= targetDN.size()) ||
@@ -625,7 +647,9 @@ public class AciTargets {
             if(op == EnumTargetOperator.NOT_EQUALITY) {
                 DN tmpDN=targets.getTarget().getDN();
                 if(entryDN.isDescendantOf(tmpDN))
-                    return false;
+                {
+                  return false;
+                }
             }
         }
         /*
@@ -638,7 +662,9 @@ public class AciTargets {
             final boolean ret = targets.getTarget().matchesPattern(entryDN);
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op == EnumTargetOperator.NOT_EQUALITY)
-                return !ret;
+            {
+              return !ret;
+            }
             return ret;
         }
         return true;
@@ -676,14 +702,22 @@ public class AciTargets {
         */
         if(ret && targetAttr.isAllUserAttributes() &&
                 !ctx.hasEvalUserAttributes())
+        {
           ctx.setEvalUserAttributes(ACI_USER_ATTR_STAR_MATCHED);
+        }
         else
+        {
           ctx.setEvalUserAttributes(ACI_FOUND_USER_ATTR_RULE);
+        }
 
         if(ret && targetAttr.isAllOpAttributes() &&
                 !ctx.hasEvalOpAttributes())
+        {
           ctx.setEvalOpAttributes(ACI_OP_ATTR_PLUS_MATCHED);
+        }
         else
+        {
           ctx.setEvalOpAttributes(ACI_FOUND_OP_ATTR_RULE);
+        }
     }
 }

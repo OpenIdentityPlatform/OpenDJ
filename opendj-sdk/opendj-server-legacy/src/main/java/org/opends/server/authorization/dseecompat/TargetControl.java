@@ -80,15 +80,21 @@ public class TargetControl {
    */
   public boolean isApplicable(AciTargetMatchContext matchCtx) {
     if(matchCtx.getControlOID() == null)
+    {
       return false;
+    }
     boolean ret = false;
     for(String oid : controlOIDS)
+    {
       if(oid.equals("*") || matchCtx.getControlOID().equals(oid)) {
         ret=true;
         break;
       }
-   if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-          ret = !ret;
+    }
+    if(op.equals(EnumTargetOperator.NOT_EQUALITY))
+    {
+      ret = !ret;
+    }
     return ret;
   }
 }

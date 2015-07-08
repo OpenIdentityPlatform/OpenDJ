@@ -76,7 +76,9 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
       LDAPAttribute o1 = e1.next();
       LDAPAttribute o2 = e2.next();
       if (o1 == null ? o2 != null : !testEqual(o1, o2))
+      {
         return false;
+      }
     }
     return !e1.hasNext() && !e2.hasNext();
   }

@@ -85,15 +85,21 @@ public class ExtOp {
    */
   public boolean isApplicable(AciTargetMatchContext matchCtx) {
     if(matchCtx.getExtOpOID() == null)
+    {
       return false;
+    }
     boolean ret = false;
     for(String oid : extOpOIDs)
+    {
       if(oid.equals("*") || matchCtx.getExtOpOID().equals(oid)) {
         ret=true;
         break;
       }
-   if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-          ret = !ret;
+    }
+    if(op.equals(EnumTargetOperator.NOT_EQUALITY))
+    {
+      ret = !ret;
+    }
     return ret;
   }
 }

@@ -231,7 +231,9 @@ public class TargAttrFilters {
   private static String getReverseOp(String op)
   {
     if (getMask(op) == TARGATTRFILTERS_DELETE)
+    {
       return "add";
+    }
     return "del";
   }
 
@@ -243,7 +245,9 @@ public class TargAttrFilters {
      */
     private static  int getMask(String op) {
         if(op.equals("add"))
-            return TARGATTRFILTERS_ADD;
+        {
+          return TARGATTRFILTERS_ADD;
+        }
         return TARGATTRFILTERS_DELETE;
     }
 
@@ -261,19 +265,27 @@ public class TargAttrFilters {
         //context's rights and the mask.
         if((matchCtx.hasRights(ACI_WRITE_ADD) || matchCtx.hasRights(ACI_ADD)) &&
                 hasMask(TARGATTRFILTERS_ADD))
-            mask=TARGATTRFILTERS_ADD;
+        {
+          mask=TARGATTRFILTERS_ADD;
+        }
         else if((matchCtx.hasRights(ACI_WRITE_DELETE) ||
                  matchCtx.hasRights(ACI_DELETE)) &&
                 hasMask(TARGATTRFILTERS_DELETE))
-            mask=TARGATTRFILTERS_DELETE;
+        {
+          mask=TARGATTRFILTERS_DELETE;
+        }
 
         //Check the first list first, it always has to be there. If it doesn't
         //match then check the second if it exists.
         if(firstFilterList.hasMask(mask))
-            return firstFilterList;
+        {
+          return firstFilterList;
+        }
         else if((secondFilterList != null) &&
                 secondFilterList.hasMask(mask))
-            return secondFilterList;
+        {
+          return secondFilterList;
+        }
         return null;
     }
 
@@ -294,7 +306,9 @@ public class TargAttrFilters {
         //If the list is empty return true and go on to the targattr check
         //in AciTargets.isApplicable().
         if(attrFilterList == null)
-            return true;
+        {
+          return true;
+        }
         Map<AttributeType, SearchFilter> filterList  =
                 attrFilterList.getAttributeTypeFilterList();
         boolean attrMatched=true;
@@ -324,7 +338,9 @@ public class TargAttrFilters {
       boolean result)
   {
     if (EnumTargetOperator.NOT_EQUALITY.equals(op))
+    {
       return !result;
+    }
     return result;
   }
 
@@ -341,7 +357,9 @@ public class TargAttrFilters {
         TargAttrFilterList attrFilterList=getTargAttrFilterList(matchCtx);
         //List didn't match current operation return true.
         if(attrFilterList == null)
-            return true;
+        {
+          return true;
+        }
 
         Map<AttributeType, SearchFilter> filterList  =
                 attrFilterList.getAttributeTypeFilterList();

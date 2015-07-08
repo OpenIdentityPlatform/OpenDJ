@@ -181,8 +181,9 @@ public class IPTestCase extends AciTestCase {
          InetAddress addr=InetAddress.getByName(ipStr);
          EnumEvalResult res=ip.evaluate(addr);
          if(res != EnumEvalResult.TRUE)
-             throw new RuntimeException ("Addr: " + ipStr +
-                     "expr: " + mixed);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + mixed);
+        }
      }
 
 
@@ -198,8 +199,9 @@ public class IPTestCase extends AciTestCase {
         InetAddress addr=InetAddress.getByName(ipStr);
         EnumEvalResult res=ip.evaluate(addr);
         if(res != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                    "expr: " + ip4compat);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + ip4compat);
+        }
     }
 
     /**
@@ -215,13 +217,15 @@ public class IPTestCase extends AciTestCase {
         InetAddress addr=InetAddress.getByName(ipStr);
         EnumEvalResult res=ip.evaluate(addr);
         if(res != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + ip6ExprCidr);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + ip6ExprCidr);
+        }
         IP ip1=(IP) IP.decode(ip6ExprCidrB, EnumBindRuleType.EQUAL_BINDRULE_TYPE);
         EnumEvalResult res1=ip1.evaluate(addr);
         if(res1 != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + ip6ExprCidrB);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + ip6ExprCidrB);
+        }
     }
 
     /**
@@ -238,13 +242,15 @@ public class IPTestCase extends AciTestCase {
         InetAddress addr=InetAddress.getByName(ipStr);
         EnumEvalResult res=ip.evaluate(addr);
         if(res != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + ip6Expr);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + ip6Expr);
+        }
         IP ip1=(IP) IP.decode(ip6ExprC, EnumBindRuleType.EQUAL_BINDRULE_TYPE);
         EnumEvalResult res1=ip1.evaluate(addr);
         if(res1 != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + ip6ExprC);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + ip6ExprC);
+        }
     }
 
     /**
@@ -260,14 +266,16 @@ public class IPTestCase extends AciTestCase {
         InetAddress addr=InetAddress.getByName(ipStr);
         EnumEvalResult res=ip.evaluate(addr);
         if(res != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + cidr);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + cidr);
+        }
 
         IP ip1=(IP) IP.decode(cidrWc, EnumBindRuleType.EQUAL_BINDRULE_TYPE);
         EnumEvalResult res1=ip.evaluate(addr);
         if(res1 != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + cidrWc);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + cidrWc);
+        }
     }
 
     /**
@@ -283,14 +291,16 @@ public class IPTestCase extends AciTestCase {
         InetAddress addr=InetAddress.getByName(ipStr);
         EnumEvalResult res=ip.evaluate(addr);
         if(res != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + netmaskWc);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + netmaskWc);
+        }
         IP ip1 = (IP) IP.decode(netmaskWcOverRide,
                 EnumBindRuleType.EQUAL_BINDRULE_TYPE);
         EnumEvalResult res1=ip1.evaluate(addr);
         if(res1 != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + netmaskWc);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + netmaskWc);
+        }
     }
 
     /**
@@ -306,13 +316,15 @@ public class IPTestCase extends AciTestCase {
         InetAddress addr=InetAddress.getByName(ipStr);
         EnumEvalResult res=ip.evaluate(addr);
         if(res != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr: " + ipExpr);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr: " + ipExpr);
+        }
         IP ipWc=(IP) IP.decode(ipExprWc, EnumBindRuleType.EQUAL_BINDRULE_TYPE);
         EnumEvalResult resWc=ipWc.evaluate(addr);
         if(resWc != EnumEvalResult.TRUE)
-            throw new RuntimeException ("Addr: " + ipStr +
-                                        "expr:" + ipExprWc);
+        {
+          throw new RuntimeException ("Addr: " + ipStr + "expr:" + ipExprWc);
+        }
     }
 
     /**

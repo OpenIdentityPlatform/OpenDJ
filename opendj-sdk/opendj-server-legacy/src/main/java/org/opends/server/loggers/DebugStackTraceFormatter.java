@@ -214,12 +214,14 @@ class DebugStackTraceFormatter
     // Recurse if we have a cause
     Throwable ourCause = t.getCause();
     if (ourCause != null)
+    {
       formatStackTraceForCause(ourCause, maxDepth, buffer, trace);
+    }
   }
 
   /**
    * Generate a String representation of the possibly filtered stack trace from
-   * the current position in executation.
+   * the current position in execution.
    *
    * @param stackTrace
    *          - The stack trace elements to format.

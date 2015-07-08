@@ -277,7 +277,9 @@ public class AciEffectiveRights {
           AttributeType attrType = DirectoryServer.getAttributeType(a
               .toLowerCase());
           if (attrType == null)
+          {
             attrType = DirectoryServer.getDefaultAttributeType(a.toLowerCase());
+          }
           nonRightsAttrs.add(attrType);
         }
       }
@@ -352,9 +354,10 @@ public class AciEffectiveRights {
       final Entry retEntry, List<AttributeType> attrList,
       boolean skipCheck, boolean specificAttr)
   {
-
-    // The attribute list might be null.
-    if (attrList == null) return;
+    if (attrList == null)
+    {
+      return;
+    }
 
     for(AttributeType a : attrList) {
       StringBuilder evalInfo=new StringBuilder();
@@ -419,7 +422,9 @@ public class AciEffectiveRights {
         //in both the search and the specific attribute part of the control.
         //Only try to add the attribute type if it already hasn't been added.
         if(!retEntry.hasAttribute(attributeType))
-         retEntry.addAttribute(attr,null);
+        {
+          retEntry.addAttribute(attr,null);
+        }
       }
     }
     container.setCurrentAttributeValue(null);
@@ -585,13 +590,15 @@ public class AciEffectiveRights {
       //Check if read right check, if so do accessAllowedEntry.
       if(container.hasRights(ACI_READ) &&
          container.getCurrentAttributeType() == null)
+      {
         ret=handler.accessAllowedEntry(container);
+      }
       else
+      {
         ret=handler.accessAllowed(container);
-      if(ret)
-        resString.append(rightStr).append(":1");
-      else
-        resString.append(rightStr).append(":0");
+      }
+
+      resString.append(rightStr).append(ret ? ":1" : ":0");
     }
     return resString.toString();
   }
@@ -655,7 +662,9 @@ public class AciEffectiveRights {
       // The attribute type might have already been added, probably
       // not but it is possible.
       if(!retEntry.hasAttribute(attributeType))
-          retEntry.addAttribute(attr,null);
+      {
+        retEntry.addAttribute(attr,null);
+      }
     }
   }
 
@@ -727,7 +736,9 @@ public class AciEffectiveRights {
         //targattrfilters ACI name only if a deny targattrfilters ACI
         //was not seen. It could remove the allow.
         if(!evalCtx.hasTargAttrFiltersMatchOp(ACL_TARGATTR_DENY_MATCH))
+        {
           evalCtx.setTargAttrFiltersAciName(null);
+        }
       } else {
         //The evaluation returned false. If the reason was an
         //explicit deny evaluation by a non-targattrfilters ACI, clear
@@ -737,22 +748,32 @@ public class AciEffectiveRights {
         //ACI that might have granted access the deny stands, else there is
         //a targattrfilters ACI that might grant access.
         if(evalCtx.getEvalReason() == EnumEvalReason.EVALUATED_DENY_ACI)
+        {
           evalCtx.setTargAttrFiltersAciName(null);
+        }
         else if(!evalCtx.hasTargAttrFiltersMatchOp(ACL_TARGATTR_ALLOW_MATCH))
+        {
           evalCtx.setTargAttrFiltersAciName(null);
+        }
       }
     }
     //Actually build the string.
     String user=anonymous;
     if(!evalCtx.getClientDN().isRootDN())
+    {
       user=evalCtx.getClientDN().toString();
+    }
     String right=evalCtx.rightToString();
     AttributeType aType=evalCtx.getCurrentAttributeType();
     String attrStr="NULL";
     if(aType != null)
+    {
       attrStr=aType.getPrimaryName();
+    }
     if(evalCtx.getTargAttrFiltersAciName() != null)
+    {
       decideAci.append(", access depends on attr value");
+    }
     return String.format(summaryFormatStr, srcStr, accessStatus,
                          right,evalCtx.getResourceDN().toString(),attrStr, user,
                             accessReason, decideAci.toString());
@@ -761,15 +782,25 @@ public class AciEffectiveRights {
   private static String getEvalReason(EnumEvalReason evalReason)
   {
     if (evalReason == EnumEvalReason.EVALUATED_ALLOW_ACI)
+    {
       return EVALUATED_ALLOW;
+    }
     else if (evalReason == EnumEvalReason.EVALUATED_DENY_ACI)
+    {
       return EVALUATED_DENY;
+    }
     else if (evalReason == EnumEvalReason.NO_ALLOW_ACIS)
+    {
       return NO_ALLOWS;
+    }
     else if (evalReason == EnumEvalReason.NO_MATCHED_ALLOWS_ACIS)
+    {
       return NO_ALLOWS_MATCHED;
+    }
     else if (evalReason == EnumEvalReason.SKIP_ACI)
+    {
       return SKIP_ACI;
+    }
     return "";
   }
 

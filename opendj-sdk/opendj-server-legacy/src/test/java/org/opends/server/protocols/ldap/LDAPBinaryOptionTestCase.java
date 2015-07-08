@@ -323,13 +323,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
           for (ByteString v : a.getValues())
           {
             String val = v.toString();
-            if(val.equals("sn#1") || val.equals("sn#2")
-                    || val.equals("sn#3"))
-            {
-              snWithMultiVal = true;
-            }
-            else //All the values should match.
-              snWithMultiVal =  false;
+            snWithMultiVal = val.equals("sn#1") || val.equals("sn#2") || val.equals("sn#3");
           }
         }
       }

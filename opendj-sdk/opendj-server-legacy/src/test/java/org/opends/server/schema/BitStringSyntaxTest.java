@@ -80,8 +80,8 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
       syntax.valueIsAcceptable(byteStringValue, reason);
 
     if (liveResult != result)
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value +
-          "reason : " + reason);
-
+    {
+      fail(syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
+    }
   }
 }

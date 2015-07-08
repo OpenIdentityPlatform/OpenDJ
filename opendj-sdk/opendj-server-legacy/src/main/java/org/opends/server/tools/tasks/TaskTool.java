@@ -352,23 +352,38 @@ public abstract class TaskTool implements TaskScheduleInformation {
         } else {
           message = ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage());
         }
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null)
+        {
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+        }
         ret = 1;
       } catch (DecodeException ae) {
         LocalizableMessage message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null)
+        {
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+        }
         ret = 1;
       } catch (IOException ioe) {
         LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(ioe);
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null)
+        {
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+        }
         ret = 1;
       } catch (LDAPException le) {
         LocalizableMessage message = ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage());
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null)
+        {
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+        }
         ret = 1;
       } catch (ArgumentException | OpenDsException e) {
         LocalizableMessage message = e.getMessageObject();
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        if (err != null)
+        {
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+        }
         ret = 1;
       } finally
       {

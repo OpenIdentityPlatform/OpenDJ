@@ -324,7 +324,9 @@ public class InitOnLineTest extends ReplicationTestCase
     // and ReplLDIFOutputStream with big entries
     char bigAttributeValue[] = new char[30240];
     for (int i=0; i<bigAttributeValue.length; i++)
+    {
       bigAttributeValue[i] = Integer.toString(i).charAt(0);
+    }
 
     String[] entries = new String[entriesCnt + 2];
     entries[0] = "dn: " + EXAMPLE_DN + "\n"
@@ -403,7 +405,9 @@ public class InitOnLineTest extends ReplicationTestCase
       log("Broker " + serverId + " Wait for entry or done msg");
       ReplicationMsg msg = broker.receive();
       if (msg == null)
+      {
         break;
+      }
 
       if (msg instanceof InitializeTargetMsg)
       {
@@ -474,11 +478,17 @@ public class InitOnLineTest extends ReplicationTestCase
   {
     SortedSet<String> servers = new TreeSet<>();
     if (replServerId != replServer1ID)
+    {
       servers.add("localhost:" + getReplServerPort(replServer1ID));
+    }
     if (replServerId != replServer2ID)
+    {
       servers.add("localhost:" + getReplServerPort(replServer2ID));
+    }
     if (replServerId != replServer3ID)
+    {
       servers.add("localhost:" + getReplServerPort(replServer3ID));
+    }
 
     final int port = getReplServerPort(replServerId);
     ReplServerFakeConfiguration conf =
@@ -551,8 +561,10 @@ public class InitOnLineTest extends ReplicationTestCase
       connectServer1ToReplServer(replServer1ID);
 
       if (server2 == null)
+      {
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer1ID), 1000);
+      }
 
       // In S1 launch the total update
       addTask(taskInitFromS2, ResultCode.SUCCESS, null);
@@ -602,8 +614,10 @@ public class InitOnLineTest extends ReplicationTestCase
       addTestEntriesToDB();
 
       if (server2 == null)
+      {
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer1ID), 1000);
+      }
 
       InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
       server2.publish(initMsg);
@@ -644,8 +658,10 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // S1 is the server we are running in, S2 is simulated by a broker
       if (server2 == null)
+      {
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer1ID), 1000);
+      }
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
@@ -694,12 +710,16 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // S1 is the server we are running in, S2 and S3 are simulated by brokers
       if (server2 == null)
+      {
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer1ID), 1000);
+      }
 
       if (server3 == null)
+      {
         server3 = openReplicationSession(baseDN,
           server3ID, 100, getReplServerPort(replServer1ID), 1000);
+      }
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetAll, ResultCode.SUCCESS, null);
@@ -736,8 +756,10 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // S1 is the server we are running in, S2 is simulated by a broker
       if (server2==null)
+      {
         server2 = openReplicationSession(baseDN,
           server2ID, 100, getReplServerPort(replServer1ID), 1000);
+      }
 
       // Creates config to synchronize suffix
       connectServer1ToReplServer(replServer1ID);
@@ -753,7 +775,9 @@ public class InitOnLineTest extends ReplicationTestCase
       {
         readGenerationId = replDomain.getGenerationID();
         if (readGenerationId == EXPECTED_GENERATION_ID)
+        {
           break;
+        }
         log(testCase + " genId=" + readGenerationId);
         Thread.sleep(1000);
       }

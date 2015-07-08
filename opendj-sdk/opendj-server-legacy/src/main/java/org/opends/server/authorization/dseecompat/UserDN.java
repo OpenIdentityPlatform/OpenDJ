@@ -191,9 +191,14 @@ public class UserDN implements KeywordBindRule {
             //Handle anonymous checks here
             if(isAnonUser) {
                 if(dnTypeURL.getUserDNType() == EnumUserDNType.ANYONE)
-                    matched = EnumEvalResult.TRUE;
-            }  else
-                matched=evalNonAnonymous(evalCtx, dnTypeURL);
+                {
+                  matched = EnumEvalResult.TRUE;
+                }
+            }
+            else
+            {
+              matched=evalNonAnonymous(evalCtx, dnTypeURL);
+            }
         }
         return matched.getRet(type, undefined);
     }
@@ -227,7 +232,10 @@ public class UserDN implements KeywordBindRule {
             }
             case SELF:
             {
-                if (clientDN.equals(resDN)) matched = EnumEvalResult.TRUE;
+                if (clientDN.equals(resDN))
+                {
+                  matched = EnumEvalResult.TRUE;
+                }
                 break;
             }
             case PARENT:
@@ -235,7 +243,9 @@ public class UserDN implements KeywordBindRule {
                 DN parentDN = resDN.parent();
                 if ((parentDN != null) &&
                         (parentDN.equals(clientDN)))
-                    matched = EnumEvalResult.TRUE;
+                {
+                  matched = EnumEvalResult.TRUE;
+                }
                 break;
             }
             case ALL:
@@ -254,7 +264,9 @@ public class UserDN implements KeywordBindRule {
                 {
                     DN dn = url.getBaseDN();
                     if (clientDN.equals(dn))
-                        matched = EnumEvalResult.TRUE;
+                    {
+                      matched = EnumEvalResult.TRUE;
+                    }
                     else {
                         //This code handles the case where a root dn entry does
                         //not have bypass-acl privilege and the ACI bind rule
@@ -263,11 +275,17 @@ public class UserDN implements KeywordBindRule {
                         DN clientActualDN=
                                 DirectoryServer.getActualRootBindDN(clientDN);
                         if(actualDN != null)
-                            dn=actualDN;
+                        {
+                          dn=actualDN;
+                        }
                         if(clientActualDN != null)
-                            clientDN=clientActualDN;
+                        {
+                          clientDN=clientActualDN;
+                        }
                         if(clientDN.equals(dn))
-                            matched=EnumEvalResult.TRUE;
+                        {
+                          matched=EnumEvalResult.TRUE;
+                        }
                     }
                 } catch (DirectoryException ex) {
                     //TODO add message
@@ -319,11 +337,15 @@ public class UserDN implements KeywordBindRule {
         SearchScope scope=url.getScope();
         if(scope == SearchScope.WHOLE_SUBTREE) {
             if(!evalCtx.getClientDN().isDescendantOf(urlDN))
-                return EnumEvalResult.FALSE;
+            {
+              return EnumEvalResult.FALSE;
+            }
         } else if(scope == SearchScope.SINGLE_LEVEL) {
             DN parent=evalCtx.getClientDN().parent();
             if((parent != null) && !parent.equals(urlDN))
-                return EnumEvalResult.FALSE;
+            {
+              return EnumEvalResult.FALSE;
+            }
         } else if(scope == SearchScope.SUBORDINATES) {
             DN userDN = evalCtx.getClientDN();
             if ((userDN.size() <= urlDN.size()) ||
@@ -332,11 +354,15 @@ public class UserDN implements KeywordBindRule {
             }
         } else {
             if(!evalCtx.getClientDN().equals(urlDN))
-                return EnumEvalResult.FALSE;
+            {
+              return EnumEvalResult.FALSE;
+            }
         }
         try {
             if(filter.matchesEntry(evalCtx.getClientEntry()))
-                ret=EnumEvalResult.TRUE;
+            {
+              ret=EnumEvalResult.TRUE;
+            }
         } catch (DirectoryException ex) {
             return EnumEvalResult.FALSE;
         }

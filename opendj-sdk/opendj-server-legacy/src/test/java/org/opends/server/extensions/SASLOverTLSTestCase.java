@@ -273,7 +273,9 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       Assert.assertTrue(Arrays.equals(jpegBytes, jpegBytes1));
     } finally {
       if(ctx != null)
+      {
         ctx.close();
+      }
     }
   }
 
@@ -313,7 +315,9 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       Assert.assertTrue(Arrays.equals(jpegBytes, jpegBytes1));
     } finally {
       if(ctx != null)
+      {
         ctx.close();
+      }
     }
   }
 
@@ -357,7 +361,9 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       ctx.modifyAttributes(testUserDN, mods);
     } finally {
       if (ctx != null)
+      {
         ctx.close();
+      }
     }
   }
 
@@ -396,7 +402,9 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       ctx.destroySubcontext(testUserDN);
     } finally {
       if(ctx != null)
+      {
         ctx.close();
+      }
     }
   }
 

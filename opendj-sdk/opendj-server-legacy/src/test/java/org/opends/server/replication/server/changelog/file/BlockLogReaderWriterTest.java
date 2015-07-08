@@ -370,8 +370,14 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
         Pair<Boolean, Record<Integer, Integer>> result =
             reader.seekToRecord(key, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
         final long te = System.nanoTime() - ts;
-        if (te < minTime) minTime = te;
-        if (te > maxTime) maxTime = te;
+        if (te < minTime)
+        {
+          minTime = te;
+        }
+        if (te > maxTime)
+        {
+          maxTime = te;
+        }
         // show time for seeks that last more than N microseconds (tune as needed)
         if (te/1000 > 1000)
         {
@@ -395,8 +401,14 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
             reader.positionToKey(0, val, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
         assertThat(result.getSecond()).isEqualTo(Record.from(val, val));
         long te = System.nanoTime() - ts;
-        if (te < minTime) minTime = te;
-        if (te > maxTime) maxTime = te;
+        if (te < minTime)
+        {
+          minTime = te;
+        }
+        if (te > maxTime)
+        {
+          maxTime = te;
+        }
       }
       System.out.println("Time taken: " + ((System.nanoTime() - t1)/1000000) + " milliseconds");
       System.out.println("Min time for a search: " + minTime/1000 + " microseconds");

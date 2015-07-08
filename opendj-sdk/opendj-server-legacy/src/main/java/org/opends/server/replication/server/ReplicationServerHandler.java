@@ -208,7 +208,9 @@ public class ReplicationServerHandler extends ServerHandler
       // Until here session is encrypted then it depends on the negotiation
       // The session initiator decides whether to use SSL.
       if (!this.sslEncryption)
+      {
         session.stopEncryption();
+      }
 
       if (getProtocolVersion() > ProtocolVersion.REPLICATION_PROTOCOL_V1)
       {
@@ -308,7 +310,9 @@ public class ReplicationServerHandler extends ServerHandler
       The session initiator decides whether to use SSL.
       */
       if (!sslEncryption)
+      {
         session.stopEncryption();
+      }
 
       TopologyMsg inTopoMsg = null;
       if (getProtocolVersion() > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -368,7 +372,9 @@ public class ReplicationServerHandler extends ServerHandler
       // Process TopologyMsg sent by remote RS: store matching new info
       // (this will also warn our connected DSs of the new received info)
       if (inTopoMsg!=null)
+      {
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
+      }
 
       logger.debug(INFO_REPLICATION_SERVER_CONNECTION_FROM_RS, getReplicationServerId(), getServerId(),
           replicationServerDomain.getBaseDN(), session.getReadableRemoteAddress());

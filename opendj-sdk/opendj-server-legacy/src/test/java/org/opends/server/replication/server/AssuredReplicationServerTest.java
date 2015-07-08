@@ -301,7 +301,9 @@ public class AssuredReplicationServerTest
 
     fakeReplicationDomain.startPublishService();
     if (startListen)
+    {
       fakeReplicationDomain.startListenService();
+    }
 
     // Test connection
     assertTrue(fakeReplicationDomain.isConnected());
@@ -2906,9 +2908,13 @@ public class AssuredReplicationServerTest
 
       // Check call time
       if (fakeDsIsEligible && (fakeDsScen == TIMEOUT_DS_SCENARIO))
+      {
         assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, SMALL_TIMEOUT + 1000);
+      }
       else
+      {
         assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
+      }
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked

@@ -510,7 +510,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
         new CSN(looser1T2, 0, myId2),
         new CSN(looser1T3, 0, myId3));
     if (looser1IsLocal)
+    {
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
+    }
 
     // State for server 2
     ServerState aState2 = newServerState(
@@ -518,7 +520,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
         new CSN(winnerT2, 0, myId2),
         new CSN(winnerT3, 0, myId3));
     if (winnerIsLocal)
+    {
       ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
+    }
 
     // State for server 3
     ServerState aState3 = newServerState(
@@ -526,7 +530,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
         new CSN(looser2T2, 0, myId2),
         new CSN(looser2T3, 0, myId3));
     if (looser2IsLocal)
+    {
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
+    }
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 1),
@@ -606,17 +612,23 @@ public class ComputeBestServerTest extends ReplicationTestCase
     // State for server 1
     ServerState aState1 = newServerState(new CSN(looser1T1, 0, myId1));
     if (looser1IsLocal)
+    {
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
+    }
 
     // State for server 2
     ServerState aState2 = newServerState(new CSN(winnerT1, 0, myId1));
     if (winnerIsLocal)
+    {
       ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
+    }
 
     // State for server 3
     ServerState aState3 = newServerState(new CSN(looser2T1, 0, myId1));
     if (looser2IsLocal)
+    {
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
+    }
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, looser1GenId, looser1GroupId),

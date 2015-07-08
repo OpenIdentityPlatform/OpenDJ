@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock, AS.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -81,10 +82,7 @@ public abstract class AttrHistorical
   public static AttrHistorical createAttributeHistorical(
       AttributeType type)
   {
-    if (type.isSingleValue())
-      return new AttrHistoricalSingle();
-    else
-      return new AttrHistoricalMultiple();
+    return type.isSingleValue() ? new AttrHistoricalSingle() : new AttrHistoricalMultiple();
   }
 
   /**
@@ -92,8 +90,7 @@ public abstract class AttrHistorical
    *
    * @return the List of ValueInfo
    */
-  public abstract Map<AttrValueHistorical,AttrValueHistorical>
-      getValuesHistorical();
+  public abstract Map<AttrValueHistorical, AttrValueHistorical> getValuesHistorical();
 
 
   /**

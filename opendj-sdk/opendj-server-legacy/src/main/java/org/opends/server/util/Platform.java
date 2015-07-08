@@ -208,7 +208,9 @@ public final class Platform
         else if (!ks.containsAlias(alias)
             || ks
                 .entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class))
+        {
           trustedCert(alias, cf, ks, inStream);
+        }
         else
         {
           LocalizableMessage msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
@@ -291,7 +293,10 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
         X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
-        if (isSelfSigned(cert)) cert.verify(cert.getPublicKey());
+        if (isSelfSigned(cert))
+        {
+          cert.verify(cert.getPublicKey());
+        }
         ks.setCertificateEntry(alias, cert);
       }
       catch (Exception e)

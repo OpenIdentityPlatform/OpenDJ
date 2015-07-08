@@ -273,7 +273,9 @@ public class TopologyViewTest extends ReplicationTestCase
         String serverStr = rd.getReplicationServer();
         rdPort = HostPort.valueOf(serverStr).getPort();
         if (rdPort == rsPort)
+        {
           rightPort = true;
+        }
       }
       if (connected && rightPort)
       {
@@ -1050,7 +1052,9 @@ public class TopologyViewTest extends ReplicationTestCase
     public boolean equals(Object obj)
     {
       if (obj == null || getClass() != obj.getClass())
+      {
         return false;
+      }
       TopoView other = (TopoView) obj;
       return checkLists(dsList, other.dsList)
           && checkLists(rsList, other.rsList);
@@ -1059,18 +1063,24 @@ public class TopologyViewTest extends ReplicationTestCase
     private boolean checkLists(List<?> list, List<?> otherList)
     {
       if (otherList.size() != list.size())
+      {
         return false;
+      }
       for (Object otherObj : otherList)
       {
         int found = 0;
         for (Object thisObj : list)
         {
           if (thisObj.equals(otherObj))
+          {
             found++;
+          }
         }
         // Not found
         if (found == 0)
+        {
           return false;
+        }
         // Should never see twice as dsInfo structure in a dsList
         assertFalse(found > 1);
       // Ok, found exactly once in the list, examine next structure

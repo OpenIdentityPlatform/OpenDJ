@@ -38,24 +38,13 @@ package org.opends.server.replication.plugin;
  */
 public enum HistAttrModificationKey
 {
-  /**
-   * The key for attribute value deletion.
-   */
+  /** The key for attribute value deletion. */
   DEL("del"),
-
-  /**
-   * The key for attribute deletion.
-   */
+  /** The key for attribute deletion. */
   DELATTR("delAttr"),
-
-  /**
-   * The key for attribute replace.
-   */
+  /** The key for attribute replace. */
   REPL("repl"),
-
-  /**
-   * The key for attribute value addition.
-   */
+  /** The key for attribute value addition. */
   ADD("add");
 
   /** The string representation of this key. */
@@ -79,21 +68,15 @@ public enum HistAttrModificationKey
    */
   public static HistAttrModificationKey decodeKey(String histkey)
   {
-     if (histkey == null)
-       return null;
-
-     if (histkey.compareTo("repl") == 0)
+     if ("repl".equals(histkey)) {
        return HistAttrModificationKey.REPL;
-
-     if (histkey.compareTo("add") == 0)
+     } else if ("add".equals(histkey)) {
        return HistAttrModificationKey.ADD;
-
-     if (histkey.compareTo("del") == 0)
+     } else if ("del".equals(histkey)) {
        return HistAttrModificationKey.DEL;
-
-     if (histkey.compareTo("attrDel") == 0)
+     } else if ("attrDel".equals(histkey)) {
        return HistAttrModificationKey.DELATTR;
-
+     }
      return null;
   }
 
@@ -112,9 +95,9 @@ public enum HistAttrModificationKey
    *
    * @return  A string representation of this HistKey.
    */
+  @Override
   public String toString()
   {
     return key;
   }
-
 }

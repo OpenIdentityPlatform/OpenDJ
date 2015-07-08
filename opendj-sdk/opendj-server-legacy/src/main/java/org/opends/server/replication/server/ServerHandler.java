@@ -917,7 +917,9 @@ public abstract class ServerHandler extends MessageHandler
       // don't try anymore to join and return.
     }
     if (logger.isTraceEnabled())
+    {
       logger.trace("SH.shutdowned(" + this + ")");
+    }
   }
 
   /**

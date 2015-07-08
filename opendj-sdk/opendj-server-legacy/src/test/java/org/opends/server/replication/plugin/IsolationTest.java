@@ -99,7 +99,9 @@ public class IsolationTest extends ReplicationTestCase
     finally
     {
       if (domain != null)
+      {
         MultimasterReplication.deleteDomain(baseDn);
+      }
     }
   }
 }

@@ -1062,7 +1062,10 @@ public class ImportLDIF extends TaskTool {
           badFileCount++;
         }
       }
-      if (badFileCount > 0) return 1;
+      if (badFileCount > 0)
+      {
+        return 1;
+      }
       importConfig = new LDIFImportConfig(fileList);
     }
     else

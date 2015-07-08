@@ -183,21 +183,25 @@ public class DNS implements KeywordBindRule {
     boolean evalHostName(String[] remoteHostName, String[] pat) {
       boolean wildCard=pat[0].equals("*");
       //Check if there is a single wild-card.
-      if(pat.length == 1 && wildCard)
+      if(pat.length == 1 && wildCard) {
         return true;
+      }
       int remoteHnIndex=remoteHostName.length-pat.length;
-      if(remoteHnIndex < 0)
+      if(remoteHnIndex < 0) {
         return false;
+      }
       int patternIndex=0;
-      if(!wildCard)
-          remoteHnIndex=0;
-      else {
+      if(!wildCard) {
+        remoteHnIndex=0;
+      } else {
           patternIndex=1;
           remoteHnIndex++;
       }
-      for(int i=remoteHnIndex ;i<remoteHostName.length;i++)
-            if(!pat[patternIndex++].equalsIgnoreCase(remoteHostName[i]))
-                return false;
+      for(int i=remoteHnIndex ;i<remoteHostName.length;i++) {
+        if(!pat[patternIndex++].equalsIgnoreCase(remoteHostName[i])) {
+          return false;
+        }
+      }
       return true;
     }
 

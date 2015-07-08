@@ -420,8 +420,10 @@ private void clearProperties() {
     message.append("major code (").append(gex.getMajor()).append(") ")
         .append(gex.getMajorString());
     if(gex.getMinor() != 0)
+    {
       message.append(", minor code (").append(gex.getMinor()).append(") ")
           .append(gex.getMinorString());
+    }
     return message.toMessage();
   }
 
@@ -577,11 +579,12 @@ throws UnknownHostException, IOException, InitializationException
   private String getQOP(GSSAPISASLMechanismHandlerCfg configuration)
   {
     QualityOfProtection QOP = configuration.getQualityOfProtection();
-    if (QOP.equals(QualityOfProtection.CONFIDENTIALITY))
+    if (QOP.equals(QualityOfProtection.CONFIDENTIALITY)) {
       return "auth-conf";
-    else if (QOP.equals(QualityOfProtection.INTEGRITY))
+    } else if (QOP.equals(QualityOfProtection.INTEGRITY)) {
       return "auth-int";
-    else
+    } else {
       return "auth";
+    }
   }
 }

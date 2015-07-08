@@ -568,7 +568,10 @@ public class FileManagerTest extends QuickSetupTestCase {
   }
 
   private void writeContents(File f, String content) throws IOException {
-    if (!f.exists()) f.createNewFile();
+    if (!f.exists())
+    {
+      f.createNewFile();
+    }
     FileWriter fw = new FileWriter(f);
     fw.write(content);
     fw.flush();

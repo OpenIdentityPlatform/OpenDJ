@@ -128,7 +128,9 @@ public class BlowfishPasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
   }
 
@@ -166,7 +168,9 @@ public class BlowfishPasswordStorageScheme
     finally
     {
       if (plaintextBytes != null)
+      {
         Arrays.fill(plaintextBytes, (byte) 0);
+      }
     }
 
     return ByteString.valueOf(buffer);

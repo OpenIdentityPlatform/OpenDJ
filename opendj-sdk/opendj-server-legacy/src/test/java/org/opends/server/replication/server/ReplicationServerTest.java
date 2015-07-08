@@ -611,7 +611,9 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (BrokerReader r : reader)
       {
         if (r != null)
+        {
           assertNull(r.errDetails, r.exc + " " + r.errDetails);
+        }
       }
     }
     debugInfo("Ending multipleWriterMultipleReader");
@@ -841,9 +843,13 @@ public class ReplicationServerTest extends ReplicationTestCase
       {
         ReplicationMsg msg = broker2.receive();
         if (msg == null)
+        {
           break;
+        }
         if (msg instanceof TopologyMsg)
+         {
           continue; // ignore
+        }
         msgs.add(msg);
 
         broker2.updateWindowAfterReplay();
@@ -1020,7 +1026,9 @@ public class ReplicationServerTest extends ReplicationTestCase
           // may prevent to process a WindowMsg that would unblock the dual
           // writer thread.
           if (msg == null)
+          {
             break;
+          }
         }
       } catch (SocketTimeoutException e)
       {
@@ -1077,7 +1085,9 @@ public class ReplicationServerTest extends ReplicationTestCase
         broker.publish(msg);
 
         if ((count % 10) == 0)
-        debugInfo("writer " + broker.getServerId() + "  to send="+count);
+        {
+          debugInfo("writer " + broker.getServerId() + "  to send="+count);
+        }
       }
       debugInfo("writer " + broker.getServerId() + " ends sent="+ccount);
     }
@@ -1127,7 +1137,9 @@ public class ReplicationServerTest extends ReplicationTestCase
          // Connect only replicationServer[0] to ReplicationServer[1]
          // and not the other way
          if (i==0)
+         {
            servers.add("localhost:" + changelogPorts[1]);
+         }
          ReplServerFakeConfiguration conf =
            new ReplServerFakeConfiguration(changelogPorts[i], "replicationServerTestReplicationServerConnectedDb"+i, replicationDbImplementation,
                                           0, changelogIds[i], 0, 100, servers);

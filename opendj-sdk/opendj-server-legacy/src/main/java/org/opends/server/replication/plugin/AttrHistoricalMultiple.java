@@ -137,7 +137,9 @@ public class AttrHistoricalMultiple extends AttrHistorical
        AttrValueHistorical info = it.next();
        if (csn.isNewerThanOrEqualTo(info.getValueUpdateTime()) &&
            csn.isNewerThanOrEqualTo(info.getValueDeleteTime()))
-         it.remove();
+      {
+        it.remove();
+      }
      }
 
      if (csn.isNewerThan(deleteTime))
