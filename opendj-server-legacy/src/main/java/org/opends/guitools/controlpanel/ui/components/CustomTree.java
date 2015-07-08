@@ -67,7 +67,7 @@ public class CustomTree extends JTree
   private enum NewEventType
   {
     MOUSE_PRESSED, MOUSE_CLICKED, MOUSE_RELEASED
-  };
+  }
 
   /** {@inheritDoc} */
   public void paintComponent(Graphics g)

@@ -23,7 +23,6 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.io.File;
@@ -31,26 +30,18 @@ import java.util.Date;
 
 import org.opends.server.types.BackupInfo;
 
-/**
- * Class used to describe a backup.
- */
+/** Class used to describe a backup. */
 public class BackupDescriptor
 {
-  /**
-   * The different types of backups.
-   *
-   */
+  /** The different types of backups. */
   public enum Type
   {
-    /**
-     * Full backup.
-     */
+    /** Full backup. */
     FULL,
-    /**
-     * Incremental backup.
-     */
+    /** Incremental backup. */
     INCREMENTAL
-  };
+  }
+
   private Type type;
   private Date creationDate;
   private File path;

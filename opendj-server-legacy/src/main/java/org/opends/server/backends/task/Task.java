@@ -160,7 +160,7 @@ public abstract class Task
     // NOTE: this method is invoked via reflection.  If you rename
     // it be sure to modify the calls.
     return null;
-  };
+  }
 
   /**
    * Given an attribute type name returns and locale sensitive
@@ -168,11 +168,10 @@ public abstract class Task
    *
    * @param name of an attribute type associated with the object
    *        class that represents this entry in the directory
-   * @return LocalizableMessage diaplay name
+   * @return LocalizableMessage display name
    */
   public LocalizableMessage getAttributeDisplayName(String name) {
-    // Subclasses that are schedulable from the task interface
-    // should override this
+    // Subclasses that are schedulable from the task interface should override this
 
     // NOTE: this method is invoked via reflection.  If you rename
     // it be sure to modify the calls.

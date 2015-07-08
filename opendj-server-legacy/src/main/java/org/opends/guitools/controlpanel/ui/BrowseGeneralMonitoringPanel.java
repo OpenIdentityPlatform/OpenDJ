@@ -603,7 +603,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
           Utilities.createImageIcon(IconPool.IMAGE_PATH+"/"+ocPaths[i],
               getClass().getClassLoader()));
     }
-  };
+  }
 
   private String getServerName(ServerDescriptor server)
   {

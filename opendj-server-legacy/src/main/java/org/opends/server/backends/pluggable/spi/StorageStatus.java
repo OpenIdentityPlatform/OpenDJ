@@ -42,7 +42,7 @@ public final class StorageStatus
     LOCKED_DOWN,
     /** Storage has no resources to execute operations. */
     UNUSABLE
-  };
+  }
 
   /** Hopefully resources are always in this state. */
   private static final StorageStatus WORKING = new StorageStatus(Code.WORKING, null);

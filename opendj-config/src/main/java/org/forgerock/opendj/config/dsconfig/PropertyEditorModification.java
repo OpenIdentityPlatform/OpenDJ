@@ -53,7 +53,7 @@ final class PropertyEditorModification<T> {
         ADD,
         /** The user chose to delete values. */
         REMOVE
-    };
+    }
 
     private PropertyDefinition<T> propertyDefinition;
     private Type type;

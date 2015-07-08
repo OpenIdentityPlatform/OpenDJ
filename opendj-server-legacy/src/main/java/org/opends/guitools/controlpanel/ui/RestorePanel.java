@@ -506,5 +506,5 @@ implements BackupCreatedListener
     {
       return getCommandLinePath("restore");
     }
-  };
+  }
 }

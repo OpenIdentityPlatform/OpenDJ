@@ -80,12 +80,9 @@ public class GenericConstraint extends Constraint {
                 return true;
             }
         }
+    }
 
-    };
-
-    /**
-     * The server-side constraint handler.
-     */
+    /** The server-side constraint handler. */
     private final class ServerHandler extends ServerConstraintHandler {
 
         /** Private constructor. */
@@ -104,8 +101,7 @@ public class GenericConstraint extends Constraint {
                 return true;
             }
         }
-
-    };
+    }
 
     /** The client-side constraint handler. */
     private final ClientConstraintHandler clientHandler = new ClientHandler();

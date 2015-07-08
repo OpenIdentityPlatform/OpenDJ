@@ -183,7 +183,7 @@ public final class LDAPProfile {
   }
 
   /** The list of profile wrappers. */
-  private final LinkedList<Wrapper> profiles = new LinkedList<>();;
+  private final LinkedList<Wrapper> profiles = new LinkedList<>();
 
   /** The LDAP profile property table. */
   private final ManagedObjectDefinitionResource resource =

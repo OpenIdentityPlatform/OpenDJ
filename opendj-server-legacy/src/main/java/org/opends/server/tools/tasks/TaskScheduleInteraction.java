@@ -101,7 +101,7 @@ public class TaskScheduleInteraction
     {
       return RUN_NOW;
     }
-  };
+  }
 
   /**
    * Default constructor.

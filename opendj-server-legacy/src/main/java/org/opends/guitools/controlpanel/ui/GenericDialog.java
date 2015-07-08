@@ -93,7 +93,7 @@ public class GenericDialog extends JDialog
     CLOSE,
     /** The dialog has no buttons. */
     NO_BUTTON
-  };
+  }
 
   /**
    * Constructor of the dialog.

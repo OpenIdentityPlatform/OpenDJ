@@ -1648,12 +1648,9 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       hmImages.put(classes[i],
           Utilities.createImageIcon(IconPool.IMAGE_PATH+"/"+ocPaths[i]));
     }
-  };
-  /**
-   * Specific class used to render the nodes in the tree.  It uses specific
-   * icons for the nodes.
-   *
-   */
+  }
+
+  /** Specific class used to render the nodes in the tree.  It uses specific icons for the nodes. */
   protected class SchemaTreeCellRenderer extends TreeCellRenderer
   {
     private static final long serialVersionUID = -3390568254259441766L;

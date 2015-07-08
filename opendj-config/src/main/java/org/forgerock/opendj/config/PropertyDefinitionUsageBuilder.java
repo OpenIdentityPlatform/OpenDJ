@@ -300,6 +300,5 @@ public final class PropertyDefinitionUsageBuilder {
      */
     public LocalizableMessage getUsage(PropertyDefinition<?> pd) {
         return pd.accept(pimpl, null);
-    };
-
+    }
 }

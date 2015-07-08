@@ -55,7 +55,7 @@ class Certificate {
          * Public-Key Cryptography Standards 11 token.
          */
         PKCS11
-    };
+    }
 
     private CertificateType type;
     private String certNickName;
