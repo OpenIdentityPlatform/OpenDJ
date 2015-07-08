@@ -243,7 +243,7 @@ public class LockManagerTest extends TypesTestCase
     final LockManager lockManager = new LockManager();
 
     // Acquire 100 different locks. The first few locks should be evicted from the cache.
-    final LinkedList<DNLock> locks = new LinkedList<DNLock>();
+    final LinkedList<DNLock> locks = new LinkedList<>();
     for (int i = 0; i < 100; i++)
     {
       locks.add(lockManager.tryWriteLockEntry(dn(i)));

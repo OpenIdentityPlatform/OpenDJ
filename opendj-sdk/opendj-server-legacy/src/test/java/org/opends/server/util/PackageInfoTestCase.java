@@ -83,7 +83,7 @@ public class PackageInfoTestCase
   public Object[][] getADSSourceDirectories()
   {
     File adsSourceRoot = new File(sourceRoot, "ads");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(adsSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];
@@ -108,7 +108,7 @@ public class PackageInfoTestCase
   public Object[][] getAdminSourceDirectories()
   {
     File adminSourceRoot = new File(sourceRoot, "admin");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(adminSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];
@@ -133,7 +133,7 @@ public class PackageInfoTestCase
   public Object[][] getBuildToolsSourceDirectories()
   {
     File buildToolsSourceRoot = new File(sourceRoot, "build-tools");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(buildToolsSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];
@@ -158,7 +158,7 @@ public class PackageInfoTestCase
   public Object[][] getDSMLSourceDirectories()
   {
     File dsmlSourceRoot = new File(sourceRoot, "dsml");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(dsmlSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];
@@ -183,7 +183,7 @@ public class PackageInfoTestCase
   public Object[][] getGUIToolsSourceDirectories()
   {
     File guiToolsSourceRoot = new File(sourceRoot, "guitools");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(guiToolsSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];
@@ -208,7 +208,7 @@ public class PackageInfoTestCase
   public Object[][] getQuickSetupSourceDirectories()
   {
     File quickSetupSourceRoot = new File(sourceRoot, "quicksetup");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(quickSetupSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];
@@ -233,7 +233,7 @@ public class PackageInfoTestCase
   public Object[][] getServerSourceDirectories()
   {
     File serverSourceRoot = new File(sourceRoot, "server");
-    ArrayList<File> sourceDirs = new ArrayList<File>();
+    ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(serverSourceRoot, sourceDirs);
 
     Object[][] returnArray = new Object[sourceDirs.size()][1];

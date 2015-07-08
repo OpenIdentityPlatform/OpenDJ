@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -53,8 +53,7 @@ public class HTTPStatistics extends LDAPStatistics
    * The keys are static because they need to be listed in the schema which is
    * static.
    */
-  private Map<String, AtomicInteger> requestMethodsTotalCount =
-      new HashMap<String, AtomicInteger>();
+  private Map<String, AtomicInteger> requestMethodsTotalCount = new HashMap<>();
   /**
    * Map containing the total execution time for the requests per HTTP methods.
    * <p>
@@ -65,8 +64,7 @@ public class HTTPStatistics extends LDAPStatistics
    * The keys are static because they need to be listed in the schema which is
    * static.
    */
-  private Map<String, AtomicLong> requestMethodsTotalTime =
-      new HashMap<String, AtomicLong>();
+  private Map<String, AtomicLong> requestMethodsTotalTime = new HashMap<>();
   /**
    * Total number of requests. The total number may be different than the sum of
    * the supported HTTP methods above because clients could use unsupported HTTP
@@ -111,30 +109,22 @@ public class HTTPStatistics extends LDAPStatistics
   {
     // first take a snapshot of all the data as fast as possible
     final int totalCount = this.requestsTotalCount.get();
-    final Map<String, Integer> totalCountsSnapshot =
-        new HashMap<String, Integer>();
-    for (Entry<String, AtomicInteger> entry : this.requestMethodsTotalCount
-        .entrySet())
+    final Map<String, Integer> totalCountsSnapshot = new HashMap<>();
+    for (Entry<String, AtomicInteger> entry : requestMethodsTotalCount.entrySet())
     {
       totalCountsSnapshot.put(entry.getKey(), entry.getValue().get());
     }
-    final Map<String, Long> totalTimesSnapshot = new HashMap<String, Long>();
-    for (Entry<String, AtomicLong> entry1 : this.requestMethodsTotalTime
-        .entrySet())
+    final Map<String, Long> totalTimesSnapshot = new HashMap<>();
+    for (Entry<String, AtomicLong> entry1 : requestMethodsTotalTime.entrySet())
     {
       totalTimesSnapshot.put(entry1.getKey(), entry1.getValue().get());
     }
 
     // do the same with the underlying data
     final List<Attribute> results = super.getMonitorData();
-
-    addAll(results, totalCountsSnapshot, "ds-mon-http-",
-        "-requests-total-count");
-    addAll(results, totalTimesSnapshot, "ds-mon-resident-time-http-",
-        "-requests-total-time");
-    results.add(createAttribute("ds-mon-http-requests-total-count", Integer
-        .toString(totalCount)));
-
+    addAll(results, totalCountsSnapshot, "ds-mon-http-", "-requests-total-count");
+    addAll(results, totalTimesSnapshot, "ds-mon-resident-time-http-", "-requests-total-time");
+    results.add(createAttribute("ds-mon-http-requests-total-count", Integer.toString(totalCount)));
     return results;
   }
 

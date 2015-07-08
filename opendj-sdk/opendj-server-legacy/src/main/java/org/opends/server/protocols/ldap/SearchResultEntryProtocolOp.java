@@ -166,7 +166,7 @@ public class SearchResultEntryProtocolOp
     LinkedList<LDAPAttribute> tmp = attributes;
     if (tmp == null)
     {
-      tmp = new LinkedList<LDAPAttribute>();
+      tmp = new LinkedList<>();
       if (entry != null)
       {
         if (ldapVersion == 2)
@@ -542,12 +542,9 @@ public class SearchResultEntryProtocolOp
       return entry;
     }
 
-    HashMap<ObjectClass,String> objectClasses =
-         new HashMap<ObjectClass,String>();
-    HashMap<AttributeType,List<Attribute>> userAttributes =
-         new HashMap<AttributeType,List<Attribute>>();
-    HashMap<AttributeType,List<Attribute>> operationalAttributes =
-         new HashMap<AttributeType,List<Attribute>>();
+    HashMap<ObjectClass,String> objectClasses = new HashMap<>();
+    HashMap<AttributeType,List<Attribute>> userAttributes = new HashMap<>();
+    HashMap<AttributeType,List<Attribute>> operationalAttributes = new HashMap<>();
 
 
     for (LDAPAttribute a : getAttributes())
@@ -575,7 +572,7 @@ public class SearchResultEntryProtocolOp
         List<Attribute> attrs = operationalAttributes.get(attrType);
         if (attrs == null)
         {
-          attrs = new ArrayList<Attribute>(1);
+          attrs = new ArrayList<>(1);
           attrs.add(attr);
           operationalAttributes.put(attrType, attrs);
         }
@@ -589,7 +586,7 @@ public class SearchResultEntryProtocolOp
         List<Attribute> attrs = userAttributes.get(attrType);
         if (attrs == null)
         {
-          attrs = new ArrayList<Attribute>(1);
+          attrs = new ArrayList<>(1);
           attrs.add(attr);
           userAttributes.put(attrType, attrs);
         }

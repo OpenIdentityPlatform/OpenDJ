@@ -130,7 +130,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
 
     //Test to make sure the constructor with result code, message, dn, and
     //referral params works.
-    ArrayList<String> referralURLs = new ArrayList<String>();
+    ArrayList<String> referralURLs = new ArrayList<>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
     referralURLs.add("ds3.example.com");
@@ -261,7 +261,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     AddResponseProtocolOp addEncoded;
     AddResponseProtocolOp addDecoded;
 
-    ArrayList<String> referralURLs = new ArrayList<String>();
+    ArrayList<String> referralURLs = new ArrayList<>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
     referralURLs.add("ds3.example.com");
@@ -292,7 +292,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     assertEquals(addDecoded.getMatchedDN(), null);
 
     //Test case for a full empty referral url param.
-    ArrayList<String> emptyReferralURLs = new ArrayList<String>();
+    ArrayList<String> emptyReferralURLs = new ArrayList<>();
     addEncoded = new AddResponseProtocolOp(resultCode, resultMsg, dn,
                                            emptyReferralURLs);
     builder.clear();
@@ -366,7 +366,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
 
-    ArrayList<String> referralURLs = new ArrayList<String>();
+    ArrayList<String> referralURLs = new ArrayList<>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
     referralURLs.add("ds3.example.com");

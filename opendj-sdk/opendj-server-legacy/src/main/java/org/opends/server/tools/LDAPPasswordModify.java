@@ -561,7 +561,7 @@ public class LDAPPasswordModify
 
 
     // If a control string was provided, then decode the requested controls.
-    ArrayList<Control> controls = new ArrayList<Control>();
+    ArrayList<Control> controls = new ArrayList<>();
     if(controlStr.isPresent())
     {
       for (String ctrlString : controlStr.getValues())

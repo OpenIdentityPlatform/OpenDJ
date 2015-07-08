@@ -61,10 +61,10 @@ public final class SearchResultReference
    */
   public SearchResultReference(String referralURL)
   {
-    referralURLs = new ArrayList<String>(1);
+    referralURLs = new ArrayList<>(1);
     referralURLs.add(referralURL);
 
-    this.controls = new ArrayList<Control>(0);
+    this.controls = new ArrayList<>(0);
   }
 
 
@@ -80,14 +80,14 @@ public final class SearchResultReference
   {
     if (referralURLs == null)
     {
-      this.referralURLs = new ArrayList<String>();
+      this.referralURLs = new ArrayList<>();
     }
     else
     {
       this.referralURLs = referralURLs;
     }
 
-    this.controls = new ArrayList<Control>(0);
+    this.controls = new ArrayList<>(0);
   }
 
 
@@ -106,7 +106,7 @@ public final class SearchResultReference
   {
     if (referralURLs == null)
     {
-      this.referralURLs = new ArrayList<String>();
+      this.referralURLs = new ArrayList<>();
     }
     else
     {
@@ -115,7 +115,7 @@ public final class SearchResultReference
 
     if (controls == null)
     {
-      this.controls = new ArrayList<Control>(0);
+      this.controls = new ArrayList<>(0);
     }
     else
     {

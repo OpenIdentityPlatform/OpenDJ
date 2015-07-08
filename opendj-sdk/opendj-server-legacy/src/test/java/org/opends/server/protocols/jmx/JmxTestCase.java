@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -122,7 +122,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
    */
   private void enableJmx() throws Exception
   {
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
 
     InternalClientConnection conn = InternalClientConnection
         .getRootConnection();

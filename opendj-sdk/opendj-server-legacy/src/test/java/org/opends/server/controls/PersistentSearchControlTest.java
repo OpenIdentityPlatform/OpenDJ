@@ -75,7 +75,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   @DataProvider(name = "persistentSearchChangeTypeData")
   public Object[][] createPersistentSearchChangeTypeData()
   {
-    Map<Integer, String> values = new HashMap<Integer, String>();
+    Map<Integer, String> values = new HashMap<>();
     values.put(1, "add");
     values.put(2, "delete");
     values.put(4, "modify");
@@ -153,8 +153,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
   {
     Set<Integer> keys = exceptedValues.keySet() ;
 
-    Set<PersistentSearchChangeType> expectedTypes =
-      new HashSet<PersistentSearchChangeType>(4);
+    Set<PersistentSearchChangeType> expectedTypes = new HashSet<>(4);
 
     for (int i = 1; i <= 15; i++)
     {
@@ -517,11 +516,11 @@ public class PersistentSearchControlTest extends ControlsTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("ds-cfg-max-psearches", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =

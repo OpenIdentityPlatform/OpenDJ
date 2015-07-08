@@ -70,7 +70,7 @@ public final class TestModifyChangeRecordEntry extends UtilTestCase {
     TestCaseUtils.startServer();
 
     // Create a simple set of modifications.
-    modifications = new ArrayList<RawModification>();
+    modifications = new ArrayList<>();
     attribute = Attributes.create("cn", "hello world");
     LDAPAttribute lattribute = new LDAPAttribute(attribute);
     LDAPModification modification = new LDAPModification(

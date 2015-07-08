@@ -598,15 +598,14 @@ public class PluginConfigManagerTestCase
   {
     String pluginBase = ",cn=Plugins,cn=config";
 
-    ArrayList<DN> dnList = new ArrayList<DN>();
+    ArrayList<DN> dnList = new ArrayList<>();
     dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_DELAY + pluginBase));
     dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_DISCONNECT + pluginBase));
     dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_INVOCATION_COUNTER + pluginBase));
     dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_SHORT_CIRCUIT + pluginBase));
     dnList.add(DN.valueOf("cn=" + PLUGIN_NAME_UPDATE + pluginBase));
 
-    ArrayList<DirectoryServerPlugin> pluginList =
-         new ArrayList<DirectoryServerPlugin>(dnList.size());
+    ArrayList<DirectoryServerPlugin> pluginList = new ArrayList<>(dnList.size());
     for (DN dn : dnList)
     {
       DirectoryServerPlugin p =

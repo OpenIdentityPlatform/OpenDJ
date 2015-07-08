@@ -95,7 +95,7 @@ public final class HostPort
   /** Time-stamp acts as memory barrier for networkInterfaces. */
   private static final long CACHED_LOCAL_ADDRESSES_TIMEOUT_MS = 30 * 1000;
   private static volatile long localAddressesTimeStamp;
-  private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();
+  private static Set<InetAddress> localAddresses = new HashSet<>();
 
   /**
    * Returns {@code true} if the provided {@code InetAddress} represents the
@@ -133,7 +133,7 @@ public final class HostPort
         final Enumeration<NetworkInterface> i =
             NetworkInterface.getNetworkInterfaces();
         if (i != null) {
-          final Set<InetAddress> newLocalAddresses = new HashSet<InetAddress>();
+          final Set<InetAddress> newLocalAddresses = new HashSet<>();
           while (i.hasMoreElements())
           {
             NetworkInterface n = i.nextElement();

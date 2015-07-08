@@ -725,7 +725,7 @@ public class DisconnectClientPlugin
    */
   public static List<Control> createDisconnectControlList(String section)
   {
-    ArrayList<Control> controlList = new ArrayList<Control>(1);
+    ArrayList<Control> controlList = new ArrayList<>(1);
 
     controlList.add(new DisconnectClientControl(false, section));
 

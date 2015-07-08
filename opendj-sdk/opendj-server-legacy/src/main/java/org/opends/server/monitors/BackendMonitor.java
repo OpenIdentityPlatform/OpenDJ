@@ -134,7 +134,7 @@ public class BackendMonitor
   /** {@inheritDoc} */
   public List<Attribute> getMonitorData()
   {
-    LinkedList<Attribute> attrs = new LinkedList<Attribute>();
+    LinkedList<Attribute> attrs = new LinkedList<>();
 
     attrs.add(Attributes.create(backendIDType, backend.getBackendID()));
 

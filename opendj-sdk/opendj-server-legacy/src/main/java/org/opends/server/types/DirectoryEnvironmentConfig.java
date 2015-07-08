@@ -101,7 +101,7 @@ public final class DirectoryEnvironmentConfig
   public DirectoryEnvironmentConfig(Properties properties, boolean checkIfServerIsRunning)
   {
     this.checkIfServerIsRunning = checkIfServerIsRunning;
-    configProperties = new HashMap<String,String>();
+    configProperties = new HashMap<>();
     if (properties != null)
     {
       Enumeration<?> propertyNames = properties.propertyNames();
@@ -131,11 +131,11 @@ public final class DirectoryEnvironmentConfig
     this.checkIfServerIsRunning = checkIfServerIsRunning;
     if (properties == null)
     {
-      configProperties = new HashMap<String,String>();
+      configProperties = new HashMap<>();
     }
     else
     {
-      configProperties = new HashMap<String,String>(properties);
+      configProperties = new HashMap<>(properties);
     }
   }
 

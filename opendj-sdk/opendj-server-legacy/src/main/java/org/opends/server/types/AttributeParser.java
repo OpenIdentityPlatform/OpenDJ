@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2014 ForgeRock AS.
+ *      Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -260,15 +260,15 @@ public final class AttributeParser {
     public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
             final Collection<? extends T> defaultValues) {
         if (!isEmpty(attribute)) {
-            final LinkedHashSet<T> result = new LinkedHashSet<T>(attribute.size());
+            final LinkedHashSet<T> result = new LinkedHashSet<>(attribute.size());
             for (final ByteString v : attribute) {
                 result.add(f.apply(v));
             }
             return result;
         } else if (defaultValues != null) {
-            return new LinkedHashSet<T>(defaultValues);
+            return new LinkedHashSet<>(defaultValues);
         } else {
-            return new LinkedHashSet<T>(0);
+            return new LinkedHashSet<>(0);
         }
     }
 

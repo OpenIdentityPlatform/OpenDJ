@@ -171,8 +171,7 @@ public class SMTPAccountStatusNotificationHandler
                SMTPAccountStatusNotificationHandlerCfg configuration)
           throws ConfigException
   {
-    HashMap<AccountStatusNotificationType,String> map =
-         new HashMap<AccountStatusNotificationType,String>();
+    HashMap<AccountStatusNotificationType,String> map = new HashMap<>();
 
     for (String s : configuration.getMessageSubject())
     {
@@ -228,9 +227,7 @@ public class SMTPAccountStatusNotificationHandler
           throws ConfigException
   {
     HashMap<AccountStatusNotificationType,
-            List<NotificationMessageTemplateElement>> map =
-         new HashMap<AccountStatusNotificationType,
-                      List<NotificationMessageTemplateElement>>();
+            List<NotificationMessageTemplateElement>> map = new HashMap<>();
 
     for (String s : configuration.getMessageTemplateFile())
     {
@@ -295,8 +292,7 @@ public class SMTPAccountStatusNotificationHandler
   private List<NotificationMessageTemplateElement> parseTemplateFile(File f)
           throws ConfigException
   {
-    LinkedList<NotificationMessageTemplateElement> elementList =
-         new LinkedList<NotificationMessageTemplateElement>();
+    LinkedList<NotificationMessageTemplateElement> elementList = new LinkedList<>();
 
     BufferedReader reader = null;
     try
@@ -520,7 +516,7 @@ public class SMTPAccountStatusNotificationHandler
     // It is a notification that should be handled, so we can start generating
     // the e-mail message.  First, check to see if there are any mail attributes
     // that would cause us to send a message to the end user.
-    LinkedList<String> recipients = new LinkedList<String>();
+    LinkedList<String> recipients = new LinkedList<>();
     Set<AttributeType> addressAttrs = config.getEmailAddressAttributeType();
     Set<String> recipientAddrs = config.getRecipientAddress();
     if ((addressAttrs != null) && (! addressAttrs.isEmpty()))

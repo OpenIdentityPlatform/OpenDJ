@@ -98,7 +98,7 @@ public final class TestStaticUtils extends UtilTestCase {
    */
   @DataProvider(name = "getBytesTestData")
   public Object[][] createGetBytesTestData() {
-    List<String> strings = new LinkedList<String>();
+    List<String> strings = new LinkedList<>();
 
     // Some simple strings.
     strings.add("");
@@ -379,7 +379,7 @@ public final class TestStaticUtils extends UtilTestCase {
    */
   @DataProvider(name = "isDigitTestData")
   public Object[][] createIsDigitTestData() {
-    List<Object[]> data = new LinkedList<Object[]>();
+    List<Object[]> data = new LinkedList<>();
 
     for (char c = '0'; c <= '9'; c++) {
       data.add(new Object[] { c, true });
@@ -415,7 +415,7 @@ public final class TestStaticUtils extends UtilTestCase {
    */
   @DataProvider(name = "isAlphaTestData")
   public Object[][] createIsAlphaTestData() {
-    List<Object[]> data = new LinkedList<Object[]>();
+    List<Object[]> data = new LinkedList<>();
 
     for (char c = 'a'; c <= 'z'; c++) {
       data.add(new Object[] { c, true });
@@ -461,7 +461,7 @@ public final class TestStaticUtils extends UtilTestCase {
    */
   @DataProvider(name = "isHexDigitTestData")
   public Object[][] createIsHexDigitTestData() {
-    List<Object[]> data = new LinkedList<Object[]>();
+    List<Object[]> data = new LinkedList<>();
 
     for (char c = 'a'; c <= 'f'; c++) {
       data.add(new Object[] { c, true });
@@ -564,7 +564,7 @@ public final class TestStaticUtils extends UtilTestCase {
    */
   @DataProvider(name = "needsBase64EncodingTestData")
   public Object[][] createNeedsBase64EncodingTestData() {
-    List<Object[]> data = new LinkedList<Object[]>();
+    List<Object[]> data = new LinkedList<>();
 
     // Check SAFE-INIT-CHAR.
     for (char c = '\u0000'; c < '\u0100'; c++) {
@@ -709,7 +709,7 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test(dataProvider = "listToArrayTestData")
   public void testListToArray(String[] strings) throws Exception {
     if (strings != null) {
-      List<String> list = new ArrayList<String>(strings.length);
+      List<String> list = new ArrayList<>(strings.length);
       for (String string : strings) {
         list.add(string);
       }
@@ -960,7 +960,7 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testRecursiveDelete() throws Exception {
     File dir0 = TestCaseUtils.createTemporaryDirectory("dst");
 
-    List<File> files = new LinkedList<File>();
+    List<File> files = new LinkedList<>();
 
     File dir1 = new File(dir0, "one");
     dir1.mkdir();

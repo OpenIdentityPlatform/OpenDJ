@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -95,7 +95,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
 
   private final EntityTagVirtualAttributeCfg config = new EntityTagVirtualAttributeCfg()
   {
-    private final TreeSet<AttributeType> excludedAttributes = new TreeSet<AttributeType>();
+    private final TreeSet<AttributeType> excludedAttributes = new TreeSet<>();
 
     @Override
     public void addChangeListener(

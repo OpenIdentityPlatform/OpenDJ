@@ -284,7 +284,7 @@ public final class LockManager
   private final TimeUnit lockTimeoutUnits;
 
   // Avoid sub-classing in order to workaround class leaks in app servers.
-  private final ThreadLocal<LinkedList<DNLockHolder>> threadLocalCache = new ThreadLocal<LinkedList<DNLockHolder>>();
+  private final ThreadLocal<LinkedList<DNLockHolder>> threadLocalCache = new ThreadLocal<>();
 
   /**
    * Creates a new lock manager with a lock timeout of 9 seconds and an automatically chosen number
@@ -332,7 +332,7 @@ public final class LockManager
     this.lockTable = new LinkedList[this.numberOfBuckets];
     for (int i = 0; i < this.numberOfBuckets; i++)
     {
-      this.lockTable[i] = new LinkedList<DNLockHolder>();
+      this.lockTable[i] = new LinkedList<>();
     }
   }
 
@@ -437,7 +437,7 @@ public final class LockManager
     LinkedList<DNLockHolder> cache = threadLocalCache.get();
     if (cache == null)
     {
-      cache = new LinkedList<DNLockHolder>();
+      cache = new LinkedList<>();
       threadLocalCache.set(cache);
     }
     return acquireLockFromCache0(dn, cache);

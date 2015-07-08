@@ -68,9 +68,7 @@ public class DefaultEntryCacheTestCase
   Entry cacheFIFOConfigEntry;
 
   /** The entry cache order map sorted by the cache level. */
-  private SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
-    cacheOrderMap = new TreeMap<Integer,
-    EntryCache<? extends EntryCacheCfg>>();
+  private SortedMap<Integer, EntryCache<? extends EntryCacheCfg>> cacheOrderMap = new TreeMap<>();
 
   // Dummy test entries for each participating implementation.
   private ArrayList<Entry> testSoftRefEntriesList;
@@ -140,7 +138,7 @@ public class DefaultEntryCacheTestCase
     }
 
     // Make some dummy test entries.
-    super.testEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    super.testEntriesList = new ArrayList<>(super.NUMTESTENTRIES);
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.testEntriesList.add(TestCaseUtils.makeEntry(
         "dn: uid=test" + i + ".user" + i + ",ou=test" + i + ",o=test",
@@ -168,7 +166,7 @@ public class DefaultEntryCacheTestCase
         "uid: test" + i + ".user" + i)
       );
     }
-    testSoftRefEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    testSoftRefEntriesList = new ArrayList<>(super.NUMTESTENTRIES);
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       testSoftRefEntriesList.add(TestCaseUtils.makeEntry(
         "dn: uid=softref" + i + ".user" + i + ",ou=test" + i + ",o=test",
@@ -179,7 +177,7 @@ public class DefaultEntryCacheTestCase
         "uid: softref" + i + ".user" + i)
       );
     }
-    testFIFOEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    testFIFOEntriesList = new ArrayList<>(super.NUMTESTENTRIES);
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       testFIFOEntriesList.add(TestCaseUtils.makeEntry(
         "dn: uid=fifo" + i + ".user" + i + ",ou=test" + i + ",o=test",
@@ -208,9 +206,7 @@ public class DefaultEntryCacheTestCase
          throws Exception
   {
     // Unplug all cache implementations from default entry cache.
-    SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
-      emptyCacheOrderMap = new TreeMap<Integer,
-      EntryCache<? extends EntryCacheCfg>>();
+    SortedMap<Integer, EntryCache<? extends EntryCacheCfg>> emptyCacheOrderMap = new TreeMap<>();
     final Method[] defaultCacheMethods =
         super.cache.getClass().getDeclaredMethods();
     for (int i = 0; i < defaultCacheMethods.length; ++i) {

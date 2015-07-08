@@ -118,8 +118,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
   private Map<Integer, ReplicationServerInfo> newRSInfos(
       ReplicationServerInfo... rsInfos)
   {
-    Map<Integer, ReplicationServerInfo> results =
-        new HashMap<Integer, ReplicationServerInfo>();
+    Map<Integer, ReplicationServerInfo> results = new HashMap<>();
     for (ReplicationServerInfo rsInfo : rsInfos)
     {
       results.put(rsInfo.getServerId(), rsInfo);
@@ -259,7 +258,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
   private void containsOnly(final Map<Integer, LocalizableMessage> evaluations,
       MapEntry... entries)
   {
-    final List<MapEntry> notFound = new ArrayList<MapEntry>(Arrays.asList(entries));
+    final List<MapEntry> notFound = new ArrayList<>(Arrays.asList(entries));
     for (Iterator<MapEntry> iter = notFound.iterator(); iter.hasNext();)
     {
       final MapEntry entry = iter.next();
@@ -286,7 +285,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
   /** Contains ordinal for each message. */
   private Map<Integer, Integer> getOrdinal(Map<Integer, LocalizableMessage> evaluations)
   {
-    final Map<Integer, Integer> result = new LinkedHashMap<Integer, Integer>();
+    final Map<Integer, Integer> result = new LinkedHashMap<>();
     for (Entry<Integer, LocalizableMessage> entry : evaluations.entrySet())
     {
       result.put(entry.getKey(), entry.getValue().ordinal());
@@ -667,7 +666,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Expected winner: the RS
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "AwinnerHost:123", 0L, (byte)1, 1),
         EMPTY_SET);
@@ -684,7 +683,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: first in the list
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "BwinnerHost:123", 0L, (byte)1, 1),
         EMPTY_SET);
@@ -707,7 +706,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: R2 (still no connected DS)
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1));
@@ -731,7 +730,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * and have same weight
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "DwinnerHost:123", 0L, (byte)1, 1),
         newSet(1));
@@ -754,7 +753,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: RS2 -> 2 DSs on each RS
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -777,7 +776,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: RS2 -> go to perfect load balance
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1));
@@ -801,7 +800,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * highest weight
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1));
@@ -825,7 +824,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * highest weight
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -849,7 +848,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * highest weight
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1));
@@ -875,7 +874,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: RS1 -> misses more DSs than RS3
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "JwinnerHost:123", 0L, (byte)1, 5),
         newSet(1, 2, 3));
@@ -905,7 +904,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: RS2 (stay connected to it as load correctly spread)
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1));
@@ -928,7 +927,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: RS2 (one must disconnect from RS1)
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -952,7 +951,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * one with the lowest id so not DS with server id 2)
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "MwinnerHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -976,7 +975,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Excepted winner: RS2 no change as load correctly spread
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
         newSet(1, 2, 3, 4, 5, 6));
@@ -1009,7 +1008,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * previous test where the loads were ok)
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
         newSet(1, 2, 3, 4));
@@ -1040,7 +1039,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * is one of the two lowest ids connected to RS4
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "PwinnerHost:123", 0L, (byte)1, 3),
         newSet(1, 2, 3, 4));
@@ -1071,7 +1070,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * is not one of the two lowest ids connected to RS4
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
         newSet(1, 2, 3, 4));
@@ -1104,7 +1103,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * previous test where the loads were ok)
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte) 1, 3),
         newSet(1, 2, 3, 4));
@@ -1137,7 +1136,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * RS.
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "RwinnerHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -1165,7 +1164,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * Note: Same test as before, but not with the lowest local DS server id
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "SwinnerHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -1191,7 +1190,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * the local server would not stop going and coming back between RSs.
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "TwinnerHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -1220,7 +1219,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * the local server would not stop going and coming back between RSs.
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "UwinnerHost:123", 0L, (byte)1, 1),
         newSet(1, 2, 3));
@@ -1247,7 +1246,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * RS3
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
         newSet(1, 2));
@@ -1274,7 +1273,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
      * DS server id 1 should disconnect for reconnection to RS3
      */
 
-    rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "WwinnerHost:123", 0L, (byte)1, 1),
         newSet(1, 2));

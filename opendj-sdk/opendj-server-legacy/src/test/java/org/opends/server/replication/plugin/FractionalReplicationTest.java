@@ -521,7 +521,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    */
   private void createReplicationServer(String testCase) throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     String dir = testName + RS_ID + testCase + "Db";
     ReplServerFakeConfiguration conf =
@@ -615,7 +615,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       throws Exception
   {
       // Create modifications on the fractional attributes
-      List<Modification> mods = new ArrayList<Modification>();
+      List<Modification> mods = new ArrayList<>();
       boolean first = true;
       for (String fracCfgValue : fractionalConf)
       {

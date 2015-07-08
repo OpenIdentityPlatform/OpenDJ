@@ -166,8 +166,7 @@ final class HTTPClientConnection extends ClientConnection implements
    * The Map (messageID => {@link OperationWithPromise}) of all operations
    * currently in progress on this connection.
    */
-  private final Map<Integer, OperationWithPromise> operationsInProgress =
-      new ConcurrentHashMap<Integer, OperationWithPromise>();
+  private final Map<Integer, OperationWithPromise> operationsInProgress = new ConcurrentHashMap<>();
 
   /**
    * The number of operations performed on this connection. Used to compare with
@@ -622,7 +621,7 @@ final class HTTPClientConnection extends ClientConnection implements
   public Collection<Operation> getOperationsInProgress()
   {
     Collection<OperationWithPromise> values = operationsInProgress.values();
-    Collection<Operation> results = new ArrayList<Operation>(values.size());
+    Collection<Operation> results = new ArrayList<>(values.size());
     for (OperationWithPromise op : values)
     {
       results.add(op.operation);

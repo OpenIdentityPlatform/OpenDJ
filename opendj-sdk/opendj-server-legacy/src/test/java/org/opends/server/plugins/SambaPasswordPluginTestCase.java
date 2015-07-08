@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011-2012 profiq s.r.o.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -139,9 +139,8 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
      * Samba administrative user needs a permission to manipulate user accounts.
      * Hence, we add a very permissive ACI.
      */
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    InternalClientConnection conn = InternalClientConnection.getRootConnection();
+    LinkedList<Modification> mods = new LinkedList<>();
 
     mods.add(new Modification(ModificationType.ADD, Attributes.create("aci",
         "(target=\"ldap:///uid=*,o=test\")(targetattr=\"*\")"
@@ -221,10 +220,9 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     TestCaseUtils.addEntry(testEntry);
 
     // Perform the modify operation
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
+    InternalClientConnection conn = InternalClientConnection.getRootConnection();
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
 
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
         "userPassword", "password")));
@@ -301,7 +299,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     InternalClientConnection conn = new InternalClientConnection(authInfo);
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
 
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
         "userPassword", "password")));
@@ -348,7 +346,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     InternalClientConnection conn = new InternalClientConnection(authInfo);
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
 
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
         "userPassword", "password1")));
@@ -398,7 +396,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     InternalClientConnection conn = InternalClientConnection
         .getRootConnection();
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
 
     mods.add(new Modification(ModificationType.ADD, Attributes.create(
         "userPassword", "password1")));
@@ -707,7 +705,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       InternalClientConnection conn = InternalClientConnection
           .getRootConnection();
 
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      LinkedList<Modification> mods = new LinkedList<>();
 
       mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
           "userPassword", "password")));

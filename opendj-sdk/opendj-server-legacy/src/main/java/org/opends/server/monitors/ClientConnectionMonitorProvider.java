@@ -136,8 +136,7 @@ public class ClientConnectionMonitorProvider extends
   public ArrayList<Attribute> getMonitorData()
   {
     // Re-order the connections by connection ID.
-    TreeMap<Long, ClientConnection> connMap =
-        new TreeMap<Long, ClientConnection>();
+    TreeMap<Long, ClientConnection> connMap = new TreeMap<>();
 
     if (handler == null)
     {
@@ -171,7 +170,7 @@ public class ClientConnectionMonitorProvider extends
       builder.add(conn.getMonitorSummary());
     }
 
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> attrs = new ArrayList<>(1);
     attrs.add(builder.toAttribute());
     return attrs;
   }

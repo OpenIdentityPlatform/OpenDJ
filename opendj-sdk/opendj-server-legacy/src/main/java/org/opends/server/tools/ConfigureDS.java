@@ -521,7 +521,7 @@ public class ConfigureDS
     try
     {
       final IntegerArgument[] portArgs = {ldapPort, adminConnectorPort, ldapsPort, jmxPort};
-      final Set<Integer> portsAdded = new HashSet<Integer>();
+      final Set<Integer> portsAdded = new HashSet<>();
 
       for (final IntegerArgument portArg : portArgs)
       {
@@ -606,7 +606,7 @@ public class ConfigureDS
 
   private LinkedList<org.forgerock.opendj.ldap.DN> parseProvidedBaseDNs() throws ConfigureDSException
   {
-    LinkedList<org.forgerock.opendj.ldap.DN> baseDNs = new LinkedList<org.forgerock.opendj.ldap.DN>();
+    LinkedList<org.forgerock.opendj.ldap.DN> baseDNs = new LinkedList<>();
     if (baseDNString.isPresent())
     {
       for (final String dnString : baseDNString.getValues())

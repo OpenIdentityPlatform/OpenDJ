@@ -73,7 +73,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   public class MonitorAssertions
   {
 
-    private Map<String, Long> attributeValues = new HashMap<String, Long>();
+    private Map<String, Long> attributeValues = new HashMap<>();
 
     public MonitorAssertions(DN baseDN) throws Exception
     {
@@ -1500,7 +1500,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       return Collections.emptyMap();
 
     // Parse and store values
-    Map<Integer,Integer> resultMap = new HashMap<Integer,Integer>();
+    Map<Integer,Integer> resultMap = new HashMap<>();
     for (ByteString val : attrs.get(0))
     {
       StringTokenizer strtok = new StringTokenizer(val.toString(), ":");

@@ -91,21 +91,21 @@ public class PropertySetTest extends AdminTestCase {
     BooleanPropertyDefinition.Builder builder =
             BooleanPropertyDefinition.createBuilder(TopCfgDefn.getInstance(), "test-bool-prop");
     DefinedDefaultBehaviorProvider<Boolean> dbp =
-            new DefinedDefaultBehaviorProvider<Boolean>(BOOL_DEFAULT.toString());
+            new DefinedDefaultBehaviorProvider<>(BOOL_DEFAULT.toString());
     builder.setDefaultBehaviorProvider(dbp);
     testBoolPropertyDefinition = builder.getInstance();
 
     StringPropertyDefinition.Builder builder2 =
             StringPropertyDefinition.createBuilder(TopCfgDefn.getInstance(), "test-sv-str-prop");
     DefinedDefaultBehaviorProvider<String> dbp2 =
-            new DefinedDefaultBehaviorProvider<String>(STR_DEFAULT);
+            new DefinedDefaultBehaviorProvider<>(STR_DEFAULT);
     builder2.setDefaultBehaviorProvider(dbp2);
     testSvStringPropertyDefinition = builder2.getInstance();
 
     StringPropertyDefinition.Builder builder3 =
             StringPropertyDefinition.createBuilder(TopCfgDefn.getInstance(), "test-mv-str-prop");
     DefinedDefaultBehaviorProvider<String> dbp3 =
-            new DefinedDefaultBehaviorProvider<String>(STR_DEFAULT);
+            new DefinedDefaultBehaviorProvider<>(STR_DEFAULT);
     builder3.setDefaultBehaviorProvider(dbp3);
     builder3.setOption(PropertyOption.MULTI_VALUED);
     testMvStringPropertyDefinition = builder3.getInstance();
@@ -133,13 +133,13 @@ public class PropertySetTest extends AdminTestCase {
   @DataProvider(name = "propertyDefinitionAndValuesData")
   public Object[][] createPropertyDefinitionAndValuesData() {
 
-    Set<Boolean> sb = new HashSet<Boolean>();
+    Set<Boolean> sb = new HashSet<>();
     sb.add(Boolean.TRUE);
 
-    Set<String> ss1 = new HashSet<String>();
+    Set<String> ss1 = new HashSet<>();
     ss1.add("v");
 
-    Set<String> ss2 = new HashSet<String>();
+    Set<String> ss2 = new HashSet<>();
     ss2.add("v1");
     ss2.add("v2");
 
@@ -196,7 +196,7 @@ public class PropertySetTest extends AdminTestCase {
    */
   @Test(dataProvider = "propertyDefinitionAndValuesData")
   public <T> void testGetActiveValues(final PropertyDefinition<T> pd, final Collection<T> values) {
-    PropertyProvider pp = new TestPropertyProvider<T>(pd, values);
+    PropertyProvider pp = new TestPropertyProvider<>(pd, values);
     PropertySet ps = createTestPropertySet(pp);
     Property<T> p = ps.getProperty(pd);
     SortedSet<T> ss = p.getActiveValues();
@@ -213,13 +213,13 @@ public class PropertySetTest extends AdminTestCase {
   @DataProvider(name = "defaultData")
   public Object[][] createDefaultData() {
 
-    Set<Boolean> sb = new HashSet<Boolean>();
+    Set<Boolean> sb = new HashSet<>();
     sb.add(BOOL_DEFAULT);
 
-    Set<String> ss1 = new HashSet<String>();
+    Set<String> ss1 = new HashSet<>();
     ss1.add(STR_DEFAULT);
 
-    Set<String> ss2 = new HashSet<String>();
+    Set<String> ss2 = new HashSet<>();
     ss2.add(STR_DEFAULT);
 
     return new Object[][] {
@@ -252,23 +252,23 @@ public class PropertySetTest extends AdminTestCase {
   @DataProvider(name = "effectiveData")
   public Object[][] createEffectiveData() {
 
-    Set<Boolean> nvb = new HashSet<Boolean>();
+    Set<Boolean> nvb = new HashSet<>();
     nvb.add(Boolean.FALSE);
 
-    Set<Boolean> edb = new HashSet<Boolean>();
+    Set<Boolean> edb = new HashSet<>();
     edb.add(BOOL_DEFAULT);
 
-    Set<String> nvss1 = new HashSet<String>();
+    Set<String> nvss1 = new HashSet<>();
     nvss1.add("new value");
 
-    Set<String> edss1 = new HashSet<String>();
+    Set<String> edss1 = new HashSet<>();
     edss1.add(STR_DEFAULT);
 
-    Set<String> nvss2 = new HashSet<String>();
+    Set<String> nvss2 = new HashSet<>();
     nvss2.add("new value 1");
     nvss2.add("new value 2");
 
-    Set<String> edss2 = new HashSet<String>();
+    Set<String> edss2 = new HashSet<>();
     edss2.add(STR_DEFAULT);
 
     return new Object[][] {
@@ -400,7 +400,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   private PropertySet createTestPropertySet(PropertyProvider pp) {
-    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", null);
+    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<>("test-mod", null);
     PropertySet ps = new PropertySet();
     for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
       addProperty(ps, pd, pp);
@@ -409,7 +409,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   private <T> void addProperty(PropertySet ps, PropertyDefinition<T> pd, PropertyProvider pp) {
-    Collection<T> defaultValues = new LinkedList<T>();
+    Collection<T> defaultValues = new LinkedList<>();
     DefaultBehaviorProvider<T> dbp = pd.getDefaultBehaviorProvider();
     if (dbp instanceof DefinedDefaultBehaviorProvider) {
       DefinedDefaultBehaviorProvider<T> ddbp = (DefinedDefaultBehaviorProvider<T>) dbp;

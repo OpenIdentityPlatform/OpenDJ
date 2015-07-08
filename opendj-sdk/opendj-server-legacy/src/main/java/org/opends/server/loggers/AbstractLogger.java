@@ -91,7 +91,7 @@ public abstract class AbstractLogger
      * The set of loggers that have been registered with the server. It will
      * initially be empty.
      */
-    private Collection<P> logPublishers = new CopyOnWriteArrayList<P>();
+    private Collection<P> logPublishers = new CopyOnWriteArrayList<>();
 
 
     /**

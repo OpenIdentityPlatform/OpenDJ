@@ -66,7 +66,7 @@ public class SearchResultReferenceProtocolOp
   {
     if (referralURLs == null)
     {
-      this.referralURLs = new ArrayList<String>();
+      this.referralURLs = new ArrayList<>();
     }
     else
     {
@@ -88,7 +88,7 @@ public class SearchResultReferenceProtocolOp
     referralURLs = searchReference.getReferralURLs();
     if (referralURLs == null)
     {
-      referralURLs = new ArrayList<String>();
+      referralURLs = new ArrayList<>();
     }
   }
 
@@ -98,8 +98,7 @@ public class SearchResultReferenceProtocolOp
    * Retrieves the set of referral URLs for this search result reference
    * protocol op.  The returned list may be altered by the caller.
    *
-   * @return  The set of referral URLs for this search result reference protocol
-   *          op.
+   * @return  The set of referral URLs for this search result reference protocol op.
    */
   public List<String> getReferralURLs()
   {

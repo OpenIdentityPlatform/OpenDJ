@@ -108,8 +108,7 @@ public class DatabaseEnvironmentMonitor
   private int maxEntries = 1024;
   private boolean filterUseEnabled;
   private String startTimeStamp;
-  private final HashMap<SearchFilter, FilterStats> filterToStats =
-      new HashMap<SearchFilter, FilterStats>();
+  private final HashMap<SearchFilter, FilterStats> filterToStats = new HashMap<>();
   private final AtomicInteger indexedSearchCount = new AtomicInteger();
   private final AtomicInteger unindexedSearchCount = new AtomicInteger();
 
@@ -211,7 +210,7 @@ public class DatabaseEnvironmentMonitor
     EnvironmentStats environmentStats = null;
     TransactionStats transactionStats = null;
     StatsConfig statsConfig = new StatsConfig();
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
 
     try
     {
@@ -235,7 +234,7 @@ public class DatabaseEnvironmentMonitor
     AttributeBuilder needReindex = new AttributeBuilder("need-reindex");
     for(EntryContainer ec : rootContainer.getEntryContainers())
     {
-      List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+      List<DatabaseContainer> databases = new ArrayList<>();
       ec.listDatabases(databases);
       for(DatabaseContainer dc : databases)
       {

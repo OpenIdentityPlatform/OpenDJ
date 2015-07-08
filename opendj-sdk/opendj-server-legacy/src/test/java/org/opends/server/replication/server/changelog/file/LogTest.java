@@ -284,7 +284,7 @@ public class LogTest extends DirectoryServerTestCase
         Log<String, String> writeLog2 = openLog(LogFileTest.RECORD_PARSER))
     {
       writeLog1.append(Record.from("key020", "starting record"));
-      AtomicReference<ChangelogException> exceptionRef = new AtomicReference<ChangelogException>();
+      AtomicReference<ChangelogException> exceptionRef = new AtomicReference<>();
       Thread write1 = getWriteLogThread(writeLog1, "a", exceptionRef);
       Thread write2 = getWriteLogThread(writeLog2, "b", exceptionRef);
       write1.run();

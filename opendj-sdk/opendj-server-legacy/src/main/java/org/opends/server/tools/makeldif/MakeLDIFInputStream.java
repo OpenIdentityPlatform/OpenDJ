@@ -98,7 +98,7 @@ public class MakeLDIFInputStream
 
     allGenerated = false;
     closed       = false;
-    entryQueue   = new LinkedBlockingQueue<TemplateEntry>(10);
+    entryQueue   = new LinkedBlockingQueue<>(10);
     ioException  = null;
     entryBytes   = null;
 

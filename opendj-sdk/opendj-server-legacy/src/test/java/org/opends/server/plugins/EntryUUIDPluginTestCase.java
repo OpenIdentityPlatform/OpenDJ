@@ -188,7 +188,7 @@ public class EntryUUIDPluginTestCase
   public Object[][] getInvalidConfigs()
          throws Exception
   {
-    ArrayList<Entry> entries = new ArrayList<Entry>();
+    ArrayList<Entry> entries = new ArrayList<>();
 
     for (String s : PluginType.getPluginTypeNames())
     {

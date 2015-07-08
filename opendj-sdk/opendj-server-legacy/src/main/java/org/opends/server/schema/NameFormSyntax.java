@@ -281,16 +281,13 @@ public class NameFormSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    LinkedHashMap<String,String> names = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> names = new LinkedHashMap<>();
     String description = null;
     boolean isObsolete = false;
     ObjectClass structuralClass = null;
-    LinkedHashSet<AttributeType> requiredAttributes =
-         new LinkedHashSet<AttributeType>();
-    LinkedHashSet<AttributeType> optionalAttributes =
-         new LinkedHashSet<AttributeType>();
-    LinkedHashMap<String,List<String>> extraProperties =
-         new LinkedHashMap<String,List<String>>();
+    LinkedHashSet<AttributeType> requiredAttributes = new LinkedHashSet<>();
+    LinkedHashSet<AttributeType> optionalAttributes = new LinkedHashSet<>();
+    LinkedHashMap<String,List<String>> extraProperties = new LinkedHashMap<>();
 
 
     while (true)
@@ -422,7 +419,7 @@ public class NameFormSyntax
       }
       else if (lowerTokenName.equals("must"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of required attributes for the name from.
         // It may be a single name or OID (not in quotes), or it may be an
@@ -502,7 +499,7 @@ public class NameFormSyntax
       }
       else if (lowerTokenName.equals("may"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of optional attributes for the name form.  It
         // may be a single name or OID (not in quotes), or it may be an open
@@ -586,7 +583,7 @@ public class NameFormSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        LinkedList<String> valueList = new LinkedList<String>();
+        LinkedList<String> valueList = new LinkedList<>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }

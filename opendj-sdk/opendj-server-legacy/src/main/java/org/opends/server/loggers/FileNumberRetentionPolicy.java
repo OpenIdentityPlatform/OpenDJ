@@ -99,7 +99,7 @@ public class FileNumberRetentionPolicy implements
     // Sort files based on last modified time.
     Arrays.sort(files, new FileComparator());
 
-    ArrayList<File> filesToDelete = new ArrayList<File>();
+    ArrayList<File> filesToDelete = new ArrayList<>();
     for (int j = numFiles; j < files.length; j++)
     {
       filesToDelete.add(files[j]);

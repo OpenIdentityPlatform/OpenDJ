@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -56,7 +56,7 @@ import org.forgerock.util.Utils;
 public class StartSessionMsg extends ReplicationMsg
 {
   /** The list of referrals URLs to the sending DS. */
-  private final List<String> referralsURLs = new ArrayList<String>();
+  private final List<String> referralsURLs = new ArrayList<>();
   /** The initial status the DS starts with. */
   private ServerStatus status = ServerStatus.INVALID_STATUS;
   /** Assured replication enabled on DS or not. */
@@ -66,8 +66,8 @@ public class StartSessionMsg extends ReplicationMsg
   /** DS safe data level (relevant if assured mode is safe data). */
   private byte safeDataLevel = 1;
 
-  private Set<String> eclIncludes = new HashSet<String>();
-  private Set<String> eclIncludesForDeletes = new HashSet<String>();
+  private Set<String> eclIncludes = new HashSet<>();
+  private Set<String> eclIncludesForDeletes = new HashSet<>();
 
   /**
    * Creates a new StartSessionMsg message from its encoded form.

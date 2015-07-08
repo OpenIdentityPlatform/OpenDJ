@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -49,8 +49,7 @@ public class ErrorLogger extends AbstractLogger
 
   private static LoggerStorage
       <ErrorLogPublisher<ErrorLogPublisherCfg>, ErrorLogPublisherCfg>
-      loggerStorage = new LoggerStorage
-      <ErrorLogPublisher<ErrorLogPublisherCfg>, ErrorLogPublisherCfg>();
+      loggerStorage = new LoggerStorage<>();
 
   /** The singleton instance of this class for configuration purposes. */
   private static final ErrorLogger instance = new ErrorLogger();

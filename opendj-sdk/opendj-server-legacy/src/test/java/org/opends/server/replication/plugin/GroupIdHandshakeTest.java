@@ -206,7 +206,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
    */
   private SortedSet<String> createRSListForTestCase(String testCase)
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     if (testCase.equals("testRSWithSameGroupIds"))
     {
@@ -231,7 +231,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int serverId, int groupId,
       String testCase) throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
     int port = -1;
     if (serverId == RS1_ID)
     {
@@ -489,7 +489,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       /**
        * Change group id of RS3 to 1
        */
-      SortedSet<String> otherReplServers = new TreeSet<String>();
+      SortedSet<String> otherReplServers = new TreeSet<>();
       otherReplServers.add("localhost:" + rs1Port);
       otherReplServers.add("localhost:" + rs2Port);
       String dir = "groupIdHandshakeTest" + RS3_ID + testCase + "Db";
@@ -501,7 +501,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       /**
        * Change group id of RS1 to 3: DS1 and DS2 should reconnect to RS3
        */
-      otherReplServers = new TreeSet<String>();
+      otherReplServers = new TreeSet<>();
       otherReplServers.add("localhost:" + rs2Port);
       otherReplServers.add("localhost:" + rs3Port);
       dir = "groupIdHandshakeTest" + RS1_ID + testCase + "Db";

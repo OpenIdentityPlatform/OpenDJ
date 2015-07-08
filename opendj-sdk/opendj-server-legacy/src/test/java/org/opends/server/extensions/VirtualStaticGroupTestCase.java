@@ -783,7 +783,7 @@ public class VirtualStaticGroupTestCase
     ByteString v = ByteString.valueOf(u4.toString());
     assertTrue(a.contains(v));
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("memberurl",
                        "ldap:///o=test??sub?(objectClass=person)")));
@@ -824,7 +824,7 @@ public class VirtualStaticGroupTestCase
 
     InternalClientConnection conn = getRootConnection();
 
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-allow-retrieving-membership", "false")));
     DN definitionDN =
@@ -844,7 +844,7 @@ public class VirtualStaticGroupTestCase
     assertTrue(a.contains(v));
 
 
-    mods = new LinkedList<Modification>();
+    mods = new LinkedList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-allow-retrieving-membership", "true")));
     modifyOperation = conn.processModify(definitionDN, mods);

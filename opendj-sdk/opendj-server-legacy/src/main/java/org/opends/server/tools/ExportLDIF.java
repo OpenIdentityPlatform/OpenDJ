@@ -412,14 +412,14 @@ public class ExportLDIF extends TaskTool {
 
   private ArrayList<ByteString> toByteStrings(String value)
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    final ArrayList<ByteString> values = new ArrayList<>(1);
     values.add(ByteString.valueOf(value));
     return values;
   }
 
   private ArrayList<ByteString> toByteStrings(List<String> includeAttributes)
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(includeAttributes.size());
+    final ArrayList<ByteString> values = new ArrayList<>(includeAttributes.size());
     for (String includeAttribute : includeAttributes)
     {
       values.add(ByteString.valueOf(includeAttribute));
@@ -565,7 +565,7 @@ public class ExportLDIF extends TaskTool {
       // Make sure that the Directory Server plugin initialization is performed.
       try
       {
-        HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
+        HashSet<PluginType> pluginTypes = new HashSet<>(1);
         pluginTypes.add(PluginType.LDIF_EXPORT);
         directoryServer.initializePlugins(pluginTypes);
       }
@@ -595,7 +595,7 @@ public class ExportLDIF extends TaskTool {
     }
     else
     {
-      excludeAttributes = new HashSet<AttributeType>();
+      excludeAttributes = new HashSet<>();
       for (String attrName : excludeAttributeStrings.getValues())
       {
         String        lowerName = attrName.toLowerCase();
@@ -616,7 +616,7 @@ public class ExportLDIF extends TaskTool {
     }
     else
     {
-      includeAttributes =new HashSet<AttributeType>();
+      includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings.getValues())
       {
         String        lowerName = attrName.toLowerCase();
@@ -637,7 +637,7 @@ public class ExportLDIF extends TaskTool {
     }
     else
     {
-      excludeFilters = new ArrayList<SearchFilter>();
+      excludeFilters = new ArrayList<>();
       for (String filterString : excludeFilterStrings.getValues())
       {
         try
@@ -664,7 +664,7 @@ public class ExportLDIF extends TaskTool {
     }
     else
     {
-      includeFilters = new ArrayList<SearchFilter>();
+      includeFilters = new ArrayList<>();
       for (String filterString : includeFilterStrings.getValues())
       {
         try
@@ -694,9 +694,9 @@ public class ExportLDIF extends TaskTool {
     List<DN>      defaultIncludeBranches = null;
     ArrayList<DN> excludeBranches        = null;
 
-    ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
+    ArrayList<Backend>     backendList = new ArrayList<>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
+    ArrayList<List<DN>>    dnList      = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     int numBackends = backendList.size();
@@ -734,7 +734,7 @@ public class ExportLDIF extends TaskTool {
 
     if (excludeBranchStrings.isPresent())
     {
-      excludeBranches = new ArrayList<DN>();
+      excludeBranches = new ArrayList<>();
       for (String s : excludeBranchStrings.getValues())
       {
         DN excludeBranch;
@@ -764,7 +764,7 @@ public class ExportLDIF extends TaskTool {
     List<DN> includeBranches;
     if (includeBranchStrings.isPresent())
     {
-      includeBranches = new ArrayList<DN>();
+      includeBranches = new ArrayList<>();
       for (String s : includeBranchStrings.getValues())
       {
         DN includeBranch;

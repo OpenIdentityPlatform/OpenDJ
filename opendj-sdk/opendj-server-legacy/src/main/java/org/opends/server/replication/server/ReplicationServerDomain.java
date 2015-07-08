@@ -113,21 +113,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * topology. Using an AtomicReference to avoid leaking references to costly
    * threads.
    */
-  private final AtomicReference<MonitoringPublisher> monitoringPublisher =
-      new AtomicReference<MonitoringPublisher>();
-  /**
-   * Maintains monitor data for the current domain.
-   */
-  private final ReplicationDomainMonitor domainMonitor =
-      new ReplicationDomainMonitor(this);
+  private final AtomicReference<MonitoringPublisher> monitoringPublisher = new AtomicReference<>();
+  /** Maintains monitor data for the current domain. */
+  private final ReplicationDomainMonitor domainMonitor = new ReplicationDomainMonitor(this);
 
   /**
    * The following map contains one balanced tree for each replica ID to which
    * we are currently publishing the first update in the balanced tree is the
    * next change that we must push to this particular server.
    */
-  private final Map<Integer, DataServerHandler> connectedDSs =
-    new ConcurrentHashMap<Integer, DataServerHandler>();
+  private final Map<Integer, DataServerHandler> connectedDSs = new ConcurrentHashMap<>();
 
   /**
    * This map contains one ServerHandler for each replication servers with which
@@ -135,8 +130,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * in the balanced tree is the next change that we must push to this
    * particular server.
    */
-  private final Map<Integer, ReplicationServerHandler> connectedRSs =
-    new ConcurrentHashMap<Integer, ReplicationServerHandler>();
+  private final Map<Integer, ReplicationServerHandler> connectedRSs = new ConcurrentHashMap<>();
 
   private final ReplicationDomainDB domainDB;
   /** The ReplicationServer that created the current instance. */
@@ -175,8 +169,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @see ExpectedAcksInfo For more details, see ExpectedAcksInfo and its sub
    *      classes javadoc.
    */
-  private final Map<CSN, ExpectedAcksInfo> waitingAcks =
-    new ConcurrentHashMap<CSN, ExpectedAcksInfo>();
+  private final Map<CSN, ExpectedAcksInfo> waitingAcks = new ConcurrentHashMap<>();
 
   /**
    * The timer used to run the timeout code (timer tasks) for the assured update
@@ -200,12 +193,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private static class PendingStatusMessages
   {
-    private final Map<Integer, ChangeTimeHeartbeatMsg> pendingHeartbeats =
-        new HashMap<Integer, ChangeTimeHeartbeatMsg>(1);
-    private final Map<Integer, MonitorMsg> pendingDSMonitorMsgs =
-        new HashMap<Integer, MonitorMsg>(1);
-    private final Map<Integer, MonitorMsg> pendingRSMonitorMsgs =
-        new HashMap<Integer, MonitorMsg>(1);
+    private final Map<Integer, ChangeTimeHeartbeatMsg> pendingHeartbeats = new HashMap<>(1);
+    private final Map<Integer, MonitorMsg> pendingDSMonitorMsgs = new HashMap<>(1);
+    private final Map<Integer, MonitorMsg> pendingRSMonitorMsgs = new HashMap<>(1);
     private boolean sendRSTopologyMsg;
     private boolean sendDSTopologyMsg;
     private int excludedDSForTopologyMsg = -1;
@@ -615,8 +605,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     CSN csn = update.getCSN();
     byte groupId = localReplicationServer.getGroupId();
     byte sourceGroupId = sourceHandler.getGroupId();
-    List<Integer> expectedServers = new ArrayList<Integer>();
-    List<Integer> wrongStatusServers = new ArrayList<Integer>();
+    List<Integer> expectedServers = new ArrayList<>();
+    List<Integer> wrongStatusServers = new ArrayList<>();
 
     if (sourceGroupId == groupId)
       // Assured feature does not cross different group ids
@@ -744,7 +734,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         }
     }
 
-    List<Integer> expectedServers = new ArrayList<Integer>();
+    List<Integer> expectedServers = new ArrayList<>();
     if (interestedInAcks && sourceHandler.isDataServer())
     {
       collectRSsEligibleForAssuredReplication(groupId, expectedServers);
@@ -1309,7 +1299,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private List<ServerHandler> getDestinationServers(RoutableMsg msg,
     ServerHandler senderHandler)
   {
-    List<ServerHandler> servers = new ArrayList<ServerHandler>();
+    List<ServerHandler> servers = new ArrayList<>();
 
     if (msg.getDestination() == RoutableMsg.THE_CLOSEST_SERVER)
     {
@@ -1650,14 +1640,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public TopologyMsg createTopologyMsgForRS()
   {
-    List<DSInfo> dsInfos = new ArrayList<DSInfo>();
+    List<DSInfo> dsInfos = new ArrayList<>();
     for (DataServerHandler dsHandler : connectedDSs.values())
     {
       dsInfos.add(dsHandler.toDSInfo());
     }
 
     // Create info for the local RS
-    List<RSInfo> rsInfos = new ArrayList<RSInfo>();
+    List<RSInfo> rsInfos = new ArrayList<>();
     rsInfos.add(toRSInfo(localReplicationServer, generationId));
 
     return new TopologyMsg(dsInfos, rsInfos);
@@ -1676,7 +1666,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public TopologyMsg createTopologyMsgForDS(int destDsId)
   {
     // Go through every DSs (except recipient of msg)
-    List<DSInfo> dsInfos = new ArrayList<DSInfo>();
+    List<DSInfo> dsInfos = new ArrayList<>();
     for (DataServerHandler dsHandler : connectedDSs.values())
     {
       if (dsHandler.getServerId() == destDsId)
@@ -1687,7 +1677,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
 
 
-    List<RSInfo> rsInfos = new ArrayList<RSInfo>();
+    List<RSInfo> rsInfos = new ArrayList<>();
     // Add our own info (local RS)
     rsInfos.add(toRSInfo(localReplicationServer, generationId));
 
@@ -2296,7 +2286,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public List<Attribute> getMonitorData()
   {
     // publish the server id and the port number.
-    List<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<>();
     attributes.add(Attributes.create("replication-server-id",
         String.valueOf(localReplicationServer.getServerId())));
     attributes.add(Attributes.create("replication-server-port",

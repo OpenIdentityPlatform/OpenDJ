@@ -41,7 +41,7 @@ public class LDAPToolOptions
   private boolean verbose;
   private boolean continueOnError;
   private String encoding = System.getProperty("file.encoding");
-  private ArrayList<Control> controls = new ArrayList<Control>();
+  private ArrayList<Control> controls = new ArrayList<>();
 
   /**
    * Creates a the tool options instance.

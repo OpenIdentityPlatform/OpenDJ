@@ -72,7 +72,7 @@ public class VerifyIndexTestCase
     // Add the airius.com suffix to userRoot
     InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-base-dn", "o=airius.com")));
     String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
@@ -94,7 +94,7 @@ public class VerifyIndexTestCase
     // remove the airius.com suffix to userRoot
     InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("ds-cfg-base-dn", "o=airius.com")));
     String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";

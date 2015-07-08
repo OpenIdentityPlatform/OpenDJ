@@ -108,7 +108,7 @@ public class AddSchemaFileTask
     // the schema directory.
     String schemaInstanceDirectory =
       SchemaConfigManager.getSchemaDirectoryPath();
-    filesToAdd = new TreeSet<String>();
+    filesToAdd = new TreeSet<>();
     for (Attribute a : attrList)
     {
       for (ByteString v  : a)
@@ -180,7 +180,7 @@ public class AddSchemaFileTask
 
     try
     {
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      LinkedList<Modification> mods = new LinkedList<>();
       Schema schema = DirectoryServer.getSchema().duplicate();
       for (String schemaFile : filesToAdd)
       {

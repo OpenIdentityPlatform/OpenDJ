@@ -858,7 +858,7 @@ public final class SambaPasswordPlugin extends
   {
 
     // Verify config parameters.
-    final LinkedList<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    final LinkedList<LocalizableMessage> messages = new LinkedList<>();
     if (!isConfigurationAcceptable(configuration, messages))
     {
       for (final LocalizableMessage m : messages)
@@ -938,7 +938,7 @@ public final class SambaPasswordPlugin extends
    */
   private List<Modification> getModifications(final String password)
   {
-    ArrayList<Modification> modifications = new ArrayList<Modification>();
+    ArrayList<Modification> modifications = new ArrayList<>();
     try
     {
       if (config.getPwdSyncPolicy().contains(PwdSyncPolicy.SYNC_NT_PASSWORD))

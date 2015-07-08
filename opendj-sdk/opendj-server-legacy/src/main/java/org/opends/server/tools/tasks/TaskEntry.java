@@ -59,11 +59,8 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class TaskEntry {
 
-  private static Map<String, LocalizableMessage> mapClassToTypeName =
-          new HashMap<String, LocalizableMessage>();
-
-  private static Map<String, LocalizableMessage> mapAttrToDisplayName =
-          new HashMap<String, LocalizableMessage>();
+  private static Map<String, LocalizableMessage> mapClassToTypeName = new HashMap<>();
+  private static Map<String, LocalizableMessage> mapAttrToDisplayName = new HashMap<>();
 
   private int hashCode;
 
@@ -71,7 +68,7 @@ public class TaskEntry {
    * These attributes associated with the ds-task object
    * class are all handled explicitly below in the constructor.
    */
-  private static Set<String> supAttrNames = new HashSet<String>();
+  private static Set<String> supAttrNames = new HashSet<>();
   static {
     supAttrNames.add("ds-task-id");
     supAttrNames.add("ds-task-class-name");
@@ -108,8 +105,7 @@ public class TaskEntry {
    */
   private Task task;
 
-  private Map<LocalizableMessage, List<String>> taskSpecificAttrValues =
-          new HashMap<LocalizableMessage, List<String>>();
+  private Map<LocalizableMessage, List<String>> taskSpecificAttrValues = new HashMap<>();
 
   /**
    * Creates a parameterized instance.
@@ -148,7 +144,7 @@ public class TaskEntry {
           for (ByteString av : attr) {
             List<String> valueList = taskSpecificAttrValues.get(attrTypeName);
             if (valueList == null) {
-              valueList = new ArrayList<String>();
+              valueList = new ArrayList<>();
               taskSpecificAttrValues.put(attrTypeName, valueList);
             }
             valueList.add(av.toString());
@@ -329,7 +325,7 @@ public class TaskEntry {
    * @return array of log messages
    */
   public List<LocalizableMessage> getLogMessages() {
-    List<LocalizableMessage> formattedLogs = new ArrayList<LocalizableMessage>();
+    List<LocalizableMessage> formattedLogs = new ArrayList<>();
     for (String aLog : logs) {
       formattedLogs.add(LocalizableMessage.raw(aLog));
     }
@@ -448,7 +444,7 @@ public class TaskEntry {
   }
 
   private List<String> getMultiStringValue(Entry entry, String attrName) {
-    List<String> valuesList = new ArrayList<String>();
+    List<String> valuesList = new ArrayList<>();
     List<Attribute> attrList = entry.getAttribute(attrName);
     if (attrList != null) {
       for (Attribute attr : attrList) {

@@ -55,7 +55,7 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    */
   protected final Entry createEntry(DN entryDN,
                                     Set<ObjectClass> objectClasses) {
-    HashMap<ObjectClass, String> map = new HashMap<ObjectClass, String>();
+    HashMap<ObjectClass, String> map = new HashMap<>();
 
     for (ObjectClass oc : objectClasses) {
       if (oc != null) {
@@ -74,12 +74,11 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    */
   @BeforeClass
   public final void setUp() throws Exception {
-    // This test suite depends on having the schema available, so we'll start
-    // the server.
+    // This test suite depends on having the schema available, so we'll start the server.
     TestCaseUtils.startServer();
 
     // Retrieve required object classes.
-    objectClasses = new HashSet<ObjectClass>();
+    objectClasses = new HashSet<>();
 
     ObjectClass oc = DirectoryServer.getObjectClass("top");
     if (oc == null) {

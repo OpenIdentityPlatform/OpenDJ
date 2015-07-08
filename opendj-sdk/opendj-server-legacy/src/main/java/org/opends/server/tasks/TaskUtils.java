@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -108,7 +108,7 @@ public class TaskUtils
    */
   public static Map<String,ConfigEntry> getBackendConfigEntries()
   {
-    Map<String,ConfigEntry> configEntries = new HashMap<String,ConfigEntry>();
+    Map<String,ConfigEntry> configEntries = new HashMap<>();
 
     // FIXME The error messages should not be the LDIF import messages
 
@@ -234,13 +234,13 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ArrayList<ByteString> valueList = new ArrayList<ByteString>(1);
+    ArrayList<ByteString> valueList = new ArrayList<>(1);
     valueList.add(ServerConstants.TRUE_VALUE);
     LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
 
-    ArrayList<RawModification> modList = new ArrayList<RawModification>(1);
+    ArrayList<RawModification> modList = new ArrayList<>(1);
     modList.add(m);
 
     InternalClientConnection conn =
@@ -284,13 +284,13 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ArrayList<ByteString> valueList = new ArrayList<ByteString>(1);
+    ArrayList<ByteString> valueList = new ArrayList<>(1);
     valueList.add(ServerConstants.FALSE_VALUE);
     LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
 
-    ArrayList<RawModification> modList = new ArrayList<RawModification>(1);
+    ArrayList<RawModification> modList = new ArrayList<>(1);
     modList.add(m);
 
     InternalClientConnection conn =
@@ -363,7 +363,7 @@ public class TaskUtils
    */
   public static ArrayList<String> getMultiValueString(List<Attribute> attrList)
   {
-    ArrayList<String> valueStrings = new ArrayList<String>();
+    ArrayList<String> valueStrings = new ArrayList<>();
 
     if (attrList != null && !attrList.isEmpty())
     {

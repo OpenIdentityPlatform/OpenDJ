@@ -263,7 +263,7 @@ public class IsMemberOfVirtualAttributeProvider
       Set<ByteString> returnedDNs = null;
       if (!nestedGroupsDNs.isEmpty())
       {
-        returnedDNs = new HashSet<ByteString>();
+        returnedDNs = new HashSet<>();
       }
       if (!returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
       {

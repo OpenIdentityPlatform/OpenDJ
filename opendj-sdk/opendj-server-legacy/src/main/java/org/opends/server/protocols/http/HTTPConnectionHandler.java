@@ -128,7 +128,7 @@ public class HTTPConnectionHandler extends
   private boolean enabled;
 
   /** The set of listeners for this connection handler. */
-  private List<HostPort> listeners = new LinkedList<HostPort>();
+  private List<HostPort> listeners = new LinkedList<>();
 
   /** The HTTP server embedded in OpenDJ. */
   private HttpServer httpServer;
@@ -141,16 +141,12 @@ public class HTTPConnectionHandler extends
    * ensure no concurrent reads/writes can happen and adds/removes are fast. We
    * only use the keys, so it does not matter what value is put there.
    */
-  private Map<ClientConnection, ClientConnection> clientConnections =
-      new ConcurrentHashMap<ClientConnection, ClientConnection>();
+  private Map<ClientConnection, ClientConnection> clientConnections = new ConcurrentHashMap<>();
 
   /** The set of statistics collected for this connection handler. */
   private HTTPStatistics statTracker;
 
-  /**
-   * The client connection monitor provider associated with this connection
-   * handler.
-   */
+  /** The client connection monitor provider associated with this connection handler. */
   private ClientConnectionMonitorProvider connMonitor;
 
   /** The unique name assigned to this connection handler. */
@@ -161,8 +157,7 @@ public class HTTPConnectionHandler extends
 
   /**
    * The condition variable that will be used by the start method to wait for
-   * the socket port to be opened and ready to process requests before
-   * returning.
+   * the socket port to be opened and ready to process requests before returning.
    */
   private final Object waitListen = new Object();
 
@@ -342,7 +337,7 @@ public class HTTPConnectionHandler extends
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
         ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);

@@ -88,7 +88,7 @@ public class ProfilerThread
 
     this.sampleInterval = sampleInterval;
 
-    stackTraces      = new HashMap<ProfileStack,Long>();
+    stackTraces      = new HashMap<>();
     numIntervals     = 0;
     stopProfiling    = false;
     captureStartTime = -1;

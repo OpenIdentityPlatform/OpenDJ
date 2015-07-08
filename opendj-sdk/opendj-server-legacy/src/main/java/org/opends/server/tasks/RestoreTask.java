@@ -71,23 +71,12 @@ public class RestoreTask extends Task
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  /**
-   * Stores mapping between configuration attribute name and its label.
-   */
-  private static Map<String,LocalizableMessage> argDisplayMap =
-          new HashMap<String,LocalizableMessage>();
+  /** Stores mapping between configuration attribute name and its label. */
+  private static Map<String,LocalizableMessage> argDisplayMap = new HashMap<>();
   static {
-    argDisplayMap.put(
-            ATTR_BACKUP_DIRECTORY_PATH,
-            INFO_RESTORE_ARG_BACKUP_DIR.get());
-
-    argDisplayMap.put(
-            ATTR_BACKUP_ID,
-            INFO_RESTORE_ARG_BACKUP_ID.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_RESTORE_VERIFY_ONLY,
-            INFO_RESTORE_ARG_VERIFY_ONLY.get());
+    argDisplayMap.put(ATTR_BACKUP_DIRECTORY_PATH, INFO_RESTORE_ARG_BACKUP_DIR.get());
+    argDisplayMap.put(ATTR_BACKUP_ID, INFO_RESTORE_ARG_BACKUP_ID.get());
+    argDisplayMap.put(ATTR_TASK_RESTORE_VERIFY_ONLY, INFO_RESTORE_ARG_VERIFY_ONLY.get());
   }
 
 

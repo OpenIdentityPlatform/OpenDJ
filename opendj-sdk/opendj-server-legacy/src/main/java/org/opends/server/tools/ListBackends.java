@@ -328,7 +328,7 @@ public class ListBackends
     {
       // Create a map from the base DNs of the backends to the corresponding
       // backend ID.
-      TreeMap<DN,String> baseToIDMap = new TreeMap<DN,String>();
+      TreeMap<DN,String> baseToIDMap = new TreeMap<>();
       for (String id : backends.keySet())
       {
         for (DN dn : backends.get(id))
@@ -406,7 +406,7 @@ public class ListBackends
       }
       else
       {
-        backendIDs = new LinkedList<String>(backends.keySet());
+        backendIDs = new LinkedList<>(backends.keySet());
       }
 
       // Figure out the length of the longest backend ID and base DN defined in
@@ -541,9 +541,8 @@ public class ListBackends
     }
 
 
-    // Iterate through the immediate children, attempting to parse them as
-    // backends.
-    TreeMap<String,TreeSet<DN>> backendMap = new TreeMap<String,TreeSet<DN>>();
+    // Iterate through the immediate children, attempting to parse them as backends.
+    TreeMap<String,TreeSet<DN>> backendMap = new TreeMap<>();
     for (ConfigEntry configEntry : baseEntry.getChildren().values())
     {
       // Get the backend ID attribute from the entry.  If there isn't one, then
@@ -580,7 +579,7 @@ public class ListBackends
 
       // Get the base DN attribute from the entry.  If there isn't one, then
       // just skip this entry.
-      TreeSet<DN> baseDNs = new TreeSet<DN>();
+      TreeSet<DN> baseDNs = new TreeSet<>();
       try
       {
         LocalizableMessage msg = INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get();

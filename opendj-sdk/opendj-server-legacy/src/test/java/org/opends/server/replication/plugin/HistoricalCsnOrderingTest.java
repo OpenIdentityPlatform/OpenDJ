@@ -68,7 +68,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
 
   private final int serverId = 123;
-  private final SortedSet<String> replServers = new TreeSet<String>();
+  private final SortedSet<String> replServers = new TreeSet<>();
 
   private static class TestBroker extends ReplicationBroker
   {
@@ -199,7 +199,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       logger.error(LocalizableMessage.raw("Second historical value: %s", av));
     }
 
-    LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
+    LinkedList<ReplicationMsg> opList = new LinkedList<>();
     TestBroker session = new TestBroker(opList);
 
       CSN csn = new CSN(startTime, 0, serverId);
@@ -214,7 +214,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     logger.error(LocalizableMessage.raw(hv[1]));
     CSN fromCSN = new CSN(hv[1]);
 
-    opList = new LinkedList<ReplicationMsg>();
+    opList = new LinkedList<>();
     session = new TestBroker(opList);
 
       result = rd1.buildAndPublishMissingChanges(fromCSN, session);
@@ -297,7 +297,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
         "description: foo");
     assertEquals(resultCode, 0);
 
-    LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
+    LinkedList<ReplicationMsg> opList = new LinkedList<>();
     TestBroker session = new TestBroker(opList);
 
       // Call the buildAndPublishMissingChanges and check that this method

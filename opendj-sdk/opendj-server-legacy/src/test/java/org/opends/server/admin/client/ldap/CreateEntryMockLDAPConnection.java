@@ -52,7 +52,7 @@ public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
   private boolean alreadyAdded;
 
   /** The expected set of attributes (attribute name -> list of values). */
-  private final Map<String, List<String>> attributes = new HashMap<String, List<String>>();
+  private final Map<String, List<String>> attributes = new HashMap<>();
 
   /** The expected DN. */
   private final LdapName expectedDN;

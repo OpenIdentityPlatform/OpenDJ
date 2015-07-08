@@ -77,8 +77,8 @@ public enum Severity {
   private static Map<String,Severity> PROPERTY_KEY_FORM_MAP;
 
   static {
-    PROPERTY_KEY_FORM_MAP = new HashMap<String,Severity>();
-    PROPERTY_KEY_FORM_VALUES_SET = new HashSet<String>();
+    PROPERTY_KEY_FORM_MAP = new HashMap<>();
+    PROPERTY_KEY_FORM_VALUES_SET = new HashSet<>();
     for (Severity s : EnumSet.allOf(Severity.class)) {
       PROPERTY_KEY_FORM_MAP.put(s.propertyKeyFormName(), s);
       PROPERTY_KEY_FORM_VALUES_SET.add(s.propertyKeyFormName());

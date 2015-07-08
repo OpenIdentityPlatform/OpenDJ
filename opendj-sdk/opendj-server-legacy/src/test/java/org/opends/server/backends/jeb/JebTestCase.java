@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
  */
 @Test(groups = { "precommit", "jeb" }, sequential = true)
 public abstract class JebTestCase extends DirectoryServerTestCase {
-    private TreeMap<DN,Entry> entryTreeMap = new TreeMap<DN,Entry>();
+    private TreeMap<DN,Entry> entryTreeMap = new TreeMap<>();
     private int numEntries;
 
     /**
@@ -74,7 +74,7 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
         File.separator + "resource"+File.separator+"MakeLDIF";
         TemplateFile templateFile =
             new TemplateFile(makeLDIFPath, new Random());
-        ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
+        ArrayList<LocalizableMessage> warnings = new ArrayList<>();
         templateFile.parse(template, warnings);
         MakeLDIFInputStream ldifEntryStream =
             new MakeLDIFInputStream(templateFile);

@@ -476,7 +476,7 @@ public class JmxConnectTest extends JmxTestCase {
 
 
   private void configureJmx(Entry entry) throws Exception {
-    ArrayList<LocalizableMessage> reasons = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> reasons = new ArrayList<>();
 
     // Get the Jmx connection handler from the core server
     JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
@@ -502,7 +502,7 @@ public class JmxConnectTest extends JmxTestCase {
    */
   private OpendsJmxConnector connect(String user, String password, int jmxPort)
         throws MalformedURLException, IOException {
-    Map<String, Object> env = new HashMap<String, Object>();
+    Map<String, Object> env = new HashMap<>();
 
     // Provide the credentials required by the server to successfully
     // perform user authentication
@@ -536,7 +536,7 @@ public class JmxConnectTest extends JmxTestCase {
    */
   private OpendsJmxConnector sslConnect(String user, String password,
       long jmxPort) throws Exception {
-    Map<String, Object> env = new HashMap<String, Object>();
+    Map<String, Object> env = new HashMap<>();
 
     // Provide the credentials required by the server to successfully
     // perform user authentication

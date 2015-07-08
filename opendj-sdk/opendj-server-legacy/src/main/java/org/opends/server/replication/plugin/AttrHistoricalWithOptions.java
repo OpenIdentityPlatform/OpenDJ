@@ -36,12 +36,11 @@ import java.util.Set;
  */
 public class AttrHistoricalWithOptions
 {
-  private HashMap<Set<String>, AttrHistorical> attributesInfo;
+  private final HashMap<Set<String>, AttrHistorical> attributesInfo = new HashMap<>();
 
   /** Creates a new AttrInfoWithOptions. */
   public AttrHistoricalWithOptions()
   {
-    attributesInfo = new HashMap<Set<String> ,AttrHistorical>();
   }
 
   /**

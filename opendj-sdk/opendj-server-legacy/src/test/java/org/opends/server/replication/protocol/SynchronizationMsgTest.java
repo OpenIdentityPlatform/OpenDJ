@@ -104,7 +104,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
     List<Modification> mods3 = newList(mod3);
 
-    List<Modification> mods4 = new ArrayList<Modification>();
+    List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
       Attribute attr = Attributes.create("description", "string" + i);
@@ -341,7 +341,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
     List<Modification> mods3 = newList(mod3);
 
-    List<Modification> mods4 = new ArrayList<Modification>();
+    List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
       Attribute attr = Attributes.create("description", "string" + i);
@@ -439,22 +439,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
-    Map<ObjectClass, String> objectClassList =
-        new HashMap<ObjectClass, String>();
-    objectClassList.put(DirectoryServer.getObjectClass("organization"),
-        "organization");
+    Map<ObjectClass, String> objectClassList = new HashMap<>();
+    objectClassList.put(DirectoryServer.getObjectClass("organization"), "organization");
 
     Attribute attr = Attributes.create("o", "com");
     List<Attribute> userAttributes = newList(attr);
-    Map<AttributeType, List<Attribute>> userAttList =
-        new HashMap<AttributeType, List<Attribute>>();
+    Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
     List<Attribute> operationalAttributes = newList(attr);
-    Map<AttributeType, List<Attribute>> opList =
-        new HashMap<AttributeType, List<Attribute>>();
+    Map<AttributeType, List<Attribute>> opList = new HashMap<>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
     CSN csn = new CSN(TimeThread.getTime(), 123,  45);
@@ -854,26 +850,26 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name = "createStartSessionData")
   public Object[][] createStartSessionData()
   {
-    List<String> urls1 = new ArrayList<String>();
+    List<String> urls1 = new ArrayList<>();
     urls1.add("ldap://ldap.iplanet.com/" + TEST_ROOT_DN_STRING + "??sub?(sn=Jensen)");
     urls1.add("ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People," +
       TEST_ROOT_DN_STRING + "?cn,mail,telephoneNumber");
 
-    List<String> urls2 = new ArrayList<String>();
+    List<String> urls2 = new ArrayList<>();
     urls2.add("ldap://ldap.example.com/" + TEST_ROOT_DN_STRING + "?objectClass?one");
     urls2.add("ldap://host.example.com/ou=people," + TEST_ROOT_DN_STRING + "???(sn=a*)");
 
-    List<String> urls3 = new ArrayList<String>();
+    List<String> urls3 = new ArrayList<>();
     urls3.add("ldaps://host:port/dc=foo??sub?(sn=John Doe)");
     urls3.add("ldap://jnumail1.state.ak.us/o=state.ak.us?mail,departmentnumber"
       + "?sub?(&(departmentnumber=04*) (l=Juneau))");
 
-    List<String> urls4 = new ArrayList<String>();
+    List<String> urls4 = new ArrayList<>();
 
-    List<String> urls5 = new ArrayList<String>();
+    List<String> urls5 = new ArrayList<>();
     urls5.add("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
 
-    List<String> urls6 = new ArrayList<String>();
+    List<String> urls6 = new ArrayList<>();
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=Second Entry)");
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=Third Entry)");
@@ -1173,16 +1169,16 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void addMsgPerfs(String rawDN, boolean isAssured, AssuredMode assuredMode,
       byte safeDataLevel, List<Attribute> entryAttrList) throws Exception
   {
-    Map<ObjectClass, String> objectClassList = new HashMap<ObjectClass, String>();
+    Map<ObjectClass, String> objectClassList = new HashMap<>();
     objectClassList.put(DirectoryServer.getObjectClass("organization"), "organization");
 
     Attribute attr = Attributes.create("o", "com");
-    Map<AttributeType, List<Attribute>> userAttList = new HashMap<AttributeType, List<Attribute>>();
+    Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
     userAttList.put(attr.getAttributeType(), newList(attr));
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
-    Map<AttributeType, List<Attribute>> opList = new HashMap<AttributeType,List<Attribute>>();
+    Map<AttributeType, List<Attribute>> opList = new HashMap<>();
     opList.put(attr.getAttributeType(), newList(attr));
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);

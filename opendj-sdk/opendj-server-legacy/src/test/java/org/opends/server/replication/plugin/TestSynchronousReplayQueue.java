@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -38,10 +38,9 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * Not all the methods are implemented.
  */
-@SuppressWarnings("javadoc")
 public class TestSynchronousReplayQueue implements BlockingQueue<UpdateToReplay>
 {
-  private LinkedList<UpdateToReplay> list = new LinkedList<UpdateToReplay>();
+  private LinkedList<UpdateToReplay> list = new LinkedList<>();
 
   @Override
   public boolean add(UpdateToReplay e)

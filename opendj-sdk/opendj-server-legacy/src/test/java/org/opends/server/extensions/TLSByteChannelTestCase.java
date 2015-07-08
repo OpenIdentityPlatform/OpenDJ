@@ -427,7 +427,7 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
   {
     NodeList nodes =
         (NodeList) xpath.evaluate(xPathExpr, doc, XPathConstants.NODESET);
-    List<String> cipherStrings = new ArrayList<String>(nodes.getLength());
+    List<String> cipherStrings = new ArrayList<>(nodes.getLength());
     for (int i = 0; i < nodes.getLength(); i++)
     {
       String cipherString = nodes.item(i).getNodeValue();
@@ -484,7 +484,7 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
 
   private Set<String> toSet(String[][] data)
   {
-    Set<String> set = new HashSet<String>();
+    Set<String> set = new HashSet<>();
     for (String[] array : data)
     {
       for (String s : array)
@@ -514,8 +514,7 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
   @Test
   public void checkNoUnknownOverlappingCiphers()
   {
-    List<String> ciphers =
-        new ArrayList<String>(TLSByteChannel.CIPHER_MAP.keySet());
+    List<String> ciphers = new ArrayList<>(TLSByteChannel.CIPHER_MAP.keySet());
     for (int i = 0; i < ciphers.size(); i++)
     {
       for (int j = 0; j < i; j++)

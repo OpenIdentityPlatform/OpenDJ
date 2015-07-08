@@ -70,10 +70,8 @@ class MultifileTextWriter
 
   private static final String UTF8_ENCODING= "UTF-8";
 
-  private CopyOnWriteArrayList<RotationPolicy> rotationPolicies =
-      new CopyOnWriteArrayList<RotationPolicy>();
-  private CopyOnWriteArrayList<RetentionPolicy> retentionPolicies =
-      new CopyOnWriteArrayList<RetentionPolicy>();
+  private CopyOnWriteArrayList<RotationPolicy> rotationPolicies = new CopyOnWriteArrayList<>();
+  private CopyOnWriteArrayList<RetentionPolicy> retentionPolicies = new CopyOnWriteArrayList<>();
 
   private FileNamingPolicy namingPolicy;
   private FilePermission filePermissions;

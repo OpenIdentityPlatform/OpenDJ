@@ -51,8 +51,7 @@ import org.opends.server.types.operation.PluginOperation;
 class PendingChanges
 {
   /** A map used to store the pending changes. */
-  private final TreeMap<CSN, PendingChange> pendingChanges =
-      new TreeMap<CSN, PendingChange>();
+  private final TreeMap<CSN, PendingChange> pendingChanges = new TreeMap<>();
 
   /**
    * The {@link CSNGenerator} to use to create new unique CSNs

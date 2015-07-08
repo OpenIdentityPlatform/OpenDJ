@@ -400,8 +400,7 @@ public class ManageTasks extends ConsoleApplication {
     List<TaskEntry> entries = taskClient.getTaskEntries();
     if (entries.size() > 0) {
       TableBuilder table = new TableBuilder();
-      Map<String, TaskEntry> mapIdToEntry =
-              new TreeMap<String, TaskEntry>();
+      Map<String, TaskEntry> mapIdToEntry = new TreeMap<>();
       for (TaskEntry entry : entries) {
         String taskId = entry.getId();
         if (taskId != null) {
@@ -443,13 +442,12 @@ public class ManageTasks extends ConsoleApplication {
    */
   private Menu<Void> getSummaryMenu()
           throws LDAPException, IOException, DecodeException {
-    List<String> taskIds = new ArrayList<String>();
-    List<Integer> cancelableIndices = new ArrayList<Integer>();
+    List<String> taskIds = new ArrayList<>();
+    List<Integer> cancelableIndices = new ArrayList<>();
     List<TaskEntry> entries = taskClient.getTaskEntries();
-    MenuBuilder<Void> menuBuilder = new MenuBuilder<Void>(this);
+    MenuBuilder<Void> menuBuilder = new MenuBuilder<>(this);
     if (entries.size() > 0) {
-      Map<String, TaskEntry> mapIdToEntry =
-              new TreeMap<String, TaskEntry>();
+      Map<String, TaskEntry> mapIdToEntry = new TreeMap<>();
       for (TaskEntry entry : entries) {
         String taskId = entry.getId();
         if (taskId != null) {
@@ -612,8 +610,7 @@ public class ManageTasks extends ConsoleApplication {
             taskEntry = app.getTaskClient().getTaskEntry(taskId);
 
             // Show the menu
-            MenuBuilder<TaskEntry> menuBuilder =
-                    new MenuBuilder<TaskEntry>(app);
+            MenuBuilder<TaskEntry> menuBuilder = new MenuBuilder<>(app);
             menuBuilder.addBackOption(true);
             menuBuilder.addCharOption(
                     INFO_TASKINFO_CMD_REFRESH_CHAR.get(),

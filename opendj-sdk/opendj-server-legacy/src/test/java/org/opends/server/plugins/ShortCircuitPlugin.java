@@ -666,16 +666,13 @@ public class ShortCircuitPlugin
   public static List<Control> createShortCircuitControlList(int resultCode,
                                                             String section)
   {
-    ArrayList<Control> controlList = new ArrayList<Control>(1);
+    ArrayList<Control> controlList = new ArrayList<>(1);
     controlList.add(createShortCircuitControl(resultCode, section));
     return controlList;
   }
 
-  /**
-   * Registered short circuits for operations regardless of controls.
-   */
-  private static Map<String,Integer> shortCircuits =
-       new ConcurrentHashMap<String, Integer>();
+  /** Registered short circuits for operations regardless of controls. */
+  private static Map<String, Integer> shortCircuits = new ConcurrentHashMap<>();
 
   /**
    * Register a short circuit for the given operation type and plugin point.

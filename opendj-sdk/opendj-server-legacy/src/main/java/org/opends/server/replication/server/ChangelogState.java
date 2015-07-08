@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -49,10 +49,8 @@ import org.opends.server.types.DN;
  */
 public class ChangelogState
 {
-
-  private final ConcurrentSkipListMap<DN, Long> domainToGenerationId = new ConcurrentSkipListMap<DN, Long>();
-  private final ConcurrentSkipListMap<DN, Set<Integer>> domainToServerIds =
-      new ConcurrentSkipListMap<DN, Set<Integer>>();
+  private final ConcurrentSkipListMap<DN, Long> domainToGenerationId = new ConcurrentSkipListMap<>();
+  private final ConcurrentSkipListMap<DN, Set<Integer>> domainToServerIds = new ConcurrentSkipListMap<>();
   private final MultiDomainServerState offlineReplicas = new MultiDomainServerState();
 
   /**
@@ -81,7 +79,7 @@ public class ChangelogState
     Set<Integer> serverIds = domainToServerIds.get(baseDN);
     if (serverIds == null)
     {
-      serverIds = new HashSet<Integer>();
+      serverIds = new HashSet<>();
       final Set<Integer> existingServerIds =
           domainToServerIds.putIfAbsent(baseDN, serverIds);
       if (existingServerIds != null)

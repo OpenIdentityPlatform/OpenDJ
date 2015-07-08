@@ -76,15 +76,13 @@ public class LDAPRequestHandler
    * need to be registered with the selector.
    * TODO: revisit, see Issue 4202.
    */
-  private List<LDAPClientConnection> pendingConnections =
-    new LinkedList<LDAPClientConnection>();
+  private List<LDAPClientConnection> pendingConnections = new LinkedList<>();
 
   /** Lock object for synchronizing access to the pending connections queue. */
   private final Object pendingConnectionsLock = new Object();
 
   /** The list of connections ready for request processing. */
-  private LinkedList<LDAPClientConnection> readyConnections =
-    new LinkedList<LDAPClientConnection>();
+  private LinkedList<LDAPClientConnection> readyConnections = new LinkedList<>();
 
   /** The selector that will be used to monitor the client connections. */
   private final Selector selector;
@@ -100,10 +98,9 @@ public class LDAPRequestHandler
    *
    * @param  connectionHandler  The LDAP connection handler with which this
    *                            request handler is associated.
-   * @param  requestHandlerID   The integer value that may be used to distingush
+   * @param  requestHandlerID   The integer value that may be used to distinguish
    *                            this request handler from others associated with
    *                            the same connection handler.
-   *
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this request handler.
    */
@@ -226,7 +223,7 @@ public class LDAPRequestHandler
         if (!pendingConnections.isEmpty())
         {
           tmp = pendingConnections;
-          pendingConnections = new LinkedList<LDAPClientConnection>();
+          pendingConnections = new LinkedList<>();
         }
       }
 
@@ -471,8 +468,7 @@ public class LDAPRequestHandler
    */
   public Collection<LDAPClientConnection> getClientConnections()
   {
-    ArrayList<LDAPClientConnection> connList =
-      new ArrayList<LDAPClientConnection>(keys.length);
+    ArrayList<LDAPClientConnection> connList = new ArrayList<>(keys.length);
     for (SelectionKey key : keys)
     {
       LDAPClientConnection c = (LDAPClientConnection) key.attachment();

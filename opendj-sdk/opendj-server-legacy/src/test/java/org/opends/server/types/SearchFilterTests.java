@@ -125,7 +125,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
                                  0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
                                  0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
 
-    List<String[]> allParameters = new ArrayList<String[]>();
+    List<String[]> allParameters = new ArrayList<>();
     for (int i = 0; i < CHAR_NIBBLES.length; i++) {
       char highNibble = CHAR_NIBBLES[i];
       byte highByteNibble = BYTE_NIBBLES[i];
@@ -182,7 +182,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     final char[] INVALID_NIBBBLES = {'g', 'z', 'G', 'Z', '-', '=', '+', '\00', ')',
                                      'n', 't', '\\'};
 
-    List<String> invalidEscapeSequences = new ArrayList<String>();
+    List<String> invalidEscapeSequences = new ArrayList<>();
 
     for (char validNibble : VALID_NIBBLES)
     {
@@ -195,7 +195,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
       invalidEscapeSequences.add("\\" + validNibble);
     }
 
-    List<String[]> allParameters = new ArrayList<String[]>();
+    List<String[]> allParameters = new ArrayList<>();
     for (String invalidEscape : invalidEscapeSequences) {
       // Exact match
       allParameters.add(new String[]{"(sn=" + invalidEscape + ")"});
@@ -477,7 +477,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   private List<String> getEntriesExcluding(List<String> matchedEntries) {
-    List<String> unmatched = new ArrayList<String>(ALL_ENTRIES_LDIF);
+    List<String> unmatched = new ArrayList<>(ALL_ENTRIES_LDIF);
     unmatched.removeAll(matchedEntries);
     return unmatched;
   }
@@ -490,12 +490,12 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     private List<String> unmatchedEntriesLdif;
 
     private FilterType filterType;
-    private LinkedHashSet<SearchFilter> filterComponents = new LinkedHashSet<SearchFilter>();
+    private LinkedHashSet<SearchFilter> filterComponents = new LinkedHashSet<>();
     private SearchFilter notComponent;
     private ByteString assertionValue;
     private AttributeType attributeType;
     private ByteString subInitialElement;
-    private List<ByteString> subAnyElements = new ArrayList<ByteString>();
+    private List<ByteString> subAnyElements = new ArrayList<>();
     private ByteString subFinalElement;
     private String matchingRuleId;
     private boolean dnAttributes;
@@ -675,7 +675,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     description.attributeType = DirectoryServer.getAttributeType(attributeType);
 
     description.subInitialElement = ByteString.valueOf(subInitial);
-    description.subAnyElements = new ArrayList<ByteString>();
+    description.subAnyElements = new ArrayList<>();
     if (subAny != null)
     {
       for (String s : subAny)
@@ -699,7 +699,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   private List<FilterDescription> getNotFilters(List<FilterDescription> filters) {
-    List<FilterDescription> notFilters = new ArrayList<FilterDescription>();
+    List<FilterDescription> notFilters = new ArrayList<>();
 
     for (FilterDescription filter: filters) {
       notFilters.add(filter.negate());
@@ -712,8 +712,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   private FilterDescription getAndFilter(List<FilterDescription> filters) {
     FilterDescription andFilter = new FilterDescription();
 
-    List<String> matchedEntries = new ArrayList<String>(ALL_ENTRIES_LDIF);
-    List<SearchFilter> filterComponents = new ArrayList<SearchFilter>();
+    List<String> matchedEntries = new ArrayList<>(ALL_ENTRIES_LDIF);
+    List<SearchFilter> filterComponents = new ArrayList<>();
 
     for (FilterDescription filter: filters) {
       matchedEntries.retainAll(filter.matchedEntriesLdif);
@@ -721,7 +721,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     }
 
     andFilter.searchFilter = SearchFilter.createANDFilter(filterComponents);
-    andFilter.filterComponents = new LinkedHashSet<SearchFilter>(filterComponents);
+    andFilter.filterComponents = new LinkedHashSet<>(filterComponents);
 
     andFilter.filterType = FilterType.AND;
 
@@ -733,7 +733,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   private List<FilterDescription> getAndFilters(List<FilterDescription> filters) {
-    List<FilterDescription> andFilters = new ArrayList<FilterDescription>();
+    List<FilterDescription> andFilters = new ArrayList<>();
 
     for (FilterDescription first: filters) {
       for (FilterDescription second: filters) {
@@ -748,8 +748,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   private FilterDescription getOrFilter(List<FilterDescription> filters) {
     FilterDescription orFilter = new FilterDescription();
 
-    List<String> unmatchedEntries = new ArrayList<String>(ALL_ENTRIES_LDIF);
-    List<SearchFilter> filterComponents = new ArrayList<SearchFilter>();
+    List<String> unmatchedEntries = new ArrayList<>(ALL_ENTRIES_LDIF);
+    List<SearchFilter> filterComponents = new ArrayList<>();
 
     for (FilterDescription filter: filters) {
       unmatchedEntries.retainAll(filter.unmatchedEntriesLdif);
@@ -757,7 +757,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     }
 
     orFilter.searchFilter = SearchFilter.createORFilter(filterComponents);
-    orFilter.filterComponents = new LinkedHashSet<SearchFilter>(filterComponents);
+    orFilter.filterComponents = new LinkedHashSet<>(filterComponents);
 
     orFilter.filterType = FilterType.OR;
 
@@ -772,7 +772,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   private List<FilterDescription> getOrFilters(List<FilterDescription> filters) {
-    List<FilterDescription> orFilters = new ArrayList<FilterDescription>();
+    List<FilterDescription> orFilters = new ArrayList<>();
 
     for (FilterDescription first: filters) {
       for (FilterDescription second: filters) {
@@ -825,7 +825,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
    * @see #getMinimalFilterDescriptionList
    */
   private List<FilterDescription> getFilterDescriptionList() throws Exception {
-    List<FilterDescription> baseDescriptions = new ArrayList<FilterDescription>();
+    List<FilterDescription> baseDescriptions = new ArrayList<>();
 
     baseDescriptions.addAll(getEqualityFilters());
     baseDescriptions.addAll(getInequalityFilters());
@@ -833,7 +833,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     baseDescriptions.addAll(getSubstringFilters());
     baseDescriptions.addAll(getNotFilters(baseDescriptions));
 
-    List<FilterDescription> allDescriptions = new ArrayList<FilterDescription>();
+    List<FilterDescription> allDescriptions = new ArrayList<>();
 
     allDescriptions.addAll(getAndFilters(baseDescriptions));
     allDescriptions.addAll(getOrFilters(baseDescriptions));
@@ -844,8 +844,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   protected List<FilterDescription> getMinimalFilterDescriptionList() throws Exception {
-    List<FilterDescription> baseDescriptions = new ArrayList<FilterDescription>();
-    List<FilterDescription> allDescriptions = new ArrayList<FilterDescription>();
+    List<FilterDescription> baseDescriptions = new ArrayList<>();
+    List<FilterDescription> allDescriptions = new ArrayList<>();
 
     baseDescriptions.addAll(getEqualityFilters().subList(0, 1));
     baseDescriptions.addAll(getInequalityFilters().subList(0, 2));

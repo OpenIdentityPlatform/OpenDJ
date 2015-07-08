@@ -88,38 +88,38 @@ public class VirtualAttributeRuleTestCase
     EntryDNVirtualAttributeProvider provider =
          new EntryDNVirtualAttributeProvider();
 
-    LinkedHashSet<DN> dnSet1 = new LinkedHashSet<DN>(1);
+    LinkedHashSet<DN> dnSet1 = new LinkedHashSet<>(1);
     dnSet1.add(DN.valueOf("o=test"));
 
-    LinkedHashSet<DN> dnSet2 = new LinkedHashSet<DN>(1);
+    LinkedHashSet<DN> dnSet2 = new LinkedHashSet<>(1);
     dnSet2.add(DN.valueOf("dc=example,dc=com"));
 
-    LinkedHashSet<DN> dnSet3 = new LinkedHashSet<DN>(2);
+    LinkedHashSet<DN> dnSet3 = new LinkedHashSet<>(2);
     dnSet3.add(DN.valueOf("o=test"));
     dnSet3.add(DN.valueOf("dc=example,dc=com"));
 
 
-    LinkedHashSet<DN> groupSet1 = new LinkedHashSet<DN>(1);
+    LinkedHashSet<DN> groupSet1 = new LinkedHashSet<>(1);
     groupSet1.add(DN.valueOf("cn=Test Group,o=test"));
 
-    LinkedHashSet<DN> groupSet2 = new LinkedHashSet<DN>(1);
+    LinkedHashSet<DN> groupSet2 = new LinkedHashSet<>(1);
     groupSet2.add(DN.valueOf("cn=Example Group,o=test"));
 
-    LinkedHashSet<DN> groupSet3= new LinkedHashSet<DN>(2);
+    LinkedHashSet<DN> groupSet3= new LinkedHashSet<>(2);
     groupSet3.add(DN.valueOf("cn=Test Group,o=test"));
     groupSet3.add(DN.valueOf("cn=Example Group,o=test"));
 
 
-    LinkedHashSet<SearchFilter> filterSet1 = new LinkedHashSet<SearchFilter>(1);
+    LinkedHashSet<SearchFilter> filterSet1 = new LinkedHashSet<>(1);
     filterSet1.add(SearchFilter.objectClassPresent());
 
-    LinkedHashSet<SearchFilter> filterSet2 = new LinkedHashSet<SearchFilter>(1);
+    LinkedHashSet<SearchFilter> filterSet2 = new LinkedHashSet<>(1);
     filterSet2.add(SearchFilter.createFilterFromString("(o=test)"));
 
-    LinkedHashSet<SearchFilter> filterSet3 = new LinkedHashSet<SearchFilter>(1);
+    LinkedHashSet<SearchFilter> filterSet3 = new LinkedHashSet<>(1);
     filterSet3.add(SearchFilter.createFilterFromString("(foo=bar)"));
 
-    LinkedHashSet<SearchFilter> filterSet4 = new LinkedHashSet<SearchFilter>(2);
+    LinkedHashSet<SearchFilter> filterSet4 = new LinkedHashSet<>(2);
     filterSet4.add(SearchFilter.createFilterFromString("(o=test)"));
     filterSet4.add(SearchFilter.createFilterFromString("(foo=bar)"));
 

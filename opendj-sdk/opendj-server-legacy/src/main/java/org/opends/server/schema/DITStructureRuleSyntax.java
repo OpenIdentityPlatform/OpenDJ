@@ -225,14 +225,13 @@ public class DITStructureRuleSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    LinkedHashMap<String,String> names = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> names = new LinkedHashMap<>();
     String description = null;
     boolean isObsolete = false;
     NameForm nameForm = null;
     boolean nameFormGiven = false;
     LinkedHashSet<DITStructureRule> superiorRules = null;
-    LinkedHashMap<String,List<String>> extraProperties =
-         new LinkedHashMap<String,List<String>>();
+    LinkedHashMap<String,List<String>> extraProperties = new LinkedHashMap<>();
 
 
     while (true)
@@ -340,8 +339,7 @@ public class DITStructureRuleSyntax
       }
       else if (lowerTokenName.equals("sup"))
       {
-        LinkedList<DITStructureRule> superiorList =
-             new LinkedList<DITStructureRule>();
+        LinkedList<DITStructureRule> superiorList = new LinkedList<>();
 
         // This specifies the set of superior rule IDs (which are integers) for
         // this DIT structure rule.  It may be a single rule ID or a set of
@@ -520,7 +518,7 @@ public class DITStructureRuleSyntax
           }
         }
 
-        superiorRules = new LinkedHashSet<DITStructureRule>(superiorList);
+        superiorRules = new LinkedHashSet<>(superiorList);
       }
       else
       {
@@ -528,8 +526,7 @@ public class DITStructureRuleSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        LinkedList<String> valueList =
-             new LinkedList<String>();
+        LinkedList<String> valueList = new LinkedList<>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }

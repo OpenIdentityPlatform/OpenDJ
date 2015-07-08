@@ -84,7 +84,7 @@ public class UniqueAttributePlugin
    * The set of attributes that will be requested when performing internal
    * search operations.  This indicates that no attributes should be returned.
    */
-  private static final Set<String> SEARCH_ATTRS = new LinkedHashSet<String>(1);
+  private static final Set<String> SEARCH_ATTRS = new LinkedHashSet<>(1);
   static
   {
     SEARCH_ATTRS.add(SchemaConstants.NO_ATTRIBUTES);
@@ -154,7 +154,7 @@ public class UniqueAttributePlugin
       }
     }
 
-    uniqueAttrValue2Dn  = new ConcurrentHashMap<ByteString,DN>();
+    uniqueAttrValue2Dn  = new ConcurrentHashMap<>();
     DirectoryServer.registerAlertGenerator(this);
   }
 
@@ -186,7 +186,7 @@ public class UniqueAttributePlugin
     }
 
     DN entryDN = entry.getName();
-    List<ByteString> recordedValues = new LinkedList<ByteString>();
+    List<ByteString> recordedValues = new LinkedList<>();
     for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
@@ -227,7 +227,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    List<ByteString> recordedValues = new LinkedList<ByteString>();
+    List<ByteString> recordedValues = new LinkedList<>();
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
@@ -358,7 +358,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    List<ByteString> recordedValues = new LinkedList<ByteString>();
+    List<ByteString> recordedValues = new LinkedList<>();
     RDN newRDN = modifyDNOperation.getNewRDN();
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
@@ -629,8 +629,7 @@ public class UniqueAttributePlugin
     }
     else
     {
-      List<SearchFilter> equalityFilters =
-           new ArrayList<SearchFilter>(attrTypes.size());
+      List<SearchFilter> equalityFilters = new ArrayList<>(attrTypes.size());
       for (AttributeType t : attrTypes)
       {
         equalityFilters.add(SearchFilter.createEqualityFilter(t, value));
@@ -774,7 +773,7 @@ public class UniqueAttributePlugin
   @Override
   public Map<String,String> getAlerts()
   {
-    Map<String,String> alerts = new LinkedHashMap<String,String>(2);
+    Map<String,String> alerts = new LinkedHashMap<>(2);
 
     alerts.put(ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT,
                ALERT_DESCRIPTION_UNIQUE_ATTR_SYNC_CONFLICT);

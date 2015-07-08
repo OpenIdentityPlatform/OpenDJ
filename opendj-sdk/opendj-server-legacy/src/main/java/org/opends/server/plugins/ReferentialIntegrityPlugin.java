@@ -105,15 +105,10 @@ public class ReferentialIntegrityPlugin
   /** Current plugin configuration. */
   private ReferentialIntegrityPluginCfg currentConfiguration;
 
-  /**
-   * List of attribute types that will be checked during referential integrity
-   * processing.
-   */
-  private LinkedHashSet<AttributeType>
-          attributeTypes = new LinkedHashSet<AttributeType>();
-
+  /** List of attribute types that will be checked during referential integrity processing. */
+  private LinkedHashSet<AttributeType> attributeTypes = new LinkedHashSet<>();
   /** List of base DNs that limit the scope of the referential integrity checking. */
-  private Set<DN> baseDNs = new LinkedHashSet<DN>();
+  private Set<DN> baseDNs = new LinkedHashSet<>();
 
   /**
    * The update interval the background thread uses. If it is 0, then
@@ -171,8 +166,7 @@ public class ReferentialIntegrityPlugin
    * attributeTypes list) and the filter which the plugin should use
    * to verify the integrity of the value of the given attribute.
    */
-  private LinkedHashMap<AttributeType, SearchFilter> attrFiltMap =
-    new LinkedHashMap<AttributeType, SearchFilter>();
+  private LinkedHashMap<AttributeType, SearchFilter> attrFiltMap = new LinkedHashMap<>();
 
 
   /** {@inheritDoc} */
@@ -182,7 +176,7 @@ public class ReferentialIntegrityPlugin
          throws ConfigException
   {
     pluginCfg.addReferentialIntegrityChangeListener(this);
-    LinkedList<LocalizableMessage> unacceptableReasons = new LinkedList<LocalizableMessage>();
+    LinkedList<LocalizableMessage> unacceptableReasons = new LinkedList<>();
 
     if (!isConfigurationAcceptable(pluginCfg, unacceptableReasons))
     {
@@ -213,15 +207,14 @@ public class ReferentialIntegrityPlugin
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     //Load base DNs from new configuration.
-    LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>(newConfiguration.getBaseDN());
+    LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<>(newConfiguration.getBaseDN());
     //Load attribute types from new configuration.
     LinkedHashSet<AttributeType> newAttributeTypes =
-            new LinkedHashSet<AttributeType>(newConfiguration.getAttributeType());
+            new LinkedHashSet<>(newConfiguration.getAttributeType());
 
     // Load the attribute-filter mapping
 
-    LinkedHashMap<AttributeType, SearchFilter> newAttrFiltMap =
-      new LinkedHashMap<AttributeType, SearchFilter>();
+    LinkedHashMap<AttributeType, SearchFilter> newAttrFiltMap = new LinkedHashMap<>();
 
     for (String attrFilt : newConfiguration.getCheckReferencesFilterCriteria())
     {
@@ -413,7 +406,7 @@ public class ReferentialIntegrityPlugin
          (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
     if(modDNmap == null)
     {
-      modDNmap=new LinkedHashMap<DN,DN>();
+      modDNmap = new LinkedHashMap<>();
       modifyDNOperation.setAttachment(MODIFYDN_DNS, modDNmap);
     }
     DN oldEntryDN=modifyDNOperation.getOriginalEntry().getName();
@@ -444,7 +437,7 @@ public class ReferentialIntegrityPlugin
          (Set<DN>) deleteOperation.getAttachment(DELETE_DNS);
     if(deleteDNset == null)
     {
-      deleteDNset = new HashSet<DN>();
+      deleteDNset = new HashSet<>();
       deleteOperation.setAttachment(MODIFYDN_DNS, deleteDNset);
     }
     deleteDNset.add(deleteOperation.getEntryDN());
@@ -466,9 +459,8 @@ public class ReferentialIntegrityPlugin
          (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
     if(modDNmap == null)
     {
-      //First time through, create the map and set it in the operation
-      //attachment.
-      modDNmap=new LinkedHashMap<DN,DN>();
+      // First time through, create the map and set it in the operation attachment.
+      modDNmap = new LinkedHashMap<>();
       modifyDNOperation.setAttachment(MODIFYDN_DNS, modDNmap);
     }
     modDNmap.put(oldEntry.getName(), newEntry.getName());
@@ -481,15 +473,12 @@ public class ReferentialIntegrityPlugin
   public PluginResult.SubordinateDelete processSubordinateDelete(
           DeleteOperation deleteOperation, Entry entry)
   {
-    // This cast gives an unchecked cast warning, suppress it
-    // since the cast is ok.
-    Set<DN> deleteDNset =
-         (Set<DN>) deleteOperation.getAttachment(DELETE_DNS);
+    // This cast gives an unchecked cast warning, suppress it since the cast is ok.
+    Set<DN> deleteDNset = (Set<DN>) deleteOperation.getAttachment(DELETE_DNS);
     if(deleteDNset == null)
     {
-      // First time through, create the set and set it in
-      // the operation attachment.
-      deleteDNset = new HashSet<DN>();
+      // First time through, create the set and set it in the operation attachment.
+      deleteDNset = new HashSet<>();
       deleteOperation.setAttachment(DELETE_DNS, deleteDNset);
     }
     deleteDNset.add(entry.getName());
@@ -501,9 +490,7 @@ public class ReferentialIntegrityPlugin
    * or "name and optional UID" syntax.
    *
    * @param attribute The attribute to check the syntax of.
-   *
    * @return  Returns <code>true</code> if the attribute has a valid syntax.
-   *
    */
   private boolean isAttributeSyntaxValid(AttributeType attribute)
   {
@@ -673,7 +660,7 @@ public class ReferentialIntegrityPlugin
   {
     //Build an equality search with all of the configured attribute types
     //and the old entry DN.
-    HashSet<SearchFilter> componentFilters=new HashSet<SearchFilter>();
+    HashSet<SearchFilter> componentFilters=new HashSet<>();
     for(AttributeType attributeType : attributeTypes)
     {
       componentFilters.add(SearchFilter.createEqualityFilter(attributeType,
@@ -758,7 +745,7 @@ public class ReferentialIntegrityPlugin
    */
   private void deleteAddAttributesEntry(Entry e, DN oldEntryDN, DN newEntryDN)
   {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     DN entryDN=e.getName();
     for(AttributeType type : attributeTypes)
     {

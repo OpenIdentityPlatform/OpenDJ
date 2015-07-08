@@ -105,8 +105,7 @@ public final class Session extends DirectoryThread implements Closeable
    */
   private BufferedOutputStream output;
 
-  private final LinkedBlockingQueue<byte[]> sendQueue =
-      new LinkedBlockingQueue<byte[]>(4000);
+  private final LinkedBlockingQueue<byte[]> sendQueue = new LinkedBlockingQueue<>(4000);
   private AtomicBoolean isRunning = new AtomicBoolean(false);
   private final CountDownLatch latch = new CountDownLatch(1);
 

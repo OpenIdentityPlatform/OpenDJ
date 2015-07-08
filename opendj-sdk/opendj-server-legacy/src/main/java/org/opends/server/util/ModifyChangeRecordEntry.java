@@ -68,7 +68,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
 
     ifNull(modifications);
 
-    this.modifications = new ArrayList<RawModification>(modifications);
+    this.modifications = new ArrayList<>(modifications);
   }
 
 

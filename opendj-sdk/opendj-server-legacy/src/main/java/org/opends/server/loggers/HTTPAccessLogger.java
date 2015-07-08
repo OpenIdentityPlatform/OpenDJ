@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -43,9 +43,7 @@ public class HTTPAccessLogger extends AbstractLogger
 
   private static LoggerStorage
   <HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>, HTTPAccessLogPublisherCfg>
-  loggerStorage = new LoggerStorage
-  <HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>, HTTPAccessLogPublisherCfg>
-  ();
+  loggerStorage = new LoggerStorage<>();
 
   /** The singleton instance of this class for configuration purposes. */
   private static final HTTPAccessLogger instance = new HTTPAccessLogger();

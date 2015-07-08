@@ -68,9 +68,9 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
 
-    attributes = new HashMap<AttributeType, List<Attribute>>();
+    attributes = new HashMap<>();
     attribute = Attributes.create("cn", "hello world");
-    ArrayList<Attribute> alist = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> alist = new ArrayList<>(1);
     alist.add(attribute);
     attributes.put(attribute.getAttributeType(), alist);
   }

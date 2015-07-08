@@ -60,15 +60,15 @@ public class DataServerHandler extends ServerHandler
   private ServerStatus status = ServerStatus.INVALID_STATUS;
 
   /** Referrals URLs this DS is exporting. */
-  private List<String> refUrls = new ArrayList<String>();
+  private List<String> refUrls = new ArrayList<>();
   /** Assured replication enabled on DS or not. */
   private boolean assuredFlag;
   /** DS assured mode (relevant if assured replication enabled). */
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
   /** DS safe data level (relevant if assured mode is safe data). */
   private byte safeDataLevel = -1;
-  private Set<String> eclIncludes = new HashSet<String>();
-  private Set<String> eclIncludesForDeletes = new HashSet<String>();
+  private Set<String> eclIncludes = new HashSet<>();
+  private Set<String> eclIncludesForDeletes = new HashSet<>();
 
   /**
    * Creates a new data server handler.

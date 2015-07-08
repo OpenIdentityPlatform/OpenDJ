@@ -219,8 +219,7 @@ public final class ObjectClass
     if (this.superiorClasses.isEmpty()) {
       this.requiredAttributesChain = this.requiredAttributes;
     } else {
-      Set<AttributeType> tmp = new HashSet<AttributeType>(
-          this.requiredAttributes);
+      Set<AttributeType> tmp = new HashSet<>(this.requiredAttributes);
       for(ObjectClass oc: this.superiorClasses)
       {
         tmp.addAll(oc.getRequiredAttributeChain());
@@ -240,8 +239,7 @@ public final class ObjectClass
     if (this.superiorClasses.isEmpty()) {
       this.optionalAttributesChain = this.optionalAttributes;
     } else {
-      Set<AttributeType> tmp = new HashSet<AttributeType>(
-          this.optionalAttributes);
+      Set<AttributeType> tmp = new HashSet<>(this.optionalAttributes);
       for(ObjectClass oc : this.superiorClasses)
       {
         tmp.addAll(oc.getOptionalAttributeChain());
@@ -249,11 +247,9 @@ public final class ObjectClass
       this.optionalAttributesChain = Collections.unmodifiableSet(tmp);
     }
 
-    // Construct unmodifiable views of the required and optional
-    // attribute chains.
-    HashSet<AttributeType> reqAndOptSet =
-         new HashSet<AttributeType>(requiredAttributesChain.size() +
-                                    optionalAttributesChain.size());
+    // Construct unmodifiable views of the required and optional attribute chains.
+    int size = requiredAttributesChain.size() + optionalAttributesChain.size();
+    HashSet<AttributeType> reqAndOptSet = new HashSet<>(size);
     reqAndOptSet.addAll(requiredAttributesChain);
     reqAndOptSet.addAll(optionalAttributesChain);
     requiredAndOptionalChain =

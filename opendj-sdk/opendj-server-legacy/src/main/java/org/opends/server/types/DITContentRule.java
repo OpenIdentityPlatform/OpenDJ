@@ -168,63 +168,57 @@ public final class DITContentRule
 
     if ((names == null) || names.isEmpty())
     {
-      this.names = new LinkedHashMap<String,String>(0);
+      this.names = new LinkedHashMap<>(0);
     }
     else
     {
-      this.names = new LinkedHashMap<String,String>(names);
+      this.names = new LinkedHashMap<>(names);
     }
 
     if ((auxiliaryClasses == null) || auxiliaryClasses.isEmpty())
     {
-      this.auxiliaryClasses = new LinkedHashSet<ObjectClass>(0);
+      this.auxiliaryClasses = new LinkedHashSet<>(0);
     }
     else
     {
-      this.auxiliaryClasses =
-           new LinkedHashSet<ObjectClass>(auxiliaryClasses);
+      this.auxiliaryClasses = new LinkedHashSet<>(auxiliaryClasses);
     }
 
     if ((requiredAttributes == null) || requiredAttributes.isEmpty())
     {
-      this.requiredAttributes = new LinkedHashSet<AttributeType>(0);
+      this.requiredAttributes = new LinkedHashSet<>(0);
     }
     else
     {
-      this.requiredAttributes =
-           new LinkedHashSet<AttributeType>(requiredAttributes);
+      this.requiredAttributes = new LinkedHashSet<>(requiredAttributes);
     }
 
     if ((optionalAttributes == null) || optionalAttributes.isEmpty())
     {
-      this.optionalAttributes = new LinkedHashSet<AttributeType>(0);
+      this.optionalAttributes = new LinkedHashSet<>(0);
     }
     else
     {
-      this.optionalAttributes =
-           new LinkedHashSet<AttributeType>(optionalAttributes);
+      this.optionalAttributes = new LinkedHashSet<>(optionalAttributes);
     }
 
     if ((prohibitedAttributes == null) ||
         prohibitedAttributes.isEmpty())
     {
-      this.prohibitedAttributes = new LinkedHashSet<AttributeType>(0);
+      this.prohibitedAttributes = new LinkedHashSet<>(0);
     }
     else
     {
-      this.prohibitedAttributes =
-           new LinkedHashSet<AttributeType>(prohibitedAttributes);
+      this.prohibitedAttributes = new LinkedHashSet<>(prohibitedAttributes);
     }
 
     if ((extraProperties == null) || extraProperties.isEmpty())
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(0);
+      this.extraProperties = new LinkedHashMap<>(0);
     }
     else
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(extraProperties);
+      this.extraProperties = new LinkedHashMap<>(extraProperties);
     }
   }
 

@@ -29,6 +29,7 @@ package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -173,12 +174,8 @@ public class Template
 
 
     // Make sure that all of the RDN attributes are defined.
-    HashSet<AttributeType> rdnAttrs =
-         new HashSet<AttributeType>(rdnAttributes.length);
-    for (AttributeType t : rdnAttributes)
-    {
-      rdnAttrs.add(t);
-    }
+    HashSet<AttributeType> rdnAttrs = new HashSet<>(rdnAttributes.length);
+    Collections.addAll(rdnAttrs, rdnAttributes);
 
     for (TemplateLine l : templateLines)
     {

@@ -47,7 +47,7 @@ public final class SearchRequest extends AbstractRequestImpl {
     /**
      * Use a LinkedHashSet to return the attributes in the same order as requested by the user.
      */
-    private final Set<String> attributes = new LinkedHashSet<String>();
+    private final Set<String> attributes = new LinkedHashSet<>();
     private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;
     private SearchFilter filter;
     private DN name;

@@ -56,7 +56,7 @@ public class TestSearchProtocolOp extends LdapTestCase
   private int timeLimit = Integer.MAX_VALUE;
   private boolean typesOnly = true;
   private LDAPFilter filter = LDAPFilter.objectClassPresent();
-  private LinkedHashSet<String> attributes = new LinkedHashSet<String>(
+  private LinkedHashSet<String> attributes = new LinkedHashSet<>(
       Arrays.asList("description", "cn", "cn;optionA"));
 
   /**

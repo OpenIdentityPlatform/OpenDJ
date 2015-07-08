@@ -99,9 +99,7 @@ public final class AccountStatusNotification
 
     if (notificationProperties == null)
     {
-      this.notificationProperties =
-           new HashMap<AccountStatusNotificationProperty,
-                       List<String>>(0);
+      this.notificationProperties = new HashMap<>(0);
     }
     else
     {
@@ -233,13 +231,11 @@ public final class AccountStatusNotification
                           List<ByteString> oldPasswords,
                           List<ByteString> newPasswords)
   {
-    HashMap<AccountStatusNotificationProperty,List<String>> props =
-         new HashMap<AccountStatusNotificationProperty,
-                     List<String>>(4);
+    HashMap<AccountStatusNotificationProperty,List<String>> props = new HashMap<>(4);
 
     PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
-    ArrayList<String> propList = new ArrayList<String>(1);
+    ArrayList<String> propList = new ArrayList<>(1);
     propList.add(policy.getDN().toString());
     props.put(PASSWORD_POLICY_DN, propList);
 
@@ -248,18 +244,17 @@ public final class AccountStatusNotification
       long secondsUntilUnlock = policy.getLockoutDuration();
       if (secondsUntilUnlock > 0L)
       {
-        propList = new ArrayList<String>(1);
+        propList = new ArrayList<>(1);
         propList.add(String.valueOf(secondsUntilUnlock));
         props.put(SECONDS_UNTIL_UNLOCK, propList);
 
-        propList = new ArrayList<String>(1);
-        propList.add(
-             secondsToTimeString(secondsUntilUnlock).toString());
+        propList = new ArrayList<>(1);
+        propList.add(secondsToTimeString(secondsUntilUnlock).toString());
         props.put(TIME_UNTIL_UNLOCK, propList);
 
         long unlockTime = System.currentTimeMillis() +
                           (1000*secondsUntilUnlock);
-        propList = new ArrayList<String>(1);
+        propList = new ArrayList<>(1);
         propList.add(new Date(unlockTime).toString());
         props.put(ACCOUNT_UNLOCK_TIME, propList);
       }
@@ -267,18 +262,16 @@ public final class AccountStatusNotification
 
     if (timeToExpiration >= 0)
     {
-        propList = new ArrayList<String>(1);
+        propList = new ArrayList<>(1);
         propList.add(String.valueOf(timeToExpiration));
         props.put(SECONDS_UNTIL_EXPIRATION, propList);
 
-        propList = new ArrayList<String>(1);
-        propList.add(
-             secondsToTimeString(timeToExpiration).toString());
+        propList = new ArrayList<>(1);
+        propList.add(secondsToTimeString(timeToExpiration).toString());
         props.put(TIME_UNTIL_EXPIRATION, propList);
 
-        long expTime = System.currentTimeMillis() +
-                       (1000*timeToExpiration);
-        propList = new ArrayList<String>(1);
+        long expTime = System.currentTimeMillis() + (1000*timeToExpiration);
+        propList = new ArrayList<>(1);
         propList.add(new Date(expTime).toString());
         props.put(PASSWORD_EXPIRATION_TIME, propList);
     }
@@ -298,7 +291,7 @@ public final class AccountStatusNotification
 
   private static ArrayList<String> toStrings(List<ByteString> byteStrings)
   {
-    ArrayList<String> results = new ArrayList<String>(byteStrings.size());
+    ArrayList<String> results = new ArrayList<>(byteStrings.size());
     for (ByteString v : byteStrings)
     {
       results.add(v.toString());

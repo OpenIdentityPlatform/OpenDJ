@@ -675,7 +675,7 @@ public class DictionaryPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString pwOS = ByteString.valueOf(password);
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", password)));
 

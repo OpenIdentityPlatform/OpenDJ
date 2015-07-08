@@ -149,31 +149,29 @@ public final class MatchingRuleUse
 
     if ((names == null) || names.isEmpty())
     {
-      this.names = new LinkedHashMap<String,String>(0);
+      this.names = new LinkedHashMap<>(0);
     }
     else
     {
-      this.names = new LinkedHashMap<String,String>(names);
+      this.names = new LinkedHashMap<>(names);
     }
 
     if ((attributes == null) || attributes.isEmpty())
     {
-      this.attributes = new LinkedHashSet<AttributeType>(0);
+      this.attributes = new LinkedHashSet<>(0);
     }
     else
     {
-      this.attributes = new LinkedHashSet<AttributeType>(attributes);
+      this.attributes = new LinkedHashSet<>(attributes);
     }
 
     if ((extraProperties == null) || extraProperties.isEmpty())
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(0);
+      this.extraProperties = new LinkedHashMap<>(0);
     }
     else
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(extraProperties);
+      this.extraProperties = new LinkedHashMap<>(extraProperties);
     }
   }
 

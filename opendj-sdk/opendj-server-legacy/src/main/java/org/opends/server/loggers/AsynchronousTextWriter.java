@@ -76,7 +76,7 @@ class AsynchronousTextWriter
     this.autoFlush = autoFlush;
     this.writer = writer;
 
-    this.queue = new LinkedBlockingQueue<String>(capacity);
+    this.queue = new LinkedBlockingQueue<>(capacity);
     this.capacity = capacity;
     this.writerThread = null;
     this.stopRequested = new AtomicBoolean(false);
@@ -105,7 +105,7 @@ class AsynchronousTextWriter
     @Override
     public void run()
     {
-      ArrayList<String> drainList = new ArrayList<String>(capacity);
+      ArrayList<String> drainList = new ArrayList<>(capacity);
 
       String message = null;
       while (!stopRequested.get() || !queue.isEmpty()) {

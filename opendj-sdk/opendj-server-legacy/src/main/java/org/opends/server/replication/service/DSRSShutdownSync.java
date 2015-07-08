@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -41,9 +41,7 @@ import org.opends.server.types.DN;
  */
 public class DSRSShutdownSync
 {
-
-  private static final ConcurrentSkipListSet<DN> replicaOfflineMsgs =
-      new ConcurrentSkipListSet<DN>();
+  private static final ConcurrentSkipListSet<DN> replicaOfflineMsgs = new ConcurrentSkipListSet<>();
   private static AtomicLong stopInstanceTimestamp = new AtomicLong();
 
   /**

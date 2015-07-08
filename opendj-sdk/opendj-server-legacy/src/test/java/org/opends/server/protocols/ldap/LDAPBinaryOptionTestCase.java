@@ -256,7 +256,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
-      ArrayList<RawAttribute> addAttrs = new ArrayList<RawAttribute>();
+      ArrayList<RawAttribute> addAttrs = new ArrayList<>();
       addAttrs.add(RawAttribute.create("objectClass", "inetOrgPerson"));
       addAttrs.add(RawAttribute.create("uid", "user.7"));
       addAttrs.add(RawAttribute.create("cn", "user 7"));
@@ -277,7 +277,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       assertEquals(addResponse.getResultCode(),0);
 
       //Create a SEARCH request to search for this added entry.
-      LinkedHashSet<String> attrs = new LinkedHashSet<String>();
+      LinkedHashSet<String> attrs = new LinkedHashSet<>();
       //Request only the interesting attributes.
       attrs.add("sn");
       attrs.add("userCertificate;binary");

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -79,11 +79,9 @@ public class MonitorMsg extends ReplicationMsg
     /** This replication server DbState. */
     private ServerState replServerDbState;
     /** The data related to the LDAP servers connected to this RS. */
-    private final Map<Integer, ServerData> ldapStates =
-        new HashMap<Integer, ServerData>();
+    private final Map<Integer, ServerData> ldapStates = new HashMap<>();
     /** The data related to the RS servers connected to this RS. */
-    private final Map<Integer, ServerData> rsStates =
-        new HashMap<Integer, ServerData>();
+    private final Map<Integer, ServerData> rsStates = new HashMap<>();
   }
 
   private final SubTopoMonitorData data = new SubTopoMonitorData();

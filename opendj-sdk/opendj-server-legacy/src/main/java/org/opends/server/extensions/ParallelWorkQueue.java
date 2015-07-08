@@ -137,11 +137,10 @@ public class ParallelWorkQueue
         computeNumWorkerThreads(configuration.getNumWorkerThreads());
 
     // Create the actual work queue.
-    opQueue = new ConcurrentLinkedQueue<Operation>();
+    opQueue = new ConcurrentLinkedQueue<>();
 
-    // Create the set of worker threads that should be used to service the
-    // work queue.
-    workerThreads = new ArrayList<ParallelWorkerThread>(numWorkerThreads);
+    // Create the set of worker threads that should be used to service the work queue.
+    workerThreads = new ArrayList<>(numWorkerThreads);
     for (lastThreadNumber = 0; lastThreadNumber < numWorkerThreads;
     lastThreadNumber++)
     {
@@ -179,7 +178,7 @@ public class ParallelWorkQueue
     // Send responses to any operations in the pending queue to indicate that
     // they won't be processed because the server is shutting down.
     CancelRequest cancelRequest = new CancelRequest(true, reason);
-    ArrayList<Operation> pendingOperations = new ArrayList<Operation>();
+    ArrayList<Operation> pendingOperations = new ArrayList<>();
     opQueue.removeAll(pendingOperations);
 
     for (Operation o : pendingOperations)

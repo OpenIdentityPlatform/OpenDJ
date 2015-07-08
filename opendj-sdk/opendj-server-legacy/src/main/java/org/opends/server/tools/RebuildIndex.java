@@ -635,9 +635,9 @@ public class RebuildIndex extends TaskTool
   {
     Backend<?> backend = null;
 
-    final ArrayList<Backend> backendList = new ArrayList<Backend>();
-    final ArrayList<BackendCfg> entryList = new ArrayList<BackendCfg>();
-    final ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
+    final ArrayList<Backend> backendList = new ArrayList<>();
+    final ArrayList<BackendCfg> entryList = new ArrayList<>();
+    final ArrayList<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     final int numBackends = backendList.size();
@@ -767,7 +767,7 @@ public class RebuildIndex extends TaskTool
     addLdapAttribute(attributes, ATTR_REBUILD_BASE_DN, baseDNString.getValue());
 
     final List<String> indexes = indexList.getValues();
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(indexes.size());
+    final ArrayList<ByteString> values = new ArrayList<>(indexes.size());
     for (final String s : indexes)
     {
       values.add(ByteString.valueOf(s));
@@ -814,7 +814,7 @@ public class RebuildIndex extends TaskTool
 
   private ArrayList<ByteString> toByteStrings(String value)
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    final ArrayList<ByteString> values = new ArrayList<>(1);
     values.add(ByteString.valueOf(value));
     return values;
   }

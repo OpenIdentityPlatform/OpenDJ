@@ -87,7 +87,7 @@ public class MockLDAPConnection extends LDAPConnection {
     public MockEntry(DN dn, Attributes attributes) {
       this.dn = dn;
       this.attributes = attributes;
-      this.children = new LinkedList<MockEntry>();
+      this.children = new LinkedList<>();
     }
 
 
@@ -150,7 +150,7 @@ public class MockLDAPConnection extends LDAPConnection {
    */
   public MockLDAPConnection() {
     this.rootEntry = new MockEntry(DN.rootDN(), new BasicAttributes());
-    this.entries = new HashMap<DN, MockEntry>();
+    this.entries = new HashMap<>();
     this.entries.put(DN.rootDN(), this.rootEntry);
   }
 
@@ -207,7 +207,7 @@ public class MockLDAPConnection extends LDAPConnection {
       throw new NameNotFoundException("could not find entry " + dn);
     }
 
-    LinkedList<LdapName> names = new LinkedList<LdapName>();
+    LinkedList<LdapName> names = new LinkedList<>();
     for (MockEntry child : entry.children)
     {
       names.add(new LdapName(child.getDN().toString()));
@@ -262,7 +262,7 @@ public class MockLDAPConnection extends LDAPConnection {
    */
   protected final void assertAttributeEquals(Attribute attr,
       Collection<String> values) throws NamingException {
-    LinkedList<String> actualValues = new LinkedList<String>();
+    LinkedList<String> actualValues = new LinkedList<>();
     NamingEnumeration<?> ne = attr.getAll();
     while (ne.hasMore()) {
       actualValues.add(ne.next().toString());

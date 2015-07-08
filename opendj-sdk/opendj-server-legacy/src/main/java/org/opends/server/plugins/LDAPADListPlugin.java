@@ -97,7 +97,7 @@ public final class LDAPADListPlugin
 
     if (foundOC)
     {
-      final LinkedHashSet<String> newAttrs = new LinkedHashSet<String>();
+      final LinkedHashSet<String> newAttrs = new LinkedHashSet<>();
       for (final String attrName : attributes)
       {
         if (attrName.startsWith("@"))

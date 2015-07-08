@@ -310,7 +310,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
     @Override
     public List<Attribute> getMonitorData()
     {
-      List<Attribute> attributes = new ArrayList<Attribute>();
+      List<Attribute> attributes = new ArrayList<>();
       attributes.add(createChangeNumberAttribute(true));
       attributes.add(createChangeNumberAttribute(false));
       attributes.add(Attributes.create("count", Long.toString(count())));

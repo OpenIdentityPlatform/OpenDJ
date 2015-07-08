@@ -139,7 +139,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
   private List<Entry> getEntries(List<SubEntry> subentries)
   {
-    final List<Entry> results = new ArrayList<Entry>();
+    final List<Entry> results = new ArrayList<>();
     for (SubEntry subEntry : subentries)
     {
       results.add(subEntry.getEntry());
@@ -149,7 +149,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
   private List<DN> getDns(List<SubEntry> subentries)
   {
-    final List<DN> results = new ArrayList<DN>();
+    final List<DN> results = new ArrayList<>();
     for (SubEntry subEntry : subentries)
     {
       results.add(subEntry.getDN());

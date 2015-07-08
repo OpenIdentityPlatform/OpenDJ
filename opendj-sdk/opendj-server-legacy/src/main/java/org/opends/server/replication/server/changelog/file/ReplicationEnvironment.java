@@ -226,7 +226,7 @@ class ReplicationEnvironment
    *
    * @GuardedBy("domainsLock")
    */
-  private final Map<DN, String> domains = new HashMap<DN, String>();
+  private final Map<DN, String> domains = new HashMap<>();
 
   /**
    * Exclusive lock to synchronize:
@@ -633,7 +633,7 @@ class ReplicationEnvironment
     final File[] dnDirectories = changelogPath.listFiles(DOMAIN_FILE_FILTER);
     if (dnDirectories != null)
     {
-      final Set<String> domainIdsFromFileSystem = new HashSet<String>();
+      final Set<String> domainIdsFromFileSystem = new HashSet<>();
       for (final File dnDir : dnDirectories)
       {
         final String fileName = dnDir.getName();
@@ -641,7 +641,7 @@ class ReplicationEnvironment
         domainIdsFromFileSystem.add(domainId);
       }
 
-      final Set<String> expectedDomainIds = new HashSet<String>(domains.values());
+      final Set<String> expectedDomainIds = new HashSet<>(domains.values());
       if (!domainIdsFromFileSystem.equals(expectedDomainIds))
       {
         throw new ChangelogException(ERR_CHANGELOG_INCOHERENT_DOMAIN_STATE.get(domains.values().toString(),

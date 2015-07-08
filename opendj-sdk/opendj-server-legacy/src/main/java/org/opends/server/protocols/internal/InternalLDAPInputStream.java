@@ -87,7 +87,7 @@ public final class InternalLDAPInputStream
   public InternalLDAPInputStream(InternalLDAPSocket socket)
   {
     this.socket = socket;
-    this.messageQueue = new ArrayBlockingQueue<LDAPMessage>(10);
+    this.messageQueue = new ArrayBlockingQueue<>(10);
     this.messageBuffer = new ByteStringBuilder();
     this.messageReader = messageBuffer.asReader();
     this.writer = ASN1.getWriter(messageBuffer);

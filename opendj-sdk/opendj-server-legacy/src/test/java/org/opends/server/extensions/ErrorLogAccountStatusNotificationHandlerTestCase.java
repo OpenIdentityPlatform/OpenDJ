@@ -259,51 +259,49 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
     PasswordPolicy policy = (PasswordPolicy) AuthenticationPolicy.forUser(
         userEntry, false);
 
-    HashMap<AccountStatusNotificationProperty,List<String>>
-         notificationProperties =
-              new HashMap<AccountStatusNotificationProperty,List<String>>();
+    HashMap<AccountStatusNotificationProperty, List<String>> notificationProperties = new HashMap<>();
 
-    ArrayList<String> propList = new ArrayList<String>(1);
+    ArrayList<String> propList = new ArrayList<>(1);
     propList.add(policy.getDN().toString());
     notificationProperties.put(PASSWORD_POLICY_DN, propList);
 
 
     if (notificationType == ACCOUNT_TEMPORARILY_LOCKED)
     {
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add("300");
       notificationProperties.put(SECONDS_UNTIL_UNLOCK, propList);
 
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add("5 minutes");
       notificationProperties.put(TIME_UNTIL_UNLOCK, propList);
 
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add(new Date(System.currentTimeMillis() + 300000L).toString());
       notificationProperties.put(ACCOUNT_UNLOCK_TIME, propList);
     }
     else if (notificationType == PASSWORD_EXPIRING)
     {
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add("86400");
       notificationProperties.put(SECONDS_UNTIL_EXPIRATION, propList);
 
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add("1 day");
       notificationProperties.put(TIME_UNTIL_EXPIRATION, propList);
 
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add(new Date(System.currentTimeMillis() + 86400000L).toString());
       notificationProperties.put(PASSWORD_EXPIRATION_TIME, propList);
     }
     else if ((notificationType == PASSWORD_CHANGED) ||
              (notificationType == PASSWORD_RESET))
     {
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add("oldpassword");
       notificationProperties.put(OLD_PASSWORD, propList);
 
-      propList = new ArrayList<String>(1);
+      propList = new ArrayList<>(1);
       propList.add("newpassword");
       notificationProperties.put(NEW_PASSWORD, propList);
     }

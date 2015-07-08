@@ -108,7 +108,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    */
   private SortedSet<String> createRSListForTestCase(String testCase)
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     final int nbRSs = getNbRSs(testCase);
     for (int i = 0; i < nbRSs; i++)
@@ -143,7 +143,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int rsIndex,
     int weight, String testCase) throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     int nbRSs = getNbRSs(testCase);
     for (int i = 0; i < nbRSs; i++)
@@ -166,7 +166,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private ReplicationServerCfg createReplicationServerConfigWithNewWeight
     (int rsIndex, int weight, String testCase)
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     if ("testFailoversAndWeightChanges".equals(testCase)
         || "testSpreadLoad".equals(testCase))

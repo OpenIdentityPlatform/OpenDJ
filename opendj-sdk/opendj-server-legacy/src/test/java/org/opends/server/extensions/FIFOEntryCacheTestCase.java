@@ -90,7 +90,7 @@ public class FIFOEntryCacheTestCase
     super.cache.initializeEntryCache(configuration);
 
     // Make some dummy test entries.
-    super.testEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    super.testEntriesList = new ArrayList<>(super.NUMTESTENTRIES);
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.testEntriesList.add(TestCaseUtils.makeEntry(
         "dn: uid=test" + i + ".user" + i + ",ou=test" + i + ",o=test",

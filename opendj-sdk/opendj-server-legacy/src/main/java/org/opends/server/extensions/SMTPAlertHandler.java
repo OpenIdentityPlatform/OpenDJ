@@ -127,8 +127,7 @@ public class SMTPAlertHandler
   {
     SMTPAlertHandlerCfg cfg = currentConfig;
 
-    ArrayList<String> recipients =
-         new ArrayList<String>(cfg.getRecipientAddress());
+    ArrayList<String> recipients = new ArrayList<>(cfg.getRecipientAddress());
 
     String alertIDStr;
     String alertMessageStr;

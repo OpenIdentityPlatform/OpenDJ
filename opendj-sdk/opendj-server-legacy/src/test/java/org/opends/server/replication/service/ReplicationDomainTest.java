@@ -105,12 +105,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
           "ReplicationDomainTestDb2", 100, "localhost:" + replServerPort1);
 
       SortedSet<String> servers = newSortedSet("localhost:" + replServerPort1);
-      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
+      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<>();
       domain1 = new FakeReplicationDomain(
           testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
       SortedSet<String> servers2 = newSortedSet("localhost:" + replServerPort2);
-      BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
+      BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<>();
       domain2 = new FakeReplicationDomain(
           testService, domain2ServerId, servers2, 100, 1000, rcvQueue2);
 
@@ -262,7 +262,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
           "ReplicationDomainTestDb", 100000, "localhost:" + replServerPort);
 
       SortedSet<String> servers = newSortedSet("localhost:" + replServerPort);
-      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
+      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<>();
       domain1 = new FakeReplicationDomain(
           testService, domain1ServerId, servers, 1000, 100000, rcvQueue1);
 
@@ -522,7 +522,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer = createReplicationServer(replServerID, SENDERPORT,
           "ReplicationDomainTestDb", 100, servers);
 
-      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
+      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<>();
       domain1 = new FakeStressReplicationDomain(
           testService, 2, servers, 1000, rcvQueue1);
 
@@ -555,7 +555,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer = createReplicationServer(replServerID, RECEIVERPORT,
           "ReplicationDomainTestDb", 100, servers);
 
-      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
+      BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<>();
       domain1 = new FakeStressReplicationDomain(
           testService, 1, servers, 100000, rcvQueue1);
       /*

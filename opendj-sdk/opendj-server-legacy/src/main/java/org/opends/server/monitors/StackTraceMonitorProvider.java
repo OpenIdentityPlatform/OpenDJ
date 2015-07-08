@@ -83,10 +83,8 @@ public class StackTraceMonitorProvider
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
 
 
-    // Re-arrange all of the elements by thread ID so that there is some logical
-    // order.
-    TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>> orderedStacks =
-         new TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>>();
+    // Re-arrange all of the elements by thread ID so that there is some logical order.
+    TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>> orderedStacks = new TreeMap<>();
     for (Map.Entry<Thread,StackTraceElement[]> e : threadStacks.entrySet())
     {
       orderedStacks.put(e.getKey().getId(), e);
@@ -144,10 +142,8 @@ public class StackTraceMonitorProvider
       }
     }
 
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> attrs = new ArrayList<>();
     attrs.add(builder.toAttribute());
-
     return attrs;
   }
 }
-

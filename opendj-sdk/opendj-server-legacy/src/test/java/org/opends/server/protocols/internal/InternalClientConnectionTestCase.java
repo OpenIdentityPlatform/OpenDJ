@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -312,14 +312,14 @@ public class InternalClientConnectionTestCase
 
     ByteString dn = ByteString.valueOf("cn=test,o=test");
 
-    ArrayList<RawAttribute> attrs = new ArrayList<RawAttribute>();
+    ArrayList<RawAttribute> attrs = new ArrayList<>();
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("top"));
     values.add(ByteString.valueOf("device"));
     attrs.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ByteString>();
+    values = new ArrayList<>();
     values.add(ByteString.valueOf("test"));
     attrs.add(new LDAPAttribute("cn", values));
 
@@ -559,10 +559,10 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("This is a test"));
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 
@@ -590,7 +590,7 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "This is a test")));
 

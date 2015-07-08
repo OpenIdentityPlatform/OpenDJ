@@ -61,24 +61,18 @@ public final class CollationMatchingRuleFactory extends
     MatchingRuleFactory<CollationMatchingRuleCfg> implements
     ConfigurationChangeListener<CollationMatchingRuleCfg>
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Stores the list of available locales on this JVM. */
-  private static final Set<Locale> supportedLocales = new HashSet<Locale>(
-      Arrays.asList(Locale.getAvailableLocales()));
+  private static final Set<Locale> supportedLocales = new HashSet<>(Arrays.asList(Locale.getAvailableLocales()));
 
   /** Current Configuration. */
   private CollationMatchingRuleCfg currentConfig;
-
   /** Map of OID and the Matching Rule. */
-  private final Map<String, MatchingRule> matchingRules =
-      new HashMap<String, MatchingRule>();
+  private final Map<String, MatchingRule> matchingRules = new HashMap<>();
 
 
-  /**
-   * Creates a new instance of CollationMatchingRuleFactory.
-   */
+  /** Creates a new instance of CollationMatchingRuleFactory. */
   public CollationMatchingRuleFactory()
   {
     super();

@@ -51,20 +51,13 @@ public class MemoryUsageMonitorProvider
        implements Runnable
 {
   /** A map of the last GC counts seen by this monitor for calculating recent stats. */
-  private HashMap<String,Long> lastGCCounts = new HashMap<String,Long>();
-
+  private HashMap<String,Long> lastGCCounts = new HashMap<>();
   /** A map of the last GC times seen by this monitor for calculating recent stats. */
-  private HashMap<String,Long> lastGCTimes = new HashMap<String,Long>();
-
+  private HashMap<String,Long> lastGCTimes = new HashMap<>();
   /** A map of the most recent GC durations seen by this monitor. */
-  private HashMap<String,Long> recentGCDurations = new HashMap<String,Long>();
-
-  /**
-   * A map of the memory manager names to names that are safe for use in
-   * attribute names.
-   */
-  private HashMap<String,String> gcSafeNames = new HashMap<String,String>();
-
+  private HashMap<String,Long> recentGCDurations = new HashMap<>();
+  /** A map of the memory manager names to names that are safe for use in attribute names. */
+  private HashMap<String,String> gcSafeNames = new HashMap<>();
 
 
   /** {@inheritDoc} */
@@ -122,7 +115,7 @@ public class MemoryUsageMonitorProvider
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+    ArrayList<Attribute> attrs = new ArrayList<>();
 
     for (GarbageCollectorMXBean gc :
          ManagementFactory.getGarbageCollectorMXBeans())

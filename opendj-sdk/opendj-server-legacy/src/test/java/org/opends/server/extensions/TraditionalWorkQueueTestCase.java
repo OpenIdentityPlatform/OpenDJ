@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -97,7 +97,7 @@ public class TraditionalWorkQueueTestCase
   {
     DN     dn   = DN.valueOf("cn=Work Queue,cn=config");
     String attr = "ds-cfg-num-worker-threads";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "30")));
 

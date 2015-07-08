@@ -26,24 +26,19 @@
  */
 package org.opends.server.monitors;
 
-
+import static org.opends.server.core.DirectoryServer.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.MonitorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ParallelWorkQueue;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
-
-
-
 
 /**
  * This class defines a Directory Server monitor that can be used to provide
@@ -53,36 +48,20 @@ public class ParallelWorkQueueMonitor
        extends MonitorProvider<MonitorProviderCfg>
        implements Runnable
 {
-  /**
-   * The name to use for the monitor attribute that provides the current request
-   * backlog.
-   */
+  /** The name to use for the monitor attribute that provides the current request backlog. */
   public static final String ATTR_CURRENT_BACKLOG = "currentRequestBacklog";
-
-
-
-  /**
-   * The name to use for the monitor attribute that provides the average request
-   * backlog.
-   */
+  /** The name to use for the monitor attribute that provides the average request backlog. */
   public static final String ATTR_AVERAGE_BACKLOG = "averageRequestBacklog";
-
-
-
   /**
    * The name to use for the monitor attribute that provides the maximum
    * observed request backlog.
    */
   public static final String ATTR_MAX_BACKLOG = "maxRequestBacklog";
-
-
-
   /**
    * The name to use for the monitor attribute that provides the total number of
    * operations submitted.
    */
   public static final String ATTR_OPS_SUBMITTED = "requestsSubmitted";
-
 
 
   /** The maximum backlog observed by polling the queue. */
@@ -96,8 +75,6 @@ public class ParallelWorkQueueMonitor
 
   /** The parallel work queue instance with which this monitor is associated. */
   private ParallelWorkQueue workQueue;
-
-
 
   /**
    * Initializes this monitor provider.  Note that no initialization should be
@@ -175,36 +152,21 @@ public class ParallelWorkQueueMonitor
     }
 
     long averageBacklog = (long) (1.0 * totalBacklog / numPolls);
-
     long opsSubmitted = workQueue.getOpsSubmitted();
 
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
-    Syntax integerSyntax = DirectoryServer.getDefaultIntegerSyntax();
-
-    // The current backlog.
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(
-        ATTR_CURRENT_BACKLOG, integerSyntax);
-    monitorAttrs
-        .add(Attributes.create(attrType, String.valueOf(backlog)));
-
-    // The average backlog.
-    attrType = DirectoryServer.getDefaultAttributeType(ATTR_AVERAGE_BACKLOG,
-        integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(averageBacklog)));
-
-    // The maximum backlog.
-    attrType = DirectoryServer.getDefaultAttributeType(ATTR_MAX_BACKLOG,
-        integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(maxBacklog)));
-
+    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
+    putAttribute(monitorAttrs, ATTR_CURRENT_BACKLOG, backlog);
+    putAttribute(monitorAttrs, ATTR_AVERAGE_BACKLOG, averageBacklog);
+    putAttribute(monitorAttrs, ATTR_MAX_BACKLOG, maxBacklog);
     // The total number of operations submitted.
-    attrType = DirectoryServer.getDefaultAttributeType(ATTR_OPS_SUBMITTED,
-        integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(opsSubmitted)));
+    putAttribute(monitorAttrs, ATTR_OPS_SUBMITTED, opsSubmitted);
 
     return monitorAttrs;
+  }
+
+  private void putAttribute(ArrayList<Attribute> monitorAttrs, String attrName, Object value)
+  {
+    AttributeType attrType = getDefaultAttributeType(attrName, getDefaultIntegerSyntax());
+    monitorAttrs.add(Attributes.create(attrType, String.valueOf(value)));
   }
 }

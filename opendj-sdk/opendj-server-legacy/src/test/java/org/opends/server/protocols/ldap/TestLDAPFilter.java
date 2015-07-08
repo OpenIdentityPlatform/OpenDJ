@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -90,8 +90,8 @@ public class TestLDAPFilter extends LdapTestCase
                                         ByteString.valueOf("\\test*(Value)"));
     LDAPFilter presense = LDAPFilter.createPresenceFilter("login");
 
-    ArrayList<ByteString> any = new ArrayList<ByteString>(0);
-    ArrayList<ByteString> multiAny = new ArrayList<ByteString>(1);
+    ArrayList<ByteString> any = new ArrayList<>(0);
+    ArrayList<ByteString> multiAny = new ArrayList<>(1);
     multiAny.add(ByteString.valueOf("\\wid*(get)"));
     multiAny.add(ByteString.valueOf("*"));
 
@@ -136,13 +136,13 @@ public class TestLDAPFilter extends LdapTestCase
                                            ByteString.valueOf("\\John* (Doe)"),
                                                 false);
 
-    ArrayList<RawFilter> list1 = new ArrayList<RawFilter>();
+    ArrayList<RawFilter> list1 = new ArrayList<>();
     list1.add(equal);
     list1.add(approx);
 
     LDAPFilter and = LDAPFilter.createANDFilter(list1);
 
-    ArrayList<RawFilter> list2 = new ArrayList<RawFilter>();
+    ArrayList<RawFilter> list2 = new ArrayList<>();
     list2.add(substring1);
     list2.add(extensible1);
     list2.add(and);

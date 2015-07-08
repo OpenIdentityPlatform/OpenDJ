@@ -109,7 +109,7 @@ public class DigestMD5SASLMechanismHandler
          LocalizableMessage msg= NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
          logger.info(msg);
          String QOP = getQOP(configuration);
-         saslProps = new HashMap<String,String>();
+         saslProps = new HashMap<>();
          saslProps.put(Sasl.QOP, QOP);
          String realm=getRealm(configuration);
          if(realm != null) {
@@ -224,7 +224,7 @@ public class DigestMD5SASLMechanismHandler
           LocalizableMessage msg = NOTE_DIGEST_MD5_SERVER_FQDN.get(serverFQDN);
           logger.info(msg);
           String QOP = getQOP(configuration);
-          saslProps = new HashMap<String,String>();
+          saslProps = new HashMap<>();
           saslProps.put(Sasl.QOP, QOP);
           String realm=getRealm(configuration);
           if(realm != null) {

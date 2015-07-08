@@ -115,11 +115,11 @@ public final class LDAPSyntaxDescription
 
     if ((extraProperties == null) || extraProperties.isEmpty())
     {
-      this.extraProperties = new LinkedHashMap<String,List<String>>(0);
+      this.extraProperties = new LinkedHashMap<>(0);
     }
     else
     {
-      this.extraProperties = new LinkedHashMap<String,List<String>>(extraProperties);
+      this.extraProperties = new LinkedHashMap<>(extraProperties);
     }
   }
 
@@ -214,7 +214,7 @@ public final class LDAPSyntaxDescription
     }
     else
     {
-      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      LinkedList<String> valuesCopy = new LinkedList<>(values);
       extraProperties.put(name, valuesCopy);
     }
   }

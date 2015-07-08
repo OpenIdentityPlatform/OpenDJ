@@ -495,7 +495,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
@@ -555,7 +555,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
@@ -615,7 +615,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
     expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
@@ -732,7 +732,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(maryJonesDN);       // Mary
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
@@ -768,7 +768,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(maryJonesDN);       // Mary
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
@@ -827,7 +827,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
@@ -887,7 +887,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
@@ -949,7 +949,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
     expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
@@ -1011,7 +1011,7 @@ public class VLVControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
     expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
@@ -1053,7 +1053,7 @@ public class VLVControlTestCase
 
   private ArrayList<DN> getDNs(LinkedList<SearchResultEntry> entries)
   {
-    ArrayList<DN> results = new ArrayList<DN>();
+    ArrayList<DN> results = new ArrayList<>();
     for (Entry e : entries)
     {
       results.add(e.getName());

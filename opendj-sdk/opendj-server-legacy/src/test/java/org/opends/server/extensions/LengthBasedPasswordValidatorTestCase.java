@@ -362,10 +362,9 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<Modification>();
+      ArrayList<Modification> mods = new ArrayList<>();
       mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword",
-                                              buffer.toString())));
+          Attributes.create("userpassword", buffer.toString())));
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
@@ -435,10 +434,9 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<Modification>();
+      ArrayList<Modification> mods = new ArrayList<>();
       mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword",
-                                              buffer.toString())));
+          Attributes.create("userpassword", buffer.toString())));
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
@@ -510,10 +508,9 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<Modification>();
+      ArrayList<Modification> mods = new ArrayList<>();
       mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword",
-                                              buffer.toString())));
+          Attributes.create("userpassword", buffer.toString())));
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
@@ -585,10 +582,9 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<Modification>();
+      ArrayList<Modification> mods = new ArrayList<>();
       mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword",
-                                              buffer.toString())));
+          Attributes.create("userpassword", buffer.toString())));
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();

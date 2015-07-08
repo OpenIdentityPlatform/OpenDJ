@@ -145,7 +145,7 @@ public class LDAPFilter
       case AND:
       case OR:
         Collection<SearchFilter> comps = filter.getFilterComponents();
-        filterComponents = new ArrayList<RawFilter>(comps.size());
+        filterComponents = new ArrayList<>(comps.size());
         for (SearchFilter f : comps)
         {
           filterComponents.add(new LDAPFilter(f));
@@ -217,7 +217,7 @@ public class LDAPFilter
         }
         else
         {
-          subAnyElements = new ArrayList<ByteString>(subAnyStrings);
+          subAnyElements = new ArrayList<>(subAnyStrings);
         }
 
         filterComponents  = null;
@@ -752,7 +752,7 @@ public class LDAPFilter
           throws LDAPException
   {
     // Create a list to hold the returned components.
-    ArrayList<RawFilter> filterComponents = new ArrayList<RawFilter>();
+    ArrayList<RawFilter> filterComponents = new ArrayList<>();
 
 
     // If the end pos is equal to the start pos, then there are no components.
@@ -888,7 +888,7 @@ public class LDAPFilter
     // see if there are any escaped values, since they will need special
     // treatment.
     boolean hasEscape = false;
-    LinkedList<Integer> asteriskPositions = new LinkedList<Integer>();
+    LinkedList<Integer> asteriskPositions = new LinkedList<>();
     for (int i=0; i < valueBytes.length; i++)
     {
       if (valueBytes[i] == 0x2A) // The asterisk.
@@ -1078,7 +1078,7 @@ public class LDAPFilter
 
 
     // Next, process through the rest of the asterisks to get the subAny values.
-    ArrayList<ByteString> subAny = new ArrayList<ByteString>();
+    ArrayList<ByteString> subAny = new ArrayList<>();
     for (int asteriskPos : asteriskPositions)
     {
       int length = asteriskPos - firstPos - 1;
@@ -1875,7 +1875,7 @@ public class LDAPFilter
     }
     else
     {
-      subComps = new ArrayList<SearchFilter>(filterComponents.size());
+      subComps = new ArrayList<>(filterComponents.size());
       for (RawFilter f : filterComponents)
       {
         subComps.add(f.toSearchFilter());
@@ -1913,7 +1913,7 @@ public class LDAPFilter
           attrType = DirectoryServer.getDefaultAttributeType(baseName);
         }
 
-        options = new HashSet<String>();
+        options = new HashSet<>();
         StringTokenizer tokenizer =
              new StringTokenizer(attributeType.substring(semicolonPos+1), ";");
         while (tokenizer.hasMoreTokens())

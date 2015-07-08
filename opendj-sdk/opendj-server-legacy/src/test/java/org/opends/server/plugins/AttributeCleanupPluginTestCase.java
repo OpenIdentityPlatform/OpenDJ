@@ -252,13 +252,13 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * cn: Name Surname
      * sn: Surname
      */
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("top"));
     values.add(ByteString.valueOf("person"));
     values.add(ByteString.valueOf("organizationalperson"));
     values.add(ByteString.valueOf("inetorgperson"));
 
-    List<RawAttribute> rawAttributes = new ArrayList<RawAttribute>();
+    List<RawAttribute> rawAttributes = new ArrayList<>();
     rawAttributes.add(RawAttribute.create("objectClass", values));
     rawAttributes.add(RawAttribute.create("uid", "test"));
     rawAttributes.add(RawAttribute.create("cn", "Name Surname"));
@@ -350,13 +350,13 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * createTimeStamp: 2011091212400000Z
      */
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("top"));
     values.add(ByteString.valueOf("person"));
     values.add(ByteString.valueOf("organizationalperson"));
     values.add(ByteString.valueOf("inetorgperson"));
 
-    List<RawAttribute> rawAttributes = new ArrayList<RawAttribute>();
+    List<RawAttribute> rawAttributes = new ArrayList<>();
 
     rawAttributes.add(RawAttribute.create("objectClass", values));
     rawAttributes.add(RawAttribute.create("uid", "test"));
@@ -447,7 +447,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * -
      */
 
-    List<RawModification> rawMods= new ArrayList<RawModification>();
+    List<RawModification> rawMods= new ArrayList<>();
 
     rawMods.add(RawModification.create(ModificationType.REPLACE,
                                        "modifyTimeStamp",
@@ -527,7 +527,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * -
      */
 
-    List<RawModification> rawMods= new ArrayList<RawModification>();
+    List<RawModification> rawMods= new ArrayList<>();
 
     rawMods.add(RawModification.create(ModificationType.REPLACE,
                                        "cn",
@@ -621,7 +621,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * replace: modifyTimeStamp
      * modifyTimeStamp: 2011091212400000Z
      */
-    List<RawModification> rawMods= new ArrayList<RawModification>();
+    List<RawModification> rawMods= new ArrayList<>();
 
     rawMods.add(RawModification.create(ModificationType.REPLACE,
                                        "cn",

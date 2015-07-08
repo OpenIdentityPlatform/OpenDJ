@@ -1204,7 +1204,7 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Check containsAll().
-    Set<ByteString> expectedValues = new HashSet<ByteString>();
+    Set<ByteString> expectedValues = new HashSet<>();
     for (String value : values)
     {
       expectedValues.add(ByteString.valueOf(value));
@@ -1215,12 +1215,12 @@ public class AttributeBuilderTest extends TypesTestCase
 
     if (values.length > 1)
     {
-      Set<ByteString> subSet = new HashSet<ByteString>(expectedValues);
+      Set<ByteString> subSet = new HashSet<>(expectedValues);
       subSet.remove(subSet.iterator());
       Assert.assertTrue(a.containsAll(subSet));
     }
 
-    Set<ByteString> bigSet = new HashSet<ByteString>(expectedValues);
+    Set<ByteString> bigSet = new HashSet<>(expectedValues);
     bigSet.add(ByteString.valueOf("xxxx"));
     Assert.assertFalse(a.containsAll(bigSet));
 
@@ -1427,7 +1427,7 @@ public class AttributeBuilderTest extends TypesTestCase
           options.length)));
     }
 
-    List<String> tmp = new ArrayList<String>(Arrays.asList(options));
+    List<String> tmp = new ArrayList<>(Arrays.asList(options));
     tmp.add("xxxx");
     Assert.assertFalse(a.hasAllOptions(tmp));
 
@@ -1764,7 +1764,7 @@ public class AttributeBuilderTest extends TypesTestCase
       Assert.assertFalse(a.optionsEqual(Collections.singleton(options[0])));
     }
 
-    Set<String> stmp = new HashSet<String>(Arrays.asList(options));
+    Set<String> stmp = new HashSet<>(Arrays.asList(options));
     stmp.add("xxxx");
     Assert.assertFalse(a.optionsEqual(stmp));
 

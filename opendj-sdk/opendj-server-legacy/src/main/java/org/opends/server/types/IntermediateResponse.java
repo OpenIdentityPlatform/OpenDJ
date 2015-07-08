@@ -81,7 +81,7 @@ public final class IntermediateResponse
 
     if (controls == null)
     {
-      this.controls = new ArrayList<Control>(0);
+      this.controls = new ArrayList<>(0);
     }
     else
     {

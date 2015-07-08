@@ -71,7 +71,7 @@ public class ReplicationDbEnv
   private final ChangelogState changelogState;
   /** Exclusive lock to synchronize updates to in-memory and on-disk changelogState. */
   private final Object stateLock = new Object();
-  private final List<Database> allDbs = new CopyOnWriteArrayList<Database>();
+  private final List<Database> allDbs = new CopyOnWriteArrayList<>();
   private ReplicationServer replicationServer;
   private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
   private static final String GENERATION_ID_TAG = "GENID";
@@ -332,7 +332,7 @@ public class ReplicationDbEnv
 
     try
     {
-      final Map<byte[], byte[]> results = new LinkedHashMap<byte[], byte[]>();
+      final Map<byte[], byte[]> results = new LinkedHashMap<>();
 
       OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
       while (status == OperationStatus.SUCCESS)
@@ -480,7 +480,7 @@ public class ReplicationDbEnv
   {
     final String key = serverId + FIELD_SEPARATOR + baseDN.toNormalizedUrlSafeString();
     final String value = serverId + FIELD_SEPARATOR + baseDN;
-    return new SimpleImmutableEntry<String, String>(key, value);
+    return toEntry(key, value);
   }
 
   /**
@@ -496,9 +496,8 @@ public class ReplicationDbEnv
   static Entry<byte[], byte[]> toGenIdEntry(DN baseDN, long generationId)
   {
     final String key = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDN.toNormalizedUrlSafeString();
-    final String data = GENERATION_ID_TAG + FIELD_SEPARATOR + generationId
-        + FIELD_SEPARATOR + baseDN;
-    return new SimpleImmutableEntry<byte[], byte[]>(toBytes(key), toBytes(data));
+    final String data = GENERATION_ID_TAG + FIELD_SEPARATOR + generationId + FIELD_SEPARATOR + baseDN;
+    return toEntry(toBytes(key), toBytes(data));
   }
 
   /**
@@ -510,7 +509,7 @@ public class ReplicationDbEnv
    */
   static Entry<byte[], byte[]> toByteArray(Entry<String, String> entry)
   {
-    return new SimpleImmutableEntry<byte[], byte[]>(toBytes(entry.getKey()), toBytes(entry.getValue()));
+    return toEntry(toBytes(entry.getKey()), toBytes(entry.getValue()));
   }
 
   /**
@@ -527,9 +526,8 @@ public class ReplicationDbEnv
   {
     final int serverId = offlineCSN.getServerId();
     final byte[] key = toReplicaOfflineKey(baseDN, serverId);
-    final byte[] data = toBytes(offlineCSN.getTime() + FIELD_SEPARATOR + serverId
-        + FIELD_SEPARATOR + baseDN);
-    return new SimpleImmutableEntry<byte[], byte[]>(key, data);
+    final byte[] data = toBytes(offlineCSN.getTime() + FIELD_SEPARATOR + serverId + FIELD_SEPARATOR + baseDN);
+    return toEntry(key, data);
   }
 
   /**
@@ -549,7 +547,12 @@ public class ReplicationDbEnv
   /** Returns an entry with the provided key and a null value. */
   private SimpleImmutableEntry<byte[], byte[]> toEntryWithNullValue(byte[] key)
   {
-    return new SimpleImmutableEntry<byte[], byte[]>(key, null);
+    return toEntry(key, null);
+  }
+
+  private static <K, V> SimpleImmutableEntry<K, V> toEntry(final K key, final V value)
+  {
+    return new SimpleImmutableEntry<>(key, value);
   }
 
   private void putInChangelogStateDBIfNotExist(Entry<byte[], byte[]> entry)

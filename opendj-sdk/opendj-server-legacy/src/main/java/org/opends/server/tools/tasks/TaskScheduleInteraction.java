@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -198,8 +198,7 @@ public class TaskScheduleInteraction
   {
     checkHeaderDisplay();
 
-    MenuBuilder<FailedDependencyAction> builder =
-      new MenuBuilder<FailedDependencyAction>(app);
+    MenuBuilder<FailedDependencyAction> builder = new MenuBuilder<>(app);
     builder.setPrompt(INFO_TASK_FAILED_DEPENDENCY_ACTION_PROMPT.get());
     builder.addCancelOption(false);
     for (FailedDependencyAction choice : FailedDependencyAction.values())
@@ -222,7 +221,6 @@ public class TaskScheduleInteraction
     {
       throw new ClientException(ReturnCode.ERROR_UNEXPECTED, LocalizableMessage.EMPTY);
     }
-
   }
 
   private void runDependency() throws ClientException
@@ -246,7 +244,7 @@ public class TaskScheduleInteraction
     if (hasDependencies)
     {
       printAvailableDependencyTaskMessage();
-      HashSet<String> dependencies = new HashSet<String>();
+      HashSet<String> dependencies = new HashSet<>();
       while (true)
       {
         String dependencyID =
@@ -338,29 +336,25 @@ public class TaskScheduleInteraction
   {
     checkHeaderDisplay();
 
-    List<String> addresses = new ArrayList<String>();
+    List<String> addresses = new ArrayList<>();
     boolean hasNotification =
       app.confirmAction(hasNotificationPrompt, false);
     if (hasNotification)
     {
-      HashSet<String> set = new HashSet<String>();
+      HashSet<String> set = new HashSet<>();
       while (true)
       {
-        String address =
-          app.readLineOfInput(emailAddressPrompt);
-        if (address != null && !address.isEmpty())
+        String address = app.readLineOfInput(emailAddressPrompt);
+        if (address == null || address.isEmpty())
         {
-          if (!StaticUtils.isEmailAddress(address)) {
-            app.println(ERR_INVALID_EMAIL_ADDRESS.get(address));
-          }
-          else
-          {
-            set.add(address);
-          }
+          break;
+        }
+        if (!StaticUtils.isEmailAddress(address)) {
+          app.println(ERR_INVALID_EMAIL_ADDRESS.get(address));
         }
         else
         {
-          break;
+          set.add(address);
         }
       }
       addresses.addAll(set);
@@ -412,7 +406,7 @@ public class TaskScheduleInteraction
   {
     checkHeaderDisplay();
 
-    MenuBuilder<ScheduleOption> builder = new MenuBuilder<ScheduleOption>(app);
+    MenuBuilder<ScheduleOption> builder = new MenuBuilder<>(app);
     builder.setPrompt(INFO_TASK_SCHEDULE_PROMPT.get(taskName));
     builder.addCancelOption(false);
     for (ScheduleOption choice : ScheduleOption.values())

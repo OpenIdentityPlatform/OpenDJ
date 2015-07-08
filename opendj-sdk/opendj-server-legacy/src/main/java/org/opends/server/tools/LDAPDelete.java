@@ -318,7 +318,7 @@ public class LDAPDelete
     BooleanArgument   noPropertiesFileArgument = null;
 
     Reader rdr = null;
-    ArrayList<String> dnStrings = new ArrayList<String> ();
+    ArrayList<String> dnStrings = new ArrayList<>();
 
     // Create the command-line argument parser for use with this program.
     LocalizableMessage toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();

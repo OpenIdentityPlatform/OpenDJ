@@ -282,7 +282,7 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
       long lastCN = readChangeNumber(ChangeNumberType.LAST);
       long numberOfChanges = lastCN == NO_KEY ? 0 : lastCN - firstCN + 1;
 
-      final List<Attribute> attributes = new ArrayList<Attribute>();
+      final List<Attribute> attributes = new ArrayList<>();
       attributes.add(toAttribute(ChangeNumberType.FIRST, firstCN));
       attributes.add(toAttribute(ChangeNumberType.LAST, lastCN));
       attributes.add(Attributes.create("count", Long.toString(numberOfChanges)));

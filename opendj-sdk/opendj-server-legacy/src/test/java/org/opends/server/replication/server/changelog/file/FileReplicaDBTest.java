@@ -180,7 +180,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicaDB = newReplicaDB(replicationServer);
 
       final CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
-      final ArrayList<CSN> csns2 = new ArrayList<CSN>(Arrays.asList(csns));
+      final ArrayList<CSN> csns2 = new ArrayList<>(Arrays.asList(csns));
       csns2.remove(csns[3]);
 
       for (CSN csn : csns2)

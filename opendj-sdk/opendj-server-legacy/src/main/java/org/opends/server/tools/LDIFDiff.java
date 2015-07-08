@@ -337,8 +337,8 @@ public class LDIFDiff
 
     // Read in ignored entries and attributes if any
     BufferedReader ignReader = null;
-    Collection<DN> ignoreEntries = new HashSet<DN>();
-    Collection<String> ignoreAttrs   = new HashSet<String>();
+    Collection<DN> ignoreEntries = new HashSet<>();
+    Collection<String> ignoreAttrs = new HashSet<>();
 
     if (ignoreAttrsFile.getValue() != null)
     {
@@ -411,7 +411,7 @@ public class LDIFDiff
       return OPERATIONS_ERROR;
     }
 
-    TreeMap<DN,Entry> sourceMap = new TreeMap<DN,Entry>();
+    TreeMap<DN,Entry> sourceMap = new TreeMap<>();
     try
     {
       while (true)
@@ -451,7 +451,7 @@ public class LDIFDiff
       return OPERATIONS_ERROR;
     }
 
-    TreeMap<DN,Entry> targetMap = new TreeMap<DN,Entry>();
+    TreeMap<DN,Entry> targetMap = new TreeMap<>();
     try
     {
       while (true)
@@ -764,16 +764,12 @@ public class LDIFDiff
           throws IOException
   {
     // Create a list to hold the modifications that are found.
-    LinkedList<Modification> modifications = new LinkedList<Modification>();
+    LinkedList<Modification> modifications = new LinkedList<>();
 
 
     // Look at the set of objectclasses for the entries.
-    LinkedHashSet<ObjectClass> sourceClasses =
-         new LinkedHashSet<ObjectClass>(
-                  sourceEntry.getObjectClasses().keySet());
-    LinkedHashSet<ObjectClass> targetClasses =
-         new LinkedHashSet<ObjectClass>(
-                  targetEntry.getObjectClasses().keySet());
+    LinkedHashSet<ObjectClass> sourceClasses = new LinkedHashSet<>(sourceEntry.getObjectClasses().keySet());
+    LinkedHashSet<ObjectClass> targetClasses = new LinkedHashSet<>(targetEntry.getObjectClasses().keySet());
     Iterator<ObjectClass> sourceClassIterator = sourceClasses.iterator();
     while (sourceClassIterator.hasNext())
     {
@@ -814,9 +810,7 @@ public class LDIFDiff
 
 
     // Look at the user attributes for the entries.
-    LinkedHashSet<AttributeType> sourceTypes =
-         new LinkedHashSet<AttributeType>(
-                  sourceEntry.getUserAttributes().keySet());
+    LinkedHashSet<AttributeType> sourceTypes = new LinkedHashSet<>(sourceEntry.getUserAttributes().keySet());
     Iterator<AttributeType> sourceTypeIterator = sourceTypes.iterator();
     while (sourceTypeIterator.hasNext())
     {
@@ -935,13 +929,13 @@ public class LDIFDiff
           Attribute a = m.getAttribute();
           if (a.isEmpty())
           {
-            LinkedList<Modification> attrMods = new LinkedList<Modification>();
+            LinkedList<Modification> attrMods = new LinkedList<>();
             attrMods.add(m);
             writer.writeModifyChangeRecord(sourceEntry.getName(), attrMods);
           }
           else
           {
-            LinkedList<Modification> attrMods = new LinkedList<Modification>();
+            LinkedList<Modification> attrMods = new LinkedList<>();
             for (ByteString v : a)
             {
               AttributeBuilder builder = new AttributeBuilder(a, true);

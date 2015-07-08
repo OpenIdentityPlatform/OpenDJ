@@ -366,7 +366,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
@@ -562,7 +562,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
@@ -642,7 +642,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =

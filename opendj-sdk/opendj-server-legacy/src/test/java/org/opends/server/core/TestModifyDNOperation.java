@@ -1330,7 +1330,7 @@ public class TestModifyDNOperation extends OperationTestCase
   @Test(expectedExceptions=InvalidNameException.class)
   public void testInvalidModRDN() throws Exception
   {
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String,String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
     String url = "ldap://localhost:" + TestCaseUtils.getServerLdapPort()
             +"/dc=example,dc=com";

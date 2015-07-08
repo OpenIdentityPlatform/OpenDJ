@@ -454,7 +454,7 @@ public class FingerprintCertificateMapperTestCase
       Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-fingerprint-attribute"));
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.DELETE, a));
 
     InternalClientConnection conn =
@@ -482,7 +482,7 @@ public class FingerprintCertificateMapperTestCase
       Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-fingerprint-algorithm"));
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.DELETE, a));
 
     InternalClientConnection conn =
@@ -550,7 +550,7 @@ public class FingerprintCertificateMapperTestCase
     String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-certificate-mapper",
                                             mapperDN)));
@@ -576,7 +576,7 @@ public class FingerprintCertificateMapperTestCase
     String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Subject Equals DN,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-certificate-mapper",
                                             mapperDN)));
@@ -604,7 +604,7 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-fingerprint-attribute",
                        attrName)));
@@ -631,7 +631,7 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-fingerprint-algorithm",
                                     algorithm)));
@@ -672,7 +672,7 @@ public class FingerprintCertificateMapperTestCase
       }
     }
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
                               builder.toAttribute()));
 

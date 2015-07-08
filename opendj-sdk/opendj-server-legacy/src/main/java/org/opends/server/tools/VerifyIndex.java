@@ -363,9 +363,9 @@ public class VerifyIndex
     // through them, finding the one backend to be verified.
     Backend<?> backend = null;
 
-    ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
+    ArrayList<Backend>     backendList = new ArrayList<>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
+    ArrayList<List<DN>>    dnList      = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     int numBackends = backendList.size();

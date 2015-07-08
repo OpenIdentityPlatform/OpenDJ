@@ -234,7 +234,7 @@ public class EntryDNVirtualAttributeProvider
                             SearchOperation searchOperation)
   {
     SearchFilter      filter = searchOperation.getFilter();
-    LinkedHashSet<DN> dnSet  = new LinkedHashSet<DN>();
+    LinkedHashSet<DN> dnSet  = new LinkedHashSet<>();
     extractDNs(rule.getAttributeType(), filter, dnSet);
 
     if (dnSet.isEmpty())

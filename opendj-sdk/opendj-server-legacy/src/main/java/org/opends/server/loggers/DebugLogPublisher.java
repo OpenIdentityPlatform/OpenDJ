@@ -286,7 +286,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   {
     if (classTraceSettings == null)
     {
-      classTraceSettings = new HashMap<String, TraceSettings>();
+      classTraceSettings = new HashMap<>();
     }
     classTraceSettings.put(className, settings);
   }
@@ -304,12 +304,12 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
       String methodName, TraceSettings settings)
   {
     if (methodTraceSettings == null) {
-      methodTraceSettings = new HashMap<String, Map<String, TraceSettings>>();
+      methodTraceSettings = new HashMap<>();
     }
     Map<String, TraceSettings> methodLevels = methodTraceSettings.get(className);
     if (methodLevels == null)
     {
-      methodLevels = new TreeMap<String, TraceSettings>();
+      methodLevels = new TreeMap<>();
       methodTraceSettings.put(className, methodLevels);
     }
     methodLevels.put(methodName, settings);

@@ -804,10 +804,10 @@ public class ExactMatchIdentityMapperTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Create a modification to change the map attribute from uid to cn.
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("cn"));
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute",
                                                     values)));
@@ -883,10 +883,10 @@ public class ExactMatchIdentityMapperTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Create a modification to set the map base DN to "dc=example,dc=com".
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("dc=example,dc=com"));
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-base-dn",
                                                     values)));
@@ -939,7 +939,7 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute")));
     InternalClientConnection conn =
@@ -963,10 +963,10 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("undefinedAttribute"));
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute",
                                                     values)));
@@ -991,10 +991,10 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.valueOf("invalidDN"));
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-base-dn",
                                                     values)));

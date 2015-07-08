@@ -371,7 +371,7 @@ public class ConfigFileHandler
 
     // Convert the entry to a configuration entry and put it in the config
     // hash.
-    configEntries   = new ConcurrentHashMap<DN,ConfigEntry>();
+    configEntries   = new ConcurrentHashMap<>();
     configRootEntry = new ConfigEntry(entry, null);
     configEntries.put(entry.getName(), configRootEntry);
 
@@ -706,7 +706,7 @@ public class ConfigFileHandler
 
 
     // Apply the changes and make sure there were no errors.
-    List<LocalizableMessage> errorList = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> errorList = new LinkedList<>();
     boolean successful = LDIFModify.modifyLDIF(sourceReader, changesReader,
                                                targetWriter, errorList);
 
@@ -1670,7 +1670,7 @@ public class ConfigFileHandler
       int numToDelete = archivedFileList.length - maxConfigArchiveSize;
       if (numToDelete > 0)
       {
-        Set<String> archiveSet = new TreeSet<String>();
+        Set<String> archiveSet = new TreeSet<>();
         for (String name : archivedFileList)
         {
           if (! name.startsWith("config-"))
@@ -1937,8 +1937,7 @@ public class ConfigFileHandler
     // See if the entry has any children.  If so, then iterate through them and
     // write them and their children.  We'll copy the entries into a tree map
     // so that we have a sensible order in the resulting LDIF.
-    TreeMap<DN,ConfigEntry> childMap =
-         new TreeMap<DN,ConfigEntry>(configEntry.getChildren());
+    TreeMap<DN,ConfigEntry> childMap = new TreeMap<>(configEntry.getChildren());
     for (ConfigEntry childEntry : childMap.values())
     {
       writeEntryAndChildren(writer, childEntry);
@@ -1993,7 +1992,7 @@ public class ConfigFileHandler
   @Override
   public Map<String,String> getAlerts()
   {
-    Map<String,String> alerts = new LinkedHashMap<String,String>();
+    Map<String,String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_CANNOT_WRITE_CONFIGURATION,
                ALERT_DESCRIPTION_CANNOT_WRITE_CONFIGURATION);

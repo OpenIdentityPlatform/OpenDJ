@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -84,8 +84,7 @@ public class ReplicationBrokerTest extends DirectoryServerTestCase
     {
       return Collections.emptyMap();
     }
-    final Map<Integer, ReplicationServerInfo> map =
-        new HashMap<Integer, ReplicationServerInfo>();
+    final Map<Integer, ReplicationServerInfo> map = new HashMap<>();
     for (ReplicationServerInfo info : infos)
     {
       map.put(info.getServerId(), info);
@@ -146,7 +145,7 @@ public class ReplicationBrokerTest extends DirectoryServerTestCase
 
   private Map<Integer, DSInfo> newMap(DSInfo... dsInfos)
   {
-    final Map<Integer, DSInfo> results = new HashMap<Integer, DSInfo>();
+    final Map<Integer, DSInfo> results = new HashMap<>();
     for (DSInfo dsInfo : dsInfos)
     {
       results.put(dsInfo.getDsId(), dsInfo);

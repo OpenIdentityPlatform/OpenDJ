@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -103,7 +103,7 @@ public class GroupManagerTestCase
   {
     GroupManager groupManager = DirectoryServer.getGroupManager();
 
-    LinkedHashSet<Class> groupClasses = new LinkedHashSet<Class>();
+    LinkedHashSet<Class> groupClasses = new LinkedHashSet<>();
     groupClasses.add(StaticGroup.class);
     groupClasses.add(DynamicGroup.class);
     groupClasses.add(VirtualStaticGroup.class);
@@ -250,7 +250,7 @@ public class GroupManagerTestCase
     group1Instance.addMember(user4Entry);
     //Switch things around, change groups and members to odd numbered nested
     //groups and odd numbered members via ldap modify.
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     Attribute g1 = Attributes.create("member", "cn=group 1,ou=Groups,o=test");
     Attribute g2 = Attributes.create("member", "cn=group 2,ou=Groups,o=test");
     Attribute g3 = Attributes.create("member", "cn=group 3,ou=Groups,o=test");
@@ -459,7 +459,7 @@ public class GroupManagerTestCase
               "it didn't");
     } catch (DirectoryException ex) {}
     //Modify list via ldap modify.
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     Attribute a2 = Attributes.create("member", "cn=group 2,ou=Groups,o=test");
     Attribute a3 = Attributes.create("member", "cn=group 1,ou=Groups,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
@@ -716,9 +716,8 @@ public class GroupManagerTestCase
     assertFalse(memberList.hasMoreMembers());
 
 
-    // Modify the group and make sure the group manager gets updated
-    // accordingly.
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    // Modify the group and make sure the group manager gets updated accordingly
+    LinkedList<Modification> mods = new LinkedList<>();
     Attribute a2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
     Attribute a3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
@@ -737,8 +736,7 @@ public class GroupManagerTestCase
     assertTrue(groupInstance.isMember(user3DN));
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
@@ -789,8 +787,7 @@ public class GroupManagerTestCase
     assertFalse(groupInstance.getMembers().hasMoreMembers());
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
@@ -910,9 +907,8 @@ public class GroupManagerTestCase
     assertFalse(memberList.hasMoreMembers());
 
 
-    // Modify the group and make sure the group manager gets updated
-    // accordingly.
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    // Modify the group and make sure the group manager gets updated accordingly
+    LinkedList<Modification> mods = new LinkedList<>();
     Attribute a2 = Attributes.create("uniquemember", "uid=user.2,ou=People,o=test");
     Attribute a3 = Attributes.create("uniquemember", "uid=user.3,ou=People,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
@@ -931,8 +927,7 @@ public class GroupManagerTestCase
     assertTrue(groupInstance.isMember(user3DN));
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
@@ -983,8 +978,7 @@ public class GroupManagerTestCase
     assertFalse(groupInstance.getMembers().hasMoreMembers());
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
@@ -1104,9 +1098,8 @@ public class GroupManagerTestCase
     assertFalse(memberList.hasMoreMembers());
 
 
-    // Modify the group and make sure the group manager gets updated
-    // accordingly.
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    // Modify the group and make sure the group manager gets updated accordingly
+    LinkedList<Modification> mods = new LinkedList<>();
     Attribute a2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
     Attribute a3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
     mods.add(new Modification(ModificationType.DELETE, a2));
@@ -1125,8 +1118,7 @@ public class GroupManagerTestCase
     assertTrue(groupInstance.isMember(user3DN));
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
@@ -1177,8 +1169,7 @@ public class GroupManagerTestCase
     assertFalse(groupInstance.getMembers().hasMoreMembers());
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
@@ -1270,8 +1261,7 @@ public class GroupManagerTestCase
     assertTrue(groupInstance.isMember(user1DN));
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     DeleteOperation deleteOperation = conn.processDelete(newDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(newDN));
@@ -1494,8 +1484,7 @@ public class GroupManagerTestCase
     assertTrue(groupSet.contains(group3));
 
 
-    // Delete all of the groups and make sure the group manager gets updated
-    // accordingly.
+    // Delete all of the groups and make sure the group manager gets updated accordingly
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation = conn.processDelete(group1DN);
@@ -1650,8 +1639,7 @@ public class GroupManagerTestCase
     memberList.close();
 
 
-    // Delete the group and make sure the group manager gets updated
-    // accordingly.
+    // Delete the group and make sure the group manager gets updated accordingly
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation = conn.processDelete(groupDN);
@@ -1919,7 +1907,7 @@ public class GroupManagerTestCase
     assertNotNull(groupInstance);
 
 
-    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<>();
     memberSet.add(user1DN);
     memberSet.add(user2DN);
 
@@ -2017,7 +2005,7 @@ public class GroupManagerTestCase
     assertNotNull(groupInstance);
 
 
-    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<>();
     memberSet.add(user1DN);
 
     MemberList memberList = groupInstance.getMembers(
@@ -2120,7 +2108,7 @@ public class GroupManagerTestCase
     groupInstance.toString();
 
 
-    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<>();
     memberSet.add(user1DN);
     memberSet.add(user2DN);
 
@@ -2224,7 +2212,7 @@ public class GroupManagerTestCase
     groupInstance.toString();
 
 
-    LinkedHashSet<DN> memberSet = new LinkedHashSet<DN>();
+    LinkedHashSet<DN> memberSet = new LinkedHashSet<>();
     memberSet.add(user1DN);
     memberSet.add(user2DN);
 

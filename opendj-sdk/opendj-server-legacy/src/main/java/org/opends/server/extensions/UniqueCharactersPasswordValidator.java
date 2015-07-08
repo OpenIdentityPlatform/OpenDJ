@@ -110,7 +110,7 @@ public class UniqueCharactersPasswordValidator
 
     // Create a set that will be used to keep track of the unique characters
     // contained in the proposed password.
-    HashSet<Character> passwordCharacters = new HashSet<Character>();
+    HashSet<Character> passwordCharacters = new HashSet<>();
 
     // Iterate through the characters in the new password and place them in the
     // set as needed.  If we should behave in a case-insensitive manner, then

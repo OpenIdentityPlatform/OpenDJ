@@ -100,7 +100,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
   static <K extends Comparable<K>, V> BlockLogReader<K, V> newReader(
       final File file, final RandomAccessFile reader, final RecordParser<K, V> parser)
   {
-    return new BlockLogReader<K, V>(file, reader, parser, BLOCK_SIZE);
+    return new BlockLogReader<>(file, reader, parser, BLOCK_SIZE);
   }
 
   /**
@@ -126,7 +126,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
   static <K extends Comparable<K>, V> BlockLogReader<K, V> newReaderForTests(
       final File file, final RandomAccessFile reader, final RecordParser<K, V> parser, int blockSize)
   {
-    return new BlockLogReader<K, V>(file, reader, parser, blockSize);
+    return new BlockLogReader<>(file, reader, parser, blockSize);
   }
 
   private BlockLogReader(

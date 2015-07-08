@@ -73,13 +73,9 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   private static final int MAX_RETRY_COUNT = 5;
 
   /** The set of worker threads that will be used to process this work queue. */
-  private final ArrayList<TraditionalWorkerThread> workerThreads =
-    new ArrayList<TraditionalWorkerThread>();
+  private final ArrayList<TraditionalWorkerThread> workerThreads = new ArrayList<>();
 
-  /**
-   * The number of operations that have been submitted to the work queue for
-   * processing.
-   */
+  /** The number of operations that have been submitted to the work queue for processing. */
   private AtomicLong opsSubmitted;
 
   /**
@@ -180,13 +176,13 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       // Create the actual work queue.
       if (maxCapacity > 0)
       {
-        opQueue = new LinkedBlockingQueue<Operation>(maxCapacity);
+        opQueue = new LinkedBlockingQueue<>(maxCapacity);
       }
       else
       {
         // This will never be the case, since the configuration definition
         // ensures that the capacity is always finite.
-        opQueue = new LinkedBlockingQueue<Operation>();
+        opQueue = new LinkedBlockingQueue<>();
       }
 
       // Create the set of worker threads that should be used to service the
@@ -241,7 +237,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     // Send responses to any operations in the pending queue to indicate that
     // they won't be processed because the server is shutting down.
     CancelRequest cancelRequest = new CancelRequest(true, reason);
-    ArrayList<Operation> pendingOperations = new ArrayList<Operation>();
+    ArrayList<Operation> pendingOperations = new ArrayList<>();
     opQueue.removeAll(pendingOperations);
     for (Operation o : pendingOperations)
     {
@@ -710,12 +706,11 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
         LinkedBlockingQueue<Operation> newOpQueue = null;
         if (newMaxCapacity > 0)
         {
-          newOpQueue = new LinkedBlockingQueue<Operation>(
-              newMaxCapacity);
+          newOpQueue = new LinkedBlockingQueue<>(newMaxCapacity);
         }
         else
         {
-          newOpQueue = new LinkedBlockingQueue<Operation>();
+          newOpQueue = new LinkedBlockingQueue<>();
         }
 
         oldOpQueue = opQueue;

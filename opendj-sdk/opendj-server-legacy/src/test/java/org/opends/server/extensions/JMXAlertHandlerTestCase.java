@@ -78,7 +78,7 @@ public class JMXAlertHandlerTestCase
   @DataProvider(name = "jmxAlertHandlers")
   public Object[][] getJMXAlertHandlers()
   {
-    ArrayList<AlertHandler> handlers = new ArrayList<AlertHandler>();
+    ArrayList<AlertHandler> handlers = new ArrayList<>();
     for (AlertHandler handler : DirectoryServer.getAlertHandlers())
     {
       if (handler instanceof JMXAlertHandler)

@@ -428,7 +428,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAllUserAttributes() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -472,7 +472,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAllUserAttributesOmitValues() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -497,7 +497,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalObjectClassAttribute() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -522,7 +522,7 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchExternalObjectClassAttributeOmitValues()
        throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -546,7 +546,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalSelectedAttributes() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("uid");
     attributes.add("createtimestamp");
     SearchRequestProtocolOp searchRequest =
@@ -569,7 +569,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAttributeWithSubtypes() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -592,7 +592,7 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchExternalAttributeWithSubtypesOmitValues()
        throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -618,7 +618,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAttributeWithOptions() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     attributes.add("title;lang-ja;phonetic");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -644,11 +644,10 @@ public class SearchOperationTestCase extends OperationTestCase
     LDAPFilter ldapFilter = LDAPFilter.decode("(title=*director*)");
     MatchedValuesFilter matchedValuesFilter =
          MatchedValuesFilter.createFromLDAPFilter(ldapFilter);
-    ArrayList<MatchedValuesFilter> filters =
-         new ArrayList<MatchedValuesFilter>();
+    ArrayList<MatchedValuesFilter> filters = new ArrayList<>();
     filters.add(matchedValuesFilter);
     MatchedValuesControl mvc = new MatchedValuesControl(true, filters);
-    ArrayList<Control> controls = new ArrayList<Control>();
+    ArrayList<Control> controls = new ArrayList<>();
     controls.add(mvc);
 
     SearchRequestProtocolOp searchRequest =
@@ -947,7 +946,7 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(entry.getName(), userDN);
 
     // Check real attributes.
-    List<String> messages = new LinkedList<String>();
+    List<String> messages = new LinkedList<>();
     for (String attrType : realAttrTypes)
     {
       List<Attribute> attrList = entry.getAttribute(attrType);
@@ -1127,7 +1126,7 @@ public class SearchOperationTestCase extends OperationTestCase
     // Check all expected attributes are present and have
     // the user requested name.
     List<Attribute> attrList = entry.getAttributes();
-    Set<String> actualNames = new HashSet<String>();
+    Set<String> actualNames = new HashSet<>();
     for (Attribute attribute : attrList)
     {
       actualNames.add(attribute.getNameWithOptions());
@@ -1171,8 +1170,7 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn;lang-fr: Test Usager",
         "userPassword: password");
 
-    LinkedHashSet<String> attributes =
-      new LinkedHashSet<String>(requestedAttributes);
+    LinkedHashSet<String> attributes = new LinkedHashSet<>(requestedAttributes);
 
     SearchRequestProtocolOp searchRequest =
       new SearchRequestProtocolOp(
@@ -1193,7 +1191,7 @@ public class SearchOperationTestCase extends OperationTestCase
     // Check all expected attributes are present and have
     // the user requested name.
     LinkedList<LDAPAttribute> attrList = entry.getAttributes();
-    Set<String> actualNames = new HashSet<String>();
+    Set<String> actualNames = new HashSet<>();
     for (LDAPAttribute attribute : attrList)
     {
       actualNames.add(attribute.getAttributeType());

@@ -219,9 +219,8 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Build the array of connections we will use to perform the tests.
     JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
-    ArrayList<JmxClientConnection> connList =
-         new ArrayList<JmxClientConnection>();
-    ArrayList<Boolean> successList = new ArrayList<Boolean>();
+    ArrayList<JmxClientConnection> connList = new ArrayList<>();
+    ArrayList<Boolean> successList = new ArrayList<>();
     String userDN ;
     Entry userEntry ;
     AuthenticationInfo authInfo;
@@ -381,7 +380,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   {
     OpendsJmxConnector opendsConnector;
     int jmxPort = TestCaseUtils.getServerJmxPort() ;
-    HashMap<String, Object> env = new HashMap<String, Object>();
+    HashMap<String, Object> env = new HashMap<>();
     String user = "cn=Unprivileged JMX Root,cn=Root DNs,cn=config";
     String password  = "password";
     String[] credentials = new String[] { user, password };
@@ -407,7 +406,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Add JMX_READ privilege
     InternalClientConnection rootConnection = getRootConnection();
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD, Attributes.create(
         "ds-privilege-name", "jmx-read")));
     ModifyOperation modifyOperation =
@@ -430,7 +429,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     }
 
     // remove JMX_READ privilege
-    mods = new ArrayList<Modification>();
+    mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("ds-privilege-name", "jmx-read")));
     modifyOperation =
@@ -578,7 +577,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
       "givenName: ProxyV1",
       "sn: Test");
 
-    ArrayList<Control> controls = new ArrayList<Control>(1);
+    ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV1Control(
                           DN.valueOf("cn=PWReset Target,o=test")));
 
@@ -605,7 +604,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Try to modify the entry to add a description.
-    ArrayList<Modification> mods = new ArrayList<Modification>(1);
+    ArrayList<Modification> mods = new ArrayList<>(1);
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
@@ -693,7 +692,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     boolean hasProxyPrivilege = conn.hasPrivilege(Privilege.PROXIED_AUTH, null);
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
-    ArrayList<Control> controls = new ArrayList<Control>(1);
+    ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV1Control(targetDN));
 
 
@@ -764,7 +763,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
       "givenName: ProxyV2",
       "sn: Test");
 
-    ArrayList<Control> controls = new ArrayList<Control>(1);
+    ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV2Control(
                           ByteString.valueOf("dn:cn=PWReset Target,o=test")));
 
@@ -794,7 +793,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Try to modify the entry to add a description.
-    ArrayList<Modification> mods = new ArrayList<Modification>(1);
+    ArrayList<Modification> mods = new ArrayList<>(1);
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
@@ -889,7 +888,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     boolean hasProxyPrivilege = conn.hasPrivilege(Privilege.PROXIED_AUTH, null);
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
-    ArrayList<Control> controls = new ArrayList<Control>(1);
+    ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
 
 
@@ -969,7 +968,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Modify the user entry to add the JMX_READ privilege and verify that
     // the client connection reflects that.
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-privilege-name", "jmx-read")));
     ModifyOperation modifyOperation = rootConnection.processModify(dn, mods);
@@ -1016,7 +1015,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Update the set of root privileges to include proxied auth.
     InternalClientConnection conn = getRootConnection();
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));

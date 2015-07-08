@@ -208,7 +208,7 @@ public final class CertificateManager {
     aliasEnumeration = keyStore.aliases();
     if (aliasEnumeration == null)
       return new String[0];
-    ArrayList<String> aliasList = new ArrayList<String>();
+    ArrayList<String> aliasList = new ArrayList<>();
     while (aliasEnumeration.hasMoreElements())
       aliasList.add(aliasEnumeration.nextElement());
     String[] aliases = new String[aliasList.size()];

@@ -81,10 +81,8 @@ public final class Upgrade
   static boolean hasPostUpgradeTask;
 
   /** Developers should register upgrade tasks below. */
-  private static final NavigableMap<BuildVersion, List<UpgradeTask>> TASKS =
-      new TreeMap<BuildVersion, List<UpgradeTask>>();
-  private static final List<UpgradeTask> MANDATORY_TASKS =
-      new LinkedList<UpgradeTask>();
+  private static final NavigableMap<BuildVersion, List<UpgradeTask>> TASKS = new TreeMap<>();
+  private static final List<UpgradeTask> MANDATORY_TASKS = new LinkedList<>();
 
   static
   {
@@ -431,7 +429,7 @@ public final class Upgrade
   private static List<UpgradeTask> getUpgradeTasks(
       final BuildVersion fromVersion, final BuildVersion toVersion)
   {
-    final List<UpgradeTask> tasks = new LinkedList<UpgradeTask>();
+    final List<UpgradeTask> tasks = new LinkedList<>();
     for (final List<UpgradeTask> subList : TASKS.subMap(fromVersion, false,
         toVersion, true).values())
     {
@@ -591,7 +589,7 @@ public final class Upgrade
     List<UpgradeTask> taskList = TASKS.get(version);
     if (taskList == null)
     {
-      taskList = new LinkedList<UpgradeTask>();
+      taskList = new LinkedList<>();
       TASKS.put(version, taskList);
     }
     taskList.addAll(Arrays.asList(tasks));

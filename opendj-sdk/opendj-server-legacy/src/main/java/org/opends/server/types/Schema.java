@@ -184,36 +184,24 @@ public final class Schema
    * <p>
    * ex : Replication uses this to store its state and GenerationID.
    */
-  private Map<String, Attribute> extraAttributes =
-    new HashMap<String, Attribute>();
+  private Map<String, Attribute> extraAttributes = new HashMap<>();
 
 
-
-  /**
-   * Creates a new schema structure with all elements initialized but
-   * empty.
-   */
+  /** Creates a new schema structure with all elements initialized but empty. */
   public Schema()
   {
-    attributeTypes = new ConcurrentHashMap<String,AttributeType>();
-    objectClasses = new ConcurrentHashMap<String,ObjectClass>();
-    syntaxes = new ConcurrentHashMap<String,Syntax>();
-    matchingRules = new ConcurrentHashMap<String,MatchingRule>();
-    matchingRuleUses =
-         new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
-    ditContentRules =
-         new ConcurrentHashMap<ObjectClass,DITContentRule>();
-    ditStructureRulesByID =
-         new ConcurrentHashMap<Integer,DITStructureRule>();
-    ditStructureRulesByNameForm =
-         new ConcurrentHashMap<NameForm,DITStructureRule>();
-    nameFormsByOC =
-            new ConcurrentHashMap<ObjectClass,List<NameForm>>();
-    nameFormsByName = new ConcurrentHashMap<String,NameForm>();
-    ldapSyntaxDescriptions =
-            new ConcurrentHashMap<String,LDAPSyntaxDescription>();
-    subordinateTypes =
-         new ConcurrentHashMap<AttributeType,List<AttributeType>>();
+    attributeTypes = new ConcurrentHashMap<>();
+    objectClasses = new ConcurrentHashMap<>();
+    syntaxes = new ConcurrentHashMap<>();
+    matchingRules = new ConcurrentHashMap<>();
+    matchingRuleUses = new ConcurrentHashMap<>();
+    ditContentRules = new ConcurrentHashMap<>();
+    ditStructureRulesByID = new ConcurrentHashMap<>();
+    ditStructureRulesByNameForm = new ConcurrentHashMap<>();
+    nameFormsByOC = new ConcurrentHashMap<>();
+    nameFormsByName = new ConcurrentHashMap<>();
+    ldapSyntaxDescriptions = new ConcurrentHashMap<>();
+    subordinateTypes = new ConcurrentHashMap<>();
 
     oldestModificationTime    = System.currentTimeMillis();
     youngestModificationTime  = oldestModificationTime;
@@ -396,7 +384,7 @@ public final class Schema
     if (subTypes == null)
     {
       superiorType.setMayHaveSubordinateTypes();
-      subTypes = new LinkedList<AttributeType>();
+      subTypes = new LinkedList<>();
       subTypes.add(attributeType);
       subordinateTypes.put(superiorType, subTypes);
     }
@@ -1622,7 +1610,7 @@ public final class Schema
 
       if(mappedForms == null)
       {
-        mappedForms = new ArrayList<NameForm>();
+        mappedForms = new ArrayList<>();
       }
 
       mappedForms.add(nameForm);
@@ -2057,8 +2045,7 @@ public final class Schema
     dupSchema.youngestModificationTime = youngestModificationTime;
     if (extraAttributes != null)
     {
-      dupSchema.extraAttributes =
-        new HashMap<String, Attribute>(extraAttributes);
+      dupSchema.extraAttributes = new HashMap<>(extraAttributes);
     }
 
     return dupSchema;
@@ -2100,13 +2087,13 @@ public final class Schema
     String concatFilePath = null;
     try
     {
-      Set<String> attributeTypes = new LinkedHashSet<String>();
-      Set<String> objectClasses = new LinkedHashSet<String>();
-      Set<String> nameForms = new LinkedHashSet<String>();
-      Set<String> ditContentRules = new LinkedHashSet<String>();
-      Set<String> ditStructureRules = new LinkedHashSet<String>();
-      Set<String> matchingRuleUses = new LinkedHashSet<String>();
-      Set<String> ldapSyntaxes = new LinkedHashSet<String>();
+      Set<String> attributeTypes = new LinkedHashSet<>();
+      Set<String> objectClasses = new LinkedHashSet<>();
+      Set<String> nameForms = new LinkedHashSet<>();
+      Set<String> ditContentRules = new LinkedHashSet<>();
+      Set<String> ditStructureRules = new LinkedHashSet<>();
+      Set<String> matchingRuleUses = new LinkedHashSet<>();
+      Set<String> ldapSyntaxes = new LinkedHashSet<>();
       genConcatenatedSchema(attributeTypes, objectClasses, nameForms,
                             ditContentRules, ditStructureRules,
                             matchingRuleUses,ldapSyntaxes);
@@ -2250,7 +2237,7 @@ public final class Schema
           throws IOException
   {
     // Get a sorted list of the files in the schema directory.
-    TreeSet<File> schemaFiles = new TreeSet<File>();
+    TreeSet<File> schemaFiles = new TreeSet<>();
     String schemaDirectory =
       SchemaConfigManager.getSchemaDirectoryPath();
 
@@ -2270,10 +2257,8 @@ public final class Schema
     {
       // Read the contents of the file into a list with one schema
       // element per list element.
-      LinkedList<StringBuilder> lines =
-           new LinkedList<StringBuilder>();
-      BufferedReader reader =
-           new BufferedReader(new FileReader(f));
+      LinkedList<StringBuilder> lines = new LinkedList<>();
+      BufferedReader reader = new BufferedReader(new FileReader(f));
 
       while (true)
       {

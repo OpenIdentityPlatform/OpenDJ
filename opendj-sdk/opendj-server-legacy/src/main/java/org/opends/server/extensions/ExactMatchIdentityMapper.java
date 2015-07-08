@@ -136,7 +136,7 @@ public class ExactMatchIdentityMapper
 
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
-    requestedAttributes = new LinkedHashSet<String>(2);
+    requestedAttributes = new LinkedHashSet<>(2);
     requestedAttributes.add("*");
     requestedAttributes.add("+");
   }
@@ -186,8 +186,7 @@ public class ExactMatchIdentityMapper
     }
     else
     {
-      ArrayList<SearchFilter> filterComps =
-           new ArrayList<SearchFilter>(attributeTypes.length);
+      ArrayList<SearchFilter> filterComps = new ArrayList<>(attributeTypes.length);
       for (AttributeType t : attributeTypes)
       {
         ByteString value = ByteString.valueOf(id);

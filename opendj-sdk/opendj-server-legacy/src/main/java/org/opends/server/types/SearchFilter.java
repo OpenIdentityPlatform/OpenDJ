@@ -138,7 +138,7 @@ public final class SearchFilter
     // This used to happen in getSubAnyElements, but we do it here
     // so that we can make this.subAnyElements final.
     if (subAnyElements == null) {
-      subAnyElements = new ArrayList<ByteString>(0);
+      subAnyElements = new ArrayList<>(0);
     }
 
     // This used to happen in getFilterComponents, but we do it here
@@ -148,8 +148,7 @@ public final class SearchFilter
     }
 
     this.filterType        = filterType;
-    this.filterComponents  =
-            new LinkedHashSet<SearchFilter>(filterComponents);
+    this.filterComponents  = new LinkedHashSet<>(filterComponents);
     this.notComponent      = notComponent;
     this.attributeType     = attributeType;
     this.attributeOptions  = attributeOptions;
@@ -765,7 +764,7 @@ public final class SearchFilter
     // the attribute type (with or without options).  Decode it.
     String attrType = filterString.substring(startPos, attrEndPos);
     StringBuilder lowerType = new StringBuilder(attrType.length());
-    Set<String> attributeOptions = new HashSet<String>();
+    Set<String> attributeOptions = new HashSet<>();
 
     int semicolonPos = attrType.indexOf(';');
     if (semicolonPos < 0)
@@ -1034,20 +1033,17 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Create a list to hold the returned components.
-    List<SearchFilter> filterComponents =
-         new ArrayList<SearchFilter>();
+    List<SearchFilter> filterComponents = new ArrayList<>();
 
 
-    // If the end pos is equal to the start pos, then there are no
-    // components.
+    // If the end pos is equal to the start pos, then there are no components.
     if (startPos == endPos)
     {
       if (filterType == FilterType.NOT)
       {
         LocalizableMessage message = ERR_SEARCH_FILTER_NOT_EXACTLY_ONE.get(
             filterString, startPos, endPos);
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                     message);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
       else
       {
@@ -1192,7 +1188,7 @@ public final class SearchFilter
     // check to see if there are any escaped values, since they will
     // need special treatment.
     boolean hasEscape = false;
-    LinkedList<Integer> asteriskPositions = new LinkedList<Integer>();
+    LinkedList<Integer> asteriskPositions = new LinkedList<>();
     for (int i=0; i < valueBytes.length; i++)
     {
       if (valueBytes[i] == 0x2A) // The asterisk.
@@ -1394,9 +1390,8 @@ public final class SearchFilter
     }
 
 
-    // Next, process through the rest of the asterisks to get the
-    // subAny values.
-    List<ByteString> subAny = new ArrayList<ByteString>();
+    // Next, process through the rest of the asterisks to get the subAny values.
+    List<ByteString> subAny = new ArrayList<>();
     for (int asteriskPos : asteriskPositions)
     {
       int length = asteriskPos - firstPos - 1;
@@ -1773,7 +1768,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     AttributeType attributeType    = null;
-    Set<String>   attributeOptions = new HashSet<String>();
+    Set<String>   attributeOptions = new HashSet<>();
     boolean       dnAttributes     = false;
     String        matchingRuleID   = null;
 
@@ -3765,8 +3760,7 @@ outerComponentLoop:
         return false;
       }
 
-      HashSet<String> lowerOptions =
-           new HashSet<String>(options1.size());
+      HashSet<String> lowerOptions = new HashSet<>(options1.size());
       for (String option : options1)
       {
         lowerOptions.add(toLowerCase(option));

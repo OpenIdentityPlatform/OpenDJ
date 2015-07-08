@@ -631,7 +631,7 @@ public class PasswordModifyExtendedOperation
         // Run the new password through the set of password validators.
         if (selfChange || !pwPolicyState.getAuthenticationPolicy().isSkipValidationForAdministrators())
         {
-          Set<ByteString> clearPasswords = new HashSet<ByteString>(pwPolicyState.getClearPasswords());
+          Set<ByteString> clearPasswords = new HashSet<>(pwPolicyState.getClearPasswords());
           if (oldPassword != null)
           {
             clearPasswords.add(oldPassword);
@@ -676,7 +676,7 @@ public class PasswordModifyExtendedOperation
       List<ByteString> encodedPasswords;
       if (isPreEncoded)
       {
-        encodedPasswords = new ArrayList<ByteString>(1);
+        encodedPasswords = new ArrayList<>(1);
         encodedPasswords.add(newPassword);
       }
       else
@@ -698,12 +698,12 @@ public class PasswordModifyExtendedOperation
       // If the current password was provided, then remove all matching values from the user's entry
       // and replace them with the new password.  Otherwise replace all password values.
       AttributeType attrType = pwPolicyState.getAuthenticationPolicy().getPasswordAttribute();
-      List<Modification> modList = new ArrayList<Modification>();
+      List<Modification> modList = new ArrayList<>();
       if (oldPassword != null)
       {
         // Remove all existing encoded values that match the old password.
         Set<ByteString> existingValues = pwPolicyState.getPasswordValues();
-        Set<ByteString> deleteValues = new LinkedHashSet<ByteString>(existingValues.size());
+        Set<ByteString> deleteValues = new LinkedHashSet<>(existingValues.size());
         if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
         {
           for (ByteString v : existingValues)
@@ -885,10 +885,10 @@ public class PasswordModifyExtendedOperation
       List<ByteString> currentPasswords = null;
       if (oldPassword != null)
       {
-        currentPasswords = new ArrayList<ByteString>(1);
+        currentPasswords = new ArrayList<>(1);
         currentPasswords.add(oldPassword);
       }
-      List<ByteString> newPasswords = new ArrayList<ByteString>(1);
+      List<ByteString> newPasswords = new ArrayList<>(1);
       newPasswords.add(newPassword);
 
       Map<AccountStatusNotificationProperty, List<String>> notifProperties =

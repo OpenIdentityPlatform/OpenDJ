@@ -258,7 +258,7 @@ public class SubEntry {
     }
 
     // Process collective attributes.
-    this.collectiveAttributes = new ArrayList<Attribute>();
+    this.collectiveAttributes = new ArrayList<>();
     if (this.isCollective)
     {
       List<Attribute> subAttrList = entry.getAttributes();
@@ -273,16 +273,13 @@ public class SubEntry {
         }
         else if (subAttr.hasOption(ATTR_OPTION_COLLECTIVE))
         {
-          AttributeBuilder builder = new AttributeBuilder(
-                  subAttr.getAttributeType());
+          AttributeBuilder builder = new AttributeBuilder(subAttr.getAttributeType());
           builder.addAll(subAttr);
-          Set<String> options = new LinkedHashSet<String>(
-                  subAttr.getOptions());
+          Set<String> options = new LinkedHashSet<>(subAttr.getOptions());
           options.remove(ATTR_OPTION_COLLECTIVE);
           builder.setOptions(options);
           Attribute attr = builder.toAttribute();
-          CollectiveVirtualAttribute collectiveAttr =
-                  new CollectiveVirtualAttribute(attr);
+          CollectiveVirtualAttribute collectiveAttr = new CollectiveVirtualAttribute(attr);
           this.collectiveAttributes.add(collectiveAttr);
         }
       }

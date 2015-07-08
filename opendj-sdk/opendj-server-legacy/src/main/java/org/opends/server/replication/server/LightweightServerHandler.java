@@ -164,7 +164,7 @@ public class LightweightServerHandler
   @Override
   public List<Attribute> getMonitorData()
   {
-    List<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<>();
 
     final int serverId = dsInfo.getDsId();
     final ReplicationServerDomain domain = replServerHandler.getDomain();

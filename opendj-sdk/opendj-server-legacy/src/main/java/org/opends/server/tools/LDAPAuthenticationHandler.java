@@ -735,8 +735,7 @@ public class LDAPAuthenticationHandler
    */
   public static LinkedHashMap<String, LocalizableMessage> getSASLAnonymousProperties()
   {
-    LinkedHashMap<String,LocalizableMessage> properties =
-         new LinkedHashMap<String,LocalizableMessage>(1);
+    LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(1);
 
     properties.put(SASL_PROPERTY_TRACE,
                    INFO_LDAPAUTH_PROPERTY_DESCRIPTION_TRACE.get());
@@ -1210,8 +1209,7 @@ public class LDAPAuthenticationHandler
    */
   public static LinkedHashMap<String,LocalizableMessage> getSASLCRAMMD5Properties()
   {
-    LinkedHashMap<String,LocalizableMessage> properties =
-         new LinkedHashMap<String,LocalizableMessage>(1);
+    LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(1);
 
     properties.put(SASL_PROPERTY_AUTHID,
                    INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
@@ -1611,7 +1609,7 @@ public class LDAPAuthenticationHandler
         // list.  Decode that list and make sure the QoP we have chosen is in
         // that list.
         StringTokenizer tokenizer = new StringTokenizer(tokenValue, ",");
-        LinkedList<String> qopModes = new LinkedList<String>();
+        LinkedList<String> qopModes = new LinkedList<>();
         while (tokenizer.hasMoreTokens())
         {
           qopModes.add(toLowerCase(tokenizer.nextToken().trim()));
@@ -2309,8 +2307,7 @@ public class LDAPAuthenticationHandler
    */
   public static LinkedHashMap<String,LocalizableMessage> getSASLDigestMD5Properties()
   {
-    LinkedHashMap<String,LocalizableMessage> properties =
-         new LinkedHashMap<String,LocalizableMessage>(5);
+    LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(5);
 
     properties.put(SASL_PROPERTY_AUTHID,
                    INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
@@ -2507,7 +2504,7 @@ public class LDAPAuthenticationHandler
   public static LinkedHashMap<String,LocalizableMessage> getSASLExternalProperties()
   {
     // There are no properties for the SASL EXTERNAL mechanism.
-    return new LinkedHashMap<String,LocalizableMessage>(0);
+    return new LinkedHashMap<>(0);
   }
 
 
@@ -2816,8 +2813,7 @@ public class LDAPAuthenticationHandler
    */
   public static LinkedHashMap<String,LocalizableMessage> getSASLGSSAPIProperties()
   {
-    LinkedHashMap<String,LocalizableMessage> properties =
-         new LinkedHashMap<String,LocalizableMessage>(4);
+    LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(4);
 
     properties.put(SASL_PROPERTY_AUTHID,
                    INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
@@ -3091,8 +3087,7 @@ public class LDAPAuthenticationHandler
    */
   public static LinkedHashMap<String,LocalizableMessage> getSASLPlainProperties()
   {
-    LinkedHashMap<String,LocalizableMessage> properties =
-         new LinkedHashMap<String,LocalizableMessage>(2);
+    LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(2);
 
     properties.put(SASL_PROPERTY_AUTHID,
                    INFO_LDAPAUTH_PROPERTY_DESCRIPTION_AUTHID.get());
@@ -3130,7 +3125,7 @@ public class LDAPAuthenticationHandler
     else if (saslMechanism.equals(SASL_MECHANISM_GSSAPI))
     {
       // Create the property map that will be used by the internal SASL handler.
-      HashMap<String,String> saslProperties = new HashMap<String,String>();
+      HashMap<String,String> saslProperties = new HashMap<>();
       saslProperties.put(Sasl.QOP, gssapiQoP);
       saslProperties.put(Sasl.SERVER_AUTH, "true");
 

@@ -122,7 +122,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
       ClassPropertyDefinition.Builder builder = ClassPropertyDefinition.createBuilder(INSTANCE, "mandatory-class-property");
       builder.setOption(PropertyOption.MANDATORY);
       builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.COMPONENT_RESTART, INSTANCE, "mandatory-class-property"));
-      DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<String>("org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+      DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<>("org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
       builder.setDefaultBehaviorProvider(provider);
       builder.addInstanceOf("org.opends.server.api.VirtualAttributeProvider");
       PD_MANDATORY_CLASS_PROPERTY = builder.getInstance();
@@ -149,7 +149,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
       DNPropertyDefinition.Builder builder = DNPropertyDefinition.createBuilder(INSTANCE, "optional-multi-valued-dn-property1");
       builder.setOption(PropertyOption.MULTI_VALUED);
       builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE, "optional-multi-valued-dn-property1"));
-      DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<DN>(TestParentCfgDefn.getInstance(), "optional-multi-valued-dn-property", 1);
+      DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<>(TestParentCfgDefn.getInstance(), "optional-multi-valued-dn-property", 1);
       builder.setDefaultBehaviorProvider(provider);
       PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY1 = builder.getInstance();
       INSTANCE.registerPropertyDefinition(PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY1);
@@ -162,7 +162,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
       DNPropertyDefinition.Builder builder = DNPropertyDefinition.createBuilder(INSTANCE, "optional-multi-valued-dn-property2");
       builder.setOption(PropertyOption.MULTI_VALUED);
       builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE, "optional-multi-valued-dn-property2"));
-      DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<DN>(TestChildCfgDefn.getInstance(), "optional-multi-valued-dn-property1", 0);
+      DefaultBehaviorProvider<DN> provider = new RelativeInheritedDefaultBehaviorProvider<>(TestChildCfgDefn.getInstance(), "optional-multi-valued-dn-property1", 0);
       builder.setDefaultBehaviorProvider(provider);
       PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY2 = builder.getInstance();
       INSTANCE.registerPropertyDefinition(PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY2);

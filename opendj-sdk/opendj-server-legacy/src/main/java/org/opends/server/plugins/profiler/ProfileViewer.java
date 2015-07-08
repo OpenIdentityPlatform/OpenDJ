@@ -206,8 +206,8 @@ public class ProfileViewer
    */
   public ProfileViewer()
   {
-    rootFrames     = new HashMap<ProfileStackFrame,ProfileStackFrame>();
-    stacksByMethod = new HashMap<String,HashMap<ProfileStack,Long>>();
+    rootFrames     = new HashMap<>();
+    stacksByMethod = new HashMap<>();
     totalDuration  = 0;
     totalIntervals = 0;
   }
@@ -273,7 +273,7 @@ public class ProfileViewer
              stacksByMethod.get(classAndMethod);
         if (stackMap == null)
         {
-          stackMap = new HashMap<ProfileStack,Long>();
+          stackMap = new HashMap<>();
           stacksByMethod.put(classAndMethod, stackMap);
         }
         stackMap.put(stack, count);

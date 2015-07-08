@@ -511,7 +511,7 @@ public class LDAPMessage
     // This method is not thread-safe.
     if (controls == null)
     {
-      controls = new ArrayList<Control>(0);
+      controls = new ArrayList<>(0);
     }
     return controls;
   }

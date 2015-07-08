@@ -594,7 +594,7 @@ public final class DN implements Comparable<DN>, Serializable
     // components.
     boolean allowExceptions =
          DirectoryServer.allowAttributeNameExceptions();
-    LinkedList<RDN> rdnComponents = new LinkedList<RDN>();
+    LinkedList<RDN> rdnComponents = new LinkedList<>();
     while (true)
     {
       ByteString attributeName =
@@ -937,7 +937,7 @@ public final class DN implements Comparable<DN>, Serializable
     // components.
     boolean allowExceptions =
          DirectoryServer.allowAttributeNameExceptions();
-    LinkedList<RDN> rdnComponents = new LinkedList<RDN>();
+    LinkedList<RDN> rdnComponents = new LinkedList<>();
     while (true)
     {
       StringBuilder attributeName = new StringBuilder();

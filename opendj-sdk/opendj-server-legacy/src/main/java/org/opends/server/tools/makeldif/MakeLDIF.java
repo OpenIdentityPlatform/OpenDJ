@@ -321,24 +321,21 @@ public class MakeLDIF
 
 
     // Load and parse the template file.
-    LinkedList<LocalizableMessage> warnings = new LinkedList<LocalizableMessage>();
-    TemplateFile templateFile = new TemplateFile(resourcePath.getValue(),
-                                                 random);
+    LinkedList<LocalizableMessage> warnings = new LinkedList<>();
+    TemplateFile templateFile = new TemplateFile(resourcePath.getValue(), random);
     try
     {
       templateFile.parse(templatePath.getValue(), warnings);
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(
-              ioe.getMessage());
+      LocalizableMessage message = ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(ioe.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(
-              e.getMessage());
+      LocalizableMessage message = ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }

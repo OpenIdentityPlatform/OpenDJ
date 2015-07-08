@@ -132,15 +132,14 @@ public class DynamicGroupMemberList
     }
 
     searchesCompleted = false;
-    resultQueue = new LinkedBlockingQueue<Object>(10);
+    resultQueue = new LinkedBlockingQueue<>(10);
 
 
     // We're going to have to perform one or more internal searches in order to
     // get the results.  We need to be careful about the way that we construct
     // them in order to avoid the possibility of getting duplicate results, so
     // searches with overlapping bases will need to be combined.
-    LinkedHashMap<DN,LinkedList<LDAPURL>> baseDNs =
-         new LinkedHashMap<DN,LinkedList<LDAPURL>>();
+    LinkedHashMap<DN,LinkedList<LDAPURL>> baseDNs = new LinkedHashMap<>();
     for (LDAPURL memberURL : memberURLs)
     {
       // First, determine the base DN for the search.  It needs to be evaluated
@@ -168,7 +167,7 @@ public class DynamicGroupMemberList
       // the same hierarchy.
       if (baseDNs.isEmpty())
       {
-        LinkedList<LDAPURL> urlList = new LinkedList<LDAPURL>();
+        LinkedList<LDAPURL> urlList = new LinkedList<>();
         urlList.add(memberURL);
         baseDNs.put(urlBaseDN, urlList);
       }
@@ -213,7 +212,7 @@ public class DynamicGroupMemberList
 
           if (! found)
           {
-            urlList = new LinkedList<LDAPURL>();
+            urlList = new LinkedList<>();
             urlList.add(memberURL);
             baseDNs.put(urlBaseDN, urlList);
           }
@@ -232,13 +231,11 @@ public class DynamicGroupMemberList
     // create the filter to use with that base DN.  There are some special-case
     // optimizations that we can do here, but in general the filter will look
     // like "(&(filter)(|(urlFilters)))".
-    LinkedHashMap<DN,SearchFilter> searchMap =
-         new LinkedHashMap<DN,SearchFilter>();
+    LinkedHashMap<DN,SearchFilter> searchMap = new LinkedHashMap<>();
     for (DN urlBaseDN : baseDNs.keySet())
     {
       LinkedList<LDAPURL> urlList = baseDNs.get(urlBaseDN);
-      LinkedHashSet<SearchFilter> urlFilters =
-           new LinkedHashSet<SearchFilter>();
+      LinkedHashSet<SearchFilter> urlFilters = new LinkedHashSet<>();
       for (LDAPURL url : urlList)
       {
         urlFilters.add(url.getFilter());
@@ -267,8 +264,7 @@ public class DynamicGroupMemberList
           }
           else
           {
-            LinkedHashSet<SearchFilter> filterSet =
-                 new LinkedHashSet<SearchFilter>();
+            LinkedHashSet<SearchFilter> filterSet = new LinkedHashSet<>();
             filterSet.add(filter);
             filterSet.add(urlFilter);
             combinedFilter = SearchFilter.createANDFilter(filterSet);
@@ -282,8 +278,7 @@ public class DynamicGroupMemberList
           }
           else
           {
-            LinkedHashSet<SearchFilter> filterSet =
-                 new LinkedHashSet<SearchFilter>();
+            LinkedHashSet<SearchFilter> filterSet = new LinkedHashSet<>();
             filterSet.add(filter);
             filterSet.add(SearchFilter.createORFilter(urlFilters));
             combinedFilter = SearchFilter.createANDFilter(filterSet);

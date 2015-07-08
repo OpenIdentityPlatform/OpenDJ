@@ -132,7 +132,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
       definition.append("( ");
       definition.append(oid);
 
-      LinkedHashSet<String> nameSet = new LinkedHashSet<String>();
+      LinkedHashSet<String> nameSet = new LinkedHashSet<>();
       if (primaryName != null)
       {
         nameSet.add(primaryName);

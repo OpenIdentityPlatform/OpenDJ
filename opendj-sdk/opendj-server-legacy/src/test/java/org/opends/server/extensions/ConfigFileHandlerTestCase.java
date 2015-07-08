@@ -112,7 +112,7 @@ public class ConfigFileHandlerTestCase
   public void testNoExtensibleObjects()
          throws Exception
   {
-    ArrayList<DN> violatingDNs = new ArrayList<DN>();
+    ArrayList<DN> violatingDNs = new ArrayList<>();
     recursivelyTestNoExtensibleObjects(
          DirectoryServer.getConfigHandler().getConfigRootEntry(), violatingDNs);
 

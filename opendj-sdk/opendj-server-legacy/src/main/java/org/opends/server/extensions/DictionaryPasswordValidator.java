@@ -187,7 +187,7 @@ public class DictionaryPasswordValidator
 
     // Read the contents of file into the dictionary as per the configuration.
     BufferedReader reader = null;
-    HashSet<String> dictionary = new HashSet<String>();
+    HashSet<String> dictionary = new HashSet<>();
     try
     {
       reader = new BufferedReader(new FileReader(dictionaryFile));

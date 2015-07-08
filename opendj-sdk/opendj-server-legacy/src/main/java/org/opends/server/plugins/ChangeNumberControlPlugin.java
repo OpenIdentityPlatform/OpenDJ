@@ -127,7 +127,7 @@ public final class ChangeNumberControlPlugin
   {
     currentConfig = configuration;
     configuration.addChangeNumberControlChangeListener(this);
-    Set<PluginType> types = new TreeSet<PluginType>();
+    Set<PluginType> types = new TreeSet<>();
 
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -323,7 +323,7 @@ public abstract class PasswordStorageSchemeTestCase
 
       String attr  = "ds-cfg-allow-pre-encoded-passwords";
 
-      ArrayList<Modification> mods = new ArrayList<Modification>();
+      ArrayList<Modification> mods = new ArrayList<>();
       mods.add(new Modification(ModificationType.REPLACE,
           Attributes.create(attr, String.valueOf(allowPreencoded))));
 

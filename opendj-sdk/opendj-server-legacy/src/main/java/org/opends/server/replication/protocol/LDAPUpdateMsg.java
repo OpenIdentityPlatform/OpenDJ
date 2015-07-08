@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -436,7 +436,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   ArrayList<RawAttribute> decodeRawAttributes(byte[] in)
   throws LDAPException, DecodeException
   {
-    ArrayList<RawAttribute> rattr = new ArrayList<RawAttribute>();
+    ArrayList<RawAttribute> rattr = new ArrayList<>();
     try
     {
       ByteSequenceReader reader =
@@ -465,7 +465,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   ArrayList<Attribute> decodeAttributes(byte[] in)
   throws LDAPException, DecodeException
   {
-    ArrayList<Attribute> lattr = new ArrayList<Attribute>();
+    ArrayList<Attribute> lattr = new ArrayList<>();
     try
     {
       ByteSequenceReader reader =

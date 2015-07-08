@@ -46,8 +46,7 @@ public class ServerState implements Iterable<CSN>
 {
 
   /** Associates a serverId with a CSN. */
-  private final ConcurrentMap<Integer, CSN> serverIdToCSN =
-      new ConcurrentSkipListMap<Integer, CSN>();
+  private final ConcurrentMap<Integer, CSN> serverIdToCSN = new ConcurrentSkipListMap<>();
   /**
    * Whether the state has been saved to persistent storage. It starts at true,
    * and moves to false when an update is made to the current object.
@@ -193,7 +192,7 @@ public class ServerState implements Iterable<CSN>
    */
   public Set<String> toStringSet()
   {
-    final Set<String> result = new HashSet<String>();
+    final Set<String> result = new HashSet<>();
     for (CSN change : serverIdToCSN.values())
     {
       Date date = new Date(change.getTime());
@@ -210,7 +209,7 @@ public class ServerState implements Iterable<CSN>
    */
   public ArrayList<ByteString> toASN1ArrayList()
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(0);
+    final ArrayList<ByteString> values = new ArrayList<>(0);
     for (CSN csn : serverIdToCSN.values())
     {
       values.add(ByteString.valueOf(csn.toString()));
@@ -296,7 +295,7 @@ public class ServerState implements Iterable<CSN>
   {
     // copy to protect from concurrent updates
     // that could change the number of elements in the Map
-    return new HashMap<Integer, CSN>(serverIdToCSN);
+    return new HashMap<>(serverIdToCSN);
   }
 
   /** {@inheritDoc} */

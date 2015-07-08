@@ -296,19 +296,14 @@ public class DITContentRuleSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    LinkedHashMap<String,String> names = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> names = new LinkedHashMap<>();
     String description = null;
     boolean isObsolete = false;
-    LinkedHashSet<ObjectClass> auxiliaryClasses =
-         new LinkedHashSet<ObjectClass>();
-    LinkedHashSet<AttributeType> requiredAttributes =
-         new LinkedHashSet<AttributeType>();
-    LinkedHashSet<AttributeType> optionalAttributes =
-         new LinkedHashSet<AttributeType>();
-    LinkedHashSet<AttributeType> prohibitedAttributes =
-         new LinkedHashSet<AttributeType>();
-    LinkedHashMap<String,List<String>> extraProperties =
-         new LinkedHashMap<String,List<String>>();
+    LinkedHashSet<ObjectClass> auxiliaryClasses = new LinkedHashSet<>();
+    LinkedHashSet<AttributeType> requiredAttributes = new LinkedHashSet<>();
+    LinkedHashSet<AttributeType> optionalAttributes = new LinkedHashSet<>();
+    LinkedHashSet<AttributeType> prohibitedAttributes = new LinkedHashSet<>();
+    LinkedHashMap<String,List<String>> extraProperties = new LinkedHashMap<>();
 
 
     while (true)
@@ -400,7 +395,7 @@ public class DITContentRuleSyntax
       }
       else if (lowerTokenName.equals("aux"))
       {
-        LinkedList<ObjectClass> ocs = new LinkedList<ObjectClass>();
+        LinkedList<ObjectClass> ocs = new LinkedList<>();
 
         // This specifies the set of required auxiliary objectclasses for this
         // DIT content rule.  It may be a single name or OID (not in quotes), or
@@ -496,7 +491,7 @@ public class DITContentRuleSyntax
       }
       else if (lowerTokenName.equals("must"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of required attributes for the DIT content
         // rule.  It may be a single name or OID (not in quotes), or it may be
@@ -574,7 +569,7 @@ public class DITContentRuleSyntax
       }
       else if (lowerTokenName.equals("may"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of optional attributes for the DIT content
         // rule.  It may be a single name or OID (not in quotes), or it may be
@@ -653,7 +648,7 @@ public class DITContentRuleSyntax
       }
       else if (lowerTokenName.equals("not"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of prohibited attributes for the DIT content
         // rule.  It may be a single name or OID (not in quotes), or it may be
@@ -737,7 +732,7 @@ public class DITContentRuleSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        LinkedList<String> valueList = new LinkedList<String>();
+        LinkedList<String> valueList = new LinkedList<>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }

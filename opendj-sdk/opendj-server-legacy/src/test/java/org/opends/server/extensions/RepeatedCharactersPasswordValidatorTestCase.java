@@ -303,7 +303,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("password");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "password")));
 
@@ -372,7 +372,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("passsword");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passsword")));
 
@@ -440,7 +440,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("passSword");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passSword")));
 
@@ -509,7 +509,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("passSword");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passSword")));
 
@@ -576,7 +576,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("aaaaaaaa");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));
 
@@ -644,7 +644,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("aaaaaaaa");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));
 
@@ -679,7 +679,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
               RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
               updatedValidatorEntry);
 
-    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<>();
     assertTrue(validator.isConfigurationChangeAcceptable(updatedConfiguration,
                                                          unacceptableReasons),
                String.valueOf(unacceptableReasons));

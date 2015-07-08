@@ -186,14 +186,13 @@ public class LDAPv2TestCase
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
-      ArrayList<RawAttribute> addAttrs = new ArrayList<RawAttribute>();
+      ArrayList<RawAttribute> addAttrs = new ArrayList<>();
       addAttrs.add(RawAttribute.create("objectClass", "organizationalUnit"));
       addAttrs.add(RawAttribute.create("ou", "People"));
 
       AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
-                                    addAttrs);
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+           new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"), addAttrs);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, addRequest, controls);
       w.writeMessage(message);
@@ -231,7 +230,7 @@ public class LDAPv2TestCase
            new BindRequestProtocolOp(
                     ByteString.valueOf("cn=Directory Manager"), 2,
                     ByteString.valueOf("password"));
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       LDAPMessage message = new LDAPMessage(1, bindRequest, controls);
       w.writeMessage(message);
@@ -279,7 +278,7 @@ public class LDAPv2TestCase
       CompareRequestProtocolOp compareRequest =
            new CompareRequestProtocolOp(ByteString.valueOf("o=test"),
                                         "o", ByteString.valueOf("test"));
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, compareRequest, controls);
       w.writeMessage(message);
@@ -328,7 +327,7 @@ public class LDAPv2TestCase
 
       DeleteRequestProtocolOp deleteRequest =
            new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, deleteRequest, controls);
       w.writeMessage(message);
@@ -375,13 +374,12 @@ public class LDAPv2TestCase
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(), 0);
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
-      mods.add(RawModification.create(ModificationType.REPLACE,
-                                      "description", "foo"));
+      ArrayList<RawModification> mods = new ArrayList<>();
+      mods.add(RawModification.create(ModificationType.REPLACE, "description", "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, modifyRequest, controls);
       w.writeMessage(message);
@@ -431,7 +429,7 @@ public class LDAPv2TestCase
       ModifyDNRequestProtocolOp modifyDNRequest =
            new ModifyDNRequestProtocolOp(ByteString.valueOf("o=test"),
                                          ByteString.valueOf("cn=test"), false);
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, modifyDNRequest, controls);
       w.writeMessage(message);
@@ -483,7 +481,7 @@ public class LDAPv2TestCase
                     SearchScope.BASE_OBJECT,
                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
                     LDAPFilter.objectClassPresent(), null);
-      ArrayList<Control> controls = new ArrayList<Control>(1);
+      ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, searchRequest, controls);
       w.writeMessage(message);

@@ -71,19 +71,15 @@ public class ConfigChangeListenerTestCase
   public Object[][] getConfigChangeListeners()
          throws Exception
   {
-    ArrayList<DN> dns = new ArrayList<DN>();
-    ArrayList<ConfigChangeListener> listeners =
-         new ArrayList<ConfigChangeListener>();
-    getChangeListeners(DirectoryServer.getConfigHandler().getConfigRootEntry(),
-                       dns, listeners);
-
+    ArrayList<DN> dns = new ArrayList<>();
+    ArrayList<ConfigChangeListener> listeners = new ArrayList<>();
+    getChangeListeners(DirectoryServer.getConfigHandler().getConfigRootEntry(), dns, listeners);
 
     Object[][] componentArray = new Object[listeners.size()][1];
     for (int i=0; i < componentArray.length; i++)
     {
       componentArray[i] = new Object[] { dns.get(i), listeners.get(i) };
     }
-
     return componentArray;
   }
 

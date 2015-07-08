@@ -134,7 +134,7 @@ public class LDAPADListPluginTestCase
   @DataProvider(name = "invalidConfigs")
   public Object[][] getInvalidConfigs() throws Exception
   {
-    ArrayList<Entry> entries = new ArrayList<Entry>();
+    ArrayList<Entry> entries = new ArrayList<>();
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
          "objectClass: top",

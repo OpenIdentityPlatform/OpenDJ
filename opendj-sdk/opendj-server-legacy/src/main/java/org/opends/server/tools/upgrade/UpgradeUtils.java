@@ -376,7 +376,7 @@ final class UpgradeUtils
   {
     final Schema schema = getUpgradeSchema();
 
-    final List<String> listBackends = new LinkedList<String>();
+    final List<String> listBackends = new LinkedList<>();
     LDIFEntryReader entryReader = null;
     try
     {

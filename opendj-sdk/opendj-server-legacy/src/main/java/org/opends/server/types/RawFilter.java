@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -629,8 +629,7 @@ public abstract class RawFilter
         filterType = null;
     }
 
-    ArrayList<RawFilter> filterComponents =
-        new ArrayList<RawFilter>();
+    ArrayList<RawFilter> filterComponents = new ArrayList<>();
     try
     {
       reader.readStartSequence();
@@ -889,7 +888,7 @@ public abstract class RawFilter
       {
         if(subAnyElements == null)
         {
-          subAnyElements = new ArrayList<ByteString>();
+          subAnyElements = new ArrayList<>();
         }
         subAnyElements.add(reader.readOctetString());
       }

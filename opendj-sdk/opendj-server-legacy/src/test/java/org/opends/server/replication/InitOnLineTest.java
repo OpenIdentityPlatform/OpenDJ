@@ -472,7 +472,7 @@ public class InitOnLineTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int replServerId,
       String testCase) throws Exception
   {
-    SortedSet<String> servers = new TreeSet<String>();
+    SortedSet<String> servers = new TreeSet<>();
     if (replServerId != replServer1ID)
       servers.add("localhost:" + getReplServerPort(replServer1ID));
     if (replServerId != replServer2ID)

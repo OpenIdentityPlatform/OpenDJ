@@ -104,7 +104,7 @@ public class LDAPSearch
     this.nextMessageID = nextMessageID;
     this.out           = out;
     this.err           = err;
-    responseControls   = new ArrayList<Control>();
+    responseControls   = new ArrayList<>();
   }
 
 
@@ -630,8 +630,8 @@ public class LDAPSearch
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPSearchOptions searchOptions = new LDAPSearchOptions();
     LDAPConnection connection = null;
-    ArrayList<LDAPFilter> filters = new ArrayList<LDAPFilter>();
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    ArrayList<LDAPFilter> filters = new ArrayList<>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
 
     BooleanArgument   continueOnError          = null;
     BooleanArgument   countEntries             = null;
@@ -766,7 +766,7 @@ public class LDAPSearch
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 
-      HashSet<String> allowedScopes = new HashSet<String>();
+      HashSet<String> allowedScopes = new HashSet<>();
       allowedScopes.add("base");
       allowedScopes.add("one");
       allowedScopes.add("sub");
@@ -1299,8 +1299,7 @@ public class LDAPSearch
     if (pSearchInfo.isPresent())
     {
       String infoString = toLowerCase(pSearchInfo.getValue().trim());
-      HashSet<PersistentSearchChangeType> changeTypes =
-           new HashSet<PersistentSearchChangeType>();
+      HashSet<PersistentSearchChangeType> changeTypes = new HashSet<>();
       boolean changesOnly = true;
       boolean returnECs = true;
 
@@ -1441,8 +1440,7 @@ public class LDAPSearch
     if (matchedValuesFilter.isPresent())
     {
       LinkedList<String> mvFilterStrings = matchedValuesFilter.getValues();
-      ArrayList<MatchedValuesFilter> mvFilters =
-           new ArrayList<MatchedValuesFilter>();
+      ArrayList<MatchedValuesFilter> mvFilters = new ArrayList<>();
       for (String s : mvFilterStrings)
       {
         try
@@ -1696,8 +1694,7 @@ public class LDAPSearch
 
         while (true)
         {
-          ArrayList<Control> newControls =
-               new ArrayList<Control>(origControls.size()+1);
+          ArrayList<Control> newControls = new ArrayList<>(origControls.size() + 1);
           newControls.addAll(origControls);
           newControls.add(new PagedResultsControl(true, pageSize, cookieValue));
           searchOptions.setControls(newControls);

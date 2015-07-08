@@ -85,8 +85,8 @@ public final class InternalConnectionHandler
     // method will always be called for this method, we'll do the
     // necessary "initialization" here.
     protocol       = "internal";
-    connectionList = new LinkedList<ClientConnection>();
-    listeners      = new LinkedList<HostPort>();
+    connectionList = new LinkedList<>();
+    listeners      = new LinkedList<>();
   }
 
 

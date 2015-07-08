@@ -286,7 +286,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     int returnValue;
     super.validateGlobalOptions(buf);
-    ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     if (secureArgsList.bindPasswordArg.isPresent() &&
         secureArgsList.bindPasswordFileArg.isPresent()) {
       LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
@@ -302,9 +302,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       String file = equivalentCommandFileArgument.getValue();
       if (!canWrite(file))
       {
-        errors.add(
-            ERR_REPLICATION_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(
-                file));
+        errors.add(ERR_REPLICATION_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
       }
       else
       {
@@ -390,8 +388,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private void initializeGlobalArguments(OutputStream outStream)
   throws ArgumentException
   {
-    ArrayList<Argument> defaultArgs =
-      new ArrayList<Argument>(createGlobalArguments(outStream, alwaysSSL));
+    ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
 
     Argument[] argsToRemove = {
       secureArgsList.hostNameArg,

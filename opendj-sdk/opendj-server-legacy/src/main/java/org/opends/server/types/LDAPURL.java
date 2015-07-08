@@ -182,7 +182,7 @@ public final class LDAPURL
 
     if (attributes == null)
     {
-      this.attributes = new LinkedHashSet<String>();
+      this.attributes = new LinkedHashSet<>();
     }
     else
     {
@@ -209,7 +209,7 @@ public final class LDAPURL
 
     if (extensions == null)
     {
-      this.extensions = new LinkedList<String>();
+      this.extensions = new LinkedList<>();
     }
     else
     {
@@ -271,7 +271,7 @@ public final class LDAPURL
 
     if (attributes == null)
     {
-      this.attributes = new LinkedHashSet<String>();
+      this.attributes = new LinkedHashSet<>();
     }
     else
     {
@@ -300,7 +300,7 @@ public final class LDAPURL
 
     if (extensions == null)
     {
-      this.extensions = new LinkedList<String>();
+      this.extensions = new LinkedList<>();
     }
     else
     {
@@ -489,7 +489,7 @@ public final class LDAPURL
       startPos = pos+1;
     }
 
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    LinkedHashSet<String> attributes = new LinkedHashSet<>();
     StringTokenizer tokenizer = new StringTokenizer(attrsString, ",");
     while (tokenizer.hasMoreTokens())
     {
@@ -622,7 +622,7 @@ public final class LDAPURL
 
     // The rest of the string must be the set of extensions.
     String extensionsString = url.substring(startPos);
-    LinkedList<String> extensions = new LinkedList<String>();
+    LinkedList<String> extensions = new LinkedList<>();
     tokenizer = new StringTokenizer(extensionsString, ",");
     while (tokenizer.hasMoreTokens())
     {

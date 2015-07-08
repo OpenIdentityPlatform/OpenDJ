@@ -225,7 +225,7 @@ public final class BackupInfo
 
     if (dependencies == null)
     {
-      this.dependencies = new HashSet<String>();
+      this.dependencies = new HashSet<>();
     }
     else
     {
@@ -234,7 +234,7 @@ public final class BackupInfo
 
     if (backupProperties == null)
     {
-      this.backupProperties = new HashMap<String,String>();
+      this.backupProperties = new HashMap<>();
     }
     else
     {
@@ -431,32 +431,26 @@ public final class BackupInfo
    */
   public LinkedList<String> encode()
   {
-    LinkedList<String> list       = new LinkedList<String>();
+    LinkedList<String> list = new LinkedList<>();
     SimpleDateFormat   dateFormat =
          new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
 
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     list.add(PROPERTY_BACKUP_ID + "=" + backupID);
-    list.add(PROPERTY_BACKUP_DATE + "=" +
-             dateFormat.format(backupDate));
-    list.add(PROPERTY_IS_INCREMENTAL + "=" +
-             String.valueOf(isIncremental));
-    list.add(PROPERTY_IS_COMPRESSED + "=" +
-             String.valueOf(isCompressed));
-    list.add(PROPERTY_IS_ENCRYPTED + "=" +
-             String.valueOf(isEncrypted));
+    list.add(PROPERTY_BACKUP_DATE + "=" + dateFormat.format(backupDate));
+    list.add(PROPERTY_IS_INCREMENTAL + "=" + String.valueOf(isIncremental));
+    list.add(PROPERTY_IS_COMPRESSED + "=" + String.valueOf(isCompressed));
+    list.add(PROPERTY_IS_ENCRYPTED + "=" + String.valueOf(isEncrypted));
 
     if (unsignedHash != null)
     {
-      list.add(PROPERTY_UNSIGNED_HASH + "=" +
-               Base64.encode(unsignedHash));
+      list.add(PROPERTY_UNSIGNED_HASH + "=" + Base64.encode(unsignedHash));
     }
 
     if (signedHash != null)
     {
-      list.add(PROPERTY_SIGNED_HASH + "=" +
-               Base64.encode(signedHash));
+      list.add(PROPERTY_SIGNED_HASH + "=" + Base64.encode(signedHash));
     }
 
     if (! dependencies.isEmpty())
@@ -513,9 +507,8 @@ public final class BackupInfo
     boolean                isEncrypted      = false;
     byte[]                 unsignedHash     = null;
     byte[]                 signedHash       = null;
-    HashSet<String>        dependencies     = new HashSet<String>();
-    HashMap<String,String> backupProperties =
-         new HashMap<String,String>();
+    HashSet<String>        dependencies     = new HashSet<>();
+    HashMap<String,String> backupProperties = new HashMap<>();
 
     String backupPath = backupDirectory.getPath();
     try

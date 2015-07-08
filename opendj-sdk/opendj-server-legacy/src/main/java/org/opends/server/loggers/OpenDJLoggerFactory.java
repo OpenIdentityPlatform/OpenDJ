@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -38,11 +38,9 @@ public final class OpenDJLoggerFactory implements ILoggerFactory {
 
     private final ConcurrentMap<String, Logger> loggerMap;
 
-    /**
-     * Create the factory.
-     */
+    /** Create the factory. */
     public OpenDJLoggerFactory() {
-        loggerMap = new ConcurrentHashMap<String, Logger>();
+        loggerMap = new ConcurrentHashMap<>();
     }
 
     /** {@inheritDoc} */

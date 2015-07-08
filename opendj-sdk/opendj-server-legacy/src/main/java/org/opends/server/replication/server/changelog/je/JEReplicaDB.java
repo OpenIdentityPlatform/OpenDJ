@@ -290,7 +290,7 @@ class JEReplicaDB
     @Override
     public List<Attribute> getMonitorData()
     {
-      final List<Attribute> attributes = new ArrayList<Attribute>();
+      final List<Attribute> attributes = new ArrayList<>();
       create(attributes, "replicationServer-database",String.valueOf(serverId));
       create(attributes, "domain-name", baseDN.toString());
       final CSNLimits limits = csnLimits;

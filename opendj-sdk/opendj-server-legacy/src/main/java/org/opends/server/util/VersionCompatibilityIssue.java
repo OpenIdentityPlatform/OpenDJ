@@ -350,7 +350,7 @@ public final class VersionCompatibilityIssue {
     }
 
     private int id;
-    private Set<Effect> effects = new HashSet<Effect>();
+    private Set<Effect> effects = new HashSet<>();
     private LocalizableMessage upgradeMsg;
     private LocalizableMessage reversionMsg;
 
@@ -474,12 +474,8 @@ public final class VersionCompatibilityIssue {
 
   }
 
-  /**
-   * Container for registered issues.
-   */
-  private static final Set<VersionCompatibilityIssue>
-          VERSION_COMPATIBILITY_ISSUES =
-          new HashSet<VersionCompatibilityIssue>();
+  /** Container for registered issues. */
+  private static final Set<VersionCompatibilityIssue> VERSION_COMPATIBILITY_ISSUES = new HashSet<>();
 
   //***************************************************
   //
@@ -524,9 +520,7 @@ public final class VersionCompatibilityIssue {
    *         they appear
    */
   public static List<VersionCompatibilityIssue> getAllEvents() {
-    List<VersionCompatibilityIssue> issueList =
-            new ArrayList<VersionCompatibilityIssue>
-                    (VERSION_COMPATIBILITY_ISSUES);
+    List<VersionCompatibilityIssue> issueList = new ArrayList<>(VERSION_COMPATIBILITY_ISSUES);
     Collections.sort(issueList, VERSION_COMPARATOR);
     return Collections.unmodifiableList(issueList);
   }
@@ -548,8 +542,7 @@ public final class VersionCompatibilityIssue {
           BuildInformation neu)
   {
     if (excludeIds == null) excludeIds = Collections.emptySet();
-    List<VersionCompatibilityIssue> issueList =
-            new ArrayList<VersionCompatibilityIssue>();
+    List<VersionCompatibilityIssue> issueList = new ArrayList<>();
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       if (!excludeIds.contains(evt.getCause().getId())) {
         BuildVersion currentVersion = new BuildVersion(
@@ -582,8 +575,7 @@ public final class VersionCompatibilityIssue {
    * @return List or IncompatibleVersionEvent objects
    */
   public static List<VersionCompatibilityIssue> getEvents(BuildVersion from) {
-    List<VersionCompatibilityIssue> issueList =
-            new ArrayList<VersionCompatibilityIssue>();
+    List<VersionCompatibilityIssue> issueList = new ArrayList<>();
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       BuildVersion evtVer = evt.getVersion();
       if (evtVer.compareTo(from) >= 0) {

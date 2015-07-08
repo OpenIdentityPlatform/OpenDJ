@@ -95,7 +95,7 @@ public class SystemInfoMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(13);
+    ArrayList<Attribute> attrs = new ArrayList<>(13);
 
     attrs.add(createAttribute("javaVersion",
                               System.getProperty("java.version")));

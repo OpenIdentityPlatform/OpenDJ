@@ -365,7 +365,7 @@ public class DelayPreOpPlugin
    */
   public static List<Control> createDelayControlList(long delay)
   {
-    ArrayList<Control> controlList = new ArrayList<Control>(1);
+    ArrayList<Control> controlList = new ArrayList<>(1);
 
     controlList.add(new DelayRequestControl(false, delay));
 

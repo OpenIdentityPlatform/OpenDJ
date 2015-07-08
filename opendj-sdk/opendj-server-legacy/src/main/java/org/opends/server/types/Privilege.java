@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -240,23 +240,14 @@ public enum Privilege
   CHANGELOG_READ("changelog-read");
 
 
-
-  /**
-   * A map that will be used to hold a mapping between privilege names
-   * and enum values.
-   */
-  private static final Map<String, Privilege> PRIV_MAP =
-       new HashMap<String,Privilege>();
-
-
+  /** A map that will be used to hold a mapping between privilege names and enum values. */
+  private static final Map<String, Privilege> PRIV_MAP = new HashMap<>();
 
   /**
    * The set of privileges that will be automatically assigned to root
-   * users if the root privilege set is not specified in the
-   * configuration.
+   * users if the root privilege set is not specified in the configuration.
    */
-  private static final Set<Privilege> DEFAULT_ROOT_PRIV_SET =
-       new HashSet<Privilege>();
+  private static final Set<Privilege> DEFAULT_ROOT_PRIV_SET = new HashSet<>();
 
 
   /** The human-readable name for this privilege. */

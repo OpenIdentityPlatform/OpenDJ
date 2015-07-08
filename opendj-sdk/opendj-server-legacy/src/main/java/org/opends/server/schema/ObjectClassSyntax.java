@@ -287,16 +287,15 @@ public class ObjectClassSyntax
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
     String primaryName = oid;
-    List<String> names = new LinkedList<String>();
+    List<String> names = new LinkedList<>();
     String description = null;
     boolean isObsolete = false;
-    Set<AttributeType> requiredAttributes = new LinkedHashSet<AttributeType>();
-    Set<AttributeType> optionalAttributes = new LinkedHashSet<AttributeType>();
-    Set<ObjectClass> superiorClasses = new LinkedHashSet<ObjectClass>();
+    Set<AttributeType> requiredAttributes = new LinkedHashSet<>();
+    Set<AttributeType> optionalAttributes = new LinkedHashSet<>();
+    Set<ObjectClass> superiorClasses = new LinkedHashSet<>();
     //Default OC Type is STRUCTURAL ( RFC 4512 4.1.1)
     ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
-    Map<String, List<String>> extraProperties =
-      new LinkedHashMap<String, List<String>>();
+    Map<String, List<String>> extraProperties = new LinkedHashMap<>();
 
 
     while (true)
@@ -459,7 +458,7 @@ public class ObjectClassSyntax
         // by one or more names separated by spaces  and the dollar sign
         //  character, followed by a closing parenthesis.
         c = valueStr.charAt(pos++);
-        LinkedList<ObjectClass> listSupOCs = new LinkedList<ObjectClass>();
+        LinkedList<ObjectClass> listSupOCs = new LinkedList<>();
         if(c == '(')
         {
           while(true)
@@ -549,7 +548,7 @@ public class ObjectClassSyntax
       }
       else if (lowerTokenName.equals("must"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of required attributes for the objectclass.
         // It may be a single name or OID (not in quotes), or it may be an
@@ -634,7 +633,7 @@ public class ObjectClassSyntax
       }
       else if (lowerTokenName.equals("may"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of optional attributes for the objectclass.
         // It may be a single name or OID (not in quotes), or it may be an
@@ -723,7 +722,7 @@ public class ObjectClassSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        List<String> valueList = new LinkedList<String>();
+        List<String> valueList = new LinkedList<>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }

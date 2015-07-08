@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -339,7 +339,7 @@ public class LDAPReader
     try
     {
       reader.readStartSequence();
-      attributes = new ArrayList<RawAttribute>();
+      attributes = new ArrayList<>();
       while(reader.hasNextElement())
       {
         attributes.add(LDAPAttribute.decode(reader));
@@ -456,7 +456,7 @@ public class LDAPReader
       if (reader.hasNextElement())
       {
         reader.readStartSequence();
-        referralURLs = new ArrayList<String>();
+        referralURLs = new ArrayList<>();
 
         while(reader.hasNextElement())
         {
@@ -709,7 +709,7 @@ public class LDAPReader
         try
         {
           reader.readStartSequence();
-          referralURLs = new ArrayList<String>();
+          referralURLs = new ArrayList<>();
 
           // Should have at least 1.
           do
@@ -958,7 +958,7 @@ public class LDAPReader
       if (reader.hasNextElement())
       {
         reader.readStartSequence();
-        referralURLs = new ArrayList<String>();
+        referralURLs = new ArrayList<>();
 
         while(reader.hasNextElement())
         {
@@ -1103,7 +1103,7 @@ public class LDAPReader
       if (reader.hasNextElement())
       {
         reader.readStartSequence();
-        referralURLs = new ArrayList<String>();
+        referralURLs = new ArrayList<>();
 
         while(reader.hasNextElement())
         {
@@ -1303,7 +1303,7 @@ public class LDAPReader
         try
         {
           reader.readStartSequence();
-          referralURLs = new ArrayList<String>();
+          referralURLs = new ArrayList<>();
 
           while(reader.hasNextElement())
           {
@@ -1652,7 +1652,7 @@ public class LDAPReader
       if (reader.hasNextElement())
       {
         reader.readStartSequence();
-        referralURLs = new ArrayList<String>();
+        referralURLs = new ArrayList<>();
 
         while(reader.hasNextElement())
         {
@@ -1731,7 +1731,7 @@ public class LDAPReader
     try
     {
       reader.readStartSequence();
-      modifications = new ArrayList<RawModification>();
+      modifications = new ArrayList<>();
       while(reader.hasNextElement())
       {
         modifications.add(LDAPModification.decode(reader));
@@ -1849,7 +1849,7 @@ public class LDAPReader
       if (reader.hasNextElement())
       {
         reader.readStartSequence();
-        referralURLs = new ArrayList<String>();
+        referralURLs = new ArrayList<>();
 
         while(reader.hasNextElement())
         {
@@ -2050,7 +2050,7 @@ public class LDAPReader
     try
     {
       reader.readStartSequence();
-      attributes = new LinkedHashSet<String>();
+      attributes = new LinkedHashSet<>();
       while(reader.hasNextElement())
       {
         attributes.add(reader.readOctetStringAsString());
@@ -2169,7 +2169,7 @@ public class LDAPReader
       if (reader.hasNextElement())
       {
         reader.readStartSequence();
-        referralURLs = new ArrayList<String>();
+        referralURLs = new ArrayList<>();
 
         while(reader.hasNextElement())
         {
@@ -2250,7 +2250,7 @@ public class LDAPReader
     try
     {
       reader.readStartSequence();
-      attributes = new LinkedList<LDAPAttribute>();
+      attributes = new LinkedList<>();
       while(reader.hasNextElement())
       {
         attributes.add(LDAPAttribute.decode(reader));
@@ -2310,7 +2310,7 @@ public class LDAPReader
     }
 
 
-    ArrayList<String> referralURLs = new ArrayList<String>();
+    ArrayList<String> referralURLs = new ArrayList<>();
     try
     {
       // Should have atleast 1 URL.
@@ -2387,8 +2387,7 @@ public class LDAPReader
     try
     {
       reader.readStartSequence();
-      ArrayList<Control> controls =
-          new ArrayList<Control>();
+      ArrayList<Control> controls = new ArrayList<>();
       while(reader.hasNextElement())
       {
         controls.add(readControl(reader));

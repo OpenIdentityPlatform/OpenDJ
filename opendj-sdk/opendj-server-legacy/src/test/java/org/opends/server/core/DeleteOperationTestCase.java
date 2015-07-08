@@ -72,7 +72,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   @Override
   protected Operation[] createTestOperations() throws Exception
   {
-    List<Control> noControls = new ArrayList<Control>();
+    List<Control> noControls = new ArrayList<>();
     return new Operation[]
     {
       newDeleteOperation(noControls, ByteString.empty()),

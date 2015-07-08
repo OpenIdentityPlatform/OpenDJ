@@ -67,7 +67,7 @@ public class AddRequestProtocolOp
   public AddRequestProtocolOp(ByteString dn)
   {
     this.dn         = dn;
-    this.attributes = new ArrayList<RawAttribute>();
+    this.attributes = new ArrayList<>();
   }
 
 
@@ -85,7 +85,7 @@ public class AddRequestProtocolOp
 
     if (attributes == null)
     {
-      this.attributes = new ArrayList<RawAttribute>();
+      this.attributes = new ArrayList<>();
     }
     else
     {

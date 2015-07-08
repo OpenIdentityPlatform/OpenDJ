@@ -128,7 +128,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       // Modify the schema
       Attribute attr = Attributes.create("attributetypes",
           "( 2.5.44.77.33 NAME 'dummy' )");
-      List<Modification> mods = new ArrayList<Modification>();
+      List<Modification> mods = new ArrayList<>();
       Modification mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
       ModifyOperation modOp = connection.processModify(baseDN, mods);
@@ -145,7 +145,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       Assertions.assertThat(receivedOp).isInstanceOf(ModifyOperation.class);
       ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
 
-      this.rcvdMods = new ArrayList<Modification>();
+      this.rcvdMods = new ArrayList<>();
       for (RawModification m : receivedModifyOperation.getRawModifications())
       {
         this.rcvdMods.add(m.toModification());
@@ -231,7 +231,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       // create a schema change Notification
       Attribute attr = Attributes.create("attributetypes",
         "( 2.5.44.76.35 NAME 'push' )");
-      List<Modification> mods = new ArrayList<Modification>();
+      List<Modification> mods = new ArrayList<>();
       Modification mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
 
@@ -251,7 +251,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       Assertions.assertThat(receivedOp).isInstanceOf(ModifyOperation.class);
       ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
 
-      this.rcvdMods = new ArrayList<Modification>();
+      this.rcvdMods = new ArrayList<>();
       for (RawModification m : receivedModifyOperation.getRawModifications())
       {
         this.rcvdMods.add(m.toModification());

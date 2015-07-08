@@ -217,8 +217,7 @@ public class JMXAlertHandler
    */
   public MBeanNotificationInfo[] getNotificationInfo()
   {
-    ArrayList<MBeanNotificationInfo> notifications =
-         new ArrayList<MBeanNotificationInfo>();
+    ArrayList<MBeanNotificationInfo> notifications = new ArrayList<>();
     ConcurrentHashMap<DN,JMXMBean> mBeans = DirectoryServer.getJMXMBeans();
     for (JMXMBean mBean : mBeans.values())
     {

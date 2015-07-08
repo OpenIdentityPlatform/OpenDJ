@@ -114,70 +114,58 @@ public final class InternalClientConnection
     String fullDNString  = shortDNString + ",cn=Root DNs,cn=config";
     try
     {
-      LinkedHashMap<ObjectClass,String> objectClasses =
-           new LinkedHashMap<ObjectClass,String>();
+      LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
       ObjectClass topOC = DirectoryServer.getTopObjectClass();
-      ObjectClass personOC = DirectoryServer.getObjectClass(OC_PERSON,
-                                                            true);
-      ObjectClass rootOC = DirectoryServer.getObjectClass(OC_ROOT_DN,
-                                                          true);
+      ObjectClass personOC = DirectoryServer.getObjectClass(OC_PERSON, true);
+      ObjectClass rootOC = DirectoryServer.getObjectClass(OC_ROOT_DN, true);
 
       objectClasses.put(topOC, topOC.getPrimaryName());
       objectClasses.put(personOC, personOC.getPrimaryName());
       objectClasses.put(rootOC, rootOC.getPrimaryName());
 
 
-      LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
+      LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
       AttributeType cnAT =
            DirectoryServer.getAttributeType(ATTR_COMMON_NAME, true);
-      AttributeType snAT = DirectoryServer.getAttributeType(ATTR_SN,
-                                                            true);
+      AttributeType snAT = DirectoryServer.getAttributeType(ATTR_SN, true);
       AttributeType altDNAT =
            DirectoryServer.getAttributeType(
                 ATTR_ROOTDN_ALTERNATE_BIND_DN, true);
 
-      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
-      attrList.add(Attributes.create(ATTR_COMMON_NAME,
-          commonName));
+      LinkedList<Attribute> attrList = new LinkedList<>();
+      attrList.add(Attributes.create(ATTR_COMMON_NAME, commonName));
       userAttrs.put(cnAT, attrList);
 
-      attrList = new LinkedList<Attribute>();
+      attrList = new LinkedList<>();
       attrList.add(Attributes.create(ATTR_SN, commonName));
       userAttrs.put(snAT, attrList);
 
-      attrList = new LinkedList<Attribute>();
-      attrList.add(Attributes.create(
-          ATTR_ROOTDN_ALTERNATE_BIND_DN,
-          shortDNString));
+      attrList = new LinkedList<>();
+      attrList.add(Attributes.create(ATTR_ROOTDN_ALTERNATE_BIND_DN, shortDNString));
       userAttrs.put(altDNAT, attrList);
 
 
-      LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
+      LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs = new LinkedHashMap<>();
 
       AttributeType privType =
-           DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME,
-                                            true);
+           DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME, true);
 
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
         builder.add(p.getName());
       }
-      attrList = new LinkedList<Attribute>();
+      attrList = new LinkedList<>();
       attrList.add(builder.toAttribute());
 
       operationalAttrs.put(privType, attrList);
 
 
       DN internalUserDN = DN.valueOf(fullDNString);
-      Entry internalUserEntry =
-                 new Entry(internalUserDN, objectClasses, userAttrs,
-                           operationalAttrs);
+      Entry internalUserEntry = new Entry(
+          internalUserDN, objectClasses, userAttrs, operationalAttrs);
 
-      this.authenticationInfo =
-           new AuthenticationInfo(internalUserEntry, true);
+      this.authenticationInfo = new AuthenticationInfo(internalUserEntry, true);
       super.setAuthenticationInfo(authenticationInfo);
       super.setSizeLimit(0);
       super.setTimeLimit(0);
@@ -862,16 +850,13 @@ public final class InternalClientConnection
    */
   public AddOperation processAdd(AddChangeRecordEntry addRecord)
   {
-    LinkedHashMap<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>();
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
+    LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>();
 
     Entry e = new Entry(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
 
-    ArrayList<ByteString> duplicateValues = new ArrayList<ByteString>();
+    ArrayList<ByteString> duplicateValues = new ArrayList<>();
     for (Attribute a : addRecord.getAttributes())
     {
       if (a.getAttributeType().isObjectClass())

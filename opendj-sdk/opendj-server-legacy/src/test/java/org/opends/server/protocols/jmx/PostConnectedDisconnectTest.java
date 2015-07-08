@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -116,9 +116,8 @@ public class PostConnectedDisconnectTest extends JmxTestCase
     int postDisconnectBefore = InvocationCounterPlugin.getPostDisconnectCount();
 
     // Create a new client connection
-    HashMap<String, Object> env = new HashMap<String, Object>();
-    String[] credentials = new String[] { "cn=Privileged User,o=test",
-        "password" };
+    HashMap<String, Object> env = new HashMap<>();
+    String[] credentials = new String[] { "cn=Privileged User,o=test", "password" };
     env.put("jmx.remote.credentials", credentials);
     env.put("jmx.remote.x.client.connection.check.period",0);
     OpendsJmxConnector opendsConnector = new OpendsJmxConnector("localhost",

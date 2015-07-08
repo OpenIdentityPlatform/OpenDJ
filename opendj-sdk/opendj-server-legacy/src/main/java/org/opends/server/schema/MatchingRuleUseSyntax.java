@@ -286,12 +286,11 @@ public class MatchingRuleUseSyntax
     // out what it is and how to treat what comes after it, then repeat until
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
-    LinkedHashMap<String,String> names = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> names = new LinkedHashMap<>();
     String description = null;
     boolean isObsolete = false;
     LinkedHashSet<AttributeType> attributes = null;
-    LinkedHashMap<String,List<String>> extraProperties =
-         new LinkedHashMap<String,List<String>>();
+    LinkedHashMap<String,List<String>> extraProperties = new LinkedHashMap<>();
 
     while (true)
     {
@@ -382,7 +381,7 @@ public class MatchingRuleUseSyntax
       }
       else if (lowerTokenName.equals("applies"))
       {
-        LinkedList<AttributeType> attrs = new LinkedList<AttributeType>();
+        LinkedList<AttributeType> attrs = new LinkedList<>();
 
         // This specifies the set of attribute types that may be used with the
         // associated matching rule.  It may be a single name or OID (not in
@@ -458,7 +457,7 @@ public class MatchingRuleUseSyntax
           attrs.add(attr);
         }
 
-        attributes = new LinkedHashSet<AttributeType>(attrs);
+        attributes = new LinkedHashSet<>(attrs);
       }
       else
       {
@@ -466,7 +465,7 @@ public class MatchingRuleUseSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        LinkedList<String> valueList = new LinkedList<String>();
+        LinkedList<String> valueList = new LinkedList<>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }

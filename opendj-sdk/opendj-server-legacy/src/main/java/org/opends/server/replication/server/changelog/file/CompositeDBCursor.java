@@ -127,8 +127,7 @@ abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
     if (!exhaustedCursors.isEmpty())
     {
       // try to recycle exhausted cursors in case the underlying replica DBs received new changes.
-      final Map<DBCursor<UpdateMsg>, T> copy =
-          new HashMap<DBCursor<UpdateMsg>, T>(exhaustedCursors);
+      final Map<DBCursor<UpdateMsg>, T> copy = new HashMap<>(exhaustedCursors);
       exhaustedCursors.clear();
       for (Entry<DBCursor<UpdateMsg>, T> entry : copy.entrySet())
       {

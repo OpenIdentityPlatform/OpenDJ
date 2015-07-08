@@ -67,7 +67,7 @@ public class UpgradeTestCase extends ToolsTestCase
    */
   private String[] setArgs(String... args)
   {
-    final List<String> argsList = new LinkedList<String>();
+    final List<String> argsList = new LinkedList<>();
     argsList.add("--configFile");
     argsList.add(configFilePath);
     if (args != null)

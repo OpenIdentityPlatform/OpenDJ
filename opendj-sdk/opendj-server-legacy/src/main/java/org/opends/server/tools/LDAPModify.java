@@ -256,8 +256,7 @@ public class LDAPModify
           operationType = "ADD";
           AddChangeRecordEntry addEntry = (AddChangeRecordEntry) entry;
           List<Attribute> attrs = addEntry.getAttributes();
-          ArrayList<RawAttribute> attributes =
-              new ArrayList<RawAttribute>(attrs.size());
+          ArrayList<RawAttribute> attributes = new ArrayList<>(attrs.size());
           for(Attribute a : attrs)
           {
             attributes.add(new LDAPAttribute(a));
@@ -273,8 +272,7 @@ public class LDAPModify
         case MODIFY:
           operationType = "MODIFY";
           ModifyChangeRecordEntry modEntry = (ModifyChangeRecordEntry) entry;
-          ArrayList<RawModification> mods =
-            new ArrayList<RawModification>(modEntry.getModifications());
+          ArrayList<RawModification> mods = new ArrayList<>(modEntry.getModifications());
           protocolOp = new ModifyRequestProtocolOp(asn1OctetStr, mods);
           out.println(INFO_PROCESSING_OPERATION.get(operationType, asn1OctetStr));
           break;
@@ -1036,7 +1034,7 @@ public class LDAPModify
     if (preReadAttributes.isPresent())
     {
       String valueStr = preReadAttributes.getValue();
-      Set<String> attrElements = new LinkedHashSet<String>();
+      Set<String> attrElements = new LinkedHashSet<>();
 
       StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
       while (tokenizer.hasMoreTokens())
@@ -1051,7 +1049,7 @@ public class LDAPModify
     if (postReadAttributes.isPresent())
     {
       String valueStr = postReadAttributes.getValue();
-      Set<String> attrElements = new LinkedHashSet<String>();
+      Set<String> attrElements = new LinkedHashSet<>();
 
       StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
       while (tokenizer.hasMoreTokens())

@@ -453,7 +453,7 @@ public final class TestLDIFReader extends UtilTestCase {
       dn = DN.valueOf("cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com");
       Assert.assertEquals(add.getDN(), dn);
 
-      List<Attribute> attrs = new ArrayList<Attribute>();
+      List<Attribute> attrs = new ArrayList<>();
       AttributeBuilder builder = new AttributeBuilder(AT_OC, "objectclass");
       builder.add("top");
       builder.add("person");

@@ -275,14 +275,14 @@ public class AbandonOperationTestCase
     // Create an add request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
-    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<>();
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>(2);
+    ArrayList<ByteString> values = new ArrayList<>(2);
     values.add(ByteString.valueOf("top"));
     values.add(ByteString.valueOf("organizationalUnit"));
     attributes.add(new LDAPAttribute("objectClass", values));
 
-    values = new ArrayList<ByteString>(1);
+    values = new ArrayList<>(1);
     values.add(ByteString.valueOf("People"));
     attributes.add(new LDAPAttribute("ou", values));
 
@@ -555,10 +555,10 @@ public class AbandonOperationTestCase
     // Create a modify request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
-    ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    ArrayList<ByteString> values = new ArrayList<>(1);
     values.add(ByteString.valueOf("foo"));
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
+    ArrayList<RawModification> mods = new ArrayList<>(1);
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 

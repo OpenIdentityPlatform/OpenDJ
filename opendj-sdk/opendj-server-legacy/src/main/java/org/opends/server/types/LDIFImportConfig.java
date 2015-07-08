@@ -94,22 +94,22 @@ public final class LDIFImportConfig extends OperationConfig
   private Iterator<String> ldifFileIterator;
 
   /** The set of base DNs to exclude from the import. */
-  private Set<DN> excludeBranches = new HashSet<DN>(0);
+  private Set<DN> excludeBranches = new HashSet<>(0);
   /** The set of base DNs to include from the import. */
-  private Set<DN> includeBranches = new HashSet<DN>(0);
+  private Set<DN> includeBranches = new HashSet<>(0);
 
   /** The set of search filters for entries to exclude from the import. */
-  private List<SearchFilter> excludeFilters = new ArrayList<SearchFilter>(0);
+  private List<SearchFilter> excludeFilters = new ArrayList<>(0);
   /** The set of search filters for entries to include in the import. */
-  private List<SearchFilter> includeFilters = new ArrayList<SearchFilter>(0);
+  private List<SearchFilter> includeFilters = new ArrayList<>(0);
 
   /** The set of LDIF files to be imported. */
   private List<String> ldifFiles;
 
   /** The set of attribute types that should be excluded from the import. */
-  private Set<AttributeType> excludeAttributes = new HashSet<AttributeType>(0);
+  private Set<AttributeType> excludeAttributes = new HashSet<>(0);
   /** The set of attribute types that should be included in the import. */
-  private Set<AttributeType> includeAttributes = new HashSet<AttributeType>(0);
+  private Set<AttributeType> includeAttributes = new HashSet<>(0);
 
   /** Indicates whether all the user attributes should be included. */
   private boolean includeAllUserAttrs;
@@ -134,7 +134,7 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public LDIFImportConfig(String ldifFile)
   {
-    ldifFiles = new ArrayList<String>(1);
+    ldifFiles = new ArrayList<>(1);
     ldifFiles.add(ldifFile);
     ldifFileIterator = ldifFiles.iterator();
   }

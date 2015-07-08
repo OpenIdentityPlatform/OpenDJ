@@ -67,7 +67,7 @@ public class IsolationTest extends ReplicationTestCase
       // using a replication server that is not started
 
       int replServerPort = TestCaseUtils.findFreePort();
-      SortedSet<String> replServers = new TreeSet<String>();
+      SortedSet<String> replServers = new TreeSet<>();
       replServers.add("localhost:" + replServerPort);
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers);

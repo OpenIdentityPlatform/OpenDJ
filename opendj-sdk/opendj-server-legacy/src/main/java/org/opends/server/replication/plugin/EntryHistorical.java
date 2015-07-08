@@ -154,8 +154,7 @@ public class EntryHistorical
    * Contains Historical information for each attribute sorted by attribute
    * type. key:AttributeType value:AttrInfoWithOptions
    */
-  private HashMap<AttributeType,AttrHistoricalWithOptions> attributesHistorical
-    = new HashMap<AttributeType,AttrHistoricalWithOptions>();
+  private final HashMap<AttributeType,AttrHistoricalWithOptions> attributesHistorical = new HashMap<>();
 
   /** {@inheritDoc} */
   @Override
@@ -324,7 +323,7 @@ public class EntryHistorical
     Attribute attr = Attributes.create(historicalAttrType, attrValue);
 
     // Set the created attribute to the operation
-    List<Attribute> attrList = new LinkedList<Attribute>();
+    List<Attribute> attrList = new LinkedList<>();
     attrList.add(attr);
     addOperation.setAttribute(historicalAttrType, attrList);
   }
@@ -629,7 +628,7 @@ public class EntryHistorical
   public static EntryHistorical newInstanceFromEntry(Entry entry)
   {
     AttributeType lastAttrType = null;
-    Set<String> lastOptions = new HashSet<String>();
+    Set<String> lastOptions = new HashSet<>();
     AttrHistorical attrInfo = null;
     AttrHistoricalWithOptions attrInfoWithOptions = null;
 
@@ -750,8 +749,7 @@ public class EntryHistorical
    */
   public static Iterable<FakeOperation> generateFakeOperations(Entry entry)
   {
-    TreeMap<CSN, FakeOperation> operations =
-            new TreeMap<CSN, FakeOperation>();
+    TreeMap<CSN, FakeOperation> operations = new TreeMap<>();
     List<Attribute> attrs = getHistoricalAttr(entry);
     if (attrs != null)
     {

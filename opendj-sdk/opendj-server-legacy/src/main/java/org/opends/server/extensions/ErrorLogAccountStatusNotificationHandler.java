@@ -68,13 +68,10 @@ public class ErrorLogAccountStatusNotificationHandler
    * The set of names for the account status notification types that may be
    * logged by this notification handler.
    */
-  private static final HashSet<String> NOTIFICATION_TYPE_NAMES =
-       new HashSet<String>();
-
+  private static final HashSet<String> NOTIFICATION_TYPE_NAMES = new HashSet<>();
   static
   {
-    for (AccountStatusNotificationType t :
-         AccountStatusNotificationType.values())
+    for (AccountStatusNotificationType t : AccountStatusNotificationType.values())
     {
       NOTIFICATION_TYPE_NAMES.add(t.getName());
     }
@@ -201,11 +198,9 @@ public class ErrorLogAccountStatusNotificationHandler
     boolean isAcceptable = true;
 
     // The set of notification types that should generate log messages.
-    HashSet<AccountStatusNotificationType> newNotificationTypes =
-        new HashSet<AccountStatusNotificationType>();
+    HashSet<AccountStatusNotificationType> newNotificationTypes = new HashSet<>();
 
-    // Initialize the set of notification types that should generate log
-    // messages.
+    // Initialize the set of notification types that should generate log messages.
     for (ErrorLogAccountStatusNotificationHandlerCfgDefn.
          AccountStatusNotificationType configNotificationType:
          configuration.getAccountStatusNotificationType())

@@ -39,7 +39,7 @@ public class TestTextWriter implements TextWriter
 
   public TestTextWriter()
   {
-    messageList = new LinkedList<String>();
+    messageList = new LinkedList<>();
   }
 
   public synchronized void writeRecord(String record)
@@ -76,18 +76,12 @@ public class TestTextWriter implements TextWriter
    */
   public synchronized List<String> getMessages()
   {
-      return new ArrayList<String>(messageList);
+    return new ArrayList<>(messageList);
   }
 
-
-
-  /**
-   * Clears any messages currently stored by this logger.
-   */
+  /** Clears any messages currently stored by this logger. */
   public synchronized void clear()
   {
     messageList.clear();
   }
-
-
 }

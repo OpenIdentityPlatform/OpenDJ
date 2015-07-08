@@ -85,7 +85,7 @@ public class GenericSchemaTestCase
   @Test
   public void testEnsureValidSyntaxOIDs()
   {
-    TreeSet<String> invalidOIDs = new TreeSet<String>();
+    TreeSet<String> invalidOIDs = new TreeSet<>();
 
     Schema schema = DirectoryServer.getSchema();
     for (Syntax as : schema.getSyntaxes().values())
@@ -123,7 +123,7 @@ public class GenericSchemaTestCase
   @Test
   public void testEnsureValidMatchingRuleOIDs()
   {
-    TreeSet<String> invalidOIDs = new TreeSet<String>();
+    TreeSet<String> invalidOIDs = new TreeSet<>();
 
     Schema schema = DirectoryServer.getSchema();
     for (MatchingRule mr : schema.getMatchingRules().values())
@@ -164,7 +164,7 @@ public class GenericSchemaTestCase
   public void testEnsureValidAttributeTypeOIDs()
          throws Exception
   {
-    TreeSet<String> invalidOIDs = new TreeSet<String>();
+    TreeSet<String> invalidOIDs = new TreeSet<>();
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     File schemaDir = new File(new File(buildRoot, "resource"), "schema");
@@ -241,7 +241,7 @@ public class GenericSchemaTestCase
   public void testEnsureValidObjectClassOIDs()
          throws Exception
   {
-    TreeSet<String> invalidOIDs = new TreeSet<String>();
+    TreeSet<String> invalidOIDs = new TreeSet<>();
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     File schemaDir = new File(new File(buildRoot, "resource"), "schema");
@@ -317,7 +317,7 @@ public class GenericSchemaTestCase
   public void testEnsureValidNameFormOIDs()
          throws Exception
   {
-    TreeSet<String> invalidOIDs = new TreeSet<String>();
+    TreeSet<String> invalidOIDs = new TreeSet<>();
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     File schemaDir = new File(new File(buildRoot, "resource"), "schema");

@@ -64,7 +64,7 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public MultiDomainServerState()
   {
-    list = new ConcurrentSkipListMap<DN, ServerState>();
+    list = new ConcurrentSkipListMap<>();
   }
 
   /**
@@ -74,8 +74,7 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public MultiDomainServerState(String mdss) throws DirectoryException
   {
-    list = new ConcurrentSkipListMap<DN, ServerState>(
-        splitGenStateToServerStates(mdss));
+    list = new ConcurrentSkipListMap<>(splitGenStateToServerStates(mdss));
   }
 
   /**
@@ -178,7 +177,7 @@ public class MultiDomainServerState implements Iterable<DN>
     {
       return Collections.emptyMap();
     }
-    final Map<DN, List<CSN>> map = new HashMap<DN, List<CSN>>();
+    final Map<DN, List<CSN>> map = new HashMap<>();
     for (Entry<DN, ServerState> entry : list.entrySet())
     {
       final List<CSN> l = entry.getValue().getSnapshot();
@@ -383,7 +382,7 @@ public class MultiDomainServerState implements Iterable<DN>
   private static Map<DN, ServerState> splitGenStateToServerStates(
       String multiDomainServerState) throws DirectoryException
   {
-    Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
+    Map<DN, ServerState> startStates = new TreeMap<>();
     if (multiDomainServerState != null && multiDomainServerState.length() > 0)
     {
       try

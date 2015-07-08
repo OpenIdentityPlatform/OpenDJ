@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -72,7 +72,7 @@ public class BindOperationTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    ArrayList<Control> noControls = new ArrayList<>(0);
     ByteString nullOS = null;
     DN nullDN = null;
 
@@ -145,7 +145,7 @@ public class BindOperationTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    ArrayList<Control> noControls = new ArrayList<>(0);
     ByteString nullOS = null;
     DN nullDN = null;
 
@@ -1509,7 +1509,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new LDAPControl("1.2.3.4", true));
 
     BindOperationBasis bindOperation =
@@ -1533,7 +1533,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new LDAPControl("1.2.3.4", true));
 
     ByteString saslCreds =
@@ -1560,7 +1560,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new LDAPControl("1.2.3.4", false));
 
     BindOperationBasis bindOperation =
@@ -1584,7 +1584,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new LDAPControl("1.2.3.4", false));
 
     ByteString saslCreds =
@@ -1665,7 +1665,7 @@ public class BindOperationTestCase
          InternalClientConnection.getRootConnection();
 
     String attr = "ds-cfg-bind-with-dn-requires-password";
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =

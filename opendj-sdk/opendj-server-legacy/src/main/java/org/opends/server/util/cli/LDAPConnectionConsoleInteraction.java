@@ -470,7 +470,7 @@ public class LDAPConnectionConsoleInteraction
     {
       checkHeadingDisplayed();
 
-      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+      MenuBuilder<Integer> builder = new MenuBuilder<>(app);
       builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_USE_SECURE_CTX.get());
 
       Protocols defaultProtocol;
@@ -886,7 +886,7 @@ public class LDAPConnectionConsoleInteraction
       checkHeadingDisplayed();
 
       app.println();
-      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+      MenuBuilder<Integer> builder = new MenuBuilder<>(app);
       builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_METHOD.get());
 
       TrustMethod defaultTrustMethod = TrustMethod.DISPLAY_CERTIFICATE;
@@ -1240,7 +1240,7 @@ public class LDAPConnectionConsoleInteraction
 
       try
       {
-        MenuBuilder<String> builder = new MenuBuilder<String>(app);
+        MenuBuilder<String> builder = new MenuBuilder<>(app);
         builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIASES.get());
         int certificateNumber = 0;
         for (; aliasesEnum.hasMoreElements();)
@@ -1524,7 +1524,7 @@ public class LDAPConnectionConsoleInteraction
         app.println();
       }
     }
-    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+    MenuBuilder<Integer> builder = new MenuBuilder<>(app);
     builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION.get());
 
     TrustOption defaultTrustMethod = TrustOption.SESSION;

@@ -239,8 +239,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
                         .newControl("dn:uid=kvaughan,ou=People,dc=example,dc=com");
         assertThat(control3.getOID()).isEqualTo("2.16.840.1.113730.3.4.18");
 
-        List<org.forgerock.opendj.ldap.controls.Control> mySDKControlsList =
-                new LinkedList<org.forgerock.opendj.ldap.controls.Control>();
+        List<org.forgerock.opendj.ldap.controls.Control> mySDKControlsList = new LinkedList<>();
         mySDKControlsList.add(control);
         mySDKControlsList.add(control2);
         mySDKControlsList.add(control3);

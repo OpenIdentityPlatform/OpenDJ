@@ -371,11 +371,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
   final class MockPolicyCfg implements LDAPPassThroughAuthenticationPolicyCfg
   {
-    private final SortedSet<DN> baseDNs = new TreeSet<DN>();
-    private final SortedSet<AttributeType> mappedAttributes = new TreeSet<AttributeType>();
+    private final SortedSet<DN> baseDNs = new TreeSet<>();
+    private final SortedSet<AttributeType> mappedAttributes = new TreeSet<>();
     private MappingPolicy mappingPolicy = MappingPolicy.UNMAPPED;
-    private final SortedSet<String> primaryServers = new TreeSet<String>();
-    private final SortedSet<String> secondaryServers = new TreeSet<String>();
+    private final SortedSet<String> primaryServers = new TreeSet<>();
+    private final SortedSet<String> secondaryServers = new TreeSet<>();
     /** Unlimited. */
     private int timeoutMS;
     private DN mappedSearchBindDN = searchBindDN;
@@ -502,7 +502,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     @Override
     public SortedSet<String> getSSLCipherSuite()
     {
-      return new TreeSet<String>();
+      return new TreeSet<>();
     }
 
 
@@ -510,7 +510,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     @Override
     public SortedSet<String> getSSLProtocol()
     {
-      return new TreeSet<String>();
+      return new TreeSet<>();
     }
 
 
@@ -831,8 +831,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    private final Queue<Event<?>> expectedEvents = new LinkedList<Event<?>>();
-    private final List<MockScheduledFuture> monitorRunnables = new LinkedList<MockScheduledFuture>();
+    private final Queue<Event<?>> expectedEvents = new LinkedList<>();
+    private final List<MockScheduledFuture> monitorRunnables = new LinkedList<>();
     private String currentTime = TimeThread.getGMTTime();
 
     /** All methods unused excepted scheduleWithFixedDelay. */
@@ -1214,12 +1214,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
     private final ServerSocket serverSocket;
-    private final List<Action> actions = new LinkedList<Action>();
+    private final List<Action> actions = new LinkedList<>();
     private Socket socket;
     private volatile Exception e;
     private Thread serverThread;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
-    private final Queue<BlockAction> blockers = new LinkedList<BlockAction>();
+    private final Queue<BlockAction> blockers = new LinkedList<>();
 
 
 

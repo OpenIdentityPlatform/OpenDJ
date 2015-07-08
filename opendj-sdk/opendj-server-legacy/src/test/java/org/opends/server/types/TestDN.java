@@ -271,7 +271,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithMultipleRDNs2() throws Exception {
-    ArrayList<RDN> rdnList = new ArrayList<RDN>();
+    ArrayList<RDN> rdnList = new ArrayList<>();
     rdnList.add(RDN.decode("dc=foo"));
     rdnList.add(RDN.decode("dc=opends"));
     rdnList.add(RDN.decode("dc=org"));
@@ -531,7 +531,7 @@ public class TestDN extends TypesTestCase {
    */
   @DataProvider(name = "namingContexts")
   public Object[][] getNamingContexts() {
-    ArrayList<DN> contextList = new ArrayList<DN>();
+    ArrayList<DN> contextList = new ArrayList<>();
     contextList.addAll(DirectoryServer.getPublicNamingContexts().keySet());
     contextList.addAll(DirectoryServer.getPrivateNamingContexts().keySet());
 

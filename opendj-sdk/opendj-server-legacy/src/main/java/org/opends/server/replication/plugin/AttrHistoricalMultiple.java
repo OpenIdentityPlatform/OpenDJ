@@ -60,8 +60,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    * LinkedHashMap</li>
    * </ol>
    */
-  private final Map<AttrValueHistorical, AttrValueHistorical> valuesHist =
-      new LinkedHashMap<AttrValueHistorical, AttrValueHistorical>();
+  private final Map<AttrValueHistorical, AttrValueHistorical> valuesHist = new LinkedHashMap<>();
 
    /**
     * Create a new object from the provided information.

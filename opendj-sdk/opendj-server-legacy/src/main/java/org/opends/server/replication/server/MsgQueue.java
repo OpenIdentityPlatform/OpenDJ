@@ -44,7 +44,7 @@ public class MsgQueue
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private TreeMap<CSN, UpdateMsg> map = new TreeMap<CSN, UpdateMsg>();
+  private TreeMap<CSN, UpdateMsg> map = new TreeMap<>();
   /**
    * FIXME JNR to be investigated:
    * I strongly suspect that we could replace this field
