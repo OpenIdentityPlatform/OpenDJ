@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -152,10 +152,10 @@ public final class LDIFExportConfig extends OperationConfig
     this.existingFileBehavior    = existingFileBehavior;
     ldifOutputStream             = null;
 
-    excludeBranches              = new ArrayList<DN>();
-    includeBranches              = new ArrayList<DN>();
-    excludeFilters               = new ArrayList<SearchFilter>();
-    includeFilters               = new ArrayList<SearchFilter>();
+    excludeBranches              = new ArrayList<>();
+    includeBranches              = new ArrayList<>();
+    excludeFilters               = new ArrayList<>();
+    includeFilters               = new ArrayList<>();
     compressData                 = false;
     encryptData                  = false;
     hashData                     = false;
@@ -166,8 +166,8 @@ public final class LDIFExportConfig extends OperationConfig
     signHash                     = false;
     typesOnly                    = false;
     writer                       = null;
-    excludeAttributes            = new HashSet<AttributeType>();
-    includeAttributes            = new HashSet<AttributeType>();
+    excludeAttributes            = new HashSet<>();
+    includeAttributes            = new HashSet<>();
     wrapColumn                   = -1;
   }
 
@@ -186,10 +186,10 @@ public final class LDIFExportConfig extends OperationConfig
     ldifFile                     = null;
     existingFileBehavior         = ExistingFileBehavior.FAIL;
 
-    excludeBranches              = new ArrayList<DN>();
-    includeBranches              = new ArrayList<DN>();
-    excludeFilters               = new ArrayList<SearchFilter>();
-    includeFilters               = new ArrayList<SearchFilter>();
+    excludeBranches              = new ArrayList<>();
+    includeBranches              = new ArrayList<>();
+    excludeFilters               = new ArrayList<>();
+    includeFilters               = new ArrayList<>();
     compressData                 = false;
     encryptData                  = false;
     hashData                     = false;
@@ -200,8 +200,8 @@ public final class LDIFExportConfig extends OperationConfig
     signHash                     = false;
     typesOnly                    = false;
     writer                       = null;
-    excludeAttributes            = new HashSet<AttributeType>();
-    includeAttributes            = new HashSet<AttributeType>();
+    excludeAttributes            = new HashSet<>();
+    includeAttributes            = new HashSet<>();
     wrapColumn                   = -1;
   }
 
@@ -548,7 +548,7 @@ public final class LDIFExportConfig extends OperationConfig
   {
     if (excludeBranches == null)
     {
-      this.excludeBranches = new ArrayList<DN>(0);
+      this.excludeBranches = new ArrayList<>(0);
     }
     else
     {
@@ -584,7 +584,7 @@ public final class LDIFExportConfig extends OperationConfig
   {
     if (includeBranches == null)
     {
-      this.includeBranches = new ArrayList<DN>(0);
+      this.includeBranches = new ArrayList<>(0);
     }
     else
     {
@@ -712,7 +712,7 @@ public final class LDIFExportConfig extends OperationConfig
   {
     if (excludeAttributes == null)
     {
-      this.excludeAttributes = new HashSet<AttributeType>(0);
+      this.excludeAttributes = new HashSet<>(0);
     }
     else
     {
@@ -749,7 +749,7 @@ public final class LDIFExportConfig extends OperationConfig
   {
     if (includeAttributes == null)
     {
-      this.includeAttributes = new HashSet<AttributeType>(0);
+      this.includeAttributes = new HashSet<>(0);
     }
     else
     {
@@ -807,7 +807,7 @@ public final class LDIFExportConfig extends OperationConfig
   {
     if (excludeFilters == null)
     {
-      this.excludeFilters = new ArrayList<SearchFilter>(0);
+      this.excludeFilters = new ArrayList<>(0);
     }
     else
     {
@@ -844,7 +844,7 @@ public final class LDIFExportConfig extends OperationConfig
   {
     if (includeFilters == null)
     {
-      this.includeFilters = new ArrayList<SearchFilter>(0);
+      this.includeFilters = new ArrayList<>(0);
     }
     else
     {

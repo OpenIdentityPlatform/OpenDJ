@@ -133,14 +133,10 @@ public class LDIFModify
          throws IOException, LDIFException
   {
     // Read the changes into memory.
-    TreeMap<DN,AddChangeRecordEntry> adds =
-          new TreeMap<DN,AddChangeRecordEntry>();
-    TreeMap<DN,Entry> ldifEntries =
-          new TreeMap<DN,Entry>();
-    HashMap<DN,DeleteChangeRecordEntry> deletes =
-         new HashMap<DN,DeleteChangeRecordEntry>();
-    HashMap<DN,LinkedList<Modification>> modifications =
-         new HashMap<DN,LinkedList<Modification>>();
+    TreeMap<DN,AddChangeRecordEntry> adds = new TreeMap<>();
+    TreeMap<DN,Entry> ldifEntries = new TreeMap<>();
+    HashMap<DN,DeleteChangeRecordEntry> deletes = new HashMap<>();
+    HashMap<DN,LinkedList<Modification>> modifications = new HashMap<>();
 
     while (true)
     {
@@ -212,7 +208,7 @@ public class LDIFModify
                  modifications.get(changeDN);
             if (mods == null)
             {
-              mods = new LinkedList<Modification>();
+              mods = new LinkedList<>();
               modifications.put(changeDN, mods);
             }
 
@@ -314,12 +310,9 @@ public class LDIFModify
     // Perform any adds that may be necessary.
     for (AddChangeRecordEntry add : adds.values())
     {
-      Map<ObjectClass,String> objectClasses =
-           new LinkedHashMap<ObjectClass,String>();
-      Map<AttributeType,List<Attribute>> userAttributes =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
-      Map<AttributeType,List<Attribute>> operationalAttributes =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
+      Map<ObjectClass,String> objectClasses = new LinkedHashMap<>();
+      Map<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
+      Map<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
 
       for (Attribute a : add.getAttributes())
       {
@@ -339,7 +332,7 @@ public class LDIFModify
           List<Attribute> attrList = operationalAttributes.get(t);
           if (attrList == null)
           {
-            attrList = new LinkedList<Attribute>();
+            attrList = new LinkedList<>();
             operationalAttributes.put(t, attrList);
           }
           attrList.add(a);
@@ -349,7 +342,7 @@ public class LDIFModify
           List<Attribute> attrList = userAttributes.get(t);
           if (attrList == null)
           {
-            attrList = new LinkedList<Attribute>();
+            attrList = new LinkedList<>();
             userAttributes.put(t, attrList);
           }
           attrList.add(a);
@@ -637,8 +630,8 @@ public class LDIFModify
     }
 
 
-    // Actually invoke the LDIF procesing.
-    LinkedList<LocalizableMessage> errorList = new LinkedList<LocalizableMessage>();
+    // Actually invoke the LDIF processing.
+    LinkedList<LocalizableMessage> errorList = new LinkedList<>();
     boolean successful;
     try
     {

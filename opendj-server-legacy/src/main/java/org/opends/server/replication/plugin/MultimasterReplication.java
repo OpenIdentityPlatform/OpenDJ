@@ -103,42 +103,24 @@ public class MultimasterReplication
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private ReplicationServerListener replicationServerListener;
-  private static final Map<DN, LDAPReplicationDomain> domains =
-      new ConcurrentHashMap<DN, LDAPReplicationDomain>(4);
+  private static final Map<DN, LDAPReplicationDomain> domains = new ConcurrentHashMap<>(4);
   private static final DSRSShutdownSync dsrsShutdownSync = new DSRSShutdownSync();
-
-  /**
-   * The queue of received update messages, to be treated by the ReplayThread
-   * threads.
-   */
-  private static final BlockingQueue<UpdateToReplay> updateToReplayQueue =
-      new LinkedBlockingQueue<UpdateToReplay>(10000);
-
-  /**
-   * The list of ReplayThread threads.
-   */
-  private static final List<ReplayThread> replayThreads =
-    new ArrayList<ReplayThread>();
-
-  /**
-   * The configurable number of replay threads.
-   */
+  /** The queue of received update messages, to be treated by the ReplayThread threads. */
+  private static final BlockingQueue<UpdateToReplay> updateToReplayQueue = new LinkedBlockingQueue<>(10000);
+  /** The list of ReplayThread threads. */
+  private static final List<ReplayThread> replayThreads = new ArrayList<>();
+  /** The configurable number of replay threads. */
   private static int replayThreadNumber = 10;
 
-  /**
-   * Enum that symbolizes the state of the multimaster replication.
-   */
+  /** Enum that symbolizes the state of the multimaster replication. */
   private static enum State
   {
     STARTING, RUNNING, STOPPING
   }
 
-  private static final AtomicReference<State> state =
-      new AtomicReference<State>(State.STARTING);
+  private static final AtomicReference<State> state = new AtomicReference<>(State.STARTING);
 
-  /**
-   * The configurable connection/handshake timeout.
-   */
+  /** The configurable connection/handshake timeout. */
   private static volatile int connectionTimeoutMS = 5000;
 
   /**
@@ -857,7 +839,7 @@ public class MultimasterReplication
    */
   public static Set<DN> getExcludedChangelogDomains() throws DirectoryException
   {
-    final Set<DN> disabledBaseDNs = new HashSet<DN>(domains.size() + 1);
+    final Set<DN> disabledBaseDNs = new HashSet<>(domains.size() + 1);
     disabledBaseDNs.add(DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT));
     for (LDAPReplicationDomain domain : domains.values())
     {

@@ -44,7 +44,7 @@ import org.opends.server.types.Modification;
  */
 public class FakeModifyOperation extends FakeOperation
 {
-  private List<Modification> mods = new ArrayList<Modification>();
+  private List<Modification> mods = new ArrayList<>();
   private DN dn;
   private String entryuuid;
 

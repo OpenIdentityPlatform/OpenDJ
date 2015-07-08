@@ -104,7 +104,7 @@ public class SearchRequestProtocolOp
 
     if (attributes == null)
     {
-      this.attributes = new LinkedHashSet<String>(0);
+      this.attributes = new LinkedHashSet<>(0);
     }
     else
     {

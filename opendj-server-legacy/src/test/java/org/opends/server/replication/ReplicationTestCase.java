@@ -112,9 +112,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected InternalClientConnection connection;
 
   /** Created entries that will be deleted on class cleanup. */
-  protected final Set<DN> entriesToCleanup = new HashSet<DN>();
+  protected final Set<DN> entriesToCleanup = new HashSet<>();
   /** Created config entries that will be deleted on class cleanup. */
-  protected final Set<DN> configEntriesToCleanup = new HashSet<DN>();
+  protected final Set<DN> configEntriesToCleanup = new HashSet<>();
 
   /** Replicated suffix (replication domain). */
   protected Entry synchroServerEntry;
@@ -616,7 +616,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected List<Modification> generatemods(String attrName, String attrValue)
   {
     Attribute attr = Attributes.create(attrName, attrValue);
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
     return mods;
@@ -876,7 +876,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     final int timeOut = 5000; // 5 seconds max to wait for the desired message
     final long startTime = System.currentTimeMillis();
-    final List<ReplicationMsg> msgs = new ArrayList<ReplicationMsg>();
+    final List<ReplicationMsg> msgs = new ArrayList<>();
     boolean timedOut = false;
     while (!timedOut)
     {

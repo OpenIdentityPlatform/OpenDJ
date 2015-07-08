@@ -111,7 +111,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
       definition.append("( ");
       definition.append(oid);
 
-      LinkedHashSet<String> nameSet = new LinkedHashSet<String>();
+      LinkedHashSet<String> nameSet = new LinkedHashSet<>();
       if (primaryName != null)
       {
         nameSet.add(primaryName);
@@ -296,7 +296,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
       }
 
       if (this.requiredAttributeTypes == null) {
-        this.requiredAttributeTypes = new LinkedHashSet<AttributeType>();
+        this.requiredAttributeTypes = new LinkedHashSet<>();
       }
 
       this.requiredAttributeTypes.addAll(Arrays.asList(types));
@@ -316,7 +316,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
       }
 
       if (this.optionalAttributeTypes == null) {
-        this.optionalAttributeTypes = new LinkedHashSet<AttributeType>();
+        this.optionalAttributeTypes = new LinkedHashSet<>();
       }
 
       this.optionalAttributeTypes.addAll(Arrays.asList(types));
@@ -510,7 +510,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClassBuilder builder2 = new ObjectClassBuilder("parent2","3.4.5");
     builder2.addOptionalAttributeTypes(types[3], types[4], types[5]);
     ObjectClass parent2 = builder2.getInstance();
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     ObjectClassBuilder builder3 = new ObjectClassBuilder("child", "6.7.8");
@@ -577,7 +577,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClassBuilder builder2 = new ObjectClassBuilder("parent2","3.4.5");
     builder2.addOptionalAttributeTypes(types[3], types[4], types[5]);
     ObjectClass parent2 = builder2.getInstance();
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     ObjectClassBuilder builder3 = new ObjectClassBuilder("child", "6.7.8");
@@ -778,7 +778,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder = new ObjectClassBuilder("parent2","3.4.5");
     builder.addRequiredAttributeTypes(types[3], types[4], types[5]);
     ObjectClass parent2 = builder.getInstance();
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     builder = new ObjectClassBuilder("child", "6.7.8");
@@ -845,7 +845,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder = new ObjectClassBuilder("parent2","3.4.5");
     builder.addRequiredAttributeTypes(types[3], types[4], types[5]);
     ObjectClass parent2 = builder.getInstance();
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     builder = new ObjectClassBuilder("child", "6.7.8");
@@ -1014,7 +1014,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder = new ObjectClassBuilder("parent2",
             "2.3.4");
     ObjectClass parent2 = builder.getInstance();
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     builder = new ObjectClassBuilder("child", "1.2.3.4");
@@ -1098,7 +1098,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
     builder = new ObjectClassBuilder("parent2","2.2.2");
     ObjectClass parent2 = builder.getInstance();
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     builder = new ObjectClassBuilder("child", "1.2.3");
@@ -1601,7 +1601,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
           boolean isValid) throws Exception {
     ObjectClassBuilder builder = new ObjectClassBuilder("testType", "1.2.3");
     builder.setObjectClassType(type);
-    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    Set<ObjectClass> superiors = new LinkedHashSet<>();
     superiors.add(parent1);
     superiors.add(parent2);
     builder.setSuperior(superiors);

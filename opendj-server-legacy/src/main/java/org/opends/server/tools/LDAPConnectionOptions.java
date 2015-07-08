@@ -50,14 +50,10 @@ public class LDAPConnectionOptions
   private SSLConnectionFactory sslConnectionFactory;
   private String saslMechanism;
   private int versionNumber = 3;
-  private Map<String, List<String>> saslProperties =
-                                         new HashMap<String, List<String>> ();
+  private Map<String, List<String>> saslProperties = new HashMap<> ();
   private boolean verbose;
 
-  /**
-   * Creates a the connection options instance.
-   *
-   */
+  /** Creates a the connection options instance. */
   public LDAPConnectionOptions()
   {
   }
@@ -66,9 +62,7 @@ public class LDAPConnectionOptions
    * Set whether to use SSL for the connection or not.
    *
    * @param useSSL    True if SSL should be used, false otherwise.
-   *
    */
-
   public void setUseSSL(boolean useSSL)
   {
     this.useSSL = useSSL;
@@ -77,8 +71,7 @@ public class LDAPConnectionOptions
   /**
    * Return the useSSL flag value.
    *
-   * @return  <CODE>true</CODE> if SSL should be used, or <CODE>false</CODE> if
-   *          not.
+   * @return {@code true} if SSL should be used, or {@code false} if not.
    */
   public boolean useSSL()
   {
@@ -222,7 +215,7 @@ public class LDAPConnectionOptions
     List<String> valList = saslProperties.get(key);
     if(valList == null)
     {
-      valList = new ArrayList<String> ();
+      valList = new ArrayList<>();
     }
     valList.add(value);
 

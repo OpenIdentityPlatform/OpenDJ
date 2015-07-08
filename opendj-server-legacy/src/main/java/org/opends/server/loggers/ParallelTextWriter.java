@@ -78,7 +78,7 @@ class ParallelTextWriter
     this.autoFlush = autoFlush;
     this.writer = writer;
 
-    this.queue = new ConcurrentLinkedQueue<String>();
+    this.queue = new ConcurrentLinkedQueue<>();
     this.writerThread = null;
     this.stopRequested = new AtomicBoolean(false);
 

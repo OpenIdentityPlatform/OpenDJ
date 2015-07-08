@@ -123,7 +123,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     configEntryDN = configuration.dn();
 
     // Get and validate the subject attribute to user attribute mappings.
-    attributeMap = new LinkedHashMap<String,AttributeType>();
+    attributeMap = new LinkedHashMap<>();
     for (String mapStr : configuration.getSubjectAttributeMapping())
     {
       String lowerMap = toLowerCase(mapStr);
@@ -194,7 +194,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
-    requestedAttributes = new LinkedHashSet<String>(2);
+    requestedAttributes = new LinkedHashSet<>(2);
     requestedAttributes.add("*");
     requestedAttributes.add("+");
   }
@@ -261,7 +261,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
                                    de);
     }
 
-    LinkedList<SearchFilter> filterComps = new LinkedList<SearchFilter>();
+    LinkedList<SearchFilter> filterComps = new LinkedList<>();
     for (int i=0; i < peerDN.size(); i++)
     {
       RDN rdn = peerDN.getRDN(i);
@@ -385,8 +385,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     DN cfgEntryDN = configuration.dn();
 
     // Get and validate the subject attribute to user attribute mappings.
-    LinkedHashMap<String,AttributeType> newAttributeMap =
-         new LinkedHashMap<String,AttributeType>();
+    LinkedHashMap<String,AttributeType> newAttributeMap = new LinkedHashMap<>();
 mapLoop:
     for (String mapStr : configuration.getSubjectAttributeMapping())
     {
@@ -455,8 +454,7 @@ mapLoop:
 
 
     // Get and validate the subject attribute to user attribute mappings.
-    LinkedHashMap<String,AttributeType> newAttributeMap =
-         new LinkedHashMap<String,AttributeType>();
+    LinkedHashMap<String,AttributeType> newAttributeMap = new LinkedHashMap<>();
 mapLoop:
     for (String mapStr : configuration.getSubjectAttributeMapping())
     {

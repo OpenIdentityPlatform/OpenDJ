@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -69,8 +69,7 @@ public abstract class AbstractOperation
    * The set of response controls that will always be returned for
    * an abandon operation.
    */
-  protected static final List<Control> NO_RESPONSE_CONTROLS =
-       new ArrayList<Control>(0);
+  protected static final List<Control> NO_RESPONSE_CONTROLS = new ArrayList<>(0);
 
   /** The client connection with which this operation is associated. */
   protected final ClientConnection clientConnection;
@@ -192,7 +191,7 @@ public abstract class AbstractOperation
 
     if (requestControls == null)
     {
-      this.requestControls = new ArrayList<Control>(0);
+      this.requestControls = new ArrayList<>(0);
     }
     else
     {
@@ -202,7 +201,7 @@ public abstract class AbstractOperation
     resultCode                 = ResultCode.UNDEFINED;
     additionalLogItems         = null;
     errorMessage               = new LocalizableMessageBuilder();
-    attachments                = new HashMap<String,Object>();
+    attachments                = new HashMap<>();
     matchedDN                  = null;
     referralURLs               = null;
     cancelResult               = null;
@@ -401,7 +400,7 @@ public abstract class AbstractOperation
     Reject.ifNull(item);
     if (additionalLogItems == null)
     {
-      additionalLogItems = new LinkedList<AdditionalLogItem>();
+      additionalLogItems = new LinkedList<>();
     }
     additionalLogItems.add(item);
   }
@@ -729,7 +728,7 @@ public abstract class AbstractOperation
   {
     if (postResponseCallbacks == null)
     {
-      postResponseCallbacks = new LinkedList<Runnable>();
+      postResponseCallbacks = new LinkedList<>();
     }
     postResponseCallbacks.add(callback);
   }

@@ -304,7 +304,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
           // Poll the task printing log messages until finished
           String taskId = taskEntry.getId();
-          Set<LocalizableMessage> printedLogMessages = new HashSet<LocalizableMessage>();
+          Set<LocalizableMessage> printedLogMessages = new HashSet<>();
           do {
             taskEntry = tc.getTaskEntry(taskId);
             List<LocalizableMessage> logs = taskEntry.getLogMessages();

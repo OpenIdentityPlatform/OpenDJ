@@ -194,7 +194,7 @@ public class BackendConfigManagerTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Modify the backend to enable it.
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "true")));
     ModifyOperation modifyOperation =
@@ -207,7 +207,7 @@ public class BackendConfigManagerTestCase
 
 
     // Modify the backend to disable it.
-    mods = new ArrayList<Modification>();
+    mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "false")));
     modifyOperation = conn.processModify(backendEntry.getName(), mods);
@@ -434,7 +434,7 @@ public class BackendConfigManagerTestCase
 
 
     // Disable the intermediate (child) backend.  This should be allowed.
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create("ds-cfg-enabled", "false")));
     ModifyOperation modifyOperation =
          conn.processModify(childBackendEntry.getName(), mods);
@@ -445,7 +445,7 @@ public class BackendConfigManagerTestCase
 
 
     // Re-enable the intermediate backend.
-    mods = new ArrayList<Modification>();
+    mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "true")));
     modifyOperation = conn.processModify(childBackendEntry.getName(), mods);
@@ -546,7 +546,7 @@ public class BackendConfigManagerTestCase
     assertNotNull(baseDNs);
     assertFalse(baseDNs.length == 0);
 
-    ArrayList<String> lines = new ArrayList<String>();
+    ArrayList<String> lines = new ArrayList<>();
     lines.add("dn: ds-cfg-backend-id=" + backendID + ",cn=Backends,cn=config");
     lines.add("objectClass: top");
     lines.add("objectClass: ds-cfg-backend");

@@ -298,7 +298,7 @@ public class ServerSideSortControlTestCase
     InternalSearchOperation internalSearch = conn.processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
@@ -331,7 +331,7 @@ public class ServerSideSortControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
@@ -363,7 +363,7 @@ public class ServerSideSortControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaronZimmermanDN);  // Zeke
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(maryJonesDN);       // Mary
@@ -399,7 +399,7 @@ public class ServerSideSortControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
     expectedDNOrder.add(aaronZimmermanDN);  // Zeke
     expectedDNOrder.add(samZweckDN);        // Sam
@@ -433,7 +433,7 @@ public class ServerSideSortControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertSmithDN);     // Albert, lower sn
@@ -466,7 +466,7 @@ public class ServerSideSortControlTestCase
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, higher sn
@@ -569,7 +569,7 @@ public class ServerSideSortControlTestCase
 
   private ArrayList<DN> getDNs(LinkedList<SearchResultEntry> searchEntries)
   {
-    ArrayList<DN> results = new ArrayList<DN>();
+    ArrayList<DN> results = new ArrayList<>();
     for (Entry e : searchEntries)
     {
       results.add(e.getName());
@@ -577,4 +577,3 @@ public class ServerSideSortControlTestCase
     return results;
   }
 }
-

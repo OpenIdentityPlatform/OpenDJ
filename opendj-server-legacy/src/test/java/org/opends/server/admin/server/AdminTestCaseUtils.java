@@ -132,7 +132,7 @@ public final class AdminTestCaseUtils {
     }
 
     SingletonRelationDefinition.Builder<C, S> builder =
-      new SingletonRelationDefinition.Builder<C, S>(
+      new SingletonRelationDefinition.Builder<>(
         RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
     ManagedObjectPath<?, ?> root = ManagedObjectPath.emptyPath();
     return root.child(builder.getInstance());

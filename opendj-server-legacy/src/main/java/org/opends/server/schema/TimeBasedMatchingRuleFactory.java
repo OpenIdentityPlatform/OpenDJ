@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -53,7 +53,7 @@ public final class TimeBasedMatchingRuleFactory
   public void initializeMatchingRule(MatchingRuleCfg configuration)
           throws ConfigException, InitializationException
   {
-    matchingRules = new HashSet<MatchingRule>();
+    matchingRules = new HashSet<>();
     // relative time greater than
     matchingRules.add(CoreSchema.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.5"));
     // relative time less than

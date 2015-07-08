@@ -181,7 +181,7 @@ public class MatchedValuesControlTest
   @DataProvider(name = "substringsFilterData")
   public Object[][] createSubstringsFilterData()
   {
-    ArrayList<String> l = new ArrayList<String>(3) ;
+    ArrayList<String> l = new ArrayList<>(3) ;
     l.add("subAny") ;
     l.add("o") ;
     l.add("fakesubAny");
@@ -206,8 +206,7 @@ public class MatchedValuesControlTest
     String             rawAttTypeTest = type;
     AttributeType         attTypeTest = DirectoryServer.getAttributeType(type);
     ByteString            subInitialTest = ByteString.valueOf(subInitial);
-    List<ByteString> subAnyTest =
-      new ArrayList<ByteString>(subAny.size());
+    List<ByteString> subAnyTest = new ArrayList<>(subAny.size());
     for (String s : subAny)
     {
       subAnyTest.add(ByteString.valueOf(s));

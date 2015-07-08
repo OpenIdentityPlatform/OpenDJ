@@ -159,7 +159,7 @@ public class MonitorTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int changelogId,
       boolean all, String suffix) throws Exception
   {
-    SortedSet<String> servers = new TreeSet<String>();
+    SortedSet<String> servers = new TreeSet<>();
     if (all)
     {
       if (changelogId != changelog1ID)

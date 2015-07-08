@@ -182,7 +182,7 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(String testCase,
       int degradedStatusThreshold) throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     String dir = "stateMachineTest" + RS1_ID + testCase + "Db";
     ReplServerFakeConfiguration conf =
@@ -198,7 +198,7 @@ public class StateMachineTest extends ReplicationTestCase
   @SuppressWarnings("unchecked")
   private LDAPReplicationDomain createReplicationDomain(int dsId) throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
     replServers.add("localhost:" + rs1Port);
 
     DomainFakeCfg domainConf = new DomainFakeCfg(EXAMPLE_DN_, dsId, replServers);

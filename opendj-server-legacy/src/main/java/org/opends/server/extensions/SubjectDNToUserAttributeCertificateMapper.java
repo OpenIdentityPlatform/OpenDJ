@@ -127,7 +127,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
-    requestedAttributes = new LinkedHashSet<String>(2);
+    requestedAttributes = new LinkedHashSet<>(2);
     requestedAttributes.add("*");
     requestedAttributes.add("+");
   }

@@ -75,7 +75,7 @@ public class RebuildIndexTestCase
     // Add the airius.com suffix to userRoot
     final InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
-    final ArrayList<Modification> mods = new ArrayList<Modification>();
+    final ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-base-dn", baseDN)));
     // Backend should be disabled.
@@ -99,7 +99,7 @@ public class RebuildIndexTestCase
     // remove the airius.com suffix to userRoot
     final InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
-    final ArrayList<Modification> mods = new ArrayList<Modification>();
+    final ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("ds-cfg-base-dn", baseDN)));
     mods.add(new Modification(ModificationType.REPLACE,

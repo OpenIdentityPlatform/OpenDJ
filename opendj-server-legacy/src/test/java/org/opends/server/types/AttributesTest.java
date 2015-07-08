@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -217,7 +217,7 @@ public class AttributesTest extends TypesTestCase
   public void testMergeWithDuplicates(int testCase, Attribute a1, Attribute a2,
       Attribute e, Attribute d) throws Exception
   {
-    List<ByteString> duplicates = new LinkedList<ByteString>();
+    List<ByteString> duplicates = new LinkedList<>();
     Attribute actual = Attributes.merge(a1, a2, duplicates);
     Assert.assertEquals(actual, e);
 
@@ -275,7 +275,7 @@ public class AttributesTest extends TypesTestCase
   public void testSubtractWithMissingValues(int testCase, Attribute a1,
       Attribute a2, Attribute e, Attribute m) throws Exception
   {
-    List<ByteString> missingValues = new LinkedList<ByteString>();
+    List<ByteString> missingValues = new LinkedList<>();
     Attribute actual = Attributes.subtract(a1, a2, missingValues);
     Assert.assertEquals(actual, e);
 

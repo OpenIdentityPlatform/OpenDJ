@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -485,7 +485,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = buildRule(provider);
 
-    LinkedList<ByteString> subAny = new LinkedList<ByteString>();
+    LinkedList<ByteString> subAny = new LinkedList<>();
     subAny.add(ByteString.valueOf("="));
 
     assertEquals(provider.matchesSubstring(entry, rule, null, subAny, null),

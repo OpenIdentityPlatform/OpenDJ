@@ -158,7 +158,7 @@ public class SetupUtils
   public static File createTemplateFile(String baseDN, int numEntries)
          throws IOException
   {
-    Set<String> baseDNs = new HashSet<String>(1);
+    Set<String> baseDNs = new HashSet<>(1);
     baseDNs.add(baseDN);
     return createTemplateFile(baseDNs, numEntries);
   }
@@ -181,7 +181,7 @@ public class SetupUtils
     File templateFile = File.createTempFile("opendj-install", ".template");
     templateFile.deleteOnExit();
 
-    LinkedList<String> lines = new LinkedList<String>();
+    LinkedList<String> lines = new LinkedList<>();
     int i = 0;
     for (String baseDN : baseDNs)
     {

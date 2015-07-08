@@ -202,12 +202,12 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
       }
 
       if (extraProperties == null) {
-        extraProperties = new HashMap<String, List<String>>();
+        extraProperties = new HashMap<>();
       }
 
       List<String> l = extraProperties.get(name);
       if (l == null) {
-        l = new ArrayList<String>();
+        l = new ArrayList<>();
         extraProperties.put(name, l);
       }
       l.addAll(Arrays.asList(values));
@@ -267,7 +267,7 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
       }
 
       if (this.names == null) {
-        this.names = new LinkedList<String>();
+        this.names = new LinkedList<>();
       }
 
       this.names.addAll(Arrays.asList(names));

@@ -308,7 +308,7 @@ public class RestoreDB extends TaskTool {
 
   private ArrayList<ByteString> toByteStrings(String value)
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    final ArrayList<ByteString> values = new ArrayList<>(1);
     values.add(ByteString.valueOf(value));
     return values;
   }
@@ -555,9 +555,9 @@ public class RestoreDB extends TaskTool {
 
     // Get information about the backends defined in the server and determine
     // which to use for the restore.
-    ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg> entryList   = new ArrayList<BackendCfg>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
+    ArrayList<Backend>     backendList = new ArrayList<>();
+    ArrayList<BackendCfg> entryList   = new ArrayList<>();
+    ArrayList<List<DN>>    dnList      = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
 

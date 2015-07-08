@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -264,7 +264,7 @@ public abstract class RawAttribute
     try
     {
       reader.readStartSequence();
-      values = new ArrayList<ByteString>();
+      values = new ArrayList<>();
       while(reader.hasNextElement())
       {
         values.add(reader.readOctetString());

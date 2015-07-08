@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * A small map of values. This map implementation is optimized to use as little
  * memory as possible in the case where there zero or one elements. In addition,
- * any normalization of entriess is delayed until the second entry is added
+ * any normalization of entries is delayed until the second entry is added
  * (normalization may be triggered by invoking {@link Object#hashCode()} or
  * {@link Object#equals(Object)}.
  * <p>
@@ -106,7 +106,7 @@ public class SmallMap<K, V> extends AbstractMap<K, V>
       return oldValue;
     }
     // overflow to the underlying map
-    entries = new LinkedHashMap<K, V>(2);
+    entries = new LinkedHashMap<>(2);
     entries.put(firstKey, firstValue);
     firstKey = null;
     firstValue = null;
@@ -234,7 +234,7 @@ public class SmallMap<K, V> extends AbstractMap<K, V>
               throw new NoSuchElementException();
             }
             isFirst = false;
-            return new SimpleEntry<K, V>(firstKey, firstValue);
+            return new SimpleEntry<>(firstKey, firstValue);
           }
 
           @Override

@@ -82,7 +82,7 @@ public class AckMsg extends ReplicationMsg
    * (corresponding to CSN). Each server id of the list had one of the 3
    * possible errors (timeout/degraded or admin/replay error).
    */
-  private List<Integer> failedServers = new ArrayList<Integer>();
+  private List<Integer> failedServers = new ArrayList<>();
 
   /**
    * Creates a new AckMsg from a CSN (no errors).

@@ -727,8 +727,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final ConnectionFactory factory;
     private final int poolSize = Runtime.getRuntime().availableProcessors() * 2;
     private final Semaphore availableConnections = new Semaphore(poolSize);
-    private final Queue<Connection> connectionPool =
-      new ConcurrentLinkedQueue<Connection>();
+    private final Queue<Connection> connectionPool = new ConcurrentLinkedQueue<>();
 
 
 
@@ -1539,8 +1538,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             ByteString encodedPassword = pwdStorageScheme
                 .encodePasswordWithScheme(newCachedPassword);
 
-            List<RawModification> modifications =
-              new ArrayList<RawModification>(2);
+            List<RawModification> modifications = new ArrayList<>(2);
             modifications.add(RawModification.create(ModificationType.REPLACE,
                 OP_ATTR_PTAPOLICY_CACHED_PASSWORD, encodedPassword));
             modifications.add(RawModification.create(ModificationType.REPLACE,
@@ -1649,8 +1647,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // determine the bind DN.
 
             // Construct the search filter.
-            final LinkedList<SearchFilter> filterComponents =
-              new LinkedList<SearchFilter>();
+            final LinkedList<SearchFilter> filterComponents = new LinkedList<>();
             for (final AttributeType at : cfg.getMappedAttribute())
             {
               final List<Attribute> attributes = userEntry.getAttribute(at);
@@ -2113,7 +2110,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Attribute list for searches requesting no attributes. */
-  static final LinkedHashSet<String> NO_ATTRIBUTES = new LinkedHashSet<String>(1);
+  static final LinkedHashSet<String> NO_ATTRIBUTES = new LinkedHashSet<>(1);
   static
   {
     NO_ATTRIBUTES.add(SchemaConstants.NO_ATTRIBUTES);

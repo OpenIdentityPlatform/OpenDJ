@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.server.tools.dsreplication;
 
 import java.util.LinkedList;
@@ -34,11 +33,10 @@ import java.util.List;
  * This class is used to store the information provided by the user in the
  * replication command line.  It is required because when we are in interactive
  * mode the ReplicationCliArgumentParser is not enough.
- *
  */
 public abstract class ReplicationUserData
 {
-  private final LinkedList<String> baseDNs = new LinkedList<String>();
+  private final LinkedList<String> baseDNs = new LinkedList<>();
   private String adminUid;
   private String adminPwd;
 
@@ -84,7 +82,7 @@ public abstract class ReplicationUserData
    */
   public List<String> getBaseDNs()
   {
-    return new LinkedList<String>(baseDNs);
+    return new LinkedList<>(baseDNs);
   }
 
   /**

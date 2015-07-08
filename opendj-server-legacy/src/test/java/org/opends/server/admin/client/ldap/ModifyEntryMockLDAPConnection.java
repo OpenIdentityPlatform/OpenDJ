@@ -55,7 +55,7 @@ public final class ModifyEntryMockLDAPConnection extends MockLDAPConnection {
   private final LdapName expectedDN;
 
   /** The expected set of modifications (attribute name -> list of values). */
-  private final Map<String, List<String>> modifications = new HashMap<String, List<String>>();
+  private final Map<String, List<String>> modifications = new HashMap<>();
 
 
 

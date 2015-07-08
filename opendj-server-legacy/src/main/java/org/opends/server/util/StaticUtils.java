@@ -2405,7 +2405,7 @@ public final class StaticUtils
     }
 
 
-    ArrayList<String> commandAndArgs = new ArrayList<String>();
+    ArrayList<String> commandAndArgs = new ArrayList<>();
     commandAndArgs.add(command);
     if ((args != null) && (args.length > 0))
     {
@@ -3374,7 +3374,7 @@ public final class StaticUtils
       return null;
     }
 
-    ArrayList<String> stringList = new ArrayList<String>(stringArray.length);
+    ArrayList<String> stringList = new ArrayList<>(stringArray.length);
     for (String s : stringArray)
     {
       stringList.add(s);
@@ -3634,8 +3634,7 @@ public final class StaticUtils
     ObjectClass structuralClass = DirectoryServer.getObjectClass(getObjectClassName(rdn, numAVAs));
 
     // Get the top and untypedObject classes to include in the entry.
-    LinkedHashMap<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>(3);
+    LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(3);
 
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
     objectClasses.put(structuralClass, structuralClass.getNameOrOID());
@@ -3643,10 +3642,8 @@ public final class StaticUtils
 
     // Iterate through the RDN attributes and add them to the set of user or
     // operational attributes.
-    LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-    LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
+    LinkedHashMap<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
 
     boolean extensibleObjectAdded = false;
     for (int i=0; i < numAVAs; i++)
@@ -3721,7 +3718,7 @@ public final class StaticUtils
     {
       AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
       builder.add(attrValue);
-      attrList = new ArrayList<Attribute>(1);
+      attrList = new ArrayList<>(1);
       attrList.add(builder.toAttribute());
       attrs.put(attrType, attrList);
     }
@@ -4028,7 +4025,7 @@ public final class StaticUtils
           {
             if (additionalClasses == null)
             {
-              additionalClasses = new HashSet<ObjectClass>();
+              additionalClasses = new HashSet<>();
             }
 
             additionalClasses.add(superiorClass);

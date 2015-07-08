@@ -212,7 +212,7 @@ public class LastModPluginTestCase
   public Object[][] getInvalidConfigs()
          throws Exception
   {
-    ArrayList<Entry> entries = new ArrayList<Entry>();
+    ArrayList<Entry> entries = new ArrayList<>();
 
     for (String s : PluginType.getPluginTypeNames())
     {
@@ -302,7 +302,7 @@ public class LastModPluginTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create("description", "foo")));
 

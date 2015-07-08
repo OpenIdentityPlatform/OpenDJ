@@ -185,7 +185,7 @@ public class TextErrorLogPublisher
         category = category.replace("-", "_").toUpperCase();
         try
         {
-          Set<Severity> severities = new HashSet<Severity>();
+          Set<Severity> severities = new HashSet<>();
           StringTokenizer sevTokenizer = new StringTokenizer(overrideSeverity.substring(equalPos + 1), ",");
           while (sevTokenizer.hasMoreElements())
           {
@@ -314,7 +314,7 @@ public class TextErrorLogPublisher
           category = category.replace("-", "_").toUpperCase();
           try
           {
-            Set<Severity> severities = new HashSet<Severity>();
+            Set<Severity> severities = new HashSet<>();
             StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
             while (sevTokenizer.hasMoreElements())

@@ -238,7 +238,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       //There are other ways of doing it but we will extract the OID
       //from the attribute values and then check to see if our
       //OID is found in the result set or not.
-      List<String> syntaxList = new ArrayList<String>();
+      List<String> syntaxList = new ArrayList<>();
       while(iter.hasNext())
       {
         //parse the OIDs.

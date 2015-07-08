@@ -676,7 +676,7 @@ public class LocalBackendModifyDNOperation
               ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getName()));
         }
 
-        List<ByteString> missingValues = new LinkedList<ByteString>();
+        List<ByteString> missingValues = new LinkedList<>();
         newEntry.removeAttribute(a, missingValues);
 
         if (missingValues.isEmpty())
@@ -696,7 +696,7 @@ public class LocalBackendModifyDNOperation
           newRDN.getAttributeName(i),
           newRDN.getAttributeValue(i));
 
-      List<ByteString> duplicateValues = new LinkedList<ByteString>();
+      List<ByteString> duplicateValues = new LinkedList<>();
       newEntry.addAttribute(a, duplicateValues);
 
       if (duplicateValues.isEmpty())
@@ -771,12 +771,12 @@ public class LocalBackendModifyDNOperation
       switch (m.getModificationType().asEnum())
       {
         case ADD:
-          List<ByteString> duplicateValues = new LinkedList<ByteString>();
+          List<ByteString> duplicateValues = new LinkedList<>();
           newEntry.addAttribute(a, duplicateValues);
           break;
 
         case DELETE:
-          List<ByteString> missingValues = new LinkedList<ByteString>();
+          List<ByteString> missingValues = new LinkedList<>();
           newEntry.removeAttribute(a, missingValues);
           break;
 

@@ -179,8 +179,8 @@ public class LDAPConnection
     Socket socket;
     Socket startTLSSocket = null;
     int resultCode;
-    ArrayList<Control> requestControls = new ArrayList<Control> ();
-    ArrayList<Control> responseControls = new ArrayList<Control> ();
+    ArrayList<Control> requestControls = new ArrayList<> ();
+    ArrayList<Control> responseControls = new ArrayList<> ();
 
     if (connectionOptions.isVerbose())
     {

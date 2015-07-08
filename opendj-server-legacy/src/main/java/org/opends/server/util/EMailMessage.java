@@ -114,11 +114,11 @@ public final class EMailMessage
     this.sender  = sender;
     this.subject = subject;
 
-    recipients = new ArrayList<String>();
+    recipients = new ArrayList<>();
     recipients.add(recipient);
 
     body         = new LocalizableMessageBuilder();
-    attachments  = new LinkedList<MimeBodyPart>();
+    attachments  = new LinkedList<>();
     bodyMIMEType = "text/plain";
   }
 
@@ -139,7 +139,7 @@ public final class EMailMessage
     this.subject    = subject;
 
     body         = new LocalizableMessageBuilder();
-    attachments  = new LinkedList<MimeBodyPart>();
+    attachments  = new LinkedList<>();
     bodyMIMEType = "text/plain";
   }
 
@@ -577,7 +577,7 @@ public final class EMailMessage
       return;
     }
 
-    LinkedList<Properties> mailServerProperties = new LinkedList<Properties>();
+    LinkedList<Properties> mailServerProperties = new LinkedList<>();
     for (String s : host.getValues())
     {
       Properties p = new Properties();

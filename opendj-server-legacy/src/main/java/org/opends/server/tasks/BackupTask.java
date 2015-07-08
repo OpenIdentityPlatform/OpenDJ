@@ -78,51 +78,19 @@ public class BackupTask extends Task
 
 
 
-  /**
-   * Stores mapping between configuration attribute name and its label.
-   */
-  private static Map<String,LocalizableMessage> argDisplayMap =
-          new HashMap<String,LocalizableMessage>();
+  /** Stores mapping between configuration attribute name and its label. */
+  private static Map<String,LocalizableMessage> argDisplayMap = new HashMap<>();
   static {
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_ALL,
-            INFO_BACKUP_ARG_BACKUPALL.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_COMPRESS,
-            INFO_BACKUP_ARG_COMPRESS.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_ENCRYPT,
-            INFO_BACKUP_ARG_ENCRYPT.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_HASH,
-            INFO_BACKUP_ARG_HASH.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_INCREMENTAL,
-            INFO_BACKUP_ARG_INCREMENTAL.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_SIGN_HASH,
-            INFO_BACKUP_ARG_SIGN_HASH.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_BACKEND_ID,
-            INFO_BACKUP_ARG_BACKEND_IDS.get());
-
-    argDisplayMap.put(
-            ATTR_BACKUP_ID,
-            INFO_BACKUP_ARG_BACKUP_ID.get());
-
-    argDisplayMap.put(
-            ATTR_BACKUP_DIRECTORY_PATH,
-            INFO_BACKUP_ARG_BACKUP_DIR.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
-            INFO_BACKUP_ARG_INC_BASE_ID.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_ALL, INFO_BACKUP_ARG_BACKUPALL.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_COMPRESS, INFO_BACKUP_ARG_COMPRESS.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_ENCRYPT, INFO_BACKUP_ARG_ENCRYPT.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_HASH, INFO_BACKUP_ARG_HASH.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_INCREMENTAL, INFO_BACKUP_ARG_INCREMENTAL.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_SIGN_HASH, INFO_BACKUP_ARG_SIGN_HASH.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_BACKEND_ID, INFO_BACKUP_ARG_BACKEND_IDS.get());
+    argDisplayMap.put(ATTR_BACKUP_ID, INFO_BACKUP_ARG_BACKUP_ID.get());
+    argDisplayMap.put(ATTR_BACKUP_DIRECTORY_PATH, INFO_BACKUP_ARG_BACKUP_DIR.get());
+    argDisplayMap.put(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID, INFO_BACKUP_ARG_INC_BASE_ID.get());
   }
 
 
@@ -336,7 +304,7 @@ public class BackupTask extends Task
     int numBackends = configEntries.size();
 
 
-    backendsToArchive = new ArrayList<Backend<?>>(numBackends);
+    backendsToArchive = new ArrayList<>(numBackends);
 
     if (backUpAll)
     {

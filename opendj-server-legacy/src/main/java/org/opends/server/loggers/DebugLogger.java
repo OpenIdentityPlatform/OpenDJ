@@ -56,8 +56,7 @@ public class DebugLogger extends AbstractLogger
 {
 
   /** The set of all DebugTracer instances. */
-  private static Map<String, DebugTracer> classTracers =
-      new ConcurrentHashMap<String, DebugTracer>();
+  private static Map<String, DebugTracer> classTracers = new ConcurrentHashMap<>();
 
   /**
    * Trace methods will use this static boolean to determine if debug is enabled
@@ -67,8 +66,7 @@ public class DebugLogger extends AbstractLogger
 
   private static final LoggerStorage
       <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>
-      loggerStorage = new LoggerStorage
-      <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>();
+      loggerStorage = new LoggerStorage<>();
 
   /** The singleton instance of this class. */
   static final DebugLogger instance = new DebugLogger();
@@ -182,7 +180,7 @@ public class DebugLogger extends AbstractLogger
 
   private List<String> getDebugTargetsFromSystemProperties()
   {
-    final List<String> targets = new ArrayList<String>();
+    final List<String> targets = new ArrayList<>();
     for (Map.Entry<Object, Object> entry : System.getProperties().entrySet())
     {
       if (((String) entry.getKey()).startsWith(PROPERTY_DEBUG_TARGET))

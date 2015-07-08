@@ -418,7 +418,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       else if (c instanceof ConfirmationCallback)
       {
         final ConfirmationCallback cc = (ConfirmationCallback) c;
-        List<String> choices = new ArrayList<String>();
+        List<String> choices = new ArrayList<>();
 
         final String defaultOption = getDefaultOption(cc.getDefaultOption());
         StringBuilder prompt =

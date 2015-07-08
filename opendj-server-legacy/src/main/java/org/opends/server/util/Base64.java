@@ -530,7 +530,7 @@ public final class Base64
       encodeSubCommand.addArgument(toEncodedFile);
 
 
-      ArrayList<SubCommand> subCommandList = new ArrayList<SubCommand>(2);
+      ArrayList<SubCommand> subCommandList = new ArrayList<>(2);
       subCommandList.add(decodeSubCommand);
       subCommandList.add(encodeSubCommand);
 

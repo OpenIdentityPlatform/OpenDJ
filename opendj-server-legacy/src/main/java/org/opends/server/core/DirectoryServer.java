@@ -752,7 +752,7 @@ public final class DirectoryServer
   private TreeMap<String, Backend<?>> backends;
 
   /** The set of supported controls registered with the Directory Server. */
-  private final TreeSet<String> supportedControls = new TreeSet<String>(Arrays.asList(
+  private final TreeSet<String> supportedControls = new TreeSet<>(Arrays.asList(
       OID_LDAP_ASSERTION,
       OID_LDAP_READENTRY_PREREAD,
       OID_LDAP_READENTRY_POSTREAD,
@@ -773,7 +773,7 @@ public final class DirectoryServer
       OID_NS_PASSWORD_EXPIRING));
 
   /** The set of supported feature OIDs registered with the Directory Server. */
-  private final TreeSet<String> supportedFeatures = new TreeSet<String>(Arrays.asList(
+  private final TreeSet<String> supportedFeatures = new TreeSet<>(Arrays.asList(
       OID_ALL_OPERATIONAL_ATTRS_FEATURE,
       OID_MODIFY_INCREMENT_FEATURE,
       OID_TRUE_FALSE_FILTERS_FEATURE));
@@ -1069,71 +1069,42 @@ public final class DirectoryServer
 
       // Perform any additional initialization that might be necessary before
       // loading the configuration.
-      directoryServer.alertHandlers = new CopyOnWriteArrayList<AlertHandler>();
-      directoryServer.passwordStorageSchemes =
-           new ConcurrentHashMap<String,PasswordStorageScheme>();
-      directoryServer.passwordStorageSchemesByDN =
-           new ConcurrentHashMap<DN,PasswordStorageScheme>();
-      directoryServer.passwordGenerators =
-           new ConcurrentHashMap<DN,PasswordGenerator>();
-      directoryServer.authPasswordStorageSchemes =
-           new ConcurrentHashMap<String,PasswordStorageScheme>();
-      directoryServer.passwordValidators =
-           new ConcurrentHashMap<DN,
-                PasswordValidator<? extends PasswordValidatorCfg>>();
-      directoryServer.accountStatusNotificationHandlers =
-           new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
-      directoryServer.rootDNs = new CopyOnWriteArraySet<DN>();
-      directoryServer.alternateRootBindDNs = new ConcurrentHashMap<DN,DN>();
-      directoryServer.keyManagerProviders =
-           new ConcurrentHashMap<DN,KeyManagerProvider>();
-      directoryServer.trustManagerProviders =
-           new ConcurrentHashMap<DN,TrustManagerProvider>();
-      directoryServer.rotationPolicies =
-           new ConcurrentHashMap<DN, RotationPolicy>();
-      directoryServer.retentionPolicies =
-           new ConcurrentHashMap<DN, RetentionPolicy>();
-      directoryServer.certificateMappers =
-           new ConcurrentHashMap<DN,CertificateMapper>();
-      directoryServer.authenticationPolicies =
-           new ConcurrentHashMap<DN,AuthenticationPolicy>();
+      directoryServer.alertHandlers = new CopyOnWriteArrayList<>();
+      directoryServer.passwordStorageSchemes = new ConcurrentHashMap<>();
+      directoryServer.passwordStorageSchemesByDN = new ConcurrentHashMap<>();
+      directoryServer.passwordGenerators = new ConcurrentHashMap<>();
+      directoryServer.authPasswordStorageSchemes = new ConcurrentHashMap<>();
+      directoryServer.passwordValidators = new ConcurrentHashMap<>();
+      directoryServer.accountStatusNotificationHandlers = new ConcurrentHashMap<>();
+      directoryServer.rootDNs = new CopyOnWriteArraySet<>();
+      directoryServer.alternateRootBindDNs = new ConcurrentHashMap<>();
+      directoryServer.keyManagerProviders = new ConcurrentHashMap<>();
+      directoryServer.trustManagerProviders = new ConcurrentHashMap<>();
+      directoryServer.rotationPolicies = new ConcurrentHashMap<>();
+      directoryServer.retentionPolicies = new ConcurrentHashMap<>();
+      directoryServer.certificateMappers = new ConcurrentHashMap<>();
+      directoryServer.authenticationPolicies = new ConcurrentHashMap<>();
       directoryServer.defaultPasswordPolicyDN = null;
       directoryServer.defaultPasswordPolicy = null;
-      directoryServer.monitorProviders =
-           new ConcurrentHashMap<String,
-                    MonitorProvider<? extends MonitorProviderCfg>>();
-      directoryServer.backends = new TreeMap<String, Backend<?>>();
-      directoryServer.backendInitializationListeners =
-           new CopyOnWriteArraySet<BackendInitializationListener>();
+      directoryServer.monitorProviders = new ConcurrentHashMap<>();
+      directoryServer.backends = new TreeMap<>();
+      directoryServer.backendInitializationListeners = new CopyOnWriteArraySet<>();
       directoryServer.baseDnRegistry = new BaseDnRegistry();
-      directoryServer.initializationCompletedListeners =
-           new CopyOnWriteArrayList<InitializationCompletedListener>();
-      directoryServer.shutdownListeners =
-           new CopyOnWriteArrayList<ServerShutdownListener>();
-      directoryServer.synchronizationProviders =
-           new CopyOnWriteArrayList<SynchronizationProvider
-                                   <SynchronizationProviderCfg>>();
-      directoryServer.supportedLDAPVersions =
-           new ConcurrentHashMap<Integer,List<ConnectionHandler>>();
-      directoryServer.connectionHandlers =
-           new CopyOnWriteArrayList<ConnectionHandler>();
-      directoryServer.identityMappers =
-           new ConcurrentHashMap<DN,IdentityMapper>();
-      directoryServer.extendedOperationHandlers =
-           new ConcurrentHashMap<String,ExtendedOperationHandler>();
-      directoryServer.saslMechanismHandlers =
-           new ConcurrentHashMap<String,SASLMechanismHandler>();
-      directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
-      directoryServer.backupTaskListeners =
-           new CopyOnWriteArrayList<BackupTaskListener>();
-      directoryServer.restoreTaskListeners =
-           new CopyOnWriteArrayList<RestoreTaskListener>();
-      directoryServer.exportTaskListeners =
-           new CopyOnWriteArrayList<ExportTaskListener>();
-      directoryServer.importTaskListeners =
-           new CopyOnWriteArrayList<ImportTaskListener>();
-      directoryServer.allowedTasks = new LinkedHashSet<String>(0);
-      directoryServer.disabledPrivileges = new LinkedHashSet<Privilege>(0);
+      directoryServer.initializationCompletedListeners = new CopyOnWriteArrayList<>();
+      directoryServer.shutdownListeners = new CopyOnWriteArrayList<>();
+      directoryServer.synchronizationProviders = new CopyOnWriteArrayList<>();
+      directoryServer.supportedLDAPVersions = new ConcurrentHashMap<>();
+      directoryServer.connectionHandlers = new CopyOnWriteArrayList<>();
+      directoryServer.identityMappers = new ConcurrentHashMap<>();
+      directoryServer.extendedOperationHandlers = new ConcurrentHashMap<>();
+      directoryServer.saslMechanismHandlers = new ConcurrentHashMap<>();
+      directoryServer.offlineSchemaChanges = new LinkedList<>();
+      directoryServer.backupTaskListeners = new CopyOnWriteArrayList<>();
+      directoryServer.restoreTaskListeners = new CopyOnWriteArrayList<>();
+      directoryServer.exportTaskListeners = new CopyOnWriteArrayList<>();
+      directoryServer.importTaskListeners = new CopyOnWriteArrayList<>();
+      directoryServer.allowedTasks = new LinkedHashSet<>(0);
+      directoryServer.disabledPrivileges = new LinkedHashSet<>(0);
       directoryServer.returnBindErrorMessages = false;
       directoryServer.idleTimeLimit = 0L;
     }
@@ -1188,7 +1159,7 @@ public final class DirectoryServer
 
 
     // Initialize the variables that will be used for connection tracking.
-    establishedConnections = new LinkedHashSet<ClientConnection>(1000);
+    establishedConnections = new LinkedHashSet<>(1000);
     currentConnections     = 0;
     maxConnections         = 0;
     totalConnections       = 0;
@@ -1236,7 +1207,7 @@ public final class DirectoryServer
 
         directoryServer.mBeanServer = MBeanServerFactory.newMBeanServer();
       }
-      directoryServer.mBeans = new ConcurrentHashMap<DN,JMXMBean>();
+      directoryServer.mBeans = new ConcurrentHashMap<>();
       registerAlertGenerator(directoryServer);
     }
     catch (Exception e)
@@ -1898,12 +1869,9 @@ public final class DirectoryServer
     // preserve any configuration add/delete/change listeners that might have
     // been registered with the old configuration (which will primarily be
     // schema elements) so they can be re-registered with the new configuration.
-    Map<String, List<ConfigAddListener>> addListeners =
-         new LinkedHashMap<String,List<ConfigAddListener>>();
-    Map<String, List<ConfigDeleteListener>> deleteListeners =
-         new LinkedHashMap<String,List<ConfigDeleteListener>>();
-    Map<String, List<ConfigChangeListener>> changeListeners =
-         new LinkedHashMap<String,List<ConfigChangeListener>>();
+    Map<String, List<ConfigAddListener>> addListeners = new LinkedHashMap<>();
+    Map<String, List<ConfigDeleteListener>> deleteListeners = new LinkedHashMap<>();
+    Map<String, List<ConfigChangeListener>> changeListeners = new LinkedHashMap<>();
     getChangeListeners(configHandler.getConfigRootEntry(), addListeners,
                        deleteListeners, changeListeners);
 
@@ -3507,9 +3475,7 @@ public final class DirectoryServer
    */
   public static List<VirtualAttributeRule> getVirtualAttributes(Entry entry)
   {
-    List<VirtualAttributeRule> ruleList =
-        new LinkedList<VirtualAttributeRule>();
-
+    List<VirtualAttributeRule> ruleList = new LinkedList<>();
     for (VirtualAttributeRule rule : getVirtualAttributes())
     {
       if (rule.appliesToEntry(entry))
@@ -3517,7 +3483,6 @@ public final class DirectoryServer
         ruleList.add(rule);
       }
     }
-
     return ruleList;
   }
 
@@ -5128,8 +5093,7 @@ public final class DirectoryServer
 
     synchronized (directoryServer)
     {
-      TreeMap<String, Backend<?>> newBackends =
-          new TreeMap<String, Backend<?>>(directoryServer.backends);
+      TreeMap<String, Backend<?>> newBackends = new TreeMap<>(directoryServer.backends);
       if (newBackends.containsKey(backendID))
       {
         LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
@@ -5174,8 +5138,7 @@ public final class DirectoryServer
 
     synchronized (directoryServer)
     {
-      TreeMap<String, Backend<?>> newBackends =
-          new TreeMap<String, Backend<?>>(directoryServer.backends);
+      TreeMap<String, Backend<?>> newBackends = new TreeMap<>(directoryServer.backends);
       newBackends.remove(backend.getBackendID());
 
       directoryServer.backends = newBackends;
@@ -5791,7 +5754,7 @@ public final class DirectoryServer
          directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
     if (handlers == null)
     {
-      handlers = new LinkedList<ConnectionHandler>();
+      handlers = new LinkedList<>();
       handlers.add(connectionHandler);
       directoryServer.supportedLDAPVersions.put(supportedLDAPVersion, handlers);
     }
@@ -6020,8 +5983,8 @@ public final class DirectoryServer
    */
   private void startConnectionHandlers() throws ConfigException
   {
-    Set<HostPort> usedListeners = new LinkedHashSet<HostPort>();
-    Set<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
+    Set<HostPort> usedListeners = new LinkedHashSet<>();
+    Set<LocalizableMessage> errorMessages = new LinkedHashSet<>();
     // Check that the port specified in the connection handlers is available.
     for (ConnectionHandler<?> c : connectionHandlers)
     {
@@ -7768,7 +7731,7 @@ public final class DirectoryServer
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_SERVER_STARTED, ALERT_DESCRIPTION_SERVER_STARTED);
     alerts.put(ALERT_TYPE_SERVER_SHUTDOWN, ALERT_DESCRIPTION_SERVER_SHUTDOWN);
@@ -7958,7 +7921,7 @@ public final class DirectoryServer
         // We're not really trying to start, so rebuild the argument list
         // without the "--checkStartability" argument and try again.  Exit with
         // whatever that exits with.
-        List<String> newArgList = new LinkedList<String>();
+        List<String> newArgList = new LinkedList<>();
         for (String arg : args)
         {
           if (!"--checkstartability".equalsIgnoreCase(arg))

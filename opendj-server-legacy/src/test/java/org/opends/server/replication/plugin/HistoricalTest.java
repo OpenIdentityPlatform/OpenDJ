@@ -334,7 +334,7 @@ public class HistoricalTest extends ReplicationTestCase
   {
     Attribute attr = Attributes.create(attrType.getNormalizedPrimaryName(), newValue);
     Modification mod = new Modification(ModificationType.ADD, attr);
-    List<Modification> mods = new ArrayList<Modification>(1);
+    List<Modification> mods = new ArrayList<>(1);
     mods.add(mod);
     broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }

@@ -82,12 +82,12 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
    *  keep this so that once all of the tests are finished, we can clear
    *  it out in an @AfterClass method.  We can't just clear it out right
    *  away in the TestListener because some methods share a @DataProvider.*/
-  private final IdentityHashMap<Object[],Object> successfulTestParams = new IdentityHashMap<Object[],Object>();
+  private final IdentityHashMap<Object[],Object> successfulTestParams = new IdentityHashMap<>();
 
   /** These are test parameters from a test that has failed.  We need to
    *  keep these around because the test report expects to find them when
    *  printing out failures. */
-  private final IdentityHashMap<Object[],Object> failedTestParams = new IdentityHashMap<Object[],Object>();
+  private final IdentityHashMap<Object[],Object> failedTestParams = new IdentityHashMap<>();
 
   /**
    * Adds testParams to the list of all test parameters, so it can be
@@ -206,7 +206,7 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
     Thread threads[] = new Thread[topGroup.activeCount() * 2];
     int numThreads = topGroup.enumerate(threads);
 
-    List<String> activeThreads = new ArrayList<String>();
+    List<String> activeThreads = new ArrayList<>();
     for (int i = 0; i < numThreads; i++)
     {
       Thread thread = threads[i];

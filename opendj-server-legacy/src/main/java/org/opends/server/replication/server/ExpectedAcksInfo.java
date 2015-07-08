@@ -76,8 +76,7 @@ public abstract class ExpectedAcksInfo
    * value: a boolean true if we received the ack from the server,
    * false otherwise.
    */
-  protected Map<Integer,Boolean> expectedServersAckStatus =
-    new HashMap<Integer,Boolean>();
+  protected Map<Integer,Boolean> expectedServersAckStatus = new HashMap<>();
 
   /**
    * Facility for monitoring:

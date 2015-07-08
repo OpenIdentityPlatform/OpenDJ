@@ -23,7 +23,7 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011 profiq s.r.o.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -1031,7 +1031,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private ModifyOperation
   addAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     AttributeType attrType = getAttrType(attrTypeString);
     AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String valString : attrValStrings) {
@@ -1053,7 +1053,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private ModifyOperation
   replaceAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     AttributeType attrType = getAttrType(attrTypeString);
     AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String valString : attrValStrings) {
@@ -1078,7 +1078,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private void
   deleteAttrsEntry(DN dn, String... attrTypeStrings) throws Exception {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     for(String attrTypeString : attrTypeStrings) {
       AttributeType attrType = getAttrType(attrTypeString);
       mods.add(new Modification(ModificationType.DELETE,
@@ -1119,7 +1119,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     InternalClientConnection conn = getRootConnection();
 
     SubtreeDeleteControl control = new SubtreeDeleteControl(true);
-    List<Control> controls = new ArrayList<Control>(1);
+    List<Control> controls = new ArrayList<>(1);
     controls.add(control);
 
     for (String dn : dns)

@@ -113,7 +113,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     /** {@inheritDoc} */
     @Override
     public List<Attribute> getMonitorData() {
-      final List<Attribute> monitorAttrs = new ArrayList<Attribute>();
+      final List<Attribute> monitorAttrs = new ArrayList<>();
       monitorAttrs.add(attr("disk-dir", getDefaultStringSyntax(), directory.getPath()));
       monitorAttrs.add(attr("disk-free", getDefaultIntegerSyntax(), getFreeSpace()));
       monitorAttrs.add(attr("disk-state", getDefaultStringSyntax(), getState()));
@@ -175,7 +175,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     private int state;
     /** printable list of handlers names, for reporting backend names in alert messages */
     private final StringBuilder diskNames = new StringBuilder();
-    private final List<MonitoredDirectory> allHandlers = new ArrayList<MonitoredDirectory>();
+    private final List<MonitoredDirectory> allHandlers = new ArrayList<>();
 
     private HandlerNotifier(File directory, int state)
     {
@@ -235,8 +235,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   private static final int LOW = 1;
   private static final int FULL = 2;
   private static final String INSTANCENAME = "Disk Space Monitor";
-  private final HashMap<File, List<MonitoredDirectory>> monitoredDirs =
-      new HashMap<File, List<MonitoredDirectory>>();
+  private final HashMap<File, List<MonitoredDirectory>> monitoredDirs = new HashMap<>();
 
   /**
    * Constructs a new DiskSpaceMonitor that will notify registered DiskSpaceMonitorHandler objects when filesystems
@@ -288,7 +287,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
       List<MonitoredDirectory> diskHelpers = monitoredDirs.get(fsMountPoint);
       if (diskHelpers == null)
       {
-        List<MonitoredDirectory> newList = new ArrayList<MonitoredDirectory>();
+        List<MonitoredDirectory> newList = new ArrayList<>();
         newList.add(newDSH);
         monitoredDirs.put(fsMountPoint, newList);
       }
@@ -379,16 +378,16 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData() {
-    return new ArrayList<Attribute>();
+    return new ArrayList<>();
   }
 
   /** {@inheritDoc} */
   @Override
   public void run()
   {
-    List<HandlerNotifier> diskFull = new ArrayList<HandlerNotifier>();
-    List<HandlerNotifier> diskLow = new ArrayList<HandlerNotifier>();
-    List<HandlerNotifier> diskRestored = new ArrayList<HandlerNotifier>();
+    List<HandlerNotifier> diskFull = new ArrayList<>();
+    List<HandlerNotifier> diskLow = new ArrayList<>();
+    List<HandlerNotifier> diskRestored = new ArrayList<>();
 
     synchronized (monitoredDirs)
     {
@@ -491,7 +490,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
     alerts.put(ALERT_TYPE_DISK_SPACE_LOW, ALERT_DESCRIPTION_DISK_SPACE_LOW);
     alerts.put(ALERT_TYPE_DISK_FULL, ALERT_DESCRIPTION_DISK_FULL);
     return alerts;

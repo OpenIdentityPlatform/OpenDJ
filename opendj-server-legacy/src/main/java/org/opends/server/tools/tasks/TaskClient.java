@@ -185,9 +185,9 @@ public class TaskClient {
       taskID = df.format(new Date());
     }
 
-    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
+    ArrayList<RawAttribute> attributes = new ArrayList<>();
 
-    ArrayList<ByteString> ocValues = new ArrayList<ByteString>(3);
+    ArrayList<ByteString> ocValues = new ArrayList<>(3);
     ocValues.add(ByteString.valueOf("top"));
     ocValues.add(ByteString.valueOf(ConfigConstants.OC_TASK));
 
@@ -198,7 +198,7 @@ public class TaskClient {
     ocValues.add(ByteString.valueOf(information.getTaskObjectclass()));
     attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, ocValues));
 
-    ArrayList<ByteString> taskIDValues = new ArrayList<ByteString>(1);
+    ArrayList<ByteString> taskIDValues = new ArrayList<>(1);
     taskIDValues.add(ByteString.valueOf(taskID));
 
     if (scheduleRecurring) {
@@ -206,7 +206,7 @@ public class TaskClient {
     }
     attributes.add(new LDAPAttribute(ATTR_TASK_ID, taskIDValues));
 
-    ArrayList<ByteString> classValues = new ArrayList<ByteString>(1);
+    ArrayList<ByteString> classValues = new ArrayList<>(1);
     classValues.add(ByteString.valueOf(information.getTaskClass().getName()));
     attributes.add(new LDAPAttribute(ATTR_TASK_CLASS, classValues));
 
@@ -214,69 +214,57 @@ public class TaskClient {
     Date startDate = information.getStartDateTime();
     if (startDate != null) {
       String startTimeString = StaticUtils.formatDateTimeString(startDate);
-      ArrayList<ByteString> startDateValues =
-              new ArrayList<ByteString>(1);
+      ArrayList<ByteString> startDateValues = new ArrayList<>(1);
       startDateValues.add(ByteString.valueOf(startTimeString));
-      attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
-              startDateValues));
+      attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME, startDateValues));
     }
 
     if (scheduleRecurring) {
-      ArrayList<ByteString> recurringPatternValues =
-        new ArrayList<ByteString>(1);
+      ArrayList<ByteString> recurringPatternValues = new ArrayList<>(1);
       recurringPatternValues.add(ByteString.valueOf(
         information.getRecurringDateTime()));
-      attributes.add(new LDAPAttribute(ATTR_RECURRING_TASK_SCHEDULE,
-        recurringPatternValues));
+      attributes.add(new LDAPAttribute(ATTR_RECURRING_TASK_SCHEDULE, recurringPatternValues));
     }
 
     // add dependency IDs
     List<String> dependencyIds = information.getDependencyIds();
     if (dependencyIds != null && dependencyIds.size() > 0) {
-      ArrayList<ByteString> dependencyIdValues =
-              new ArrayList<ByteString>(dependencyIds.size());
+      ArrayList<ByteString> dependencyIdValues = new ArrayList<>(dependencyIds.size());
       for (String dependencyId : dependencyIds) {
         dependencyIdValues.add(ByteString.valueOf(dependencyId));
       }
-      attributes.add(new LDAPAttribute(ATTR_TASK_DEPENDENCY_IDS,
-              dependencyIdValues));
+      attributes.add(new LDAPAttribute(ATTR_TASK_DEPENDENCY_IDS, dependencyIdValues));
 
       // add the dependency action
       FailedDependencyAction fda = information.getFailedDependencyAction();
       if (fda == null) {
         fda = FailedDependencyAction.defaultValue();
       }
-      ArrayList<ByteString> fdaValues =
-              new ArrayList<ByteString>(1);
+      ArrayList<ByteString> fdaValues = new ArrayList<>(1);
       fdaValues.add(ByteString.valueOf(fda.name()));
-      attributes.add(new LDAPAttribute(ATTR_TASK_FAILED_DEPENDENCY_ACTION,
-              fdaValues));
+      attributes.add(new LDAPAttribute(ATTR_TASK_FAILED_DEPENDENCY_ACTION, fdaValues));
     }
 
     // add completion notification email addresses
     List<String> compNotifEmailAddresss =
             information.getNotifyUponCompletionEmailAddresses();
     if (compNotifEmailAddresss != null && compNotifEmailAddresss.size() > 0) {
-      ArrayList<ByteString> compNotifEmailAddrValues =
-              new ArrayList<ByteString>(compNotifEmailAddresss.size());
+      ArrayList<ByteString> compNotifEmailAddrValues = new ArrayList<>(compNotifEmailAddresss.size());
       for (String emailAddr : compNotifEmailAddresss) {
         compNotifEmailAddrValues.add(ByteString.valueOf(emailAddr));
       }
-      attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_COMPLETION,
-              compNotifEmailAddrValues));
+      attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_COMPLETION, compNotifEmailAddrValues));
     }
 
     // add error notification email addresses
     List<String> errNotifEmailAddresss =
             information.getNotifyUponErrorEmailAddresses();
     if (errNotifEmailAddresss != null && errNotifEmailAddresss.size() > 0) {
-      ArrayList<ByteString> errNotifEmailAddrValues =
-              new ArrayList<ByteString>(errNotifEmailAddresss.size());
+      ArrayList<ByteString> errNotifEmailAddrValues = new ArrayList<>(errNotifEmailAddresss.size());
       for (String emailAddr : errNotifEmailAddresss) {
         errNotifEmailAddrValues.add(ByteString.valueOf(emailAddr));
       }
-      attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_ERROR,
-              errNotifEmailAddrValues));
+      attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_ERROR, errNotifEmailAddrValues));
     }
 
     information.addTaskAttributes(attributes);
@@ -301,12 +289,11 @@ public class TaskClient {
     LDAPReader reader = connection.getLDAPReader();
     LDAPWriter writer = connection.getLDAPWriter();
 
-    ArrayList<Control> controls = new ArrayList<Control>();
+    ArrayList<Control> controls = new ArrayList<>();
     ArrayList<RawAttribute> attributes = getTaskAttributes(information);
 
     ByteString entryDN = ByteString.valueOf(getTaskDN(attributes));
-    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN,
-                                                               attributes);
+    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN, attributes);
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), addRequest, controls);
 
@@ -352,7 +339,7 @@ public class TaskClient {
    */
   public synchronized List<TaskEntry> getTaskEntries()
           throws LDAPException, IOException, DecodeException {
-    List<Entry> entries = new ArrayList<Entry>();
+    List<Entry> entries = new ArrayList<>();
 
     writeSearch(new SearchRequestProtocolOp(
         ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
@@ -383,7 +370,7 @@ public class TaskClient {
       }
     }
     while (opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);
-    List<TaskEntry> taskEntries = new ArrayList<TaskEntry>(entries.size());
+    List<TaskEntry> taskEntries = new ArrayList<>(entries.size());
     for (Entry entry : entries) {
       taskEntries.add(new TaskEntry(entry));
     }
@@ -463,9 +450,9 @@ public class TaskClient {
 
         ByteString dn = ByteString.valueOf(entry.getDN().toString());
 
-        ArrayList<RawModification> mods = new ArrayList<RawModification>();
+        ArrayList<RawModification> mods = new ArrayList<>();
 
-        ArrayList<ByteString> values = new ArrayList<ByteString>();
+        ArrayList<ByteString> values = new ArrayList<>();
         String newState;
         if (TaskState.isPending(state)) {
           newState = TaskState.CANCELED_BEFORE_STARTING.name();

@@ -125,8 +125,8 @@ public class CharacterSetPasswordValidator
 
     // Process the provided password.
     String password = newPassword.toString();
-    HashMap<String,Integer> setCounts = new HashMap<String,Integer>();
-    HashMap<String,Integer> rangeCounts = new HashMap<String,Integer>();
+    HashMap<String,Integer> setCounts = new HashMap<>();
+    HashMap<String,Integer> rangeCounts = new HashMap<>();
     for (int i=0; i < password.length(); i++)
     {
       char c = password.charAt(i);
@@ -313,9 +313,9 @@ public class CharacterSetPasswordValidator
                     boolean apply)
           throws ConfigException
   {
-    HashMap<String,Integer> characterSets   = new HashMap<String,Integer>();
-    HashMap<String,Integer> characterRanges = new HashMap<String,Integer>();
-    HashSet<Character>      usedCharacters  = new HashSet<Character>();
+    HashMap<String,Integer> characterSets   = new HashMap<>();
+    HashMap<String,Integer> characterRanges = new HashMap<>();
+    HashSet<Character>      usedCharacters  = new HashSet<>();
     int mandatoryCharacterSets = 0;
 
     for (String definition : configuration.getCharacterSet())

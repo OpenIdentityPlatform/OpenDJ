@@ -575,7 +575,7 @@ class StatusCli extends ConsoleApplication
     Set<DN> administrators = desc.getAdministrativeUsers();
     if (administrators.size() > 0)
     {
-      TreeSet<DN> ordered = new TreeSet<DN>(administrators);
+      TreeSet<DN> ordered = new TreeSet<>(administrators);
       for (DN dn : ordered)
       {
         writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), dn.toString(), maxLabelWidth);
@@ -743,7 +743,7 @@ class StatusCli extends ConsoleApplication
       println(centerTitle(title));
     }
 
-    Set<BaseDNDescriptor> replicas = new HashSet<BaseDNDescriptor>();
+    Set<BaseDNDescriptor> replicas = new HashSet<>();
     Set<BackendDescriptor> bs = desc.getBackends();
     for (BackendDescriptor backend: bs)
     {

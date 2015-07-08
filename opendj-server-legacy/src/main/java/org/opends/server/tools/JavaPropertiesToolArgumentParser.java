@@ -111,7 +111,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
   @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
-    LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
+    LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<>();
     try
     {
       super.parseArguments(args);

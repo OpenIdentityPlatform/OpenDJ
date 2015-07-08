@@ -118,7 +118,7 @@ public class LDIFSearch
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.disableLogging();
 
-    LinkedHashSet<String> scopeStrings = new LinkedHashSet<String>(4);
+    LinkedHashSet<String> scopeStrings = new LinkedHashSet<>(4);
     scopeStrings.add(SCOPE_STRING_BASE);
     scopeStrings.add(SCOPE_STRING_ONE);
     scopeStrings.add(SCOPE_STRING_SUB);
@@ -273,9 +273,9 @@ public class LDIFSearch
     //Return objectclass attribute unless analysis of the arguments determines
     //otherwise.
     boolean            includeObjectclassAttrs = true;
-    final LinkedList<String> attributeNames = new LinkedList<String>();
-    LinkedList<String> objectClassNames    = new LinkedList<String>();
-    LinkedList<String> filterStrings = new LinkedList<String>();
+    final LinkedList<String> attributeNames = new LinkedList<>();
+    LinkedList<String> objectClassNames = new LinkedList<>();
+    LinkedList<String> filterStrings = new LinkedList<>();
     if (filterFile.isPresent())
     {
       BufferedReader in = null;
@@ -342,7 +342,7 @@ public class LDIFSearch
       {
         Iterator<String> iterator = trailingArguments.iterator();
 
-        filterStrings = new LinkedList<String>();
+        filterStrings = new LinkedList<>();
         filterStrings.add(iterator.next());
 
         while (iterator.hasNext())
@@ -466,7 +466,7 @@ public class LDIFSearch
 
 
     // Create the list of filters that will be used to process the searches.
-    LinkedList<SearchFilter> searchFilters = new LinkedList<SearchFilter>();
+    LinkedList<SearchFilter> searchFilters = new LinkedList<>();
     for (String filterString : filterStrings)
     {
       try
@@ -484,10 +484,8 @@ public class LDIFSearch
 
 
     // Transform the attributes to return from strings to attribute types.
-    LinkedHashSet<AttributeType> userAttributeTypes =
-         new LinkedHashSet<AttributeType>();
-    LinkedHashSet<AttributeType> operationalAttributeTypes =
-         new LinkedHashSet<AttributeType>();
+    LinkedHashSet<AttributeType> userAttributeTypes = new LinkedHashSet<>();
+    LinkedHashSet<AttributeType> operationalAttributeTypes = new LinkedHashSet<>();
     for (String attributeName : attributeNames)
     {
       AttributeType t = DirectoryServer.getAttributeType(attributeName, true);
@@ -531,7 +529,7 @@ public class LDIFSearch
 
 
     // Set the base DNs for the import config.
-    LinkedList<DN> baseDNs = new LinkedList<DN>();
+    LinkedList<DN> baseDNs = new LinkedList<>();
     if (baseDNString.isPresent())
     {
       for (String dnString : baseDNString.getValues())

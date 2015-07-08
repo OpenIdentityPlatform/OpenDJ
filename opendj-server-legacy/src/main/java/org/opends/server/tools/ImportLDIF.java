@@ -570,14 +570,14 @@ public class ImportLDIF extends TaskTool {
 
   private ArrayList<ByteString> toByteStrings(String value)
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    final ArrayList<ByteString> values = new ArrayList<>(1);
     values.add(ByteString.valueOf(value));
     return values;
   }
 
   private ArrayList<ByteString> toByteStrings(List<String> attrValues)
   {
-    final ArrayList<ByteString> values = new ArrayList<ByteString>(attrValues.size());
+    final ArrayList<ByteString> values = new ArrayList<>(attrValues.size());
     for (String includeBranche : attrValues)
     {
       values.add(ByteString.valueOf(includeBranche));
@@ -713,7 +713,7 @@ public class ImportLDIF extends TaskTool {
       // Initialize the plugin manager.
       try
       {
-        HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
+        HashSet<PluginType> pluginTypes = new HashSet<>(1);
         directoryServer.initializePlugins(pluginTypes);
       }
       catch (Exception e)
@@ -752,7 +752,7 @@ public class ImportLDIF extends TaskTool {
     // Make sure that the plugin initialization is performed.
     try
     {
-      HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
+      HashSet<PluginType> pluginTypes = new HashSet<>(1);
       pluginTypes.add(PluginType.LDIF_IMPORT);
       PluginConfigManager pluginConfigManager =
               DirectoryServer.getPluginConfigManager();
@@ -776,7 +776,7 @@ public class ImportLDIF extends TaskTool {
     }
     else
     {
-      excludeAttributes = new HashSet<AttributeType>();
+      excludeAttributes = new HashSet<>();
       for (String attrName : excludeAttributeStrings.getValues())
       {
         String        lowerName = attrName.toLowerCase();
@@ -810,7 +810,7 @@ public class ImportLDIF extends TaskTool {
     }
     else
     {
-      includeAttributes = new HashSet<AttributeType>();
+      includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings.getValues())
       {
         String        lowerName = attrName.toLowerCase();
@@ -842,7 +842,7 @@ public class ImportLDIF extends TaskTool {
     }
     else
     {
-      excludeFilters = new ArrayList<SearchFilter>();
+      excludeFilters = new ArrayList<>();
       for (String filterString : excludeFilterStrings.getValues())
       {
         try
@@ -869,7 +869,7 @@ public class ImportLDIF extends TaskTool {
     }
     else
     {
-      includeFilters = new ArrayList<SearchFilter>();
+      includeFilters = new ArrayList<>();
       for (String filterString : includeFilterStrings.getValues())
       {
         try
@@ -896,8 +896,8 @@ public class ImportLDIF extends TaskTool {
     // excluded from the import.
     Backend<?> backend = null;
     Set<DN> defaultIncludeBranches = null;
-    Set<DN> excludeBranches = new HashSet<DN>();
-    Set<DN> includeBranches = new HashSet<DN>();
+    Set<DN> excludeBranches = new HashSet<>();
+    Set<DN> includeBranches = new HashSet<>();
 
     if (includeBranchStrings.isPresent())
     {
@@ -923,9 +923,9 @@ public class ImportLDIF extends TaskTool {
       }
     }
 
-    ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
-    ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
+    ArrayList<Backend>     backendList = new ArrayList<>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
+    ArrayList<List<DN>> dnList = new ArrayList<>();
     int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
     if (code != 0)
     {
@@ -955,7 +955,7 @@ public class ImportLDIF extends TaskTool {
       if (backend == null)
       {
         backend                = b;
-        defaultIncludeBranches = new HashSet<DN>(dnList.get(i));
+        defaultIncludeBranches = new HashSet<>(dnList.get(i));
       }
       else
       {
@@ -1051,7 +1051,7 @@ public class ImportLDIF extends TaskTool {
     LDIFImportConfig importConfig;
     if (ldifFiles.isPresent())
     {
-      ArrayList<String> fileList = new ArrayList<String>(ldifFiles.getValues());
+      ArrayList<String> fileList = new ArrayList<>(ldifFiles.getValues());
       int badFileCount = 0;
       for (String pathname : fileList)
       {
@@ -1073,7 +1073,7 @@ public class ImportLDIF extends TaskTool {
                             PATH_MAKELDIF_RESOURCE_DIR;
       TemplateFile tf = new TemplateFile(resourcePath, random);
 
-      ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> warnings = new ArrayList<>();
       try
       {
         tf.parse(templateFile.getValue(), warnings);

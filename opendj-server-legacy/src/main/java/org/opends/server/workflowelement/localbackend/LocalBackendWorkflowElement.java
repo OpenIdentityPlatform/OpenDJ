@@ -207,8 +207,7 @@ public class LocalBackendWorkflowElement
   private final Backend<?> backend;
 
   /** The set of local backend workflow elements registered with the server. */
-  private static TreeMap<DN, LocalBackendWorkflowElement> registeredLocalBackends =
-      new TreeMap<DN, LocalBackendWorkflowElement>();
+  private static TreeMap<DN, LocalBackendWorkflowElement> registeredLocalBackends = new TreeMap<>();
 
   /** A lock to guarantee safe concurrent access to the registeredLocalBackends variable. */
   private static final Object registeredLocalBackendsLock = new Object();
@@ -706,8 +705,7 @@ public class LocalBackendWorkflowElement
       LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(baseDN);
       if (existingLocalBackend == null)
       {
-        TreeMap<DN, LocalBackendWorkflowElement> newLocalBackends =
-            new TreeMap<DN, LocalBackendWorkflowElement>(registeredLocalBackends);
+        TreeMap<DN, LocalBackendWorkflowElement> newLocalBackends = new TreeMap<>(registeredLocalBackends);
         newLocalBackends.put(baseDN, localBackend);
         registeredLocalBackends = newLocalBackends;
       }
@@ -729,8 +727,7 @@ public class LocalBackendWorkflowElement
       LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(baseDN);
       if (existingLocalBackend != null)
       {
-        TreeMap<DN, LocalBackendWorkflowElement> newLocalBackends =
-            new TreeMap<DN, LocalBackendWorkflowElement>(registeredLocalBackends);
+        TreeMap<DN, LocalBackendWorkflowElement> newLocalBackends = new TreeMap<>(registeredLocalBackends);
         newLocalBackends.remove(baseDN);
         registeredLocalBackends = newLocalBackends;
       }
@@ -804,7 +801,7 @@ public class LocalBackendWorkflowElement
   static <O extends Operation, L> void attachLocalOperation(O globalOperation, L currentLocalOperation)
   {
     List<?> existingAttachment = (List<?>) globalOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
-    List<L> newAttachment = new ArrayList<L>();
+    List<L> newAttachment = new ArrayList<>();
 
     if (existingAttachment != null)
     {
@@ -1036,7 +1033,7 @@ public class LocalBackendWorkflowElement
   {
     final RootDSEBackend rootDSEBackend = DirectoryServer.getRootDSEBackend();
 
-    final List<LocalBackendWorkflowElement> results = new ArrayList<LocalBackendWorkflowElement>();
+    final List<LocalBackendWorkflowElement> results = new ArrayList<>();
     for (DN subordinateBaseDN : rootDSEBackend.getSubordinateBaseDNs().keySet())
     {
       results.add(registeredLocalBackends.get(subordinateBaseDN));
@@ -1134,7 +1131,7 @@ public class LocalBackendWorkflowElement
     final DN baseDN = workflow.getBaseDN();
     final Backend<?> backend = workflow.getBackend();
 
-    final ArrayList<LocalBackendWorkflowElement> results = new ArrayList<LocalBackendWorkflowElement>();
+    final ArrayList<LocalBackendWorkflowElement> results = new ArrayList<>();
     for (Backend<?> subordinate : backend.getSubordinateBackends())
     {
       for (DN subordinateDN : subordinate.getBaseDNs())

@@ -168,7 +168,7 @@ public final class EntryUUIDPlugin
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
     Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());
-    uuidList = new ArrayList<Attribute>(1);
+    uuidList = new ArrayList<>(1);
     uuidList.add(uuidAttr);
     entry.putAttribute(entryUUIDType, uuidList);
 
@@ -199,7 +199,7 @@ public final class EntryUUIDPlugin
     // Construct a new random UUID.
     UUID uuid = UUID.randomUUID();
     Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());
-    uuidList = new ArrayList<Attribute>(1);
+    uuidList = new ArrayList<>(1);
     uuidList.add(uuidAttr);
 
 

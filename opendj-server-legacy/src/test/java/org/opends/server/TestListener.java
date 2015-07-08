@@ -573,9 +573,9 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
   }
 
-  private final LinkedHashSet<Class<?>> _classesWithTestsRunInterleaved = new LinkedHashSet<Class<?>>();
+  private final LinkedHashSet<Class<?>> _classesWithTestsRunInterleaved = new LinkedHashSet<>();
   private Object _lastTestObject;
-  private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<Object,Object>();
+  private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<>();
   private void checkForInterleavedBetweenClasses(ITestResult tr) {
     Object[] testInstances = tr.getMethod().getInstances();
     // This will almost always have a single element.  If it doesn't, just skip it.
@@ -607,7 +607,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  private Set<Method> _checkedForAnnotation = new HashSet<Method>();
+  private Set<Method> _checkedForAnnotation = new HashSet<>();
   private void enforceMethodHasAnnotation(ITestResult tr) {
     // Only warn once per method.
     Method testMethod = tr.getMethod().getMethod();
@@ -841,7 +841,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     return runtime.totalMemory() - runtime.freeMemory();
   }
 
-  private final LinkedHashMap<IClass, TestClassResults> _classResults = new LinkedHashMap<IClass, TestClassResults>();
+  private final LinkedHashMap<IClass, TestClassResults> _classResults = new LinkedHashMap<>();
 
   private TestClassResults getResultsForClass(IClass cls) {
     TestClassResults results = _classResults.get(cls);
@@ -892,7 +892,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   private synchronized List<TestMethodResults> getAllMethodResults() {
-    List<TestMethodResults> allResults = new ArrayList<TestMethodResults>();
+    List<TestMethodResults> allResults = new ArrayList<>();
     for (TestClassResults results: _classResults.values()) {
       allResults.addAll(results.getAllMethodResults());
     }
@@ -943,7 +943,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   private List<TestClassResults> getClassesDescendingSortedByDuration() {
-    List<TestClassResults> allClasses = new ArrayList<TestClassResults>(_classResults.values());
+    List<TestClassResults> allClasses = new ArrayList<>(_classResults.values());
     Collections.sort(allClasses, new Comparator<TestClassResults>() {
       @Override
       public int compare(TestClassResults o1, TestClassResults o2) {
@@ -965,7 +965,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private static class TestClassResults {
     private final IClass _cls;
-    private final LinkedHashMap<ITestNGMethod, TestMethodResults> _methods = new LinkedHashMap<ITestNGMethod, TestMethodResults>();
+    private final LinkedHashMap<ITestNGMethod, TestMethodResults> _methods = new LinkedHashMap<>();
     private int _totalInvocations;
     private long _totalDurationMs;
 

@@ -70,8 +70,7 @@ public final class FractionalLDIFImportPlugin
    * session. This allows to potentially run man imports at the same time.
    */
   private final Map<LDIFImportConfig, ImportFractionalContext>
-    importSessionContexts = new Hashtable<LDIFImportConfig,
-    ImportFractionalContext>();
+    importSessionContexts = new Hashtable<>();
 
   /**
    * Holds an import session fractional context.
@@ -460,7 +459,7 @@ public final class FractionalLDIFImportPlugin
       // Now flush attribute values into entry
       if (somethingToFlush)
       {
-        List<ByteString> duplicateValues = new ArrayList<ByteString>();
+        List<ByteString> duplicateValues = new ArrayList<>();
         entry.addAttribute(attrBuilder.toAttribute(), duplicateValues);
       }
     }

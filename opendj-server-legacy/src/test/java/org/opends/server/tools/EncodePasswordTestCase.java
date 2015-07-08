@@ -93,8 +93,8 @@ public class EncodePasswordTestCase
   @DataProvider(name = "invalidArgs")
   public Object[][] getInvalidArgumentLists()
   {
-    ArrayList<String[]> argLists   = new ArrayList<String[]>();
-    ArrayList<String>   reasonList = new ArrayList<String>();
+    ArrayList<String[]> argLists   = new ArrayList<>();
+    ArrayList<String>   reasonList = new ArrayList<>();
 
     String[] args = new String[] {};
     argLists.add(args);

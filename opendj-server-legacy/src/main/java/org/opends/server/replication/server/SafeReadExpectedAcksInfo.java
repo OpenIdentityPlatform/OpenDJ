@@ -59,7 +59,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
    * server id of the list had one of the 3 possible errors (timeout, wrong
    * status or replay error).
    */
-  private List<Integer> failedServers = new ArrayList<Integer>();
+  private List<Integer> failedServers = new ArrayList<>();
 
   /**
    * Number of servers we want an ack from and from which we received the ack.
@@ -215,7 +215,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
 
       // Add servers that did not respond in time
       Set<Integer> serverIds = expectedServersAckStatus.keySet();
-      serversInTimeout = new ArrayList<Integer>(); // Use next loop to fill it
+      serversInTimeout = new ArrayList<>(); // Use next loop to fill it
       for (int serverId : serverIds)
       {
         boolean ackReceived = expectedServersAckStatus.get(serverId);

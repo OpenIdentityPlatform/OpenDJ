@@ -415,7 +415,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   static final Map<String, Integer> CIPHER_MAP;
   static
   {
-    final Map<String, Integer> map = new LinkedHashMap<String, Integer>();
+    final Map<String, Integer> map = new LinkedHashMap<>();
     map.put("_WITH_AES_256_", 256);
     map.put("_WITH_ARIA_256_", 256);
     map.put("_WITH_CAMELLIA_256_", 256);

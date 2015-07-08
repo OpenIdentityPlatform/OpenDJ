@@ -741,7 +741,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
       Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-subject-attribute-mapping"));
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.DELETE, a));
 
     InternalClientConnection conn =
@@ -870,10 +870,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     String mapperDN = "cn=Subject Attribute to User Attribute," +
                       "cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-certificate-mapper",
-                                            mapperDN)));
+        Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -896,10 +895,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Subject Equals DN,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-certificate-mapper",
-                                            mapperDN)));
+        Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -937,9 +935,8 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
       }
     }
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        builder.toAttribute()));
+    ArrayList<Modification> mods = new ArrayList<>();
+    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -978,9 +975,8 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
       }
     }
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              builder.toAttribute()));
+    ArrayList<Modification> mods = new ArrayList<>();
+    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

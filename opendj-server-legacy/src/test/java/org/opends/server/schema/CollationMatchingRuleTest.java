@@ -263,12 +263,12 @@ public final class CollationMatchingRuleTest
   @Test
   public void testSortControlLTERule() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(user4);
     expectedDNOrder.add(user3);
     expectedDNOrder.add(user2);
     expectedDNOrder.add(user1);
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    ArrayList<Control> requestControls = new ArrayList<>();
     requestControls.add(new ServerSideSortRequestControl("displayname:fr"));
     ValidateSortControl("displayname:fr-FR.6:=A*", expectedDNOrder, requestControls);
   }
@@ -281,12 +281,12 @@ public final class CollationMatchingRuleTest
   @Test
   public void testSortControlEQRule() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(user4);
     expectedDNOrder.add(user3);
     expectedDNOrder.add(user2);
     expectedDNOrder.add(user1);
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    ArrayList<Control> requestControls = new ArrayList<>();
     requestControls.add(new ServerSideSortRequestControl("displayname:es"));
     ValidateSortControl("displayname:es.6:=A*", expectedDNOrder, requestControls);
   }
@@ -299,12 +299,12 @@ public final class CollationMatchingRuleTest
   @Test
   public void testSortControlGTRule() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(user1);
     expectedDNOrder.add(user2);
     expectedDNOrder.add(user3);
     expectedDNOrder.add(user4);
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    ArrayList<Control> requestControls = new ArrayList<>();
     requestControls.add(new ServerSideSortRequestControl("-displayname:en"));
     ValidateSortControl("displayname:en-US.6:=A*", expectedDNOrder, requestControls);
   }
@@ -318,12 +318,12 @@ public final class CollationMatchingRuleTest
   @Test
   public void testVLVSortControl() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(user4);
     expectedDNOrder.add(user3);
     expectedDNOrder.add(user2);
     expectedDNOrder.add(user1);
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    ArrayList<Control> requestControls = new ArrayList<>();
     requestControls.add(new ServerSideSortRequestControl("displayname:fr"));
     requestControls.add(new VLVRequestControl(0, 4, 1, 0));
     ValidateSortControl("objectclass=inetOrgPerson", expectedDNOrder, requestControls);
@@ -353,7 +353,7 @@ public final class CollationMatchingRuleTest
 
   private ArrayList<DN> getDNs(InternalSearchOperation internalSearch)
   {
-    ArrayList<DN> results = new ArrayList<DN>();
+    ArrayList<DN> results = new ArrayList<>();
     for (Entry e : internalSearch.getSearchEntries())
     {
       results.add(e.getName());

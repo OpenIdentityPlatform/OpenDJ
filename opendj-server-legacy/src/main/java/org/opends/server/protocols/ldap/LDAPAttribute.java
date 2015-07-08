@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -62,7 +62,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<ByteString>(0);
+    values = new ArrayList<>(0);
   }
 
 
@@ -77,7 +77,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<ByteString>(1);
+    values = new ArrayList<>(1);
     values.add(ByteString.valueOf(value));
   }
 
@@ -93,7 +93,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<ByteString>(1);
+    values = new ArrayList<>(1);
     values.add(value);
   }
 
@@ -111,11 +111,11 @@ public class LDAPAttribute
 
     if (values == null)
     {
-      this.values = new ArrayList<ByteString>(0);
+      this.values = new ArrayList<>(0);
     }
     else
     {
-      this.values = new ArrayList<ByteString>(values.size());
+      this.values = new ArrayList<>(values.size());
       for (String value : values)
       {
         this.values.add(ByteString.valueOf(value));
@@ -137,7 +137,7 @@ public class LDAPAttribute
 
     if (values == null)
     {
-      this.values = new ArrayList<ByteString>(0);
+      this.values = new ArrayList<>(0);
     }
     else
     {
@@ -158,16 +158,16 @@ public class LDAPAttribute
 
     if (attribute.isVirtual())
     {
-      values = new ArrayList<ByteString>();
+      values = new ArrayList<>();
     }
     else if (attribute.isEmpty())
     {
-      values = new ArrayList<ByteString>(0);
+      values = new ArrayList<>(0);
       return;
     }
     else
     {
-      values = new ArrayList<ByteString>(attribute.size());
+      values = new ArrayList<>(attribute.size());
     }
 
     for (ByteString v : attribute)

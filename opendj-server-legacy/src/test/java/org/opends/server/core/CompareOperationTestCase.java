@@ -422,7 +422,7 @@ public class CompareOperationTestCase extends OperationTestCase
     LDAPFilter ldapFilter = LDAPFilter.decode("(preferredlanguage=ja)");
     LDAPAssertionRequestControl assertControl =
          new LDAPAssertionRequestControl(true, ldapFilter);
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(assertControl);
 
     CompareOperationBasis compareOperation =
@@ -452,7 +452,7 @@ public class CompareOperationTestCase extends OperationTestCase
     LDAPFilter ldapFilter = LDAPFilter.decode("(preferredlanguage=en)");
     LDAPAssertionRequestControl assertControl =
          new LDAPAssertionRequestControl(true, ldapFilter);
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(assertControl);
 
     CompareOperationBasis compareOperation =
@@ -478,7 +478,7 @@ public class CompareOperationTestCase extends OperationTestCase
     ProxiedAuthV1Control authV1Control =
          new ProxiedAuthV1Control(ByteString.valueOf(
               "cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(authV1Control);
 
     CompareOperationBasis compareOperation =
@@ -507,7 +507,7 @@ public class CompareOperationTestCase extends OperationTestCase
 
     ProxiedAuthV1Control authV1Control =
          new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(authV1Control);
 
     CompareOperationBasis compareOperation =
@@ -534,7 +534,7 @@ public class CompareOperationTestCase extends OperationTestCase
     ProxiedAuthV2Control authV2Control =
          new ProxiedAuthV2Control(ByteString.valueOf(
                   "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(authV2Control);
 
     CompareOperationBasis compareOperation =
@@ -561,7 +561,7 @@ public class CompareOperationTestCase extends OperationTestCase
 
     ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
          ByteString.valueOf("dn:cn=nonexistent,o=test"));
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(authV2Control);
 
     CompareOperationBasis compareOperation =
@@ -589,7 +589,7 @@ public class CompareOperationTestCase extends OperationTestCase
          new LDAPControl(ServerConstants.OID_PROXIED_AUTH_V2, false,
                      ByteString.empty());
 
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(authV2Control);
 
     CompareOperationBasis compareOperation =
@@ -619,7 +619,7 @@ public class CompareOperationTestCase extends OperationTestCase
     LDAPFilter.decode("(preferredlanguage=ja)");
     LDAPControl assertControl =
          new LDAPControl("1.1.1.1.1.1", true);
-    List<Control> controls = new ArrayList<Control>();
+    List<Control> controls = new ArrayList<>();
     controls.add(assertControl);
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(

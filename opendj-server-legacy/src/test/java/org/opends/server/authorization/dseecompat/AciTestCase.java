@@ -99,7 +99,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     {
       Reporter.log("Restoring global ACI attribute: " + globalACIAttribute);
 
-      List<Modification> modifications = new ArrayList<Modification>(1);
+      List<Modification> modifications = new ArrayList<>(1);
       modifications.add(new Modification(ModificationType.REPLACE,
           globalACIAttribute));
       InternalClientConnection conn =
@@ -166,15 +166,14 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
                   "allow (read) userdn=\"ldap:///anyone\";)";
 
   private static final ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-  private  static final ThreadLocal<Map<String,File>> tempLdifFile =
-           new ThreadLocal<Map<String,File>>();
+  private static final ThreadLocal<Map<String, File>> tempLdifFile = new ThreadLocal<>();
 
 
   protected String pwdModify(String bindDn, String bindPassword,
                              String newPassword, String noOpControl,
                              String pwdPolicyControl, int expectedRc) {
 
-    ArrayList<String> argList=new ArrayList<String>(20);
+    ArrayList<String> argList=new ArrayList<>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -206,7 +205,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   protected String LDAPSearchCtrl(String bindDn, String bindPassword,
                             String proxyDN, String controlStr,
                             String base, String filter, String attr) {
-    ArrayList<String> argList=new ArrayList<String>(20);
+    ArrayList<String> argList=new ArrayList<>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -264,7 +263,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
                             String base, String filter ,String attr,
                             boolean pwdPolicy, boolean reportAuthzID,
                             int expectedRc) {
-    List<String> argList = new ArrayList<String>(20);
+    List<String> argList = new ArrayList<>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -351,7 +350,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   private void _LDIFDelete(String dn, String bindDn, String bindPassword,
       String controlStr, int expectedRc)
   {
-    List<String> argList = new ArrayList<String>(20);
+    List<String> argList = new ArrayList<>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -383,7 +382,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
-    ArrayList<String> argList=new ArrayList<String>(20);
+    ArrayList<String> argList=new ArrayList<>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -534,7 +533,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   private File getTemporaryLdifFile() throws IOException {
     Map<String,File> tempFilesForThisThread = tempLdifFile.get();
     if (tempFilesForThisThread == null) {
-      tempFilesForThisThread = new HashMap<String,File>();
+      tempFilesForThisThread = new HashMap<>();
       tempLdifFile.set(tempFilesForThisThread);
     }
     File tempFile = tempFilesForThisThread.get("effectiverights-tests");
@@ -721,7 +720,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   {
     StringReader r=new StringReader(resultString);
     BufferedReader br=new BufferedReader(r);
-    Map<String, String> attrMap = new HashMap<String, String>();
+    Map<String, String> attrMap = new HashMap<>();
     try {
       while(true) {
         String s = br.readLine();

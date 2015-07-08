@@ -110,8 +110,7 @@ public class PrivilegeTestCase extends TypesTestCase
    * A Map of client connections that should be used when performing operations
    * and whether config read operations should be successful.
    */
-  private Map<InternalClientConnection, Boolean> connections =
-      new HashMap<InternalClientConnection, Boolean>();
+  private Map<InternalClientConnection, Boolean> connections = new HashMap<>();
 
   /**
    * Make sure that the server is running and that an appropriate set of
@@ -507,7 +506,7 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
 
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create("ds-cfg-size-limit", "2000")));
 
@@ -631,7 +630,7 @@ public class PrivilegeTestCase extends TypesTestCase
     assertEquals(conn.hasPrivilege(Privilege.SUBENTRY_WRITE, null),
             hasPrivilege);
 
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
                               Attributes.create("subtreeSpecification",
                               "{base \"ou=doesnotexist\"}")));
@@ -870,7 +869,7 @@ public class PrivilegeTestCase extends TypesTestCase
          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
          "X-ORIGIN 'PrivilegeTestCase' )";
 
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("attributetypes", attrDefinition)));
 
@@ -1176,7 +1175,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "givenName: ProxyV1",
       "sn: Test");
 
-    List<Control> controls = new ArrayList<Control>(1);
+    List<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV1Control(DN.valueOf("cn=PWReset Target,o=test")));
 
 
@@ -1195,7 +1194,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Try to modify the entry to add a description.
-    List<Modification> mods = new ArrayList<Modification>(1);
+    List<Modification> mods = new ArrayList<>(1);
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
@@ -1259,7 +1258,7 @@ public class PrivilegeTestCase extends TypesTestCase
     boolean hasProxyPrivilege = conn.hasPrivilege(Privilege.PROXIED_AUTH, null);
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
-    List<Control> controls = new ArrayList<Control>(1);
+    List<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV1Control(targetDN));
 
 
@@ -1321,7 +1320,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "givenName: ProxyV2",
       "sn: Test");
 
-    List<Control> controls = new ArrayList<Control>(1);
+    List<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:cn=PWReset Target,o=test")));
 
 
@@ -1341,7 +1340,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Try to modify the entry to add a description.
-    List<Modification> mods = new ArrayList<Modification>(1);
+    List<Modification> mods = new ArrayList<>(1);
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
@@ -1406,7 +1405,7 @@ public class PrivilegeTestCase extends TypesTestCase
     boolean hasProxyPrivilege = conn.hasPrivilege(Privilege.PROXIED_AUTH, null);
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
-    List<Control> controls = new ArrayList<Control>(1);
+    List<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
 
 
@@ -2293,7 +2292,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
       // Modify the user entry to add the CONFIG_READ privilege and verify that
       // the client connection reflects that.
-      List<Modification> mods = new ArrayList<Modification>();
+      List<Modification> mods = new ArrayList<>();
       mods.add(new Modification(ModificationType.ADD, Attributes.create(
           "ds-privilege-name", "config-read")));
       ModifyOperation modifyOperation = rootConnection.processModify(
@@ -2344,7 +2343,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // Update the set of root privileges to include proxied auth.
     InternalClientConnection internalRootConn = getRootConnection();
 
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
@@ -2385,13 +2384,13 @@ public class PrivilegeTestCase extends TypesTestCase
   @Test
   public void testConfigurablePrivilegeSets()
   {
-    Set<String> serverPrivNames = new HashSet<String>();
+    Set<String> serverPrivNames = new HashSet<>();
     for (Privilege p : Privilege.values())
     {
       serverPrivNames.add(p.toString());
     }
 
-    Set<String> defaultRootPrivNames = new HashSet<String>();
+    Set<String> defaultRootPrivNames = new HashSet<>();
     for (RootDNCfgDefn.DefaultRootPrivilegeName p :
          RootDNCfgDefn.DefaultRootPrivilegeName.values())
     {
@@ -2401,7 +2400,7 @@ public class PrivilegeTestCase extends TypesTestCase
                  "default root privilege " + p);
     }
 
-    Set<String> disableablePrivNames = new HashSet<String>();
+    Set<String> disableablePrivNames = new HashSet<>();
     for (DisabledPrivilege p : DisabledPrivilege.values())
     {
       disableablePrivNames.add(p.toString());

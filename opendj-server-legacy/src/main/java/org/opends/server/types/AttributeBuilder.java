@@ -673,7 +673,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
       if (initialCapacity > 1)
       {
-        elements = new LinkedHashSet<T>(initialCapacity);
+        elements = new LinkedHashSet<>(initialCapacity);
       }
     }
 
@@ -696,7 +696,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
           return false;
         }
 
-        elements = new LinkedHashSet<T>(2);
+        elements = new LinkedHashSet<>(2);
 
         // Move the first value into the set.
         elements.add(firstElement);
@@ -716,7 +716,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
       if (firstElement != null)
       {
-        elements = new LinkedHashSet<T>(1 + c.size());
+        elements = new LinkedHashSet<>(1 + c.size());
         elements.add(firstElement);
         firstElement = null;
         return elements.addAll(c);
@@ -732,7 +732,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
         firstElement = c.iterator().next();
         return true;
       default:
-        elements = new LinkedHashSet<T>(c);
+        elements = new LinkedHashSet<>(c);
         return true;
       }
     }
@@ -844,7 +844,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
       if (initialCapacity > 1)
       {
-        elements = new LinkedHashSet<T>(initialCapacity);
+        elements = new LinkedHashSet<>(initialCapacity);
       }
     }
 
@@ -1046,7 +1046,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
   private SortedSet<String> normalizedOptions;
 
   /** The set of options. */
-  private final SmallSet<String> options = new SmallSet<String>();
+  private final SmallSet<String> options = new SmallSet<>();
 
   /** The set of attribute values, which are lazily normalized. */
   private Set<AttributeValue> values = new SmallSet<>();
@@ -1598,7 +1598,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
       return options.add(option);
     case 1:
       // Normalize and add the first option to normalized set.
-      normalizedOptions = new TreeSet<String>();
+      normalizedOptions = new TreeSet<>();
       normalizedOptions.add(toLowerCase(options.firstElement));
 
       if (normalizedOptions.add(toLowerCase(option)))
@@ -1790,7 +1790,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     name = null;
     normalizedOptions = null;
     options.clear();
-    values = new SmallSet<AttributeValue>();
+    values = new SmallSet<>();
 
     return attribute;
   }

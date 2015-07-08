@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -107,8 +107,8 @@ public class LDAPSearchTestCase
   @DataProvider(name = "invalidArgs")
   public Object[][] getInvalidArgumentLists()
   {
-    ArrayList<String[]> argLists   = new ArrayList<String[]>();
-    ArrayList<String>   reasonList = new ArrayList<String>();
+    ArrayList<String[]> argLists   = new ArrayList<>();
+    ArrayList<String>   reasonList = new ArrayList<>();
 
     String[] args = {};
     argLists.add(args);

@@ -1092,7 +1092,7 @@ public class LocalBackendModifyOperation
 
         if (newPasswords == null)
         {
-          newPasswords = new LinkedList<ByteString>();
+          newPasswords = new LinkedList<>();
         }
 
         newPasswords.add(v);
@@ -1228,7 +1228,7 @@ public class LocalBackendModifyOperation
         {
           if (currentPasswords == null)
           {
-            currentPasswords = new LinkedList<ByteString>();
+            currentPasswords = new LinkedList<>();
           }
           currentPasswords.add(v);
           numPasswords--;
@@ -1336,9 +1336,8 @@ public class LocalBackendModifyOperation
     }
 
     // Add the provided attribute or merge an existing attribute with
-    // the values of the new attribute. If there are any duplicates,
-    // then fail.
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    // the values of the new attribute. If there are any duplicates, then fail.
+    List<ByteString> duplicateValues = new LinkedList<>();
     modifiedEntry.addAttribute(attr, duplicateValues);
     if (!duplicateValues.isEmpty() && !permissiveModify)
     {
@@ -1419,7 +1418,7 @@ public class LocalBackendModifyOperation
     // Remove the specified attribute values or the entire attribute from the
     // value.  If there are any specified values that were not present, then
     // fail.  If the RDN attribute value would be removed, then fail.
-    List<ByteString> missingValues = new LinkedList<ByteString>();
+    List<ByteString> missingValues = new LinkedList<>();
     boolean attrExists = modifiedEntry.removeAttribute(attr, missingValues);
 
     if (attrExists)
@@ -1688,7 +1687,7 @@ public class LocalBackendModifyOperation
     if (newPasswords != null
         && (selfChange || !authPolicy.isSkipValidationForAdministrators()))
     {
-      HashSet<ByteString> clearPasswords = new HashSet<ByteString>(pwPolicyState.getClearPasswords());
+      HashSet<ByteString> clearPasswords = new HashSet<>(pwPolicyState.getClearPasswords());
       if (currentPasswords != null)
       {
         if (clearPasswords.isEmpty())

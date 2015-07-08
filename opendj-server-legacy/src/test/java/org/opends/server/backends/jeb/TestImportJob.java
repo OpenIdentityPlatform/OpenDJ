@@ -296,7 +296,7 @@ public class TestImportJob extends JebTestCase
   public void testImportAll() throws Exception
   {
     TestCaseUtils.clearJEBackend(backendID);
-    ArrayList<String> fileList = new ArrayList<String>();
+    ArrayList<String> fileList = new ArrayList<>();
     fileList.add(homeDirName + File.separator + "top.ldif");
     fileList.add(homeDirName + File.separator + "entries1.ldif");
 
@@ -372,7 +372,7 @@ public class TestImportJob extends JebTestCase
   @Test(dependsOnMethods = "testImportAll")
   public void testImportPartial() throws Exception
   {
-    ArrayList<String> fileList = new ArrayList<String>();
+    ArrayList<String> fileList = new ArrayList<>();
     fileList.add(homeDirName + File.separator + "top.ldif");
     fileList.add(homeDirName + File.separator + "entries1.ldif");
 

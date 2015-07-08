@@ -115,8 +115,8 @@ public class Branch
     // Get the RDN template lines based just on the entry DN.
     Entry entry = createEntry(branchDN);
 
-    ArrayList<LocalizableMessage>       warnings = new ArrayList<LocalizableMessage>();
-    ArrayList<TemplateLine> lineList = new ArrayList<TemplateLine>();
+    ArrayList<LocalizableMessage> warnings = new ArrayList<>();
+    ArrayList<TemplateLine> lineList = new ArrayList<>();
 
     for (String ocName : entry.getObjectClasses().values())
     {

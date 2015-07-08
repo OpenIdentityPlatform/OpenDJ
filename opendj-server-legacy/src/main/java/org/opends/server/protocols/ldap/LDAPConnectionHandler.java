@@ -434,7 +434,7 @@ public final class LDAPConnectionHandler extends
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
         ALERT_DESCRIPTION_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
@@ -471,7 +471,7 @@ public final class LDAPConnectionHandler extends
   @Override
   public Collection<ClientConnection> getClientConnections()
   {
-    List<ClientConnection> connectionList = new LinkedList<ClientConnection>();
+    List<ClientConnection> connectionList = new LinkedList<>();
     for (LDAPRequestHandler requestHandler : requestHandlers)
     {
       connectionList.addAll(requestHandler.getClientConnections());
@@ -692,7 +692,7 @@ public final class LDAPConnectionHandler extends
 
     // Construct a unique name for this connection handler, and put
     // together the set of listeners.
-    listeners = new LinkedList<HostPort>();
+    listeners = new LinkedList<>();
     StringBuilder nameBuffer = new StringBuilder();
     nameBuffer.append(friendlyName);
     for (InetAddress a : listenAddresses)
@@ -726,8 +726,8 @@ public final class LDAPConnectionHandler extends
         .newSingleThreadScheduledExecutor(new DirectoryThread.Factory(
             "LDAP Connection Finalizer for connection handler " + toString()));
 
-    connectionFinalizerActiveJobQueue = new ArrayList<Runnable>();
-    connectionFinalizerPendingJobQueue = new ArrayList<Runnable>();
+    connectionFinalizerActiveJobQueue = new ArrayList<>();
+    connectionFinalizerPendingJobQueue = new ArrayList<>();
 
     connectionFinalizer.scheduleWithFixedDelay(
         new ConnectionFinalizerRunnable(), 100, 100, TimeUnit.MILLISECONDS);

@@ -66,7 +66,7 @@ public class ModifyRequestProtocolOp
   public ModifyRequestProtocolOp(ByteString dn)
   {
     this.dn            = dn;
-    this.modifications = new ArrayList<RawModification>();
+    this.modifications = new ArrayList<>();
   }
 
 
@@ -85,7 +85,7 @@ public class ModifyRequestProtocolOp
 
     if (modifications == null)
     {
-      this.modifications = new ArrayList<RawModification>();
+      this.modifications = new ArrayList<>();
     }
     else
     {

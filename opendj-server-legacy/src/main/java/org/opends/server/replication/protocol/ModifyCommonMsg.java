@@ -170,7 +170,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   protected List<Modification> decodeMods(byte[] in) throws IOException,
       LDAPException
   {
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     ASN1Reader reader = ASN1.getReader(in);
     while (reader.hasNextElement())
     {
@@ -189,7 +189,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   protected List<RawModification> decodeRawMods(byte[] in)
       throws LDAPException, IOException
   {
-    List<RawModification> ldapmods = new ArrayList<RawModification>();
+    List<RawModification> ldapmods = new ArrayList<>();
     ASN1Reader asn1Reader = ASN1.getReader(in);
     while(asn1Reader.hasNextElement())
     {
@@ -197,5 +197,4 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     }
     return ldapmods;
   }
-
 }

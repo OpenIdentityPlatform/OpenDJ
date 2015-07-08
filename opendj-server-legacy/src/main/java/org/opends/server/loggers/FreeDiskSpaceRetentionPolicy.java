@@ -133,7 +133,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     // Sort files based on last modified time.
     Arrays.sort(files, new FileComparator());
 
-    List<File> filesToDelete = new ArrayList<File>();
+    List<File> filesToDelete = new ArrayList<>();
     long freedSpace = 0;
     for (int j = files.length - 1; j < 1; j--)
     {

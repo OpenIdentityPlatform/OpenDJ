@@ -124,7 +124,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   };
 
   /** Map that holds the unique log instance for each log path. */
-  private static final Map<File, Log<?, ?>> logsCache = new HashMap<File, Log<?, ?>>();
+  private static final Map<File, Log<?, ?>> logsCache = new HashMap<>();
 
   /**
    * The number of references on this log instance. It is incremented each time
@@ -153,7 +153,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * <p>
    * The read-only log files are associated with the highest key they contain.
    */
-  private final TreeMap<K, LogFile<K, V>> logFiles = new TreeMap<K, LogFile<K, V>>();
+  private final TreeMap<K, LogFile<K, V>> logFiles = new TreeMap<>();
 
   /**
    * The last key appended to the log. In order to keep the ordering of the keys
@@ -166,7 +166,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * The list of non-empty cursors opened on this log. Opened cursors may have
    * to be updated when rotating the head log file.
    */
-  private final List<AbortableLogCursor<K, V>> openCursors = new CopyOnWriteArrayList<AbortableLogCursor<K, V>>();
+  private final List<AbortableLogCursor<K, V>> openCursors = new CopyOnWriteArrayList<>();
 
   /**
    * A log file can be rotated once it has exceeded this size limit. The log file can have
@@ -234,7 +234,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     Log<K, V> log = (Log<K, V>) logsCache.get(logPath);
     if (log == null)
     {
-      log = new Log<K, V>(replicationEnv, logPath, parser, rotationParameters);
+      log = new Log<>(replicationEnv, logPath, parser, rotationParameters);
       logsCache.put(logPath, log);
     }
     else
@@ -254,7 +254,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * @return an empty cursor
    */
   static <K extends Comparable<K>, V> RepositionableCursor<K, V> getEmptyCursor() {
-    return new Log.EmptyCursor<K, V>();
+    return new Log.EmptyCursor<>();
   }
 
   /** Holds the parameters for log files rotation. */
@@ -537,9 +537,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     {
       if (isClosed)
       {
-        return new EmptyCursor<K, V>();
+        return new EmptyCursor<>();
       }
-      cursor = new AbortableLogCursor<K, V>(this, new InternalLogCursor<K, V>(this));
+      cursor = new AbortableLogCursor<>(this, new InternalLogCursor<K, V>(this));
       cursor.positionTo(null, null, null);
       registerCursor(cursor);
       return cursor;
@@ -600,9 +600,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     {
       if (isClosed)
       {
-        return new EmptyCursor<K, V>();
+        return new EmptyCursor<>();
       }
-      cursor = new AbortableLogCursor<K, V>(this, new InternalLogCursor<K, V>(this));
+      cursor = new AbortableLogCursor<>(this, new InternalLogCursor<K, V>(this));
       final boolean isSuccessfullyPositioned = cursor.positionTo(key, matchingStrategy, positionStrategy);
       // Allow for cursor re-initialization after exhaustion in case of
       // LESS_THAN_OR_EQUAL_TO_KEY ands GREATER_THAN_OR_EQUAL_TO_KEY strategies
@@ -614,7 +614,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       else
       {
         StaticUtils.close(cursor);
-        return new EmptyCursor<K, V>();
+        return new EmptyCursor<>();
       }
     }
     catch (ChangelogException e)
@@ -719,7 +719,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       {
         return null;
       }
-      final List<String> undeletableFiles = new ArrayList<String>();
+      final List<String> undeletableFiles = new ArrayList<>();
       final Iterator<LogFile<K, V>> entriesToPurge = logFilesToPurge.values().iterator();
       while (entriesToPurge.hasNext())
       {
@@ -793,7 +793,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       }
 
       // delete all log files
-      final List<String> undeletableFiles = new ArrayList<String>();
+      final List<String> undeletableFiles = new ArrayList<>();
       for (LogFile<K, V> logFile : logFiles.values())
       {
         try
@@ -1256,7 +1256,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     @Override
     CursorState<K, V> getState() throws ChangelogException
     {
-      return new CursorState<K, V>(currentLogFile, currentCursor.getFilePosition(), currentCursor.getRecord());
+      return new CursorState<>(currentLogFile, currentCursor.getFilePosition(), currentCursor.getRecord());
     }
 
     @Override
@@ -1462,7 +1462,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         if (mustAbort)
         {
           delegate.close();
-          delegate = new AbortedLogCursor<K, V>(log.getPath());
+          delegate = new AbortedLogCursor<>(log.getPath());
           mustAbort = false;
         }
         return delegate.next();

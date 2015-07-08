@@ -58,8 +58,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
   @DataProvider
   public Object[][] enumrateManageObjectDefns() throws Exception {
     TopCfgDefn topCfgDefn = TopCfgDefn.getInstance();
-    List<AbstractManagedObjectDefinition<?,?>> allCfgDefns =
-            new ArrayList<AbstractManagedObjectDefinition<?,?>>(topCfgDefn.getAllChildren());
+    List<AbstractManagedObjectDefinition<?,?>> allCfgDefns = new ArrayList<>(topCfgDefn.getAllChildren());
 
     Object[][] params = new Object[allCfgDefns.size()][];
     for (int i = 0; i < params.length; i++) {
@@ -213,7 +212,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
                    " is declared as mandatory in the schema.").append(EOL + EOL);
         }
 
-        Set<AttributeType> allowedAttributes = new HashSet<AttributeType>(mandatoryAttributes);
+        Set<AttributeType> allowedAttributes = new HashSet<>(mandatoryAttributes);
         allowedAttributes.addAll(configObjectClass.getOptionalAttributeChain());
         if (!allowedAttributes.contains(attrType)) {
           errors.append(propName + " property on config object " + objName + " has" +
@@ -224,7 +223,4 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
       }
     }
   }
-
-
-
 }

@@ -177,7 +177,7 @@ public enum Category {
   private static Map<Integer,Category> MASK_VALUE_MAP;
 
   static {
-    MASK_VALUE_MAP = new HashMap<Integer,Category>();
+    MASK_VALUE_MAP = new HashMap<>();
     for (Category c : EnumSet.allOf(Category.class)) {
       MASK_VALUE_MAP.put(c.mask, c);
     }

@@ -420,7 +420,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
-    LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
+    LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<>();
     try
     {
       super.parseArguments(args);
@@ -519,7 +519,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   {
     try
     {
-      Set<Integer> ports = new HashSet<Integer>();
+      Set<Integer> ports = new HashSet<>();
       ports.add(ldapPortArg.getIntValue());
 
       checkPortAlreadyUsed(ports, adminConnectorPortArg.getIntValue(), errorMessages,

@@ -112,9 +112,8 @@ public final class TimeThread
      */
     public TimeInfo()
     {
-      userDefinedFormatters =
-          new CopyOnWriteArrayList<SimpleDateFormat>();
-      userDefinedTimeStrings = new ConcurrentHashMap<String, String>();
+      userDefinedFormatters = new CopyOnWriteArrayList<>();
+      userDefinedTimeStrings = new ConcurrentHashMap<>();
 
       TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
 

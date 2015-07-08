@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -79,8 +79,7 @@ public class TopologyMsg extends ReplicationMsg
 
     // Read the DS info entries, first read number of them
     int nDsInfo = scanner.nextByte();
-    final Map<Integer, DSInfo> replicaInfos =
-        new HashMap<Integer, DSInfo>(Math.max(0, nDsInfo));
+    final Map<Integer, DSInfo> replicaInfos = new HashMap<>(Math.max(0, nDsInfo));
     while (nDsInfo > 0 && !scanner.isEmpty())
     {
       final DSInfo dsInfo = nextDSInfo(scanner, version);
@@ -90,7 +89,7 @@ public class TopologyMsg extends ReplicationMsg
 
     // Read the RS info entries
     int nRsInfo = scanner.nextByte();
-    final List<RSInfo> rsInfos = new ArrayList<RSInfo>(Math.max(0, nRsInfo));
+    final List<RSInfo> rsInfos = new ArrayList<>(Math.max(0, nRsInfo));
     while (nRsInfo > 0 && !scanner.isEmpty())
     {
       rsInfos.add(nextRSInfo(scanner, version));
@@ -115,11 +114,11 @@ public class TopologyMsg extends ReplicationMsg
     final byte safeDataLevel = scanner.nextByte();
     final byte groupId = scanner.nextByte();
 
-    final List<String> refUrls = new ArrayList<String>();
+    final List<String> refUrls = new ArrayList<>();
     scanner.nextStrings(refUrls);
 
-    final Set<String> attrs = new HashSet<String>();
-    final Set<String> delattrs = new HashSet<String>();
+    final Set<String> attrs = new HashSet<>();
+    final Set<String> delattrs = new HashSet<>();
     short protocolVersion = -1;
     if (version >= REPLICATION_PROTOCOL_V4)
     {
@@ -175,7 +174,7 @@ public class TopologyMsg extends ReplicationMsg
     }
     else
     {
-      Map<Integer, DSInfo> replicas = new HashMap<Integer, DSInfo>();
+      Map<Integer, DSInfo> replicas = new HashMap<>();
       for (DSInfo dsInfo : dsInfos)
       {
         replicas.put(dsInfo.getDsId(), dsInfo);

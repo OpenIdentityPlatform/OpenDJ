@@ -121,11 +121,11 @@ public class UpdatePreOpPlugin
     // We assume that there is only one of these active at a time.
     instance = this;
 
-    setAttributes       = new ArrayList<Attribute>();
-    removeAttributes    = new ArrayList<AttributeType>();
-    addObjectClasses    = new ArrayList<ObjectClass>();
-    removeObjectClasses = new ArrayList<ObjectClass>();
-    modifications       = new ArrayList<Modification>();
+    setAttributes       = new ArrayList<>();
+    removeAttributes    = new ArrayList<>();
+    addObjectClasses    = new ArrayList<>();
+    removeObjectClasses = new ArrayList<>();
+    modifications       = new ArrayList<>();
   }
 
 
@@ -142,7 +142,7 @@ public class UpdatePreOpPlugin
 
     for (Attribute a : setAttributes)
     {
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      ArrayList<Attribute> attrList = new ArrayList<>(1);
       attrList.add(a);
       addOperation.setAttribute(a.getAttributeType(), attrList);
     }

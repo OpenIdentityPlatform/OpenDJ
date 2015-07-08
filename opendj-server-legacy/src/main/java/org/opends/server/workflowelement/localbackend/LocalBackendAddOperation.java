@@ -649,7 +649,7 @@ public class LocalBackendAddOperation
       if (isSynchronizationOperation() ||
           DirectoryServer.addMissingRDNAttributes())
       {
-        attrList = new ArrayList<Attribute>();
+        attrList = new ArrayList<>();
         attrList.add(Attributes.create(t, n, v));
         attributes.put(t, attrList);
       }
@@ -841,7 +841,7 @@ public class LocalBackendAddOperation
       if (! passwordPolicy.isSkipValidationForAdministrators())
       {
         // There are never any current passwords for an add operation.
-        HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
+        HashSet<ByteString> currentPasswords = new HashSet<>(0);
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         // Work on a copy of the entry without the password to avoid
         // false positives from some validators.
@@ -885,7 +885,7 @@ public class LocalBackendAddOperation
 
 
     // Set the password changed time attribute.
-    ArrayList<Attribute> changedTimeList = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> changedTimeList = new ArrayList<>(1);
     Attribute changedTime = Attributes.create(
         OP_ATTR_PWPOLICY_CHANGED_TIME, TimeThread.getGeneralizedTime());
     changedTimeList.add(changedTime);
@@ -897,7 +897,7 @@ public class LocalBackendAddOperation
     {
       addPWPolicyControl(PasswordPolicyErrorType.CHANGE_AFTER_RESET);
 
-      ArrayList<Attribute> resetList = new ArrayList<Attribute>(1);
+      ArrayList<Attribute> resetList = new ArrayList<>(1);
       Attribute reset = Attributes.create(
           OP_ATTR_PWPOLICY_RESET_REQUIRED, "TRUE");
       resetList.add(reset);

@@ -902,7 +902,7 @@ public class TestVerifyJob extends JebTestCase
    */
   private Entry buildEntry(String dn) throws DirectoryException {
     DN entryDN = DN.valueOf(dn);
-    HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
+    HashMap<ObjectClass, String> ocs = new HashMap<>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
     if (topOC == null) {
       topOC = DirectoryServer.getDefaultObjectClass(OC_TOP);

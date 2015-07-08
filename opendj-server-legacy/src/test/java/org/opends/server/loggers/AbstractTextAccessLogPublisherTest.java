@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -424,6 +424,6 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
 
   private <T> SortedSet<T> setOf(final T... values)
   {
-    return new TreeSet<T>(Arrays.asList(values));
+    return new TreeSet<>(Arrays.asList(values));
   }
 }

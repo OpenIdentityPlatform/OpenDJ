@@ -211,7 +211,7 @@ public class SSFTestCase extends AciTestCase {
                 "--set", "quality-of-protection:" + "integrity");
 
         //Configure JNDI props.
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
         int port = TestCaseUtils.getServerLdapPort();
         String url = "ldap://localhost:" + Integer.valueOf(port);
@@ -249,7 +249,7 @@ public class SSFTestCase extends AciTestCase {
                 "set-sasl-mechanism-handler-prop",
                 "--handler-name", "DIGEST-MD5",
                 "--set", "quality-of-protection:" + "confidentiality");
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
         int port = TestCaseUtils.getServerLdapPort();
         String url = "ldap://localhost:" + Integer.valueOf(port);

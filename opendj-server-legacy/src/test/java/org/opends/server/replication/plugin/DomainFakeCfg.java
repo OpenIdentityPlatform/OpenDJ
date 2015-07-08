@@ -67,10 +67,10 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   /** Group id. */
   private final int groupId;
   /** Referrals urls to be published to other servers of the topology. */
-  private SortedSet<String> refUrls = new TreeSet<String>();
+  private SortedSet<String> refUrls = new TreeSet<>();
 
-  private final SortedSet<String> fractionalExcludes = new TreeSet<String>();
-  private final SortedSet<String> fractionalIncludes = new TreeSet<String>();
+  private final SortedSet<String> fractionalExcludes = new TreeSet<>();
+  private final SortedSet<String> fractionalIncludes = new TreeSet<>();
 
   private ExternalChangelogDomainCfg eclCfg =
     new ExternalChangelogDomainFakeCfg(true, null, null);

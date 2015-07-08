@@ -118,9 +118,9 @@ public class ModifyOperationTestCase
   @DataProvider(name = "modifyOperations")
   public Object[][] getModifyOperations() throws Exception
   {
-    List<ModifyOperation> opList = new ArrayList<ModifyOperation>();
+    List<ModifyOperation> opList = new ArrayList<>();
 
-    List<Control> noControls = new ArrayList<Control>();
+    List<Control> noControls = new ArrayList<>();
 
     LDAPAttribute ldapAttr = new LDAPAttribute("description", "foo");
     List<RawModification> ldapMods = newRawModifications(add(ldapAttr));
@@ -308,7 +308,7 @@ public class ModifyOperationTestCase
 
   private LDAPAttribute newLDAPAttribute(String attributeType, String... valueStrings)
   {
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     for (String valueStr : valueStrings)
     {
       values.add(ByteString.valueOf(valueStr));
@@ -368,7 +368,7 @@ public class ModifyOperationTestCase
          throws Exception
   {
     List<RawModification> rawMods = modifyOperation.getRawModifications();
-    List<RawModification> clonedMods = new ArrayList<RawModification>(rawMods);
+    List<RawModification> clonedMods = new ArrayList<>(rawMods);
     modifyOperation.setRawModifications(clonedMods);
 
     LDAPAttribute attr = newLDAPAttribute("test", "test");
@@ -3229,7 +3229,7 @@ responseLoop:
     LDAPAttribute attr = newLDAPAttribute("givenName", "Test");
     List<RawModification> mods = newRawModifications(add(attr));
 
-    List<Control> requestControls = new ArrayList<Control>();
+    List<Control> requestControls = new ArrayList<>();
     requestControls.add(
         new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
 
@@ -3266,7 +3266,7 @@ responseLoop:
     LDAPAttribute attr = newLDAPAttribute("givenName", "Foo");
     List<RawModification> mods = newRawModifications(delete(attr));
 
-    List<Control> requestControls = new ArrayList<Control>();
+    List<Control> requestControls = new ArrayList<>();
     requestControls.add(
         new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
 
@@ -3303,7 +3303,7 @@ responseLoop:
     LDAPAttribute attr = new LDAPAttribute("description");
     List<RawModification> mods = newRawModifications(delete(attr));
 
-    List<Control> requestControls = new ArrayList<Control>();
+    List<Control> requestControls = new ArrayList<>();
     requestControls.add(
         new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
 
@@ -3663,7 +3663,7 @@ responseLoop:
       "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     values.add(ByteString.wrap(Base64.decode(certificateValue)));
     LDAPAttribute attr = new LDAPAttribute("usercertificate", values);
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));

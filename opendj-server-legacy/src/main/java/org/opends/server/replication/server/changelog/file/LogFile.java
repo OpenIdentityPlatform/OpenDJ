@@ -110,7 +110,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     {
       writer = null;
     }
-    readerPool = new LogReaderPool<K, V>(logfile, parser);
+    readerPool = new LogReaderPool<>(logfile, parser);
   }
 
   /**
@@ -131,7 +131,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   static <K extends Comparable<K>, V> LogFile<K, V> newReadOnlyLogFile(final File logFilePath,
       final RecordParser<K, V> parser) throws ChangelogException
   {
-    return new LogFile<K, V>(logFilePath, parser, false);
+    return new LogFile<>(logFilePath, parser, false);
   }
 
   /**
@@ -153,7 +153,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   static <K extends Comparable<K>, V> LogFile<K, V> newAppendableLogFile(final File logFilePath,
       final RecordParser<K, V> parser) throws ChangelogException
   {
-    return new LogFile<K, V>(logFilePath, parser, true);
+    return new LogFile<>(logFilePath, parser, true);
   }
 
   /**
@@ -316,11 +316,11 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   LogFileCursor<K, V> getCursor() throws ChangelogException
   {
-    return new LogFileCursor<K, V>(this);
+    return new LogFileCursor<>(this);
   }
 
   /**
-   * Returns a cursor initialised to the provided record and position in file.
+   * Returns a cursor initialized to the provided record and position in file.
    *
    * @param record
    *            The initial record this cursor points on
@@ -332,7 +332,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   LogFileCursor<K, V> getCursorInitialisedTo(Record<K,V> record, long position) throws ChangelogException
   {
-    return new LogFileCursor<K, V>(this, record, position);
+    return new LogFileCursor<>(this, record, position);
   }
 
   /**

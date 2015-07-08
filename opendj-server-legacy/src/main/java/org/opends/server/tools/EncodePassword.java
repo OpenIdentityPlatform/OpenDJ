@@ -731,7 +731,7 @@ public class EncodePassword
     }
     else
     {
-      ArrayList<String> nameList = new ArrayList<String>(storageSchemes.size());
+      ArrayList<String> nameList = new ArrayList<>(storageSchemes.size());
       for (PasswordStorageScheme<?> s : storageSchemes.values())
       {
         if (authPasswordSchemeName)

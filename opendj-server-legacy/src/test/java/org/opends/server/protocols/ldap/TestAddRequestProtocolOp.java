@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -92,11 +92,11 @@ public class TestAddRequestProtocolOp extends LdapTestCase
                                                       int numValues,
                                                       String prefix)
   {
-    List<RawAttribute> attributes = new ArrayList<RawAttribute>();
+    List<RawAttribute> attributes = new ArrayList<>();
 
     for (int i = 0; i < numAttributes; i++)
     {
-      ArrayList<ByteString> values = new ArrayList<ByteString>();
+      ArrayList<ByteString> values = new ArrayList<>();
       for (int j = 0; j < numValues; j++)
       {
         values.add(ByteString.valueOf(prefix + "Value" + i + "." + j));

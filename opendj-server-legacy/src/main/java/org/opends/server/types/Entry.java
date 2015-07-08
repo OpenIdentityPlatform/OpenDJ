@@ -98,8 +98,7 @@ public class Entry
    * The set of suppressed real attributes for this entry. It contains real
    * attributes that have been overridden by virtual attributes.
    */
-  private final Map<AttributeType, List<Attribute>> suppressedAttributes =
-      new LinkedHashMap<AttributeType, List<Attribute>>();
+  private final Map<AttributeType, List<Attribute>> suppressedAttributes = new LinkedHashMap<>();
 
   /** The set of objectclasses for this entry. */
   private Map<ObjectClass,String> objectClasses;
@@ -168,7 +167,7 @@ public class Entry
     {
       return map;
     }
-    return new HashMap<K, V>();
+    return new HashMap<>();
   }
 
 
@@ -309,7 +308,7 @@ public class Entry
     // Estimate the size.
     int size = userAttributes.size() + operationalAttributes.size();
 
-    final List<Attribute> attributes = new ArrayList<Attribute>(size);
+    final List<Attribute> attributes = new ArrayList<>(size);
     for (List<Attribute> attrs : userAttributes.values())
     {
       attributes.addAll(attrs);
@@ -611,7 +610,7 @@ public class Entry
   {
     if (includeSubordinates && attributeType.mayHaveSubordinateTypes())
     {
-      List<Attribute> attributes = new LinkedList<Attribute>();
+      List<Attribute> attributes = new LinkedList<>();
       addAllIfNotNull(attributes, userAttributes.get(attributeType));
       addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
 
@@ -705,7 +704,7 @@ public class Entry
     if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
         (! objectClasses.isEmpty()))
     {
-      List<Attribute> attrList = new LinkedList<Attribute>();
+      List<Attribute> attrList = new LinkedList<>();
       attrList.add(getObjectClassAttribute());
       return attrList;
     }
@@ -756,7 +755,7 @@ public class Entry
                                       boolean includeSubordinates,
                                       Set<String> options)
   {
-    List<Attribute> attributes = new LinkedList<Attribute>();
+    List<Attribute> attributes = new LinkedList<>();
     if (includeSubordinates && attributeType.mayHaveSubordinateTypes())
     {
       addAllIfNotNull(attributes, userAttributes.get(attributeType));
@@ -844,7 +843,7 @@ public class Entry
     if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
         ((options == null) || options.isEmpty()))
     {
-      List<Attribute> attributes = new LinkedList<Attribute>();
+      List<Attribute> attributes = new LinkedList<>();
       attributes.add(getObjectClassAttribute());
       return attributes;
     }
@@ -940,7 +939,7 @@ public class Entry
   {
     if (attributeType.mayHaveSubordinateTypes())
     {
-      List<Attribute> attributes = new LinkedList<Attribute>();
+      List<Attribute> attributes = new LinkedList<>();
       addAllIfNotNull(attributes, attrs.get(attributeType));
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
@@ -993,7 +992,7 @@ public class Entry
   private List<Attribute> getAttribute(AttributeType attributeType,
       Set<String> options, Map<AttributeType, List<Attribute>> attrs)
   {
-    List<Attribute> attributes = new LinkedList<Attribute>();
+    List<Attribute> attributes = new LinkedList<>();
     addAllIfNotNull(attributes, attrs.get(attributeType));
 
     if (attributeType.mayHaveSubordinateTypes())
@@ -1509,7 +1508,7 @@ public class Entry
     // special way.
     if (t.isObjectClass())
     {
-      Map<ObjectClass, String> ocs = new LinkedHashMap<ObjectClass, String>();
+      Map<ObjectClass, String> ocs = new LinkedHashMap<>();
       for (ByteString v : a)
       {
         String ocName    = v.toString();
@@ -1572,7 +1571,7 @@ public class Entry
     switch (mod.getModificationType().asEnum())
     {
       case ADD:
-        List<ByteString> duplicateValues = new LinkedList<ByteString>();
+        List<ByteString> duplicateValues = new LinkedList<>();
         addAttribute(a, duplicateValues);
         if (!duplicateValues.isEmpty() && !relaxConstraints)
         {
@@ -1582,7 +1581,7 @@ public class Entry
         break;
 
       case DELETE:
-        List<ByteString> missingValues = new LinkedList<ByteString>();
+        List<ByteString> missingValues = new LinkedList<>();
         removeAttribute(a, missingValues);
         if (!missingValues.isEmpty() && !relaxConstraints)
         {
@@ -2483,18 +2482,14 @@ public class Entry
    */
   public Entry duplicate(boolean processVirtual)
   {
-    Map<ObjectClass, String> objectClassesCopy =
-         new HashMap<ObjectClass,String>(objectClasses);
+    Map<ObjectClass, String> objectClassesCopy = new HashMap<>(objectClasses);
 
-    Map<AttributeType, List<Attribute>> userAttrsCopy =
-         new HashMap<AttributeType,List<Attribute>>(
-              userAttributes.size());
+    Map<AttributeType, List<Attribute>> userAttrsCopy = new HashMap<>(userAttributes.size());
     deepCopy(userAttributes, userAttrsCopy, false, false, false,
         true, false);
 
     Map<AttributeType, List<Attribute>> operationalAttrsCopy =
-         new HashMap<AttributeType,List<Attribute>>(
-                  operationalAttributes.size());
+         new HashMap<>(operationalAttributes.size());
     deepCopy(operationalAttributes, operationalAttrsCopy, false,
         false, false, true, false);
 
@@ -2561,7 +2556,7 @@ public class Entry
     {
       AttributeType t = mapEntry.getKey();
       List<Attribute> sourceList = mapEntry.getValue();
-      List<Attribute> targetList = new ArrayList<Attribute>(sourceList.size());
+      List<Attribute> targetList = new ArrayList<>(sourceList.size());
 
       for (Attribute a : sourceList)
       {
@@ -2737,7 +2732,7 @@ public class Entry
       }
     }
 
-    Set<String> referralURLs = new LinkedHashSet<String>();
+    Set<String> referralURLs = new LinkedHashSet<>();
     for (Attribute a : refAttrs)
     {
       for (ByteString v : a)
@@ -3015,7 +3010,7 @@ public class Entry
             ATTR_COLLECTIVE_EXCLUSIONS_LC);
     List<Attribute> exclusionsAttrList =
             operationalAttributes.get(exclusionsType);
-    Set<String> exclusionsNameSet = new HashSet<String>();
+    Set<String> exclusionsNameSet = new HashSet<>();
     if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())
     {
       for (Attribute attr : exclusionsAttrList)
@@ -3145,7 +3140,7 @@ public class Entry
             {
               // There aren't any conflicts, so we can just add the
               // attribute to the entry.
-              attrList = new LinkedList<Attribute>();
+              attrList = new LinkedList<>();
               attrList.add(collectiveAttr);
               putAttributes(attributeType, attrList);
             }
@@ -3225,7 +3220,7 @@ public class Entry
       // suppressed list and replace it with the
       // virtual attribute.
       suppressedAttributes.put(attributeType, attrList);
-      attrList = new LinkedList<Attribute>();
+      attrList = new LinkedList<>();
       attrList.add(collectiveAttr);
       attributes.put(attributeType, attrList);
       break;
@@ -3260,7 +3255,7 @@ public class Entry
         {
           // There aren't any conflicts, so we can just add the
           // attribute to the entry.
-          attrList = new LinkedList<Attribute>();
+          attrList = new LinkedList<>();
           attrList.add(new VirtualAttribute(attributeType, this, rule));
           putAttributes(attributeType, attrList);
         }
@@ -3319,7 +3314,7 @@ public class Entry
       // We need to move the real attribute to the suppressed
       // list and replace it with the virtual attribute.
       suppressedAttributes.put(attributeType, attrList);
-      attrList = new LinkedList<Attribute>();
+      attrList = new LinkedList<>();
       attrList.add(new VirtualAttribute(attributeType, this, rule));
       attributes.put(attributeType, attrList);
       break;
@@ -3650,7 +3645,7 @@ public class Entry
 
         // The set of object classes will be encoded as a single
         // string with the object class names separated by zeros.
-        objectClasses = new LinkedHashMap<ObjectClass,String>();
+        objectClasses = new LinkedHashMap<>();
         int startPos = entryBuffer.position();
         for (int i=0; i < ocLength; i++)
         {
@@ -3670,7 +3665,7 @@ public class Entry
       {
         // Next is the number of zero terminated object classes.
         int numOC = entryBuffer.getBERLength();
-        objectClasses = new LinkedHashMap<ObjectClass,String>(numOC);
+        objectClasses = new LinkedHashMap<>(numOC);
         for(int i = 0; i < numOC; i++)
         {
           int startPos = entryBuffer.position();
@@ -3731,8 +3726,7 @@ public class Entry
 
 
     // Now, we should iterate through the attributes and decode each one.
-    Map<AttributeType, List<Attribute>> attributes =
-        new LinkedHashMap<AttributeType,List<Attribute>>(attrs);
+    Map<AttributeType, List<Attribute>> attributes = new LinkedHashMap<>(attrs);
     if (config.compressAttributeDescriptions())
     {
       for (int i=0; i < attrs; i++)
@@ -3747,7 +3741,7 @@ public class Entry
         List<Attribute> attrList = attributes.get(a.getAttributeType());
         if (attrList == null)
         {
-          attrList = new ArrayList<Attribute>(1);
+          attrList = new ArrayList<>(1);
           attributes.put(a.getAttributeType(), attrList);
         }
         attrList.add(a);
@@ -3823,7 +3817,7 @@ public class Entry
         List<Attribute> attrList = attributes.get(attributeType);
         if (attrList == null)
         {
-          attrList = new ArrayList<Attribute>(1);
+          attrList = new ArrayList<>(1);
           attributes.put(attributeType, attrList);
         }
         attrList.add(a);
@@ -3843,7 +3837,7 @@ public class Entry
    */
   public List<StringBuilder> toLDIF()
   {
-    List<StringBuilder> ldifLines = new LinkedList<StringBuilder>();
+    List<StringBuilder> ldifLines = new LinkedList<>();
 
     // First, append the DN.
     StringBuilder dnLine = new StringBuilder("dn");
@@ -4617,26 +4611,23 @@ public class Entry
     if (attrNameList == null || attrNameList.isEmpty())
     {
       // Common case: return filtered user attributes.
-      userAttrsCopy = new LinkedHashMap<AttributeType, List<Attribute>>(
-          userAttributes.size());
-      operationalAttrsCopy =
-          new LinkedHashMap<AttributeType, List<Attribute>>(0);
+      userAttrsCopy = new LinkedHashMap<>(userAttributes.size());
+      operationalAttrsCopy = new LinkedHashMap<>(0);
 
       if (omitReal)
       {
-        objectClassesCopy = new LinkedHashMap<ObjectClass, String>(0);
+        objectClassesCopy = new LinkedHashMap<>(0);
       }
       else if (omitValues)
       {
-        objectClassesCopy = new LinkedHashMap<ObjectClass, String>(0);
+        objectClassesCopy = new LinkedHashMap<>(0);
 
         // Add empty object class attribute.
         userAttrsCopy.put(ocType, newList(Attributes.empty(ocType)));
       }
       else
       {
-        objectClassesCopy =
-            new LinkedHashMap<ObjectClass, String>(objectClasses);
+        objectClassesCopy = new LinkedHashMap<>(objectClasses);
 
         // First, add the objectclass attribute.
         Attribute ocAttr = getObjectClassAttribute();
@@ -4655,19 +4646,15 @@ public class Entry
       // Incrementally build table of attributes.
       if (omitReal || omitValues)
       {
-        objectClassesCopy = new LinkedHashMap<ObjectClass, String>(0);
+        objectClassesCopy = new LinkedHashMap<>(0);
       }
       else
       {
-        objectClassesCopy =
-            new LinkedHashMap<ObjectClass, String>(objectClasses.size());
+        objectClassesCopy = new LinkedHashMap<>(objectClasses.size());
       }
 
-      userAttrsCopy = new LinkedHashMap<AttributeType, List<Attribute>>(
-          userAttributes.size());
-      operationalAttrsCopy =
-          new LinkedHashMap<AttributeType, List<Attribute>>(
-              operationalAttributes.size());
+      userAttrsCopy = new LinkedHashMap<>(userAttributes.size());
+      operationalAttrsCopy = new LinkedHashMap<>(operationalAttributes.size());
 
       for (String attrName : attrNameList)
       {
@@ -4716,7 +4703,7 @@ public class Entry
           String tmpName = attrName.substring(0, semicolonPos);
           lowerName = toLowerCase(tmpName);
           int nextPos = attrName.indexOf(';', semicolonPos+1);
-          options = new HashSet<String>();
+          options = new HashSet<>();
           while (nextPos > 0)
           {
             options.add(attrName.substring(semicolonPos+1, nextPos));
@@ -4826,7 +4813,7 @@ public class Entry
    */
   private List<Attribute> newList(Attribute elem)
   {
-    List<Attribute> l = new ArrayList<Attribute>(1);
+    List<Attribute> l = new ArrayList<>(1);
     l.add(elem);
     return l;
   }
@@ -4935,9 +4922,8 @@ public class Entry
         if (attrList == null)
         {
           // Assume that they'll all go in the one list. This isn't
-          // always the case, for example if the list contains
-          // sub-types.
-          attrList = new ArrayList<Attribute>(sourceList.size());
+          // always the case, for example if the list contains sub-types.
+          attrList = new ArrayList<>(sourceList.size());
           attrList.add(attribute);
           destMap.put(subAttrType, attrList);
         }

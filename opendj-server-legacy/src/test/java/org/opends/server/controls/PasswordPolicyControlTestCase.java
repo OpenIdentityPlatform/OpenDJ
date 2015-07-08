@@ -107,7 +107,7 @@ public class PasswordPolicyControlTestCase
 
     try
     {
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
@@ -127,14 +127,14 @@ public class PasswordPolicyControlTestCase
       assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
 
 
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
+      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
       rawAttrs.add(RawAttribute.create("objectClass", "organizationalUnit"));
       rawAttrs.add(RawAttribute.create("ou", "People"));
 
       AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
            ByteString.valueOf("ou=People,o=test"), rawAttrs);
 
-      controls = new ArrayList<Control>();
+      controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, addRequest, controls);
@@ -189,7 +189,7 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
+      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
       rawAttrs.add(RawAttribute.create("objectClass", "inetOrgPerson"));
       rawAttrs.add(RawAttribute.create("uid", "test.user"));
       rawAttrs.add(RawAttribute.create("givenName", "Test"));
@@ -201,7 +201,7 @@ public class PasswordPolicyControlTestCase
       AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
            ByteString.valueOf("ou=uid=test.user,o=test"), rawAttrs);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, addRequest, controls);
@@ -279,7 +279,7 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
+      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
       rawAttrs.add(RawAttribute.create("objectClass", "inetOrgPerson"));
       rawAttrs.add(RawAttribute.create("uid", "test.user"));
       rawAttrs.add(RawAttribute.create("givenName", "Test"));
@@ -290,7 +290,7 @@ public class PasswordPolicyControlTestCase
       AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
            ByteString.valueOf("ou=uid=test.user,o=test"), rawAttrs);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, addRequest, controls);
@@ -368,7 +368,7 @@ public class PasswordPolicyControlTestCase
            ByteString.valueOf("uid=test.user,o=test"), 3,
            ByteString.valueOf("password"));
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       LDAPMessage message = new LDAPMessage(4, bindRequest, controls);
@@ -441,7 +441,7 @@ public class PasswordPolicyControlTestCase
            new CompareRequestProtocolOp(ByteString.valueOf("o=test"), "o",
                                         ByteString.valueOf("test"));
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, compareRequest, controls);
@@ -520,7 +520,7 @@ public class PasswordPolicyControlTestCase
       DeleteRequestProtocolOp deleteRequest =
            new DeleteRequestProtocolOp(ByteString.valueOf("ou=People,o=test"));
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, deleteRequest, controls);
@@ -638,14 +638,14 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      ArrayList<RawModification> mods = new ArrayList<>();
       mods.add(RawModification.create(ModificationType.REPLACE, "description",
                                       "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(ByteString.valueOf(entryDN), mods);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, modifyRequest, controls);
@@ -783,14 +783,14 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      ArrayList<RawModification> mods = new ArrayList<>();
       mods.add(RawModification.create(ModificationType.REPLACE, "description",
                                       "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(ByteString.valueOf(entryDN), mods);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
       controls.add(new LDAPControl(OID_PROXIED_AUTH_V2, true,
           ByteString.valueOf("dn:" + authzDN)));
@@ -866,7 +866,7 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      ArrayList<RawModification> mods = new ArrayList<>();
       mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
                                       "newpassword"));
 
@@ -874,7 +874,7 @@ public class PasswordPolicyControlTestCase
            new ModifyRequestProtocolOp(
                     ByteString.valueOf("uid=test.user,o=test"), mods);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, modifyRequest, controls);
@@ -944,7 +944,7 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      ArrayList<RawModification> mods = new ArrayList<>();
       mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
                                       "password"));
 
@@ -952,7 +952,7 @@ public class PasswordPolicyControlTestCase
            new ModifyRequestProtocolOp(
                     ByteString.valueOf("uid=test.user,o=test"), mods);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, modifyRequest, controls);
@@ -1024,7 +1024,7 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      ArrayList<RawModification> mods = new ArrayList<>();
       mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
                                       "newpassword"));
 
@@ -1032,7 +1032,7 @@ public class PasswordPolicyControlTestCase
            new ModifyRequestProtocolOp(
                     ByteString.valueOf("uid=test.user,o=test"), mods);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, modifyRequest, controls);
@@ -1104,7 +1104,7 @@ public class PasswordPolicyControlTestCase
       assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      ArrayList<RawModification> mods = new ArrayList<>();
       mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
                                       "newpassword"));
 
@@ -1112,7 +1112,7 @@ public class PasswordPolicyControlTestCase
            new ModifyRequestProtocolOp(
                     ByteString.valueOf("uid=test.user,o=test"), mods);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, modifyRequest, controls);
@@ -1193,7 +1193,7 @@ public class PasswordPolicyControlTestCase
                     ByteString.valueOf("ou=People,o=test"),
                     ByteString.valueOf("ou=Users"), true);
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, modifyDNRequest, controls);
@@ -1269,7 +1269,7 @@ public class PasswordPolicyControlTestCase
                                        LDAPFilter.objectClassPresent(),
                                        new LinkedHashSet<String>());
 
-      List<Control> controls = new ArrayList<Control>();
+      List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       message = new LDAPMessage(2, searchRequest, controls);

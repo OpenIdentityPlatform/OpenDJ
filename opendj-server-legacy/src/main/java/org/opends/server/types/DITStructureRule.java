@@ -146,32 +146,29 @@ public final class DITStructureRule
 
     if ((names == null) || names.isEmpty())
     {
-      this.names = new LinkedHashMap<String,String>(0);
+      this.names = new LinkedHashMap<>(0);
     }
     else
     {
-      this.names = new LinkedHashMap<String,String>(names);
+      this.names = new LinkedHashMap<>(names);
     }
 
     if ((superiorRules == null) || superiorRules.isEmpty())
     {
-      this.superiorRules = new LinkedHashSet<DITStructureRule>(0);
+      this.superiorRules = new LinkedHashSet<>(0);
     }
     else
     {
-      this.superiorRules =
-           new LinkedHashSet<DITStructureRule>(superiorRules);
+      this.superiorRules = new LinkedHashSet<>(superiorRules);
     }
 
     if ((extraProperties == null) || extraProperties.isEmpty())
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(0);
+      this.extraProperties = new LinkedHashMap<>(0);
     }
     else
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(extraProperties);
+      this.extraProperties = new LinkedHashMap<>(extraProperties);
     }
   }
 

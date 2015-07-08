@@ -433,7 +433,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
   private List<Integer> getShuffledKeys(long fileSizeInBytes, int numberOfKeys)
   {
     final int numberOfValues = (int) fileSizeInBytes / INT_RECORD_SIZE;
-    final List<Integer> values = new ArrayList<Integer>(numberOfValues);
+    final List<Integer> values = new ArrayList<>(numberOfValues);
     for (int i = 0; i < numberOfValues; i++)
     {
       values.add(i+1);
@@ -461,7 +461,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
   /** Helper to build a list of records. */
   private List<Record<Integer, Integer>> records(int...keys)
   {
-    List<Record<Integer, Integer>> records = new ArrayList<Record<Integer, Integer>>();
+    List<Record<Integer, Integer>> records = new ArrayList<>();
     for (int key : keys)
     {
       records.add(Record.from(key, key));

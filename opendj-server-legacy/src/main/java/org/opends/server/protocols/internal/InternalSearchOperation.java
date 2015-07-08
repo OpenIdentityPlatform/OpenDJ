@@ -126,8 +126,8 @@ public final class InternalSearchOperation
     if (searchListener == null)
     {
       this.searchListener = null;
-      this.entryList      = new LinkedList<SearchResultEntry>();
-      this.referenceList  = new LinkedList<SearchResultReference>();
+      this.entryList      = new LinkedList<>();
+      this.referenceList  = new LinkedList<>();
     }
     else
     {

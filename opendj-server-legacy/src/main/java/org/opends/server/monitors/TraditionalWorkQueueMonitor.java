@@ -26,24 +26,19 @@
  */
 package org.opends.server.monitors;
 
-
+import static org.opends.server.core.DirectoryServer.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.MonitorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.TraditionalWorkQueue;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
-
-
-
 
 /**
  * This class defines a Directory Server monitor that can be used to provide
@@ -53,59 +48,36 @@ public class TraditionalWorkQueueMonitor
        extends MonitorProvider<MonitorProviderCfg>
        implements Runnable
 {
-  /**
-   * The name to use for the monitor attribute that provides the current request
-   * backlog.
-   */
+  /** The name to use for the monitor attribute that provides the current request backlog. */
   public static final String ATTR_CURRENT_BACKLOG = "currentRequestBacklog";
-
-
-
-  /**
-   * The name to use for the monitor attribute that provides the average request
-   * backlog.
-   */
+  /** The name to use for the monitor attribute that provides the average request backlog. */
   public static final String ATTR_AVERAGE_BACKLOG = "averageRequestBacklog";
-
-
-
   /**
    * The name to use for the monitor attribute that provides the maximum
    * observed request backlog.
    */
   public static final String ATTR_MAX_BACKLOG = "maxRequestBacklog";
-
-
-
   /**
    * The name to use for the monitor attribute that provides the total number of
    * operations submitted.
    */
   public static final String ATTR_OPS_SUBMITTED = "requestsSubmitted";
 
-
-
   /**
    * The name to use for the monitor attribute that provides the total number of
    * requests that have been rejected because the work queue was full.
    */
-  public static final String ATTR_OPS_REJECTED_QUEUE_FULL =
-       "requestsRejectedDueToQueueFull";
-
+  public static final String ATTR_OPS_REJECTED_QUEUE_FULL = "requestsRejectedDueToQueueFull";
 
 
   /** The maximum backlog observed by polling the queue. */
   private int maxBacklog;
-
   /** The total number of times the backlog has been polled. */
   private long numPolls;
-
   /** The total backlog observed from periodic polling. */
   private long totalBacklog;
-
   /** The traditional work queue instance with which this monitor is associated. */
   private TraditionalWorkQueue workQueue;
-
 
 
   /**
@@ -188,40 +160,20 @@ public class TraditionalWorkQueueMonitor
     long opsSubmitted = workQueue.getOpsSubmitted();
     long rejectedQueueFull = workQueue.getOpsRejectedDueToQueueFull();
 
-    ArrayList<Attribute> monitorAttrs = new ArrayList<Attribute>();
-    Syntax integerSyntax = DirectoryServer.getDefaultIntegerSyntax();
-
-    // The current backlog.
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(
-        ATTR_CURRENT_BACKLOG, integerSyntax);
-    monitorAttrs
-        .add(Attributes.create(attrType, String.valueOf(backlog)));
-
-    // The average backlog.
-    attrType = DirectoryServer.getDefaultAttributeType(ATTR_AVERAGE_BACKLOG,
-        integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(averageBacklog)));
-
-    // The maximum backlog.
-    attrType = DirectoryServer.getDefaultAttributeType(ATTR_MAX_BACKLOG,
-        integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(maxBacklog)));
-
+    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
+    putAttribute(monitorAttrs, ATTR_CURRENT_BACKLOG, backlog);
+    putAttribute(monitorAttrs, ATTR_AVERAGE_BACKLOG, averageBacklog);
+    putAttribute(monitorAttrs, ATTR_MAX_BACKLOG, maxBacklog);
     // The total number of operations submitted.
-    attrType = DirectoryServer.getDefaultAttributeType(ATTR_OPS_SUBMITTED,
-        integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(opsSubmitted)));
-
+    putAttribute(monitorAttrs, ATTR_OPS_SUBMITTED, opsSubmitted);
     // The total number of operations rejected due to a full work queue.
-    attrType = DirectoryServer.getDefaultAttributeType(
-        ATTR_OPS_REJECTED_QUEUE_FULL, integerSyntax);
-    monitorAttrs.add(Attributes.create(attrType, String
-        .valueOf(rejectedQueueFull)));
-
+    putAttribute(monitorAttrs, ATTR_OPS_REJECTED_QUEUE_FULL, rejectedQueueFull);
     return monitorAttrs;
   }
-}
 
+  private void putAttribute(ArrayList<Attribute> monitorAttrs, String attrName, Object value)
+  {
+    AttributeType attrType = getDefaultAttributeType(attrName, getDefaultIntegerSyntax());
+    monitorAttrs.add(Attributes.create(attrType, String.valueOf(value)));
+  }
+}

@@ -933,8 +933,8 @@ public final class SubtreeSpecification
     int minimum = -1;
     int maximum = -1;
 
-    final HashSet<DN> chopBefore = new HashSet<DN>();
-    final HashSet<DN> chopAfter = new HashSet<DN>();
+    final HashSet<DN> chopBefore = new HashSet<>();
+    final HashSet<DN> chopAfter = new HashSet<>();
 
     Refinement refinement = null;
 
@@ -953,8 +953,7 @@ public final class SubtreeSpecification
       {
         if (parser.hasNextRightBrace())
         {
-          // Make sure that there is a closing brace and no trailing
-          // text.
+          // Make sure that there is a closing brace and no trailing text.
           parser.skipRightBrace();
 
           if (parser.hasNext())
@@ -1138,8 +1137,7 @@ public final class SubtreeSpecification
       final Parser parser) throws InputMismatchException,
       NoSuchElementException
   {
-    final ArrayList<Refinement> refinements =
-      new ArrayList<Refinement>();
+    final ArrayList<Refinement> refinements = new ArrayList<>();
 
     // Skip leading open-brace.
     parser.skipLeftBrace();
@@ -1238,7 +1236,7 @@ public final class SubtreeSpecification
     if (chopBefore != null && chopBefore.iterator().hasNext())
     {
       // Calculate the absolute DNs.
-      final TreeMap<DN, DN> map = new TreeMap<DN, DN>();
+      final TreeMap<DN, DN> map = new TreeMap<>();
       for (final DN localName : chopBefore)
       {
         map.put(baseDN.child(localName), localName);
@@ -1254,7 +1252,7 @@ public final class SubtreeSpecification
     if (chopAfter != null && chopAfter.iterator().hasNext())
     {
       // Calculate the absolute DNs.
-      final TreeMap<DN, DN> map = new TreeMap<DN, DN>();
+      final TreeMap<DN, DN> map = new TreeMap<>();
       for (final DN localName : chopAfter)
       {
         map.put(baseDN.child(localName), localName);

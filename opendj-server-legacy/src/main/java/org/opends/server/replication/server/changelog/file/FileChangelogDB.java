@@ -91,13 +91,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    * concurrent shutdown.
    */
   private final ConcurrentMap<DN, ConcurrentMap<Integer, FileReplicaDB>> domainToReplicaDBs =
-      new ConcurrentHashMap<DN, ConcurrentMap<Integer, FileReplicaDB>>();
+      new ConcurrentHashMap<>();
   private final ConcurrentSkipListMap<DN, CopyOnWriteArrayList<DomainDBCursor>> registeredDomainCursors =
-      new ConcurrentSkipListMap<DN, CopyOnWriteArrayList<DomainDBCursor>>();
-  private final CopyOnWriteArrayList<MultiDomainDBCursor> registeredMultiDomainCursors =
-      new CopyOnWriteArrayList<MultiDomainDBCursor>();
+      new ConcurrentSkipListMap<>();
+  private final CopyOnWriteArrayList<MultiDomainDBCursor> registeredMultiDomainCursors = new CopyOnWriteArrayList<>();
   private final ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>> replicaCursors =
-      new ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>>();
+      new ConcurrentSkipListMap<>();
   private ReplicationEnvironment replicationEnv;
   private final ReplicationServerCfg config;
   private final File dbDirectory;
@@ -109,7 +108,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    * @GuardedBy("cnIndexDBLock")
    */
   private FileChangeNumberIndexDB cnIndexDB;
-  private final AtomicReference<ChangeNumberIndexer> cnIndexer = new AtomicReference<ChangeNumberIndexer>();
+  private final AtomicReference<ChangeNumberIndexer> cnIndexer = new AtomicReference<>();
 
   /** Used for protecting {@link ChangeNumberIndexDB} related state. */
   private final Object cnIndexDBLock = new Object();
@@ -119,7 +118,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    * older than this delay might be removed.
    */
   private volatile long purgeDelayInMillis;
-  private final AtomicReference<ChangelogDBPurger> cnPurger = new AtomicReference<ChangelogDBPurger>();
+  private final AtomicReference<ChangelogDBPurger> cnPurger = new AtomicReference<>();
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
@@ -234,7 +233,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     // unlucky, the domainMap does not exist: take the hit and create the
     // newValue, even though the same could be done concurrently by another thread
-    final ConcurrentMap<Integer, FileReplicaDB> newValue = new ConcurrentHashMap<Integer, FileReplicaDB>();
+    final ConcurrentMap<Integer, FileReplicaDB> newValue = new ConcurrentHashMap<>();
     final ConcurrentMap<Integer, FileReplicaDB> previousValue = domainToReplicaDBs.putIfAbsent(baseDN, newValue);
     if (previousValue != null)
     {
@@ -748,7 +747,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     CopyOnWriteArrayList<V> cursors = map.get(key);
     if (cursors == null)
     {
-      cursors = new CopyOnWriteArrayList<V>();
+      cursors = new CopyOnWriteArrayList<>();
       CopyOnWriteArrayList<V> previousValue = map.putIfAbsent(key, cursors);
       if (previousValue != null)
       {

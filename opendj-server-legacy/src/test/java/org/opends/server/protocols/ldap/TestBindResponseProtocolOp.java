@@ -71,7 +71,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
     @Test
     public void testBindRequestToString() throws Exception
     {
-        List<String> referralURLs=new ArrayList<String>();
+        List<String> referralURLs = new ArrayList<>();
         referralURLs.add(url);
         DN responseDn = DN.valueOf(dn);
         ByteString serverSASLCredentials =
@@ -173,7 +173,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
 
     @Test
     public void testBindResponseEncodeDecode() throws Exception {
-        List<String> referralURLs=new ArrayList<String>();
+        List<String> referralURLs=new ArrayList<>();
         referralURLs.add(url);
         DN responseDn = DN.valueOf(dn);
         ByteString serverSASLCredentials =

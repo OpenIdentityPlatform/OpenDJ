@@ -79,7 +79,7 @@ public class TestUtilities {
     ldapPort = ports[0];
     jmxPort = ports[1];
 
-    List<String> args = new ArrayList<String>();
+    List<String> args = new ArrayList<>();
     File root = getQuickSetupTestServerRootDir();
     String filename = OperatingSystem.isUnixBased() ? "setup" : "setup.bat";
     args.add(new File(root, filename).getPath());

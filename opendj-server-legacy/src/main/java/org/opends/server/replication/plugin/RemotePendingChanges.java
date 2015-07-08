@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -50,23 +50,17 @@ import org.opends.server.types.Operation;
  */
 final class RemotePendingChanges
 {
-  /**
-   * A map used to store the pending changes.
-   */
-  private final SortedMap<CSN, PendingChange> pendingChanges =
-    new TreeMap<CSN, PendingChange>();
+  /** A map used to store the pending changes. */
+  private final SortedMap<CSN, PendingChange> pendingChanges = new TreeMap<>();
 
   /**
    * A sorted set containing the list of PendingChanges that have
    * not been replayed correctly because they are dependent on
    * another change to be completed.
    */
-  private final SortedSet<PendingChange> dependentChanges =
-    new TreeSet<PendingChange>();
+  private final SortedSet<PendingChange> dependentChanges = new TreeSet<>();
 
-  /**
-   * The ServerState that will be updated when LDAPUpdateMsg are fully replayed.
-   */
+  /** The ServerState that will be updated when LDAPUpdateMsg are fully replayed. */
   private final ServerState state;
 
   /**

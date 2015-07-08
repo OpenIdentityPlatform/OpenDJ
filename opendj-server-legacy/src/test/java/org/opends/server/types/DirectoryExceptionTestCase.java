@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -146,7 +146,7 @@ public class DirectoryExceptionTestCase
     LocalizableMessage   msg     = LocalizableMessage.raw("Test Constructor 4");
     DN        dn      = DN.valueOf("cn=Test Constructor 4,dc=example,dc=com");
     Exception e       = new Exception("Test Constructor 4 Exception");
-    List<String> refs = new ArrayList<String>();
+    List<String> refs = new ArrayList<>();
     refs.add("ldap://ldap.example.com/cn=Test Constructor 4,dc=example,dc=com");
 
     validateException(new DirectoryException(resultCode, msg, dn, refs, e));

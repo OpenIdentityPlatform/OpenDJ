@@ -63,7 +63,7 @@ public final class UpgradeTasks
   static int countErrors;
 
   /** Contains all the indexes to rebuild. */
-  static Set<String> indexesToRebuild = new HashSet<String>();
+  static Set<String> indexesToRebuild = new HashSet<>();
 
   /** A flag to avoid rebuild single indexes if 'rebuild all' is selected. */
   static boolean isRebuildAllIndexesIsPresent;
@@ -568,7 +568,7 @@ public final class UpgradeTasks
       public void postUpgrade(final UpgradeContext context) throws ClientException
       {
         LocalizableMessage message = null;
-        final List<String> args = new LinkedList<String>();
+        final List<String> args = new LinkedList<>();
 
         if (isRebuildAllIndexesIsPresent && isRebuildAllIndexesTaskAccepted)
         {

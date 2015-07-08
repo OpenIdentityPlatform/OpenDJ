@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -61,14 +61,13 @@ public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
    * The hash map that will be used to define specific log severities for the
    * various categories.
    */
-  protected Map<String, Set<Severity>> definedSeverities =
-      new HashMap<String, Set<Severity>>();
+  protected Map<String, Set<Severity>> definedSeverities = new HashMap<>();
 
   /**
    * The set of default log severities that will be used if no custom severities
    * have been defined for the associated category.
    */
-  protected Set<Severity> defaultSeverities = new HashSet<Severity>();
+  protected Set<Severity> defaultSeverities = new HashSet<>();
 
   /** {@inheritDoc} */
   @Override

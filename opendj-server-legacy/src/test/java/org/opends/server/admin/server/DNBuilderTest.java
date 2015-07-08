@@ -122,7 +122,7 @@ public final class DNBuilderTest extends AdminTestCase {
         .emptyPath();
 
     SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> b =
-      new SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
+      new SingletonRelationDefinition.Builder<>(
         TestParentCfgDefn.getInstance(), "singleton-test-child",
         TestChildCfgDefn.getInstance());
     final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = b.getInstance();
@@ -137,7 +137,6 @@ public final class DNBuilderTest extends AdminTestCase {
           return null;
         }
       }
-
     };
 
     path = path.child(TestCfg.getTestOneToManyParentRelationDefinition(), "test-parent-1");

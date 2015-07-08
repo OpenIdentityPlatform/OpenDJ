@@ -305,14 +305,13 @@ public class WhoAmIExtendedOperationTestCase
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
 
-    HashMap<String,List<String>> saslProperties =
-         new HashMap<String,List<String>>(2);
+    HashMap<String,List<String>> saslProperties = new HashMap<>(2);
 
-    ArrayList<String> authIDList = new ArrayList<String>(1);
+    ArrayList<String> authIDList = new ArrayList<>(1);
     authIDList.add("dn:uid=proxy.user,o=test");
     saslProperties.put("authID", authIDList);
 
-    ArrayList<String> authzIDList = new ArrayList<String>(1);
+    ArrayList<String> authzIDList = new ArrayList<>(1);
     authzIDList.add("dn:uid=test.user,o=test");
     saslProperties.put("authzID", authzIDList);
 
@@ -395,7 +394,7 @@ public class WhoAmIExtendedOperationTestCase
     // Use the "Who Am I?" operation again, this time with the proxy control.
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new ProxiedAuthV2Control(
          ByteString.valueOf("dn:uid=test.user,o=test")));
     LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
@@ -482,7 +481,7 @@ public class WhoAmIExtendedOperationTestCase
     // Use the "Who Am I?" operation again, this time with the proxy control.
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    ArrayList<Control> requestControls = new ArrayList<Control>(1);
+    ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new ProxiedAuthV2Control(
          ByteString.valueOf("dn:uid=test.user,o=test")));
     LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),

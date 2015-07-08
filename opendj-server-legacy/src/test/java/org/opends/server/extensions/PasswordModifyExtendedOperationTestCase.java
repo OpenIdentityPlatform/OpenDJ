@@ -1861,7 +1861,7 @@ public class PasswordModifyExtendedOperationTestCase
   private void applyPwdPolicyMods(InternalClientConnection conn, String pwPolDN, String attr, String value)
       throws DirectoryException
   {
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         value == null ? Attributes.empty(attr) : Attributes.create(attr, value)));
     ModifyOperation modifyOperation = conn.processModify(DN.valueOf(pwPolDN), mods);
@@ -1869,13 +1869,10 @@ public class PasswordModifyExtendedOperationTestCase
   }
 
   private void setPasswordChangedTime(InternalClientConnection conn, Entry userEntry) {
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("pwdchangedtime",
-            "20050101000000.000Z")));
+        Attributes.create("pwdchangedtime", "20050101000000.000Z")));
     ModifyOperation modifyOperation = conn.processModify(userEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
 }
-

@@ -494,7 +494,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    LinkedList<ByteString> subAny = new LinkedList<ByteString>();
+    LinkedList<ByteString> subAny = new LinkedList<>();
     subAny.add(ByteString.valueOf("="));
 
     assertEquals(provider.matchesSubstring(entry, getRule(provider), null, subAny, null),

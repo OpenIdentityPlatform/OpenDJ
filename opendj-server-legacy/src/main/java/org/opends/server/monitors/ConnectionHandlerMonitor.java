@@ -145,19 +145,16 @@ public class ConnectionHandlerMonitor
   @Override
   public List<Attribute> getMonitorData()
   {
-    LinkedList<Attribute> attrs = new LinkedList<Attribute>();
+    LinkedList<Attribute> attrs = new LinkedList<>();
 
     // Configuration DN
     attrs.add(Attributes.create(configDnType, connectionHandler.getComponentEntryDN().toString()));
 
     int numConnections = 0;
-    LinkedList<ClientConnection> conns = new LinkedList<ClientConnection>(
-        connectionHandler.getClientConnections());
-    LinkedList<HostPort> listeners = new LinkedList<HostPort>(connectionHandler
-        .getListeners());
+    LinkedList<ClientConnection> conns = new LinkedList<>(connectionHandler.getClientConnections());
+    LinkedList<HostPort> listeners = new LinkedList<>(connectionHandler.getListeners());
 
-    attrs.add(Attributes.create(protocolType, connectionHandler
-        .getProtocol()));
+    attrs.add(Attributes.create(protocolType, connectionHandler.getProtocol()));
 
     if (!listeners.isEmpty())
     {

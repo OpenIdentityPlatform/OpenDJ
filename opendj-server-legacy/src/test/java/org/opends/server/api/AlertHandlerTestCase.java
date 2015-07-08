@@ -311,7 +311,7 @@ public class AlertHandlerTestCase
   @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public LinkedHashMap<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE, ALERT_DESCRIPTION);
 

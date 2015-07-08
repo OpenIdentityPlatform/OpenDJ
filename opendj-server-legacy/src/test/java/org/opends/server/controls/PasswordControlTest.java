@@ -56,7 +56,7 @@ public class PasswordControlTest
   @DataProvider(name = "passwordPolicyErrorTypeData")
   public Object[][] createPasswordPolicyErrorTypeData()
   {
-    HashMap<Integer, String> values = new HashMap<Integer, String>();
+    HashMap<Integer, String> values = new HashMap<>();
     values.put(0, "passwordExpired");
     values.put(1, "accountLocked");
     values.put(2, "changeAfterReset");
@@ -126,7 +126,7 @@ public class PasswordControlTest
   @DataProvider(name = "passwordPolicyWarningTypeData")
   public Object[][] createPasswordPolicyWarningTypeData()
   {
-    HashMap<Byte, String> values = new HashMap<Byte, String>();
+    HashMap<Byte, String> values = new HashMap<>();
     values.put((byte)0x80, "timeBeforeExpiration");
     values.put((byte)0x81, "graceAuthNsRemaining");
     return new Object[][] { { values } };

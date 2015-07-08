@@ -160,7 +160,7 @@ public class ProxyBindTestCase extends AciTestCase {
      */
     @Test
     public void testAci() throws Exception {
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
         int port = TestCaseUtils.getServerLdapPort();
         String url = "ldap://localhost:" + Integer.valueOf(port);
@@ -206,7 +206,7 @@ public class ProxyBindTestCase extends AciTestCase {
      */
     @Test
     public void testBypass() throws Exception {
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
         int port = TestCaseUtils.getServerLdapPort();
         String url = "ldap://localhost:" + Integer.valueOf(port);

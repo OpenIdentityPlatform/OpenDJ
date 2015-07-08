@@ -56,8 +56,8 @@ public class TestInternalSearchListener
    */
   public TestInternalSearchListener()
   {
-    searchEntries    = new ArrayList<SearchResultEntry>();
-    searchReferences = new ArrayList<SearchResultReference>();
+    searchEntries    = new ArrayList<>();
+    searchReferences = new ArrayList<>();
   }
 
 

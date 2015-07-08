@@ -116,8 +116,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * replication related operational attributes when used in a search operation.
    */
   private static final Set<String> USER_AND_REPL_OPERATIONAL_ATTRS =
-      new HashSet<String>(Arrays.asList(
-          HISTORICAL_ATTRIBUTE_NAME, ENTRYUUID_ATTRIBUTE_NAME, "*"));
+      new HashSet<>(Arrays.asList(HISTORICAL_ATTRIBUTE_NAME, ENTRYUUID_ATTRIBUTE_NAME, "*"));
 
   /**
    * This class is used in the session establishment phase
@@ -210,8 +209,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * is not updated too early.
    */
   private final PendingChanges pendingChanges;
-  private final AtomicReference<RSUpdater> rsUpdater =
-      new AtomicReference<RSUpdater>(null);
+  private final AtomicReference<RSUpdater> rsUpdater = new AtomicReference<>(null);
 
   /**
    * It contain the updates that were done on other servers, transmitted by the
@@ -233,8 +231,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * This list is used to temporary store operations that needs to be replayed
    * at session establishment time.
    */
-  private final SortedMap<CSN, FakeOperation> replayOperations =
-    new TreeMap<CSN, FakeOperation>();
+  private final SortedMap<CSN, FakeOperation> replayOperations = new TreeMap<>();
 
   private ExternalChangelogDomain eclDomain;
 
@@ -738,9 +735,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * attributes values
      */
 
-    Map<String, Set<String>> storedFractionalSpecificClassesAttributes =
-        new HashMap<String, Set<String>>();
-    Set<String> storedFractionalAllClassesAttributes = new HashSet<String>();
+    Map<String, Set<String>> storedFractionalSpecificClassesAttributes = new HashMap<>();
+    Set<String> storedFractionalAllClassesAttributes = new HashSet<>();
 
     int storedFractionalMode;
     try
@@ -1175,8 +1171,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * - include mode : remove any attribute that is not in
      * fractionalConcernedAttributes
      */
-    List<List<Attribute>> newRdnAttrLists = new ArrayList<List<Attribute>>();
-    List<AttributeType> rdnAttrTypes = new ArrayList<AttributeType>();
+    List<List<Attribute>> newRdnAttrLists = new ArrayList<>();
+    List<AttributeType> rdnAttrTypes = new ArrayList<>();
     final Set<AttributeType> attrTypes = attributesMap.keySet();
     for (Iterator<AttributeType> iter = attrTypes.iterator(); iter.hasNext();)
     {
@@ -1268,14 +1264,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private static <T> ArrayList<T> newList(T elem)
   {
-    final ArrayList<T> list = new ArrayList<T>(1);
+    final ArrayList<T> list = new ArrayList<>(1);
     list.add(elem);
     return list;
   }
 
   private static <T> Set<T> newSet(T elem)
   {
-    final Set<T> list = new LinkedHashSet<T>(1);
+    final Set<T> list = new LinkedHashSet<>(1);
     list.add(elem);
     return list;
   }
@@ -1348,7 +1344,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * Using a Set to avoid duplicate attributes (from 2 inheriting classes for
      * instance)
      */
-    Set<String> fractionalConcernedAttributes = new HashSet<String>();
+    Set<String> fractionalConcernedAttributes = new HashSet<>();
 
     // Get object classes the entry matches
     Set<String> fractionalAllClassesAttributes =
@@ -3210,7 +3206,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
         newList(ByteString.valueOf(Long.toString(generationId)));
 
     LDAPAttribute attr = new LDAPAttribute(REPLICATION_GENERATION_ID, values);
-    List<RawModification> mods = new ArrayList<RawModification>(1);
+    List<RawModification> mods = new ArrayList<>(1);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation op = new ModifyOperationBasis(
@@ -3450,7 +3446,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     {
       String includeAttributeStrings[] =
         {"objectclass", "sn", "cn", "entryuuid"};
-      Set<AttributeType> includeAttributes = new HashSet<AttributeType>();
+      Set<AttributeType> includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings)
       {
         AttributeType attrType  = DirectoryServer.getAttributeType(attrName);
@@ -3856,7 +3852,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT,
                ALERT_DESCRIPTION_REPLICATION_UNRESOLVED_CONFLICT);
@@ -4102,7 +4098,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       // Publish and remove all the changes from the replayOperations list
       // that are older than the endCSN.
-      final List<FakeOperation> opsToSend = new LinkedList<FakeOperation>();
+      final List<FakeOperation> opsToSend = new LinkedList<>();
       synchronized (replayOperations)
       {
         Iterator<FakeOperation> itOp = replayOperations.values().iterator();
@@ -4324,7 +4320,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   @Override
   public Collection<Attribute> getAdditionalMonitoring()
   {
-    List<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<>();
 
     // number of updates in the pending list
     addMonitorData(attributes, "pending-updates", pendingChanges.size());
@@ -4435,7 +4431,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     else if (names.size() == 1 && names.contains("*"))
     {
       // Potential fast-path for delete operations.
-      List<Attribute> attributes = new LinkedList<Attribute>();
+      List<Attribute> attributes = new LinkedList<>();
       for (List<Attribute> attributeList : entry.getUserAttributes().values())
       {
         attributes.addAll(attributeList);
@@ -4466,7 +4462,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       return names;
     }
 
-    final Set<String> expandedNames = new HashSet<String>(names.size());
+    final Set<String> expandedNames = new HashSet<>(names.size());
     for (String name : names)
     {
       if (name.startsWith("@"))
@@ -4545,21 +4541,17 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     private boolean fractionalExclusive = true;
 
     /**
-     * Used in fractional replication: holds attributes of a specific object
-     * class.
+     * Used in fractional replication: holds attributes of a specific object class.
      * - key = object class (name or OID of the class)
      * - value = the attributes of that class that should be taken into account
      * (inclusive or exclusive fractional replication) (name or OID of the
      * attribute)
      * When an operation coming from the network is to be locally replayed, if
      * the concerned entry has an objectClass attribute equals to 'key':
-     * - inclusive mode: only the attributes in 'value' will be added/deleted/
-     * modified
-     * - exclusive mode: the attributes in 'value' will not be added/deleted/
-     * modified
+     * - inclusive mode: only the attributes in 'value' will be added/deleted/modified
+     * - exclusive mode: the attributes in 'value' will not be added/deleted/modified
      */
-    private Map<String, Set<String>> fractionalSpecificClassesAttributes =
-        new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> fractionalSpecificClassesAttributes = new HashMap<>();
 
     /**
      * Used in fractional replication: holds attributes of any object class.
@@ -4570,11 +4562,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
      * fractionalAllClassesAttributes will not be added/deleted/modified
      * The attributes may be in human readable form of OID form.
      */
-    private Set<String> fractionalAllClassesAttributes = new HashSet<String>();
+    private Set<String> fractionalAllClassesAttributes = new HashSet<>();
 
-    /**
-     * Base DN the fractional configuration is for.
-     */
+    /** Base DN the fractional configuration is for. */
     private final DN baseDN;
 
     /**
@@ -4687,9 +4677,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       Iterator<String> inclIt = configuration.getFractionalInclude().iterator();
 
       // Get potentially new fractional configuration
-      Map<String, Set<String>> newFractionalSpecificClassesAttributes =
-          new HashMap<String, Set<String>>();
-      Set<String> newFractionalAllClassesAttributes = new HashSet<String>();
+      Map<String, Set<String>> newFractionalSpecificClassesAttributes = new HashMap<>();
+      Set<String> newFractionalAllClassesAttributes = new HashSet<>();
 
       int newFractionalMode = parseFractionalConfig(exclIt, inclIt,
         newFractionalSpecificClassesAttributes,
@@ -4798,7 +4787,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
                 fractionalSpecificClassesAttributes.get(classNameLower);
             if (attrList == null)
             {
-              attrList = new LinkedHashSet<String>();
+              attrList = new LinkedHashSet<>();
               fractionalSpecificClassesAttributes.put(classNameLower, attrList);
             }
             attrList.add(attrNameLower);

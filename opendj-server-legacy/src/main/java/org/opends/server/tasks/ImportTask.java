@@ -73,8 +73,7 @@ public class ImportTask extends Task
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Stores mapping between configuration attribute name and its label. */
-  private static final Map<String, LocalizableMessage> argDisplayMap = new HashMap<String, LocalizableMessage>();
-
+  private static final Map<String, LocalizableMessage> argDisplayMap = new HashMap<>();
   static
   {
     argDisplayMap.put(ATTR_IMPORT_LDIF_FILE, INFO_IMPORT_ARG_LDIF_FILE.get());
@@ -178,7 +177,7 @@ public class ImportTask extends Task
     AttributeType typeDNCheckPhase2 = getAttributeType(ATTR_IMPORT_SKIP_DN_VALIDATION, true);
 
     ArrayList<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
-    ldifFiles = new ArrayList<String>(ldifFilestmp.size());
+    ldifFiles = new ArrayList<>(ldifFilestmp.size());
     for (String s : ldifFilestmp)
     {
       File f = new File (s);
@@ -240,8 +239,8 @@ public class ImportTask extends Task
 
     Backend<?> backend = null;
     ArrayList<DN> defaultIncludeBranches;
-    HashSet<DN> excludeBranches = new HashSet<DN>(excludeBranchStrings.size());
-    HashSet<DN> includeBranches = new HashSet<DN>(includeBranchStrings.size());
+    HashSet<DN> excludeBranches = new HashSet<>(excludeBranchStrings.size());
+    HashSet<DN> includeBranches = new HashSet<>(includeBranchStrings.size());
 
     for (String s : includeBranchStrings)
     {
@@ -376,7 +375,7 @@ public class ImportTask extends Task
     }
 
     // Make sure the selected backend will handle all the include branches
-    defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
+    defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs().length);
     for (DN dn : backend.getBaseDNs())
     {
       defaultIncludeBranches.add(dn);
@@ -446,8 +445,7 @@ public class ImportTask extends Task
     HashSet<AttributeType> excludeAttributes = toAttributeTypes(excludeAttributeStrings);
     HashSet<AttributeType> includeAttributes = toAttributeTypes(includeAttributeStrings);
 
-    ArrayList<SearchFilter> excludeFilters =
-         new ArrayList<SearchFilter>(excludeFilterStrings.size());
+    ArrayList<SearchFilter> excludeFilters = new ArrayList<>(excludeFilterStrings.size());
     for (String filterString : excludeFilterStrings)
     {
       try
@@ -461,8 +459,7 @@ public class ImportTask extends Task
       }
     }
 
-    ArrayList<SearchFilter> includeFilters =
-         new ArrayList<SearchFilter>(includeFilterStrings.size());
+    ArrayList<SearchFilter> includeFilters = new ArrayList<>(includeFilterStrings.size());
     for (String filterString : includeFilterStrings)
     {
       try
@@ -480,8 +477,8 @@ public class ImportTask extends Task
     // Get the backend into which the LDIF should be imported.
     Backend<?> backend = null;
     HashSet<DN> defaultIncludeBranches;
-    HashSet<DN> excludeBranches = new HashSet<DN>(excludeBranchStrings.size());
-    HashSet<DN> includeBranches = new HashSet<DN>(includeBranchStrings.size());
+    HashSet<DN> excludeBranches = new HashSet<>(excludeBranchStrings.size());
+    HashSet<DN> includeBranches = new HashSet<>(includeBranchStrings.size());
 
     for (String s : includeBranchStrings)
     {
@@ -558,10 +555,8 @@ public class ImportTask extends Task
       }
     }
 
-    // Find backends with subordinate base DNs that should be excluded from the
-    // import.
-
-    defaultIncludeBranches = new HashSet<DN>(backend.getBaseDNs().length);
+    // Find backends with subordinate base DNs that should be excluded from the import.
+    defaultIncludeBranches = new HashSet<>(backend.getBaseDNs().length);
     for (DN dn : backend.getBaseDNs())
     {
       defaultIncludeBranches.add(dn);
@@ -641,7 +636,7 @@ public class ImportTask extends Task
                             PATH_MAKELDIF_RESOURCE_DIR;
       TemplateFile tf = new TemplateFile(resourcePath, random);
 
-      ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
+      ArrayList<LocalizableMessage> warnings = new ArrayList<>();
       try
       {
         tf.parse(templateFile, warnings);
@@ -656,7 +651,7 @@ public class ImportTask extends Task
     }
     else
     {
-      ArrayList<String> fileList = new ArrayList<String>(ldifFiles);
+      ArrayList<String> fileList = new ArrayList<>(ldifFiles);
       importConfig = new LDIFImportConfig(fileList);
     }
     if(tmpDirectory == null)
@@ -841,7 +836,7 @@ public class ImportTask extends Task
 
   private HashSet<AttributeType> toAttributeTypes(ArrayList<String> attrNames)
   {
-    final HashSet<AttributeType> attrTypes = new HashSet<AttributeType>(attrNames.size());
+    final HashSet<AttributeType> attrTypes = new HashSet<>(attrNames.size());
     for (String attrName : attrNames)
     {
       String lowerName = attrName.toLowerCase();

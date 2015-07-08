@@ -79,7 +79,7 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     ifNull(attributes);
 
 
-    this.attributes = new ArrayList<Attribute>(attributes.size());
+    this.attributes = new ArrayList<>(attributes.size());
     for (List<Attribute> list : attributes.values())
     {
       this.attributes.addAll(list);

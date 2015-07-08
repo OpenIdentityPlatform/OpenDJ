@@ -392,7 +392,7 @@ public class LDAPCompare
     StringArgument    propertiesFileArgument = null;
     BooleanArgument   noPropertiesFileArgument = null;
 
-    ArrayList<String> dnStrings = new ArrayList<String> ();
+    ArrayList<String> dnStrings = new ArrayList<> ();
     String attributeType = null;
     byte[] attributeVal = null;
     Reader rdr = null;

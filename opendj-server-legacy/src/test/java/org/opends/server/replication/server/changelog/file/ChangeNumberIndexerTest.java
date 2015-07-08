@@ -164,9 +164,9 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     CursorOptions options = new CursorOptions(LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null);
     multiDomainCursor = new MultiDomainDBCursor(domainDB, options);
     initialState = new ChangelogState();
-    replicaDBCursors = new HashMap<ReplicaId, SequentialDBCursor>();
-    domainDBCursors = new HashMap<DN, DomainDBCursor>();
-    domainNewestCSNs = new HashMap<DN, ServerState>();
+    replicaDBCursors = new HashMap<>();
+    domainDBCursors = new HashMap<>();
+    domainNewestCSNs = new HashMap<>();
 
     when(changelogDB.getChangeNumberIndexDB()).thenReturn(cnIndexDB);
     when(changelogDB.getReplicationDomainDB()).thenReturn(domainDB);

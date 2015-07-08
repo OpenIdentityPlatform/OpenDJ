@@ -328,7 +328,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int replServerId,
       boolean all, String testCase) throws Exception
   {
-    SortedSet<String> servers = new TreeSet<String>();
+    SortedSet<String> servers = new TreeSet<>();
     if (all)
     {
       if (replServerId != replServerId1)

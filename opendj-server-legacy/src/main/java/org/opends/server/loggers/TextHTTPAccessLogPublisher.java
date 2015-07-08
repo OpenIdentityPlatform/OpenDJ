@@ -81,7 +81,7 @@ public final class TextHTTPAccessLogPublisher extends
   private static final String X_DATETIME = "x-datetime";
   private static final String X_ETIME = "x-etime";
 
-  private static final Set<String> ALL_SUPPORTED_FIELDS = new HashSet<String>(
+  private static final Set<String> ALL_SUPPORTED_FIELDS = new HashSet<>(
       Arrays.asList(ELF_C_IP, ELF_C_PORT, ELF_CS_HOST, ELF_CS_METHOD,
           ELF_CS_URI_QUERY, ELF_CS_USER_AGENT, ELF_CS_USERNAME, ELF_CS_VERSION,
           ELF_S_COMPUTERNAME, ELF_S_IP, ELF_S_PORT, ELF_SC_STATUS,
@@ -285,7 +285,7 @@ public final class TextHTTPAccessLogPublisher extends
    */
   private <T> Collection<T> subtract(Collection<T> a, Collection<T> b)
   {
-    final Collection<T> result = new ArrayList<T>();
+    final Collection<T> result = new ArrayList<>();
     for (T elem : a)
     {
       if (!b.contains(elem))
@@ -448,7 +448,7 @@ public final class TextHTTPAccessLogPublisher extends
   @Override
   public void logRequestInfo(HTTPRequestInfo ri)
   {
-    final Map<String, Object> fields = new HashMap<String, Object>();
+    final Map<String, Object> fields = new HashMap<>();
     fields.put(ELF_C_IP, ri.getClientAddress());
     fields.put(ELF_C_PORT, ri.getClientPort());
     fields.put(ELF_CS_HOST, ri.getClientHost());

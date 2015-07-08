@@ -126,7 +126,7 @@ public final class AdminTestCaseUtils {
       isProfileRegistered = true;
     }
 
-    SingletonRelationDefinition.Builder<C, S> builder = new SingletonRelationDefinition.Builder<C, S>(
+    SingletonRelationDefinition.Builder<C, S> builder = new SingletonRelationDefinition.Builder<>(
         RootCfgDefn.getInstance(), DUMMY_TEST_RELATION, d);
     ManagedObjectPath<?, ?> root = ManagedObjectPath.emptyPath();
     return root.child(builder.getInstance());

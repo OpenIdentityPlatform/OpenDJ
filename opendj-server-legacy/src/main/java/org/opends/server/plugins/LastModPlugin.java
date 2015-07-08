@@ -164,7 +164,7 @@ public final class LastModPlugin
       builder.add(creatorDN.toString());
     }
     Attribute nameAttr = builder.toAttribute();
-    ArrayList<Attribute> nameList = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> nameList = new ArrayList<>(1);
     nameList.add(nameAttr);
     addOperation.setAttribute(creatorsNameType, nameList);
 
@@ -172,7 +172,7 @@ public final class LastModPlugin
     //  Create the attribute list for the createTimestamp attribute.
     Attribute timeAttr = Attributes.create(createTimestampType,
         OP_ATTR_CREATE_TIMESTAMP, getGMTTime());
-    ArrayList<Attribute> timeList = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> timeList = new ArrayList<>(1);
     timeList.add(timeAttr);
     addOperation.setAttribute(createTimestampType, timeList);
 

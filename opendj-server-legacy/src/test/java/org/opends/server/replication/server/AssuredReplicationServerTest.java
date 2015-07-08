@@ -410,7 +410,7 @@ public class AssuredReplicationServerTest
   private SortedSet<String> generateOtherReplicationServerUrls(
       int excludedRsPort, int totalNbRS)
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
     if (totalNbRS >= 2)
     {
       addIfNotSame(replServers, rsPorts[0], excludedRsPort);
@@ -608,8 +608,7 @@ public class AssuredReplicationServerTest
     private int timeoutUpdates;
     private int wrongStatusUpdates;
     private int replayErrorUpdates;
-    private final Map<Integer, Integer> serverNotAcknowledgedUpdates =
-        new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> serverNotAcknowledgedUpdates = new HashMap<>();
     private int receivedUpdates;
     private int receivedUpdatesAcked;
     private int receivedUpdatesNotAcked;
@@ -1306,7 +1305,7 @@ public class AssuredReplicationServerTest
   private Object[][] testSafeDataLevelHighProvider()
   {
     // Construct all possible combinations of parameters
-    List<List<Object>> objectArrayList = new ArrayList<List<Object>>();
+    List<List<Object>> objectArrayList = new ArrayList<>();
 
     // Safe Data Level
     objectArrayList = addPossibleParameters(objectArrayList, 2, 3);
@@ -1380,7 +1379,7 @@ public class AssuredReplicationServerTest
    */
   private List<List<Object>> addPossibleParameters(List<List<Object>> objectArrayList, Object... possibleParameters)
   {
-    List<List<Object>> newObjectArrayList = new ArrayList<List<Object>>();
+    List<List<Object>> newObjectArrayList = new ArrayList<>();
 
     if (objectArrayList.size() == 0)
     {
@@ -1398,7 +1397,7 @@ public class AssuredReplicationServerTest
       // Add each possible parameter to the already existing list
       for (Object possibleParameter : possibleParameters)
       {
-        final List<Object> newObjectArray = new ArrayList<Object>(objectArray);
+        final List<Object> newObjectArray = new ArrayList<>(objectArray);
         newObjectArray.add(possibleParameter);
         newObjectArrayList.add(newObjectArray);
       }
@@ -1717,7 +1716,7 @@ public class AssuredReplicationServerTest
    */
   private Set<Integer> computeExpectedServersInError(List<Integer> eligibleServers, List<Integer> expectedServers)
   {
-    Set<Integer> expectedServersInError = new HashSet<Integer>(eligibleServers);
+    Set<Integer> expectedServersInError = new HashSet<>(eligibleServers);
     expectedServersInError.removeAll(expectedServers);
     return expectedServersInError;
   }
@@ -1790,7 +1789,7 @@ public class AssuredReplicationServerTest
    */
   private List<Integer> computeEligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
   {
-    List<Integer> eligibleServers = new ArrayList<Integer>(3);
+    List<Integer> eligibleServers = new ArrayList<>(3);
     if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
     {
       eligibleServers.add(FRS1_ID);
@@ -1828,7 +1827,7 @@ public class AssuredReplicationServerTest
       int rs2Gid, long rs2GenId, int rs2Scen,
       int rs3Gid, long rs3GenId, int rs3Scen)
   {
-    List<Integer> expectedServers = new ArrayList<Integer>();
+    List<Integer> expectedServers = new ArrayList<>();
     assertRSExpectations(expectedServers, rs1Gid, rs1GenId, rs1Scen, FRS1_ID);
     assertRSExpectations(expectedServers, rs2Gid, rs2GenId, rs2Scen, FRS2_ID);
     assertRSExpectations(expectedServers, rs3Gid, rs3GenId, rs3Scen, FRS3_ID);
@@ -1861,7 +1860,7 @@ public class AssuredReplicationServerTest
   @DataProvider(name = "testSafeDataFromRSProvider")
   private Object[][] testSafeDataFromRSProvider()
   {
-    List<List<Object>> objectArrayList = new ArrayList<List<Object>>();
+    List<List<Object>> objectArrayList = new ArrayList<>();
 
     // Safe Data Level
     objectArrayList = addPossibleParameters(objectArrayList, 1, 2, 3);
@@ -2257,7 +2256,7 @@ public class AssuredReplicationServerTest
   @DataProvider(name = "testSafeReadOneRSComplexProvider")
   private Object[][] testSafeReadOneRSComplexProvider()
   {
-    List<List<Object>> objectArrayList = new ArrayList<List<Object>>();
+    List<List<Object>> objectArrayList = new ArrayList<>();
 
     // Other additional DS group id
     objectArrayList = addPossibleParameters(objectArrayList, DEFAULT_GID, OTHER_GID);

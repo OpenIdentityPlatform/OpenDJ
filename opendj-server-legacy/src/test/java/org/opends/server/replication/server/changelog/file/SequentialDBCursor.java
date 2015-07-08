@@ -48,7 +48,7 @@ class SequentialDBCursor implements DBCursor<UpdateMsg>
    */
   public SequentialDBCursor(UpdateMsg... msgs)
   {
-    this.msgs = new ArrayList<UpdateMsg>(Arrays.asList(msgs));
+    this.msgs = new ArrayList<>(Arrays.asList(msgs));
   }
 
   public void add(UpdateMsg msg)

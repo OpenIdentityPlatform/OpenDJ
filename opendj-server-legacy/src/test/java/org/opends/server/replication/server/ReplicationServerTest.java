@@ -662,7 +662,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         changelogs[i] = null;
 
         // create the 2 connected replicationServer
-        SortedSet<String> servers = new TreeSet<String>();
+        SortedSet<String> servers = new TreeSet<>();
         servers.add(
           "localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]));
         ReplServerFakeConfiguration conf =
@@ -757,7 +757,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       {
         // create the 1rst replicationServer, the second one will be created later
-        SortedSet<String> servers = new TreeSet<String>();
+        SortedSet<String> servers = new TreeSet<>();
         servers.add("localhost:" + changelogPorts[1]);
         ReplServerFakeConfiguration conf =
           new ReplServerFakeConfiguration(changelogPorts[0], "replicationServerTestChangelogChainingDb"+0, replicationDbImplementation,
@@ -809,7 +809,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
         broker1.publish(modDNMsg);
 
-        SortedSet<String> servers = new TreeSet<String>();
+        SortedSet<String> servers = new TreeSet<>();
         servers.add("localhost:"+changelogPorts[0]);
         ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(
             changelogPorts[1], null, replicationDbImplementation, 0, changelogIds[1], 0, 100, null);
@@ -834,7 +834,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private List<ReplicationMsg> receiveReplicationMsgs(ReplicationBroker broker2, int nbMessagesExpected)
   {
-    List<ReplicationMsg> msgs = new ArrayList<ReplicationMsg>(nbMessagesExpected);
+    List<ReplicationMsg> msgs = new ArrayList<>(nbMessagesExpected);
     for (int i = 0; i < nbMessagesExpected; i++)
     {
       try
@@ -1122,7 +1122,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          changelogs[i] = null;
          // create the 2 replicationServer
          // and connect the first one to the other one
-         SortedSet<String> servers = new TreeSet<String>();
+         SortedSet<String> servers = new TreeSet<>();
 
          // Connect only replicationServer[0] to ReplicationServer[1]
          // and not the other way
@@ -1170,7 +1170,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          // Then change the config to remove replicationServer[1] from
          // the configuration of replicationServer[0]
 
-         SortedSet<String> servers = new TreeSet<String>();
+         SortedSet<String> servers = new TreeSet<>();
          // Configure replicationServer[0] to be disconnected from ReplicationServer[1]
          ReplServerFakeConfiguration conf =
            new ReplServerFakeConfiguration(changelogPorts[0], "changelogDb0", replicationDbImplementation,

@@ -65,7 +65,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends DirectoryServe
    */
   @BeforeClass
   public void setUp() {
-    this.ridbp = new RelativeInheritedDefaultBehaviorProvider<Boolean>(d, d
+    this.ridbp = new RelativeInheritedDefaultBehaviorProvider<>(d, d
         .getMandatoryBooleanPropertyPropertyDefinition().getName(), OFFSET);
   }
 

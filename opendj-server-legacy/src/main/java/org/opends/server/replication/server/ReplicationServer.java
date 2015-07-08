@@ -98,8 +98,7 @@ public final class ReplicationServer
    * This table is used to store the list of dn for which we are currently
    * handling servers.
    */
-  private final Map<DN, ReplicationServerDomain> baseDNs =
-      new HashMap<DN, ReplicationServerDomain>();
+  private final Map<DN, ReplicationServerDomain> baseDNs = new HashMap<>();
 
   /** The database storing the changes. */
   private final ChangelogDB changelogDB;
@@ -120,8 +119,7 @@ public final class ReplicationServer
    * This is required for unit testing, so that we can keep track of all the
    * replication servers which are running in the VM.
    */
-  private static final Set<Integer> localPorts =
-      new CopyOnWriteArraySet<Integer>();
+  private static final Set<Integer> localPorts = new CopyOnWriteArraySet<>();
 
   /** Monitors for synchronizing domain creation with the connect thread. */
   private final Object domainTicketLock = new Object();
@@ -132,8 +130,7 @@ public final class ReplicationServer
    * Holds the list of all replication servers instantiated in this VM.
    * This allows to perform clean up of the RS databases in unit tests.
    */
-  private static final List<ReplicationServer> allInstances =
-    new ArrayList<ReplicationServer>();
+  private static final List<ReplicationServer> allInstances = new ArrayList<>();
 
   /**
    * Creates a new Replication server using the provided configuration entry.
@@ -199,7 +196,7 @@ public final class ReplicationServer
 
   private Set<HostPort> getConfiguredRSAddresses()
   {
-    final Set<HostPort> results = new HashSet<HostPort>();
+    final Set<HostPort> results = new HashSet<>();
     for (String serverAddress : this.config.getReplicationServer())
     {
       results.add(HostPort.valueOf(serverAddress));
@@ -369,7 +366,7 @@ public final class ReplicationServer
 
   private Set<HostPort> getConnectedRSAddresses(ReplicationServerDomain domain)
   {
-    Set<HostPort> results = new HashSet<HostPort>();
+    Set<HostPort> results = new HashSet<>();
     for (ReplicationServerHandler rsHandler : domain.getConnectedRSs().values())
     {
       results.add(HostPort.valueOf(rsHandler.getServerAddressURL()));
@@ -516,7 +513,7 @@ public final class ReplicationServer
 
   private List<VirtualAttributeRule> getVirtualAttributesRules() throws DirectoryException
   {
-    final List<VirtualAttributeRule> rules = new ArrayList<VirtualAttributeRule>();
+    final List<VirtualAttributeRule> rules = new ArrayList<>();
     rules.add(buildVirtualAttributeRule("lastexternalchangelogcookie", new LastCookieVirtualProvider(this)));
     rules.add(buildVirtualAttributeRule("firstchangenumber", new FirstChangeNumberVirtualAttributeProvider(this)));
     rules.add(buildVirtualAttributeRule("lastchangenumber", new LastChangeNumberVirtualAttributeProvider(this)));
@@ -599,7 +596,7 @@ public final class ReplicationServer
     Set<DN> domains = null;
     synchronized (baseDNs)
     {
-      domains = new HashSet<DN>(baseDNs.keySet());
+      domains = new HashSet<>(baseDNs.keySet());
     }
     domains.removeAll(excludedBaseDNs);
     return domains;
@@ -631,7 +628,7 @@ public final class ReplicationServer
 
   private Set<DN> getDNsOfCookie(MultiDomainServerState cookie)
   {
-    final Set<DN> cookieDomains = new HashSet<DN>();
+    final Set<DN> cookieDomains = new HashSet<>();
     for (final DN dn : cookie)
     {
       cookieDomains.add(dn);
@@ -641,7 +638,7 @@ public final class ReplicationServer
 
   private Set<DN> getDNsOfActiveDomainsInServer(final Set<DN> ignoredBaseDNs) throws DirectoryException
   {
-    final Set<DN> activeDomains = new HashSet<DN>();
+    final Set<DN> activeDomains = new HashSet<>();
     for (final DN dn : getDomainDNs(ignoredBaseDNs))
     {
       final ServerState lastServerState = getReplicationServerDomain(dn).getLatestServerState();
@@ -658,7 +655,7 @@ public final class ReplicationServer
   {
     if (!activeDomains.containsAll(cookieDomains))
     {
-      final Set<DN> unknownCookieDomains = new HashSet<DN>(cookieDomains);
+      final Set<DN> unknownCookieDomains = new HashSet<>(cookieDomains);
       unknownCookieDomains.removeAll(activeDomains);
       final StringBuilder currentStartingCookie = new StringBuilder();
       for (DN domainDN : activeDomains) {
@@ -1118,7 +1115,7 @@ public final class ReplicationServer
    */
   private void disconnectRemovedReplicationServers(Set<HostPort> oldRSAddresses)
   {
-    final Collection<HostPort> serversToDisconnect = new ArrayList<HostPort>();
+    final Collection<HostPort> serversToDisconnect = new ArrayList<>();
 
     final Set<HostPort> newRSAddresses = getConfiguredRSAddresses();
     for (HostPort oldRSAddress : oldRSAddresses)
@@ -1321,7 +1318,7 @@ public final class ReplicationServer
   {
     synchronized (baseDNs)
     {
-      return new ArrayList<ReplicationServerDomain>(baseDNs.values());
+      return new ArrayList<>(baseDNs.values());
     }
   }
 

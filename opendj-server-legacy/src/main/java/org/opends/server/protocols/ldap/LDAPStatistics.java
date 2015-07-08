@@ -190,7 +190,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   @Override
   public List<Attribute> getMonitorData()
   {
-      List<Attribute> attrs = new ArrayList<Attribute>();
+      List<Attribute> attrs = new ArrayList<>();
 
       long tmpAbandonRequests = abandonRequests.get();
       long tmpAddRequests = addRequests.get();

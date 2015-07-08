@@ -93,7 +93,7 @@ public final class JmxConnectionHandler extends
   private String protocol;
 
   /** The set of listeners for this connection handler. */
-  private final List<HostPort> listeners = new LinkedList<HostPort>();
+  private final List<HostPort> listeners = new LinkedList<>();
 
   /**
    * Creates a new instance of this JMX connection handler. It must be
@@ -102,7 +102,7 @@ public final class JmxConnectionHandler extends
   public JmxConnectionHandler() {
     super("JMX Connection Handler Thread");
 
-    this.connectionList = new CopyOnWriteArrayList<ClientConnection>();
+    this.connectionList = new CopyOnWriteArrayList<>();
   }
 
 
@@ -304,7 +304,7 @@ public final class JmxConnectionHandler extends
     // Configuration is ok.
     currentConfig = config;
 
-    final List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> reasons = new LinkedList<>();
     if (!isPortConfigurationAcceptable(String.valueOf(config.dn()),
         config.getListenPort(), reasons))
     {

@@ -250,8 +250,8 @@ public final class PasswordPolicyImportPlugin
   {
     // Find the set of attribute types with the auth password and user password
     // syntax defined in the schema.
-    HashSet<AttributeType> authPWTypes = new HashSet<AttributeType>();
-    HashSet<AttributeType> userPWTypes = new HashSet<AttributeType>();
+    HashSet<AttributeType> authPWTypes = new HashSet<>();
+    HashSet<AttributeType> userPWTypes = new HashSet<>();
     for (AttributeType t : DirectoryServer.getAttributeTypes().values())
     {
       if (t.getSyntax().getOID().equals(SYNTAX_AUTH_PASSWORD_OID))
@@ -267,16 +267,14 @@ public final class PasswordPolicyImportPlugin
 
     // Get the set of password policies defined in the server and get the
     // attribute types associated with them.
-    HashMap<DN,PasswordStorageScheme<?>[]> schemeMap =
-         new HashMap<DN,PasswordStorageScheme<?>[]>();
+    HashMap<DN,PasswordStorageScheme<?>[]> schemeMap = new HashMap<>();
     for (AuthenticationPolicy ap : DirectoryServer.getAuthenticationPolicies())
     {
       if (ap.isPasswordPolicy())
       {
         PasswordPolicy p = (PasswordPolicy) ap;
 
-        List<PasswordStorageScheme<?>> schemeList = p
-            .getDefaultPasswordStorageSchemes();
+        List<PasswordStorageScheme<?>> schemeList = p.getDefaultPasswordStorageSchemes();
         PasswordStorageScheme<?>[] schemeArray =
           new PasswordStorageScheme[schemeList.size()];
         schemeList.toArray(schemeArray);

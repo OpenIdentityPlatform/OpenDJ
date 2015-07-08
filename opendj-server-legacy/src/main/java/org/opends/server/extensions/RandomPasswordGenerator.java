@@ -103,8 +103,7 @@ public class RandomPasswordGenerator
 
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
-    HashMap<String,NamedCharacterSet> charsets =
-         new HashMap<String,NamedCharacterSet>();
+    HashMap<String,NamedCharacterSet> charsets = new HashMap<>();
 
     try
     {
@@ -151,8 +150,8 @@ public class RandomPasswordGenerator
       formatString = configuration.getPasswordFormat();
       StringTokenizer tokenizer = new StringTokenizer(formatString, ", ");
 
-      ArrayList<NamedCharacterSet> setList = new ArrayList<NamedCharacterSet>();
-      ArrayList<Integer> countList = new ArrayList<Integer>();
+      ArrayList<NamedCharacterSet> setList = new ArrayList<>();
+      ArrayList<Integer> countList = new ArrayList<>();
 
       while (tokenizer.hasMoreTokens())
       {
@@ -278,11 +277,9 @@ public class RandomPasswordGenerator
   {
     DN cfgEntryDN = configuration.dn();
 
-    // Get the character sets for use in generating the password. At
-    // least one
-    // must have been provided.
-    HashMap<String,NamedCharacterSet> charsets =
-         new HashMap<String,NamedCharacterSet>();
+    // Get the character sets for use in generating the password.
+    // At least one must have been provided.
+    HashMap<String,NamedCharacterSet> charsets = new HashMap<>();
     try
     {
       SortedSet<String> currentPasSet = configuration.getPasswordCharacterSet();
@@ -381,8 +378,7 @@ public class RandomPasswordGenerator
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
     SortedSet<String> newEncodedCharacterSets = null;
-    HashMap<String,NamedCharacterSet> charsets =
-         new HashMap<String,NamedCharacterSet>();
+    HashMap<String,NamedCharacterSet> charsets = new HashMap<>();
     try
     {
       newEncodedCharacterSets = configuration.getPasswordCharacterSet();
@@ -424,9 +420,8 @@ public class RandomPasswordGenerator
 
     // Get the value that describes which character set(s) and how many
     // characters from each should be used.
-    ArrayList<NamedCharacterSet> newSetList =
-         new ArrayList<NamedCharacterSet>();
-    ArrayList<Integer> newCountList = new ArrayList<Integer>();
+    ArrayList<NamedCharacterSet> newSetList = new ArrayList<>();
+    ArrayList<Integer> newCountList = new ArrayList<>();
     String newFormatString = null;
 
     try

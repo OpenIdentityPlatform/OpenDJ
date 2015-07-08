@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -194,20 +194,19 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Create VLAST message
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
-    HashMap<ObjectClass, String> objectClassList = new HashMap<ObjectClass, String>();
+    HashMap<ObjectClass, String> objectClassList = new HashMap<>();
     objectClassList.put(DirectoryServer.getObjectClass("organization"),
         "organization");
 
     Attribute attr = Attributes.create("o", "com");
     List<Attribute> userAttributes = newList(attr);
-    HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<AttributeType, List<Attribute>>();
+    HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
     attr = Attributes.create("creatorsName", "dc=creator");
     List<Attribute> operationalAttributes = newList(attr);
-    HashMap<AttributeType,List<Attribute>> opList=
-      new HashMap<AttributeType,List<Attribute>>();
+    HashMap<AttributeType, List<Attribute>> opList = new HashMap<>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
@@ -463,7 +462,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
     List<Modification> mods3 = newList(mod3);
 
-    List<Modification> mods4 = new ArrayList<Modification>();
+    List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
       Attribute attr = Attributes.create("description", "string" + i);
@@ -639,7 +638,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
     List<Modification> mods3 = newList(mod3);
 
-    List<Modification> mods4 = new ArrayList<Modification>();
+    List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
       Attribute attr = Attributes.create("description", "string" + i);

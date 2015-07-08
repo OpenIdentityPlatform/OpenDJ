@@ -154,9 +154,9 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testConstructorMultiAVAList() throws Exception {
-    ArrayList<AttributeType>  typeList  = new ArrayList<AttributeType>();
-    ArrayList<String>         nameList  = new ArrayList<String>();
-    ArrayList<ByteString>     valueList = new ArrayList<ByteString>();
+    ArrayList<AttributeType>  typeList  = new ArrayList<>();
+    ArrayList<String>         nameList  = new ArrayList<>();
+    ArrayList<ByteString>     valueList = new ArrayList<>();
 
     typeList.add(AT_DC);
     nameList.add(AT_DC.getNameOrOID());

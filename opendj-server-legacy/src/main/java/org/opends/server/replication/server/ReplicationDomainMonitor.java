@@ -72,7 +72,7 @@ class ReplicationDomainMonitor
    * <p>
    * Guarded by pendingMonitorLock.
    */
-  private final Set<Integer> monitorDataLateServers = new HashSet<Integer>();
+  private final Set<Integer> monitorDataLateServers = new HashSet<>();
 
   /** This lock serializes updates to the pending monitor data. */
   private final Object pendingMonitorDataLock = new Object();
@@ -91,8 +91,7 @@ class ReplicationDomainMonitor
    * <p>
    * Guarded by pendingMonitorDataLock.
    */
-  private final Set<Integer> pendingMonitorDataServerIDs =
-      new HashSet<Integer>();
+  private final Set<Integer> pendingMonitorDataServerIDs = new HashSet<>();
 
   /**
    * This latch is non-null and is used in order to count incoming responses as
@@ -108,9 +107,7 @@ class ReplicationDomainMonitor
    */
   private final long monitorDataLifeTime = 500;
 
-  /**
-   * The replication domain monitored by this class.
-   */
+  /** The replication domain monitored by this class. */
   private final ReplicationServerDomain domain;
 
 

@@ -48,10 +48,8 @@ public class TemplateEntry
 {
   /** The branch used to generate this entry (if it is associated with a branch). */
   private Branch branch;
-
   /** The DN for this template entry, if it is known. */
   private DN dn;
-
   /** The DN of the parent entry for this template entry, if it is available. */
   private DN parentDN;
 
@@ -59,14 +57,10 @@ public class TemplateEntry
    * The set of attributes associated with this template entry, mapped from the
    * lowercase name of the attribute to the list of generated values.
    */
-  private LinkedHashMap<AttributeType,ArrayList<TemplateValue>> attributes;
+  private final LinkedHashMap<AttributeType, ArrayList<TemplateValue>> attributes = new LinkedHashMap<>();
 
-  /**
-   * The template used to generate this entry (if it is associated with a
-   * template).
-   */
+  /** The template used to generate this entry (if it is associated with a template). */
   private Template template;
-
 
 
   /**
@@ -80,9 +74,6 @@ public class TemplateEntry
     this.branch = branch;
 
     dn         = branch.getBranchDN();
-    template   = null;
-    parentDN   = null;
-    attributes = new LinkedHashMap<AttributeType,ArrayList<TemplateValue>>();
   }
 
 
@@ -98,10 +89,6 @@ public class TemplateEntry
   {
     this.template = template;
     this.parentDN = parentDN;
-
-    dn         = null;
-    branch     = null;
-    attributes = new LinkedHashMap<AttributeType,ArrayList<TemplateValue>>();
   }
 
 
@@ -257,11 +244,10 @@ public class TemplateEntry
    */
   public void addValue(TemplateValue value)
   {
-    ArrayList<TemplateValue> valueList =
-         attributes.get(value.getAttributeType());
+    ArrayList<TemplateValue> valueList = attributes.get(value.getAttributeType());
     if (valueList == null)
     {
-      valueList = new ArrayList<TemplateValue>();
+      valueList = new ArrayList<>();
       attributes.put(value.getAttributeType(), valueList);
     }
     valueList.add(value);
@@ -287,17 +273,12 @@ public class TemplateEntry
   public boolean toLDIF(LDIFExportConfig exportConfig)
          throws IOException, LDIFException
   {
-//  Process all of the attributes for this entry.
-    LinkedHashMap<ObjectClass,String> objectClasses =
-         new LinkedHashMap<ObjectClass,String>();
-    LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-    LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes =
-         new LinkedHashMap<AttributeType,List<Attribute>>();
-    LinkedHashMap<AttributeType, List<Attribute>> urlAttributes =
-         new LinkedHashMap<AttributeType, List<Attribute>>();
-    LinkedHashMap<AttributeType, List<Attribute>> base64Attributes =
-      new LinkedHashMap<AttributeType, List<Attribute>>();
+    // Process all of the attributes for this entry.
+    LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType, List<Attribute>> urlAttributes = new LinkedHashMap<>();
+    LinkedHashMap<AttributeType, List<Attribute>> base64Attributes = new LinkedHashMap<>();
 
     for (AttributeType t : attributes.keySet())
     {
@@ -490,7 +471,7 @@ public class TemplateEntry
 
   private ArrayList<Attribute> asList(AttributeBuilder builder)
   {
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    ArrayList<Attribute> attrList = new ArrayList<>(1);
     attrList.add(builder.toAttribute());
     return attrList;
   }

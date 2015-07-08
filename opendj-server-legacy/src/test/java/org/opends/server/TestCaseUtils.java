@@ -553,7 +553,7 @@ public final class TestCaseUtils {
     }
   }
 
-  private static List<Long> restartTimesMs = new ArrayList<Long>();
+  private static List<Long> restartTimesMs = new ArrayList<>();
   public static List<Long> getRestartTimesMs() {
     return Collections.unmodifiableList(restartTimesMs);
   }
@@ -914,7 +914,7 @@ public final class TestCaseUtils {
       RootContainer rootContainer = backend.getRootContainer();
       for (EntryContainer ec : rootContainer.getEntryContainers())
       {
-        List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+        List<DatabaseContainer> databases = new ArrayList<>();
         ec.listDatabases(databases);
         for (DatabaseContainer dbContainer: databases) {
           if (dbContainer instanceof Index) {
@@ -1152,7 +1152,7 @@ public final class TestCaseUtils {
     ldifImportConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifImportConfig);
 
-    List<Entry> entries = new ArrayList<Entry>();
+    List<Entry> entries = new ArrayList<>();
     Entry entry;
     while ((entry = reader.readEntry()) != null) {
       entries.add(entry);
@@ -1522,7 +1522,7 @@ public final class TestCaseUtils {
    */
   public static Map<String, String> makeMap(String... keyValuePairs)
   {
-    Map<String, String> map = new LinkedHashMap<String, String>();
+    Map<String, String> map = new LinkedHashMap<>();
     for (int i = 0; i < keyValuePairs.length; i += 2) {
       map.put(keyValuePairs[i], keyValuePairs[i+1]);
     }
@@ -1534,7 +1534,7 @@ public final class TestCaseUtils {
   // ---------------------------------------------------------------------------
 
   /** The set of loggers for which the console logger has been disabled. */
-  private static final Map<Logger, Handler> disabledLogHandlers = new HashMap<Logger,Handler>();
+  private static final Map<Logger, Handler> disabledLogHandlers = new HashMap<>();
 
   /** The original System.err print stream.  Use this if you absolutely
    *  must write something to System.err. */
@@ -1692,15 +1692,10 @@ public final class TestCaseUtils {
    * included).  An ArrayList is explicitly returned, so that callers know that
    * random access is not expensive.
    */
-  public static ArrayList<String> readFileToLines(File file)
-          throws IOException {
-    BufferedReader reader =
-      new BufferedReader(
-        new InputStreamReader(
-          new DataInputStream(
-                  new FileInputStream(file))));
+  public static ArrayList<String> readFileToLines(File file) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 
-    ArrayList<String> lines = new ArrayList<String>();
+    ArrayList<String> lines = new ArrayList<>();
     String line;
     while ((line = reader.readLine()) != null)   {
       lines.add(line);
@@ -1848,8 +1843,7 @@ public final class TestCaseUtils {
 
 
     // Re-arrange all of the elements by thread ID so that there is some logical order.
-    Map<Long, Map.Entry<Thread, StackTraceElement[]>> orderedStacks =
-         new TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>>();
+    Map<Long, Map.Entry<Thread, StackTraceElement[]>> orderedStacks = new TreeMap<>();
     for (Map.Entry<Thread,StackTraceElement[]> e : threadStacks.entrySet())
     {
       orderedStacks.put(e.getKey().getId(), e);
@@ -1930,7 +1924,7 @@ public final class TestCaseUtils {
 
   public static HashSet<PluginType> getPluginTypes(Entry e)
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+    HashSet<PluginType> pluginTypes = new HashSet<>();
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
     if (attrList != null)
     {

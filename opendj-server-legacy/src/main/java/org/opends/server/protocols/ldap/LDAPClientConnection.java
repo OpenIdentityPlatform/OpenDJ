@@ -472,11 +472,11 @@ public final class LDAPClientConnection extends ClientConnection implements
     nextOperationID = new AtomicLong(0);
     connectionValid = true;
     disconnectRequested = false;
-    operationsInProgress = new ConcurrentHashMap<Integer, Operation>();
+    operationsInProgress = new ConcurrentHashMap<>();
     operationsPerformed = new AtomicLong(0);
     keepStats = connectionHandler.keepStats();
     this.protocol = protocol;
-    writeSelector = new AtomicReference<Selector>();
+    writeSelector = new AtomicReference<>();
 
     final Socket socket = clientChannel.socket();
     clientAddress = socket.getInetAddress().getHostAddress();

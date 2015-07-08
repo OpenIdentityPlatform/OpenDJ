@@ -154,42 +154,38 @@ public final class NameForm
 
     if ((names == null) || names.isEmpty())
     {
-      this.names = new LinkedHashMap<String,String>(0);
+      this.names = new LinkedHashMap<>(0);
     }
     else
     {
-      this.names = new LinkedHashMap<String,String>(names);
+      this.names = new LinkedHashMap<>(names);
     }
 
     if ((requiredAttributes == null) || requiredAttributes.isEmpty())
     {
-      this.requiredAttributes = new LinkedHashSet<AttributeType>(0);
+      this.requiredAttributes = new LinkedHashSet<>(0);
     }
     else
     {
-      this.requiredAttributes =
-           new LinkedHashSet<AttributeType>(requiredAttributes);
+      this.requiredAttributes = new LinkedHashSet<>(requiredAttributes);
     }
 
     if ((optionalAttributes == null) || optionalAttributes.isEmpty())
     {
-      this.optionalAttributes = new LinkedHashSet<AttributeType>(0);
+      this.optionalAttributes = new LinkedHashSet<>(0);
     }
     else
     {
-      this.optionalAttributes =
-           new LinkedHashSet<AttributeType>(optionalAttributes);
+      this.optionalAttributes = new LinkedHashSet<>(optionalAttributes);
     }
 
     if ((extraProperties == null) || extraProperties.isEmpty())
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(0);
+      this.extraProperties = new LinkedHashMap<>(0);
     }
     else
     {
-      this.extraProperties =
-           new LinkedHashMap<String,List<String>>(extraProperties);
+      this.extraProperties = new LinkedHashMap<>(extraProperties);
     }
   }
 

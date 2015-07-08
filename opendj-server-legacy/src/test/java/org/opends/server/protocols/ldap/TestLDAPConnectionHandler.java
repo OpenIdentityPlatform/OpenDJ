@@ -314,7 +314,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     GoodHandlerEntry.addAttribute(a13, null);
     GoodHandlerEntry.addAttribute(a14, null);
     GoodHandlerEntry.addAttribute(a15, null);
-    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> reasons = new LinkedList<>();
     LDAPConnectionHandlerCfg config = LdapTestCase.getConfiguration(GoodHandlerEntry);
     //see if we're ok
     boolean ret=LDAPConnHandler.isConfigurationChangeAcceptable(config, reasons);

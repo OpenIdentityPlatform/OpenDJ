@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -288,13 +288,12 @@ public class PasswordPolicyStateExtendedOperation
     userFilter = SearchFilter.objectClassPresent();
 
     // Construct the set of request attributes.
-    requestAttributes = new LinkedHashSet<String>(2);
+    requestAttributes = new LinkedHashSet<>(2);
     requestAttributes.add("*");
     requestAttributes.add("+");
 
 
-    DirectoryServer.registerSupportedExtension(OID_PASSWORD_POLICY_STATE_EXTOP,
-                                               this);
+    DirectoryServer.registerSupportedExtension(OID_PASSWORD_POLICY_STATE_EXTOP, this);
     // FIXME registerControlAndFeatures?
   }
 
@@ -410,7 +409,7 @@ public class PasswordPolicyStateExtendedOperation
     // Create a hash set that will be used to hold the types of the return
     // types that should be included in the response.
     boolean returnAll;
-    LinkedHashSet<Integer> returnTypes = new LinkedHashSet<Integer>();
+    LinkedHashSet<Integer> returnTypes = new LinkedHashSet<>();
     try
     {
       if (!reader.hasNextElement())
@@ -452,7 +451,7 @@ public class PasswordPolicyStateExtendedOperation
           else
           {
             reader.readStartSequence();
-            opValues = new ArrayList<String>();
+            opValues = new ArrayList<>();
             while (reader.hasNextElement())
             {
               opValues.add(reader.readOctetStringAsString());
@@ -1287,7 +1286,7 @@ public class PasswordPolicyStateExtendedOperation
             ByteString valueString = ByteString.valueOf(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             List<Long> authFailureTimes = pwpState.getAuthFailureTimes();
-            ArrayList<Long> newFailureTimes = new ArrayList<Long>(authFailureTimes.size()+1);
+            ArrayList<Long> newFailureTimes = new ArrayList<>(authFailureTimes.size()+1);
             newFailureTimes.addAll(authFailureTimes);
             newFailureTimes.add(time);
             pwpState.setAuthFailureTimes(newFailureTimes);
@@ -1308,13 +1307,13 @@ public class PasswordPolicyStateExtendedOperation
       case OP_SET_AUTHENTICATION_FAILURE_TIMES:
         if (opValues == null)
         {
-          ArrayList<Long> valueList = new ArrayList<Long>(1);
+          ArrayList<Long> valueList = new ArrayList<>(1);
           valueList.add(pwpState.getCurrentTime());
           pwpState.setAuthFailureTimes(valueList);
         }
         else
         {
-          ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
+          ArrayList<Long> valueList = new ArrayList<>(opValues.size());
           for (String value : opValues)
           {
             try
@@ -1468,7 +1467,7 @@ public class PasswordPolicyStateExtendedOperation
             ByteString valueString = ByteString.valueOf(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             List<Long> authFailureTimes = pwpState.getGraceLoginTimes();
-            ArrayList<Long> newGraceTimes = new ArrayList<Long>(authFailureTimes.size()+1);
+            ArrayList<Long> newGraceTimes = new ArrayList<>(authFailureTimes.size()+1);
             newGraceTimes.addAll(authFailureTimes);
             newGraceTimes.add(time);
             pwpState.setGraceLoginTimes(newGraceTimes);
@@ -1489,13 +1488,13 @@ public class PasswordPolicyStateExtendedOperation
       case OP_SET_GRACE_LOGIN_USE_TIMES:
         if (opValues == null)
         {
-          ArrayList<Long> valueList = new ArrayList<Long>(1);
+          ArrayList<Long> valueList = new ArrayList<>(1);
           valueList.add(pwpState.getCurrentTime());
           pwpState.setGraceLoginTimes(valueList);
         }
         else
         {
-          ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
+          ArrayList<Long> valueList = new ArrayList<>(opValues.size());
           for (String s : opValues)
           {
             try

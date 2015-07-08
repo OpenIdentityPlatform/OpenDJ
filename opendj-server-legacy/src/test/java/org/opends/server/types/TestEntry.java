@@ -97,8 +97,7 @@ public final class TestEntry extends TypesTestCase {
           "Unable to resolve object class extensibleObject");
     }
 
-    HashMap<ObjectClass, String> objectClasses =
-      new HashMap<ObjectClass, String>();
+    HashMap<ObjectClass, String> objectClasses = new HashMap<>();
     objectClasses.put(top, top.getNameOrOID());
     objectClasses.put(extensible, extensible.getNameOrOID());
 
@@ -110,7 +109,7 @@ public final class TestEntry extends TypesTestCase {
     for (String value : values) {
       builder.add(value);
     }
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    ArrayList<Attribute> attributes = new ArrayList<>();
     attributes.add(builder.toAttribute());
     testEntry.putAttribute(type, attributes);
 
@@ -197,7 +196,7 @@ public final class TestEntry extends TypesTestCase {
         .getAttributeType("supportedldapversion");
     String[] values = new String[] { "-4", "-2", "0", "1", "3" };
 
-    HashSet<Integer> expected = new HashSet<Integer>();
+    HashSet<Integer> expected = new HashSet<>();
     for (String value : values) {
       expected.add(Integer.valueOf(value));
     }
@@ -249,13 +248,13 @@ public final class TestEntry extends TypesTestCase {
     // Relative to the root DN.
     DN rootDN = DN.rootDN();
 
-    Set<SubtreeSpecification> expected = new HashSet<SubtreeSpecification>();
+    Set<SubtreeSpecification> expected = new HashSet<>();
     for (String value : values) {
       expected.add(SubtreeSpecification.valueOf(rootDN, value));
     }
 
     Entry entry = createTestEntry(type, values);
-    Set<SubtreeSpecification> result = new HashSet<SubtreeSpecification>();
+    Set<SubtreeSpecification> result = new HashSet<>();
     List<Attribute> attributes = entry.getAttribute(type, true);
     for (Attribute a : attributes)
     {
@@ -321,7 +320,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(uidType, options));
     assertTrue(e.hasAttribute(mnType, options));
 
-    options = new LinkedHashSet<String>();
+    options = new LinkedHashSet<>();
     assertTrue(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
@@ -565,7 +564,7 @@ public final class TestEntry extends TypesTestCase {
     assertEquals(attrs.size(), 1);
 
 
-    options = new LinkedHashSet<String>();
+    options = new LinkedHashSet<>();
     attrs = e.getAttribute(ocType, options);
     assertNotNull(attrs);
     assertEquals(attrs.size(), 1);
@@ -778,7 +777,7 @@ public final class TestEntry extends TypesTestCase {
     assertNull(attrs);
 
 
-    options = new LinkedHashSet<String>();
+    options = new LinkedHashSet<>();
     attrs = e.getUserAttribute(ocType, options);
     assertNull(attrs);
 
@@ -925,7 +924,7 @@ public final class TestEntry extends TypesTestCase {
     assertEquals(attrs.size(), 1);
 
 
-    options = new LinkedHashSet<String>();
+    options = new LinkedHashSet<>();
     attrs = e.getOperationalAttribute(ocType, options);
     assertNull(attrs);
 

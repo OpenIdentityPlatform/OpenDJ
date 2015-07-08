@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
-
 package org.opends.server.extensions;
 
 import java.io.IOException;
@@ -252,7 +251,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
   sslTest(int size, String qop) throws NamingException, IOException {
     LdapContext ctx = null;
     try {
-      Hashtable<String, String> env = new Hashtable<String, String>();
+      Hashtable<String, String> env = new Hashtable<>();
       env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
       String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
       env.put(Context.PROVIDER_URL, url);
@@ -290,7 +289,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
   public void startTLS(int size) throws NamingException, IOException {
     LdapContext ctx = null;
     try {
-      Hashtable<String, String> env = new Hashtable<String, String>();
+      Hashtable<String, String> env = new Hashtable<>();
       env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
       String url = "ldap://localhost:" + TestCaseUtils.getServerLdapPort();
       env.put(Context.PROVIDER_URL, url);
@@ -342,7 +341,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       entryAttrs.put(cn);
       entryAttrs.put(sn);
       entryAttrs.put(aPwdPolicy);
-      Hashtable<String, String> env = new Hashtable<String, String>();
+      Hashtable<String, String> env = new Hashtable<>();
       env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
       String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
       env.put(Context.PROVIDER_URL, url);
@@ -385,7 +384,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
   private void deleteTestEntry() throws NamingException {
     DirContext ctx = null;
     try {
-      Hashtable<String, String> env = new Hashtable<String, String>();
+      Hashtable<String, String> env = new Hashtable<>();
       env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
       String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
       env.put(Context.PROVIDER_URL, url);

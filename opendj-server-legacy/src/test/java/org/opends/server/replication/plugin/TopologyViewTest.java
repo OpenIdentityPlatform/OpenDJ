@@ -82,27 +82,27 @@ public class TopologyViewTest extends ReplicationTestCase
   /** Assured conf definitions. */
   private static final AssuredType DS1_AT = AssuredType.NOT_ASSURED;
   private static final int DS1_SDL = -1;
-  private static SortedSet<String> DS1_RU = new TreeSet<String>();
+  private static SortedSet<String> DS1_RU = new TreeSet<>();
 
   private static final AssuredType DS2_AT = AssuredType.SAFE_READ;
   private static final int DS2_SDL = -1;
-  private static SortedSet<String> DS2_RU = new TreeSet<String>();
+  private static SortedSet<String> DS2_RU = new TreeSet<>();
 
   private static final AssuredType DS3_AT = AssuredType.SAFE_DATA;
   private static final int DS3_SDL = 1;
-  private static SortedSet<String> DS3_RU = new TreeSet<String>();
+  private static SortedSet<String> DS3_RU = new TreeSet<>();
 
   private static final AssuredType DS4_AT = AssuredType.SAFE_READ;
   private static final int DS4_SDL = -1;
-  private static SortedSet<String> DS4_RU = new TreeSet<String>();
+  private static SortedSet<String> DS4_RU = new TreeSet<>();
 
   private static final AssuredType DS5_AT = AssuredType.SAFE_DATA;
   private static final int DS5_SDL = 2;
-  private static SortedSet<String> DS5_RU = new TreeSet<String>();
+  private static SortedSet<String> DS5_RU = new TreeSet<>();
 
   private static final AssuredType DS6_AT = AssuredType.SAFE_READ;
   private static final int DS6_SDL = -1;
-  private static SortedSet<String> DS6_RU = new TreeSet<String>();
+  private static SortedSet<String> DS6_RU = new TreeSet<>();
 
   private static String LOCAL_HOST_NAME;
 
@@ -317,7 +317,7 @@ public class TopologyViewTest extends ReplicationTestCase
    */
   private SortedSet<String> createRSListExceptOne(int rsIdToExclude)
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     if (rsIdToExclude != RS1_ID)
     {
@@ -377,7 +377,7 @@ public class TopologyViewTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(int dsId)
       throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
     int groupId = -1;
     AssuredType assuredType = null;
     int assuredSdLevel = -100;
@@ -774,7 +774,7 @@ public class TopologyViewTest extends ReplicationTestCase
     AssuredType assuredType = null;
     int assuredSdLevel = -100;
     SortedSet<String> refUrls = null;
-    Set<String> eclIncludes = new HashSet<String>();
+    Set<String> eclIncludes = new HashSet<>();
     short protocolVersion = ProtocolVersion.getCurrentVersion();
 
     switch (dsId)
@@ -835,8 +835,8 @@ public class TopologyViewTest extends ReplicationTestCase
    */
   private TopoView createTheoreticalTopoViewForStep(int step)
   {
-     List<DSInfo> dsList = new ArrayList<DSInfo>();
-     List<RSInfo> rsList = new ArrayList<RSInfo>();
+     List<DSInfo> dsList = new ArrayList<>();
+     List<RSInfo> rsList = new ArrayList<>();
 
     switch (step)
     {
@@ -1020,8 +1020,7 @@ public class TopologyViewTest extends ReplicationTestCase
           rd.getGroupId(), rd.getRefUrls(),
           rd.getEclIncludes(), rd.getEclIncludesForDeletes(),
           ProtocolVersion.getCurrentVersion());
-      final List<DSInfo> dsList =
-          new ArrayList<DSInfo>(rd.getReplicaInfos().values());
+      final List<DSInfo> dsList = new ArrayList<>(rd.getReplicaInfos().values());
       dsList.add(dsInfo);
 
      TopoView dsTopoView = new TopoView(dsList, rd.getRsInfos());

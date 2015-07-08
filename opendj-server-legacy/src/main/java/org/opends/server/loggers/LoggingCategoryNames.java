@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -43,9 +43,7 @@ class LoggingCategoryNames
    * most case, package name is sufficient to map to a category name. It is
    * valid if several entries point to the same category name.
    */
-  private static final NavigableMap<String, String> NAMES =
-      new TreeMap<String, String>();
-
+  private static final NavigableMap<String, String> NAMES = new TreeMap<>();
   static
   {
     // The category used for messages associated with the core server.

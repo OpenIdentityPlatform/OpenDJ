@@ -78,7 +78,7 @@ class Record<K, V>
    * @return a record
    */
   static <K, V> Record<K, V> from(final K key, final V value) {
-    return new Record<K, V>(key, value);
+    return new Record<>(key, value);
   }
 
   /**

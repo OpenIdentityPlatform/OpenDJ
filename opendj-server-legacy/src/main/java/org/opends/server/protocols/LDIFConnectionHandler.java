@@ -618,7 +618,7 @@ public final class LDIFConnectionHandler
   /** {@inheritDoc} */
   public LinkedHashMap<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_LDIF_CONNHANDLER_PARSE_ERROR,
                ALERT_DESCRIPTION_LDIF_CONNHANDLER_PARSE_ERROR);

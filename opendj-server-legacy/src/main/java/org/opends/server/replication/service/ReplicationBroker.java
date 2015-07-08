@@ -167,8 +167,7 @@ public class ReplicationBroker
    * connected RS.
    */
   // @NotNull // for the reference
-  private final AtomicReference<ConnectedRS> connectedRS =
-      new AtomicReference<ConnectedRS>(ConnectedRS.noConnectedRS());
+  private final AtomicReference<ConnectedRS> connectedRS = new AtomicReference<>(ConnectedRS.noConnectedRS());
   /** Our replication domain. */
   private final ReplicationDomain domain;
   /**
@@ -181,15 +180,10 @@ public class ReplicationBroker
    * as seen by the ReplicationServer the last time it was polled or the last
    * time it published monitoring information.
    */
-  private Map<Integer, ServerState> replicaStates =
-    new HashMap<Integer, ServerState>();
-  /**
-   * A thread to monitor heartbeats on the session.
-   */
+  private Map<Integer, ServerState> replicaStates = new HashMap<>();
+  /** A thread to monitor heartbeats on the session. */
   private HeartbeatMonitor heartbeatMonitor;
-  /**
-   * The number of times the connection was lost.
-   */
+  /** The number of times the connection was lost. */
   private int numLostConnections;
   /**
    * When the broker cannot connect to any replication server
@@ -210,8 +204,7 @@ public class ReplicationBroker
    * Properties for the last topology info received from the network.
    */
   /** Contains the last known state of the replication topology. */
-  private final AtomicReference<Topology> topology =
-      new AtomicReference<Topology>(new Topology());
+  private final AtomicReference<Topology> topology = new AtomicReference<>(new Topology());
   /** <pre>@GuardedBy("this")</pre>. */
   private volatile int updateDoneCount;
   private volatile boolean connectRequiresRecovery;
@@ -698,8 +691,7 @@ public class ReplicationBroker
    */
   private Map<Integer, ReplicationServerInfo> collectReplicationServersInfo()
   {
-    final Map<Integer, ReplicationServerInfo> rsInfos =
-        new ConcurrentSkipListMap<Integer, ReplicationServerInfo>();
+    final Map<Integer, ReplicationServerInfo> rsInfos = new ConcurrentSkipListMap<>();
 
     for (String serverUrl : getReplicationServerUrls())
     {
@@ -1233,11 +1225,9 @@ public class ReplicationBroker
    */
   static class RSEvaluations
   {
-
     private final int localServerId;
     private Map<Integer, ReplicationServerInfo> bestRSs;
-    private final Map<Integer, LocalizableMessage> rsEvals =
-        new HashMap<Integer, LocalizableMessage>();
+    private final Map<Integer, LocalizableMessage> rsEvals = new HashMap<>();
 
     /**
      * Ctor.
@@ -1377,10 +1367,8 @@ public class ReplicationBroker
    */
   private static class LocalEvaluation
   {
-    private final Map<Integer, ReplicationServerInfo> accepted =
-        new HashMap<Integer, ReplicationServerInfo>();
-    private final Map<ReplicationServerInfo, LocalizableMessage> rsEvals =
-        new HashMap<ReplicationServerInfo, LocalizableMessage>();
+    private final Map<Integer, ReplicationServerInfo> accepted = new HashMap<>();
+    private final Map<ReplicationServerInfo, LocalizableMessage> rsEvals = new HashMap<>();
 
     private void accept(Integer rsId, ReplicationServerInfo rsInfo)
     {
@@ -1408,7 +1396,7 @@ public class ReplicationBroker
 
     public Map<Integer, LocalizableMessage> getRejected()
     {
-      final Map<Integer, LocalizableMessage> result = new HashMap<Integer, LocalizableMessage>();
+      final Map<Integer, LocalizableMessage> result = new HashMap<>();
       for (Entry<ReplicationServerInfo, LocalizableMessage> entry : rsEvals.entrySet())
       {
         result.put(entry.getKey().getServerId(), entry.getValue());
@@ -1845,7 +1833,7 @@ public class ReplicationBroker
 
     // Distance (difference) of the current loads to the load goals of each RS:
     // key:server id, value: distance
-    Map<Integer, BigDecimal> loadDistances = new HashMap<Integer, BigDecimal>();
+    Map<Integer, BigDecimal> loadDistances = new HashMap<>();
     // Precision for the operations (number of digits after the dot)
     final MathContext mathContext = new MathContext(32, RoundingMode.HALF_UP);
     for (Entry<Integer, ReplicationServerInfo> entry : bestServers.entrySet())
@@ -2100,8 +2088,7 @@ public class ReplicationBroker
   private static boolean isServerOverloadingRS(int localServerId,
       ReplicationServerInfo currentRsInfo, int overloadingDSsNumber)
   {
-    List<Integer> serversConnectedToCurrentRS =
-        new ArrayList<Integer>(currentRsInfo.getConnectedDSs());
+    List<Integer> serversConnectedToCurrentRS = new ArrayList<>(currentRsInfo.getConnectedDSs());
     Collections.sort(serversConnectedToCurrentRS);
 
     final int idx = serversConnectedToCurrentRS.indexOf(localServerId);
@@ -2497,8 +2484,7 @@ public class ReplicationBroker
           MonitorMsg monitorMsg = (MonitorMsg) msg;
 
           // Extract and store replicas ServerStates
-          final Map<Integer, ServerState> newReplicaStates =
-              new HashMap<Integer, ServerState>();
+          final Map<Integer, ServerState> newReplicaStates = new HashMap<>();
           for (int srvId : toIterable(monitorMsg.ldapIterator()))
           {
             newReplicaStates.put(srvId, monitorMsg.getLDAPServerState(srvId));
@@ -2871,7 +2857,7 @@ public class ReplicationBroker
 
   private List<RSInfo> toRSInfos(Map<Integer, ReplicationServerInfo> rsInfos)
   {
-    final List<RSInfo> result = new ArrayList<RSInfo>();
+    final List<RSInfo> result = new ArrayList<>();
     for (ReplicationServerInfo rsInfo : rsInfos.values())
     {
       result.add(rsInfo.toRSInfo());
@@ -3007,7 +2993,7 @@ public class ReplicationBroker
     private Map<Integer, DSInfo> removeThisDs(Map<Integer, DSInfo> dsInfos,
         int dsServerId)
     {
-      final Map<Integer, DSInfo> copy = new HashMap<Integer, DSInfo>(dsInfos);
+      final Map<Integer, DSInfo> copy = new HashMap<>(dsInfos);
       copy.remove(dsServerId);
       return Collections.unmodifiableMap(copy);
     }
@@ -3017,11 +3003,10 @@ public class ReplicationBroker
         Map<Integer, ReplicationServerInfo> previousRsInfos,
         Set<String> configuredReplicationServerUrls)
     {
-      final Map<Integer, ReplicationServerInfo> results =
-          new HashMap<Integer, ReplicationServerInfo>(previousRsInfos);
+      final Map<Integer, ReplicationServerInfo> results = new HashMap<>(previousRsInfos);
 
       // Update replication server info list with the received topology info
-      final Set<Integer> rssToKeep = new HashSet<Integer>();
+      final Set<Integer> rssToKeep = new HashSet<>();
       for (RSInfo newRSInfo : newRsInfos)
       {
         final int rsId = newRSInfo.getId();
@@ -3053,7 +3038,7 @@ public class ReplicationBroker
     /** Computes the list of DSs connected to a particular RS. */
     private Set<Integer> computeDSsConnectedTo(int rsId, int dsServerId)
     {
-      final Set<Integer> connectedDSs = new HashSet<Integer>();
+      final Set<Integer> connectedDSs = new HashSet<>();
       if (rsServerId == rsId)
       {
         /*

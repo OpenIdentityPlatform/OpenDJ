@@ -340,7 +340,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   private ReplicationServer createReplicationServer(int serverId, String suffix)
       throws ConfigException
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
     int port = -1;
     if (serverId == RS1_ID)
     {
@@ -370,7 +370,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(DN baseDn, int serverId)
       throws Exception
   {
-    SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<>();
 
     // Create a domain with two replication servers
     replServers.add("localhost:" + rs1Port);

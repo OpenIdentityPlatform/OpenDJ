@@ -488,7 +488,7 @@ public class BackupManager
     {
       backupID = backupConfig.getBackupID();
       backupDir = backupConfig.getBackupDirectory();
-      backupProperties = new HashMap<String,String>();
+      backupProperties = new HashMap<>();
       shouldCompress = backupConfig.compressData();
 
       incrementalBaseID = retrieveIncrementalBaseID(backupConfig);
@@ -552,7 +552,7 @@ public class BackupManager
       this.backendID = backendID;
       this.newBackupParams = backupParams;
       this.cryptoEngine = crypt;
-      dependencies = new HashSet<String>();
+      dependencies = new HashSet<>();
       if (backupParams.isIncremental)
       {
         HashMap<String,String> properties = backupParams.baseBackupInfo.getBackupProperties();
@@ -672,7 +672,7 @@ public class BackupManager
      */
     List<BackupInfo> getBackupDependencies() throws DirectoryException
     {
-      List<BackupInfo> dependencies = new ArrayList<BackupInfo>();
+      List<BackupInfo> dependencies = new ArrayList<>();
       BackupInfo currentBackupInfo = backupInfo;
       while (currentBackupInfo != null && !currentBackupInfo.getDependencies().isEmpty())
       {
@@ -844,7 +844,7 @@ public class BackupManager
     void writeUnchangedFiles(Path rootDirectory, ListIterator<Path> files, BackupConfig backupConfig)
         throws DirectoryException
     {
-      List<String> unchangedFilenames = new ArrayList<String>();
+      List<String> unchangedFilenames = new ArrayList<>();
       while (files.hasNext() && !backupConfig.isCancelled())
       {
         Path file = files.next();
@@ -1012,7 +1012,7 @@ public class BackupManager
      */
     Set<String> readUnchangedDependentFiles() throws DirectoryException
     {
-      Set<String> hashSet = new HashSet<String>();
+      Set<String> hashSet = new HashSet<>();
       ZipInputStream zipStream = null;
       try
       {
@@ -1246,7 +1246,7 @@ public class BackupManager
 
     private List<String> readAllLines(ZipInputStream zipStream) throws IOException
     {
-      final ArrayList<String> results = new ArrayList<String>();
+      final ArrayList<String> results = new ArrayList<>();
       String line;
       BufferedReader reader = new BufferedReader(new InputStreamReader(zipStream));
       while ((line = reader.readLine()) != null)
@@ -1255,7 +1255,6 @@ public class BackupManager
       }
       return results;
     }
-
   }
 
   /**

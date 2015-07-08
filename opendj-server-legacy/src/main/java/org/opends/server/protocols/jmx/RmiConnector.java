@@ -261,7 +261,7 @@ public class RmiConnector
     try
     {
       // Environment map
-      HashMap<String, Object> env = new HashMap<String, Object>();
+      HashMap<String, Object> env = new HashMap<>();
 
       // ---------------------
       // init an ssl context

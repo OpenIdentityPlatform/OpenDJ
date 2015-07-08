@@ -45,8 +45,7 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
 {
   /** @NonNull */
   private final DBCursor<UpdateMsg> cursor;
-  private final AtomicReference<ReplicaOfflineMsg> replicaOfflineMsg =
-      new AtomicReference<ReplicaOfflineMsg>();
+  private final AtomicReference<ReplicaOfflineMsg> replicaOfflineMsg = new AtomicReference<>();
   private UpdateMsg currentRecord;
 
   private final ReplicaId replicaId;

@@ -81,8 +81,8 @@ public class ProfileStackFrame
     this.className  = className;
     this.methodName = methodName;
 
-    lineNumbers       = new HashMap<Integer,Long>();
-    subordinateFrames = new HashMap<ProfileStackFrame,ProfileStackFrame>();
+    lineNumbers       = new HashMap<>();
+    subordinateFrames = new HashMap<>();
   }
 
 
@@ -275,7 +275,7 @@ public class ProfileStackFrame
     HashMap<ProfileStack,Long> stackMap = stacksByMethod.get(classAndMethod);
     if (stackMap == null)
     {
-      stackMap = new HashMap<ProfileStack,Long>();
+      stackMap = new HashMap<>();
       stacksByMethod.put(classAndMethod, stackMap);
     }
     stackMap.put(stack, count);

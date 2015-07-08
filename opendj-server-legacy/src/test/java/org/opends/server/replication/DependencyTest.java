@@ -170,7 +170,7 @@ public class DependencyTest extends ReplicationTestCase
       }
 
       // configure and start replication of TEST_ROOT_DN_STRING on the server
-      SortedSet<String> replServers = new TreeSet<String>();
+      SortedSet<String> replServers = new TreeSet<>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDN, serverId, replServers);
       domainConf.setHeartbeatInterval(100000);
@@ -273,7 +273,7 @@ public class DependencyTest extends ReplicationTestCase
       replServer = new ReplicationServer(conf);
 
       // configure and start replication of TEST_ROOT_DN_STRING on the server
-      SortedSet<String> replServers = new TreeSet<String>();
+      SortedSet<String> replServers = new TreeSet<>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDN, serverId, replServers);
       domainConf.setHeartbeatInterval(100000);
@@ -442,7 +442,7 @@ public class DependencyTest extends ReplicationTestCase
       }
 
       // configure and start replication of TEST_ROOT_DN_STRING on the server
-      SortedSet<String> replServers = new TreeSet<String>();
+      SortedSet<String> replServers = new TreeSet<>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDN, serverId, replServers);
       domain = MultimasterReplication.createNewDomain(domainConf);
@@ -552,7 +552,7 @@ public class DependencyTest extends ReplicationTestCase
       }
 
       // configure and start replication of TEST_ROOT_DN_STRING on the server
-      SortedSet<String> replServers = new TreeSet<String>();
+      SortedSet<String> replServers = new TreeSet<>();
       replServers.add("localhost:"+replServerPort);
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDN, serverId, replServers);
       domain = MultimasterReplication.createNewDomain(domainConf);

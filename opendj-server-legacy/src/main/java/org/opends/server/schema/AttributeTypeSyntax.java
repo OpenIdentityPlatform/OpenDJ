@@ -352,7 +352,7 @@ public class AttributeTypeSyntax
     // we get to the end of the value.  But before we start, set default values
     // for everything else we might need to know.
     String  primaryName = oid;
-    List<String> typeNames = new LinkedList<String>();
+    List<String> typeNames = new LinkedList<>();
     String description = null;
     AttributeType superiorType = null;
     Syntax syntax = DirectoryServer.getDefaultAttributeSyntax();
@@ -365,8 +365,7 @@ public class AttributeTypeSyntax
     boolean isNoUserModification = false;
     boolean isObsolete = false;
     boolean isSingleValue = false;
-    HashMap<String,List<String>> extraProperties =
-         new LinkedHashMap<String,List<String>>();
+    HashMap<String,List<String>> extraProperties = new LinkedHashMap<>();
 
 
     while (true)
@@ -812,7 +811,7 @@ public class AttributeTypeSyntax
         // either a single value in single quotes or an open parenthesis
         // followed by one or more values in single quotes separated by spaces
         // followed by a close parenthesis.
-        List<String> valueList = new ArrayList<String>();
+        List<String> valueList = new ArrayList<>();
         pos = readExtraParameterValues(valueStr, valueList, pos);
         extraProperties.put(tokenName, valueList);
       }

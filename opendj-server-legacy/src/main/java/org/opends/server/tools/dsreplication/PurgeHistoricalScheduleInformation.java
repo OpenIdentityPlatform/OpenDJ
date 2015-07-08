@@ -68,7 +68,7 @@ implements TaskScheduleInformation
   /** {@inheritDoc} */
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    ArrayList<ByteString> baseDNs = new ArrayList<ByteString>();
+    ArrayList<ByteString> baseDNs = new ArrayList<>();
     for (String baseDN : uData.getBaseDNs())
     {
       baseDNs.add(ByteString.valueOf(baseDN));

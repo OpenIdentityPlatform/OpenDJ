@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -48,7 +48,7 @@ public final class CollectionUtils
    */
   public static <E> ArrayList<E> newArrayList(E... elements)
   {
-    return new ArrayList<E>(Arrays.asList(elements));
+    return new ArrayList<>(Arrays.asList(elements));
   }
 
   /**
@@ -62,7 +62,7 @@ public final class CollectionUtils
    */
   public static <E> LinkedList<E> newLinkedList(E... elements)
   {
-    return new LinkedList<E>(Arrays.asList(elements));
+    return new LinkedList<>(Arrays.asList(elements));
   }
 
   /**
@@ -76,7 +76,7 @@ public final class CollectionUtils
    */
   public static <E> HashSet<E> newHashSet(E... elements)
   {
-    return new HashSet<E>(Arrays.asList(elements));
+    return new HashSet<>(Arrays.asList(elements));
   }
 
   /**
@@ -90,7 +90,7 @@ public final class CollectionUtils
    */
   public static <E> LinkedHashSet<E> newLinkedHashSet(E... elements)
   {
-    return new LinkedHashSet<E>(Arrays.asList(elements));
+    return new LinkedHashSet<>(Arrays.asList(elements));
   }
 
   /**
@@ -104,6 +104,6 @@ public final class CollectionUtils
    */
   public static <E> TreeSet<E> newTreeSet(E... elements)
   {
-    return new TreeSet<E>(Arrays.asList(elements));
+    return new TreeSet<>(Arrays.asList(elements));
   }
 }

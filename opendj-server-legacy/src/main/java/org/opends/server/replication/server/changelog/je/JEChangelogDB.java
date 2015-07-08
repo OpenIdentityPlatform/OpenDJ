@@ -92,13 +92,12 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
    * concurrent shutdown.
    */
   private final ConcurrentMap<DN, ConcurrentMap<Integer, JEReplicaDB>> domainToReplicaDBs =
-      new ConcurrentHashMap<DN, ConcurrentMap<Integer, JEReplicaDB>>();
+      new ConcurrentHashMap<>();
   private final ConcurrentSkipListMap<DN, CopyOnWriteArrayList<DomainDBCursor>> registeredDomainCursors =
-      new ConcurrentSkipListMap<DN, CopyOnWriteArrayList<DomainDBCursor>>();
-  private final CopyOnWriteArrayList<MultiDomainDBCursor> registeredMultiDomainCursors =
-      new CopyOnWriteArrayList<MultiDomainDBCursor>();
+      new ConcurrentSkipListMap<>();
+  private final CopyOnWriteArrayList<MultiDomainDBCursor> registeredMultiDomainCursors = new CopyOnWriteArrayList<>();
   private final ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>> replicaCursors =
-      new ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>>();
+      new ConcurrentSkipListMap<>();
   private ReplicationDbEnv replicationEnv;
   private final ReplicationServerCfg config;
   private final File dbDirectory;
@@ -110,7 +109,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
    * @GuardedBy("cnIndexDBLock")
    */
   private JEChangeNumberIndexDB cnIndexDB;
-  private final AtomicReference<ChangeNumberIndexer> cnIndexer = new AtomicReference<ChangeNumberIndexer>();
+  private final AtomicReference<ChangeNumberIndexer> cnIndexer = new AtomicReference<>();
 
   /** Used for protecting {@link ChangeNumberIndexDB} related state. */
   private final Object cnIndexDBLock = new Object();
@@ -120,7 +119,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
    * older than this delay might be removed.
    */
   private volatile long purgeDelayInMillis;
-  private final AtomicReference<ChangelogDBPurger> cnPurger = new AtomicReference<ChangelogDBPurger>();
+  private final AtomicReference<ChangelogDBPurger> cnPurger = new AtomicReference<>();
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
@@ -260,7 +259,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     // unlucky, the domainMap does not exist: take the hit and create the
     // newValue, even though the same could be done concurrently by another thread
-    final ConcurrentMap<Integer, JEReplicaDB> newValue = new ConcurrentHashMap<Integer, JEReplicaDB>();
+    final ConcurrentMap<Integer, JEReplicaDB> newValue = new ConcurrentHashMap<>();
     final ConcurrentMap<Integer, JEReplicaDB> previousValue = domainToReplicaDBs.putIfAbsent(baseDN, newValue);
     if (previousValue != null)
     {
@@ -790,7 +789,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     CopyOnWriteArrayList<V> cursors = map.get(key);
     if (cursors == null)
     {
-      cursors = new CopyOnWriteArrayList<V>();
+      cursors = new CopyOnWriteArrayList<>();
       CopyOnWriteArrayList<V> previousValue = map.putIfAbsent(key, cursors);
       if (previousValue != null)
       {

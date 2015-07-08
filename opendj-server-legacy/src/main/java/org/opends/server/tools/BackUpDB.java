@@ -74,6 +74,7 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
+import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
@@ -342,8 +343,8 @@ public class BackUpDB extends TaskTool
     else
     {
       // Check that the backendID has not been expressed twice.
-      HashSet<String> backendIDLowerCase = new HashSet<String>();
-      HashSet<String> repeatedBackendIds = new HashSet<String>();
+      HashSet<String> backendIDLowerCase = new HashSet<>();
+      HashSet<String> repeatedBackendIds = new HashSet<>();
       StringBuilder repeatedBackends = new StringBuilder();
       for (String id : backendID.getValues())
       {
@@ -433,64 +434,16 @@ public class BackUpDB extends TaskTool
   @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    ArrayList<ByteString> values;
-    if (backUpAll.getValue() != null &&
-            !backUpAll.getValue().equals(
-                    backUpAll.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(backUpAll.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_ALL, values));
-    }
-
-    if (compress.getValue() != null &&
-            !compress.getValue().equals(
-                    compress.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(compress.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_COMPRESS, values));
-    }
-
-    if (encrypt.getValue() != null &&
-            !encrypt.getValue().equals(
-                    encrypt.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(encrypt.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_ENCRYPT, values));
-    }
-
-    if (hash.getValue() != null &&
-            !hash.getValue().equals(
-                    hash.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(hash.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_HASH, values));
-    }
-
-    if (incremental.getValue() != null &&
-            !incremental.getValue().equals(
-                    incremental.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(incremental.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_INCREMENTAL, values));
-    }
-
-    if (signHash.getValue() != null &&
-            !signHash.getValue().equals(
-                    signHash.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(signHash.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_SIGN_HASH, values));
-    }
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_ALL, backUpAll);
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_COMPRESS, compress);
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_ENCRYPT, encrypt);
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_HASH, hash);
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_INCREMENTAL, incremental);
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_SIGN_HASH, signHash);
 
     List<String> backendIDs = backendID.getValues();
     if (backendIDs != null && backendIDs.size() > 0) {
-      values = new ArrayList<ByteString>(backendIDs.size());
+      ArrayList<ByteString> values = new ArrayList<>(backendIDs.size());
       for (String s : backendIDs) {
         values.add(ByteString.valueOf(s));
       }
@@ -498,33 +451,29 @@ public class BackUpDB extends TaskTool
               new LDAPAttribute(ATTR_TASK_BACKUP_BACKEND_ID, values));
     }
 
-    if (backupIDString.getValue() != null &&
-            !backupIDString.getValue().equals(
-                    backupIDString.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(backupIDString.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_BACKUP_ID, values));
-    }
+    addIfHasValue(attributes, ATTR_BACKUP_ID, backupIDString);
+    addIfHasValue(attributes, ATTR_BACKUP_DIRECTORY_PATH, backupDirectory);
+    addIfHasValue(attributes, ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID, incrementalBaseID);
+  }
 
-    if (backupDirectory.getValue() != null &&
-            !backupDirectory.getValue().equals(
-                    backupDirectory.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(backupDirectory.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_BACKUP_DIRECTORY_PATH, values));
+  private void addIfHasValue(List<RawAttribute> attributes, String attrName, Argument arg)
+  {
+    if (hasValueDifferentThanDefaultValue(arg)) {
+      attributes.add(new LDAPAttribute(attrName, asList(arg.getValue())));
     }
+  }
 
-    if (incrementalBaseID.getValue() != null &&
-            !incrementalBaseID.getValue().equals(
-                    incrementalBaseID.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(incrementalBaseID.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID, values));
-    }
+  private boolean hasValueDifferentThanDefaultValue(Argument arg)
+  {
+    return arg.getValue() != null
+        && !arg.getValue().equals(arg.getDefaultValue());
+  }
 
+  private ArrayList<ByteString> asList(String value)
+  {
+    ArrayList<ByteString> values = new ArrayList<>(1);
+    values.add(ByteString.valueOf(value));
+    return values;
   }
 
   /** {@inheritDoc} */
@@ -703,16 +652,15 @@ public class BackUpDB extends TaskTool
 
     // Get information about the backends defined in the server, and determine
     // whether we are backing up multiple backends or a single backend.
-    ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
+    ArrayList<Backend>     backendList = new ArrayList<>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
+    ArrayList<List<DN>>    dnList      = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
     int numBackends = backendList.size();
 
     boolean multiple;
-    ArrayList<Backend<?>> backendsToArchive = new ArrayList<Backend<?>>(numBackends);
-    HashMap<String,BackendCfg> configEntries =
-         new HashMap<String,BackendCfg>(numBackends);
+    ArrayList<Backend<?>> backendsToArchive = new ArrayList<>(numBackends);
+    HashMap<String,BackendCfg> configEntries = new HashMap<>(numBackends);
     if (backUpAll.isPresent())
     {
       for (int i=0; i < numBackends; i++)
@@ -731,9 +679,8 @@ public class BackUpDB extends TaskTool
     }
     else
     {
-      // Iterate through the set of backends and pick out those that were
-      // requested.
-      HashSet<String> requestedBackends = new HashSet<String>(backendID.getValues());
+      // Iterate through the set of backends and pick out those that were requested.
+      HashSet<String> requestedBackends = new HashSet<>(backendID.getValues());
       for (int i=0; i < numBackends; i++)
       {
         Backend<?> b = backendList.get(i);

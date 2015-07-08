@@ -120,9 +120,9 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
       // Fill collected errors info
       ack.setHasTimeout(true);
       // Tell which servers did not send an ack in time
-      List<Integer> failedServers = new ArrayList<Integer>();
+      List<Integer> failedServers = new ArrayList<>();
       Set<Integer> serverIds = expectedServersAckStatus.keySet();
-      serversInTimeout = new ArrayList<Integer>(); // Use next loop to fill it
+      serversInTimeout = new ArrayList<>(); // Use next loop to fill it
       for (Integer serverId : serverIds)
       {
         boolean ackReceived = expectedServersAckStatus.get(serverId);

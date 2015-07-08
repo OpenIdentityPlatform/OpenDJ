@@ -386,9 +386,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   @Test
   public void testModOperationNameContexts() throws Exception {
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
-    LinkedList<Modification> mods = new LinkedList<Modification>();
-    addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test",
-           "user1t@test");
+    LinkedList<Modification> mods = new LinkedList<>();
+    addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test", "user1t@test");
     //Fail because user1t@test already exists under "o=people,o=test".
     doMods(mods, DN.valueOf("uid=5user.5,ou=People,o=test"),
            ResultCode.CONSTRAINT_VIOLATION);
@@ -401,8 +400,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
            ResultCode.CONSTRAINT_VIOLATION);
     mods.clear();
     addMods(mods,"pager",ModificationType.ADD,"2-999-1234","1-999-5678");
-    addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test",
-           "user1t@test");
+    addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test", "user1t@test");
     //Ok because adding mail value user1t@test to entry that already
     //contains mail value user1t@test.
     doMods(mods, DN.valueOf("uid=1user.1,ou=People,o=test"),
@@ -730,7 +728,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    */
   private void
   deleteAttrsFromEntry(DN dn, String... attrTypeStrings) throws Exception {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     for(String attrTypeString : attrTypeStrings) {
      AttributeType attrType = getAttrType(attrTypeString);
      mods.add(new Modification(ModificationType.DELETE,
@@ -743,7 +741,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
 
   private void
   replaceAttrInEntry(DN dn, String attrTypeString, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    LinkedList<Modification> mods = new LinkedList<>();
     AttributeType attrType = getAttrType(attrTypeString);
     AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String valString : attrValStrings) {

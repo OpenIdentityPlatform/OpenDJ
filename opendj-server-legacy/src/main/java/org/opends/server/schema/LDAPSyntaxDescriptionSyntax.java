@@ -363,7 +363,7 @@ public class LDAPSyntaxDescriptionSyntax
     // for everything else we might need to know.
     String description = null;
     Syntax syntax = null;
-    HashMap<String,List<String>> extraProperties = new LinkedHashMap<String,List<String>>();
+    HashMap<String,List<String>> extraProperties = new LinkedHashMap<>();
     boolean hasXSyntaxToken = false;
 
     while (true)
@@ -472,7 +472,7 @@ public class LDAPSyntaxDescriptionSyntax
                                          message);
           }
           hasXSyntaxToken = true;
-          LinkedList<String> values = new LinkedList<String>();
+          LinkedList<String> values = new LinkedList<>();
           pos = readExtraParameterValues(valueStr, values, pos);
 
           if (values.isEmpty())
@@ -506,7 +506,7 @@ public class LDAPSyntaxDescriptionSyntax
           // either a single value in single quotes or an open parenthesis
           // followed by one or more values in single quotes separated by spaces
           // followed by a close parenthesis.
-          List<String> valueList = new ArrayList<String>();
+          List<String> valueList = new ArrayList<>();
           pos = readExtraParameterValues(valueStr, valueList, pos);
           extraProperties.put(tokenName, valueList);
         }

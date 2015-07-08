@@ -127,7 +127,7 @@ public class VirtualAttributeTestCase
     assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
     assertFalse(virtualAttribute.contains(ByteString.valueOf("o=not test")));
 
-    LinkedHashSet<ByteString> testValues = new LinkedHashSet<ByteString>();
+    LinkedHashSet<ByteString> testValues = new LinkedHashSet<>();
     testValues.add(ByteString.valueOf("o=test"));
     assertTrue(virtualAttribute.containsAll(testValues));
 

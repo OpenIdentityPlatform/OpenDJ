@@ -60,8 +60,7 @@ public class ReplicationServerHandler extends ServerHandler
    * This collection will contain as many elements as there are
    * LDAP servers connected to the remote replication server.
    */
-  private final Map<Integer, LightweightServerHandler> remoteDirectoryServers =
-    new ConcurrentHashMap<Integer, LightweightServerHandler>();
+  private final Map<Integer, LightweightServerHandler> remoteDirectoryServers = new ConcurrentHashMap<>();
 
   /**
    * Starts this handler based on a start message received from remote server.

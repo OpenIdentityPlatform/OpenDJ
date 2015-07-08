@@ -89,7 +89,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   @Override
   public List<Attribute> getMonitorData()
   {
-    List<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<>();
 
     attributes.add(Attributes.create("domain-name", String.valueOf(domain.getBaseDN())));
     attributes.add(Attributes.create("connected-to", domain.getReplicationServer()));

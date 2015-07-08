@@ -113,7 +113,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     zorroDN           = DN.valueOf("uid=zorro,dc=vlvtest,dc=com");
     suffixDN          = DN.valueOf("dc=vlvtest,dc=com");
 
-    expectedSortedValues = new TreeSet<SortValues>();
+    expectedSortedValues = new TreeSet<>();
 
     entries = TestCaseUtils.makeEntries(
         "dn: dc=vlvtest,dc=com",
@@ -399,7 +399,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
   private ArrayList<DN> getDNs(InternalSearchOperation internalSearch)
   {
-    ArrayList<DN> results = new ArrayList<DN>();
+    ArrayList<DN> results = new ArrayList<>();
     for (Entry e : internalSearch.getSearchEntries())
     {
       results.add(e.getName());
@@ -481,7 +481,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(albertZimmermanDN); // Albert, bigger
     expectedDNOrder.add(albertSmithDN);     // Albert, smaller sn
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
@@ -603,7 +603,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
     expectedDNOrder.add(suffixDN);          // No sort attributes
@@ -645,7 +645,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(maryJonesDN);       // Mary
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
@@ -819,7 +819,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
     expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
@@ -875,7 +875,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(aaronZimmermanDN);  // Aaron
     expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
     expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
@@ -934,7 +934,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     // Null values for given name are still bigger then zz
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    ArrayList<DN> expectedDNOrder = new ArrayList<>();
     expectedDNOrder.add(zorroDN);           // No first name
     expectedDNOrder.add(suffixDN);          // No sort attributes
 

@@ -58,7 +58,7 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   private CursorOptions options;
   private MultiDomainDBCursor multiDomainCursor;
   private ECLMultiDomainDBCursor eclCursor;
-  private final Set<DN> eclEnabledDomains = new HashSet<DN>();
+  private final Set<DN> eclEnabledDomains = new HashSet<>();
   private ECLEnabledDomainPredicate predicate = new ECLEnabledDomainPredicate()
   {
     @Override

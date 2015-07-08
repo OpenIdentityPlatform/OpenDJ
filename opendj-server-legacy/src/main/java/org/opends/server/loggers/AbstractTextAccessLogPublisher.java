@@ -1271,7 +1271,7 @@ abstract class AbstractTextAccessLogPublisher
   private void buildFilters(final boolean suppressInternal,
       final boolean suppressSynchronization, final FilteringPolicy policy)
   {
-    final ArrayList<Filter> subFilters = new ArrayList<Filter>();
+    final ArrayList<Filter> subFilters = new ArrayList<>();
     if (cfg != null)
     {
       for (final String criteriaName : cfg.listAccessLogFilteringCriteria())

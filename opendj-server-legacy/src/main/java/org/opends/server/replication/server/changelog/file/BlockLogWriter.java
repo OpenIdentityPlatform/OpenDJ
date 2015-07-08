@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -73,7 +73,7 @@ class BlockLogWriter<K extends Comparable<K>, V> implements Closeable
   static <K extends Comparable<K>, V> BlockLogWriter<K,V> newWriter(
       final LogWriter writer, final RecordParser<K, V> parser)
   {
-    return new BlockLogWriter<K, V>(writer, parser, BLOCK_SIZE);
+    return new BlockLogWriter<>(writer, parser, BLOCK_SIZE);
   }
 
   /**
@@ -97,7 +97,7 @@ class BlockLogWriter<K extends Comparable<K>, V> implements Closeable
   static <K extends Comparable<K>, V> BlockLogWriter<K,V> newWriterForTests(
       final LogWriter writer, final RecordParser<K, V> parser, final int blockSize)
   {
-    return new BlockLogWriter<K, V>(writer, parser, blockSize);
+    return new BlockLogWriter<>(writer, parser, blockSize);
   }
 
   /**

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -120,7 +120,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
   public void testReadChangelogStateWithMultipleDN() throws Exception
   {
     Log<Long,ChangeNumberIndexRecord> cnDB = null;
-    List<Log<CSN,UpdateMsg>> replicaDBs = new ArrayList<Log<CSN,UpdateMsg>>();
+    List<Log<CSN,UpdateMsg>> replicaDBs = new ArrayList<>();
     try
     {
       File rootPath = new File(TEST_DIRECTORY_CHANGELOG);

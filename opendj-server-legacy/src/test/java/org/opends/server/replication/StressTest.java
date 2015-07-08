@@ -119,7 +119,7 @@ public class StressTest extends ReplicationTestCase
       int count = TOTAL_MESSAGES;
 
       // Create a number of writer thread that will loop modifying the entry
-      List<Thread> writerThreadList = new LinkedList<Thread>();
+      List<Thread> writerThreadList = new LinkedList<>();
       for (int n = 0; n < 1; n++)
       {
         BrokerWriter writer = new BrokerWriter(count);
@@ -322,7 +322,7 @@ public class StressTest extends ReplicationTestCase
       else
         attr = Attributes.create("received-messages", String
             .valueOf(reader.getCurrentCount()));
-      List<Attribute> list = new LinkedList<Attribute>();
+      List<Attribute> list = new LinkedList<>();
       list.add(attr);
       attr = Attributes.create("base-dn", "ou=People," + TEST_ROOT_DN_STRING);
       list.add(attr);

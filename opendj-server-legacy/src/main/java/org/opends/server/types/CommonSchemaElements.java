@@ -166,7 +166,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
 
     // Construct the normalized attribute name mapping.
     if (names != null) {
-      this.names = new LinkedHashMap<String, String>(names.size());
+      this.names = new LinkedHashMap<>(names.size());
 
       // Make sure the primary name is first (never null).
       this.names.put(lowerName, this.primaryName);
@@ -176,16 +176,14 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
         this.names.put(toLowerCase(name), name);
       }
     } else if (this.primaryName != null) {
-      this.names = Collections.singletonMap(lowerName,
-          this.primaryName);
+      this.names = Collections.singletonMap(lowerName, this.primaryName);
     } else {
       this.names = Collections.emptyMap();
     }
 
     // FIXME: should really be a deep-copy.
     if (extraProperties != null) {
-      this.extraProperties = new LinkedHashMap<String, List<String>>(
-          extraProperties);
+      this.extraProperties = new LinkedHashMap<>(extraProperties);
     } else {
       this.extraProperties = Collections.emptyMap();
     }
@@ -468,7 +466,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     }
     else
     {
-      LinkedList<String> values = new LinkedList<String>();
+      LinkedList<String> values = new LinkedList<>();
       values.add(value);
 
       elem.getExtraProperties().put(name, values);
@@ -501,7 +499,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     }
     else
     {
-      LinkedList<String> valuesCopy = new LinkedList<String>(values);
+      LinkedList<String> valuesCopy = new LinkedList<>(values);
       extraProperties.put(name, valuesCopy);
     }
   }

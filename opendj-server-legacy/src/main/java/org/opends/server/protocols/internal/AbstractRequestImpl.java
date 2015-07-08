@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.internal;
 
@@ -63,7 +63,7 @@ abstract class AbstractRequestImpl {
         return null;
     }
 
-    private final List<Control> controls = new LinkedList<Control>();
+    private final List<Control> controls = new LinkedList<>();
 
     /** Default constructor. */
     AbstractRequestImpl() {

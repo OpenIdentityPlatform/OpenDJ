@@ -646,7 +646,7 @@ public class ManageAccount
           {
             reader.readStartSequence();
             opType = (int)reader.readInteger();
-            opValues = new ArrayList<String>();
+            opValues = new ArrayList<>();
             if (reader.hasNextElement())
             {
               reader.readStartSequence();
@@ -971,7 +971,7 @@ public class ManageAccount
       argParser.setUsageArgument(showUsage, out);
 
 
-      HashSet<String> booleanValues = new HashSet<String>(2);
+      HashSet<String> booleanValues = new HashSet<>(2);
       booleanValues.add(INFO_MULTICHOICE_TRUE_VALUE.get().toString());
       booleanValues.add(INFO_MULTICHOICE_FALSE_VALUE.get().toString());
 
@@ -1305,7 +1305,7 @@ public class ManageAccount
     if (saslOption.isPresent())
     {
       String             mechanism = null;
-      LinkedList<String> options   = new LinkedList<String>();
+      LinkedList<String> options   = new LinkedList<>();
 
       for (String s : saslOption.getValues())
       {
@@ -1554,7 +1554,7 @@ public class ManageAccount
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        ArrayList<String> valueList = new ArrayList<String>(a.getValues());
+        ArrayList<String> valueList = new ArrayList<>(a.getValues());
         String[] values = new String[valueList.size()];
         valueList.toArray(values);
 
@@ -1667,7 +1667,7 @@ public class ManageAccount
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
       if ((a != null) && a.isPresent())
       {
-        ArrayList<String> valueList = new ArrayList<String>(a.getValues());
+        ArrayList<String> valueList = new ArrayList<>(a.getValues());
         String[] values = new String[valueList.size()];
         valueList.toArray(values);
 

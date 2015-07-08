@@ -131,7 +131,7 @@ public class AciTests extends AciTestCase {
 
   private static final Map<String,String> DN_TO_PW;
   static {
-    Map<String,String> dnToPw = new HashMap<String,String>();
+    Map<String,String> dnToPw = new HashMap<>();
     dnToPw.put(DIR_MGR_DN, DIR_MGR_PW);
     dnToPw.put(ADMIN_DN, ADMIN_PW);
     dnToPw.put(ANNONYMOUS_DN, ANNONYMOUS_PW);
@@ -812,7 +812,7 @@ public class AciTests extends AciTestCase {
   public Object[][] validBasisOfValidityTests() throws Exception {
     TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
 
-    List<String> acis = new ArrayList<String>();
+    List<String> acis = new ArrayList<>();
     for (String[] aciAndMask: INVALID_ACIS_IF_ANY_CHAR_REMOVED) {
       acis.add("aci: " + aciAndMask[0]);
     }
@@ -842,7 +842,7 @@ public class AciTests extends AciTestCase {
   public Object[][] invalidAcis() throws Exception {
     TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
 
-    List<String> invalid = new ArrayList<String>(Arrays.asList(INVALID_ACIS));
+    List<String> invalid = new ArrayList<>(Arrays.asList(INVALID_ACIS));
     for (String[] aciAndMask: INVALID_ACIS_IF_ANY_CHAR_REMOVED) {
       invalid.addAll(getAciMissingCharCombos(aciAndMask[0], aciAndMask[1]));
     }
@@ -855,7 +855,7 @@ public class AciTests extends AciTestCase {
    * is only removed if the corresponding mask character is a - or \"
    */
   protected List<String> getAciMissingCharCombos(String aci, String mask) {
-    List <String> acisMissingOneChar = new ArrayList<String>();
+    List <String> acisMissingOneChar = new ArrayList<>();
     for (int i = 0; i < aci.length(); i++) {
       // Add this test only if the mask tells us we haven't seen it before.
       // Also guard against ArrayIndexOutOfBoundsExceptions in case the
@@ -872,10 +872,10 @@ public class AciTests extends AciTestCase {
 
   /** Common between validAcis and invalidAcis. */
   private Object[][] buildAciValidationParams(List<String> acis, boolean testMultipleCombos) {
-    List<String[]> paramsList = new ArrayList<String[]>();
+    List<String[]> paramsList = new ArrayList<>();
 
     for (String aci: acis) {
-      List<String> aciLdifs = new ArrayList<String>();
+      List<String> aciLdifs = new ArrayList<>();
 
       // aci set in Add
       aciLdifs.add(TestCaseUtils.makeLdif(
@@ -972,7 +972,7 @@ public class AciTests extends AciTestCase {
   public Object[][] invalidAcisMultiCombos() throws Exception {
     TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
 
-    List<String> invalid = new ArrayList<String>();
+    List<String> invalid = new ArrayList<>();
     invalid.add(INVALID_ACIS[0]);
     invalid.add(INVALID_ACIS[1]);
 
@@ -1465,7 +1465,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   //   * Who sets the ACIs to start with
   //   * Whether the entries were created with the ACIs or they were added later.  LDIFModify would work here.
 
-  private static List<SearchTestParams> SEARCH_TEST_PARAMS = new ArrayList<SearchTestParams>();
+  private static List<SearchTestParams> SEARCH_TEST_PARAMS = new ArrayList<>();
   private static SearchTestParams registerNewTestParams(String initialDitLdif, String... aciLdif) {
     SearchTestParams testParams = new SearchTestParams(initialDitLdif, aciLdif);
     SEARCH_TEST_PARAMS.add(testParams);
@@ -1652,7 +1652,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
     public String[] getLdapSearchArgs()
     {
-      final List<String> args = new ArrayList<String>();
+      final List<String> args = new ArrayList<>();
 
       if (_bindDn.equals(ANNONYMOUS_DN))
       {
@@ -1725,7 +1725,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     /** ACIs that will produce the same search results for the above DIT. */
     private final List<String> _equivalentAciLdifs;
 
-    private final List<SingleSearchParams> _searchTests = new ArrayList<SingleSearchParams>();
+    private final List<SingleSearchParams> _searchTests = new ArrayList<>();
 
     public SearchTestParams(String initialDitLdif, String... equivalentAciLdifs) {
       _initialDitLdif = initialDitLdif;
@@ -1748,7 +1748,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       ByteArrayOutputStream updatedEntriesStream = new ByteArrayOutputStream();
       LDIFWriter ldifWriter = new LDIFWriter(new LDIFExportConfig(updatedEntriesStream));
 
-      List<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
+      List<LocalizableMessage> errors = new ArrayList<>();
       LDIFModify.modifyLDIF(baseReader, changesReader, ldifWriter, errors);
       Assert.assertTrue(errors.isEmpty(), "Unexpected errors applying LDIF changes: " + errors);
       ldifWriter.flush();
@@ -1762,7 +1762,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
 
     try {
-      List<Object[]> allTestParams = new ArrayList<Object[]>();
+      List<Object[]> allTestParams = new ArrayList<>();
 
       for (SearchTestParams testParams: SEARCH_TEST_PARAMS) {
         for (SingleSearchParams singleTest: testParams._searchTests) {
@@ -2330,7 +2330,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
-    ArrayList<String> argList=new ArrayList<String>(20);
+    ArrayList<String> argList=new ArrayList<>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -2461,7 +2461,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     return COMMENTS_REGEX.matcher(ldif).replaceAll("");
   }
 
-  private static ThreadLocal<Map<String,File>> _tempLdifFilesByName = new ThreadLocal<Map<String,File>>();
+  private static ThreadLocal<Map<String,File>> _tempLdifFilesByName = new ThreadLocal<>();
 
   /**
    * To avoid a proliferation of temporary files, use the same ones over and over.
@@ -2471,7 +2471,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
   private File getTemporaryLdifFile(String name) throws IOException {
     Map<String,File> tempFilesForThisThread = _tempLdifFilesByName.get();
     if (tempFilesForThisThread == null) {
-      tempFilesForThisThread = new HashMap<String,File>();
+      tempFilesForThisThread = new HashMap<>();
       _tempLdifFilesByName.set(tempFilesForThisThread);
     }
     File tempFile = tempFilesForThisThread.get(name);
@@ -2584,7 +2584,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
   }
 
   private static String getNotThisDayOfWeek() {
-    Set<String> otherDays = new HashSet<String>(Arrays.asList(DAYS_OF_WEEK));
+    Set<String> otherDays = new HashSet<>(Arrays.asList(DAYS_OF_WEEK));
     otherDays.remove(getThisDayOfWeek());
     String dayList = "";
     for (String otherDay: otherDays) {

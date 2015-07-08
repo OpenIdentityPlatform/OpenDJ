@@ -360,7 +360,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value1");
     builder.add("value2");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
 
@@ -415,7 +415,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value3");
     builder.add("value4");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
 
@@ -461,7 +461,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
     entry.addAttribute(attribute, duplicateValues);
 
@@ -494,7 +494,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
     entry.addAttribute(attribute, duplicateValues);
 
@@ -532,7 +532,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value1");
     builder.add("value2");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -581,7 +581,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
     entry.addAttribute(attribute, duplicateValues);
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
@@ -664,7 +664,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value3");
     builder.add("value4");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -742,7 +742,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value3");
     builder.add("value4");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -804,7 +804,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
     entry.addAttribute(attribute, duplicateValues);
 
@@ -903,7 +903,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = Attributes.create(DESCRIPTION, "Init Value");
     Modification mod2 = new Modification(ModificationType.ADD, attr);
 
-    List<Modification> mods = new LinkedList<Modification>();
+    List<Modification> mods = new LinkedList<>();
     mods.add(mod1);
     mods.add(mod2);
 
@@ -961,11 +961,11 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = Attributes.empty(DESCRIPTION);
     Modification mod2 = new Modification(ModificationType.REPLACE, attr);
 
-    List<Modification> mods = new LinkedList<Modification>();
+    List<Modification> mods = new LinkedList<>();
     mods.add(mod1);
     mods.add(mod2);
 
-    List<Modification> mods2 = new LinkedList<Modification>(mods);
+    List<Modification> mods2 = new LinkedList<>(mods);
     replayModifies(entry, hist, mods, 12);
     assertEquals(hist.encodeAndPurge(), attrDel);
     assertEquals(mods.size(), 2,
@@ -1004,7 +1004,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = Attributes.create(DESCRIPTION, "Init Value");
     Modification mod2 = new Modification(ModificationType.DELETE, attr);
 
-    List<Modification> mods = new LinkedList<Modification>();
+    List<Modification> mods = new LinkedList<>();
     mods.add(mod1);
     mods.add(mod2);
 
@@ -1241,7 +1241,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * for all these tests.
      */
     DN dn = DN.valueOf(TEST_ROOT_DN_STRING);
-    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
+    Map<ObjectClass, String> objectClasses = new HashMap<>();
     ObjectClass org = DirectoryServer.getObjectClass(ORGANIZATION);
     objectClasses.put(org, ORGANIZATION);
 
@@ -1252,15 +1252,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
-    ArrayList<Attribute> uuidList = new ArrayList<Attribute>(1);
-    Attribute uuidAttr = Attributes.create(entryuuidAttrType, uuid
-        .toString());
+    ArrayList<Attribute> uuidList = new ArrayList<>(1);
+    Attribute uuidAttr = Attributes.create(entryuuidAttrType, uuid.toString());
     uuidList.add(uuidAttr);
 
     // Add the uuid in the entry
-    Map<AttributeType, List<Attribute>> operationalAttributes = entry
-        .getOperationalAttributes();
-
+    Map<AttributeType, List<Attribute>> operationalAttributes = entry.getOperationalAttributes();
     operationalAttributes.put(entryuuidAttrType, uuidList);
     return entry;
   }
@@ -1352,7 +1349,7 @@ public class ModifyConflictTest extends ReplicationTestCase
       InternalClientConnection.getRootConnection();
     CSN t = new CSN(date, 0, 0);
 
-    List<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<>();
     mods.add(mod);
 
     ModifyOperationBasis modOpBasis =
@@ -1567,7 +1564,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value1");
     builder.add("value2");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -1626,7 +1623,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value2");
     builder.add("value3");
 
-    List<ByteString> duplicateValues = new LinkedList<ByteString>();
+    List<ByteString> duplicateValues = new LinkedList<>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry

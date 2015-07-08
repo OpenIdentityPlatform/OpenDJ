@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -40,7 +40,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test
   public void testPutAndSize() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     assertEquals(map.size(), 0);
     assertEquals(map.put(1, "one"), null);
     assertEquals(map.size(), 1);
@@ -55,7 +55,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testPutAndSize" })
   public void testGet() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     assertEquals(map.get(1), null);
     assertEquals(map.get(2), null);
     map.put(1, "one");
@@ -72,8 +72,8 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testPutAndSize" })
   public void testPutAll() throws Exception
   {
-    final SmallMap<Integer, String> map = new SmallMap<Integer, String>();
-    final HashMap<Integer, String> hashMap = new HashMap<Integer, String>();
+    final SmallMap<Integer, String> map = new SmallMap<>();
+    final HashMap<Integer, String> hashMap = new HashMap<>();
     map.putAll(hashMap);
     assertEquals(map.size(), 0);
     hashMap.put(1, "one");
@@ -85,7 +85,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testPutAndSize" })
   public void testRemove() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     assertEquals(map.size(), 0);
     assertEquals(map.remove(2), null);
     assertEquals(map.remove(1), null);
@@ -106,7 +106,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testPutAndSize" })
   public void testContains() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     assertDoesNotContain(map, entry(2, "two"));
 
     map.put(1, null);
@@ -126,7 +126,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testPutAndSize" })
   public void testClear() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     map.clear();
     assertEquals(map.size(), 0);
 
@@ -143,7 +143,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testPutAndSize" })
   public void testEntrySetSize() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     assertEquals(map.entrySet().size(), 0);
 
     map.put(1, "one");
@@ -158,7 +158,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testEntrySetSize" })
   public void testEntrySetIterator() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     assertThat(map.entrySet().iterator()).isEmpty();
 
     map.put(1, "one");
@@ -174,7 +174,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { "testEntrySetIterator" })
   public void testEntrySetIteratorNextRemove() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     map.put(1, "one");
     Iterator<Entry<Integer, String>> iter = map.entrySet().iterator();
     assertTrue(iter.hasNext());
@@ -189,7 +189,7 @@ public class SmallMapTest extends DirectoryServerTestCase
       expectedExceptions = { NoSuchElementException.class })
   public void testEntrySetIteratorNextThrowsNoSuchElementException() throws Exception
   {
-    SmallMap<Integer, String> map = new SmallMap<Integer, String>();
+    SmallMap<Integer, String> map = new SmallMap<>();
     map.put(1, "one");
     Iterator<Entry<Integer, String>> iter = map.entrySet().iterator();
     assertTrue(iter.hasNext());
@@ -200,7 +200,7 @@ public class SmallMapTest extends DirectoryServerTestCase
 
   private <K, V> Entry<K, V> entry(K key, V value)
   {
-    return new AbstractMap.SimpleImmutableEntry<K, V>(key, value);
+    return new AbstractMap.SimpleImmutableEntry<>(key, value);
   }
 
   private void assertContains(SmallMap<Integer, String> map,
@@ -243,7 +243,7 @@ public class SmallMapTest extends DirectoryServerTestCase
   @Test(expectedExceptions = { NullPointerException.class })
   public void testPutAllRejectsNull() throws Exception
   {
-    final HashMap<Integer, String> map = new HashMap<Integer, String>();
+    final HashMap<Integer, String> map = new HashMap<>();
     map.put(null, null);
     new SmallMap<Integer, String>().putAll(map);
   }

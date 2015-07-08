@@ -107,7 +107,7 @@ public class TestAlertGenerator
   /** {@inheritDoc} */
   public LinkedHashMap<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<>();
 
     alerts.put(alertType, alertDescription);
 

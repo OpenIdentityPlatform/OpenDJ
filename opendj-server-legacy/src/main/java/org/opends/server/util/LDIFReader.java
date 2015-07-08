@@ -144,8 +144,8 @@ public class LDIFReader implements Closeable
     this.importConfig = importConfig;
 
     reader               = importConfig.getReader();
-    lastEntryBodyLines   = new LinkedList<StringBuilder>();
-    lastEntryHeaderLines = new LinkedList<StringBuilder>();
+    lastEntryBodyLines   = new LinkedList<>();
+    lastEntryHeaderLines = new LinkedList<>();
     pluginConfigManager  = DirectoryServer.getPluginConfigManager();
     // If we should invoke import plugins, then do so.
     if (importConfig.invokeImportPlugins())
@@ -205,7 +205,7 @@ public class LDIFReader implements Closeable
         return null;
       }
       lastEntryBodyLines   = lines;
-      lastEntryHeaderLines = new LinkedList<StringBuilder>();
+      lastEntryHeaderLines = new LinkedList<>();
 
 
       // Read the DN of the entry and see if it is one that should be included
@@ -247,10 +247,9 @@ public class LDIFReader implements Closeable
 
   private Entry createEntry(DN entryDN, List<StringBuilder> lines, boolean checkSchema) throws LDIFException
   {
-    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
-    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<AttributeType, List<AttributeBuilder>>();
-    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders =
-        new HashMap<AttributeType, List<AttributeBuilder>>();
+    Map<ObjectClass, String> objectClasses = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders = new HashMap<>();
     for (StringBuilder line : lines)
     {
       readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders, operationalAttrBuilders, checkSchema);
@@ -341,7 +340,7 @@ public class LDIFReader implements Closeable
    */
   protected Map<AttributeType, List<Attribute>> toAttributesMap(Map<AttributeType, List<AttributeBuilder>> attrBuilders)
   {
-    Map<AttributeType, List<Attribute>> attributes = new HashMap<AttributeType, List<Attribute>>(attrBuilders.size());
+    Map<AttributeType, List<Attribute>> attributes = new HashMap<>(attrBuilders.size());
     for (Map.Entry<AttributeType, List<AttributeBuilder>> attrTypeEntry : attrBuilders.entrySet())
     {
       AttributeType attrType = attrTypeEntry.getKey();
@@ -359,7 +358,7 @@ public class LDIFReader implements Closeable
    */
   protected List<Attribute> toAttributesList(List<AttributeBuilder> builders)
   {
-    List<Attribute> results = new ArrayList<Attribute>(builders.size());
+    List<Attribute> results = new ArrayList<>(builders.size());
     for (AttributeBuilder builder : builders)
     {
       results.add(builder.toAttribute());
@@ -465,7 +464,7 @@ public class LDIFReader implements Closeable
   protected LinkedList<StringBuilder> readEntryLines() throws IOException, LDIFException
   {
     // Read the entry lines into a buffer.
-    LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
+    LinkedList<StringBuilder> lines = new LinkedList<>();
     int lastLine = -1;
 
     if(reader == null)
@@ -904,7 +903,7 @@ public class LDIFReader implements Closeable
       {
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
         builder.add(attributeValue);
-        attrList = new ArrayList<AttributeBuilder>();
+        attrList = new ArrayList<>();
         attrList.add(builder);
         attrBuilders.put(attrType, attrList);
         return;
@@ -1343,7 +1342,7 @@ public class LDIFReader implements Closeable
   private ChangeRecordEntry parseModifyChangeRecordEntry(DN entryDN,
       LinkedList<StringBuilder> lines) throws LDIFException {
 
-    List<RawModification> modifications = new ArrayList<RawModification>();
+    List<RawModification> modifications = new ArrayList<>();
     while(!lines.isEmpty())
     {
       StringBuilder line = lines.remove();
@@ -1441,9 +1440,8 @@ public class LDIFReader implements Closeable
   private ChangeRecordEntry parseAddChangeRecordEntry(DN entryDN,
       List<StringBuilder> lines) throws LDIFException
   {
-    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
-    Map<AttributeType, List<AttributeBuilder>> attrBuilders =
-      new HashMap<AttributeType, List<AttributeBuilder>>();
+    Map<ObjectClass, String> objectClasses = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> attrBuilders = new HashMap<>();
     for(StringBuilder line : lines)
     {
       readAttribute(lines, line, entryDN, objectClasses,
@@ -1460,7 +1458,7 @@ public class LDIFReader implements Closeable
         toAttributesMap(attrBuilders);
     if (attributes.get(ocType) == null)
     {
-      List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
+      List<Attribute> ocAttrList = new ArrayList<>(1);
       ocAttrList.add(builder.toAttribute());
       attributes.put(ocType, ocAttrList);
     }
@@ -1721,7 +1719,7 @@ public class LDIFReader implements Closeable
     List<Attribute> attrList = attributes.get(t);
     if (attrList == null)
     {
-      attrList = new ArrayList<Attribute>();
+      attrList = new ArrayList<>();
       attrList.add(Attributes.create(t, n, v));
       attributes.put(t, attrList);
     }

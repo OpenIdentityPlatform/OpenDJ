@@ -72,63 +72,22 @@ public class ExportTask extends Task
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  /**
-   * Stores mapping between configuration attribute name and its label.
-   */
-  private static Map<String,LocalizableMessage> argDisplayMap =
-          new HashMap<String,LocalizableMessage>();
+  /** Stores mapping between configuration attribute name and its label. */
+  private static Map<String,LocalizableMessage> argDisplayMap = new HashMap<>();
   static {
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_LDIF_FILE,
-            INFO_EXPORT_ARG_LDIF_FILE.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_BACKEND_ID,
-            INFO_EXPORT_ARG_BACKEND_ID.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_APPEND_TO_LDIF,
-            INFO_EXPORT_ARG_APPEND_TO_LDIF.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_COMPRESS_LDIF,
-            INFO_EXPORT_ARG_COMPRESS_LDIF.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_ENCRYPT_LDIF,
-            INFO_EXPORT_ARG_ENCRYPT_LDIF.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_SIGN_HASH,
-            INFO_EXPORT_ARG_SIGN_HASH.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE,
-            INFO_EXPORT_ARG_INCL_ATTR.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE,
-            INFO_EXPORT_ARG_EXCL_ATTR.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_INCLUDE_FILTER,
-            INFO_EXPORT_ARG_INCL_FILTER.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_EXCLUDE_FILTER,
-            INFO_EXPORT_ARG_EXCL_FILTER.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_INCLUDE_BRANCH,
-            INFO_EXPORT_ARG_INCL_BRANCH.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_EXCLUDE_BRANCH,
-            INFO_EXPORT_ARG_EXCL_BRANCH.get());
-
-    argDisplayMap.put(
-            ATTR_TASK_EXPORT_WRAP_COLUMN,
-            INFO_EXPORT_ARG_WRAP_COLUMN.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_LDIF_FILE, INFO_EXPORT_ARG_LDIF_FILE.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_BACKEND_ID, INFO_EXPORT_ARG_BACKEND_ID.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_APPEND_TO_LDIF, INFO_EXPORT_ARG_APPEND_TO_LDIF.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_COMPRESS_LDIF, INFO_EXPORT_ARG_COMPRESS_LDIF.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_ENCRYPT_LDIF, INFO_EXPORT_ARG_ENCRYPT_LDIF.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_SIGN_HASH, INFO_EXPORT_ARG_SIGN_HASH.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE, INFO_EXPORT_ARG_INCL_ATTR.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE, INFO_EXPORT_ARG_EXCL_ATTR.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_INCLUDE_FILTER, INFO_EXPORT_ARG_INCL_FILTER.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_EXCLUDE_FILTER, INFO_EXPORT_ARG_EXCL_FILTER.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_INCLUDE_BRANCH, INFO_EXPORT_ARG_INCL_BRANCH.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_EXCLUDE_BRANCH, INFO_EXPORT_ARG_EXCL_BRANCH.get());
+    argDisplayMap.put(ATTR_TASK_EXPORT_WRAP_COLUMN, INFO_EXPORT_ARG_WRAP_COLUMN.get());
   }
 
   private String  ldifFile;
@@ -272,7 +231,7 @@ public class ExportTask extends Task
     }
     else
     {
-      excludeFilters = new ArrayList<SearchFilter>();
+      excludeFilters = new ArrayList<>();
       for (String filterString : excludeFilterStrings)
       {
         try
@@ -299,7 +258,7 @@ public class ExportTask extends Task
     }
     else
     {
-      includeFilters = new ArrayList<SearchFilter>();
+      includeFilters = new ArrayList<>();
       for (String filterString : includeFilterStrings)
       {
         try
@@ -334,13 +293,13 @@ public class ExportTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    ArrayList<DN> defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
+    ArrayList<DN> defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs().length);
     for (DN dn : backend.getBaseDNs())
     {
       defaultIncludeBranches.add(dn);
     }
 
-    ArrayList<DN> excludeBranches = new ArrayList<DN>();
+    ArrayList<DN> excludeBranches = new ArrayList<>();
     if (excludeBranchStrings != null)
     {
       for (String s : excludeBranchStrings)
@@ -372,7 +331,7 @@ public class ExportTask extends Task
     ArrayList<DN> includeBranches;
     if (!includeBranchStrings.isEmpty())
     {
-      includeBranches = new ArrayList<DN>();
+      includeBranches = new ArrayList<>();
       for (String s : includeBranchStrings)
       {
         DN includeBranch;
@@ -533,7 +492,7 @@ public class ExportTask extends Task
     {
       return null;
     }
-    HashSet<AttributeType> attributes = new HashSet<AttributeType>();
+    HashSet<AttributeType> attributes = new HashSet<>();
     for (String attrName : attributeStrings)
     {
       String lowerName = attrName.toLowerCase();

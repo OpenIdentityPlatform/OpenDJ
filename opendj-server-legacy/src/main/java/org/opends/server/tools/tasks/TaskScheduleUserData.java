@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -51,13 +51,10 @@ public class TaskScheduleUserData
   private boolean startNow;
   private Date startDate;
   private String recurringDateTime;
-  private final List<String> dependencyIds =
-    new ArrayList<String>();
+  private final List<String> dependencyIds = new ArrayList<>();
   private FailedDependencyAction failedDependencyAction;
-  private final List<String> notifyUponCompletionEmailAddresses =
-    new ArrayList<String>();
-  private final List<String> notifyUponErrorEmailAddresses =
-    new ArrayList<String>();
+  private final List<String> notifyUponCompletionEmailAddresses = new ArrayList<>();
+  private final List<String> notifyUponErrorEmailAddresses = new ArrayList<>();
 
   /**
    * Whether the arguments provided by the user, indicate that the task should

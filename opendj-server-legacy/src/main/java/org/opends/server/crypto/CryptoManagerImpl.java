@@ -83,12 +83,6 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
@@ -179,15 +173,13 @@ public class CryptoManagerImpl
    * The map from encryption key ID to CipherKeyEntry (cache). The cache is
    * accessed by methods that request, publish, and import keys.
    */
-  private final Map<KeyEntryID, CipherKeyEntry> cipherKeyEntryCache
-          = new ConcurrentHashMap<KeyEntryID, CipherKeyEntry>();
+  private final Map<KeyEntryID, CipherKeyEntry> cipherKeyEntryCache = new ConcurrentHashMap<>();
 
   /**
    * The map from encryption key ID to MacKeyEntry (cache). The cache is
    * accessed by methods that request, publish, and import keys.
    */
-  private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache
-          = new ConcurrentHashMap<KeyEntryID, MacKeyEntry>();
+  private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache = new ConcurrentHashMap<>();
 
 
   /** The preferred key wrapping transformation. */
@@ -296,7 +288,7 @@ public class CryptoManagerImpl
     }
 
     // CryptoMangager crypto config parameters.
-    List<LocalizableMessage> why = new LinkedList<LocalizableMessage>();
+    List<LocalizableMessage> why = new LinkedList<>();
     if (! isConfigurationChangeAcceptable(config, why)) {
       throw new InitializationException(why.get(0));
     }
@@ -678,7 +670,7 @@ public class CryptoManagerImpl
    @see org.opends.admin.ads.ADSContext#getTrustedCertificates()
    */
   private Map<String, byte[]> getTrustedCertificates() throws CryptoManagerException {
-    final Map<String, byte[]> certificateMap = new HashMap<String, byte[]>();
+    final Map<String, byte[]> certificateMap = new HashMap<>();
     try {
       // Construct the search filter.
       final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
@@ -1006,11 +998,9 @@ public class CryptoManagerImpl
                            OID_GET_SYMMETRIC_KEY_EXTENDED_OP,
                       requestValue);
 
-            ArrayList<Control> controls =
-                 new ArrayList<Control>();
-            LDAPMessage requestMessage =
-                 new LDAPMessage(nextMessageID.getAndIncrement(),
-                                 extendedRequest, controls);
+            ArrayList<Control> controls = new ArrayList<>();
+            LDAPMessage requestMessage = new LDAPMessage(
+                nextMessageID.getAndIncrement(), extendedRequest, controls);
             writer.writeMessage(requestMessage);
             LDAPMessage responseMessage = reader.readMessage();
 
@@ -1111,8 +1101,7 @@ public class CryptoManagerImpl
       // Write the value to the entry.
       InternalClientConnection internalConnection =
               InternalClientConnection.getRootConnection();
-      List<Modification> modifications =
-              new ArrayList<Modification>(1);
+      List<Modification> modifications = new ArrayList<>(1);
       Attribute attribute = Attributes.create(
           ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
       modifications.add(
@@ -1204,18 +1193,11 @@ public class CryptoManagerImpl
                                       isCompromised);
 
         // Write the value to the entry.
-        InternalClientConnection internalConnection =
-             InternalClientConnection.getRootConnection();
-        List<Modification> modifications =
-             new ArrayList<Modification>(1);
-        Attribute attribute = Attributes.create(
-            ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
-        modifications.add(
-             new Modification(ModificationType.ADD, attribute,
-                              false));
+        List<Modification> modifications = new ArrayList<>(1);
+        Attribute attribute = Attributes.create(ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
+        modifications.add(new Modification(ModificationType.ADD, attribute, false));
         ModifyOperation internalModify =
-             internalConnection.processModify(entry.getName(),
-                                              modifications);
+             getRootConnection().processModify(entry.getName(), modifications);
         if (internalModify.getResultCode() != ResultCode.SUCCESS)
         {
           throw new CryptoManagerException(
@@ -1543,9 +1525,14 @@ public class CryptoManagerImpl
       Map<AttributeType, List<Attribute>> attrs, AttributeType type,
       String value)
   {
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(type, value));
-    attrs.put(type, attrList);
+    attrs.put(type, asList(Attributes.create(type, value)));
+  }
+
+  private static <T> List<T> asList(T element)
+  {
+    ArrayList<T> attrList = new ArrayList<>(1);
+    attrList.add(element);
+    return attrList;
   }
 
   /**
@@ -1629,21 +1616,16 @@ public class CryptoManagerImpl
            RDN.create(attrKeyID, distinguishedValue));
 
       // Set the entry object classes.
-      LinkedHashMap<ObjectClass,String> ocMap =
-          new LinkedHashMap<ObjectClass,String>(2);
+      LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
       ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-      ocMap.put(ocCipherKey, ConfigConstants.OC_CRYPTO_CIPHER_KEY);
+      ocMap.put(ocCipherKey, OC_CRYPTO_CIPHER_KEY);
 
       // Create the operational and user attributes.
-      LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-           new LinkedHashMap<AttributeType,List<Attribute>>(0);
-      LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
+      LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+      LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
 
       // Add the key ID attribute.
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyID, distinguishedValue));
-      userAttrs.put(attrKeyID, attrList);
+      userAttrs.put(attrKeyID, asList(Attributes.create(attrKeyID, distinguishedValue)));
 
       // Add the transformation name attribute.
       putSingleValueAttribute(userAttrs, attrTransformation, keyEntry.getType());
@@ -1676,16 +1658,12 @@ public class CryptoManagerImpl
 
         builder.add(symmetricKey);
       }
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-      userAttrs.put(attrSymmetricKey, attrList);
+      userAttrs.put(attrSymmetricKey, asList(builder.toAttribute()));
 
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
 
-      InternalClientConnection connection =
-           InternalClientConnection.getRootConnection();
-      AddOperation addOperation = connection.processAdd(entry);
+      AddOperation addOperation = getRootConnection().processAdd(entry);
       if (addOperation.getResultCode() != ResultCode.SUCCESS)
       {
         throw new CryptoManagerException(
@@ -2159,21 +2137,16 @@ public class CryptoManagerImpl
            RDN.create(attrKeyID, distinguishedValue));
 
       // Set the entry object classes.
-      LinkedHashMap<ObjectClass,String> ocMap =
-          new LinkedHashMap<ObjectClass,String>(2);
+      LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
       ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-      ocMap.put(ocMacKey, ConfigConstants.OC_CRYPTO_MAC_KEY);
+      ocMap.put(ocMacKey, OC_CRYPTO_MAC_KEY);
 
       // Create the operational and user attributes.
-      LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
-           new LinkedHashMap<AttributeType,List<Attribute>>(0);
-      LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
-           new LinkedHashMap<AttributeType,List<Attribute>>();
+      LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
+      LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
 
       // Add the key ID attribute.
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyID, distinguishedValue));
-      userAttrs.put(attrKeyID, attrList);
+      userAttrs.put(attrKeyID, asList(Attributes.create(attrKeyID, distinguishedValue)));
 
       // Add the mac algorithm name attribute.
       putSingleValueAttribute(userAttrs, attrMacAlgorithm, keyEntry.getType());
@@ -2182,8 +2155,7 @@ public class CryptoManagerImpl
       putSingleValueAttribute(userAttrs, attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()));
 
       // Get the trusted certificates.
-      Map<String, byte[]> trustedCerts =
-           cryptoManager.getTrustedCertificates();
+      Map<String, byte[]> trustedCerts = cryptoManager.getTrustedCertificates();
 
       // Need to add our own instance certificate.
       byte[] instanceKeyCertificate =
@@ -2204,9 +2176,7 @@ public class CryptoManagerImpl
         builder.add(symmetricKey);
       }
 
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-      userAttrs.put(attrSymmetricKey, attrList);
+      userAttrs.put(attrSymmetricKey, asList(builder.toAttribute()));
 
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);

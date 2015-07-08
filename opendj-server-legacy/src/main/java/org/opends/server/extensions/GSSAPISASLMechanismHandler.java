@@ -557,7 +557,7 @@ throws UnknownHostException, IOException, InitializationException
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     serverFQDN = getFQDN(config);
     logger.error(INFO_GSSAPI_SERVER_FQDN, serverFQDN);
-    saslProps = new HashMap<String, String>();
+    saslProps = new HashMap<>();
     saslProps.put(Sasl.QOP, getQOP(config));
     saslProps.put(Sasl.REUSE, "false");
     String configFileName = configureLoginConfFile(config);

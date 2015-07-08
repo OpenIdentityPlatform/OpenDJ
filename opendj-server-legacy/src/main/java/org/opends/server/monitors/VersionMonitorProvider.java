@@ -165,7 +165,7 @@ public class VersionMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(12);
+    ArrayList<Attribute> attrs = new ArrayList<>(12);
 
     attrs.add(createAttribute(ATTR_PRODUCT_NAME,
                               DynamicConstants.PRODUCT_NAME));

@@ -101,7 +101,7 @@ public class JmxClientConnection
       disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
           ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
-    operationList = new LinkedList<Operation>();
+    operationList = new LinkedList<>();
 
     // Register the Jmx Notification listener (this)
     jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate

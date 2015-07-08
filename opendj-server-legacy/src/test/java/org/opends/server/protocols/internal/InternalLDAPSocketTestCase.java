@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -105,7 +105,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
 
-    ArrayList<RawAttribute> attrList = new ArrayList<RawAttribute>();
+    ArrayList<RawAttribute> attrList = new ArrayList<>();
     attrList.add(RawAttribute.create("objectClass", "organization"));
     attrList.add(RawAttribute.create("o", "test"));
 
@@ -139,7 +139,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String,String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.factory.socket",
@@ -228,7 +228,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String,String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.factory.socket",
@@ -312,7 +312,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String,String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.factory.socket",
@@ -403,9 +403,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(RawModification.create(ModificationType.REPLACE, "description",
-                                    "foo"));
+    ArrayList<RawModification> mods = new ArrayList<>();
+    mods.add(RawModification.create(ModificationType.REPLACE, "description", "foo"));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
@@ -436,7 +435,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String, String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.factory.socket",
@@ -450,8 +449,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
 
     ModificationItem[] mods =
     {
-      new ModificationItem(DirContext.REPLACE_ATTRIBUTE,
-                           new BasicAttribute("description", "foo"))
+      new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("description", "foo"))
     };
 
     context.modifyAttributes("o=test", mods);
@@ -534,7 +532,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
 
 
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String,String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.factory.socket",
@@ -622,7 +620,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
 
-    Hashtable<String,String> env = new Hashtable<String,String>();
+    Hashtable<String,String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
     env.put("java.naming.ldap.factory.socket",

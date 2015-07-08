@@ -93,7 +93,7 @@ public class HistoricalAttributeValue
   {
     String[] token = strVal.split(":", 4);
 
-    options = new LinkedHashSet<String>();
+    options = new LinkedHashSet<>();
     if (token[0].contains(";"))
     {
       String[] optionsToken = token[0].split(";");

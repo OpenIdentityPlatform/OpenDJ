@@ -26,6 +26,8 @@
  */
 package org.opends.server.tools.status;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 
@@ -39,7 +41,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -85,27 +86,24 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   public void initializeGlobalArguments(OutputStream outStream)
   throws ArgumentException
   {
-    ArrayList<Argument> defaultArgs =
-      new ArrayList<Argument>(createGlobalArguments(outStream, alwaysSSL));
+    ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
     defaultArgs.remove(secureArgsList.portArg);
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(verboseArg);
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);
-    noPromptArg = CommonArguments.getNoPrompt();
+    noPromptArg = getNoPrompt();
     defaultArgs.add(0, noPromptArg);
 
-    scriptFriendlyArg = CommonArguments.getScriptFriendly();
+    scriptFriendlyArg = getScriptFriendly();
     defaultArgs.add(1, scriptFriendlyArg);
 
-    StringArgument propertiesFileArgument
-        = CommonArguments.getPropertiesFile();
+    StringArgument propertiesFileArgument = getPropertiesFile();
 
     defaultArgs.add(propertiesFileArgument);
     setFilePropertiesArgument(propertiesFileArgument);
 
-    BooleanArgument noPropertiesFileArgument =
-        CommonArguments.getNoPropertiesFile();
+    BooleanArgument noPropertiesFileArgument = getNoPropertiesFile();
     defaultArgs.add(noPropertiesFileArgument);
     setNoPropertiesFileArgument(noPropertiesFileArgument);
 

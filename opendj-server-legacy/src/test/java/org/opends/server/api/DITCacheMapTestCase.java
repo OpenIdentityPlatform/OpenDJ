@@ -46,8 +46,7 @@ import static org.testng.Assert.*;
  */
 public class DITCacheMapTestCase extends APITestCase
 {
-  private static final DITCacheMap<String> ditMap =
-          new DITCacheMap<String>();
+  private static final DITCacheMap<String> ditMap = new DITCacheMap<>();
 
   private static final String dn0String =
           "cn=Object0,dc=example,dc=com";
@@ -83,8 +82,7 @@ public class DITCacheMapTestCase extends APITestCase
 
   private void putAllAndVerify()
   {
-    Map<DN,String> hashMap =
-          new HashMap<DN,String>();
+    Map<DN,String> hashMap = new HashMap<>();
 
     hashMap.put(dn0, dn0String);
     hashMap.put(dn1, dn1String);
@@ -333,7 +331,7 @@ public class DITCacheMapTestCase extends APITestCase
     assertFalse(entrySet.isEmpty());
     assertEquals(entrySet.size(), 10);
     Iterator<Entry<DN,String>> iterator = entrySet.iterator();
-    Map<DN,String> tempMap = new HashMap<DN,String>();
+    Map<DN,String> tempMap = new HashMap<>();
     while (iterator.hasNext())
     {
       Entry<DN,String> entry = iterator.next();
@@ -381,10 +379,8 @@ public class DITCacheMapTestCase extends APITestCase
 
     putAllAndVerify();
 
-    Set<String> removeSet = new HashSet<String>();
-    assertTrue(ditMap.removeSubtree(DN.valueOf(
-            "dc=example,dc=com"),
-            removeSet));
+    Set<String> removeSet = new HashSet<>();
+    assertTrue(ditMap.removeSubtree(DN.valueOf("dc=example,dc=com"), removeSet));
     assertFalse(removeSet.isEmpty());
     assertEquals(removeSet.size(), 10);
     assertTrue(removeSet.contains(dn0String));

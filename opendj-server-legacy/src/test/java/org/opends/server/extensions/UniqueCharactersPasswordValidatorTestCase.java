@@ -303,7 +303,7 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("password");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "password")));
 
@@ -372,7 +372,7 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("passw");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passw")));
 
@@ -440,7 +440,7 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("pasSw");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "pasSw")));
 
@@ -509,7 +509,7 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("pasSw");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "pasSw")));
 
@@ -576,7 +576,7 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("aaaaaaaa");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));
 
@@ -644,7 +644,7 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString password = ByteString.valueOf("aaaaaaaa");
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));
 
@@ -679,7 +679,7 @@ public class UniqueCharactersPasswordValidatorTestCase
               UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
               updatedValidatorEntry);
 
-    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<>();
     assertTrue(validator.isConfigurationChangeAcceptable(updatedConfiguration,
                                                          unacceptableReasons),
                String.valueOf(unacceptableReasons));

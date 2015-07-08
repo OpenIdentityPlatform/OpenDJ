@@ -97,7 +97,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   private LinkedHashSet<CompactDn> memberDNs;
 
   /** The list of nested group DNs for this group. */
-  private LinkedList<DN> nestedGroups = new LinkedList<DN>();
+  private LinkedList<DN> nestedGroups = new LinkedList<>();
 
   /** Passed to the group manager to see if the nested group list needs to be refreshed. */
   private long nestedGroupRefreshToken = DirectoryServer.getGroupManager().refreshToken();
@@ -203,7 +203,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         membersCount += a.size();
       }
     }
-    LinkedHashSet<CompactDn> someMemberDNs = new LinkedHashSet<CompactDn>(membersCount);
+    LinkedHashSet<CompactDn> someMemberDNs = new LinkedHashSet<>(membersCount);
     if (memberAttrList != null)
     {
       for (Attribute a : memberAttrList)
@@ -323,10 +323,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       }
 
       Attribute attr = Attributes.create(memberAttributeType, nestedGroupDN.toString());
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      LinkedList<Modification> mods = new LinkedList<>();
       mods.add(new Modification(ModificationType.ADD, attr));
 
-      LinkedList<Control> requestControls = new LinkedList<Control>();
+      LinkedList<Control> requestControls = new LinkedList<>();
       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
       ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
@@ -339,11 +339,11 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(modifyOperation.getResultCode(), msg);
       }
 
-      LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
+      LinkedList<DN> newNestedGroups = new LinkedList<>(nestedGroups);
       newNestedGroups.add(nestedGroupDN);
       nestedGroups = newNestedGroups;
       //Add it to the member DN list.
-      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>(memberDNs);
       newMemberDNs.add(toCompactDn(nestedGroupDN));
       memberDNs = newMemberDNs;
     }
@@ -365,10 +365,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       }
 
       Attribute attr = Attributes.create(memberAttributeType, nestedGroupDN.toString());
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      LinkedList<Modification> mods = new LinkedList<>();
       mods.add(new Modification(ModificationType.DELETE, attr));
 
-      LinkedList<Control> requestControls = new LinkedList<Control>();
+      LinkedList<Control> requestControls = new LinkedList<>();
       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
       ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
@@ -381,11 +381,11 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(modifyOperation.getResultCode(), message);
       }
 
-      LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
+      LinkedList<DN> newNestedGroups = new LinkedList<>(nestedGroups);
       newNestedGroups.remove(nestedGroupDN);
       nestedGroups = newNestedGroups;
       //Remove it from the member DN list.
-      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>(memberDNs);
       newMemberDNs.remove(toCompactDn(nestedGroupDN));
       memberDNs = newMemberDNs;
     }
@@ -445,7 +445,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                   ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(groupEntryDN));
         } else if (thisGroup != this) {
-          LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>();
+          LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>();
           MemberList memberList = thisGroup.getMembers();
           while (memberList.hasMoreMembers())
           {
@@ -460,7 +460,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
           }
           memberDNs = newMemberDNs;
         }
-        LinkedList<DN> newNestedGroups = new LinkedList<DN>();
+        LinkedList<DN> newNestedGroups = new LinkedList<>();
         for (CompactDn compactDn : memberDNs)
         {
           DN dn = fromCompactDn(compactDn);
@@ -521,10 +521,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       }
 
       Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      LinkedList<Modification> mods = new LinkedList<>();
       mods.add(new Modification(ModificationType.ADD, attr));
 
-      LinkedList<Control> requestControls = new LinkedList<Control>();
+      LinkedList<Control> requestControls = new LinkedList<>();
       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
       ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
@@ -536,7 +536,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
             ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(userDN, groupEntryDN, modifyOperation.getErrorMessage()));
       }
 
-      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs.size()+1);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>(memberDNs.size()+1);
       newMemberDNs.addAll(memberDNs);
       newMemberDNs.add(compactUserDN);
       memberDNs = newMemberDNs;
@@ -559,10 +559,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       }
 
       Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      LinkedList<Modification> mods = new LinkedList<>();
       mods.add(new Modification(ModificationType.DELETE, attr));
 
-      LinkedList<Control> requestControls = new LinkedList<Control>();
+      LinkedList<Control> requestControls = new LinkedList<>();
       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
       ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
@@ -574,12 +574,12 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
             ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.get(userDN, groupEntryDN, modifyOperation.getErrorMessage()));
       }
 
-      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>(memberDNs);
       newMemberDNs.remove(compactUserDN);
       memberDNs = newMemberDNs;
       //If it is in the nested group list remove it.
       if(nestedGroups.contains(userDN)) {
-        LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
+        LinkedList<DN> newNestedGroups = new LinkedList<>(nestedGroups);
         newNestedGroups.remove(userDN);
         nestedGroups = newNestedGroups;
       }

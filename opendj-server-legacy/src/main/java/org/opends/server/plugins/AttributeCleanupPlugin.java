@@ -110,7 +110,7 @@ public class AttributeCleanupPlugin extends
       /* Apply the change, as at this point is has been validated. */
       this.config = config;
 
-      attributesToRename = new HashMap<String, String>();
+      attributesToRename = new HashMap<>();
       for (final String mapping : config.getRenameInboundAttributes())
       {
         final int colonPos = mapping.lastIndexOf(":");
@@ -119,7 +119,7 @@ public class AttributeCleanupPlugin extends
         attributesToRename.put(toLowerCase(fromAttr), toLowerCase(toAttr));
       }
 
-      attributesToRemove = new HashSet<String>();
+      attributesToRemove = new HashSet<>();
       for (final String attr : config.getRemoveInboundAttributes())
       {
         attributesToRemove.add(toLowerCase(attr.trim()));
@@ -244,7 +244,7 @@ public class AttributeCleanupPlugin extends
     }
 
     /* Verify the current configuration. */
-    final List<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    final List<LocalizableMessage> messages = new LinkedList<>();
     if (!isConfigurationChangeAcceptable(configuration, messages))
     {
       throw new ConfigException(messages.get(0));
@@ -286,7 +286,7 @@ public class AttributeCleanupPlugin extends
      * Verify that there are no duplicate mappings and that attributes are
      * renamed to valid attribute types.
      */
-    final Set<String> fromAttrs = new HashSet<String>();
+    final Set<String> fromAttrs = new HashSet<>();
     for (final String attr : config.getRenameInboundAttributes())
     {
       /*
@@ -352,8 +352,7 @@ public class AttributeCleanupPlugin extends
    */
   private void processInboundRemove(final PreParseAddOperation addOperation)
   {
-    final List<RawAttribute> inAttrs = new LinkedList<RawAttribute>(
-        addOperation.getRawAttributes());
+    final List<RawAttribute> inAttrs = new LinkedList<>(addOperation.getRawAttributes());
     final ListIterator<RawAttribute> iterator = inAttrs.listIterator();
     while (iterator.hasNext())
     {
@@ -384,8 +383,7 @@ public class AttributeCleanupPlugin extends
   private void processInboundRemove(
       final PreParseModifyOperation modifyOperation)
   {
-    final List<RawModification> rawMods = new LinkedList<RawModification>(
-        modifyOperation.getRawModifications());
+    final List<RawModification> rawMods = new LinkedList<>(modifyOperation.getRawModifications());
     final ListIterator<RawModification> iterator = rawMods.listIterator();
     while (iterator.hasNext())
     {
@@ -415,8 +413,7 @@ public class AttributeCleanupPlugin extends
    */
   private void processInboundRename(final PreParseAddOperation addOperation)
   {
-    final List<RawAttribute> inAttrs = new LinkedList<RawAttribute>(
-        addOperation.getRawAttributes());
+    final List<RawAttribute> inAttrs = new LinkedList<>(addOperation.getRawAttributes());
     final ListIterator<RawAttribute> iterator = inAttrs.listIterator();
     while (iterator.hasNext())
     {
@@ -448,8 +445,7 @@ public class AttributeCleanupPlugin extends
   private void processInboundRename(
       final PreParseModifyOperation modifyOperation)
   {
-    final List<RawModification> rawMods = new LinkedList<RawModification>(
-        modifyOperation.getRawModifications());
+    final List<RawModification> rawMods = new LinkedList<>(modifyOperation.getRawModifications());
     final ListIterator<RawModification> iterator = rawMods.listIterator();
     while (iterator.hasNext())
     {

@@ -303,7 +303,7 @@ public final class TestLDIFWriter extends UtilTestCase {
         },
     };
 
-    List<Entry[]> entries = new LinkedList<Entry[]>();
+    List<Entry[]> entries = new LinkedList<>();
 
     for (String[] s : input) {
       DN dn = DN.valueOf(s[0]);
@@ -411,7 +411,7 @@ public final class TestLDIFWriter extends UtilTestCase {
 
     LDIFWriter ldifWriter = writer.getLDIFWriter();
 
-    List<Modification> mods = new LinkedList<Modification>();
+    List<Modification> mods = new LinkedList<>();
     for (RawModification lmod : change.getModifications()) {
       mods.add(lmod.toModification());
     }
@@ -543,7 +543,7 @@ public final class TestLDIFWriter extends UtilTestCase {
    */
   private <T extends ChangeRecordEntry> List<Object[]> createChangeRecords(
       Class<T> theClass, String[] inputLDIF) throws Exception {
-    List<Object[]> changes = new LinkedList<Object[]>();
+    List<Object[]> changes = new LinkedList<>();
     for (String ldifString : inputLDIF) {
       byte[] bytes = StaticUtils.getBytes(ldifString);
 

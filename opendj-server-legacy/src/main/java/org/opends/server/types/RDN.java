@@ -992,7 +992,7 @@ public final class RDN
     else
     {
       // Normalization sorts RDNs alphabetically
-      SortedSet<String> avaStrings = new TreeSet<String>();
+      SortedSet<String> avaStrings = new TreeSet<>();
       for (int i=0; i < attributeNames.length; i++)
       {
         StringBuilder builder = new StringBuilder();
@@ -1051,7 +1051,7 @@ public final class RDN
     else
     {
       // Normalization sorts RDNs
-      SortedSet<ByteString> avaStrings = new TreeSet<ByteString>();
+      SortedSet<ByteString> avaStrings = new TreeSet<>();
       for (int i = 0; i < attributeNames.length; i++)
       {
         ByteStringBuilder b = new ByteStringBuilder();

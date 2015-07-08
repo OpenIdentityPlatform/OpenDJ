@@ -25,9 +25,8 @@
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,10 +48,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a template file, which is a collection of constant
@@ -60,29 +56,20 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class TemplateFile
 {
-  /**
-   * The name of the file holding the list of first names.
-   */
+  /** The name of the file holding the list of first names. */
   public static final String FIRST_NAME_FILE = "first.names";
-
-
-
-  /**
-   * The name of the file holding the list of last names.
-   */
+  /** The name of the file holding the list of last names. */
   public static final String LAST_NAME_FILE = "last.names";
-
 
 
   /**
    * A map of the contents of various text files used during the parsing
    * process, mapped from absolute path to the array of lines in the file.
    */
-  private HashMap<String,String[]> fileLines;
+  private final HashMap<String, String[]> fileLines = new HashMap<>();
 
   /** The index of the next first name value that should be used. */
   private int firstNameIndex;
-
   /** The index of the next last name value that should be used. */
   private int lastNameIndex;
 
@@ -91,7 +78,6 @@ public class TemplateFile
    * first/last name list has been completed.
    */
   private int nameLoopCounter;
-
   /**
    * A counter that will be used in case we have exhausted all possible first
    * and last name combinations.
@@ -99,23 +85,19 @@ public class TemplateFile
   private int nameUniquenessCounter;
 
   /** The set of branch definitions for this template file. */
-  private LinkedHashMap<DN,Branch> branches;
-
+  private final LinkedHashMap<DN, Branch> branches = new LinkedHashMap<>();
   /** The set of constant definitions for this template file. */
-  private LinkedHashMap<String,String> constants;
-
+  private final LinkedHashMap<String, String> constants = new LinkedHashMap<>();
   /** The set of registered tags for this template file. */
-  private LinkedHashMap<String,Tag> registeredTags;
-
+  private final LinkedHashMap<String, Tag> registeredTags = new LinkedHashMap<>();
   /** The set of template definitions for this template file. */
-  private LinkedHashMap<String,Template> templates;
+  private final LinkedHashMap<String, Template> templates = new LinkedHashMap<>();
 
   /** The random number generator for this template file. */
   private Random random;
 
   /** The next first name that should be used. */
   private String firstName;
-
   /** The next last name that should be used. */
   private String lastName;
 
@@ -124,13 +106,11 @@ public class TemplateFile
    * anywhere else.
    */
   private String resourcePath;
-
   /** The path to the directory containing the template file, if available. */
   private String templatePath;
 
   /** The set of first names to use when generating the LDIF. */
   private String[] firstNames;
-
   /** The set of last names to use when generating the LDIF. */
   private String[] lastNames;
 
@@ -164,19 +144,8 @@ public class TemplateFile
     this.resourcePath = resourcePath;
     this.random       = random;
 
-    fileLines             = new HashMap<String,String[]>();
-    branches              = new LinkedHashMap<DN,Branch>();
-    constants             = new LinkedHashMap<String,String>();
-    registeredTags        = new LinkedHashMap<String,Tag>();
-    templates             = new LinkedHashMap<String,Template>();
-    templatePath          = null;
     firstNames            = new String[0];
     lastNames             = new String[0];
-    firstName             = null;
-    lastName              = null;
-    firstNameIndex        = 0;
-    lastNameIndex         = 0;
-    nameLoopCounter       = 0;
     nameUniquenessCounter = 1;
 
     registerDefaultTags();
@@ -462,42 +431,32 @@ public class TemplateFile
           throws IOException
   {
     File f = getFile(FIRST_NAME_FILE);
-    ArrayList<String> nameList = new ArrayList<String>();
-    BufferedReader reader = new BufferedReader(new FileReader(f));
-    while (true)
-    {
-      String line = reader.readLine();
-      if (line == null)
-      {
-        break;
-      }
-      else
-      {
-        nameList.add(line);
-      }
-    }
-    reader.close();
+    List<String> nameList = readLines(f);
     firstNames = new String[nameList.size()];
     nameList.toArray(firstNames);
 
     f = getFile(LAST_NAME_FILE);
-    nameList = new ArrayList<String>();
-    reader = new BufferedReader(new FileReader(f));
-    while (true)
-    {
-      String line = reader.readLine();
-      if (line == null)
-      {
-        break;
-      }
-      else
-      {
-        nameList.add(line);
-      }
-    }
-    reader.close();
+    nameList = readLines(f);
     lastNames = new String[nameList.size()];
     nameList.toArray(lastNames);
+  }
+
+  private List<String> readLines(File f) throws IOException
+  {
+    try (BufferedReader reader = new BufferedReader(new FileReader(f)))
+    {
+      ArrayList<String> lines = new ArrayList<>();
+      while (true)
+      {
+        String line = reader.readLine();
+        if (line == null)
+        {
+          break;
+        }
+        lines.add(line);
+      }
+      return lines;
+    }
   }
 
 
@@ -602,8 +561,6 @@ public class TemplateFile
   public void parse(String filename, List<LocalizableMessage> warnings)
          throws IOException, InitializationException, MakeLDIFException
   {
-    ArrayList<String> fileLines = new ArrayList<String>();
-
     templatePath = null;
     File f = getFile(filename);
     if ((f == null) || (! f.exists()))
@@ -611,27 +568,9 @@ public class TemplateFile
       LocalizableMessage message = ERR_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE.get(filename);
       throw new IOException(message.toString());
     }
-    else
-    {
-      templatePath = f.getParentFile().getAbsolutePath();
-    }
+    templatePath = f.getParentFile().getAbsolutePath();
 
-    BufferedReader reader = new BufferedReader(new FileReader(f));
-    while (true)
-    {
-      String line = reader.readLine();
-      if (line == null)
-      {
-        break;
-      }
-      else
-      {
-        fileLines.add(line);
-      }
-    }
-
-    reader.close();
-
+    List<String> fileLines = readLines(f);
     String[] lines = new String[fileLines.size()];
     fileLines.toArray(lines);
     parse(lines, warnings);
@@ -660,24 +599,20 @@ public class TemplateFile
   public void parse(InputStream inputStream, List<LocalizableMessage> warnings)
          throws IOException, InitializationException, MakeLDIFException
   {
-    ArrayList<String> fileLines = new ArrayList<String>();
+    ArrayList<String> fileLines = new ArrayList<>();
 
-    BufferedReader reader =
-         new BufferedReader(new InputStreamReader(inputStream));
-    while (true)
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
     {
-      String line = reader.readLine();
-      if (line == null)
+      while (true)
       {
-        break;
-      }
-      else
-      {
+        String line = reader.readLine();
+        if (line == null)
+        {
+          break;
+        }
         fileLines.add(line);
       }
     }
-
-    reader.close();
 
     String[] lines = new String[fileLines.size()];
     fileLines.toArray(lines);
@@ -702,14 +637,10 @@ public class TemplateFile
          throws InitializationException, MakeLDIFException
   {
     // Create temporary variables that will be used to hold the data read.
-    LinkedHashMap<String,Tag> templateFileIncludeTags =
-         new LinkedHashMap<String,Tag>();
-    LinkedHashMap<String,String> templateFileConstants =
-         new LinkedHashMap<String,String>();
-    LinkedHashMap<DN,Branch> templateFileBranches =
-         new LinkedHashMap<DN,Branch>();
-    LinkedHashMap<String,Template> templateFileTemplates =
-         new LinkedHashMap<String,Template>();
+    LinkedHashMap<String,Tag> templateFileIncludeTags = new LinkedHashMap<>();
+    LinkedHashMap<String,String> templateFileConstants = new LinkedHashMap<>();
+    LinkedHashMap<DN,Branch> templateFileBranches = new LinkedHashMap<>();
+    LinkedHashMap<String,Template> templateFileTemplates = new LinkedHashMap<>();
 
     for (int lineNumber=0; lineNumber < lines.length; lineNumber++)
     {
@@ -803,7 +734,7 @@ public class TemplateFile
       else if (lowerLine.startsWith("branch: "))
       {
         int startLineNumber = lineNumber;
-        ArrayList<String> lineList = new ArrayList<String>();
+        ArrayList<String> lineList = new ArrayList<>();
         lineList.add(line);
         while (true)
         {
@@ -818,12 +749,8 @@ public class TemplateFile
           {
             break;
           }
-          else
-          {
-            line = replaceConstants(line, lineNumber,
-                                    templateFileConstants, warnings);
-            lineList.add(line);
-          }
+          line = replaceConstants(line, lineNumber, templateFileConstants, warnings);
+          lineList.add(line);
         }
 
         String[] branchLines = new String[lineList.size()];
@@ -846,7 +773,7 @@ public class TemplateFile
       else if (lowerLine.startsWith("template: "))
       {
         int startLineNumber = lineNumber;
-        ArrayList<String> lineList = new ArrayList<String>();
+        ArrayList<String> lineList = new ArrayList<>();
         lineList.add(line);
         while (true)
         {
@@ -861,12 +788,8 @@ public class TemplateFile
           {
             break;
           }
-          else
-          {
-            line = replaceConstants(line, lineNumber,
-                                    templateFileConstants, warnings);
-            lineList.add(line);
-          }
+          line = replaceConstants(line, lineNumber, templateFileConstants, warnings);
+          lineList.add(line);
         }
 
         String[] templateLines = new String[lineList.size()];
@@ -881,10 +804,7 @@ public class TemplateFile
           LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TEMPLATE_NAME.get(t.getName(), startLineNumber);
           throw new MakeLDIFException(message);
         }
-        else
-        {
-          templateFileTemplates.put(lowerName, t);
-        }
+        templateFileTemplates.put(lowerName, t);
       }
       else
       {
@@ -1129,8 +1049,8 @@ public class TemplateFile
     int                arrayLineNumber    = 1;
     Template           parentTemplate     = null;
     AttributeType[]    rdnAttributes      = null;
-    ArrayList<String>  subTemplateNames   = new ArrayList<String>();
-    ArrayList<Integer> entriesPerTemplate = new ArrayList<Integer>();
+    ArrayList<String>  subTemplateNames   = new ArrayList<>();
+    ArrayList<Integer> entriesPerTemplate = new ArrayList<>();
     for ( ; arrayLineNumber < templateLines.length; arrayLineNumber++)
     {
       int    lineNumber = startLineNumber + arrayLineNumber;
@@ -1157,7 +1077,7 @@ public class TemplateFile
       {
         // This is the set of RDN attributes.  If there are multiple, they may
         // be separated by plus signs.
-        ArrayList<AttributeType> attrList = new ArrayList<AttributeType>();
+        ArrayList<AttributeType> attrList = new ArrayList<>();
         String rdnAttrNames = lowerLine.substring(9).trim();
         StringTokenizer tokenizer = new StringTokenizer(rdnAttrNames, "+");
         while (tokenizer.hasMoreTokens())
@@ -1390,7 +1310,7 @@ public class TemplateFile
     int phase = PARSING_STATIC_TEXT;
     int previousPhase = PARSING_STATIC_TEXT;
 
-    ArrayList<Tag> tagList = new ArrayList<Tag>();
+    ArrayList<Tag> tagList = new ArrayList<>();
     StringBuilder buffer = new StringBuilder();
 
     for ( ; pos < length; pos++)
@@ -1554,7 +1474,7 @@ public class TemplateFile
       }
     }
 
-    ArrayList<String> argList = new ArrayList<String>();
+    ArrayList<String> argList = new ArrayList<>();
     while (tokenizer.hasMoreTokens())
     {
       argList.add(tokenizer.nextToken().trim());
@@ -1627,7 +1547,7 @@ public class TemplateFile
     // number of characters to use from the attribute value.  The arguments will
     // be delimited by colons.
     StringTokenizer   tokenizer = new StringTokenizer(tagString, ":");
-    ArrayList<String> argList   = new ArrayList<String>();
+    ArrayList<String> argList   = new ArrayList<>();
     while (tokenizer.hasMoreTokens())
     {
       argList.add(tokenizer.nextToken());
@@ -1720,30 +1640,13 @@ public class TemplateFile
    *
    * @throws  IOException  If a problem occurs while reading the file.
    */
-  public String[] getFileLines(File file)
-         throws IOException
+  public String[] getFileLines(File file) throws IOException
   {
     String absolutePath = file.getAbsolutePath();
     String[] lines = fileLines.get(absolutePath);
     if (lines == null)
     {
-      ArrayList<String> lineList = new ArrayList<String>();
-
-      BufferedReader reader = new BufferedReader(new FileReader(file));
-      while (true)
-      {
-        String line = reader.readLine();
-        if (line == null)
-        {
-          break;
-        }
-        else
-        {
-          lineList.add(line);
-        }
-      }
-
-      reader.close();
+      List<String> lineList = readLines(file);
 
       lines = new String[lineList.size()];
       lineList.toArray(lines);

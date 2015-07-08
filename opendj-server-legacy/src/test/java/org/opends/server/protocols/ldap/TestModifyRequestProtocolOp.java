@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -87,7 +87,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
   private List<RawModification> generateModifications(int numAttributes,
                                                            String prefix)
   {
-    List<RawModification> modifies = new ArrayList<RawModification>();
+    List<RawModification> modifies = new ArrayList<>();
     ModificationType modificationType;
 
     for(int i = 0; i < numAttributes; i++)

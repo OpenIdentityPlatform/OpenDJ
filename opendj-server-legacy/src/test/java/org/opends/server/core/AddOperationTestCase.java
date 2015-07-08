@@ -99,7 +99,7 @@ public class AddOperationTestCase
   @DataProvider(name = "addOperations")
   public Object[][] getAddOperations() throws Exception
   {
-    ArrayList<Control> noControls = new ArrayList<Control>();
+    ArrayList<Control> noControls = new ArrayList<>();
 
     ArrayList<RawAttribute> ldapAttrList = newRawAttributes(
         new LDAPAttribute("objectclass", byteStrings("top", "organizationalUnit")),
@@ -201,12 +201,12 @@ public class AddOperationTestCase
 
   private ArrayList<RawAttribute> newRawAttributes(RawAttribute... attributes)
   {
-    return new ArrayList<RawAttribute>(Arrays.asList(attributes));
+    return new ArrayList<>(Arrays.asList(attributes));
   }
 
   private ArrayList<ByteString> byteStrings(final String... v)
   {
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    ArrayList<ByteString> values = new ArrayList<>();
     for (String s : v)
     {
       values.add(ByteString.valueOf(s));
@@ -281,7 +281,7 @@ public class AddOperationTestCase
     assertNotNull(rawAttrs);
     assertFalse(rawAttrs.isEmpty());
 
-    ArrayList<RawAttribute> copiedAttrs = new ArrayList<RawAttribute>(rawAttrs);
+    ArrayList<RawAttribute> copiedAttrs = new ArrayList<>(rawAttrs);
     copiedAttrs.add(new LDAPAttribute("description", byteStrings("foo")));
     addOperation.setRawAttributes(copiedAttrs);
 
