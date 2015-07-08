@@ -137,7 +137,11 @@
 
  <section xml:id="deprecated-functionality">
   <title>Deprecated Functionality</title>
-  
+
+  <para>
+   Support for Java 6 is deprecated and likely to be removed in a future release.
+  </para>
+
   <para>OpenDJ ${stableServerVersion} makes use of new environment
   variables aligned with the project name to use <literal>OPENDJ</literal>.
   Use of the old variables is Deprecated. The old variables are likely to be
