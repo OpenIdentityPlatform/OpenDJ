@@ -206,7 +206,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       boolean result = rd1.buildAndPublishMissingChanges(csn, session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 3, "buildAndPublishMissingChanges should return 3 operations");
-    assertTrue(opList.getFirst().getClass().equals(AddMsg.class));
+    assertEquals(opList.getFirst().getClass(), AddMsg.class);
 
 
     // Build a CSN from the first modification
@@ -220,7 +220,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       result = rd1.buildAndPublishMissingChanges(fromCSN, session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 1, "buildAndPublishMissingChanges should return 1 operation");
-    assertTrue(opList.getFirst().getClass().equals(ModifyMsg.class));
+    assertEquals(opList.getFirst().getClass(), ModifyMsg.class);
     }
     finally
     {
@@ -307,19 +307,19 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 5, "buildAndPublishMissingChanges should return 5 operations");
     ReplicationMsg msg = opList.removeFirst();
-    assertTrue(msg.getClass().equals(AddMsg.class));
+    assertEquals(msg.getClass(), AddMsg.class);
     assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest1);
     msg = opList.removeFirst();
-    assertTrue(msg.getClass().equals(DeleteMsg.class));
+    assertEquals(msg.getClass(), DeleteMsg.class);
     assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest3);
     msg = opList.removeFirst();
-    assertTrue(msg.getClass().equals(AddMsg.class));
+    assertEquals(msg.getClass(), AddMsg.class);
     assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest2);
     msg = opList.removeFirst();
-    assertTrue(msg.getClass().equals(ModifyMsg.class));
+    assertEquals(msg.getClass(), ModifyMsg.class);
     assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest2);
     msg = opList.removeFirst();
-    assertTrue(msg.getClass().equals(ModifyMsg.class));
+    assertEquals(msg.getClass(), ModifyMsg.class);
     assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest1);
     }
     finally

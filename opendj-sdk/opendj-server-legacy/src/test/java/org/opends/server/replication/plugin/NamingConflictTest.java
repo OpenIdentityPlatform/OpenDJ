@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -478,8 +478,7 @@ public class NamingConflictTest extends ReplicationTestCase
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
       // Expect the parent entry to be deleted
-      assertTrue(!DirectoryServer.entryExists(parentEntry.getName()),
-          "Parent entry expected to be deleted : " + parentEntry.getName());
+      assertFalse(DirectoryServer.entryExists(parentEntry.getName()), "Parent entry expected to be deleted : " + parentEntry.getName());
 
       // Expect the child entry to be moved as conflict entry under the root
       // entry of the suffix

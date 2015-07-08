@@ -120,8 +120,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // Compare the MD5 hash of the LDAP attribute with the one
     // retrieved from the CryptoManager.
     MessageDigest md = MessageDigest.getInstance("MD5");
-    assertTrue(StaticUtils.bytesToHexNoSpace(
-         md.digest(ldapCert)).equals(cm.getInstanceKeyID()));
+    String actual = StaticUtils.bytesToHexNoSpace(md.digest(ldapCert));
+    assertEquals(actual, cm.getInstanceKeyID());
 
     // Call twice to ensure idempotent.
     CryptoManagerImpl.publishInstanceKeyEntryInADS();
@@ -291,7 +291,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertTrue(Arrays.equals(keyID, keyID2));
 
     // test for distinct ciphertext
-    assertTrue(! Arrays.equals(cipherText, cipherText2));
+    assertFalse(Arrays.equals(cipherText, cipherText2));
   }
 
 
@@ -393,10 +393,9 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     final byte[] keyID2 = new byte[16];
     System.arraycopy(cipherText, 1, keyID, 0, 16);
     System.arraycopy(cipherText2, 1, keyID2, 0, 16);
-    assertTrue(! Arrays.equals(keyID, keyID2));
+    assertFalse(Arrays.equals(keyID, keyID2));
 
-    // 2. Confirm ciphertext produced using the compromised key can still be
-    // decrypted.
+    // 2. Confirm ciphertext produced using the compromised key can still be decrypted.
     final byte[] plainText = cm.decrypt(cipherText);
     assertEquals(new String(plainText), secretMessage);
 

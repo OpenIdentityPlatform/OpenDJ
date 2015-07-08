@@ -966,7 +966,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     InternalClientConnection conn = getRootConnection();
     ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
-    assertFalse(extOp.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(extOp.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -987,7 +987,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     InternalClientConnection conn = getRootConnection();
     ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
-    assertFalse(extOp.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(extOp.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -1008,7 +1008,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
-    assertFalse(extOp.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(extOp.getResultCode(), ResultCode.SUCCESS);
   }
 
 

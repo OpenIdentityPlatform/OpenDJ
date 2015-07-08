@@ -408,7 +408,7 @@ public class TargetTestCase extends AciTestCase
   {
     PatternDN patternDN = PatternDN.decode(pattern);
     boolean match = patternDN.matchesDN(DN.valueOf(entryDN));
-    assertTrue(!match, pattern + " should not have matched " + entryDN);
+    assertFalse(match, pattern + " should not have matched " + entryDN);
   }
 
 

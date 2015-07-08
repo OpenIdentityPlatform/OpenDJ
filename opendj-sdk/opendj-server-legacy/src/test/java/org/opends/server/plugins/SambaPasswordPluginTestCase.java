@@ -491,7 +491,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     ExtendedOperation extOp = conn.processExtendedOperation(
         ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-    assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
+    assertSame(extOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
     assertThatPasswordsAreEqualTo(testEntry,
@@ -568,7 +568,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     ExtendedOperation extOp = conn.processExtendedOperation(
         ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-    assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
+    assertSame(extOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
 
@@ -649,7 +649,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     ExtendedOperation extOp = conn.processExtendedOperation(
         ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-    assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
+    assertSame(extOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
     assertThatPasswordsAreEqualTo(testEntry,
@@ -820,7 +820,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       ExtendedOperation extOp = conn.processExtendedOperation(
           ServerConstants.OID_PASSWORD_MODIFY_REQUEST, bsBuilder.toByteString());
 
-      assertTrue(extOp.getResultCode() == ResultCode.SUCCESS);
+      assertSame(extOp.getResultCode(), ResultCode.SUCCESS);
 
       // Verification of the result
 

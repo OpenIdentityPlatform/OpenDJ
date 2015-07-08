@@ -464,8 +464,8 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicaDB.clear();
 
       // Check the db is cleared.
-      assertEquals(null, replicaDB.getOldestCSN());
-      assertEquals(null, replicaDB.getNewestCSN());
+      assertNull(replicaDB.getOldestCSN());
+      assertNull(replicaDB.getNewestCSN());
       debugInfo(tn,"Success");
     }
     finally

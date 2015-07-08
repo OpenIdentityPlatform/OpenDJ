@@ -111,7 +111,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     throws Exception
   {
     Set<PluginType> pluginTypes = getPluginTypes(e);
-    assertTrue(!pluginTypes.isEmpty());
+    assertFalse(pluginTypes.isEmpty());
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -195,7 +195,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     throws ConfigException, InitializationException
   {
     Set<PluginType> pluginTypes = getPluginTypes(e);
-    assertTrue(!pluginTypes.isEmpty());
+    assertFalse(pluginTypes.isEmpty());
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -469,7 +469,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      */
     PluginResult.PreParse res = plugin.doPreParse(modifyOperation);
     assertFalse(res.continueProcessing());
-    assertTrue(res.getResultCode() == ResultCode.SUCCESS);
+    assertSame(res.getResultCode(), ResultCode.SUCCESS);
 
     plugin.finalizePlugin();
 
@@ -556,7 +556,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      */
     plugin.doPreParse(modifyOperation);
 
-    assertTrue(modifyOperation.getRawModifications().size() == 2);
+    assertEquals(modifyOperation.getRawModifications().size(), 2);
 
     rawMods = modifyOperation.getRawModifications();
     assertNotNull(rawMods);

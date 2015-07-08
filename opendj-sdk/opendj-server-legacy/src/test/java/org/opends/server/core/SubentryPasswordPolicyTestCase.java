@@ -43,6 +43,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
@@ -238,7 +239,7 @@ public class SubentryPasswordPolicyTestCase
          throws Exception
   {
     AddOperation addOperation = getRootConnection().processAdd(e);
-    assertTrue(addOperation.getResultCode() != ResultCode.SUCCESS);
+    assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getEntry(e.getName()));
   }
 

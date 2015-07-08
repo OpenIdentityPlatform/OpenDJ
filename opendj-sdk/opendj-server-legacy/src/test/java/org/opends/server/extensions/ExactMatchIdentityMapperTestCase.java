@@ -947,7 +947,7 @@ public class ExactMatchIdentityMapperTestCase
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
          conn.processModify(ByteString.valueOf(mapperDNString), mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -975,7 +975,7 @@ public class ExactMatchIdentityMapperTestCase
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
          conn.processModify(ByteString.valueOf(mapperDNString), mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -1003,7 +1003,6 @@ public class ExactMatchIdentityMapperTestCase
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
          conn.processModify(ByteString.valueOf(mapperDNString), mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }
-

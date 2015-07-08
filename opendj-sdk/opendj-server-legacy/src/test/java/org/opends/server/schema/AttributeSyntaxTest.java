@@ -78,9 +78,6 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
     Boolean liveResult =
       syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
 
-    if (liveResult != result)
-    {
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
-    }
+    assertSame(liveResult, result, syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
   }
 }

@@ -131,7 +131,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     {
       assertEquals(a.size(), 1);
 
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertTrue(a.contains(ByteString.valueOf("cn=test static group,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("invalid")));
@@ -189,7 +189,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     {
       assertEquals(a.size(), 1);
 
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertTrue(a.contains(ByteString.valueOf("cn=test static group,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("invalid")));
@@ -246,7 +246,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     {
       assertEquals(a.size(), 1);
 
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertTrue(a.contains(ByteString.valueOf("cn=test dynamic group,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("invalid")));
@@ -327,7 +327,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     {
       assertEquals(a.size(), 2);
 
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertTrue(a.contains(ByteString.valueOf("cn=test group 1,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("cn=test group 2,ou=groups,o=test")));
       assertTrue(a.contains(ByteString.valueOf("cn=test group 3,ou=groups,o=test")));
@@ -430,7 +430,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     {
       assertEquals(a.size(), 4);
 
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertTrue(a.contains(ByteString.valueOf("cn=test group 1,ou=groups,o=test")));
       assertFalse(a.contains(ByteString.valueOf("cn=test group 2,ou=groups,o=test")));
       assertTrue(a.contains(ByteString.valueOf("cn=test group 3,ou=groups,o=test")));

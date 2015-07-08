@@ -44,6 +44,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -617,7 +618,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5,
                               ByteString.valueOf("invalid"));
-    assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -642,7 +643,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5,
                               ByteString.valueOf("malformed"));
-    assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -668,7 +669,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          ByteString.valueOf("dn:cn=Directory Manager malformeddigest");
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, creds);
-    assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -696,7 +697,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
                           "malformedcredswiththerightlength");
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, creds);
-    assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }
-

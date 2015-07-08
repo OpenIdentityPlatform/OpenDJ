@@ -127,7 +127,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     assertFalse(attrList.isEmpty());
     for (Attribute a : attrList)
     {
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
       assertTrue(a.contains(ByteString.valueOf(uuidString)));
     }
@@ -163,7 +163,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     assertFalse(attrList.isEmpty());
     for (Attribute a : attrList)
     {
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
       assertFalse(a.contains(ByteString.valueOf(uuidString)));
     }

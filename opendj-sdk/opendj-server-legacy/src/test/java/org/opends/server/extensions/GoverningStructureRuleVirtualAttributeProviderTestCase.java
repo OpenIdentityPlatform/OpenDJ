@@ -94,7 +94,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     "dITStructureRules: ( 21 NAME 'domainStructureRule' FORM domainNameForm )",
     "dITStructureRules: ( 22 NAME 'organizationalStructureRule' FORM organizationalNameForm SUP 21 )"
     );
-    assertTrue(resultCode == 0);
+    assertEquals(resultCode, 0);
   }
 
 
@@ -118,7 +118,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     "nameForms: ( domainNameForm-oid NAME 'domainNameForm' OC domain MUST ( dc ) )",
     "nameForms: ( organizationalNameForm-oid NAME 'organizationalNameForm' OC organization MUST ( o ) )"
      );
-    assertTrue(resultCode == 0);
+    assertEquals(resultCode, 0);
  }
 
 
@@ -189,7 +189,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     assertFalse(attrList.isEmpty());
     for (Attribute a : attrList)
     {
-      assertTrue(!a.isEmpty());
+      assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
       assertTrue(a.contains(ByteString.valueOf(ruleId)));
     }

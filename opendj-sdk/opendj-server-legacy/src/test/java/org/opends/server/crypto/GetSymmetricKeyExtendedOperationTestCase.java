@@ -44,6 +44,7 @@ import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
@@ -159,6 +160,6 @@ public class GetSymmetricKeyExtendedOperationTestCase
          internalConnection.processExtendedOperation(
               ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP, requestValue);
 
-    assertFalse(extendedOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(extendedOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }

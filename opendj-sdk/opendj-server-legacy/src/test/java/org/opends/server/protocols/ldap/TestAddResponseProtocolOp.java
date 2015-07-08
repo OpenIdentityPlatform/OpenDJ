@@ -289,7 +289,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     addEncoded.write(writer);
     reader = ASN1.getReader(builder.toByteString());
     addDecoded = (AddResponseProtocolOp)LDAPReader.readProtocolOp(reader);
-    assertEquals(addDecoded.getMatchedDN(), null);
+    assertNull(addDecoded.getMatchedDN());
 
     //Test case for a full empty referral url param.
     ArrayList<String> emptyReferralURLs = new ArrayList<>();
@@ -299,7 +299,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     addEncoded.write(writer);
     reader = ASN1.getReader(builder.toByteString());
     addDecoded = (AddResponseProtocolOp)LDAPReader.readProtocolOp(reader);
-    assertTrue(addDecoded.getReferralURLs() == null);
+    assertNull(addDecoded.getReferralURLs());
 
     //Test case for a full encode decode operation with resultCode param only.
     addEncoded = new AddResponseProtocolOp(resultCode);
@@ -308,10 +308,10 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     reader = ASN1.getReader(builder.toByteString());
     addDecoded = (AddResponseProtocolOp)LDAPReader.readProtocolOp(reader);
 
-    assertEquals(addDecoded.getMatchedDN(), null);
-    assertEquals(addDecoded.getErrorMessage(), null);
+    assertNull(addDecoded.getMatchedDN());
+    assertNull(addDecoded.getErrorMessage());
     assertEquals(addEncoded.getResultCode(), addDecoded.getResultCode());
-    assertTrue(addDecoded.getReferralURLs() == null);
+    assertNull(addDecoded.getReferralURLs());
   }
 
   /**

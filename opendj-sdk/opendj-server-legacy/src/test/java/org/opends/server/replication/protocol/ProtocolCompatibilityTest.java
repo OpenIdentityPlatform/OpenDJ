@@ -744,7 +744,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
     assertEquals(modDnOpBasis.getModifications(), mods);
-    assertTrue(genModDnOpBasis.getModifications() == null);
+    assertNull(genModDnOpBasis.getModifications());
 
     // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);

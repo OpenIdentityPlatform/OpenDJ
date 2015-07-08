@@ -151,13 +151,10 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertTrue(DSConfig.main(args, System.out, System.err) == CONFLICTING_ARGS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), CONFLICTING_ARGS.get());
   }
 
-  /**
-   *  Quiet mode and verbose arguments can not be provided 
-   *  together.
-   */
+  /** Quiet mode and verbose arguments can not be provided together. */
   @Test
   public void testConflictualArgumentsQuietAndVerbose()
   {
@@ -174,7 +171,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertTrue(DSConfig.main(args, System.out, System.err) == CONFLICTING_ARGS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), CONFLICTING_ARGS.get());
   }
   
   /**
@@ -216,7 +213,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertTrue(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
   }
 
 

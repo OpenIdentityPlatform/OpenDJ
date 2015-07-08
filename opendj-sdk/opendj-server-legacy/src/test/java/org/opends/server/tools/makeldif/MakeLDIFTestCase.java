@@ -97,7 +97,7 @@ public class MakeLDIFTestCase
     {
       String msg = e.getMessage();
       LocalizableMessage msg_locale = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar",1);
-      assertTrue (msg.equals(msg_locale.toString()), msg);
+      assertEquals(msg, msg_locale.toString(), msg);
     }
   }
 

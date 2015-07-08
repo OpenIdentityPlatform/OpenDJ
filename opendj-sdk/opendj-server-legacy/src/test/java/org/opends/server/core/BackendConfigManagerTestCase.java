@@ -45,6 +45,7 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -83,7 +84,7 @@ public class BackendConfigManagerTestCase
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
     AddOperation addOperation = getRootConnection().processAdd(backendEntry);
-    assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -118,7 +119,7 @@ public class BackendConfigManagerTestCase
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
     AddOperation addOperation = getRootConnection().processAdd(backendEntry);
-    assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -257,7 +258,7 @@ public class BackendConfigManagerTestCase
                  DirectoryServer.getBackendWithBaseDN(childBaseDN));
     assertNotNull(childBackend.getParentBackend());
     assertEquals(parentBackend, childBackend.getParentBackend());
-    assertTrue(parentBackend.getSubordinateBackends().length == 1);
+    assertEquals(parentBackend.getSubordinateBackends().length, 1);
     assertFalse(childBackend.entryExists(childBaseDN));
     assertFalse(DirectoryServer.isNamingContext(childBaseDN));
 
@@ -273,17 +274,16 @@ public class BackendConfigManagerTestCase
 
 
 
-    // Make sure that we can't remove the parent backend with the child still
-    // in place.
+    // Make sure that we can't remove the parent backend with the child still in place.
     DeleteOperation deleteOperation = conn.processDelete(parentBackendEntry.getName());
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getBackend(parentBackendID));
 
     // Delete the child and then delete the parent.
     deleteOperation = conn.processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
-    assertTrue(parentBackend.getSubordinateBackends().length == 0);
+    assertEquals(parentBackend.getSubordinateBackends().length, 0);
 
     deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -329,7 +329,7 @@ public class BackendConfigManagerTestCase
                  DirectoryServer.getBackendWithBaseDN(parentBaseDN));
     assertNotNull(childBackend.getParentBackend());
     assertEquals(parentBackend, childBackend.getParentBackend());
-    assertTrue(parentBackend.getSubordinateBackends().length == 1);
+    assertEquals(parentBackend.getSubordinateBackends().length, 1);
 
     createEntry(parentBaseDN, parentBackend);
     assertTrue(DirectoryServer.isNamingContext(parentBaseDN));
@@ -347,7 +347,7 @@ public class BackendConfigManagerTestCase
     DeleteOperation deleteOperation = getRootConnection().processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
-    assertTrue(parentBackend.getSubordinateBackends().length == 0);
+    assertEquals(parentBackend.getSubordinateBackends().length, 0);
 
     deleteOperation = getRootConnection().processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -360,7 +360,7 @@ public class BackendConfigManagerTestCase
     assertEquals(backend, DirectoryServer.getBackendWithBaseDN(baseDN));
     assertFalse(backend.entryExists(baseDN));
     assertNull(backend.getParentBackend());
-    assertTrue(backend.getSubordinateBackends().length == 0);
+    assertEquals(backend.getSubordinateBackends().length, 0);
     assertFalse(backend.entryExists(baseDN));
     assertTrue(DirectoryServer.isNamingContext(baseDN));
   }
@@ -401,7 +401,7 @@ public class BackendConfigManagerTestCase
                  DirectoryServer.getBackendWithBaseDN(grandchildBaseDN));
     assertNotNull(grandchildBackend.getParentBackend());
     assertEquals(grandchildBackend.getParentBackend(), parentBackend);
-    assertTrue(parentBackend.getSubordinateBackends().length == 1);
+    assertEquals(parentBackend.getSubordinateBackends().length, 1);
     assertFalse(grandchildBackend.entryExists(grandchildBaseDN));
 
     // Verify that we can't create the grandchild base entry because its parent
@@ -480,13 +480,13 @@ public class BackendConfigManagerTestCase
          conn.processDelete(grandchildBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(grandchildBackendID));
-    assertTrue(childBackend.getSubordinateBackends().length == 0);
-    assertTrue(parentBackend.getSubordinateBackends().length == 1);
+    assertEquals(childBackend.getSubordinateBackends().length, 0);
+    assertEquals(parentBackend.getSubordinateBackends().length, 1);
 
     deleteOperation = conn.processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
-    assertTrue(parentBackend.getSubordinateBackends().length == 0);
+    assertEquals(parentBackend.getSubordinateBackends().length, 0);
 
     deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -507,9 +507,9 @@ public class BackendConfigManagerTestCase
     assertEquals(childBackend, DirectoryServer.getBackendWithBaseDN(childBaseDN));
     assertNotNull(childBackend.getParentBackend());
     assertEquals(parentBackend, childBackend.getParentBackend());
-    assertTrue(parentBackend.getSubordinateBackends().length == 1);
+    assertEquals(parentBackend.getSubordinateBackends().length, 1);
     assertFalse(childBackend.entryExists(childBaseDN));
-    assertTrue(childBackend.getSubordinateBackends().length == 1);
+    assertEquals(childBackend.getSubordinateBackends().length, 1);
     assertEquals(childBackend.getSubordinateBackends()[0], grandchildBackend);
     assertEquals(grandchildBackend.getParentBackend(), childBackend);
   }

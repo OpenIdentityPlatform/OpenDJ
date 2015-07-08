@@ -69,31 +69,29 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
              (BindRequestProtocolOp)simpleDecodedOp;
     BindRequestProtocolOp saslOp =
            (BindRequestProtocolOp)saslDecodedOp;
-    assertTrue(saslOp.getDN().equals(sasl.getDN()));
-    assertTrue(simpleOp.getDN().equals(simple.getDN()));
+    assertEquals(saslOp.getDN(), sasl.getDN());
+    assertEquals(simpleOp.getDN(), simple.getDN());
 
     String simpleOpPwd=simpleOp.getSimplePassword().toString();
     String simplePwd=simple.getSimplePassword().toString();
-    assertTrue(simpleOpPwd.equals(simplePwd));
+    assertEquals(simpleOpPwd, simplePwd);
 
-    assertTrue(saslOp.getProtocolOpName() == sasl.getProtocolOpName());
-    assertTrue(simpleOp.getProtocolOpName() == simple.getProtocolOpName());
+    assertSame(saslOp.getProtocolOpName(), sasl.getProtocolOpName());
+    assertSame(simpleOp.getProtocolOpName(), simple.getProtocolOpName());
 
-    assertTrue(simpleOp.getProtocolVersion() == simple.getProtocolVersion());
-    assertTrue(saslOp.getProtocolVersion() == sasl.getProtocolVersion());
+    assertEquals(simpleOp.getProtocolVersion(), simple.getProtocolVersion());
+    assertEquals(saslOp.getProtocolVersion(), sasl.getProtocolVersion());
 
-    assertTrue(simpleOp.getType() == simple.getType());
-    assertTrue(saslOp.getType() == sasl.getType());
+    assertEquals(simpleOp.getType(), simple.getType());
+    assertEquals(saslOp.getType(), sasl.getType());
 
-    assertTrue(saslOp.getAuthenticationType().getBERType() ==
-      sasl.getAuthenticationType().getBERType());
-    assertTrue(simpleOp.getAuthenticationType().getBERType() ==
-      simple.getAuthenticationType().getBERType());
+    assertEquals(saslOp.getAuthenticationType().getBERType(), sasl.getAuthenticationType().getBERType());
+    assertEquals(simpleOp.getAuthenticationType().getBERType(), simple.getAuthenticationType().getBERType());
 
-    assertTrue(saslOp.getSASLMechanism().equals(sasl.getSASLMechanism()));
+    assertEquals(saslOp.getSASLMechanism(), sasl.getSASLMechanism());
     String saslOpCreds=saslOp.getSASLCredentials().toString();
     String saslCreds=sasl.getSASLCredentials().toString();
-    assertTrue(saslOpCreds.equals(saslCreds));
+    assertEquals(saslOpCreds, saslCreds);
   }
 
   @Test

@@ -50,6 +50,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperatio
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
@@ -239,7 +240,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDeleteRaw("ou=People,o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     @SuppressWarnings("unchecked")
     List<LocalBackendDeleteOperation> localOps =
         (List<LocalBackendDeleteOperation>) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
@@ -355,7 +356,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDeleteRaw("malformed");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -372,7 +373,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=does not exist");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -389,7 +390,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDelete("o=does not exist");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -405,7 +406,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDeleteRaw("cn=entry,o=does not exist");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -422,7 +423,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDelete("cn=entry,o=does not exist");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -439,7 +440,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDeleteRaw("cn=entry,o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -456,7 +457,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation = processDelete("cn=entry,o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -476,7 +477,7 @@ public class DeleteOperationTestCase extends OperationTestCase
                "cn: test");
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -496,7 +497,7 @@ public class DeleteOperationTestCase extends OperationTestCase
                "cn: test");
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -515,7 +516,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -579,7 +580,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     backend.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -972,7 +973,7 @@ responseLoop:
       assertEquals(changeListener.getAddCount(), 0);
 
       DeleteOperation deleteOperation = processDeleteRaw("cn=nonexistent,o=test");
-      assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+      assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
       assertEquals(changeListener.getDeleteCount(), 0);
     }

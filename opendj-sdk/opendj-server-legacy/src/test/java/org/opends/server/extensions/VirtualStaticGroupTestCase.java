@@ -618,15 +618,7 @@ public class VirtualStaticGroupTestCase
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(LDIF_LINES);
 
-    VirtualAttributeRule rule = null;
-    for (VirtualAttributeRule r : DirectoryServer.getVirtualAttributes())
-    {
-      if (r.getAttributeType().equals(memberType))
-      {
-        rule = r;
-        break;
-      }
-    }
+    VirtualAttributeRule rule = getRule();
     assertNotNull(rule);
 
     MemberVirtualAttributeProvider provider =
@@ -662,7 +654,7 @@ public class VirtualStaticGroupTestCase
     assertFalse(provider.isSearchable(rule, searchOperation, true));
 
     provider.processSearch(rule, searchOperation);
-    assertFalse(searchOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(searchOperation.getResultCode(), ResultCode.SUCCESS);
 
     cleanUp();
   }
@@ -682,15 +674,7 @@ public class VirtualStaticGroupTestCase
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(LDIF_LINES);
 
-    VirtualAttributeRule rule = null;
-    for (VirtualAttributeRule r : DirectoryServer.getVirtualAttributes())
-    {
-      if (r.getAttributeType().equals(memberType))
-      {
-        rule = r;
-        break;
-      }
-    }
+    VirtualAttributeRule rule = getRule();
     assertNotNull(rule);
 
     MemberVirtualAttributeProvider provider =
@@ -726,12 +710,22 @@ public class VirtualStaticGroupTestCase
     assertFalse(provider.isSearchable(rule, searchOperation, false));
 
     provider.processSearch(rule, searchOperation);
-    assertFalse(searchOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(searchOperation.getResultCode(), ResultCode.SUCCESS);
 
     cleanUp();
   }
 
-
+  private VirtualAttributeRule getRule()
+  {
+    for (VirtualAttributeRule r : DirectoryServer.getVirtualAttributes())
+    {
+      if (r.getAttributeType().equals(memberType))
+      {
+        return r;
+      }
+    }
+    return null;
+  }
 
   /**
    * Tests the behavior of the member virtual attribute with a dynamic group.

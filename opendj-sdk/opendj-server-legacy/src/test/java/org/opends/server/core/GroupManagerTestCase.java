@@ -707,7 +707,7 @@ public class GroupManagerTestCase
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertTrue(memberList.hasMoreMembers());
     DN memberDN = memberList.nextMemberDN();
-    assertTrue(memberDN.equals(user1DN));
+    assertEquals(memberDN, user1DN);
     assertFalse(memberList.hasMoreMembers());
 
     filter = SearchFilter.createFilterFromString("(uid=user.3)");
@@ -898,7 +898,7 @@ public class GroupManagerTestCase
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertTrue(memberList.hasMoreMembers());
     DN memberDN = memberList.nextMemberDN();
-    assertTrue(memberDN.equals(user1DN));
+    assertEquals(memberDN, user1DN);
     assertFalse(memberList.hasMoreMembers());
 
     filter = SearchFilter.createFilterFromString("(uid=user.3)");
@@ -1089,7 +1089,7 @@ public class GroupManagerTestCase
                                           SearchScope.WHOLE_SUBTREE, filter);
     assertTrue(memberList.hasMoreMembers());
     DN memberDN = memberList.nextMemberDN();
-    assertTrue(memberDN.equals(user1DN));
+    assertEquals(memberDN, user1DN);
     assertFalse(memberList.hasMoreMembers());
 
     filter = SearchFilter.createFilterFromString("(uid=user.3)");

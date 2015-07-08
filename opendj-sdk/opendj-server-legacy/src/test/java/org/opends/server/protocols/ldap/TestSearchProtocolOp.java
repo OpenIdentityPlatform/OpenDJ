@@ -108,14 +108,12 @@ public class TestSearchProtocolOp extends LdapTestCase
          (SearchRequestProtocolOp)decodedProtocolOp;
 
     // Check that the fields have not been changed during encode and decode.
-    assertTrue(protocolOp.getBaseDN().equals(searchOp.getBaseDN()));
-    assertTrue(protocolOp.getScope().equals(searchOp.getScope()));
-    assertTrue(protocolOp.getDereferencePolicy().
-         equals(searchOp.getDereferencePolicy()));
-    assertTrue(protocolOp.getSizeLimit() == searchOp.getSizeLimit());
-    assertTrue(protocolOp.getTimeLimit() == searchOp.getTimeLimit());
-    assertTrue(protocolOp.getFilter().toString().equals(
-         searchOp.getFilter().toString()));
+    assertEquals(protocolOp.getBaseDN(), searchOp.getBaseDN());
+    assertEquals(protocolOp.getScope(), searchOp.getScope());
+    assertEquals(protocolOp.getDereferencePolicy(), searchOp.getDereferencePolicy());
+    assertEquals(protocolOp.getSizeLimit(), searchOp.getSizeLimit());
+    assertEquals(protocolOp.getTimeLimit(), searchOp.getTimeLimit());
+    assertEquals(protocolOp.getFilter().toString(), searchOp.getFilter().toString());
     // Check that the attributes are in the correct order (comparing the sets
     // directly does not guarantee this).
     assertTrue(Arrays.equals(protocolOp.getAttributes().toArray(),
@@ -171,14 +169,12 @@ public class TestSearchProtocolOp extends LdapTestCase
          (SearchRequestProtocolOp)decodedProtocolOp;
 
     // Check that the fields have not been changed during encode and decode.
-    assertTrue(baseDN.equals(searchOp.getBaseDN()));
-    assertTrue(scope.equals(searchOp.getScope()));
-    assertTrue(dereferencePolicy.
-         equals(searchOp.getDereferencePolicy()));
-    assertTrue(sizeLimit == searchOp.getSizeLimit());
-    assertTrue(timeLimit == searchOp.getTimeLimit());
-    assertTrue(filter.toString().equals(
-         searchOp.getFilter().toString()));
+    assertEquals(baseDN, searchOp.getBaseDN());
+    assertEquals(scope, searchOp.getScope());
+    assertEquals(dereferencePolicy, searchOp.getDereferencePolicy());
+    assertEquals(sizeLimit, searchOp.getSizeLimit());
+    assertEquals(timeLimit, searchOp.getTimeLimit());
+    assertEquals(filter.toString(), searchOp.getFilter().toString());
     // Check that the attributes are in the correct order (comparing the sets
     // directly does not guarantee this).
     assertTrue(Arrays.equals(attributes.toArray(),

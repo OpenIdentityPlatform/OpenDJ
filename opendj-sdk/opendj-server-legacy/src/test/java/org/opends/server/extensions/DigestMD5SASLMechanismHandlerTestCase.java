@@ -49,6 +49,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -930,7 +931,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_DIGEST_MD5,
                               ByteString.valueOf("invalid"));
-    assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -949,13 +950,11 @@ public class DigestMD5SASLMechanismHandlerTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_DIGEST_MD5, null);
-    assertEquals(bindOperation.getResultCode(),
-                 ResultCode.SASL_BIND_IN_PROGRESS);
+    assertEquals(bindOperation.getResultCode(), ResultCode.SASL_BIND_IN_PROGRESS);
 
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_DIGEST_MD5,
                               ByteString.valueOf("malformed"));
-    assertFalse(bindOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }
-

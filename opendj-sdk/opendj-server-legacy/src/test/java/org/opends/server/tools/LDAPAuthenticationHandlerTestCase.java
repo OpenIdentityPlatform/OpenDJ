@@ -31,6 +31,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -108,28 +109,14 @@ public class LDAPAuthenticationHandlerTestCase
     String[] supportedMechanisms =
          LDAPAuthenticationHandler.getSupportedSASLMechanisms();
     assertNotNull(supportedMechanisms);
-    assertTrue(supportedMechanisms.length == 6);
-
-    boolean found = false;
-    for (String name : supportedMechanisms)
-    {
-      found = name.equals(saslMechanismName);
-      if (found)
-      {
-        break;
-      }
-    }
-
-    assertTrue(found);
+    assertEquals(supportedMechanisms.length, 6);
+    assertTrue(Arrays.asList(supportedMechanisms).contains(saslMechanismName));
   }
-
-
 
   /**
    * Tests the <CODE>getSASLProperties</CODE> method.
    *
-   * @param  saslMechanismName  The name for which to retrieve the applicable
-   *                            properties.
+   * @param  saslMechanismName  The name for which to retrieve the applicable properties.
    */
   @Test(dataProvider = "saslMechanisms")
   public void testGetSASLProperties(String saslMechanismName)

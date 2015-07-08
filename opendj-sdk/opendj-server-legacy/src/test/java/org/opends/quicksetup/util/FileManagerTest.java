@@ -142,10 +142,10 @@ public class FileManagerTest extends QuickSetupTestCase {
     try {
       if (target.exists()) {
         target.delete();
-        assertTrue(!target.exists());
+        assertFalse(target.exists());
       }
       fileManager.rename(src, target);
-      assertTrue(!src.exists());
+      assertFalse(src.exists());
       assertTrue(target.exists());
     } finally {
       src.delete();
@@ -165,7 +165,7 @@ public class FileManagerTest extends QuickSetupTestCase {
     File target = File.createTempFile("target", null);
     try {
       StaticUtils.renameFile(src, target);
-      assertTrue(!src.exists());
+      assertFalse(src.exists());
       assertTrue(target.exists());
     } finally {
       src.delete();

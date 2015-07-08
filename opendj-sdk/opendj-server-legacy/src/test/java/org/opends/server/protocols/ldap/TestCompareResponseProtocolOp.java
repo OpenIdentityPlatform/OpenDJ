@@ -291,7 +291,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
     deleteEncoded.write(writer);
     reader = ASN1.getReader(builder.toByteString());
     deleteDecoded = (CompareResponseProtocolOp)LDAPReader.readProtocolOp(reader);
-    assertEquals(deleteDecoded.getMatchedDN(), null);
+    assertNull(deleteDecoded.getMatchedDN());
 
     //Test case for a full empty referral url param.
     ArrayList<String> emptyReferralURLs = new ArrayList<>();
@@ -301,7 +301,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
     deleteEncoded.write(writer);
     reader = ASN1.getReader(builder.toByteString());
     deleteDecoded = (CompareResponseProtocolOp)LDAPReader.readProtocolOp(reader);
-    assertTrue(deleteDecoded.getReferralURLs() == null);
+    assertNull(deleteDecoded.getReferralURLs());
 
     //Test case for a full encode decode operation with resultCode param only.
     deleteEncoded = new CompareResponseProtocolOp(resultCode);
@@ -310,10 +310,10 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
     reader = ASN1.getReader(builder.toByteString());
     deleteDecoded = (CompareResponseProtocolOp)LDAPReader.readProtocolOp(reader);
 
-    assertEquals(deleteDecoded.getMatchedDN(), null);
-    assertEquals(deleteDecoded.getErrorMessage(), null);
+    assertNull(deleteDecoded.getMatchedDN());
+    assertNull(deleteDecoded.getErrorMessage());
     assertEquals(deleteEncoded.getResultCode(), deleteDecoded.getResultCode());
-    assertTrue(deleteDecoded.getReferralURLs() == null);
+    assertNull(deleteDecoded.getReferralURLs());
   }
 
   /**
