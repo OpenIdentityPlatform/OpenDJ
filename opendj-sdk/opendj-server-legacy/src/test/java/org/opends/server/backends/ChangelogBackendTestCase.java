@@ -493,6 +493,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       {
         ex = e;
       }
+      Thread.sleep(100);
     }
     if (ex != null)
     {
