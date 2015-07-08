@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -96,7 +96,6 @@ public class PersistentServerStateTest extends ReplicationTestCase
     state.clear();
     stateSaved = new PersistentServerState(baseDn, 1, new ServerState());
     csn1Saved = stateSaved.getMaxCSN(1);
-    assertEquals(csn1Saved, null,
-        "csn1 has not been saved after clear for " + dn);
+    assertNull(csn1Saved, "csn1 has not been saved after clear for " + dn);
   }
 }

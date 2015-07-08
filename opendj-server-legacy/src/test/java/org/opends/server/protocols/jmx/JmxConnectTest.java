@@ -236,7 +236,7 @@ public class JmxConnectTest extends JmxTestCase {
     if (value != null) {
       assertEquals(val, value);
     } else {
-      assertTrue(val == null);
+      assertNull(val);
     }
     connector.close();
   }

@@ -364,7 +364,7 @@ public class StateMachineTest extends ReplicationTestCase
         Thread.sleep(1000); // Be sure status analyzer has time to test
         ReplicationMsg msg = br3.getLastMsg();
         debugInfo(testCase + " Step 1: last message from writer: " + msg);
-        assertTrue(msg == null, (msg != null) ? msg.toString() : "null" );
+        assertNull(msg, (msg != null) ? msg.toString() : "null");
       }
 
       /**
@@ -385,7 +385,7 @@ public class StateMachineTest extends ReplicationTestCase
       ReplicationMsg lastMsg = br3.getLastMsg();
       ReplicationMsg msg = br3.getLastMsg();
       debugInfo(testCase + " Step 3: last message from writer: " + msg);
-      assertTrue(lastMsg == null);
+      assertNull(lastMsg);
 
       /**
        * DS2 replays every changes and should go back to normal status

@@ -461,14 +461,13 @@ public class FingerprintCertificateMapperTestCase
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf(mapperDN), mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
 
   /**
-   * Tests to ensure that an attmept to remove the fingerprint algorithm will
-   * fail.
+   * Tests to ensure that an attempt to remove the fingerprint algorithm will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -489,7 +488,7 @@ public class FingerprintCertificateMapperTestCase
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf(mapperDN), mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 

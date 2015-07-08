@@ -117,9 +117,9 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
 
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
-      assertTrue(bindResponse.getResultCode() == okCode.intValue());
-      assertTrue(bindResponse.getMatchedDN().equals(responseDn));
-      assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
+      assertEquals(bindResponse.getResultCode(), okCode.intValue());
+      assertEquals(bindResponse.getMatchedDN(), responseDn);
+      assertEquals(bindResponse.getErrorMessage().toString(), message.toString());
       assertNull(bindResponse.getReferralURLs());
       assertNull(bindResponse.getServerSASLCredentials());
     }
@@ -164,9 +164,9 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
 
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
-      assertTrue(bindResponse.getResultCode() == okCode.intValue());
-      assertTrue(bindResponse.getMatchedDN().equals(responseDn));
-      assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
+      assertEquals(bindResponse.getResultCode(), okCode.intValue());
+      assertEquals(bindResponse.getMatchedDN(), responseDn);
+      assertEquals(bindResponse.getErrorMessage().toString(), message.toString());
       assertNull(bindResponse.getReferralURLs());
       assertNull(bindResponse.getServerSASLCredentials());
     }
@@ -217,29 +217,29 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         BindResponseProtocolOp invalidSyntaxOp =
              (BindResponseProtocolOp)invalidSyntaxDec;
 
-        assertTrue(saslOkOp.getProtocolOpName() == saslOkResp.getProtocolOpName());
-        assertTrue(busyOp.getProtocolOpName() == busyResp.getProtocolOpName());
-        assertTrue(invalidSyntaxOp.getProtocolOpName() == invalidSyntaxResp.getProtocolOpName());
+        assertSame(saslOkOp.getProtocolOpName(), saslOkResp.getProtocolOpName());
+        assertSame(busyOp.getProtocolOpName(), busyResp.getProtocolOpName());
+        assertSame(invalidSyntaxOp.getProtocolOpName(), invalidSyntaxResp.getProtocolOpName());
 
-        assertTrue(saslOkOp.getType() == saslOkResp.getType());
-        assertTrue(busyOp.getType() == busyResp.getType());
-        assertTrue(invalidSyntaxOp.getType() == invalidSyntaxResp.getType());
+        assertEquals(saslOkOp.getType(), saslOkResp.getType());
+        assertEquals(busyOp.getType(), busyResp.getType());
+        assertEquals(invalidSyntaxOp.getType(), invalidSyntaxResp.getType());
 
-        assertTrue(saslOkOp.getResultCode() == saslOkResp.getResultCode());
-        assertTrue(busyOp.getResultCode() == busyResp.getResultCode());
-        assertTrue(invalidSyntaxOp.getResultCode() == invalidSyntaxResp.getResultCode());
+        assertEquals(saslOkOp.getResultCode(), saslOkResp.getResultCode());
+        assertEquals(busyOp.getResultCode(), busyResp.getResultCode());
+        assertEquals(invalidSyntaxOp.getResultCode(), invalidSyntaxResp.getResultCode());
 
-        assertTrue(saslOkOp.getErrorMessage().equals(saslOkResp.getErrorMessage()));
-        assertTrue(invalidSyntaxOp.getErrorMessage().equals(invalidSyntaxResp.getErrorMessage()));
+        assertEquals(saslOkOp.getErrorMessage(), saslOkResp.getErrorMessage());
+        assertEquals(invalidSyntaxOp.getErrorMessage(), invalidSyntaxResp.getErrorMessage());
 
         String str1=saslOkOp.getServerSASLCredentials().toString();
         String str2=saslOkResp.getServerSASLCredentials().toString();
-        assertTrue(str1.equals(str2));
+        assertEquals(str1, str2);
         List<String> list1 = saslOkOp.getReferralURLs();
         List<String> list2 = saslOkResp.getReferralURLs();
         assertTrue(list1.equals(list2));
         DN dn1=saslOkOp.getMatchedDN();
         DN dn2=saslOkResp.getMatchedDN();
-        assertTrue(dn1.equals(dn2));
+        assertEquals(dn1, dn2);
     }
 }

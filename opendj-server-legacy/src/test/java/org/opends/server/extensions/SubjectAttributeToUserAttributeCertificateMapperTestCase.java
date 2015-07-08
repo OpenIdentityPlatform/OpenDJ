@@ -748,7 +748,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
          InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf(mapperDN), mods);
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 

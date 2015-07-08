@@ -55,8 +55,8 @@ TestAbandonRequestProtocolOp extends LdapTestCase {
 
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
     ProtocolOp reqOp= LDAPReader.readProtocolOp(reader);
-    assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
-    assertTrue(reqOp.getType() == req.getType());
+    assertSame(reqOp.getProtocolOpName(), req.getProtocolOpName());
+    assertEquals(reqOp.getType(), req.getType());
   }
 
   @Test (expectedExceptions = LDAPException.class)

@@ -44,15 +44,13 @@ public class TestUnbindRequestProtocolOp  extends LdapTestCase {
       req.write(writer);
       ASN1Reader reader = ASN1.getReader(builder.toByteString());
       ProtocolOp reqOp = LDAPReader.readProtocolOp(reader);
-      assertTrue(reqOp.getProtocolOpName() == req.getProtocolOpName());
-      assertTrue(reqOp.getType() == req.getType());
+      assertSame(reqOp.getProtocolOpName(), req.getProtocolOpName());
+      assertEquals(reqOp.getType(), req.getType());
   }
 
   @Test
   public void testUnbindRequestToString() throws Exception
   {
-      UnbindRequestProtocolOp r =
-          new UnbindRequestProtocolOp();
-      toString(r);
+      toString(new UnbindRequestProtocolOp());
   }
 }

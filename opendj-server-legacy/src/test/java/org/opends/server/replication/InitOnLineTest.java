@@ -524,8 +524,7 @@ public class InitOnLineTest extends ReplicationTestCase
     addSynchroServerEntry(synchroServerLdif);
 
     replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
-    assertTrue(!replDomain.ieRunning(),
-        "ReplicationDomain: Import/Export is not expected to be running");
+    assertFalse(replDomain.ieRunning(), "ReplicationDomain: Import/Export is not expected to be running");
   }
 
   private int getReplServerPort(int replServerId) throws Exception
@@ -1152,8 +1151,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       if (replDomain != null)
       {
-        assertTrue(!replDomain.ieRunning(),
-          "ReplicationDomain: Import/Export is not expected to be running");
+        assertFalse(replDomain.ieRunning(), "ReplicationDomain: Import/Export is not expected to be running");
       }
 
       log("Successfully ending " + testCase);
@@ -1194,8 +1192,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       if (replDomain != null)
       {
-        assertTrue(!replDomain.ieRunning(),
-          "ReplicationDomain: Import/Export is not expected to be running");
+        assertFalse(replDomain.ieRunning(), "ReplicationDomain: Import/Export is not expected to be running");
       }
 
       log("Successfully ending " + testCase);
@@ -1319,8 +1316,7 @@ public class InitOnLineTest extends ReplicationTestCase
         }
         sleep(500);
       }
-       assertTrue(!replDomain.ieRunning(),
-         "ReplicationDomain: Import/Export is not expected to be running");
+      assertFalse(replDomain.ieRunning(), "ReplicationDomain: Import/Export is not expected to be running");
     }
     // Remove domain config
     super.cleanConfigEntries();

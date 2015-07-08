@@ -366,8 +366,8 @@ public class JEReplicaDBTest extends ReplicationTestCase
       // Clear DB and check it is cleared.
       replicaDB.clear();
 
-      assertEquals(null, replicaDB.getOldestCSN());
-      assertEquals(null, replicaDB.getNewestCSN());
+      assertNull(replicaDB.getOldestCSN());
+      assertNull(replicaDB.getNewestCSN());
     }
     finally
     {
@@ -511,8 +511,8 @@ public class JEReplicaDBTest extends ReplicationTestCase
       replicaDB.clear();
 
       // Check the db is cleared.
-      assertEquals(null, replicaDB.getOldestCSN());
-      assertEquals(null, replicaDB.getNewestCSN());
+      assertNull(replicaDB.getOldestCSN());
+      assertNull(replicaDB.getNewestCSN());
       debugInfo(tn,"Success");
     }
     finally

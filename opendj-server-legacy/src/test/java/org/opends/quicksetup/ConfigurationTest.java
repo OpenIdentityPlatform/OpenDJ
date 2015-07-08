@@ -87,12 +87,11 @@ public class ConfigurationTest extends QuickSetupTestCase {
 
   @Test(enabled = false)
   public void testGetDatabasePaths() throws IOException {
-    assertTrue(!config.getDatabasePaths().isEmpty());
+    assertFalse(config.getDatabasePaths().isEmpty());
   }
 
   @Test(enabled = false)
   public void testLoad() {
     //TODO:  need way to verify reload
   }
-
 }

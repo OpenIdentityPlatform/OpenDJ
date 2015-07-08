@@ -1220,7 +1220,7 @@ public class ModifyConflictTest extends ReplicationTestCase
   {
     assertEquals(size, mods.size());
     Modification newMod = mods.get(0);
-    assertTrue(newMod.getModificationType().equals(modType));
+    assertEquals(newMod.getModificationType(), modType);
     ByteString val = newMod.getAttribute().iterator().next();
     assertEquals(val.toString(), value);
   }
@@ -1277,7 +1277,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     // Get the Entry uuid in String format
     List<Attribute> uuidAttrs = entry.getOperationalAttribute(entryuuidAttrType);
     String retrievedUuid = uuidAttrs.get(0).iterator().next().toString();
-    assertTrue(retrievedUuid.equals(uuid));
+    assertEquals(retrievedUuid, uuid);
 
 
     // Test FakeOperation
@@ -1285,7 +1285,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     if (fks.iterator().hasNext())
     {
       FakeOperation fk = fks.iterator().next();
-      assertTrue(new FakeOperationComparator().compare(fk, fk) == 0);
+      assertEquals(new FakeOperationComparator().compare(fk, fk), 0);
       assertTrue(new FakeOperationComparator().compare(null, fk) < 0);
       ReplicationMsg generatedMsg = fk.generateMessage();
       if (generatedMsg instanceof LDAPUpdateMsg)
@@ -1441,7 +1441,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     // Get the op uuid in String format
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(entryuuidAttrType);
     String retrievedUuid = uuidAttrs.get(0).iterator().next().toString();
-    assertTrue(retrievedUuid.equals(uuid));
+    assertEquals(retrievedUuid, uuid);
   }
 
     /**

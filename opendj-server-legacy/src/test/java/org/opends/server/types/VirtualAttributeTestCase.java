@@ -122,7 +122,7 @@ public class VirtualAttributeTestCase
     assertEquals(virtualAttribute.size(), 1);
     assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
 
-    assertTrue(!virtualAttribute.isEmpty());
+    assertFalse(virtualAttribute.isEmpty());
 
     assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
     assertFalse(virtualAttribute.contains(ByteString.valueOf("o=not test")));

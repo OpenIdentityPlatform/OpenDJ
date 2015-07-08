@@ -79,9 +79,6 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
     Boolean liveResult =
       syntax.valueIsAcceptable(byteStringValue, reason);
 
-    if (liveResult != result)
-    {
-      fail(syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
-    }
+    assertSame(liveResult, result, syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
   }
 }

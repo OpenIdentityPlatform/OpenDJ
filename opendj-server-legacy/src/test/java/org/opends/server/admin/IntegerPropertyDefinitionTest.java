@@ -56,7 +56,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(1);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getLowerLimit() == 1);
+    assertEquals(spd.getLowerLimit(), 1);
   }
 
   /**
@@ -96,7 +96,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(limit);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getLowerLimit() == expectedValue);
+    assertEquals(spd.getLowerLimit(), expectedValue);
   }
 
   /**
@@ -107,7 +107,7 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setLowerLimit(1);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getLowerLimit() == 1);
+    assertEquals(spd.getLowerLimit(), 1);
   }
 
   /**
@@ -116,11 +116,11 @@ public class IntegerPropertyDefinitionTest extends DirectoryServerTestCase {
    * @param expectedValue to compare
    */
   @Test(dataProvider = "limitData")
-  public void testUpperLimit2(int limit, int expectedValue) {
+  public void testUpperLimit2(int limit, Integer expectedValue) {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setUpperLimit(limit);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    assertTrue(spd.getUpperLimit().equals(expectedValue));
+    assertEquals(spd.getUpperLimit(), expectedValue);
   }
 
   /**

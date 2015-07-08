@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -91,12 +91,11 @@ public final class StringPrepProfileTestCase extends SchemaTestCase
 
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(entries.size()==1);
+      assertEquals(entries.size(), 1);
     }
     finally
     {
       TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     }
   }
-
 }

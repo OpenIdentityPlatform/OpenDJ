@@ -124,8 +124,8 @@ public class CSNTest extends ReplicationTestCase
   public void csnEquals(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
     assertFalse(csn1.equals(new Object()));
-    assertTrue(csn1.equals(csn1));
-    assertTrue(csn1.equals(csn2));
+    assertEquals(csn1, csn1);
+    assertEquals(csn1, csn2);
     assertFalse(csn1.equals(csn3));
     assertFalse(csn1.equals(csn4));
     assertFalse(csn1.equals(csn5));

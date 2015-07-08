@@ -232,7 +232,7 @@ public class MonitorTest extends ReplicationTestCase
       String synchroServerStringDN = "cn=" + testName + ", cn=domains," +
       SYNCHRO_PLUGIN_DN;
       // Must have called connectServer1ToChangelog previously
-      assertTrue(synchroServerEntry != null);
+      assertNotNull(synchroServerEntry);
       DN synchroServerDN = DN.valueOf(synchroServerStringDN);
       deleteEntry(synchroServerDN);
       synchroServerEntry = null;
@@ -433,6 +433,6 @@ public class MonitorTest extends ReplicationTestCase
     String entries = oStream.toString();
     debugInfo("Entries:" + entries);
     assertEquals(retVal, 0, "Returned error: " + eStream);
-    assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
+    assertFalse(entries.equalsIgnoreCase(""), "Returned entries: " + entries);
   }
 }
