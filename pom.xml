@@ -141,7 +141,7 @@
     <frDocPluginVersion>3.0.0</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
-    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+    <siteDistributionURL>scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
 
     <!--
       Release date and publication date are set at release build time.
