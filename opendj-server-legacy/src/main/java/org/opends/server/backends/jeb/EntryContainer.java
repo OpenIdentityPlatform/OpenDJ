@@ -607,15 +607,6 @@ public class EntryContainer
   }
 
   /**
-   * Return attribute index map.
-   *
-   * @return The attribute index map.
-   */
-  public Map<AttributeType, AttributeIndex> getAttributeIndexMap() {
-    return attrIndexMap;
-  }
-
-  /**
    * Look for an VLV index for the given index name.
    *
    * @param vlvIndexName The vlv index name for which an vlv index is needed.

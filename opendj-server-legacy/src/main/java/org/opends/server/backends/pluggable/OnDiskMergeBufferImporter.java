@@ -600,14 +600,13 @@ final class OnDiskMergeBufferImporter
       if (suffix != null)
       {
         dnSuffixMap.put(ec.getBaseDN(), suffix);
-        generateIndexIDs(suffix);
       }
     }
   }
 
   private void generateIndexIDs(Suffix suffix)
   {
-    for (AttributeIndex attributeIndex : suffix.getAttrIndexMap().values())
+    for (AttributeIndex attributeIndex : suffix.getAttributeIndexes())
     {
       for (Index index : attributeIndex.getNameToIndexes().values())
       {
@@ -774,7 +773,7 @@ final class OnDiskMergeBufferImporter
         public void run(WriteableTransaction txn) throws Exception
         {
           initializeSuffixes(txn);
-          setIndexesTrusted(txn, false);
+          setupIndexesForImport(txn);
         }
       });
 
@@ -804,7 +803,7 @@ final class OnDiskMergeBufferImporter
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          setIndexesTrusted(txn, true);
+          setIndexesTrusted(txn);
           switchEntryContainers(txn);
         }
       });
@@ -859,18 +858,34 @@ final class OnDiskMergeBufferImporter
     }
   }
 
-  private void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
+  private void setIndexesTrusted(WriteableTransaction txn) throws StorageRuntimeException
   {
     try
     {
       for (Suffix s : dnSuffixMap.values())
       {
-        s.setIndexesTrusted(txn, trusted);
+        s.setIndexesTrusted(txn);
       }
     }
     catch (StorageRuntimeException ex)
     {
-      throw new StorageRuntimeException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString());
+      throw new StorageRuntimeException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()).toString(), ex);
+    }
+  }
+
+  private void setupIndexesForImport(WriteableTransaction txn) throws StorageRuntimeException
+  {
+    try
+    {
+      for (Suffix s : dnSuffixMap.values())
+      {
+        s.setIndexesNotTrusted(txn, importCfg.appendToExistingData());
+        generateIndexIDs(s);
+      }
+    }
+    catch (StorageRuntimeException ex)
+    {
+      throw new StorageRuntimeException(NOTE_IMPORT_LDIF_NOT_TRUSTED_FAILED.get(ex.getMessage()).toString(), ex);
     }
   }
 
@@ -897,8 +912,7 @@ final class OnDiskMergeBufferImporter
     execService.submit(new MigrateExistingTask(storage)).get();
 
     final List<Callable<Void>> tasks = new ArrayList<>(threadCount);
-    if (importCfg.appendToExistingData()
-        && importCfg.replaceExistingEntries())
+    if (importCfg.appendToExistingData() && importCfg.replaceExistingEntries())
     {
       for (int i = 0; i < threadCount; i++)
       {
@@ -1400,10 +1414,9 @@ final class OnDiskMergeBufferImporter
     void processIndexes(Suffix suffix, Entry entry, EntryID entryID, boolean allIndexes)
         throws StorageRuntimeException, InterruptedException
     {
-      for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
+      for (AttributeIndex attrIndex : suffix.getAttributeIndexes())
       {
-        AttributeType attrType = mapEntry.getKey();
-        AttributeIndex attrIndex = mapEntry.getValue();
+        AttributeType attrType = attrIndex.getAttributeType();
         if (allIndexes || entry.hasAttribute(attrType))
         {
           for (Map.Entry<String, MatchingRuleIndex> mapEntry2 : attrIndex.getNameToIndexes().entrySet())
@@ -1421,9 +1434,8 @@ final class OnDiskMergeBufferImporter
     void processVLVIndexes(WriteableTransaction txn, Suffix suffix, Entry entry, EntryID entryID)
         throws DirectoryException
     {
-      final EntryContainer entryContainer = suffix.getEntryContainer();
-      final IndexBuffer buffer = new IndexBuffer(entryContainer);
-      for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+      final IndexBuffer buffer = new IndexBuffer(suffix.getEntryContainer());
+      for (VLVIndex vlvIdx : suffix.getVLVIndexes())
       {
         vlvIdx.addEntry(buffer, entryID, entry);
       }
@@ -2619,10 +2631,9 @@ final class OnDiskMergeBufferImporter
 
     private void rebuildIndexMap(WriteableTransaction txn, boolean onlyDegraded)
     {
-      for (final Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
+      for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
       {
-        final AttributeType attributeType = mapEntry.getKey();
-        final AttributeIndex attributeIndex = mapEntry.getValue();
+        final AttributeType attributeType = attributeIndex.getAttributeType();
         if (mustRebuild(attributeType))
         {
           rebuildAttributeIndexes(txn, attributeIndex, attributeType, onlyDegraded);
@@ -2959,7 +2970,7 @@ final class OnDiskMergeBufferImporter
         throws StorageRuntimeException, DirectoryException
     {
       final IndexBuffer buffer = new IndexBuffer(entryContainer);
-      for (VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes())
+      for (VLVIndex vlvIdx : suffix.getVLVIndexes())
       {
         vlvIdx.addEntry(buffer, entryID, entry);
       }

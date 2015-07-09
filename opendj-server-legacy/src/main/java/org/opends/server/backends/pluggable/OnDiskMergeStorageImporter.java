@@ -1557,7 +1557,14 @@ final class OnDiskMergeStorageImporter
     {
       for (Suffix s : dnSuffixMap.values())
       {
-        s.setIndexesTrusted(txn, trusted);
+        if (trusted)
+        {
+          s.setIndexesTrusted(txn);
+        }
+        else
+        {
+          s.setIndexesNotTrusted(txn, importCfg.appendToExistingData());
+        }
       }
     }
     catch (StorageRuntimeException ex)
@@ -2208,10 +2215,9 @@ final class OnDiskMergeStorageImporter
     void processIndexes(Suffix suffix, Entry entry, EntryID entryID)
         throws StorageRuntimeException, InterruptedException
     {
-      for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
+      for (AttributeIndex attrIndex : suffix.getAttributeIndexes())
       {
-        final AttributeType attrType = mapEntry.getKey();
-        final AttributeIndex attrIndex = mapEntry.getValue();
+        final AttributeType attrType = attrIndex.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
           for (MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
