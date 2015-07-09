@@ -1687,10 +1687,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
             _searchFilter));
       }
 
-      for (String attribute : _attributes)
-      {
-        args.add(attribute);
-      }
+      Collections.addAll(args, _attributes);
 
       return args.toArray(new String[args.size()]);
     }

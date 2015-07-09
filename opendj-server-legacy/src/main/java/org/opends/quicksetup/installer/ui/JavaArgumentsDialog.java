@@ -578,7 +578,7 @@ public class JavaArgumentsDialog extends JDialog
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);
 
-          if (returnValue.size() > 0)
+          if (!returnValue.isEmpty())
           {
             displayError(Utils.getMessageFromCollection(returnValue, "\n"),
                 INFO_ERROR_TITLE.get());

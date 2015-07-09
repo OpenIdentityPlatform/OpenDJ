@@ -121,7 +121,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    */
   protected byte[] encodeMods(List<Modification> mods)
   {
-    if ((mods == null) || (mods.size() == 0))
+    if (mods == null || mods.isEmpty())
     {
       return new byte[0];
     }

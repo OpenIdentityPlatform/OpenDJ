@@ -307,8 +307,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     uud.setExternalDbsToRemove(dbs);
     uud.setExternalLogsToRemove(logs);
 
-    if (dbs.size() == 0 &&
-            logs.size() == 0 &&
+    if (dbs.isEmpty() &&
+            logs.isEmpty() &&
             !uud.getRemoveLibrariesAndTools() &&
             !uud.getRemoveDatabases() &&
             !uud.getRemoveConfigurationAndSchema() &&
@@ -798,7 +798,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
 
       Set<String> dbsToDelete = getUninstallUserData().getExternalDbsToRemove();
-      if (dbsToDelete.size() > 0) {
+      if (!dbsToDelete.isEmpty()) {
         status = UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES;
         if (displaySeparator && isVerbose()) {
           notifyListeners(getTaskSeparator());
@@ -824,9 +824,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
       }
 
-      Set<String> logsToDelete =
-              getUninstallUserData().getExternalLogsToRemove();
-      if (logsToDelete.size() > 0) {
+      Set<String> logsToDelete = getUninstallUserData().getExternalLogsToRemove();
+      if (!logsToDelete.isEmpty()) {
         status = UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES;
 
         if (displaySeparator && isVerbose()) {
@@ -1689,7 +1688,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       exceptionMsgs.add(getMessage(e));
     }
-    if (!stopProcessing && exceptionMsgs.size() > 0)
+    if (!stopProcessing && !exceptionMsgs.isEmpty())
     {
       LocalizableMessage confirmationMsg =
         ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
@@ -2031,7 +2030,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             logger.info(LocalizableMessage.raw("Updating references in replication server on "+
                 serverDisplay+"."));
             replServers.remove(replServer);
-            if (replServers.size() > 0)
+            if (!replServers.isEmpty())
             {
               replicationServer.setReplicationServer(replServers);
               replicationServer.commit();
@@ -2069,7 +2068,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               logger.info(LocalizableMessage.raw("Updating references in domain " +
                   domain.getBaseDN()+" on " + serverDisplay + "."));
               replServers.remove(replServer);
-              if (replServers.size() > 0)
+              if (!replServers.isEmpty())
               {
                 domain.setReplicationServer(replServers);
                 domain.commit();

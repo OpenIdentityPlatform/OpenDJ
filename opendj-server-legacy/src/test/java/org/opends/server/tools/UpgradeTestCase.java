@@ -28,6 +28,7 @@ package org.opends.server.tools;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -72,14 +73,9 @@ public class UpgradeTestCase extends ToolsTestCase
     argsList.add(configFilePath);
     if (args != null)
     {
-      for (final String argument : args)
-      {
-        argsList.add(argument);
-      }
+      Collections.addAll(argsList, args);
     }
-    final String[] mainArgs = new String[argsList.size()];
-    argsList.toArray(mainArgs);
-    return mainArgs;
+    return argsList.toArray(new String[argsList.size()]);
   }
 
   /**

@@ -36,6 +36,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -169,10 +170,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
           Set<Object> selected = new HashSet<>();
           if (s != null)
           {
-            for (Object o : s)
-            {
-              selected.add(o);
-            }
+            Collections.addAll(selected, s);
           }
           final DefaultListModel model = (DefaultListModel)list.getModel();
           model.clear();

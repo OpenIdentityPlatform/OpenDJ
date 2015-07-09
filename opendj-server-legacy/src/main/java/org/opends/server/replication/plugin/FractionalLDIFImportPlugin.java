@@ -468,7 +468,7 @@ public final class FractionalLDIFImportPlugin
   private static boolean add(AttributeBuilder attrBuilder, String className,
       Set<String> values)
   {
-    if (values.size() > 0)
+    if (!values.isEmpty())
     {
       attrBuilder.add(className + ":" + Utils.joinAsString(",", values));
       return true;

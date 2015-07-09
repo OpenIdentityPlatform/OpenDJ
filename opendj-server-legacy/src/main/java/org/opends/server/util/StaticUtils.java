@@ -2410,12 +2410,9 @@ public final class StaticUtils
 
     ArrayList<String> commandAndArgs = new ArrayList<>();
     commandAndArgs.add(command);
-    if ((args != null) && (args.length > 0))
+    if (args != null && args.length > 0)
     {
-      for (String arg : args)
-      {
-        commandAndArgs.add(arg);
-      }
+      Collections.addAll(commandAndArgs, args);
     }
 
     ProcessBuilder processBuilder = new ProcessBuilder(commandAndArgs);
@@ -3378,10 +3375,7 @@ public final class StaticUtils
     }
 
     ArrayList<String> stringList = new ArrayList<>(stringArray.length);
-    for (String s : stringArray)
-    {
-      stringList.add(s);
-    }
+    Collections.addAll(stringList, stringArray);
     return stringList;
   }
 

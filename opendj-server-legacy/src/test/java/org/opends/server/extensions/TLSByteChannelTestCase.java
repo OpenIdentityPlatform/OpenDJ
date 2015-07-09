@@ -31,6 +31,7 @@ import java.io.BufferedInputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -487,10 +488,7 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
     Set<String> set = new HashSet<>();
     for (String[] array : data)
     {
-      for (String s : array)
-      {
-        set.add(s);
-      }
+      Collections.addAll(set, array);
     }
     return set;
   }

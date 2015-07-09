@@ -528,8 +528,8 @@ public abstract class ConfigAttribute
     if (!isMultiValued)
     {
       if (numValues > 1
-          || (hasPendingValues && pendingValues.size() > 0)
-          || (!hasPendingValues && activeValues.size() > 0))
+          || (hasPendingValues && !pendingValues.isEmpty())
+          || (!hasPendingValues && !activeValues.isEmpty()))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_IS_SINGLE_VALUED.get(name));
       }

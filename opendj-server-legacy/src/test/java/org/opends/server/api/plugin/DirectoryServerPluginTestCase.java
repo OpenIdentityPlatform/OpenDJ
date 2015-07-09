@@ -26,10 +26,9 @@
  */
 package org.opends.server.api.plugin;
 
-
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -51,12 +50,8 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import static org.testng.Assert.*;
 
-
-
-/**
- * A set of generic test cases for the Directory Server plugin API.
- */
-  public class DirectoryServerPluginTestCase
+/** A set of generic test cases for the Directory Server plugin API. */
+public class DirectoryServerPluginTestCase
        extends PluginAPITestCase
 {
   @BeforeClass
@@ -814,18 +809,13 @@ import static org.testng.Assert.*;
       "ds-cfg-plugin-type: intermediateResponse");
 
     PluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(),
-                                             pluginEntry);
-
+         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(), pluginEntry);
 
     NullPlugin nullPlugin = new NullPlugin();
     DN pluginEntryDN = DN.valueOf("cn=Null Plugin,cn=Plugins,cn=config");
 
     HashSet<PluginType> pluginTypes = new HashSet<>();
-    for (PluginType t : PluginType.values())
-    {
-      pluginTypes.add(t);
-    }
+    Collections.addAll(pluginTypes, PluginType.values());
 
     nullPlugin.initializeInternal(configuration.dn(), pluginTypes,
         configuration.isInvokeForInternalOperations());
@@ -902,17 +892,12 @@ import static org.testng.Assert.*;
       "ds-cfg-plugin-type: intermediateResponse");
 
     PluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(),
-                                             pluginEntry);
-
+         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(), pluginEntry);
 
     NullPlugin nullPlugin = new NullPlugin();
 
     HashSet<PluginType> pluginTypes = new HashSet<>();
-    for (PluginType t : PluginType.values())
-    {
-      pluginTypes.add(t);
-    }
+    Collections.addAll(pluginTypes, PluginType.values());
 
     nullPlugin.initializeInternal(configuration.dn(), pluginTypes,
         configuration.isInvokeForInternalOperations());

@@ -177,10 +177,7 @@ public class MemoryBackend
     }
 
     baseDNSet = new HashSet<>();
-    for (DN dn : baseDNs)
-    {
-      baseDNSet.add(dn);
-    }
+    Collections.addAll(baseDNSet, baseDNs);
 
     entryMap = new LinkedHashMap<>();
     childDNs = new HashMap<>();

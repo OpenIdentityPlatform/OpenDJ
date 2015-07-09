@@ -126,7 +126,7 @@ public class ConfigFromFile extends ConfigReader
       errors.add(new OfflineUpdateException(ERR_READING_CONFIG_LDAP.get(t.getMessage()), t));
     }
 
-    if (errors.size() > 0 && environmentSettingException != null)
+    if (!errors.isEmpty() && environmentSettingException != null)
     {
       errors.add(0, environmentSettingException);
     }

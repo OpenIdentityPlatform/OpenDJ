@@ -309,8 +309,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
             taskEntry = tc.getTaskEntry(taskId);
             List<LocalizableMessage> logs = taskEntry.getLogMessages();
             for (LocalizableMessage log : logs) {
-              if (!printedLogMessages.contains(log)) {
-                printedLogMessages.add(log);
+              if (printedLogMessages.add(log)) {
                 out.println(log);
               }
             }

@@ -109,7 +109,7 @@ public class RandomPasswordGenerator
     {
       encodedCharacterSets = configuration.getPasswordCharacterSet();
 
-      if (encodedCharacterSets.size() == 0)
+      if (encodedCharacterSets.isEmpty())
       {
         LocalizableMessage message = ERR_RANDOMPWGEN_NO_CHARSETS.get(configEntryDN);
         throw new ConfigException(message);
@@ -283,7 +283,7 @@ public class RandomPasswordGenerator
     try
     {
       SortedSet<String> currentPasSet = configuration.getPasswordCharacterSet();
-      if (currentPasSet.size() == 0)
+      if (currentPasSet.isEmpty())
       {
         throw new ConfigException(ERR_RANDOMPWGEN_NO_CHARSETS.get(cfgEntryDN));
       }
@@ -382,7 +382,7 @@ public class RandomPasswordGenerator
     try
     {
       newEncodedCharacterSets = configuration.getPasswordCharacterSet();
-      if (newEncodedCharacterSets.size() == 0)
+      if (newEncodedCharacterSets.isEmpty())
       {
         ccr.addMessage(ERR_RANDOMPWGEN_NO_CHARSETS.get(configEntryDN));
         ccr.setResultCodeIfSuccess(ResultCode.OBJECTCLASS_VIOLATION);

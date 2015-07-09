@@ -522,7 +522,7 @@ public class ParallelWorkQueue
   @Override
   public boolean isIdle()
   {
-    if (opQueue.size() > 0) {
+    if (!opQueue.isEmpty()) {
       return false;
     }
 

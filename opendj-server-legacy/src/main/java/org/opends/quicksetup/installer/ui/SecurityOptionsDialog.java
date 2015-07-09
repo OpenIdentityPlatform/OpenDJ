@@ -698,7 +698,7 @@ public class SecurityOptionsDialog extends JDialog
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);
 
-          if (returnValue.size() > 0)
+          if (!returnValue.isEmpty())
           {
             displayError(Utils.getMessageFromCollection(returnValue, "\n"),
                 INFO_ERROR_TITLE.get());
@@ -929,7 +929,7 @@ public class SecurityOptionsDialog extends JDialog
             Installer.MIN_PORT_VALUE, Installer.MAX_PORT_VALUE));
       }
     }
-    setValidLater(cbEnableSSL, errorMsgs.size() == 0);
+    setValidLater(cbEnableSSL, errorMsgs.isEmpty());
     return errorMsgs;
   }
 
@@ -969,7 +969,7 @@ public class SecurityOptionsDialog extends JDialog
           }
         }
 
-        pathValid = errorMsgs.size() == 0;
+        pathValid = errorMsgs.isEmpty();
       }
 
       String pwd = String.valueOf(tfKeystorePwd.getPassword());

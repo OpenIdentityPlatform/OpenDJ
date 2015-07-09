@@ -89,7 +89,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
       expectedServers);
 
     // Keep track of potential servers detected in wrong status
-    if (wrongStatusServers.size() > 0)
+    if (!wrongStatusServers.isEmpty())
     {
       hasWrongStatus = true;
       failedServers = wrongStatusServers;

@@ -438,7 +438,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       checkImportDataArguments(errorMessages);
       checkSecurityArguments(errorMessages);
 
-      if (errorMessages.size() > 0)
+      if (!errorMessages.isEmpty())
       {
         throw new ArgumentException(ERR_CANNOT_INITIALIZE_ARGS.get(
             Utils.getMessageFromCollection(errorMessages, Constants.LINE_SEPARATOR)));

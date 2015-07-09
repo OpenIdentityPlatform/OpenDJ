@@ -49,6 +49,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
@@ -345,29 +346,17 @@ public class BackUpDB extends TaskTool
       // Check that the backendID has not been expressed twice.
       HashSet<String> backendIDLowerCase = new HashSet<>();
       HashSet<String> repeatedBackendIds = new HashSet<>();
-      StringBuilder repeatedBackends = new StringBuilder();
       for (String id : backendID.getValues())
       {
         String lId = id.toLowerCase();
-        if (backendIDLowerCase.contains(lId))
+        if (!backendIDLowerCase.add(lId))
         {
-          if (!repeatedBackendIds.contains(lId))
-          {
-            repeatedBackendIds.add(lId);
-            if (repeatedBackends.length() > 0)
-            {
-              repeatedBackends.append(", ");
-            }
-            repeatedBackends.append(id);
-          }
-        }
-        else
-        {
-          backendIDLowerCase.add(lId);
+          repeatedBackendIds.add(lId);
         }
       }
-      if (repeatedBackends.length() > 0)
+      if (!repeatedBackendIds.isEmpty())
       {
+        String repeatedBackends = Utils.joinAsString(", ", repeatedBackendIds);
         LocalizableMessage message = ERR_BACKUPDB_REPEATED_BACKEND_ID.get(repeatedBackends);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
@@ -442,7 +431,7 @@ public class BackUpDB extends TaskTool
     addIfHasValue(attributes, ATTR_TASK_BACKUP_SIGN_HASH, signHash);
 
     List<String> backendIDs = backendID.getValues();
-    if (backendIDs != null && backendIDs.size() > 0) {
+    if (backendIDs != null && !backendIDs.isEmpty()) {
       ArrayList<ByteString> values = new ArrayList<>(backendIDs.size());
       for (String s : backendIDs) {
         values.add(ByteString.valueOf(s));

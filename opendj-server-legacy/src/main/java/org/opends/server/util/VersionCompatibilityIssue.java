@@ -416,9 +416,7 @@ public final class VersionCompatibilityIssue {
       this.upgradeMsg = upgradeMessage;
       this.reversionMsg = reversionMessage;
       if (effects != null) {
-        for (Effect c : effects) {
-          this.effects.add(c);
-        }
+        Collections.addAll(this.effects, effects);
       }
     }
 

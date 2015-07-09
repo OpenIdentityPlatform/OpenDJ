@@ -205,7 +205,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
 
     private boolean isEmpty()
     {
-      return allHandlers.size() == 0;
+      return allHandlers.isEmpty();
     }
 
     private void addHandler(MonitoredDirectory handler)

@@ -674,7 +674,7 @@ public class PasswordPolicyStateExtendedOperation
     writer.writeStartSequence();
     writer.writeEnumerated(opType);
 
-    if (values != null && values.size() > 0)
+    if (values != null && !values.isEmpty())
     {
       writer.writeStartSequence();
       for (long l : values)

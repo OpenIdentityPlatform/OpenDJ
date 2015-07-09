@@ -772,7 +772,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     queueReadLock.lock();
     try
     {
-      if (opQueue.size() > 0)
+      if (!opQueue.isEmpty())
       {
         return false;
       }

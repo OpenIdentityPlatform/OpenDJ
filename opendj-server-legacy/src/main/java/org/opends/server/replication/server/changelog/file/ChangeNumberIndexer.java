@@ -504,7 +504,7 @@ public class ChangeNumberIndexer extends DirectoryThread
       nextChangeForInsertDBCursor.next();
     }
     catch (AbortedChangelogCursorException e) {
-      if (domainsToClear.size() == 0)
+      if (domainsToClear.isEmpty())
       {
         // There is no domain to clear, thus it is
         // not expected that a cursor is aborted

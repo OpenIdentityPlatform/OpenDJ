@@ -650,7 +650,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     // Return computed structures
     PreparedAssuredInfo preparedAssuredInfo = new PreparedAssuredInfo();
-    if (expectedServers.size() > 0)
+    if (!expectedServers.isEmpty())
     {
       // Some other acks to wait for
       preparedAssuredInfo.expectedAcksInfo = new SafeReadExpectedAcksInfo(csn,

@@ -626,7 +626,7 @@ public class CryptoManagerImpl
       final SearchRequest request =
           newSearchRequest(entryDN, SearchScope.BASE_OBJECT, FILTER_OC_INSTANCE_KEY).addAttribute("dn");
       final InternalSearchOperation searchOp = icc.processSearch(request);
-      if (0 == searchOp.getSearchEntries().size()) {
+      if (searchOp.getSearchEntries().isEmpty()) {
         final Entry entry = new Entry(entryDN, null, null, null);
         entry.addObjectClass(DirectoryServer.getTopObjectClass());
         entry.addObjectClass(ocInstanceKey);

@@ -1383,7 +1383,7 @@ public class AssuredReplicationServerTest
   {
     List<List<Object>> newObjectArrayList = new ArrayList<>();
 
-    if (objectArrayList.size() == 0)
+    if (objectArrayList.isEmpty())
     {
       // First time we add some parameters, create first object arrays
       // Add each possible parameter as initial parameter lists
@@ -1669,7 +1669,7 @@ public class AssuredReplicationServerTest
     }
     else
     { // Not enough eligible servers
-      if (eligibleServers.size() > 0) // Some eligible servers anyway
+      if (!eligibleServers.isEmpty()) // Some eligible servers anyway
       {
         if (expectedServers.size() == eligibleServers.size()) // All eligible servers should respond in time
         {

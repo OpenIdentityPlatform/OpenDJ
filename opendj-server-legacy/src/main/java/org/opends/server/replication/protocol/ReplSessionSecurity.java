@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -117,7 +117,7 @@ public final class ReplSessionSecurity
       final SortedSet<String> sslCipherSuites,
       final boolean sslEncryption) throws ConfigException
   {
-    if (sslProtocols == null || sslProtocols.size() == 0)
+    if (sslProtocols == null || sslProtocols.isEmpty())
     {
       this.sslProtocols = null;
     }
@@ -127,7 +127,7 @@ public final class ReplSessionSecurity
       sslProtocols.toArray(this.sslProtocols);
     }
 
-    if (sslCipherSuites == null || sslCipherSuites.size() == 0)
+    if (sslCipherSuites == null || sslCipherSuites.isEmpty())
     {
       this.sslCipherSuites = null;
     }
