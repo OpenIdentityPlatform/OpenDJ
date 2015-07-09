@@ -1252,9 +1252,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
-    ArrayList<Attribute> uuidList = new ArrayList<>(1);
-    Attribute uuidAttr = Attributes.create(entryuuidAttrType, uuid.toString());
-    uuidList.add(uuidAttr);
+    List<Attribute> uuidList = Attributes.createAsList(entryuuidAttrType, uuid.toString());
 
     // Add the uuid in the entry
     Map<AttributeType, List<Attribute>> operationalAttributes = entry.getOperationalAttributes();

@@ -26,12 +26,13 @@
  */
 package org.opends.server.plugins;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -41,8 +42,6 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
@@ -66,19 +65,14 @@ public final class LastModPlugin
 
   /** The attribute type for the "createTimestamp" attribute. */
   private final AttributeType createTimestampType;
-
   /** The attribute type for the "creatorsName" attribute. */
   private final AttributeType creatorsNameType;
-
   /** The attribute type for the "modifiersName" attribute. */
   private final AttributeType modifiersNameType;
-
   /** The attribute type for the "modifyTimestamp" attribute. */
   private final AttributeType modifyTimestampType;
-
   /** The current configuration for this plugin. */
   private LastModPluginCfg currentConfig;
-
 
 
   /**
@@ -163,19 +157,13 @@ public final class LastModPlugin
     {
       builder.add(creatorDN.toString());
     }
-    Attribute nameAttr = builder.toAttribute();
-    ArrayList<Attribute> nameList = new ArrayList<>(1);
-    nameList.add(nameAttr);
-    addOperation.setAttribute(creatorsNameType, nameList);
+    addOperation.setAttribute(creatorsNameType, builder.toAttributeList());
 
 
     //  Create the attribute list for the createTimestamp attribute.
-    Attribute timeAttr = Attributes.create(createTimestampType,
-        OP_ATTR_CREATE_TIMESTAMP, getGMTTime());
-    ArrayList<Attribute> timeList = new ArrayList<>(1);
-    timeList.add(timeAttr);
+    List<Attribute> timeList = Attributes.createAsList(
+        createTimestampType, OP_ATTR_CREATE_TIMESTAMP, getGMTTime());
     addOperation.setAttribute(createTimestampType, timeList);
-
 
     // We shouldn't ever need to return a non-success result.
     return PluginResult.PreOperation.continueOperationProcessing();

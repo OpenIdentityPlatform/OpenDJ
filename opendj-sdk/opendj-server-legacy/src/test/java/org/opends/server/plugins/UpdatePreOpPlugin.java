@@ -26,16 +26,17 @@
  */
 package org.opends.server.plugins;
 
-
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
@@ -43,8 +44,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.forgerock.i18n.LocalizableMessage;
-
 
 /**
  * This class defines a pre-operation plugin that can be used in add and modify
@@ -142,9 +141,7 @@ public class UpdatePreOpPlugin
 
     for (Attribute a : setAttributes)
     {
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(a);
-      addOperation.setAttribute(a.getAttributeType(), attrList);
+      addOperation.setAttribute(a.getAttributeType(), newArrayList(a));
     }
 
     for (ObjectClass oc : removeObjectClasses)

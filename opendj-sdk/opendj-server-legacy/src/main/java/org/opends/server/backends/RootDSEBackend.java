@@ -30,6 +30,7 @@ import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -512,8 +513,7 @@ public class RootDSEBackend
       Attribute supportedAuthPWSchemesAttr =
            createAttribute(ATTR_SUPPORTED_AUTH_PW_SCHEMES,
                            ATTR_SUPPORTED_AUTH_PW_SCHEMES_LC, authPWSchemes);
-      ArrayList<Attribute> supportedAuthPWSchemesAttrs = new ArrayList<>(1);
-      supportedAuthPWSchemesAttrs.add(supportedAuthPWSchemesAttr);
+      ArrayList<Attribute> supportedAuthPWSchemesAttrs = newArrayList(supportedAuthPWSchemesAttr);
       if (showAllAttributes
           || !supportedSASLMechAttr.getAttributeType().isOperational())
       {
@@ -607,8 +607,7 @@ public class RootDSEBackend
   {
     if (!publicNamingContextAttr.isEmpty())
     {
-      List<Attribute> privateNamingContextAttrs = new ArrayList<>(1);
-      privateNamingContextAttrs.add(publicNamingContextAttr);
+      List<Attribute> privateNamingContextAttrs = newArrayList(publicNamingContextAttr);
       final AttributeType attrType = publicNamingContextAttr.getAttributeType();
       if (showAllAttributes || !attrType.isOperational())
       {

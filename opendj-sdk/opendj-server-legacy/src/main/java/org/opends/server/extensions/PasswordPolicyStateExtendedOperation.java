@@ -59,6 +59,7 @@ import org.opends.server.types.*;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1307,9 +1308,7 @@ public class PasswordPolicyStateExtendedOperation
       case OP_SET_AUTHENTICATION_FAILURE_TIMES:
         if (opValues == null)
         {
-          ArrayList<Long> valueList = new ArrayList<>(1);
-          valueList.add(pwpState.getCurrentTime());
-          pwpState.setAuthFailureTimes(valueList);
+          pwpState.setAuthFailureTimes(newArrayList(pwpState.getCurrentTime()));
         }
         else
         {
@@ -1488,9 +1487,7 @@ public class PasswordPolicyStateExtendedOperation
       case OP_SET_GRACE_LOGIN_USE_TIMES:
         if (opValues == null)
         {
-          ArrayList<Long> valueList = new ArrayList<>(1);
-          valueList.add(pwpState.getCurrentTime());
-          pwpState.setGraceLoginTimes(valueList);
+          pwpState.setGraceLoginTimes(newArrayList(pwpState.getCurrentTime()));
         }
         else
         {

@@ -28,17 +28,20 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeTest;
-import org.opends.server.types.*;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.SearchFilter;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 public class TestLDAPFilter extends LdapTestCase
@@ -91,9 +94,7 @@ public class TestLDAPFilter extends LdapTestCase
     LDAPFilter presense = LDAPFilter.createPresenceFilter("login");
 
     ArrayList<ByteString> any = new ArrayList<>(0);
-    ArrayList<ByteString> multiAny = new ArrayList<>(1);
-    multiAny.add(ByteString.valueOf("\\wid*(get)"));
-    multiAny.add(ByteString.valueOf("*"));
+    ArrayList<ByteString> multiAny = newArrayList(ByteString.valueOf("\\wid*(get)"), ByteString.valueOf("*"));
 
     LDAPFilter substring1 = LDAPFilter.createSubstringFilter("givenName",
                                                  ByteString.valueOf("\\Jo*()"),

@@ -300,7 +300,7 @@ public class TemplateEntry
           builder.add(v.getValue().toString());
         }
 
-        operationalAttributes.put(t, asList(builder));
+        operationalAttributes.put(t, builder.toAttributeList());
       }
       else
       {
@@ -329,14 +329,14 @@ public class TemplateEntry
           }
         }
 
-        userAttributes.put(t, asList(builder));
+        userAttributes.put(t, builder.toAttributeList());
         if (urlBuilder != null)
         {
-          urlAttributes.put(t, asList(urlBuilder));
+          urlAttributes.put(t, urlBuilder.toAttributeList());
         }
         if (base64Builder != null)
         {
-          base64Attributes.put(t, asList(base64Builder));
+          base64Attributes.put(t, base64Builder.toAttributeList());
         }
       }
     }
@@ -467,13 +467,6 @@ public class TemplateEntry
       attrName.append(o);
     }
     return attrName;
-  }
-
-  private ArrayList<Attribute> asList(AttributeBuilder builder)
-  {
-    ArrayList<Attribute> attrList = new ArrayList<>(1);
-    attrList.add(builder.toAttribute());
-    return attrList;
   }
 
   private boolean contains(List<Attribute> urlAttrList, ByteString v)

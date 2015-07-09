@@ -22,17 +22,19 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -41,9 +43,12 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.SearchResultEntry;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -56,7 +61,6 @@ import static org.opends.server.protocols.internal.Requests.*;
  */
 class PersistentServerState
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
    private final DN baseDN;
@@ -261,9 +265,7 @@ class PersistentServerState
    */
   private ResultCode runUpdateStateEntry(DN serverStateEntryDN)
   {
-    ArrayList<ByteString> values = state.toASN1ArrayList();
-
-    LDAPAttribute attr = new LDAPAttribute(REPLICATION_STATE, values);
+    LDAPAttribute attr = new LDAPAttribute(REPLICATION_STATE, state.toASN1ArrayList());
     RawModification mod = new LDAPModification(ModificationType.REPLACE, attr);
 
     ModifyOperationBasis op = new ModifyOperationBasis(getRootConnection(),

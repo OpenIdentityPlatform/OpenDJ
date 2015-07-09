@@ -48,6 +48,7 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -276,19 +277,11 @@ public class AbandonOperationTestCase
     // the delay request control so it won't complete before we can send the
     // abandon request.
     ArrayList<RawAttribute> attributes = new ArrayList<>();
-
-    ArrayList<ByteString> values = new ArrayList<>(2);
-    values.add(ByteString.valueOf("top"));
-    values.add(ByteString.valueOf("organizationalUnit"));
-    attributes.add(new LDAPAttribute("objectClass", values));
-
-    values = new ArrayList<>(1);
-    values.add(ByteString.valueOf("People"));
-    attributes.add(new LDAPAttribute("ou", values));
+    attributes.add(new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")));
+    attributes.add(new LDAPAttribute("ou", "People"));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
-                                  attributes);
+         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"), attributes);
     message = new LDAPMessage(2, addRequest,
                        DelayPreOpPlugin.createDelayControlList(5000));
     w.writeMessage(message);
@@ -555,12 +548,9 @@ public class AbandonOperationTestCase
     // Create a modify request and send it to the server.  Make sure to include
     // the delay request control so it won't complete before we can send the
     // abandon request.
-    ArrayList<ByteString> values = new ArrayList<>(1);
-    values.add(ByteString.valueOf("foo"));
-
     ArrayList<RawModification> mods = new ArrayList<>(1);
     mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("description", values)));
+                                  new LDAPAttribute("description", "foo")));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);

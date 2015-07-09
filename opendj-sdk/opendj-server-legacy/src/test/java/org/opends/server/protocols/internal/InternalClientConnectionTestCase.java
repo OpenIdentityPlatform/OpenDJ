@@ -62,6 +62,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -313,15 +314,8 @@ public class InternalClientConnectionTestCase
     ByteString dn = ByteString.valueOf("cn=test,o=test");
 
     ArrayList<RawAttribute> attrs = new ArrayList<>();
-
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("top"));
-    values.add(ByteString.valueOf("device"));
-    attrs.add(new LDAPAttribute("objectClass", values));
-
-    values = new ArrayList<>();
-    values.add(ByteString.valueOf("test"));
-    attrs.add(new LDAPAttribute("cn", values));
+    attrs.add(new LDAPAttribute("objectClass", newArrayList("top", "device")));
+    attrs.add(new LDAPAttribute("cn", "test"));
 
     AddOperation addOperation = getRootConnection().processAdd(dn, attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -559,12 +553,9 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("This is a test"));
-
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("description", values)));
+        new LDAPAttribute("description", "This is a test")));
 
     InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation =

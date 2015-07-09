@@ -42,10 +42,11 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.CollectionUtils;
 
 import static org.opends.server.util.StaticUtils.*;
 
@@ -479,7 +480,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     {
       return true;
     }
-
   }
 
 
@@ -489,7 +489,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   private static final class RealAttributeNoOptions extends RealAttribute
   {
-
     /**
      * Creates a new real attribute that has no options.
      *
@@ -558,7 +557,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     {
       return (options == null || options.isEmpty());
     }
-
   }
 
 
@@ -569,7 +567,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
   private static final class RealAttributeSingleOption
     extends RealAttribute
   {
-
     /** The normalized single option. */
     private final String normalizedOption;
 
@@ -628,7 +625,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     {
       return true;
     }
-
   }
 
 
@@ -864,7 +860,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
         return 0;
       }
     }
-
   }
 
   /**
@@ -878,7 +873,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   private static final class AttributeValue
   {
-
     private final AttributeType attributeType;
 
     /** User-provided value. */
@@ -989,7 +983,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     {
       return value != null ? value.toString() : "null";
     }
-
   }
 
   /**
@@ -1038,16 +1031,12 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
   /** The attribute type for this attribute. */
   private AttributeType attributeType;
-
   /** The name of this attribute as provided by the end user. */
   private String name;
-
   /** The normalized set of options if there are more than one. */
   private SortedSet<String> normalizedOptions;
-
   /** The set of options. */
   private final SmallSet<String> options = new SmallSet<>();
-
   /** The set of attribute values, which are lazily normalized. */
   private Set<AttributeValue> values = new SmallSet<>();
 
@@ -1354,8 +1343,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    * supports attribute value removals via its <code>remove</code>
    * method.
    *
-   * @return An iterator over the attribute values in this attribute
-   *         builder.
+   * @return An iterator over the attribute values in this attribute builder.
    */
   @Override
   public Iterator<ByteString> iterator()
@@ -1734,10 +1722,9 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   boolean isNormalized()
   {
-    Iterator<AttributeValue> iterator = values.iterator();
-    while (iterator.hasNext())
+    for (AttributeValue attrValue : values)
     {
-      if (iterator.next().isNormalized())
+      if (attrValue.isNormalized())
       {
         return true;
       }
@@ -1746,44 +1733,25 @@ public final class AttributeBuilder implements Iterable<ByteString>
   }
 
   /**
-   * Returns an attribute representing the content of this attribute
-   * builder.
+   * Returns an attribute representing the content of this attribute builder.
    * <p>
    * For efficiency purposes this method resets the content of this
    * attribute builder so that it no longer contains any options or
    * values and its attribute type is <code>null</code>.
    *
-   * @return An attribute representing the content of this attribute
-   *         builder.
+   * @return An attribute representing the content of this attribute builder.
    * @throws IllegalStateException
-   *           If this attribute builder has an undefined attribute
-   *           type or name.
+   *           If this attribute builder has an undefined attribute type or name.
    */
   public Attribute toAttribute() throws IllegalStateException
   {
     if (attributeType == null)
     {
-      throw new IllegalStateException(
-          "Undefined attribute type or name");
+      throw new IllegalStateException("Undefined attribute type or name");
     }
 
     // Now create the appropriate attribute based on the options.
-    Attribute attribute;
-    switch (options.size())
-    {
-    case 0:
-      attribute = new RealAttributeNoOptions(attributeType, name, values);
-      break;
-    case 1:
-      attribute =
-        new RealAttributeSingleOption(attributeType, name, values, options.firstElement);
-      break;
-    default:
-      attribute =
-        new RealAttributeManyOptions(attributeType, name, values,
-          Collections.unmodifiableSet(options.elements), Collections.unmodifiableSortedSet(normalizedOptions));
-      break;
-    }
+    Attribute attribute = toAttribute0();
 
     // Reset the state of this builder.
     attributeType = null;
@@ -1795,6 +1763,35 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return attribute;
   }
 
+  private Attribute toAttribute0()
+  {
+    switch (options.size())
+    {
+    case 0:
+      return new RealAttributeNoOptions(attributeType, name, values);
+    case 1:
+      return new RealAttributeSingleOption(attributeType, name, values, options.firstElement);
+    default:
+      return new RealAttributeManyOptions(attributeType, name, values,
+          Collections.unmodifiableSet(options.elements), Collections.unmodifiableSortedSet(normalizedOptions));
+    }
+  }
+
+  /**
+   * Returns a List with a single attribute representing the content of this attribute builder.
+   * <p>
+   * For efficiency purposes this method resets the content of this
+   * attribute builder so that it no longer contains any options or
+   * values and its attribute type is <code>null</code>.
+   *
+   * @return A List with a single attribute representing the content of this attribute builder.
+   * @throws IllegalStateException
+   *           If this attribute builder has an undefined attribute type or name.
+   */
+  public List<Attribute> toAttributeList() throws IllegalStateException
+  {
+    return CollectionUtils.newArrayList(toAttribute());
+  }
 
 
   /** {@inheritDoc} */

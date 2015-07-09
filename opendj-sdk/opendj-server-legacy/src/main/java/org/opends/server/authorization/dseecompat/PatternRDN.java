@@ -26,11 +26,14 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import java.util.List;
+import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.util.ArrayList;
-import java.util.TreeMap;
-import java.util.Set;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -40,8 +43,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-
-import static org.opends.messages.AccessControlMessages.*;
 
 /**
  * This class is used to match RDN patterns containing wildcards in either
@@ -53,19 +54,10 @@ public class PatternRDN
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Indicate whether the RDN contains a wildcard in any of its attribute
-   * types.
-   */
+  /** Indicate whether the RDN contains a wildcard in any of its attribute types. */
   private boolean hasTypeWildcard;
-
-
-  /**
-   * The set of attribute type patterns.
-   */
+  /** The set of attribute type patterns. */
   private String[] typePatterns;
-
-
   /**
    * The set of attribute value patterns.
    * The value pattern is split into a list according to the positions of any
@@ -75,11 +67,7 @@ public class PatternRDN
    * of three elements "", A and "".
    */
   private ArrayList<ArrayList<ByteString>> valuePatterns;
-
-
-  /**
-   * The number of attribute-value pairs in this RDN pattern.
-   */
+  /** The number of attribute-value pairs in this RDN pattern. */
   private int numValues;
 
 
@@ -90,8 +78,7 @@ public class PatternRDN
    * @param dnString The DN pattern containing the attribute-value pair.
    * @throws DirectoryException If the attribute-value pair is not valid.
    */
-  public PatternRDN(String type, ArrayList<ByteString> valuePattern,
-                    String dnString)
+  public PatternRDN(String type, ArrayList<ByteString> valuePattern, String dnString)
        throws DirectoryException
   {
     // Only Whole-Type wildcards permitted.
@@ -109,8 +96,7 @@ public class PatternRDN
 
     numValues = 1;
     typePatterns = new String[] { type };
-    valuePatterns = new ArrayList<>(1);
-    valuePatterns.add(valuePattern);
+    valuePatterns = newArrayList(valuePattern);
   }
 
 
@@ -133,8 +119,7 @@ public class PatternRDN
     {
       LocalizableMessage message =
           WARN_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN.get(dnString);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
     numValues++;

@@ -3711,19 +3711,17 @@ public final class StaticUtils
       AttributeType attrType, String attrName, ByteString attrValue)
   {
     List<Attribute> attrList = attrs.get(attrType);
-    if ((attrList == null) || attrList.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
-      builder.add(attrValue);
-      attrList = new ArrayList<>(1);
-      attrList.add(builder.toAttribute());
-      attrs.put(attrType, attrList);
-    }
-    else
+    if (attrList != null && !attrList.isEmpty())
     {
       AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
       builder.add(attrValue);
       attrList.set(0, builder.toAttribute());
+    }
+    else
+    {
+      AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
+      builder.add(attrValue);
+      attrs.put(attrType, builder.toAttributeList());
     }
   }
 

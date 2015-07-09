@@ -53,6 +53,7 @@ import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -306,14 +307,8 @@ public class WhoAmIExtendedOperationTestCase
                                        nextMessageID);
 
     HashMap<String,List<String>> saslProperties = new HashMap<>(2);
-
-    ArrayList<String> authIDList = new ArrayList<>(1);
-    authIDList.add("dn:uid=proxy.user,o=test");
-    saslProperties.put("authID", authIDList);
-
-    ArrayList<String> authzIDList = new ArrayList<>(1);
-    authzIDList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authzID", authzIDList);
+    saslProperties.put("authID", newArrayList("dn:uid=proxy.user,o=test"));
+    saslProperties.put("authzID", newArrayList("dn:uid=test.user,o=test"));
 
     authHandler.doSASLPlain(ByteString.empty(),
                             ByteString.valueOf("password"), saslProperties,

@@ -28,7 +28,6 @@ package org.opends.server.config;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -44,6 +43,7 @@ import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -357,7 +357,7 @@ public final class BooleanConfigAttribute
    */
   public List<String> activeValuesToStrings()
   {
-    return asList(String.valueOf(activeValue));
+    return newArrayList(String.valueOf(activeValue));
   }
 
   /**
@@ -375,16 +375,9 @@ public final class BooleanConfigAttribute
   {
     if (hasPendingValues())
     {
-      return asList(String.valueOf(pendingValue));
+      return newArrayList(String.valueOf(pendingValue));
     }
     return null;
-  }
-
-  private List<String> asList(String s)
-  {
-    ArrayList<String> result = new ArrayList<>(1);
-    result.add(s);
-    return result;
   }
 
   /**

@@ -26,7 +26,6 @@
  */
 package org.opends.server.tools.dsreplication;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,14 +34,12 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tools.tasks.TaskScheduleInformation;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.RawAttribute;
 
 /**
  * This is a simple adaptor to create a task schedule information object
  * using the data provided by the user.  It is used to be able to share some
  * code with the {@link TaskTool} class.
- *
  */
 public class PurgeHistoricalScheduleInformation
 implements TaskScheduleInformation
@@ -68,17 +65,11 @@ implements TaskScheduleInformation
   /** {@inheritDoc} */
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    ArrayList<ByteString> baseDNs = new ArrayList<>();
-    for (String baseDN : uData.getBaseDNs())
-    {
-      baseDNs.add(ByteString.valueOf(baseDN));
-    }
     attributes.add(new LDAPAttribute(
-        ConfigConstants.ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN, baseDNs));
+        ConfigConstants.ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN, uData.getBaseDNs()));
     attributes.add(new LDAPAttribute(
         ConfigConstants.ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION,
         Long.toString(uData.getMaximumDuration())));
-
   }
 
   /** {@inheritDoc} */

@@ -26,22 +26,21 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import org.forgerock.i18n.LocalizableMessage;
-
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.SchemaMessages.*;
 import static org.opends.messages.AccessControlMessages.*;
-import static org.opends.server.util.StaticUtils.isDigit;
-import static org.opends.server.util.StaticUtils.isHexDigit;
-import static org.opends.server.util.StaticUtils.hexStringToByteArray;
-import org.forgerock.util.Reject;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Reject;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class is used to encapsulate DN pattern matching using wildcards.
@@ -195,19 +194,9 @@ public class PatternDN
           {
             if (element[0].matchesRDN(dn.getRDN(pos)))
             {
-              boolean subMatch = true;
-              for (int i=1; i < anyLength; i++)
+              if (subMatch(dn, pos, element, anyLength))
               {
-                if (!element[i].matchesRDN(dn.getRDN(pos+i)))
-                {
-                  subMatch = false;
-                  break;
-                }
-              }
-
-              if (subMatch)
-              {
-                match = subMatch;
+                match = true;
                 break;
               }
             }
@@ -248,6 +237,17 @@ public class PatternDN
     }
   }
 
+  private boolean subMatch(DN dn, int pos, PatternRDN[] element, int length)
+  {
+    for (int i = 1; i < length; i++)
+    {
+      if (!element[i].matchesRDN(dn.getRDN(pos + i)))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * Create a new DN pattern matcher to match a suffix.
@@ -320,8 +320,7 @@ public class PatternDN
       if (pos == length)
       {
         // This means that the DN was completely comprised of spaces
-        // and therefore should be considered the same as a null or
-        // empty DN.
+        // and therefore should be considered the same as a null or empty DN.
         return new PatternDN(new PatternRDN[0]);
       }
       else
@@ -331,8 +330,7 @@ public class PatternDN
     }
 
     // We know that it's not an empty DN, so we can do the real
-    // processing.  Create a loop and iterate through all the RDN
-    // components.
+    // processing. Create a loop and iterate through all the RDN components.
     rdnLoop:
     while (true)
     {
@@ -442,8 +440,7 @@ public class PatternDN
       // RDN component and return the DN.
       if (pos >= length)
       {
-        ArrayList<ByteString> arrayList = new ArrayList<>(1);
-        arrayList.add(ByteString.empty());
+        ArrayList<ByteString> arrayList = newArrayList(ByteString.empty());
         rdnComponents.add(new PatternRDN(name, arrayList, dnString));
         break;
       }
@@ -466,20 +463,17 @@ public class PatternDN
 
 
       // Most likely, we will be at either the end of the RDN
-      // component or the end of the DN.  If so, then handle that
-      // appropriately.
+      // component or the end of the DN. If so, then handle that appropriately.
       if (pos >= length)
       {
-        // We're at the end of the DN string and should have a valid
-        // DN so return it.
+        // We're at the end of the DN string and should have a valid DN so return it.
         rdnComponents.add(rdn);
         break;
       }
       else if ((c == ',') || (c == ';'))
       {
-        // We're at the end of the RDN component, so add it to the
-        // list, skip over the comma/semicolon, and start on the next
-        // component.
+        // We're at the end of the RDN component, so add it to the list,
+        // skip over the comma/semicolon, and start on the next component.
         rdnComponents.add(rdn);
         pos++;
         continue;
@@ -489,8 +483,7 @@ public class PatternDN
         // This should not happen.  At any rate, it's an illegal
         // character, so throw an exception.
         LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
 
@@ -575,8 +568,7 @@ public class PatternDN
         // the RDN component and return the DN.
         if (pos >= length)
         {
-          ArrayList<ByteString> arrayList = new ArrayList<>(1);
-          arrayList.add(ByteString.empty());
+          ArrayList<ByteString> arrayList = newArrayList(ByteString.empty());
           rdn.addValue(name, arrayList, dnString);
           rdnComponents.add(rdn);
           break;

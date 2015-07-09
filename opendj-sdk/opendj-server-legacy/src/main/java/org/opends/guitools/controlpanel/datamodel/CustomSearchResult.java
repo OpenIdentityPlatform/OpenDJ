@@ -26,7 +26,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,11 +44,11 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -340,9 +340,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
           }
           builder.add(bs);
         }
-        List<org.opends.server.types.Attribute> attrList = new ArrayList<>(1);
-        attrList.add(builder.toAttribute());
 
+        List<org.opends.server.types.Attribute> attrList = builder.toAttributeList();
         if (attrType.isOperational())
         {
           operationalAttributes.put(attrType, attrList);

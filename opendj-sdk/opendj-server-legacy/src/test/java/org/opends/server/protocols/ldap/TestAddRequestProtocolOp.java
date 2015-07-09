@@ -50,29 +50,12 @@ import org.testng.annotations.Test;
  */
 public class TestAddRequestProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for add requests.
-   */
+  /** The protocol op type for add requests. */
   private static final byte OP_TYPE_ADD_REQUEST = 0x68;
-
-
-
-  /**
-   * The protocol op type for add responses.
-   */
+  /** The protocol op type for add responses. */
   private static final byte OP_TYPE_ADD_RESPONSE = 0x69;
-
-  /**
-   * The DN for add requests in this test case.
-   */
-  private static final ByteString dn =
-      ByteString.valueOf("dc=example,dc=com");
-
-  /**
-   * The alternative DN for add requests in this test case.
-   */
-  private static final ByteString dnAlt =
-      ByteString.valueOf("dc=sun,dc=com");
+  /** The DN for add requests in this test case. */
+  private static final ByteString dn = ByteString.valueOf("dc=example,dc=com");
 
   /**
    * Generate attributes for use in test cases. Attributes will have names
@@ -96,10 +79,10 @@ public class TestAddRequestProtocolOp extends LdapTestCase
 
     for (int i = 0; i < numAttributes; i++)
     {
-      ArrayList<ByteString> values = new ArrayList<>();
+      ArrayList<String> values = new ArrayList<>();
       for (int j = 0; j < numValues; j++)
       {
-        values.add(ByteString.valueOf(prefix + "Value" + i + "." + j));
+        values.add(prefix + "Value" + i + "." + j);
       }
       attributes.add(new LDAPAttribute("testAttribute" + i, values));
     }

@@ -25,11 +25,11 @@
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
-import org.forgerock.i18n.LocalizableMessage;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -39,13 +39,13 @@ import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.config.ConfigConstants.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ConfigMessages.*;
+import org.opends.server.types.Attribute;
+
 /**
  * This class defines a configuration attribute that stores both an integer
  * value and an associated unit.  The unit will contain both a string and a
@@ -295,6 +295,7 @@ public final class IntegerWithUnitConfigAttribute
    *
    * @return  The name of the data type for this configuration attribute.
    */
+  @Override
   public String getDataType()
   {
     return "IntegerWithUnit";
@@ -307,6 +308,7 @@ public final class IntegerWithUnitConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
+  @Override
   public Syntax getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
@@ -610,6 +612,7 @@ public final class IntegerWithUnitConfigAttribute
    * configuration attribute.  This will not take any action if there are no
    * pending values.
    */
+  @Override
   public void applyPendingValues()
   {
     if (! hasPendingValues())
@@ -637,6 +640,7 @@ public final class IntegerWithUnitConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder rejectReason)
   {
@@ -747,6 +751,7 @@ public final class IntegerWithUnitConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
+  @Override
   public LinkedHashSet<ByteString>
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
@@ -837,12 +842,10 @@ public final class IntegerWithUnitConfigAttribute
    * @return  The string representations of the set of active values for this
    *          configuration attribute.
    */
+  @Override
   public List<String> activeValuesToStrings()
   {
-    ArrayList<String> valueStrings = new ArrayList<>(1);
-    valueStrings.add(activeIntValue + " " + activeUnit);
-
-    return valueStrings;
+    return newArrayList(activeIntValue + " " + activeUnit);
   }
 
 
@@ -858,18 +861,14 @@ public final class IntegerWithUnitConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if there are no
    *          pending values.
    */
+  @Override
   public List<String> pendingValuesToStrings()
   {
     if (hasPendingValues())
     {
-      ArrayList<String> valueStrings = new ArrayList<>(1);
-      valueStrings.add(pendingIntValue + " " + pendingUnit);
-      return valueStrings;
+      return newArrayList(pendingIntValue + " " + pendingUnit);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -895,6 +894,7 @@ public final class IntegerWithUnitConfigAttribute
    *                           single-valued and the provided attribute has
    *                           multiple values).
    */
+  @Override
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
@@ -1096,6 +1096,7 @@ public final class IntegerWithUnitConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if it does not have
    *          any active values.
    */
+  @Override
   public javax.management.Attribute toJMXAttribute()
   {
     return new javax.management.Attribute(getName(),
@@ -1110,6 +1111,7 @@ public final class IntegerWithUnitConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if it does not have
    *          any active values.
    */
+  @Override
   public javax.management.Attribute toJMXAttributePending()
     {
         return new javax.management.Attribute(getName() + ";"
@@ -1129,6 +1131,7 @@ public final class IntegerWithUnitConfigAttribute
      *            The attribute list to which the JMX attribute(s) should
      *            be added.
      */
+  @Override
   public void toJMXAttribute(AttributeList attributeList)
   {
     String activeValue = activeIntValue + " " + activeUnit;
@@ -1157,6 +1160,7 @@ public final class IntegerWithUnitConfigAttribute
    * @param  attributeInfoList  The list to which the attribute information
    *                            should be added.
    */
+  @Override
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
     attributeInfoList.add(new MBeanAttributeInfo(getName(),
@@ -1185,6 +1189,7 @@ public final class IntegerWithUnitConfigAttribute
    * @return  A JMX <CODE>MBeanParameterInfo</CODE> object that describes this
    *          configuration attribute.
    */
+  @Override
   public MBeanParameterInfo toJMXParameterInfo()
   {
     return new MBeanParameterInfo(getName(), String.class.getName(),
@@ -1204,6 +1209,7 @@ public final class IntegerWithUnitConfigAttribute
    *                           acceptable value for this configuration
    *                           attribute.
    */
+  @Override
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
@@ -1226,6 +1232,7 @@ public final class IntegerWithUnitConfigAttribute
    *
    * @return  A duplicate of this configuration attribute.
    */
+  @Override
   public ConfigAttribute duplicate()
   {
     return new IntegerWithUnitConfigAttribute(getName(), getDescription(),
@@ -1236,4 +1243,3 @@ public final class IntegerWithUnitConfigAttribute
                                               pendingIntValue, pendingUnit);
   }
 }
-

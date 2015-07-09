@@ -26,6 +26,10 @@
  */
 package org.opends.server.types;
 
+import static org.opends.server.types.AccountStatusNotificationProperty.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,10 +40,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
-
-import static org.opends.server.types.
-                   AccountStatusNotificationProperty.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data type for storing information associated
@@ -234,46 +234,32 @@ public final class AccountStatusNotification
     HashMap<AccountStatusNotificationProperty,List<String>> props = new HashMap<>(4);
 
     PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
-
-    ArrayList<String> propList = new ArrayList<>(1);
-    propList.add(policy.getDN().toString());
-    props.put(PASSWORD_POLICY_DN, propList);
+    props.put(PASSWORD_POLICY_DN, newArrayList(policy.getDN().toString()));
 
     if (tempLocked)
     {
       long secondsUntilUnlock = policy.getLockoutDuration();
       if (secondsUntilUnlock > 0L)
       {
-        propList = new ArrayList<>(1);
-        propList.add(String.valueOf(secondsUntilUnlock));
-        props.put(SECONDS_UNTIL_UNLOCK, propList);
+        props.put(SECONDS_UNTIL_UNLOCK, newArrayList(String.valueOf(secondsUntilUnlock)));
 
-        propList = new ArrayList<>(1);
-        propList.add(secondsToTimeString(secondsUntilUnlock).toString());
-        props.put(TIME_UNTIL_UNLOCK, propList);
+        String string = secondsToTimeString(secondsUntilUnlock).toString();
+        props.put(TIME_UNTIL_UNLOCK, newArrayList(string));
 
-        long unlockTime = System.currentTimeMillis() +
-                          (1000*secondsUntilUnlock);
-        propList = new ArrayList<>(1);
-        propList.add(new Date(unlockTime).toString());
-        props.put(ACCOUNT_UNLOCK_TIME, propList);
+        long unlockTime = System.currentTimeMillis() + (1000 * secondsUntilUnlock);
+        props.put(ACCOUNT_UNLOCK_TIME, newArrayList(new Date(unlockTime).toString()));
       }
     }
 
     if (timeToExpiration >= 0)
     {
-        propList = new ArrayList<>(1);
-        propList.add(String.valueOf(timeToExpiration));
-        props.put(SECONDS_UNTIL_EXPIRATION, propList);
+      props.put(SECONDS_UNTIL_EXPIRATION, newArrayList(String.valueOf(timeToExpiration)));
 
-        propList = new ArrayList<>(1);
-        propList.add(secondsToTimeString(timeToExpiration).toString());
-        props.put(TIME_UNTIL_EXPIRATION, propList);
+      String string = secondsToTimeString(timeToExpiration).toString();
+      props.put(TIME_UNTIL_EXPIRATION, newArrayList(string));
 
-        long expTime = System.currentTimeMillis() + (1000*timeToExpiration);
-        propList = new ArrayList<>(1);
-        propList.add(new Date(expTime).toString());
-        props.put(PASSWORD_EXPIRATION_TIME, propList);
+      long expTime = System.currentTimeMillis() + (1000 * timeToExpiration);
+      props.put(PASSWORD_EXPIRATION_TIME, newArrayList(new Date(expTime).toString()));
     }
 
     if ((oldPasswords != null) && (! oldPasswords.isEmpty()))
@@ -308,6 +294,7 @@ public final class AccountStatusNotification
    * @return  A string representation of this account status
    *          notification.
    */
+  @Override
   public String toString()
   {
     return "AccountStatusNotification(type=" +
@@ -315,4 +302,3 @@ public final class AccountStatusNotification
            ",message=" + message + ")";
   }
 }
-

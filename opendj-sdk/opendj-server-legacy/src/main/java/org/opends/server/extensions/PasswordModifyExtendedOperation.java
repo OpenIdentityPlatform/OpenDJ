@@ -31,6 +31,7 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.types.AccountStatusNotificationType.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -676,8 +677,7 @@ public class PasswordModifyExtendedOperation
       List<ByteString> encodedPasswords;
       if (isPreEncoded)
       {
-        encodedPasswords = new ArrayList<>(1);
-        encodedPasswords.add(newPassword);
+        encodedPasswords = newArrayList(newPassword);
       }
       else
       {
@@ -885,11 +885,9 @@ public class PasswordModifyExtendedOperation
       List<ByteString> currentPasswords = null;
       if (oldPassword != null)
       {
-        currentPasswords = new ArrayList<>(1);
-        currentPasswords.add(oldPassword);
+        currentPasswords = newArrayList(oldPassword);
       }
-      List<ByteString> newPasswords = new ArrayList<>(1);
-      newPasswords.add(newPassword);
+      List<ByteString> newPasswords = newArrayList(newPassword);
 
       Map<AccountStatusNotificationProperty, List<String>> notifProperties =
           AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords);

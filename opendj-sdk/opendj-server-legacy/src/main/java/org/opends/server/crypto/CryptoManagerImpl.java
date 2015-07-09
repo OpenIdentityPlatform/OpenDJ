@@ -73,7 +73,6 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -91,6 +90,8 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1101,14 +1102,11 @@ public class CryptoManagerImpl
       // Write the value to the entry.
       InternalClientConnection internalConnection =
               InternalClientConnection.getRootConnection();
-      List<Modification> modifications = new ArrayList<>(1);
       Attribute attribute = Attributes.create(
           ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
-      modifications.add(
+      List<Modification> modifications = newArrayList(
           new Modification(ModificationType.ADD, attribute, false));
-      ModifyOperation internalModify =
-              internalConnection.processModify(entry.getName(),
-                      modifications);
+      ModifyOperation internalModify = internalConnection.processModify(entry.getName(), modifications);
       if (internalModify.getResultCode() != ResultCode.SUCCESS)
       {
         throw new CryptoManagerException(
@@ -1193,9 +1191,9 @@ public class CryptoManagerImpl
                                       isCompromised);
 
         // Write the value to the entry.
-        List<Modification> modifications = new ArrayList<>(1);
         Attribute attribute = Attributes.create(ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
-        modifications.add(new Modification(ModificationType.ADD, attribute, false));
+        List<Modification> modifications = newArrayList(
+            new Modification(ModificationType.ADD, attribute, false));
         ModifyOperation internalModify =
              getRootConnection().processModify(entry.getName(), modifications);
         if (internalModify.getResultCode() != ResultCode.SUCCESS)
@@ -1522,17 +1520,9 @@ public class CryptoManagerImpl
   }
 
   private static void putSingleValueAttribute(
-      Map<AttributeType, List<Attribute>> attrs, AttributeType type,
-      String value)
+      Map<AttributeType, List<Attribute>> attrs, AttributeType type, String value)
   {
-    attrs.put(type, asList(Attributes.create(type, value)));
-  }
-
-  private static <T> List<T> asList(T element)
-  {
-    ArrayList<T> attrList = new ArrayList<>(1);
-    attrList.add(element);
-    return attrList;
+    attrs.put(type, Attributes.createAsList(type, value));
   }
 
   /**
@@ -1625,7 +1615,7 @@ public class CryptoManagerImpl
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
 
       // Add the key ID attribute.
-      userAttrs.put(attrKeyID, asList(Attributes.create(attrKeyID, distinguishedValue)));
+      userAttrs.put(attrKeyID, Attributes.createAsList(attrKeyID, distinguishedValue));
 
       // Add the transformation name attribute.
       putSingleValueAttribute(userAttrs, attrTransformation, keyEntry.getType());
@@ -1658,7 +1648,7 @@ public class CryptoManagerImpl
 
         builder.add(symmetricKey);
       }
-      userAttrs.put(attrSymmetricKey, asList(builder.toAttribute()));
+      userAttrs.put(attrSymmetricKey, builder.toAttributeList());
 
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
@@ -2146,7 +2136,7 @@ public class CryptoManagerImpl
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
 
       // Add the key ID attribute.
-      userAttrs.put(attrKeyID, asList(Attributes.create(attrKeyID, distinguishedValue)));
+      userAttrs.put(attrKeyID, Attributes.createAsList(attrKeyID, distinguishedValue));
 
       // Add the mac algorithm name attribute.
       putSingleValueAttribute(userAttrs, attrMacAlgorithm, keyEntry.getType());
@@ -2176,7 +2166,7 @@ public class CryptoManagerImpl
         builder.add(symmetricKey);
       }
 
-      userAttrs.put(attrSymmetricKey, asList(builder.toAttribute()));
+      userAttrs.put(attrSymmetricKey, builder.toAttributeList());
 
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);

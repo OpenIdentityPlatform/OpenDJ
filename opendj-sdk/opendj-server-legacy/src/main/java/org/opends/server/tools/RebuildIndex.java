@@ -42,7 +42,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
@@ -767,13 +766,7 @@ public class RebuildIndex extends TaskTool
     // Required attributes
     addLdapAttribute(attributes, ATTR_REBUILD_BASE_DN, baseDNString.getValue());
 
-    final List<String> indexes = indexList.getValues();
-    final ArrayList<ByteString> values = new ArrayList<>(indexes.size());
-    for (final String s : indexes)
-    {
-      values.add(ByteString.valueOf(s));
-    }
-    attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+    attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, indexList.getValues()));
 
     if (hasNonDefaultValue(tmpDirectory))
     {
@@ -798,7 +791,7 @@ public class RebuildIndex extends TaskTool
 
   private void addLdapAttribute(List<RawAttribute> attributes, String attrType, String attrValue)
   {
-    attributes.add(new LDAPAttribute(attrType, toByteStrings(attrValue)));
+    attributes.add(new LDAPAttribute(attrType, attrValue));
   }
 
   private boolean hasNonDefaultValue(BooleanArgument arg)
@@ -811,13 +804,6 @@ public class RebuildIndex extends TaskTool
   {
     return arg.getValue() != null
         && !arg.getValue().equals(arg.getDefaultValue());
-  }
-
-  private ArrayList<ByteString> toByteStrings(String value)
-  {
-    final ArrayList<ByteString> values = new ArrayList<>(1);
-    values.add(ByteString.valueOf(value));
-    return values;
   }
 
   /** {@inheritDoc} */

@@ -26,29 +26,26 @@
  */
 package org.opends.server.plugins;
 
-
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.ControlDecoder;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.operation.*;
-
+import org.opends.server.util.CollectionUtils;
 
 /**
  * This class defines a very simple plugin that terminates the client connection
@@ -690,10 +687,8 @@ public class DisconnectClientPlugin
     }
     catch (Exception e)
     {
-      logger.error(LocalizableMessage.raw("Unable to decode the disconnect client control:  " +
-              e));
+      logger.error(LocalizableMessage.raw("Unable to decode the disconnect client control:  " + e));
     }
-
 
     // If we've gotten here, then we shouldn't disconnect the client.
     return false;
@@ -725,11 +720,7 @@ public class DisconnectClientPlugin
    */
   public static List<Control> createDisconnectControlList(String section)
   {
-    ArrayList<Control> controlList = new ArrayList<>(1);
-
-    controlList.add(new DisconnectClientControl(false, section));
-
-    return controlList;
+    Control c = new DisconnectClientControl(false, section);
+    return CollectionUtils.newArrayList(c);
   }
 }
-

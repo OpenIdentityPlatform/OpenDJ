@@ -1454,13 +1454,10 @@ public class LDIFReader implements Closeable
     for (String value : objectClasses.values()) {
       builder.add(value);
     }
-    Map<AttributeType, List<Attribute>> attributes =
-        toAttributesMap(attrBuilders);
+    Map<AttributeType, List<Attribute>> attributes = toAttributesMap(attrBuilders);
     if (attributes.get(ocType) == null)
     {
-      List<Attribute> ocAttrList = new ArrayList<>(1);
-      ocAttrList.add(builder.toAttribute());
-      attributes.put(ocType, ocAttrList);
+      attributes.put(ocType, builder.toAttributeList());
     }
 
     return new AddChangeRecordEntry(entryDN, attributes);

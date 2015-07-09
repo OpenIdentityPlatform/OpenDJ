@@ -26,24 +26,20 @@
  */
 package org.opends.server.monitors;
 
-
-
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.TreeMap;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.ClientConnectionMonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.InitializationException;
-
-
 
 /**
  * This class defines a Directory Server monitor provider that can be
@@ -133,7 +129,7 @@ public class ClientConnectionMonitorProvider extends
    *         is requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
     // Re-order the connections by connection ID.
     TreeMap<Long, ClientConnection> connMap = new TreeMap<>();
@@ -162,16 +158,12 @@ public class ClientConnectionMonitorProvider extends
       }
     }
 
-    AttributeType attrType =
-        DirectoryServer.getDefaultAttributeType("connection");
+    AttributeType attrType = DirectoryServer.getDefaultAttributeType("connection");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     for (ClientConnection conn : connMap.values())
     {
       builder.add(conn.getMonitorSummary());
     }
-
-    ArrayList<Attribute> attrs = new ArrayList<>(1);
-    attrs.add(builder.toAttribute());
-    return attrs;
+    return builder.toAttributeList();
   }
 }

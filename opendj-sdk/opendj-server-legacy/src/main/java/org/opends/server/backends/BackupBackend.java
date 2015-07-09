@@ -222,9 +222,7 @@ public class BackupBackend
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType attrType = rdn.getAttributeType(i);
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(Attributes.create(attrType, rdn.getAttributeValue(i)));
-      userAttrs.put(attrType, attrList);
+      userAttrs.put(attrType, Attributes.createAsList(attrType, rdn.getAttributeValue(i)));
     }
 
     backupBaseEntry = new Entry(backupBaseDN, objectClasses, userAttrs, opAttrs);
@@ -649,9 +647,7 @@ public class BackupBackend
       for (String s : dependencies) {
         builder.add(s);
       }
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(builder.toAttribute());
-      userAttrs.put(t, attrList);
+      userAttrs.put(t, builder.toAttributeList());
     }
 
     byte[] signedHash = backupInfo.getSignedHash();
@@ -679,8 +675,7 @@ public class BackupBackend
 
   private void putByteString(LinkedHashMap<AttributeType, List<Attribute>> userAttrs, String attrName, byte[] value)
   {
-    AttributeType t;
-    t = DirectoryServer.getAttributeType(attrName, true);
+    AttributeType t = DirectoryServer.getAttributeType(attrName, true);
     userAttrs.put(t, asList(t, ByteString.wrap(value)));
   }
 
@@ -690,11 +685,9 @@ public class BackupBackend
     attrsMap.put(t, asList(t, createBooleanValue(value)));
   }
 
-  private ArrayList<Attribute> asList(AttributeType attrType, ByteString value)
+  private List<Attribute> asList(AttributeType attrType, ByteString value)
   {
-    final ArrayList<Attribute> attrList = new ArrayList<>(1);
-    attrList.add(Attributes.create(attrType, value));
-    return attrList;
+    return Attributes.createAsList(attrType, value);
   }
 
   private DirectoryException newConstraintViolation(LocalizableMessage message)
