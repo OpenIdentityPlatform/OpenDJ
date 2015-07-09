@@ -34,6 +34,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -65,9 +66,9 @@ import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -1235,8 +1236,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           // find the attribute/value pair matching the pair in the RDN
         {
           // Construct and store new attribute list
-          newRdnAttrLists.add(
-              newList(Attributes.create(attributeType, sameAttrValue)));
+          newRdnAttrLists.add(Attributes.createAsList(attributeType, sameAttrValue));
           /*
           Store matching attribute type
           The mapping will be done using object from rdnAttrTypes as key
@@ -1262,22 +1262,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return hasSomeAttributesToFilter;
   }
 
-  private static <T> ArrayList<T> newList(T elem)
-  {
-    final ArrayList<T> list = new ArrayList<>(1);
-    list.add(elem);
-    return list;
-  }
-
-  private static <T> Set<T> newSet(T elem)
-  {
-    final Set<T> list = new LinkedHashSet<>(1);
-    list.add(elem);
-    return list;
-  }
-
-   private static boolean isMandatoryAttribute(Set<ObjectClass> entryClasses,
-       AttributeType attributeType)
+  private static boolean isMandatoryAttribute(Set<ObjectClass> entryClasses, AttributeType attributeType)
    {
      for (ObjectClass objectClass : entryClasses)
      {
@@ -3018,11 +3003,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   private void markConflictEntry(Operation op, DN currentDN, DN conflictDN)
   {
     // create new internal modify operation and run it.
-    AttributeType attrType = DirectoryServer.getAttributeType(DS_SYNC_CONFLICT,
-        true);
+    AttributeType attrType = DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
     Attribute attr = Attributes.create(attrType, conflictDN.toString());
-    List<Modification> mods =
-        newList(new Modification(ModificationType.REPLACE, attr));
+    List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
 
     ModifyOperation newOp = new ModifyOperationBasis(
           conn, nextOperationID(), nextMessageID(), new ArrayList<Control>(0),
@@ -3202,10 +3185,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   {
     // The generationId is stored in the root entry of the domain.
     final ByteString asn1BaseDn = ByteString.valueOf(entryDN.toString());
-    final ArrayList<ByteString> values =
-        newList(ByteString.valueOf(Long.toString(generationId)));
 
-    LDAPAttribute attr = new LDAPAttribute(REPLICATION_GENERATION_ID, values);
+    LDAPAttribute attr = new LDAPAttribute(REPLICATION_GENERATION_ID, Long.toString(generationId));
     List<RawModification> mods = new ArrayList<>(1);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
@@ -3439,7 +3420,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
     // baseDN branch is the only one included in the export
     LDIFExportConfig exportConfig = new LDIFExportConfig(os);
-    exportConfig.setIncludeBranches(newList(getBaseDN()));
+    exportConfig.setIncludeBranches(newArrayList(getBaseDN()));
 
     // For the checksum computing mode, only consider the 'stable' attributes
     if (checksumOutput)
@@ -3566,7 +3547,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       }
 
       importConfig = new LDIFImportConfig(input);
-      importConfig.setIncludeBranches(newSet(getBaseDN()));
+      importConfig.setIncludeBranches(newLinkedHashSet(getBaseDN()));
       importConfig.setAppendToExistingData(false);
       importConfig.setSkipDNValidation(true);
       // We should not validate schema for replication
@@ -4993,8 +4974,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
        entryHist.setPurgeDelay(getHistoricalPurgeDelay());
        Attribute attr = entryHist.encodeAndPurge();
        count += entryHist.getLastPurgedValuesCount();
-       List<Modification> mods =
-           newList(new Modification(ModificationType.REPLACE, attr));
+       List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
 
        ModifyOperation newOp = new ModifyOperationBasis(
            conn, nextOperationID(), nextMessageID(), new ArrayList<Control>(0),
@@ -5012,5 +4992,4 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
        }
      }
   }
-
 }

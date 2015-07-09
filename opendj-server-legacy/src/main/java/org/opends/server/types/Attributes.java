@@ -22,16 +22,18 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -60,8 +62,7 @@ public final class Attributes
 {
 
   /**
-   * Creates a new single-valued attribute with the specified
-   * attribute type and value.
+   * Creates a new single-valued attribute with the specified attribute type and value.
    *
    * @param attributeType
    *          The attribute type to use.
@@ -74,11 +75,22 @@ public final class Attributes
     return create(attributeType, attributeType.getNameOrOID(), value);
   }
 
-
+  /**
+   * Creates a new List with a single-valued attribute with the specified attribute type and value.
+   *
+   * @param attributeType
+   *          The attribute type to use.
+   * @param value
+   *          The attribute value.
+   * @return A new List with a single-valued attribute with the attribute type and value.
+   */
+  public static List<Attribute> createAsList(AttributeType attributeType, ByteString value)
+  {
+    return newArrayList(create(attributeType, value));
+  }
 
   /**
-   * Creates a new single-valued attribute with the specified name and
-   * value.
+   * Creates a new single-valued attribute with the specified name and value.
    *
    * @param attributeType
    *          The attribute type to use.
@@ -86,14 +98,24 @@ public final class Attributes
    *          The String representation of the attribute value.
    * @return A new attribute with the specified name and value.
    */
-  public static Attribute create(AttributeType attributeType,
-      String valueString)
+  public static Attribute create(AttributeType attributeType, String valueString)
   {
-    return create(attributeType, attributeType.getNameOrOID(),
-        valueString);
+    return create(attributeType, attributeType.getNameOrOID(), valueString);
   }
 
-
+  /**
+   * Creates a new List with a single-valued attribute with the specified name and value.
+   *
+   * @param attributeType
+   *          The attribute type to use.
+   * @param valueString
+   *          The String representation of the attribute value.
+   * @return A new List with a attribute with the specified name and value.
+   */
+  public static List<Attribute> createAsList(AttributeType attributeType, String valueString)
+  {
+    return newArrayList(create(attributeType, valueString));
+  }
 
   /**
    * Creates a new single-valued attribute with the specified
@@ -107,18 +129,13 @@ public final class Attributes
    *          The attribute value.
    * @return A new attribute with the attribute type and value.
    */
-  public static Attribute create(AttributeType attributeType,
-      String name, ByteString value)
+  public static Attribute create(AttributeType attributeType, String name, ByteString value)
   {
-    return AttributeBuilder.create(attributeType, name, Collections
-        .singleton(value));
+    return AttributeBuilder.create(attributeType, name, Collections.singleton(value));
   }
 
-
-
   /**
-   * Creates a new single-valued attribute with the attribute type and
-   * value.
+   * Creates a new single-valued attribute with the attribute type and value.
    *
    * @param attributeType
    *          The attribute type to use.
@@ -128,14 +145,27 @@ public final class Attributes
    *          The String representation of the attribute value.
    * @return A new attribute with the attribute type and value.
    */
-  public static Attribute create(AttributeType attributeType,
-      String name, String valueString)
+  public static Attribute create(AttributeType attributeType, String name, String valueString)
   {
-    ByteString value = ByteString.valueOf(valueString);
-    return create(attributeType, name, value);
+    return create(attributeType, name, ByteString.valueOf(valueString));
   }
 
+  /**
+   * Creates a new List with a single-valued attribute with the attribute type and value.
+   *
+   * @param attributeType
+   *          The attribute type to use.
+   * @param name
+   *          The user-provided name for this attribute.
+   * @param valueString
+   *          The String representation of the attribute value.
+   * @return A new List with a single-valued attribute with the attribute type and value.
+   */
 
+  public static List<Attribute> createAsList(AttributeType attributeType, String name, String valueString)
+  {
+    return newArrayList(create(attributeType, name, valueString));
+  }
 
   /**
    * Creates a new single-valued attribute with the specified

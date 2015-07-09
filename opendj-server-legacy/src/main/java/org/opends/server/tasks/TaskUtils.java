@@ -46,18 +46,19 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RawModification;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -234,21 +235,14 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ArrayList<ByteString> valueList = new ArrayList<>(1);
-    valueList.add(ServerConstants.TRUE_VALUE);
-    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
-
+    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, ServerConstants.TRUE_VALUE);
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
 
-    ArrayList<RawModification> modList = new ArrayList<>(1);
-    modList.add(m);
+    ArrayList<RawModification> modList = CollectionUtils.<RawModification> newArrayList(m);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     String backendDNString = configEntryDN.toString();
-    ByteString rawEntryDN =
-        ByteString.valueOf(backendDNString);
-    ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
+    ByteString rawEntryDN = ByteString.valueOf(backendDNString);
+    ModifyOperation internalModify = getRootConnection().processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
@@ -284,21 +278,14 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ArrayList<ByteString> valueList = new ArrayList<>(1);
-    valueList.add(ServerConstants.FALSE_VALUE);
-    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
-
+    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, ServerConstants.FALSE_VALUE);
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
 
-    ArrayList<RawModification> modList = new ArrayList<>(1);
-    modList.add(m);
+    ArrayList<RawModification> modList = CollectionUtils.<RawModification> newArrayList(m);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     String backendDNString = configEntryDN.toString();
-    ByteString rawEntryDN =
-        ByteString.valueOf(backendDNString);
-    ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
+    ByteString rawEntryDN = ByteString.valueOf(backendDNString);
+    ModifyOperation internalModify = getRootConnection().processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)

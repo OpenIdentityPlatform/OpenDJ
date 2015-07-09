@@ -46,6 +46,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
@@ -160,36 +161,26 @@ public class AddOperationBasis
 
     rawEntryDN = ByteString.valueOf(entryDN.toString());
 
+    ArrayList<String> values = new ArrayList<>(objectClasses.values());
     rawAttributes = new ArrayList<>();
-
-    ArrayList<ByteString> ocValues = new ArrayList<>();
-    for (String s : objectClasses.values())
-    {
-      ocValues.add(ByteString.valueOf(s));
-    }
-
-    LDAPAttribute ocAttr = new LDAPAttribute(ATTR_OBJECTCLASS, ocValues);
-    rawAttributes.add(ocAttr);
-
-    for (List<Attribute> attrList : userAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        rawAttributes.add(new LDAPAttribute(a));
-      }
-    }
-
-    for (List<Attribute> attrList : operationalAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        rawAttributes.add(new LDAPAttribute(a));
-      }
-    }
+    rawAttributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, values));
+    addAll(rawAttributes, userAttributes);
+    addAll(rawAttributes, operationalAttributes);
 
     responseControls = new ArrayList<>();
     proxiedAuthorizationDN = null;
     cancelRequest    = null;
+  }
+
+  private void addAll(List<RawAttribute> rawAttributes, Map<AttributeType, List<Attribute>> attributesToAdd)
+  {
+    for (List<Attribute> attrList : attributesToAdd.values())
+    {
+      for (Attribute a : attrList)
+      {
+        rawAttributes.add(new LDAPAttribute(a));
+      }
+    }
   }
 
   /** {@inheritDoc} */
@@ -374,21 +365,16 @@ public class AddOperationBasis
             if (attrs == null)
             {
               attrs = new ArrayList<>(1);
-              attrs.add(attr);
               operationalAttributes.put(attrType, attrs);
             }
-            else
-            {
-              attrs.add(attr);
-            }
+            attrs.add(attr);
           }
           else
           {
             List<Attribute> attrs = userAttributes.get(attrType);
             if (attrs == null)
             {
-              attrs = new ArrayList<>(1);
-              attrs.add(attr);
+              attrs = newArrayList(attr);
               userAttributes.put(attrType, attrs);
             }
             else

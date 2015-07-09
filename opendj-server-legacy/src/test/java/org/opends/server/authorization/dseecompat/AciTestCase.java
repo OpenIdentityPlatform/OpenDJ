@@ -42,19 +42,24 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
 import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 @SuppressWarnings("javadoc")
@@ -99,17 +104,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     {
       Reporter.log("Restoring global ACI attribute: " + globalACIAttribute);
 
-      List<Modification> modifications = new ArrayList<>(1);
-      modifications.add(new Modification(ModificationType.REPLACE,
-          globalACIAttribute));
-      InternalClientConnection conn =
-          InternalClientConnection.getRootConnection();
-
-      ResultCode rc =
-          conn.processModify(DN.valueOf(ACCESS_HANDLER_DN),
-              modifications).getResultCode();
-      Assert.assertEquals(rc, ResultCode.SUCCESS,
-          "Unable to restore global ACI");
+      Modification mod = new Modification(ModificationType.REPLACE,globalACIAttribute);
+      ModifyOperation op = getRootConnection().processModify(DN.valueOf(ACCESS_HANDLER_DN), newArrayList(mod));
+      Assert.assertEquals(op.getResultCode(), ResultCode.SUCCESS, "Unable to restore global ACI");
     }
   }
 

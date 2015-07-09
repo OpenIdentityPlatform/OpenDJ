@@ -45,7 +45,6 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -547,7 +546,7 @@ public class ImportLDIF extends TaskTool {
   {
     if (value != null)
     {
-      attributes.add(new LDAPAttribute(attrName, toByteStrings(value)));
+      attributes.add(new LDAPAttribute(attrName, value));
     }
   }
 
@@ -556,7 +555,7 @@ public class ImportLDIF extends TaskTool {
     final String value = arg.getValue();
     if (value != null && !value.equals(arg.getDefaultValue()))
     {
-      attributes.add(new LDAPAttribute(attrName, toByteStrings(value)));
+      attributes.add(new LDAPAttribute(attrName, value));
     }
   }
 
@@ -564,25 +563,8 @@ public class ImportLDIF extends TaskTool {
   {
     if (attrValues != null && !attrValues.isEmpty())
     {
-      attributes.add(new LDAPAttribute(attrName, toByteStrings(attrValues)));
+      attributes.add(new LDAPAttribute(attrName, attrValues));
     }
-  }
-
-  private ArrayList<ByteString> toByteStrings(String value)
-  {
-    final ArrayList<ByteString> values = new ArrayList<>(1);
-    values.add(ByteString.valueOf(value));
-    return values;
-  }
-
-  private ArrayList<ByteString> toByteStrings(List<String> attrValues)
-  {
-    final ArrayList<ByteString> values = new ArrayList<>(attrValues.size());
-    for (String includeBranche : attrValues)
-    {
-      values.add(ByteString.valueOf(includeBranche));
-    }
-    return values;
   }
 
   /** {@inheritDoc} */

@@ -45,7 +45,6 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -256,10 +255,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
               throw new InitializationException(
                   ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(pinFilePath, configEntryDN));
             }
-            else
-            {
-              trustStorePIN     = pinStr.toCharArray();
-            }
+            trustStorePIN = pinStr.toCharArray();
           }
         }
       }
@@ -271,10 +267,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
           throw new InitializationException(
               ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinProperty, configEntryDN));
         }
-        else
-        {
-          trustStorePIN = pinStr.toCharArray();
-        }
+        trustStorePIN = pinStr.toCharArray();
       }
     }
     else
@@ -284,10 +277,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       {
         throw new InitializationException(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProperty, configEntryDN));
       }
-      else
-      {
-        trustStorePIN = pinStr.toCharArray();
-      }
+      trustStorePIN = pinStr.toCharArray();
     }
 
     // Create a certificate manager.
@@ -315,9 +305,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType attrType = rdn.getAttributeType(i);
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(Attributes.create(attrType, rdn.getAttributeValue(i)));
-      userAttrs.put(attrType, attrList);
+      userAttrs.put(attrType, Attributes.createAsList(attrType, rdn.getAttributeValue(i)));
     }
 
     baseEntry = new Entry(baseDN, objectClasses, userAttrs, opAttrs);
@@ -486,26 +474,19 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
 
-    userAttrs.put(t, asList(Attributes.create(t, v)));
+    userAttrs.put(t, Attributes.createAsList(t, v));
 
 
     t = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
     builder.add(certValue);
-    userAttrs.put(t, asList(builder.toAttribute()));
+    userAttrs.put(t, builder.toAttributeList());
 
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
     e.processVirtualAttributes();
     return e;
-  }
-
-  private ArrayList<Attribute> asList(Attribute create)
-  {
-    ArrayList<Attribute> attrList = new ArrayList<>(1);
-    attrList.add(create);
-    return attrList;
   }
 
   /** {@inheritDoc} */

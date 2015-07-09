@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +47,7 @@ import org.testng.annotations.Test;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -333,9 +333,7 @@ public class HistoricalTest extends ReplicationTestCase
       DN dn, String entryuuid, AttributeType attrType, String newValue)
   {
     Attribute attr = Attributes.create(attrType.getNormalizedPrimaryName(), newValue);
-    Modification mod = new Modification(ModificationType.ADD, attr);
-    List<Modification> mods = new ArrayList<>(1);
-    mods.add(mod);
+    List<Modification> mods = newArrayList(new Modification(ModificationType.ADD, attr));
     broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }
 

@@ -56,6 +56,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -479,9 +480,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Replay a replace of a value B at time t2 on a second server.
       Attribute attr = Attributes.create(attrType, "B");
-      Modification mod = new Modification(ModificationType.REPLACE, attr);
-      List<Modification> mods = new ArrayList<>(1);
-      mods.add(mod);
+      List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
       ModifyMsg modMsg = new ModifyMsg(t2, dn1, mods, entryuuid);
       broker.publish(modMsg);
 
@@ -489,9 +488,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Replay an add of a value A at time t1 on a first server.
       attr = Attributes.create(attrType, "A");
-      mod = new Modification(ModificationType.ADD, attr);
-      mods = new ArrayList<>(1);
-      mods.add(mod);
+      mods = newArrayList(new Modification(ModificationType.ADD, attr));
       modMsg = new ModifyMsg(t1, dn1, mods, entryuuid);
       broker.publish(modMsg);
 
@@ -521,9 +518,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Replay an delete of attribute displayname at time t2 on a second server.
       attr = Attributes.empty(attrType);
-      mod = new Modification(ModificationType.DELETE, attr);
-      mods = new ArrayList<>(1);
-      mods.add(mod);
+      mods = newArrayList(new Modification(ModificationType.DELETE, attr));
       modMsg = new ModifyMsg(t2, dn1, mods, entryuuid);
       broker.publish(modMsg);
 
@@ -531,9 +526,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Replay a replace of a value A at time t1 on a first server.
       attr = Attributes.create(attrType, "A");
-      mod = new Modification(ModificationType.REPLACE, attr);
-      mods = new ArrayList<>(1);
-      mods.add(mod);
+      mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
       modMsg = new ModifyMsg(t1, dn1, mods, entryuuid);
       broker.publish(modMsg);
 

@@ -26,7 +26,8 @@
  */
 package org.opends.server.util;
 
-import java.util.ArrayList;
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,11 +69,9 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
     // start the server.
     TestCaseUtils.startServer();
 
-    attributes = new HashMap<>();
     attribute = Attributes.create("cn", "hello world");
-    ArrayList<Attribute> alist = new ArrayList<>(1);
-    alist.add(attribute);
-    attributes.put(attribute.getAttributeType(), alist);
+    attributes = new HashMap<>();
+    attributes.put(attribute.getAttributeType(), newArrayList(attribute));
   }
 
   /**

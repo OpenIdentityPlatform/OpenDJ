@@ -29,24 +29,26 @@ package org.opends.server.plugins;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.ControlDecoder;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.operation.*;
+import org.opends.server.util.CollectionUtils;
 
 /**
  * This class defines a very simple pre-operation plugin that sleeps for up to
@@ -365,11 +367,7 @@ public class DelayPreOpPlugin
    */
   public static List<Control> createDelayControlList(long delay)
   {
-    ArrayList<Control> controlList = new ArrayList<>(1);
-
-    controlList.add(new DelayRequestControl(false, delay));
-
-    return controlList;
+    Control c = new DelayRequestControl(false, delay);
+    return CollectionUtils.newArrayList(c);
   }
 }
-

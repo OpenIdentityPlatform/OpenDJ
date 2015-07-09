@@ -62,11 +62,11 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -144,8 +144,8 @@ public class ModifyOperationTestCase
     opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
-    ArrayList<ByteString> values2 = newArrayList(ByteString.valueOf("bar"));
-    LDAPAttribute ldapAttr2 = new LDAPAttribute("description", values2);
+    String value2 = "bar";
+    LDAPAttribute ldapAttr2 = new LDAPAttribute("description", value2);
     ldapMods = newRawModifications(delete(ldapAttr), add(ldapAttr2));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
@@ -153,7 +153,7 @@ public class ModifyOperationTestCase
     opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
-    ldapAttr2 = new LDAPAttribute("cn", values2);
+    ldapAttr2 = new LDAPAttribute("cn", value2);
     ldapMods = newRawModifications(replace(ldapAttr), replace(ldapAttr2));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
@@ -305,15 +305,9 @@ public class ModifyOperationTestCase
     assertNotNull(modifyOperation.getEntryDN());
   }
 
-
   private LDAPAttribute newLDAPAttribute(String attributeType, String... valueStrings)
   {
-    ArrayList<ByteString> values = new ArrayList<>();
-    for (String valueStr : valueStrings)
-    {
-      values.add(ByteString.valueOf(valueStr));
-    }
-    return new LDAPAttribute(attributeType, values);
+    return new LDAPAttribute(attributeType, newArrayList(valueStrings));
   }
 
   /**
@@ -3659,9 +3653,8 @@ responseLoop:
       "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
 
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.wrap(Base64.decode(certificateValue)));
-    LDAPAttribute attr = new LDAPAttribute("usercertificate", values);
+    ByteString value = ByteString.wrap(Base64.decode(certificateValue));
+    LDAPAttribute attr = new LDAPAttribute("usercertificate", value);
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);

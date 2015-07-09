@@ -26,28 +26,19 @@
  */
 package org.opends.server.extensions;
 
-
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.ErrorLogAccountStatusNotificationHandlerCfgDefn;
+import org.opends.server.admin.std.server.ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-       ErrorLogAccountStatusNotificationHandlerCfgDefn;
-import org.opends.server.admin.std.server.
-       ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.types.AccountStatusNotification;
@@ -56,13 +47,14 @@ import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
-import static org.opends.server.types.AccountStatusNotificationType.*;
 import static org.opends.server.types.AccountStatusNotificationProperty.*;
-
-
+import static org.opends.server.types.AccountStatusNotificationType.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the error log account status notification handler.
@@ -253,57 +245,33 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
          DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
     assertNotNull(handler);
 
-    Entry userEntry =
-               DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
-
-    PasswordPolicy policy = (PasswordPolicy) AuthenticationPolicy.forUser(
-        userEntry, false);
-
+    Entry userEntry = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
     HashMap<AccountStatusNotificationProperty, List<String>> notificationProperties = new HashMap<>();
 
-    ArrayList<String> propList = new ArrayList<>(1);
-    propList.add(policy.getDN().toString());
-    notificationProperties.put(PASSWORD_POLICY_DN, propList);
-
+    PasswordPolicy policy = (PasswordPolicy) AuthenticationPolicy.forUser(userEntry, false);
+    notificationProperties.put(PASSWORD_POLICY_DN, newArrayList(policy.getDN().toString()));
 
     if (notificationType == ACCOUNT_TEMPORARILY_LOCKED)
     {
-      propList = new ArrayList<>(1);
-      propList.add("300");
-      notificationProperties.put(SECONDS_UNTIL_UNLOCK, propList);
+      notificationProperties.put(SECONDS_UNTIL_UNLOCK, newArrayList("300"));
+      notificationProperties.put(TIME_UNTIL_UNLOCK, newArrayList("5 minutes"));
 
-      propList = new ArrayList<>(1);
-      propList.add("5 minutes");
-      notificationProperties.put(TIME_UNTIL_UNLOCK, propList);
-
-      propList = new ArrayList<>(1);
-      propList.add(new Date(System.currentTimeMillis() + 300000L).toString());
-      notificationProperties.put(ACCOUNT_UNLOCK_TIME, propList);
+      Date date = new Date(System.currentTimeMillis() + 300000L);
+      notificationProperties.put(ACCOUNT_UNLOCK_TIME, newArrayList(date.toString()));
     }
     else if (notificationType == PASSWORD_EXPIRING)
     {
-      propList = new ArrayList<>(1);
-      propList.add("86400");
-      notificationProperties.put(SECONDS_UNTIL_EXPIRATION, propList);
+      notificationProperties.put(SECONDS_UNTIL_EXPIRATION, newArrayList("86400"));
+      notificationProperties.put(TIME_UNTIL_EXPIRATION, newArrayList("1 day"));
 
-      propList = new ArrayList<>(1);
-      propList.add("1 day");
-      notificationProperties.put(TIME_UNTIL_EXPIRATION, propList);
-
-      propList = new ArrayList<>(1);
-      propList.add(new Date(System.currentTimeMillis() + 86400000L).toString());
-      notificationProperties.put(PASSWORD_EXPIRATION_TIME, propList);
+      Date date = new Date(System.currentTimeMillis() + 86400000L);
+      notificationProperties.put(PASSWORD_EXPIRATION_TIME, newArrayList(date.toString()));
     }
     else if ((notificationType == PASSWORD_CHANGED) ||
              (notificationType == PASSWORD_RESET))
     {
-      propList = new ArrayList<>(1);
-      propList.add("oldpassword");
-      notificationProperties.put(OLD_PASSWORD, propList);
-
-      propList = new ArrayList<>(1);
-      propList.add("newpassword");
-      notificationProperties.put(NEW_PASSWORD, propList);
+      notificationProperties.put(OLD_PASSWORD, newArrayList("oldpassword"));
+      notificationProperties.put(NEW_PASSWORD,  newArrayList("newpassword"));
     }
 
 
@@ -314,4 +282,3 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
     handler.handleStatusNotification(notification);
   }
 }
-

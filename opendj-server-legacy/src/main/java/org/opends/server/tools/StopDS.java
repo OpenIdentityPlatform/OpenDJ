@@ -31,6 +31,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -618,56 +619,34 @@ public class StopDS
                             SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
 
     ArrayList<RawAttribute> attributes = new ArrayList<>();
-
-    ArrayList<ByteString> ocValues = new ArrayList<>(3);
-    ocValues.add(ByteString.valueOf("top"));
-    ocValues.add(ByteString.valueOf("ds-task"));
-    ocValues.add(ByteString.valueOf("ds-task-shutdown"));
-    attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, ocValues));
-
-    ArrayList<ByteString> taskIDValues = new ArrayList<>(1);
-    taskIDValues.add(ByteString.valueOf(taskID));
-    attributes.add(new LDAPAttribute(ATTR_TASK_ID, taskIDValues));
-
-    ArrayList<ByteString> classValues = new ArrayList<>(1);
-    classValues.add(ByteString.valueOf(ShutdownTask.class.getName()));
-    attributes.add(new LDAPAttribute(ATTR_TASK_CLASS, classValues));
-
+    attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, newArrayList("top", "ds-task", "ds-task-shutdown")));
+    attributes.add(new LDAPAttribute(ATTR_TASK_ID, taskID));
+    attributes.add(new LDAPAttribute(ATTR_TASK_CLASS, ShutdownTask.class.getName()));
     if (restart.isPresent())
     {
-      ArrayList<ByteString> restartValues = new ArrayList<>(1);
-      restartValues.add(ByteString.valueOf("true"));
-      attributes.add(new LDAPAttribute(ATTR_RESTART_SERVER, restartValues));
+      attributes.add(new LDAPAttribute(ATTR_RESTART_SERVER, "true"));
     }
-
     if (stopReason.isPresent())
     {
-      ArrayList<ByteString> stopReasonValues = new ArrayList<>(1);
-      stopReasonValues.add(ByteString.valueOf(stopReason.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_SHUTDOWN_MESSAGE, stopReasonValues));
+      attributes.add(new LDAPAttribute(ATTR_SHUTDOWN_MESSAGE, stopReason.getValue()));
     }
 
     if (stopTime != null)
     {
-      ArrayList<ByteString> stopTimeValues = new ArrayList<>(1);
-
       SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      stopTimeValues.add(ByteString.valueOf(dateFormat.format(stopTime)));
-      attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
-                                       stopTimeValues));
+      String stopTimeValues = dateFormat.format(stopTime);
+      attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME, stopTimeValues));
     }
 
     ArrayList<Control> controls = new ArrayList<>();
     if (proxyAuthzID.isPresent())
     {
-      Control c = new ProxiedAuthV2Control(
-          ByteString.valueOf(proxyAuthzID.getValue()));
-      controls.add(c);
+      controls.add(new ProxiedAuthV2Control(
+          ByteString.valueOf(proxyAuthzID.getValue())));
     }
 
-    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN,
-                                                               attributes);
+    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN, attributes);
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), addRequest, controls);
 

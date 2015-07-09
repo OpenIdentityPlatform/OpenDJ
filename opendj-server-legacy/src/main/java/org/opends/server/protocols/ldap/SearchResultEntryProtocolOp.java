@@ -27,6 +27,7 @@
 package org.opends.server.protocols.ldap;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -38,12 +39,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
@@ -573,21 +574,16 @@ public class SearchResultEntryProtocolOp
         if (attrs == null)
         {
           attrs = new ArrayList<>(1);
-          attrs.add(attr);
           operationalAttributes.put(attrType, attrs);
         }
-        else
-        {
-          attrs.add(attr);
-        }
+        attrs.add(attr);
       }
       else
       {
         List<Attribute> attrs = userAttributes.get(attrType);
         if (attrs == null)
         {
-          attrs = new ArrayList<>(1);
-          attrs.add(attr);
+          attrs = newArrayList(attr);
           userAttributes.put(attrType, attrs);
         }
         else

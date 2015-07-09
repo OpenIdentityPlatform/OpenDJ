@@ -28,14 +28,16 @@ package org.opends.server.plugins;
 
 
 
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -45,7 +47,6 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
@@ -663,12 +664,9 @@ public class ShortCircuitPlugin
    *
    * @return  A list containing the appropriate short circuit request control.
    */
-  public static List<Control> createShortCircuitControlList(int resultCode,
-                                                            String section)
+  public static List<Control> createShortCircuitControlList(int resultCode, String section)
   {
-    ArrayList<Control> controlList = new ArrayList<>(1);
-    controlList.add(createShortCircuitControl(resultCode, section));
-    return controlList;
+    return newArrayList(createShortCircuitControl(resultCode, section));
   }
 
   /** Registered short circuits for operations regardless of controls. */

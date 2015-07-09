@@ -42,7 +42,6 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
@@ -370,8 +369,8 @@ public class ExportLDIF extends TaskTool {
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
     // Required attributes
-    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_LDIF_FILE, toByteStrings(ldifFile.getValue())));
-    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_BACKEND_ID, toByteStrings(backendID.getValue())));
+    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_LDIF_FILE, ldifFile.getValue()));
+    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_BACKEND_ID, backendID.getValue()));
 
     // Optional attributes
     addAttribute(attributes, ATTR_TASK_EXPORT_APPEND_TO_LDIF, appendToLDIF);
@@ -389,8 +388,7 @@ public class ExportLDIF extends TaskTool {
     if (excludeOperationalAttrs.isPresent())
     {
       attributes.add(
-          new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES,
-              toByteStrings("false")));
+          new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES, "false"));
     }
   }
 
@@ -398,7 +396,7 @@ public class ExportLDIF extends TaskTool {
   {
     if (arg.getValue() != null && !arg.getValue().equals(arg.getDefaultValue()))
     {
-      attributes.add(new LDAPAttribute(attrName, toByteStrings(arg.getValue())));
+      attributes.add(new LDAPAttribute(attrName, arg.getValue()));
     }
   }
 
@@ -406,25 +404,8 @@ public class ExportLDIF extends TaskTool {
   {
     if (attrValues != null && !attrValues.isEmpty())
     {
-      attributes.add(new LDAPAttribute(attrName, toByteStrings(attrValues)));
+      attributes.add(new LDAPAttribute(attrName, attrValues));
     }
-  }
-
-  private ArrayList<ByteString> toByteStrings(String value)
-  {
-    final ArrayList<ByteString> values = new ArrayList<>(1);
-    values.add(ByteString.valueOf(value));
-    return values;
-  }
-
-  private ArrayList<ByteString> toByteStrings(List<String> includeAttributes)
-  {
-    final ArrayList<ByteString> values = new ArrayList<>(includeAttributes.size());
-    for (String includeAttribute : includeAttributes)
-    {
-      values.add(ByteString.valueOf(includeAttribute));
-    }
-    return values;
   }
 
   /** {@inheritDoc} */

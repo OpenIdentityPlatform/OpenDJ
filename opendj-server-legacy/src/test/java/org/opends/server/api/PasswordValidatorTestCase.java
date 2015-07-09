@@ -440,10 +440,8 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
+    LDAPAttribute attr = new LDAPAttribute("userPassword", "newPassword");
     ArrayList<RawModification> mods = new ArrayList<>();
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("newPassword"));
-    LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -509,9 +507,7 @@ public class PasswordValidatorTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
     ArrayList<RawModification> mods = new ArrayList<>();
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("newPassword"));
-    LDAPAttribute attr = new LDAPAttribute("userPassword", values);
+    LDAPAttribute attr = new LDAPAttribute("userPassword", "newPassword");
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     TestPasswordValidator.setNextReturnValue(false);
@@ -580,15 +576,11 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
+    LDAPAttribute attr = new LDAPAttribute("userPassword", "password");
     ArrayList<RawModification> mods = new ArrayList<>();
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("password"));
-    LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<>();
-    values.add(ByteString.valueOf("newPassword"));
-    attr = new LDAPAttribute("userPassword", values);
+    attr = new LDAPAttribute("userPassword", "newPassword");
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -659,10 +651,8 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
+    LDAPAttribute attr = new LDAPAttribute("userPassword", "newPassword");
     ArrayList<RawModification> mods = new ArrayList<>();
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("newPassword"));
-    LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -733,15 +723,11 @@ public class PasswordValidatorTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 0);
 
+    LDAPAttribute attr = new LDAPAttribute("userPassword", "password");
     ArrayList<RawModification> mods = new ArrayList<>();
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("password"));
-    LDAPAttribute attr = new LDAPAttribute("userPassword", values);
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    values = new ArrayList<>();
-    values.add(ByteString.valueOf("newPassword"));
-    attr = new LDAPAttribute("userPassword", values);
+    attr = new LDAPAttribute("userPassword", "newPassword");
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyRequestProtocolOp modifyRequest =

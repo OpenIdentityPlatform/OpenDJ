@@ -64,6 +64,7 @@ import org.testng.annotations.Test;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -604,9 +605,8 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Try to modify the entry to add a description.
-    ArrayList<Modification> mods = new ArrayList<>(1);
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
+    ArrayList<Modification> mods =
+        newArrayList(new Modification(ModificationType.REPLACE, Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation = new ModifyOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, e.getName(),
@@ -793,9 +793,8 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Try to modify the entry to add a description.
-    ArrayList<Modification> mods = new ArrayList<>(1);
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
+    ArrayList<Modification> mods =
+        newArrayList(new Modification(ModificationType.REPLACE, Attributes.create("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn,

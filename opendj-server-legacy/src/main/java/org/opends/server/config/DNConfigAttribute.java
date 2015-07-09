@@ -26,7 +26,9 @@
  */
 package org.opends.server.config;
 
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -37,13 +39,13 @@ import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.config.ConfigConstants.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ConfigMessages.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
 
 /**
  * This class defines a DN configuration attribute, which can hold zero or more
@@ -125,8 +127,7 @@ public final class DNConfigAttribute
     }
     else
     {
-      activeValues = new ArrayList<>(1);
-      activeValues.add(value);
+      activeValues = newArrayList(value);
     }
 
     pendingValues = activeValues;
@@ -354,8 +355,7 @@ public final class DNConfigAttribute
 
     if (requiresAdminAction())
     {
-      pendingValues = new ArrayList<>(1);
-      pendingValues.add(value);
+      pendingValues = newArrayList(value);
       setPendingValues(getValueSet(value));
     }
     else
@@ -577,9 +577,7 @@ public final class DNConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<ByteString>
-              stringsToValues(List<String> valueStrings,
-                              boolean allowFailures)
+  public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
@@ -709,10 +707,7 @@ public final class DNConfigAttribute
       }
       return valueStrings;
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -1243,4 +1238,3 @@ public final class DNConfigAttribute
                                  activeValues, pendingValues);
   }
 }
-

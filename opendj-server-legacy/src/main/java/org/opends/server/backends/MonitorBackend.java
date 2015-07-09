@@ -30,6 +30,7 @@ import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -655,14 +656,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   private void put(final HashMap<AttributeType, List<Attribute>> attrsMap, final Attribute attr)
   {
-    attrsMap.put(attr.getAttributeType(), toList(attr));
-  }
-
-  private ArrayList<Attribute> toList(final Attribute attr)
-  {
-    final ArrayList<Attribute> results = new ArrayList<>(1);
-    results.add(attr);
-    return results;
+    attrsMap.put(attr.getAttributeType(), newArrayList(attr));
   }
 
   /**
@@ -687,8 +681,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       {
         final AttributeType attributeType = rdn.getAttributeType(i);
         final ByteString value = rdn.getAttributeValue(attributeType);
-        final Attribute attr = Attributes.create(attributeType, value);
-        monitorUserAttrs.put(attributeType, toList(attr));
+        monitorUserAttrs.put(attributeType, Attributes.createAsList(attributeType, value));
       }
     }
 
@@ -783,7 +776,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final AttributeType rdnType = entryRDN.getAttributeType(0);
     final ByteString rdnValue = entryRDN.getAttributeValue(0);
 
-    attrMap.put(rdnType, toList(Attributes.create(rdnType, rdnValue)));
+    attrMap.put(rdnType, Attributes.createAsList(rdnType, rdnValue));
 
     // Take the rest of the information from the monitor data.
     for (final Attribute a : monitorAttrs)

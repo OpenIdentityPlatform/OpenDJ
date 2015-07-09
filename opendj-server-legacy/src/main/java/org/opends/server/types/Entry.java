@@ -29,6 +29,7 @@ package org.opends.server.types;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -40,9 +41,9 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.api.CompressedSchema;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
@@ -56,6 +57,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -639,7 +641,7 @@ public class Entry
     }
     if (attributeType.isObjectClass() && !objectClasses.isEmpty())
     {
-      return newList(getObjectClassAttribute());
+      return newArrayList(getObjectClassAttribute());
     }
     return null;
   }
@@ -4527,7 +4529,7 @@ public class Entry
       }
 
       // We are adding the first attribute with this attribute type.
-      putAttributes(attributeType, newList(attribute));
+      putAttributes(attributeType, newArrayList(attribute));
       return;
     }
 
@@ -4623,7 +4625,7 @@ public class Entry
         objectClassesCopy = new LinkedHashMap<>(0);
 
         // Add empty object class attribute.
-        userAttrsCopy.put(ocType, newList(Attributes.empty(ocType)));
+        userAttrsCopy.put(ocType, newArrayList(Attributes.empty(ocType)));
       }
       else
       {
@@ -4633,7 +4635,7 @@ public class Entry
         Attribute ocAttr = getObjectClassAttribute();
         if (ocAttr != null)
         {
-          userAttrsCopy.put(ocType, newList(ocAttr));
+          userAttrsCopy.put(ocType, newArrayList(ocAttr));
         }
       }
 
@@ -4667,7 +4669,7 @@ public class Entry
             if (omitValues)
             {
               // Add empty object class attribute.
-              userAttrsCopy.put(ocType, newList(Attributes.empty(ocType)));
+              userAttrsCopy.put(ocType, newArrayList(Attributes.empty(ocType)));
             }
             else
             {
@@ -4676,7 +4678,7 @@ public class Entry
               Attribute ocAttr = getObjectClassAttribute();
               if (ocAttr != null)
               {
-                userAttrsCopy.put(ocType, newList(ocAttr));
+                userAttrsCopy.put(ocType, newArrayList(ocAttr));
               }
             }
           }
@@ -4756,8 +4758,7 @@ public class Entry
             {
               if (omitValues)
               {
-                userAttrsCopy.put(ocType, newList(Attributes.empty(ocType,
-                    attrName)));
+                userAttrsCopy.put(ocType, newArrayList(Attributes.empty(ocType, attrName)));
               }
               else
               {
@@ -4772,7 +4773,7 @@ public class Entry
                     ocAttr = builder.toAttribute();
                   }
 
-                  userAttrsCopy.put(ocType, newList(ocAttr));
+                  userAttrsCopy.put(ocType, newArrayList(ocAttr));
                 }
               }
             }
@@ -4803,21 +4804,6 @@ public class Entry
     return new Entry(dn, objectClassesCopy, userAttrsCopy,
                      operationalAttrsCopy);
   }
-
-  /**
-   * Returns a new List containing only the supplied element.
-   *
-   * @param elem
-   *          the element to add to the list
-   * @return a new List containing only the supplied element.
-   */
-  private List<Attribute> newList(Attribute elem)
-  {
-    List<Attribute> l = new ArrayList<>(1);
-    l.add(elem);
-    return l;
-  }
-
 
   /**
    * Copies the provided list of attributes into the destination

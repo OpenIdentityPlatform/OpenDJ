@@ -27,7 +27,6 @@
  */
 package org.opends.server.plugins;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,6 +61,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -1116,15 +1116,12 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
   private void deleteSubtree(String... dns) throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-
-    SubtreeDeleteControl control = new SubtreeDeleteControl(true);
-    List<Control> controls = new ArrayList<>(1);
-    controls.add(control);
+    Control control = new SubtreeDeleteControl(true);
+    List<Control> controls = newArrayList(control);
 
     for (String dn : dns)
     {
-      DeleteOperation op = conn.processDelete(DN.valueOf(dn), controls);
+      DeleteOperation op = getRootConnection().processDelete(DN.valueOf(dn), controls);
       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     }
   }

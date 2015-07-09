@@ -29,7 +29,8 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -46,9 +47,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -64,6 +62,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -79,7 +80,6 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -534,9 +534,8 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        List<Object> attrValues = new ArrayList<>(1);
-        attrValues.add(values[j] + r.nextInt());
-        csr.set(attrNames[j], attrValues);
+        Object o = values[j] + r.nextInt();
+        csr.set(attrNames[j], newArrayList(o));
       }
       try
       {
@@ -601,9 +600,8 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        List<Object> attrValues = new ArrayList<>(1);
-        attrValues.add(values[j]);
-        csr.set(attrNames[j], attrValues);
+        Object o = values[j];
+        csr.set(attrNames[j], newArrayList(o));
       }
       try
       {
@@ -717,9 +715,8 @@ public class ManageTasksPanel extends StatusGenericPanel
           }
           builder.add(bs);
         }
-        List<Attribute> attrList = new ArrayList<>(1);
-        attrList.add(builder.toAttribute());
 
+        List<Attribute> attrList = builder.toAttributeList();
         if (attrType.isOperational())
         {
           operationalAttributes.put(attrType, attrList);

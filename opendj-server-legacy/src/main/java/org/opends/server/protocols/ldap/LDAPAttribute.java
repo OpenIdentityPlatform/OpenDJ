@@ -27,6 +27,7 @@
 package org.opends.server.protocols.ldap;
 
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
@@ -34,8 +35,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 
 /**
  * This class defines the data structures and methods to use when interacting
@@ -77,8 +81,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<>(1);
-    values.add(ByteString.valueOf(value));
+    values = newArrayList(ByteString.valueOf(value));
   }
 
 
@@ -93,8 +96,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = new ArrayList<>(1);
-    values.add(value);
+    values = newArrayList(value);
   }
 
 

@@ -28,6 +28,7 @@ package org.opends.server.backends.task;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -38,16 +39,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.LockManager.DNLock;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -199,10 +200,8 @@ public class TaskScheduler
       }
 
       Attribute attr = Attributes.create(ATTR_TASK_STATE, TaskState.RECURRING.toString());
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(attr);
       Entry recurringTaskEntry = recurringTask.getRecurringTaskEntry();
-      recurringTaskEntry.putAttribute(attr.getAttributeType(), attrList);
+      recurringTaskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
 
       if (scheduleIteration)
       {

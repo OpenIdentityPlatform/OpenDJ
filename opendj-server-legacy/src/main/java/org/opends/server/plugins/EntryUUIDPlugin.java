@@ -28,7 +28,6 @@ package org.opends.server.plugins;
 
 import static org.opends.messages.PluginMessages.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -167,11 +166,8 @@ public final class EntryUUIDPlugin
     byte[] dnBytes = entry.getName().toNormalizedByteString().toByteArray();
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
-    Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());
-    uuidList = new ArrayList<>(1);
-    uuidList.add(uuidAttr);
+    uuidList = Attributes.createAsList(entryUUIDType, uuid.toString());
     entry.putAttribute(entryUUIDType, uuidList);
-
 
     // We shouldn't ever need to return a non-success result.
     return PluginResult.ImportLDIF.continueEntryProcessing();
@@ -198,10 +194,7 @@ public final class EntryUUIDPlugin
 
     // Construct a new random UUID.
     UUID uuid = UUID.randomUUID();
-    Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());
-    uuidList = new ArrayList<>(1);
-    uuidList.add(uuidAttr);
-
+    uuidList = Attributes.createAsList(entryUUIDType, uuid.toString());
 
     // Add the attribute to the entry and return.
     addOperation.setAttribute(entryUUIDType, uuidList);

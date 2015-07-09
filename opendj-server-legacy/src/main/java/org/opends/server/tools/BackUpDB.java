@@ -48,7 +48,6 @@ import java.util.TimeZone;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -432,12 +431,8 @@ public class BackUpDB extends TaskTool
 
     List<String> backendIDs = backendID.getValues();
     if (backendIDs != null && !backendIDs.isEmpty()) {
-      ArrayList<ByteString> values = new ArrayList<>(backendIDs.size());
-      for (String s : backendIDs) {
-        values.add(ByteString.valueOf(s));
-      }
       attributes.add(
-              new LDAPAttribute(ATTR_TASK_BACKUP_BACKEND_ID, values));
+              new LDAPAttribute(ATTR_TASK_BACKUP_BACKEND_ID, backendIDs));
     }
 
     addIfHasValue(attributes, ATTR_BACKUP_ID, backupIDString);
@@ -448,7 +443,7 @@ public class BackUpDB extends TaskTool
   private void addIfHasValue(List<RawAttribute> attributes, String attrName, Argument arg)
   {
     if (hasValueDifferentThanDefaultValue(arg)) {
-      attributes.add(new LDAPAttribute(attrName, asList(arg.getValue())));
+      attributes.add(new LDAPAttribute(attrName, arg.getValue()));
     }
   }
 
@@ -456,13 +451,6 @@ public class BackUpDB extends TaskTool
   {
     return arg.getValue() != null
         && !arg.getValue().equals(arg.getDefaultValue());
-  }
-
-  private ArrayList<ByteString> asList(String value)
-  {
-    ArrayList<ByteString> values = new ArrayList<>(1);
-    values.add(ByteString.valueOf(value));
-    return values;
   }
 
   /** {@inheritDoc} */

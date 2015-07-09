@@ -26,11 +26,11 @@
 package org.forgerock.opendj.adapter.server3x;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -290,8 +290,7 @@ public final class Converters {
      */
     public static org.opends.server.types.RawAttribute to(
             final org.forgerock.opendj.ldap.Attribute attribute) {
-        ArrayList<ByteString> listAttributeValues = new ArrayList<>(attribute.size());
-        Collections.addAll(listAttributeValues, attribute.toArray());
+        ArrayList<ByteString> listAttributeValues = newArrayList(attribute.toArray());
         return new LDAPAttribute(attribute.getAttributeDescriptionAsString(), listAttributeValues);
     }
 

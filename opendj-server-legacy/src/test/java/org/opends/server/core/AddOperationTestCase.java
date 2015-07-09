@@ -59,11 +59,11 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
@@ -103,8 +103,8 @@ public class AddOperationTestCase
     ArrayList<Control> noControls = new ArrayList<>();
 
     ArrayList<RawAttribute> ldapAttrList = newRawAttributes(
-        new LDAPAttribute("objectclass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectclass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People,o=test",
@@ -190,8 +190,8 @@ public class AddOperationTestCase
   public void testGetEntryDNInitiallyNull()
   {
     ArrayList<RawAttribute> ldapAttrList = newRawAttributes(
-        new LDAPAttribute("objectclass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectclass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     AddOperationBasis addOperation =
          new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
@@ -283,7 +283,7 @@ public class AddOperationTestCase
     assertFalse(rawAttrs.isEmpty());
 
     ArrayList<RawAttribute> copiedAttrs = new ArrayList<>(rawAttrs);
-    copiedAttrs.add(new LDAPAttribute("description", byteStrings("foo")));
+    copiedAttrs.add(new LDAPAttribute("description", "foo"));
     addOperation.setRawAttributes(copiedAttrs);
 
     assertTrue(find(addOperation, "description"));
@@ -530,8 +530,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     AddOperation addOperation = getRootConnection().processAdd("ou=People,o=test", attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -574,8 +574,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     AddOperation addOperation = getRootConnection().processAdd("invalid", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -595,8 +595,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organization")),
-        new LDAPAttribute("o", byteStrings("test")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organization")),
+        new LDAPAttribute("o", "test"));
 
     AddOperation addOperation = getRootConnection().processAdd("o=test", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -616,8 +616,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organization")),
-        new LDAPAttribute("o", byteStrings("undefined")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organization")),
+        new LDAPAttribute("o", "undefined"));
 
     AddOperation addOperation = getRootConnection().processAdd("o=undefined", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -637,8 +637,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     AddOperation addOperation = getRootConnection().processAdd("ou=People,o=undefined", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -657,8 +657,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     AddOperation addOperation = getRootConnection().processAdd("ou=People,o=missing,o=test", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -685,10 +685,10 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")),
-        new LDAPAttribute("creatorsName", byteStrings("cn=Directory Manager")),
-        new LDAPAttribute("createTimestamp", byteStrings("20060101000000Z")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"),
+        new LDAPAttribute("creatorsName", "cn=Directory Manager"),
+        new LDAPAttribute("createTimestamp", "20060101000000Z"));
 
     long addRequests  = ldapStatistics.getAddRequests();
     long addResponses = ldapStatistics.getAddResponses();
@@ -713,8 +713,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "undefined")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "undefined")),
+        new LDAPAttribute("ou", "People"));
 
     AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -764,10 +764,10 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("description", byteStrings("foo")),
-        new LDAPAttribute("ou", byteStrings("People")),
-        new LDAPAttribute("description", byteStrings("bar")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("description", "foo"),
+        new LDAPAttribute("ou", "People"),
+        new LDAPAttribute("description", "bar"));
 
     AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -785,10 +785,10 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("description", byteStrings("foo")),
-        new LDAPAttribute("ou", byteStrings("People")),
-        new LDAPAttribute("description;lang-en-us", byteStrings("foo")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("description", "foo"),
+        new LDAPAttribute("ou", "People"),
+        new LDAPAttribute("description;lang-en-us", "foo"));
 
     AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -808,9 +808,9 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")),
-        new LDAPAttribute("description;lang-en-us", byteStrings("foo")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"),
+        new LDAPAttribute("description;lang-en-us", "foo"));
 
     AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
@@ -862,8 +862,8 @@ public class AddOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "ds-root-dse", "extensibleObject")),
-        new LDAPAttribute("cn", byteStrings("Root DSE")));
+        new LDAPAttribute("objectClass", newArrayList("top", "ds-root-dse", "extensibleObject")),
+        new LDAPAttribute("cn", "Root DSE"));
 
     AddOperation addOperation =
          getRootConnection().processAdd(ByteString.empty(), attrs);
@@ -1290,8 +1290,8 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
@@ -1417,8 +1417,8 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
@@ -1619,8 +1619,8 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     addDisconnect(r, w, attrs, "PreParse");
 
@@ -1672,8 +1672,8 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     addDisconnect(r, w, attrs, "PreOperation");
 
@@ -1699,8 +1699,8 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     addDisconnect(r, w, attrs, "PostOperation");
 
@@ -1726,8 +1726,8 @@ public class AddOperationTestCase
     bind(r, w);
 
     ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
-        new LDAPAttribute("ou", byteStrings("People")));
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
 
     writeAddRequest(w, attrs, "PostResponse");
 

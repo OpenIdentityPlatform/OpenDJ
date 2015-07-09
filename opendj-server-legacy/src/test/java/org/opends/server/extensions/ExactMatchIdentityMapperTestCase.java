@@ -963,13 +963,9 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("undefinedAttribute"));
-
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("ds-cfg-match-attribute",
-                                                    values)));
+        new LDAPAttribute("ds-cfg-match-attribute", "undefinedAttribute")));
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
@@ -991,13 +987,9 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("invalidDN"));
-
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("ds-cfg-match-base-dn",
-                                                    values)));
+        new LDAPAttribute("ds-cfg-match-base-dn", "invalidDN")));
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";

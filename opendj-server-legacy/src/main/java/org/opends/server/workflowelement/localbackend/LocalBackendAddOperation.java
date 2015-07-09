@@ -81,6 +81,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -885,11 +886,9 @@ public class LocalBackendAddOperation
 
 
     // Set the password changed time attribute.
-    ArrayList<Attribute> changedTimeList = new ArrayList<>(1);
     Attribute changedTime = Attributes.create(
         OP_ATTR_PWPOLICY_CHANGED_TIME, TimeThread.getGeneralizedTime());
-    changedTimeList.add(changedTime);
-    entry.putAttribute(changedTime.getAttributeType(), changedTimeList);
+    entry.putAttribute(changedTime.getAttributeType(), newArrayList(changedTime));
 
 
     // If we should force change on add, then set the appropriate flag.
@@ -897,11 +896,8 @@ public class LocalBackendAddOperation
     {
       addPWPolicyControl(PasswordPolicyErrorType.CHANGE_AFTER_RESET);
 
-      ArrayList<Attribute> resetList = new ArrayList<>(1);
-      Attribute reset = Attributes.create(
-          OP_ATTR_PWPOLICY_RESET_REQUIRED, "TRUE");
-      resetList.add(reset);
-      entry.putAttribute(reset.getAttributeType(), resetList);
+      Attribute reset = Attributes.create(OP_ATTR_PWPOLICY_RESET_REQUIRED, "TRUE");
+      entry.putAttribute(reset.getAttributeType(), newArrayList(reset));
     }
   }
 

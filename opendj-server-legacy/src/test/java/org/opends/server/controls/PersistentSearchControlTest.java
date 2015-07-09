@@ -29,6 +29,7 @@ package org.opends.server.controls;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -516,12 +517,9 @@ public class PersistentSearchControlTest extends ControlsTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
     //Modify the configuration to allow only 1 concurrent persistent search.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("1"));
-    LDAPAttribute attr = new LDAPAttribute("ds-cfg-max-psearches", values);
+    LDAPAttribute attr = new LDAPAttribute("ds-cfg-max-psearches", "1");
 
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));

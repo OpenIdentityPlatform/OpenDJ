@@ -54,6 +54,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -605,9 +606,7 @@ public abstract class Task
     {
       this.taskState = taskState;
       Attribute attr = Attributes.create(ATTR_TASK_STATE, taskState.toString());
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(attr);
-      taskEntry.putAttribute(attr.getAttributeType(), attrList);
+      taskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
     }
     finally
     {
@@ -761,11 +760,8 @@ public abstract class Task
       this.actualStartTime = actualStartTime;
       Date d = new Date(actualStartTime);
       String startTimeStr = StaticUtils.formatDateTimeString(d);
-      Attribute attr = Attributes.create(ATTR_TASK_ACTUAL_START_TIME,
-          startTimeStr);
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(attr);
-      taskEntry.putAttribute(attr.getAttributeType(), attrList);
+      Attribute attr = Attributes.create(ATTR_TASK_ACTUAL_START_TIME, startTimeStr);
+      taskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
     }
     finally
     {
@@ -817,11 +813,8 @@ public abstract class Task
       SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date d = new Date(completionTime);
-      Attribute attr = Attributes.create(ATTR_TASK_COMPLETION_TIME,
-          dateFormat.format(d));
-      ArrayList<Attribute> attrList = new ArrayList<>(1);
-      attrList.add(attr);
-      taskEntry.putAttribute(attr.getAttributeType(), attrList);
+      Attribute attr = Attributes.create(ATTR_TASK_COMPLETION_TIME, dateFormat.format(d));
+      taskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
     }
     finally
     {
