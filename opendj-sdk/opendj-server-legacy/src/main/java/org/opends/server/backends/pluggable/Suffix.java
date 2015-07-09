@@ -37,7 +37,6 @@ import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.DNCache;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
 /**
@@ -71,6 +70,8 @@ final class Suffix
   private static final int PARENT_ID_SET_SIZE = 16 * 1024;
   private final ConcurrentHashMap<DN, CountDownLatch> pendingMap = new ConcurrentHashMap<>();
   private final Set<DN> parentSet = new HashSet<>(PARENT_ID_SET_SIZE);
+  private final List<AttributeIndex> attributeIndexes = new ArrayList<>();
+  private final List<VLVIndex> vlvIndexes = new ArrayList<>();
 
   Suffix(EntryContainer entryContainer)
   {
@@ -155,9 +156,14 @@ final class Suffix
    *
    * @return A suffixes Attribute Type - Index map.
    */
-  Map<AttributeType, AttributeIndex> getAttrIndexMap()
+  List<AttributeIndex> getAttributeIndexes()
   {
-    return entryContainer.getAttributeIndexMap();
+    return attributeIndexes;
+  }
+
+  List<VLVIndex> getVLVIndexes()
+  {
+    return vlvIndexes;
   }
 
   /**
@@ -246,21 +252,44 @@ final class Suffix
   }
 
   /**
-   * Sets the trusted status of all of the indexes and vlvIndexes.
+   * Builds the lists of Attribute and VLV indexes to process, setting their status as not trusted.
    *
-   * @param txn a non null transaction
-   * @param trusted True if the indexes should be trusted or false otherwise.
-   * @throws StorageRuntimeException If an error occurred setting the indexes to trusted.
+   * @param txn
+   *          a non null transaction
+   * @param OnlyCurrentlyTrusted
+   *          true if currently untrusted indexes should be processed as well.
+   * @throws StorageRuntimeException
+   *          If an error occurred setting the indexes to trusted.
    */
-  void setIndexesTrusted(WriteableTransaction txn, boolean trusted) throws StorageRuntimeException
+  void setIndexesNotTrusted(WriteableTransaction txn, boolean onlyCurrentlyTrusted) throws StorageRuntimeException
   {
-    for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
+    for (AttributeIndex attrIndex : entryContainer.getAttributeIndexes())
     {
-      setTrusted(txn, attributeIndex.getNameToIndexes().values(), trusted);
+      if (!onlyCurrentlyTrusted || attrIndex.isTrusted())
+      {
+        setTrusted(txn, attrIndex.getNameToIndexes().values(), false);
+        attributeIndexes.add(attrIndex);
+      }
     }
-    for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+    for (VLVIndex vlvIndex : entryContainer.getVLVIndexes())
     {
-      vlvIdx.setTrusted(txn, trusted);
+      if (!onlyCurrentlyTrusted || vlvIndex.isTrusted())
+      {
+        vlvIndex.setTrusted(txn, false);
+        vlvIndexes.add(vlvIndex);
+      }
+    }
+  }
+
+  void setIndexesTrusted(WriteableTransaction txn) throws StorageRuntimeException
+  {
+    for (AttributeIndex attrIndex : attributeIndexes)
+    {
+      setTrusted(txn, attrIndex.getNameToIndexes().values(), true);
+    }
+    for (VLVIndex vlvIdx : vlvIndexes)
+    {
+      vlvIdx.setTrusted(txn, true);
     }
   }
 

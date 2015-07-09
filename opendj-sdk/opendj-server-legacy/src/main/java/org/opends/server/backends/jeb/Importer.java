@@ -246,7 +246,7 @@ final class Importer implements DiskSpaceMonitorHandler
   /** Map of container ids to database containers. */
   private final ConcurrentHashMap<Integer, Index> idContainerMap = new ConcurrentHashMap<>();
   /** Map of container ids to entry containers. */
-  private final ConcurrentHashMap<Integer, EntryContainer> idECMap = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Integer, Suffix> idSuffixMap = new ConcurrentHashMap<>();
 
   /** Used to synchronize when a scratch file index writer is first setup. */
   private final Object synObj = new Object();
@@ -670,7 +670,6 @@ final class Importer implements DiskSpaceMonitorHandler
       if (suffix != null)
       {
         dnSuffixMap.put(ec.getBaseDN(), suffix);
-        generateIndexID(suffix);
       }
     }
   }
@@ -681,7 +680,7 @@ final class Importer implements DiskSpaceMonitorHandler
    */
   private void generateIndexID(Suffix suffix)
   {
-    for (AttributeIndex attributeIndex : suffix.getAttrIndexMap().values())
+    for (AttributeIndex attributeIndex : suffix.getAttributeIndexes())
     {
       for(Index index : attributeIndex.getAllIndexes()) {
         putInIdContainerMap(index);
@@ -904,7 +903,7 @@ final class Importer implements DiskSpaceMonitorHandler
       logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION_NUMBER);
       logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
       initializeSuffixes();
-      setIndexesTrusted(false);
+      setupIndexesForImport();
 
       final long startTime = System.currentTimeMillis();
       phaseOne();
@@ -928,7 +927,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       final long phaseTwoFinishTime = System.currentTimeMillis();
 
-      setIndexesTrusted(true);
+      setIndexesTrusted();
       switchEntryContainers();
       recursiveDelete(tempDir);
       final long finishTime = System.currentTimeMillis();
@@ -1011,18 +1010,27 @@ final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  private void setIndexesTrusted(boolean trusted) throws JebException
+  private void setIndexesTrusted() throws JebException
   {
     try
     {
       for (Suffix s : dnSuffixMap.values())
       {
-        s.setIndexesTrusted(trusted);
+        s.setIndexesTrusted();
       }
     }
     catch (DatabaseException ex)
     {
       throw new JebException(NOTE_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage()));
+    }
+  }
+
+  private void setupIndexesForImport()
+  {
+    for (Suffix s : dnSuffixMap.values())
+    {
+      s.setIndexesNotTrusted(importConfiguration.appendToExistingData());
+      generateIndexID(s);
     }
   }
 
@@ -1459,10 +1467,9 @@ final class Importer implements DiskSpaceMonitorHandler
     void processAllIndexes(Suffix suffix, Entry entry, EntryID entryID)
         throws DatabaseException, DirectoryException, JebException, InterruptedException
     {
-      for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
+      for (AttributeIndex attrIndex : suffix.getAttributeIndexes())
       {
-        AttributeType attributeType = mapEntry.getKey();
-        fillIndexKey(suffix, mapEntry.getValue(), entry, attributeType, entryID);
+        fillIndexKey(suffix, attrIndex, entry, attrIndex.getAttributeType(), entryID);
       }
     }
 
@@ -1585,12 +1592,12 @@ final class Importer implements DiskSpaceMonitorHandler
     void processIndexes(Suffix suffix, Entry entry, EntryID entryID)
         throws DatabaseException, DirectoryException, JebException, InterruptedException
     {
-      for (Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
+      for (AttributeIndex attrIndex : suffix.getAttributeIndexes())
       {
-        AttributeType attributeType = mapEntry.getKey();
+        AttributeType attributeType = attrIndex.getAttributeType();
         if (entry.hasAttribute(attributeType))
         {
-          fillIndexKey(suffix, mapEntry.getValue(), entry, attributeType, entryID);
+          fillIndexKey(suffix, attrIndex, entry, attributeType, entryID);
         }
       }
     }
@@ -1712,7 +1719,7 @@ final class Importer implements DiskSpaceMonitorHandler
       DN2ID dn2id = suffix.getDN2ID();
       byte[] dnBytes = JebFormat.dnToDNKey(dn, suffix.getBaseDN().size());
       int id = processKey(dn2id, dnBytes, entryID, dnIndexKey, true);
-      idECMap.putIfAbsent(id, suffix.getEntryContainer());
+      idSuffixMap.putIfAbsent(id, suffix);
     }
 
     void processDN2URI(Suffix suffix, Entry oldEntry, Entry newEntry) throws DatabaseException
@@ -2074,7 +2081,7 @@ final class Importer implements DiskSpaceMonitorHandler
       DNState dnState;
       if (!dnStateMap.containsKey(indexID))
       {
-        dnState = new DNState(idECMap.get(indexID));
+        dnState = new DNState(idSuffixMap.get(indexID));
         dnStateMap.put(indexID, dnState);
       }
       else
@@ -2107,25 +2114,32 @@ final class Importer implements DiskSpaceMonitorHandler
       private final EntryContainer entryContainer;
       private final boolean isSubordinatesEnabled;
       // Fields below are only needed if the isSubordinatesEnabled boolean is true.
-      private final Map<byte[], ImportIDSet> id2childTree;
-      private final Map<byte[], ImportIDSet> id2subtreeTree;
-      private final int childLimit, subTreeLimit;
-      private final boolean childDoCount, subTreeDoCount;
+      private Map<byte[], ImportIDSet> id2childTree;
+      private Map<byte[], ImportIDSet> id2subtreeTree;
+      private int childLimit, subTreeLimit;
+      private boolean childDoCount, subTreeDoCount;
+      private boolean updateID2Children, updateID2Subtree;
 
-      DNState(EntryContainer entryContainer)
+      DNState(Suffix suffix)
       {
-        this.entryContainer = entryContainer;
+        this.entryContainer = suffix.getEntryContainer();
         parentIDMap = new TreeMap<>();
 
         isSubordinatesEnabled =  backendConfiguration.isSubordinateIndexesEnabled();
-        Comparator<byte[]> childComparator = entryContainer.getID2Children().getComparator();
-        id2childTree = new TreeMap<>(childComparator);
-        childLimit = entryContainer.getID2Children().getIndexEntryLimit();
-        childDoCount = isSubordinatesEnabled && entryContainer.getID2Children().getMaintainCount();
-        Comparator<byte[]> subComparator = entryContainer.getID2Subtree().getComparator();
-        subTreeLimit = entryContainer.getID2Subtree().getIndexEntryLimit();
-        subTreeDoCount = isSubordinatesEnabled && entryContainer.getID2Subtree().getMaintainCount();
-        id2subtreeTree = new TreeMap<>(subComparator);
+        if (suffix.isProcessID2Children())
+        {
+          childLimit = entryContainer.getID2Children().getIndexEntryLimit();
+          childDoCount = isSubordinatesEnabled && entryContainer.getID2Children().getMaintainCount();
+          id2childTree = new TreeMap<>(entryContainer.getID2Children().getComparator());
+          updateID2Children = true;
+        }
+        if (suffix.isProcessID2Subtree())
+        {
+          subTreeLimit = entryContainer.getID2Subtree().getIndexEntryLimit();
+          subTreeDoCount = isSubordinatesEnabled && entryContainer.getID2Subtree().getMaintainCount();
+          id2subtreeTree = new TreeMap<>(entryContainer.getID2Subtree().getComparator());
+          updateID2Subtree = true;
+        }
         dnKey = new DatabaseEntry();
         dnValue = new DatabaseEntry();
         lastDN = ByteBuffer.allocate(BYTE_BUFFER_CAPACITY);
@@ -2343,8 +2357,14 @@ final class Importer implements DiskSpaceMonitorHandler
         indexMgr.addTotDNCount(1);
         if (isSubordinatesEnabled && parentDN != null)
         {
-          id2child(entryID);
-          id2SubTree(entryID);
+          if (updateID2Children)
+          {
+            id2child(entryID);
+          }
+          if (updateID2Subtree)
+          {
+            id2SubTree(entryID);
+          }
         }
       }
 
@@ -2366,9 +2386,16 @@ final class Importer implements DiskSpaceMonitorHandler
 
       public void flush()
       {
-        if (isSubordinatesEnabled) {
-          flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
-          flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
+        if (isSubordinatesEnabled)
+        {
+          if (updateID2Children)
+          {
+            flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
+          }
+          if (updateID2Subtree)
+          {
+            flushMapToDB(id2subtreeTree, entryContainer.getID2Subtree(), false);
+          }
         }
       }
     }
@@ -3105,10 +3132,9 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       // rebuildList contains the user-selected index(in USER_DEFINED mode).
       final List<String> rebuildList = rebuildConfig.getRebuildList();
-      for (final Map.Entry<AttributeType, AttributeIndex> mapEntry : suffix.getAttrIndexMap().entrySet())
+      for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
       {
-        final AttributeType attributeType = mapEntry.getKey();
-        final AttributeIndex attributeIndex = mapEntry.getValue();
+        final AttributeType attributeType = attributeIndex.getAttributeType();
         if (rebuildConfig.getRebuildMode() == RebuildMode.ALL
             || rebuildConfig.getRebuildMode() == RebuildMode.DEGRADED)
         {
@@ -3204,9 +3230,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         if (reBuildDN2ID)
         {
-          EntryContainer ec = suffix.getEntryContainer();
-          ec.getID2Children().setTrusted(null, trusted);
-          ec.getID2Subtree().setTrusted(null, trusted);
+          suffix.forceTrustedDN2IDRelated(trusted);
         }
         setTrusted(indexMap.values(), trusted);
         if (!vlvIndexes.isEmpty())

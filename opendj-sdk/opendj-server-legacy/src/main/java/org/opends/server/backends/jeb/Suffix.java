@@ -34,7 +34,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.jeb.Importer.DNCache;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
 import com.sleepycat.je.DatabaseException;
@@ -59,6 +58,9 @@ class Suffix
   private static final int PARENT_ID_SET_SIZE = 16 * 1024;
   private final ConcurrentHashMap<DN, CountDownLatch> pendingMap = new ConcurrentHashMap<>();
   private final Set<DN> parentSet = new HashSet<>(PARENT_ID_SET_SIZE);
+  private final List<AttributeIndex> attributeIndexes = new ArrayList<>();
+  private final List<VLVIndex> vlvIndexes = new ArrayList<>();
+  private boolean processID2Children, processID2Subtree;
 
   /**
    * Creates a suffix instance using the specified parameters.
@@ -139,16 +141,25 @@ class Suffix
 
 
   /**
-   * Return the Attribute Type - Index map used to map an attribute type to an
-   * index instance.
+   * Returns a map associating the attribute types with their corresponding attribute indexes.
+   * The map contains only trusted indexes.
    *
-   * @return A suffixes Attribute Type - Index map.
+   * @return a map associating the attribute types with their corresponding trusted attribute indexes.
    */
-  public Map<AttributeType, AttributeIndex> getAttrIndexMap()
+  public List<AttributeIndex> getAttributeIndexes()
   {
-    return entryContainer.getAttributeIndexMap();
+    return attributeIndexes;
   }
 
+  /**
+   * Returns the list of trusted VLV indexes.
+   *
+   * @return the list of trusted VLV indexes.
+   */
+  public List<VLVIndex> getVLVIndexes()
+  {
+    return vlvIndexes;
+  }
 
   /**
    * Make sure the specified parent DN is not in the pending map.
@@ -248,38 +259,114 @@ class Suffix
   }
 
 
+  final boolean isProcessID2Children()
+  {
+    return processID2Children;
+  }
+
+  final boolean isProcessID2Subtree()
+  {
+    return processID2Subtree;
+  }
+
   /**
    * Sets the trusted status of all of the indexes, vlvIndexes, id2children
    * and id2subtree indexes.
    *
-   * @param trusted True if the indexes should be trusted or false
-   *                otherwise.
-   *
    * @throws DatabaseException If an error occurred setting the indexes to
    *                           trusted.
    */
-  public void setIndexesTrusted(boolean trusted) throws DatabaseException
+  public void setIndexesTrusted() throws DatabaseException
   {
-    entryContainer.getID2Children().setTrusted(null,trusted);
-    entryContainer.getID2Subtree().setTrusted(null, trusted);
-    for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
+    if (processID2Children)
     {
-      for (Index index : attributeIndex.getAllIndexes())
-      {
-        setTrusted(index, trusted);
-      }
+      entryContainer.getID2Children().setTrusted(null, true);
     }
-    for (VLVIndex vlvIdx : entryContainer.getVLVIndexes())
+    if (processID2Subtree)
     {
-      vlvIdx.setTrusted(null, trusted);
+      entryContainer.getID2Subtree().setTrusted(null, true);
+    }
+    for (AttributeIndex attrIndex : attributeIndexes)
+    {
+      setTrusted(attrIndex, true);
+    }
+    for (VLVIndex vlvIdx : vlvIndexes)
+    {
+      vlvIdx.setTrusted(null, true);
     }
   }
 
-  private void setTrusted(Index index, boolean trusted)
+  /**
+   * Build the lists of indexes to process and set their status as not trusted.
+   * ID2Children and ID2Subtree are also considered, albeit as special cases.
+   *
+   * @param onlyDegraded
+   *           true if currently untrusted indexes should be processed as well.
+   * @throws DatabaseException
+   *           If an error occurred setting the indexes to trusted.
+   */
+  public void setIndexesNotTrusted(boolean onlyDegraded) throws DatabaseException
   {
-    if (index != null)
+    setNotTrustedDN2IDRelatedIndexes(onlyDegraded);
+    for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
-      index.setTrusted(null, trusted);
+      if (!onlyDegraded || attributeIndex.isTrusted())
+      {
+        attributeIndexes.add(attributeIndex);
+        setTrusted(attributeIndex, false);
+      }
+    }
+    for (VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+    {
+      if (!onlyDegraded || vlvIndex.isTrusted())
+      {
+        vlvIndex.setTrusted(null, false);
+        vlvIndexes.add(vlvIndex);
+      }
+    }
+  }
+
+  private void setNotTrustedDN2IDRelatedIndexes(boolean onlyDegraded)
+  {
+    if (setNotTrustedDN2IDRelated(entryContainer.getID2Children(), onlyDegraded))
+    {
+      processID2Children = true;
+    }
+    if (setNotTrustedDN2IDRelated(entryContainer.getID2Subtree(), onlyDegraded))
+    {
+      processID2Subtree = true;
+    }
+  }
+
+  private boolean setNotTrustedDN2IDRelated(Index auxIndex, boolean onlyDegraded)
+  {
+    if (!onlyDegraded || auxIndex.isTrusted())
+    {
+      auxIndex.setTrusted(null, false);
+      return true;
+    }
+    return false;
+  }
+
+  private void setTrusted(AttributeIndex attrIndex, boolean trusted)
+  {
+    for (Index index : attrIndex.getAllIndexes())
+    {
+      if (index != null)
+      {
+        index.setTrusted(null, trusted);
+      }
+    }
+  }
+
+  void forceTrustedDN2IDRelated(boolean trusted)
+  {
+    entryContainer.getID2Children().setTrusted(null, trusted);
+    entryContainer.getID2Subtree().setTrusted(null, trusted);
+    if (!trusted)
+    {
+      processID2Subtree = true;
+      processID2Children = true;
     }
   }
 
