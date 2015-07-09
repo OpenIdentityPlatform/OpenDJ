@@ -111,7 +111,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
     final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter)
         .addAttribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
     InternalSearchOperation searchOp = getRootConnection().processSearch(request);
-    assertTrue(0 < searchOp.getSearchEntries().size());
+    assertFalse(searchOp.getSearchEntries().isEmpty());
 
     final InternalClientConnection internalConnection =
          InternalClientConnection.getRootConnection();

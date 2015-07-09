@@ -99,12 +99,12 @@ public class SimilarityBasedPasswordValidator extends
                         ? ByteString.empty()
                         : newPassword;
 
-    if (currentPasswords == null || currentPasswords.size() == 0) {
+    if (currentPasswords == null || currentPasswords.isEmpty()) {
       // This validator requires access to at least one current password.
       // If we don't have a current password, then we can't validate it, so
       // we'll have to assume it is OK.  Ideally, the password policy should be
       // configured to always require the current password, but even then the
-      // current password probably won't be availble during an administrative
+      // current password probably won't be available during an administrative
       // password reset.
       return true;
     }

@@ -710,9 +710,7 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testListToArray(String[] strings) throws Exception {
     if (strings != null) {
       List<String> list = new ArrayList<>(strings.length);
-      for (String string : strings) {
-        list.add(string);
-      }
+      Collections.addAll(list, strings);
       Assert.assertEquals(StaticUtils.listToArray(list), strings);
     } else {
       Assert.assertNull(StaticUtils.listToArray(null));

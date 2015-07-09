@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.client.ldap;
 
-
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,16 +34,11 @@ import java.util.TreeSet;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
-import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfgClient;
-import org.opends.server.admin.client.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
@@ -55,8 +48,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-
 
 /**
  * Test cases for aggregations on the client-side.
@@ -365,13 +356,8 @@ public class AggregationClientTest extends AdminTestCase {
 
 
   /** Retrieve the named test parent managed object. */
-  private TestParentCfgClient getTestParent(ManagementContext context,
-      String name) throws DefinitionDecodingException,
-      ManagedObjectDecodingException, AuthorizationException,
-      ManagedObjectNotFoundException, ConcurrentModificationException,
-      CommunicationException {
-    ManagedObject<RootCfgClient> root = context
-        .getRootConfigurationManagedObject();
+  private TestParentCfgClient getTestParent(ManagementContext context, String name) throws Exception {
+    ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
     return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(),
         name).getConfiguration();
   }
@@ -383,11 +369,8 @@ public class AggregationClientTest extends AdminTestCase {
     SortedSet<String> values = new TreeSet<>(TestChildCfgDefn
         .getInstance().getAggregationPropertyPropertyDefinition());
     if (expected != null) {
-      for (String value : expected) {
-        values.add(value);
-      }
+      Collections.addAll(values, expected);
     }
     Assert.assertEquals((Object) actual, (Object) values);
   }
-
 }

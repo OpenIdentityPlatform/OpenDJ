@@ -1690,26 +1690,7 @@ public class LocalBackendModifyOperation
       HashSet<ByteString> clearPasswords = new HashSet<>(pwPolicyState.getClearPasswords());
       if (currentPasswords != null)
       {
-        if (clearPasswords.isEmpty())
-        {
-          clearPasswords.addAll(currentPasswords);
-        }
-        else
-        {
-          // NOTE:  We can't rely on the fact that Set doesn't allow
-          // duplicates because technically it's possible that the values
-          // aren't duplicates if they are ASN.1 elements with different types
-          // (like 0x04 for a standard universal octet string type versus 0x80
-          // for a simple password in a bind operation).  So we have to
-          // manually check for duplicates.
-          for (ByteString pw : currentPasswords)
-          {
-            if (!clearPasswords.contains(pw))
-            {
-              clearPasswords.add(pw);
-            }
-          }
-        }
+        clearPasswords.addAll(currentPasswords);
       }
 
       for (ByteString v : newPasswords)

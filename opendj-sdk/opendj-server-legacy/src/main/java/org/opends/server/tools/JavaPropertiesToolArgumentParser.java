@@ -142,7 +142,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
               ERR_JAVAPROPERTIES_WITH_DESTINATION_FILE.get(value));
         }
       }
-      if (errorMessages.size() > 0)
+      if (!errorMessages.isEmpty())
       {
         LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(
             Utils.getMessageFromCollection(errorMessages,

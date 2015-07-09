@@ -116,9 +116,8 @@ class ADSContextHelper
         suffixes = new TreeSet<>();
       }
       DN newDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
-      if (!suffixes.contains(newDN))
+      if (suffixes.add(newDN))
       {
-        suffixes.add(newDN);
         backend.setBaseDN(suffixes);
         backend.commit();
       }

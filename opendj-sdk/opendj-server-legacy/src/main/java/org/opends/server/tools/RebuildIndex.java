@@ -189,7 +189,8 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
-    if (indexList.getValues().size() <= 0 && !rebuildAll.isPresent()
+    if (indexList.getValues().isEmpty()
+        && !rebuildAll.isPresent()
         && !rebuildDegraded.isPresent())
     {
       final LocalizableMessage message =

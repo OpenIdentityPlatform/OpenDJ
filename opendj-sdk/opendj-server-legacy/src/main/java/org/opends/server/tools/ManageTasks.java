@@ -404,7 +404,7 @@ public class ManageTasks extends ConsoleApplication {
   private void printSummaryTable()
           throws LDAPException, IOException, DecodeException {
     List<TaskEntry> entries = taskClient.getTaskEntries();
-    if (entries.size() > 0) {
+    if (!entries.isEmpty()) {
       TableBuilder table = new TableBuilder();
       Map<String, TaskEntry> mapIdToEntry = new TreeMap<>();
       for (TaskEntry entry : entries) {
@@ -452,7 +452,7 @@ public class ManageTasks extends ConsoleApplication {
     List<Integer> cancelableIndices = new ArrayList<>();
     List<TaskEntry> entries = taskClient.getTaskEntries();
     MenuBuilder<Void> menuBuilder = new MenuBuilder<>(this);
-    if (entries.size() > 0) {
+    if (!entries.isEmpty()) {
       Map<String, TaskEntry> mapIdToEntry = new TreeMap<>();
       for (TaskEntry entry : entries) {
         String taskId = entry.getId();
@@ -489,7 +489,7 @@ public class ManageTasks extends ConsoleApplication {
             INFO_TASKINFO_CMD_REFRESH.get(),
             new PrintSummaryTop());
 
-    if (cancelableIndices.size() > 0) {
+    if (!cancelableIndices.isEmpty()) {
       menuBuilder.addCharOption(
               INFO_TASKINFO_CMD_CANCEL_CHAR.get(),
               INFO_TASKINFO_CMD_CANCEL.get(),
@@ -623,7 +623,7 @@ public class ManageTasks extends ConsoleApplication {
                     INFO_TASKINFO_CMD_REFRESH.get(),
                     new PrintTaskInfo(taskId));
             List<LocalizableMessage> logs = taskEntry.getLogMessages();
-            if (logs != null && logs.size() > 0) {
+            if (logs != null && !logs.isEmpty()) {
               menuBuilder.addCharOption(
                       INFO_TASKINFO_CMD_VIEW_LOGS_CHAR.get(),
                       INFO_TASKINFO_CMD_VIEW_LOGS.get(),
@@ -757,7 +757,7 @@ public class ManageTasks extends ConsoleApplication {
           table.startRow();
           table.appendCell(attrName);
           List<String> values = taskSpecificAttrs.get(attrName);
-          if (values.size() > 0) {
+          if (!values.isEmpty()) {
             table.appendCell(values.get(0));
           }
           if (values.size() > 1) {
@@ -778,8 +778,7 @@ public class ManageTasks extends ConsoleApplication {
 
         // Print the last log message if any
         List<LocalizableMessage> logs = taskEntry.getLogMessages();
-        if (logs != null && logs.size() > 0) {
-
+        if (logs != null && !logs.isEmpty()) {
           // Create a table for the last log entry
           table = new TableBuilder();
           table.appendHeading(INFO_TASKINFO_FIELD_LAST_LOG.get());
@@ -797,8 +796,7 @@ public class ManageTasks extends ConsoleApplication {
 
         app.getOutputStream().println();
       } catch (Exception e) {
-        app.println(ERR_TASKINFO_RETRIEVING_TASK_ENTRY.get(
-                    taskId, e.getMessage()));
+        app.println(ERR_TASKINFO_RETRIEVING_TASK_ENTRY.get(taskId, e.getMessage()));
         return MenuResult.again();
       }
       return MenuResult.success(taskEntry);
@@ -873,7 +871,7 @@ public class ManageTasks extends ConsoleApplication {
         // Create a table for the last log entry
         TableBuilder table = new TableBuilder();
         table.appendHeading(INFO_TASKINFO_FIELD_LOG.get());
-        if (logs != null && logs.size() > 0) {
+        if (logs != null && !logs.isEmpty()) {
           for (LocalizableMessage log : logs) {
             table.startRow();
             table.appendCell(log);
@@ -923,8 +921,8 @@ public class ManageTasks extends ConsoleApplication {
     public MenuResult<Void> invoke(ManageTasks app)
             throws ClientException
     {
-      if (taskIds != null && taskIds.size() > 0) {
-        if (cancelableIndices != null && cancelableIndices.size() > 0) {
+      if (taskIds != null && !taskIds.isEmpty()) {
+        if (cancelableIndices != null && !cancelableIndices.isEmpty()) {
 
           // Prompt for the task number
           Integer index = null;

@@ -27,6 +27,7 @@
 package org.opends.server.admin.server;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -912,9 +913,7 @@ public final class AggregationServerTest extends AdminTestCase {
     SortedSet<String> values = new TreeSet<>(TestChildCfgDefn
         .getInstance().getAggregationPropertyPropertyDefinition());
     if (expected != null) {
-      for (String value : expected) {
-        values.add(value);
-      }
+      Collections.addAll(values, expected);
     }
     Assert.assertEquals((Object) actual, (Object) values);
   }

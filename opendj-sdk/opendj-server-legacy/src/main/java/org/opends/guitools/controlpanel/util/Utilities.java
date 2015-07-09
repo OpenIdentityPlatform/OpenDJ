@@ -2481,7 +2481,7 @@ public class Utilities
     if (sr != null)
     {
       List<Object> values = sr.getAttributeValues(attrName);
-      if (values != null && values.size() > 0)
+      if (values != null && !values.isEmpty())
       {
         Object o = values.iterator().next();
         try

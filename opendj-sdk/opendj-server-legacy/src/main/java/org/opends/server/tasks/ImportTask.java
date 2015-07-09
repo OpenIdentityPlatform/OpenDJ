@@ -34,6 +34,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -376,10 +377,7 @@ public class ImportTask extends Task
 
     // Make sure the selected backend will handle all the include branches
     defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs().length);
-    for (DN dn : backend.getBaseDNs())
-    {
-      defaultIncludeBranches.add(dn);
-    }
+    Collections.addAll(defaultIncludeBranches, backend.getBaseDNs());
 
     for(DN includeBranch : includeBranches)
     {
@@ -557,10 +555,7 @@ public class ImportTask extends Task
 
     // Find backends with subordinate base DNs that should be excluded from the import.
     defaultIncludeBranches = new HashSet<>(backend.getBaseDNs().length);
-    for (DN dn : backend.getBaseDNs())
-    {
-      defaultIncludeBranches.add(dn);
-    }
+    Collections.addAll(defaultIncludeBranches, backend.getBaseDNs());
 
     if (backend.getSubordinateBackends() != null)
     {

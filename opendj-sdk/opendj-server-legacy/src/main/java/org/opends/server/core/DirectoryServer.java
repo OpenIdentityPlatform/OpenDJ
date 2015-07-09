@@ -1989,25 +1989,9 @@ public final class DirectoryServer
       Map<String, List<ConfigDeleteListener>> deleteListeners,
       Map<String, List<ConfigChangeListener>> changeListeners)
   {
-    List<ConfigAddListener> cfgAddListeners = configEntry.getAddListeners();
-    if (cfgAddListeners != null && cfgAddListeners.size() > 0)
-    {
-      addListeners.put(configEntry.getDN().toString(), cfgAddListeners);
-    }
-
-    List<ConfigDeleteListener> cfgDeleteListeners =
-        configEntry.getDeleteListeners();
-    if (cfgDeleteListeners != null && cfgDeleteListeners.size() > 0)
-    {
-      deleteListeners.put(configEntry.getDN().toString(), cfgDeleteListeners);
-    }
-
-    List<ConfigChangeListener> cfgChangeListeners =
-        configEntry.getChangeListeners();
-    if (cfgChangeListeners != null && cfgChangeListeners.size() > 0)
-    {
-      changeListeners.put(configEntry.getDN().toString(), cfgChangeListeners);
-    }
+    put(addListeners, configEntry, configEntry.getAddListeners());
+    put(deleteListeners, configEntry, configEntry.getDeleteListeners());
+    put(changeListeners, configEntry, configEntry.getChangeListeners());
 
     for (ConfigEntry child : configEntry.getChildren().values())
     {
@@ -2015,7 +1999,13 @@ public final class DirectoryServer
     }
   }
 
-
+  private <T> void put(Map<String, List<T>> listeners, ConfigEntry configEntry, List<T> cfgListeners)
+  {
+    if (cfgListeners != null && !cfgListeners.isEmpty())
+    {
+      listeners.put(configEntry.getDN().toString(), cfgListeners);
+    }
+  }
 
   /**
    * Retrieves the set of backend initialization listeners that have been
@@ -5990,7 +5980,7 @@ public final class DirectoryServer
     {
       for (HostPort listener : c.getListeners())
       {
-        if (usedListeners.contains(listener))
+        if (!usedListeners.add(listener))
         {
           // The port was already specified: this is a configuration error,
           // log a message.
@@ -5998,14 +5988,10 @@ public final class DirectoryServer
           logger.error(message);
           errorMessages.add(message);
         }
-        else
-        {
-          usedListeners.add(listener);
-        }
       }
     }
 
-    if (errorMessages.size() > 0)
+    if (!errorMessages.isEmpty())
     {
       throw new ConfigException(ERR_ERROR_STARTING_CONNECTION_HANDLERS.get());
     }

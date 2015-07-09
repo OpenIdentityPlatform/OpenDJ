@@ -432,14 +432,14 @@ public class VerifyJob
     {
       iterateID2Subtree();
     }
-    else if (attrIndexList.size() > 0)
+    else if (!attrIndexList.isEmpty())
     {
       for (Index index : attrIndexList.get(0).getAllIndexes())
       {
         iterateAttrIndex(index);
       }
     }
-    else if (vlvIndexList.size() > 0)
+    else if (!vlvIndexList.isEmpty())
     {
       iterateVLVIndex(vlvIndexList.get(0), true);
     }
@@ -1565,7 +1565,7 @@ public class VerifyJob
         {
           totalCount = id2s.getRecordCount();
         }
-        else if(attrIndexList.size() > 0)
+        else if(!attrIndexList.isEmpty())
         {
           AttributeIndex attrIndex = attrIndexList.get(0);
           totalCount = 0;
@@ -1574,7 +1574,7 @@ public class VerifyJob
             totalCount += getRecordCount(index);
           }
         }
-        else if (vlvIndexList.size() > 0)
+        else if (!vlvIndexList.isEmpty())
         {
           totalCount = vlvIndexList.get(0).getRecordCount();
         }

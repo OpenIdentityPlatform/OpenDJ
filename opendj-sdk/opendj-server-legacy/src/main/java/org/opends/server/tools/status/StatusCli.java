@@ -573,7 +573,7 @@ class StatusCli extends ConsoleApplication
   private void writeAdministrativeUserContents(ServerDescriptor desc, int maxLabelWidth)
   {
     Set<DN> administrators = desc.getAdministrativeUsers();
-    if (administrators.size() > 0)
+    if (!administrators.isEmpty())
     {
       TreeSet<DN> ordered = new TreeSet<>(administrators);
       for (DN dn : ordered)
@@ -701,7 +701,7 @@ class StatusCli extends ConsoleApplication
     }
 
     Set<ConnectionHandlerDescriptor> allHandlers = desc.getConnectionHandlers();
-    if (allHandlers.size() == 0)
+    if (allHandlers.isEmpty())
     {
       if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
       {
@@ -752,7 +752,7 @@ class StatusCli extends ConsoleApplication
         replicas.addAll(backend.getBaseDns());
       }
     }
-    if (replicas.size() == 0)
+    if (replicas.isEmpty())
     {
       if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
       {

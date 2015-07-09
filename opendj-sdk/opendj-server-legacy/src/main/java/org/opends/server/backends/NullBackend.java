@@ -163,10 +163,7 @@ public class NullBackend extends Backend<BackendCfg>
   public synchronized void openBackend() throws ConfigException, InitializationException
   {
     baseDNSet = new HashSet<>();
-    for (DN dn : baseDNs)
-    {
-      baseDNSet.add(dn);
-    }
+    Collections.addAll(baseDNSet, baseDNs);
 
     // Register base DNs.
     for (DN dn : baseDNs)

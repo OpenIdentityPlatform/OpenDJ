@@ -837,7 +837,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
     if (r instanceof InstantiableRelationDefinition) {
       InstantiableRelationDefinition<? super C, ? super S> ir =
         (InstantiableRelationDefinition<? super C, ? super S>) r;
-      if (elements.size() == 0) {
+      if (elements.isEmpty()) {
         return parent().child(ir, nd, "null");
       } else {
         return parent().child(ir, nd,
@@ -1302,10 +1302,9 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
    *           path element does not comprise of an instantiable
    *           relation.
    */
-  @SuppressWarnings("unchecked")
   public ManagedObjectPath<C, S> rename(String newName)
       throws IllegalStateException {
-    if (elements.size() == 0) {
+    if (elements.isEmpty()) {
       throw new IllegalStateException("Cannot rename an empty path");
     }
 

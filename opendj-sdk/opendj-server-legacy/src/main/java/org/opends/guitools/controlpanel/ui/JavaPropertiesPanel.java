@@ -41,6 +41,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -110,10 +111,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private Set<JavaArgumentsDescriptor> readJavaArguments = new HashSet<>();
   private Set<JavaArgumentsDescriptor> currentJavaArguments = new HashSet<>();
-  private Set<String> allScriptNames = new HashSet<>();
-  {
-    String[] names =
-    {
+  private Set<String> allScriptNames = new HashSet<>(Arrays.asList(
         "start-ds", "import-ldif.offline", "backup.online", "base64",
         "create-rc-script", "dsconfig", "dsreplication",
         "export-ldif.online", "import-ldif.online", "ldapcompare",
@@ -124,27 +122,14 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         "ldif-diff", "ldifmodify", "ldifsearch", "make-ldif",
         "rebuild-index", "restore.offline", "upgrade",
         "verify-index", "dbtest"
-    };
-    for (String name : names)
-    {
-      allScriptNames.add(name);
-    }
-  }
+      ));
 
-  private Set<String> relevantScriptNames = new HashSet<>();
-  {
-    String[] relevantNames =
-    {
+  private Set<String> relevantScriptNames = new HashSet<>(Arrays.asList(
         "start-ds", "import-ldif.offline", "backup.offline",
         "export-ldif.offline",
         "ldif-diff", "make-ldif", "rebuild-index", "restore.offline",
         "verify-index", "dbtest"
-    };
-    for (String name : relevantNames)
-    {
-      relevantScriptNames.add(name);
-    }
-  }
+      ));
 
   private String readJavaHome;
   private boolean readUseOpenDSJavaHome;

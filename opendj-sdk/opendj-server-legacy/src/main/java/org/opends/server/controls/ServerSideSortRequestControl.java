@@ -394,7 +394,7 @@ public class ServerSideSortRequestControl
     {
       buffer.append("SortOrder(");
 
-      if (decodedKeyList.size() > 0)
+      if (!decodedKeyList.isEmpty())
       {
         decodedKeyToString(decodedKeyList.get(0), buffer);
 

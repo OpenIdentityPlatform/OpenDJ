@@ -419,8 +419,8 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           for (int i=0; i<msgs.length; i++)
           {
-            boolean ignore = (i == 6 && outsideDbs.size() == 0) ||
-            (i == 7 && outsideLogs.size() == 0);
+            boolean ignore = (i == 6 && outsideDbs.isEmpty())
+                || (i == 7 && outsideLogs.isEmpty());
             if (!ignore)
             {
               answers[i] = askConfirmation(msgs[i], true, logger);
@@ -481,8 +481,8 @@ public class UninstallCliHelper extends ConsoleApplication {
               break;
             }
           }
-          if (userData.getExternalDbsToRemove().size() == 0 &&
-              userData.getExternalLogsToRemove().size() == 0 &&
+          if (userData.getExternalDbsToRemove().isEmpty() &&
+              userData.getExternalLogsToRemove().isEmpty() &&
               !userData.getRemoveLibrariesAndTools() &&
               !userData.getRemoveDatabases() &&
               !userData.getRemoveConfigurationAndSchema() &&
@@ -1385,7 +1385,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     if (isInteractive())
     {
-      if (!stopProcessing && exceptionMsgs.size() > 0)
+      if (!stopProcessing && !exceptionMsgs.isEmpty())
       {
         println();
         try
@@ -1412,7 +1412,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     else
     {
       logger.info(LocalizableMessage.raw("exceptionMsgs: "+exceptionMsgs));
-      if (exceptionMsgs.size() > 0)
+      if (!exceptionMsgs.isEmpty())
       {
         if (parser.isForceOnError())
         {

@@ -228,11 +228,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add("-s");
     argList.add("sub");
     argList.add(filter);
-    String[] attrs=attr.split("\\s+");
-    for(String a : attrs)
-    {
-      argList.add(a);
-    }
+    Collections.addAll(argList, attr.split("\\s+"));
     String[] args = new String[argList.size()];
     oStream.reset();
     int retVal =

@@ -228,7 +228,7 @@ public class TaskClient {
 
     // add dependency IDs
     List<String> dependencyIds = information.getDependencyIds();
-    if (dependencyIds != null && dependencyIds.size() > 0) {
+    if (dependencyIds != null && !dependencyIds.isEmpty()) {
       ArrayList<ByteString> dependencyIdValues = new ArrayList<>(dependencyIds.size());
       for (String dependencyId : dependencyIds) {
         dependencyIdValues.add(ByteString.valueOf(dependencyId));
@@ -248,7 +248,7 @@ public class TaskClient {
     // add completion notification email addresses
     List<String> compNotifEmailAddresss =
             information.getNotifyUponCompletionEmailAddresses();
-    if (compNotifEmailAddresss != null && compNotifEmailAddresss.size() > 0) {
+    if (compNotifEmailAddresss != null && !compNotifEmailAddresss.isEmpty()) {
       ArrayList<ByteString> compNotifEmailAddrValues = new ArrayList<>(compNotifEmailAddresss.size());
       for (String emailAddr : compNotifEmailAddresss) {
         compNotifEmailAddrValues.add(ByteString.valueOf(emailAddr));
@@ -259,7 +259,7 @@ public class TaskClient {
     // add error notification email addresses
     List<String> errNotifEmailAddresss =
             information.getNotifyUponErrorEmailAddresses();
-    if (errNotifEmailAddresss != null && errNotifEmailAddresss.size() > 0) {
+    if (errNotifEmailAddresss != null && !errNotifEmailAddresss.isEmpty()) {
       ArrayList<ByteString> errNotifEmailAddrValues = new ArrayList<>(errNotifEmailAddresss.size());
       for (String emailAddr : errNotifEmailAddresss) {
         errNotifEmailAddrValues.add(ByteString.valueOf(emailAddr));

@@ -312,30 +312,20 @@ public class AttributeCleanupPlugin extends
         isValid = false;
       }
 
-      /*
-       * Check for duplicates.
-       */
+      // Check for duplicates.
       final String nfromAttr = toLowerCase(fromAttr);
-      if (fromAttrs.contains(nfromAttr))
+      if (!fromAttrs.add(nfromAttr))
       {
         messages.add(ERR_PLUGIN_ATTR_CLEANUP_DUPLICATE_VALUE.get(fromAttr));
         isValid = false;
       }
-      else
-      {
-        fromAttrs.add(nfromAttr);
-      }
 
-      /*
-       * Check that attribute does not map to itself.
-       */
+      // Check that attribute does not map to itself.
       if (nfromAttr.equals(toLowerCase(toAttr)))
       {
-        messages
-            .add(ERR_PLUGIN_ATTR_CLEANUP_EQUAL_VALUES.get(fromAttr, toAttr));
+        messages.add(ERR_PLUGIN_ATTR_CLEANUP_EQUAL_VALUES.get(fromAttr, toAttr));
         isValid = false;
       }
-
     }
 
     return isValid;

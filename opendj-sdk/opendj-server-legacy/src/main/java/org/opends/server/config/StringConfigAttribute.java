@@ -899,7 +899,7 @@ public final class StringConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    if (activeValues.size() > 0)
+    if (!activeValues.isEmpty())
     {
       if (isMultiValued())
       {

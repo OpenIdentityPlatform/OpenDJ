@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -222,16 +223,10 @@ public class JMXAlertHandler
     for (JMXMBean mBean : mBeans.values())
     {
       MBeanInfo mBeanInfo = mBean.getMBeanInfo();
-      for (MBeanNotificationInfo notification: mBeanInfo.getNotifications())
-      {
-        notifications.add(notification);
-      }
+      Collections.addAll(notifications, mBeanInfo.getNotifications());
     }
 
-    MBeanNotificationInfo[] notificationArray =
-         new MBeanNotificationInfo[notifications.size()];
-    notifications.toArray(notificationArray);
-    return notificationArray;
+    return notifications.toArray(new MBeanNotificationInfo[notifications.size()]);
   }
 
 

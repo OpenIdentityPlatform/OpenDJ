@@ -1095,7 +1095,7 @@ public class LDAPSearch
 
     ArrayList<String> filterAndAttributeStrings =
       argParser.getTrailingArguments();
-    if(filterAndAttributeStrings.size() > 0)
+    if(!filterAndAttributeStrings.isEmpty())
     {
       // the list of trailing arguments should be structured as follow:
       // - If a filter file is present, trailing arguments are considered

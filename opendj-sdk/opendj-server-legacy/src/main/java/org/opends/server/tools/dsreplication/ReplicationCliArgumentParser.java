@@ -357,7 +357,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         }
       }
     }
-    if (errors.size() > 0)
+    if (!errors.isEmpty())
     {
       for (LocalizableMessage error : errors)
       {

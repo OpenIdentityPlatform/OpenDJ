@@ -536,8 +536,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
             ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(userDN, groupEntryDN, modifyOperation.getErrorMessage()));
       }
 
-      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>(memberDNs.size()+1);
-      newMemberDNs.addAll(memberDNs);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
       newMemberDNs.add(compactUserDN);
       memberDNs = newMemberDNs;
     }

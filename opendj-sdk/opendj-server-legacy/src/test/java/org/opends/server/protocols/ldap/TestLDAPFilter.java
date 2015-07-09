@@ -225,21 +225,28 @@ public class TestLDAPFilter extends LdapTestCase
     {
       assertEquals(decoded.getNOTComponent().toString(), filter.getNOTComponent().toString());
     }
-    if(decoded.getSubAnyElements() != null && decoded.getSubAnyElements().size() > 0 ||
-        filter.getSubAnyElements() != null && filter.getSubAnyElements().size() > 0)
+    if(isNotEmpty(decoded.getSubAnyElements()) || isNotEmpty(filter.getSubAnyElements()))
     {
       assertEquals(decoded.getSubAnyElements(), filter.getSubAnyElements());
     }
-    if(decoded.getSubFinalElement() != null && !decoded.getSubFinalElement().toString().equals("") ||
-      filter.getSubFinalElement() != null && !filter.getSubFinalElement().toString().equals(""))
+    if(isNotEmpty(decoded.getSubFinalElement()) || isNotEmpty(filter.getSubFinalElement()))
     {
       assertEquals(decoded.getSubFinalElement(), filter.getSubFinalElement());
     }
-    if(decoded.getSubInitialElement() != null && !decoded.getSubInitialElement().toString().equals("") ||
-        filter.getSubInitialElement() != null && !filter.getSubInitialElement().toString().equals(""))
+    if(isNotEmpty(decoded.getSubInitialElement()) || isNotEmpty(filter.getSubInitialElement()))
     {
       assertEquals(decoded.getSubInitialElement(), filter.getSubInitialElement());
     }
+  }
+
+  private boolean isNotEmpty(ByteString bs)
+  {
+    return bs != null && !bs.toString().equals("");
+  }
+
+  private boolean isNotEmpty(ArrayList<ByteString> col)
+  {
+    return col != null && !col.isEmpty();
   }
 
   @Test(dataProvider = "badfilterstrings", expectedExceptions = LDAPException.class)

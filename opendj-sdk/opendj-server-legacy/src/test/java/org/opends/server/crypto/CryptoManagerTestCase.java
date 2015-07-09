@@ -369,7 +369,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
             .append(")").toString();
     final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter).addAttribute("dn");
     InternalSearchOperation searchOp = getRootConnection().processSearch(request);
-    assertTrue(0 < searchOp.getSearchEntries().size());
+    assertFalse(searchOp.getSearchEntries().isEmpty());
 
     String compromisedTime = TimeThread.getGeneralizedTime();
     for (Entry e : searchOp.getSearchEntries()) {
