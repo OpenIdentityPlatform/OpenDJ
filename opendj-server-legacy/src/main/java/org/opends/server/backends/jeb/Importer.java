@@ -2884,11 +2884,6 @@ final class Importer implements DiskSpaceMonitorHandler
     /** List of VLV indexes. */
     private final List<VLVIndex> vlvIndexes = new LinkedList<>();
 
-    /** The DN2ID index. */
-    private DN2ID dn2id;
-    /** The DN2URI index. */
-    private DN2URI dn2uri;
-
     /** Total entries to be processed. */
     private long totalEntries;
 
@@ -2900,6 +2895,10 @@ final class Importer implements DiskSpaceMonitorHandler
 
     /** The entry container. */
     private EntryContainer entryContainer;
+
+    private boolean reBuildDN2ID;
+    private boolean reBuildDN2URI;
+
 
     /**
      * Create an instance of the rebuild index manager using the specified
@@ -3045,7 +3044,7 @@ final class Importer implements DiskSpaceMonitorHandler
         // If not in a 'clear degraded state' operation,
         // need to rebuild the indexes.
         setRebuildListIndexesTrusted(false);
-        clearIndexes(true);
+        clearIndexes();
         phaseOne();
         if (isCanceled)
         {
@@ -3076,11 +3075,11 @@ final class Importer implements DiskSpaceMonitorHandler
             || !entryContainer.getID2Children().isTrusted()
             || !entryContainer.getID2Subtree().isTrusted())
         {
-          dn2id = entryContainer.getDN2ID();
+          reBuildDN2ID = true;
         }
         if (mode == RebuildMode.ALL || entryContainer.getDN2URI() == null)
         {
-          dn2uri = entryContainer.getDN2URI();
+          reBuildDN2URI = true;
         }
         if (mode == RebuildMode.DEGRADED
             || entryContainer.getAttributeIndexes().isEmpty())
@@ -3151,18 +3150,13 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void clearIndexes(boolean onlyDegraded) throws DatabaseException
+    private void clearIndexes() throws DatabaseException
     {
-      // Clears all the entry's container databases which are containing the indexes
-      if (!onlyDegraded)
+      if (reBuildDN2URI)
       {
-        // dn2uri does not have a trusted status.
         entryContainer.clearDatabase(entryContainer.getDN2URI());
       }
-
-      if (!onlyDegraded
-          || !entryContainer.getID2Children().isTrusted()
-          || !entryContainer.getID2Subtree().isTrusted())
+      if (reBuildDN2ID)
       {
         entryContainer.clearDatabase(entryContainer.getDN2ID());
         entryContainer.clearDatabase(entryContainer.getID2Children());
@@ -3173,7 +3167,7 @@ final class Importer implements DiskSpaceMonitorHandler
       {
         for (final Map.Entry<IndexKey, Index> mapEntry : indexMap.entrySet())
         {
-          if (!onlyDegraded || !mapEntry.getValue().isTrusted())
+          if (!mapEntry.getValue().isTrusted())
           {
             entryContainer.clearDatabase(mapEntry.getValue());
           }
@@ -3196,7 +3190,7 @@ final class Importer implements DiskSpaceMonitorHandler
 
       for (final VLVIndex vlvIndex : entryContainer.getVLVIndexes())
       {
-        if (!onlyDegraded || !vlvIndex.isTrusted())
+        if (!vlvIndex.isTrusted())
         {
           entryContainer.clearDatabase(vlvIndex);
         }
@@ -3208,7 +3202,7 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       try
       {
-        if (dn2id != null)
+        if (reBuildDN2ID)
         {
           EntryContainer ec = suffix.getEntryContainer();
           ec.getID2Children().setTrusted(null, trusted);
@@ -3470,11 +3464,11 @@ final class Importer implements DiskSpaceMonitorHandler
         throws DatabaseException, DirectoryException, JebException,
         InterruptedException
     {
-      if (dn2id != null)
+      if (reBuildDN2ID)
       {
         processDN2ID(suffix, entry.getName(), entryID);
       }
-      if (dn2uri != null)
+      if (reBuildDN2URI)
       {
         processDN2URI(suffix, null, entry);
       }
