@@ -139,12 +139,7 @@ public final class AciHandler extends
 
   private static AttributeType getAttributeType(String name)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(name);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(name);
-    }
-    return attrType;
+    return DirectoryServer.getAttributeType(name, true);
   }
 
 

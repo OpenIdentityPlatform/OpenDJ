@@ -772,13 +772,7 @@ public class ImportLDIF extends TaskTool {
         }
         else
         {
-          AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-          if (attrType == null)
-          {
-            attrType = DirectoryServer.getDefaultAttributeType(attrName);
-          }
-
-          excludeAttributes.add(attrType);
+          excludeAttributes.add(DirectoryServer.getAttributeType(lowerName, attrName));
         }
       }
     }
@@ -806,13 +800,7 @@ public class ImportLDIF extends TaskTool {
         }
         else
         {
-          AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-          if (attrType == null)
-          {
-            attrType = DirectoryServer.getDefaultAttributeType(attrName);
-          }
-
-          includeAttributes.add(attrType);
+          includeAttributes.add(DirectoryServer.getAttributeType(lowerName, attrName));
         }
       }
     }

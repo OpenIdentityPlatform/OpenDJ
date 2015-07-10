@@ -793,19 +793,8 @@ public final class SearchFilter
       attributeOptions.add(attrType.substring(semicolonPos+1));
     }
 
-
-    // Get the attribute type for the specified name.
-    AttributeType attributeType =
-         DirectoryServer.getAttributeType(lowerType.toString());
-    if (attributeType == null)
-    {
-      String typeStr = attrType.substring(0, lowerType.length());
-      attributeType =
-           DirectoryServer.getDefaultAttributeType(typeStr);
-    }
-
-
     // Get the attribute value.
+    AttributeType attributeType = getAttributeType(attrType, lowerType);
     String valueStr = filterString.substring(equalPos+1, endPos);
     if (valueStr.length() == 0)
     {
@@ -1840,15 +1829,7 @@ public final class SearchFilter
 
 
       // Get the attribute type for the specified name.
-      attributeType =
-           DirectoryServer.getAttributeType(lowerType.toString());
-      if (attributeType == null)
-      {
-        String typeStr = attrType.substring(0, lowerType.length());
-        attributeType =
-             DirectoryServer.getDefaultAttributeType(typeStr);
-      }
-
+      attributeType = getAttributeType(attrType, lowerType);
 
       // If there is anything left, then it should be ":dn" and/or ":"
       // followed by the matching rule ID.
@@ -2072,7 +2053,16 @@ public final class SearchFilter
                             dnAttributes);
   }
 
-
+  private static AttributeType getAttributeType(String attrType, StringBuilder lowerType)
+  {
+    AttributeType attributeType = DirectoryServer.getAttributeType(lowerType.toString());
+    if (attributeType == null)
+    {
+      String typeStr = attrType.substring(0, lowerType.length());
+      attributeType = DirectoryServer.getDefaultAttributeType(typeStr);
+    }
+    return attributeType;
+  }
 
   /**
    * Retrieves the filter type for this search filter.

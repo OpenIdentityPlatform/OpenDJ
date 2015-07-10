@@ -523,19 +523,19 @@ public class AttributeTypeSyntax
         // which this attribute type should inherit its properties.
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
-        superiorType = schema.getAttributeType(woidBuffer.toString());
+        String woidString = woidBuffer.toString();
+        superiorType = schema.getAttributeType(woidString);
         if (superiorType == null)
         {
           if (allowUnknownElements)
           {
-            superiorType = DirectoryServer.getDefaultAttributeType(
-                                                woidBuffer.toString());
+            superiorType = DirectoryServer.getDefaultAttributeType(woidString);
           }
           else
           {
             // This is bad because we don't know what the superior attribute
             // type is so we can't base this attribute type on it.
-            LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.get(oid, woidBuffer);
+            LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE.get(oid, woidString);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }

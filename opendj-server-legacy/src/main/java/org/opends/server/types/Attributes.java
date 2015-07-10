@@ -410,8 +410,6 @@ public final class Attributes
     return builder.toAttribute();
   }
 
-
-
   /**
    * Gets the named attribute type, creating a default attribute if
    * necessary.
@@ -423,13 +421,6 @@ public final class Attributes
    */
   private static AttributeType getAttributeType(String attributeName)
   {
-    String lc = toLowerCase(attributeName);
-    AttributeType type = DirectoryServer.getAttributeType(lc);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(attributeName);
-    }
-    return type;
+    return DirectoryServer.getAttributeType(toLowerCase(attributeName), attributeName);
   }
-
 }

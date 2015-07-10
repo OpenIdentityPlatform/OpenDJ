@@ -1067,21 +1067,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     getRootConnection().processModify(dn, mods);
   }
 
-  /**
-   * Return the attribute type corresponding to the attribute type string.
-   *
-   * @param attrTypeString  The attribute type string name.
-   *
-   * @return  An attribute type object pertaining to the string.
-   *
-   */
   private AttributeType getAttrType(String attrTypeString) {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeString);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(attrTypeString);
-    }
-    return attrType;
+    return DirectoryServer.getAttributeType(attrTypeString, true);
   }
 
   private void deleteEntries(String... dns) throws Exception{
@@ -1091,8 +1078,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     }
   }
-
-
 
   private void deleteSubtree(String... dns) throws Exception
   {

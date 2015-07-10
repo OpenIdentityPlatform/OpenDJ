@@ -834,14 +834,7 @@ public class ImportTask extends Task
     final HashSet<AttributeType> attrTypes = new HashSet<>(attrNames.size());
     for (String attrName : attrNames)
     {
-      String lowerName = attrName.toLowerCase();
-      AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrName);
-      }
-
-      attrTypes.add(attrType);
+      attrTypes.add(DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
     }
     return attrTypes;
   }

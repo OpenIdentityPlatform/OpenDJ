@@ -33,12 +33,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -191,13 +192,7 @@ public final class ConfigEntry
          throws ConfigException
   {
     String attrName = stub.getName();
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(attrName.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(attrName);
-    }
-
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName);
     List<Attribute> attrList = entry.getAttribute(attrType);
     if (attrList != null && !attrList.isEmpty())
     {

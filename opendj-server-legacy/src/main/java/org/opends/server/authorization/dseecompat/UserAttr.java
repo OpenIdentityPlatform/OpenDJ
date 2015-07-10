@@ -201,10 +201,7 @@ public class UserAttr implements KeywordBindRule {
     private EnumEvalResult evalVAL(AciEvalContext evalCtx) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         boolean undefined=false;
-        AttributeType attrType = DirectoryServer.getAttributeType(attrStr);
-        if (attrType == null) {
-            attrType = DirectoryServer.getDefaultAttributeType(attrStr);
-        }
+        AttributeType attrType = DirectoryServer.getAttributeType(attrStr, true);
         final SearchRequest request = newSearchRequest(evalCtx.getClientDN(), SearchScope.BASE_OBJECT);
         InternalSearchOperation op = getRootConnection().processSearch(request);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
@@ -232,10 +229,7 @@ public class UserAttr implements KeywordBindRule {
     private EnumEvalResult evalURL(AciEvalContext evalCtx) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         boolean undefined=false;
-        AttributeType attrType = DirectoryServer.getAttributeType(attrStr);
-        if (attrType == null) {
-            attrType = DirectoryServer.getDefaultAttributeType(attrStr);
-        }
+        AttributeType attrType = DirectoryServer.getAttributeType(attrStr, true);
         List<Attribute> attrs=evalCtx.getResourceEntry().getAttribute(attrType);
         if(!attrs.isEmpty()) {
             for(Attribute a : attrs) {

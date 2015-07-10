@@ -395,29 +395,9 @@ public class MatchingRuleUseSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              // This isn't good because it means that the matching rule use
-              // specifies an attribute type that we don't know anything about.
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, woidBuffer));
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -436,25 +416,7 @@ public class MatchingRuleUseSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            // This isn't good because it means that the matching rule use
-            // specifies an attribute type that we don't know anything about.
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, woidBuffer));
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer));
         }
 
         attributes = new LinkedHashSet<>(attrs);
@@ -484,6 +446,25 @@ public class MatchingRuleUseSyntax
     return new MatchingRuleUse(value.toString(), matchingRule, names,
                                description, isObsolete, attributes,
                                extraProperties);
+  }
+
+  private static AttributeType getAttributeType(
+      Schema schema, boolean allowUnknownElements, String oid, StringBuilder woidBuffer) throws DirectoryException
+  {
+    String woidString = woidBuffer.toString();
+    AttributeType attr = schema.getAttributeType(woidString);
+    if (attr == null)
+    {
+      // This isn't good because it means that the matching rule use
+      // refers to an attribute type that we don't know anything about.
+      if (!allowUnknownElements)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, woidString));
+      }
+      attr = DirectoryServer.getDefaultAttributeType(woidString);
+    }
+    return attr;
   }
 
   /**

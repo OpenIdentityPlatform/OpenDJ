@@ -40,12 +40,15 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilterType;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.SearchFilter;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines the data structures and methods to use when interacting
@@ -1907,12 +1910,7 @@ public class LDAPFilter
       if (semicolonPos > 0)
       {
         String baseName = attributeType.substring(0, semicolonPos);
-        attrType = DirectoryServer.getAttributeType(toLowerCase(baseName));
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(baseName);
-        }
-
+        attrType = DirectoryServer.getAttributeType(toLowerCase(baseName), baseName);
         options = new HashSet<>();
         StringTokenizer tokenizer =
              new StringTokenizer(attributeType.substring(semicolonPos+1), ";");
@@ -1924,12 +1922,7 @@ public class LDAPFilter
       else
       {
         options = null;
-        attrType =
-             DirectoryServer.getAttributeType(toLowerCase(attributeType));
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attributeType);
-        }
+        attrType = DirectoryServer.getAttributeType(toLowerCase(attributeType), attributeType);
       }
     }
 

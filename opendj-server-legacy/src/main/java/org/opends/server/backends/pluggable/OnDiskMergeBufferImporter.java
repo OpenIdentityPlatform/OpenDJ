@@ -196,16 +196,7 @@ final class OnDiskMergeBufferImporter
   private static final int SMALL_HEAP_SIZE = 256 * MB;
 
   /** The DN attribute type. */
-  private static final AttributeType DN_TYPE;
-  static
-  {
-    AttributeType attrType = DirectoryServer.getAttributeType("dn");
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType("dn");
-    }
-    DN_TYPE = attrType;
-  }
+  private static final AttributeType DN_TYPE = DirectoryServer.getAttributeType("dn", true);
 
   /** Root container. */
   private final RootContainer rootContainer;

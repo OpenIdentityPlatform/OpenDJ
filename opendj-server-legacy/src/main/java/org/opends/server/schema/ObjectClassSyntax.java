@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -561,32 +562,10 @@ public class ObjectClassSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                // This isn't good because it means that the objectclass
-                // requires an attribute type that we don't know anything about.
-                LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
-                      get(oid, woidBuffer);
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -605,28 +584,8 @@ public class ObjectClassSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              // This isn't good because it means that the objectclass requires
-              // an attribute type that we don't know anything about.
-              LocalizableMessage message =
-                  WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.
-                    get(oid, woidBuffer);
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR));
         }
 
         requiredAttributes.addAll(attrs);
@@ -646,32 +605,10 @@ public class ObjectClassSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                // This isn't good because it means that the objectclass allows
-                // an attribute type that we don't know anything about.
-                LocalizableMessage message =
-                  WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
-                      get(oid, woidBuffer);
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                             message);
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -690,28 +627,8 @@ public class ObjectClassSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              // This isn't good because it means that the objectclass allows an
-              // attribute type that we don't know anything about.
-              LocalizableMessage message =
-                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.
-                    get(oid, woidBuffer);
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           message);
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+              WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR));
         }
 
         optionalAttributes.addAll(attrs);
@@ -804,6 +721,25 @@ public class ObjectClassSyntax
                            description, superiorClasses, requiredAttributes,
                            optionalAttributes, objectClassType, isObsolete,
                            extraProperties);
+  }
+
+  private static AttributeType getAttributeType(Schema schema, boolean allowUnknownElements, String oid,
+      StringBuilder woidBuffer, Arg2<Object, Object> msg) throws DirectoryException
+  {
+    String woidString = woidBuffer.toString();
+    AttributeType attr = schema.getAttributeType(woidString);
+    if (attr == null)
+    {
+      // This isn't good because it means that the objectclass
+      // refers to an attribute type that we don't know anything about.
+      if (!allowUnknownElements)
+      {
+        LocalizableMessage message = msg.get(oid, woidString);
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+      }
+      attr = DirectoryServer.getDefaultAttributeType(woidString);
+    }
+    return attr;
   }
 
   /**

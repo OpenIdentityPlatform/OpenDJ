@@ -73,6 +73,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
@@ -91,7 +92,6 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -2899,11 +2899,30 @@ public final class DirectoryServer
     {
       type = getDefaultAttributeType(lowerName);
     }
-
     return type;
   }
 
-
+  /**
+   * Retrieves the attribute type for the provided lowercase name or OID. It will return a generated
+   * "default" version with the uppercase name or OID if the requested attribute type is not defined
+   * in the schema.
+   * 
+   * @param lowerName
+   *          The lowercase name or OID for the attribute type to retrieve.
+   * @param upperName
+   *          The uppercase name or OID for the attribute type to generate.
+   * @return The requested attribute type, or a generated "default" version if there is no attribute
+   *         with the specified type defined in the server schema
+   */
+  public static AttributeType getAttributeType(String lowerName, String upperName)
+  {
+    AttributeType type = directoryServer.schema.getAttributeType(lowerName);
+    if (type == null)
+    {
+      type = getDefaultAttributeType(upperName);
+    }
+    return type;
+  }
 
   /**
    * Registers the provided attribute type with the Directory Server.

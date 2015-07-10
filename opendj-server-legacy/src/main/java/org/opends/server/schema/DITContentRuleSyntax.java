@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -504,28 +505,10 @@ public class DITContentRuleSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttribute(schema, allowUnknownElements, valueStr, woidBuffer,
+                ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              // This isn't good because it means that the DIT content rule
-              // requires an attribute type that we don't know anything about.
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(woidBuffer.toString());
-              }
-              else
-              {
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(valueStr, woidBuffer));
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -544,25 +527,8 @@ public class DITContentRuleSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            // This isn't good because it means that the DIT content rule
-            // requires an attribute type that we don't know anything about.
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(valueStr, woidBuffer));
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttribute(schema, allowUnknownElements, valueStr, woidBuffer,
+              ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR));
         }
 
         requiredAttributes.addAll(attrs);
@@ -582,29 +548,10 @@ public class DITContentRuleSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttribute(schema, allowUnknownElements, valueStr, woidBuffer,
+                ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              // This isn't good because it means that the DIT content rule
-              // allows an attribute type that we don't know anything about.
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(valueStr, woidBuffer));
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -623,25 +570,8 @@ public class DITContentRuleSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            // This isn't good because it means that the DIT content rule allows
-            // an attribute type that we don't know anything about.
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(valueStr, woidBuffer));
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttribute(schema, allowUnknownElements, valueStr, woidBuffer,
+              ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR));
         }
 
         optionalAttributes.addAll(attrs);
@@ -661,30 +591,10 @@ public class DITContentRuleSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttribute(schema, allowUnknownElements, valueStr, woidBuffer,
+                ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              // This isn't good because it means that the DIT content rule
-              // prohibits an attribute type that we don't know anything about.
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
-                        valueStr, woidBuffer));
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -703,25 +613,8 @@ public class DITContentRuleSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            // This isn't good because it means that the DIT content rule
-            // prohibits an attribute type that we don't know anything about.
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(valueStr, woidBuffer));
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttribute(schema, allowUnknownElements, valueStr, woidBuffer,
+              ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR));
         }
 
         prohibitedAttributes.addAll(attrs);
@@ -768,6 +661,25 @@ public class DITContentRuleSyntax
                               description, auxiliaryClasses, requiredAttributes,
                               optionalAttributes, prohibitedAttributes,
                               isObsolete, extraProperties);
+  }
+
+  private static AttributeType getAttribute(Schema schema, boolean allowUnknownElements, String valueStr,
+      StringBuilder woidBuffer, Arg2<Object, Object> msg) throws DirectoryException
+  {
+    String woidString = woidBuffer.toString();
+    AttributeType attr = schema.getAttributeType(woidString);
+    if (attr == null)
+    {
+      // This isn't good because it means that the DIT content rule
+      // refers to an attribute type that we don't know anything about.
+      if (!allowUnknownElements)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            msg.get(valueStr, woidString));
+      }
+      attr = DirectoryServer.getDefaultAttributeType(woidString);
+    }
+    return attr;
   }
 
   /**
