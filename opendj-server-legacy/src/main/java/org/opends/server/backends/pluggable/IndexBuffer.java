@@ -36,6 +36,7 @@ import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DirectoryException;
 
@@ -53,10 +54,18 @@ class IndexBuffer
   /**
    * The buffered records stored as a map from the record key to the
    * buffered value for that key for each index.
+   * <p>
+   * The map is sorted by {@link TreeName}s to establish a deterministic iteration order (see {@link AbstractTree}).
+   * This prevents potential deadlock for db having pessimistic lock strategy (e.g.: JE).
    */
   private final SortedMap<Index, SortedMap<ByteString, BufferedIndexValues>> bufferedIndexes = new TreeMap<>();
 
-  /** The buffered records stored as a set of buffered VLV values for each index. */
+  /**
+   * The buffered records stored as a set of buffered VLV values for each index.
+   * <p>
+   * The map is sorted by {@link TreeName}s to establish a deterministic iteration order (see {@link AbstractTree}).
+   * This prevents potential deadlock for db having pessimistic lock strategy (e.g.: JE).
+   */
   private final SortedMap<VLVIndex, BufferedVLVIndexValues> bufferedVLVIndexes = new TreeMap<>();
 
   /**
