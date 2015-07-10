@@ -190,7 +190,7 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-persistit-core</artifactId>
-      <version>4.0.0-SNAPSHOT</version>
+      <version>4.1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
