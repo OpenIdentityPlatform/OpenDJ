@@ -1068,7 +1068,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   }
 
   private AttributeType getAttrType(String attrTypeString) {
-    return DirectoryServer.getAttributeType(attrTypeString, true);
+    return DirectoryServer.getAttributeTypeOrDefault(attrTypeString);
   }
 
   private void deleteEntries(String... dns) throws Exception{

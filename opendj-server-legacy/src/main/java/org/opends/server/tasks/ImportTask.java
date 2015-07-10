@@ -154,28 +154,28 @@ public class ImportTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeLdifFile = getAttributeType(ATTR_IMPORT_LDIF_FILE, true);
-    AttributeType typeTemplateFile = getAttributeType(ATTR_IMPORT_TEMPLATE_FILE, true);
-    AttributeType typeAppend = getAttributeType(ATTR_IMPORT_APPEND, true);
-    AttributeType typeReplaceExisting = getAttributeType(ATTR_IMPORT_REPLACE_EXISTING, true);
-    AttributeType typeBackendID = getAttributeType(ATTR_IMPORT_BACKEND_ID, true);
-    AttributeType typeIncludeBranch = getAttributeType(ATTR_IMPORT_INCLUDE_BRANCH, true);
-    AttributeType typeExcludeBranch = getAttributeType(ATTR_IMPORT_EXCLUDE_BRANCH, true);
-    AttributeType typeIncludeAttribute = getAttributeType(ATTR_IMPORT_INCLUDE_ATTRIBUTE, true);
-    AttributeType typeExcludeAttribute = getAttributeType(ATTR_IMPORT_EXCLUDE_ATTRIBUTE, true);
-    AttributeType typeIncludeFilter = getAttributeType(ATTR_IMPORT_INCLUDE_FILTER, true);
-    AttributeType typeExcludeFilter = getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER, true);
-    AttributeType typeRejectFile = getAttributeType(ATTR_IMPORT_REJECT_FILE, true);
-    AttributeType typeSkipFile = getAttributeType(ATTR_IMPORT_SKIP_FILE, true);
-    AttributeType typeOverwrite = getAttributeType(ATTR_IMPORT_OVERWRITE, true);
-    AttributeType typeSkipSchemaValidation = getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, true);
-    AttributeType typeIsCompressed = getAttributeType(ATTR_IMPORT_IS_COMPRESSED, true);
-    AttributeType typeIsEncrypted = getAttributeType(ATTR_IMPORT_IS_ENCRYPTED, true);
-    AttributeType typeClearBackend = getAttributeType(ATTR_IMPORT_CLEAR_BACKEND, true);
-    AttributeType typeRandomSeed = getAttributeType(ATTR_IMPORT_RANDOM_SEED, true);
-    AttributeType typeThreadCount = getAttributeType(ATTR_IMPORT_THREAD_COUNT, true);
-    AttributeType typeTmpDirectory = getAttributeType(ATTR_IMPORT_TMP_DIRECTORY, true);
-    AttributeType typeDNCheckPhase2 = getAttributeType(ATTR_IMPORT_SKIP_DN_VALIDATION, true);
+    AttributeType typeLdifFile = getAttributeTypeOrDefault(ATTR_IMPORT_LDIF_FILE);
+    AttributeType typeTemplateFile = getAttributeTypeOrDefault(ATTR_IMPORT_TEMPLATE_FILE);
+    AttributeType typeAppend = getAttributeTypeOrDefault(ATTR_IMPORT_APPEND);
+    AttributeType typeReplaceExisting = getAttributeTypeOrDefault(ATTR_IMPORT_REPLACE_EXISTING);
+    AttributeType typeBackendID = getAttributeTypeOrDefault(ATTR_IMPORT_BACKEND_ID);
+    AttributeType typeIncludeBranch = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_BRANCH);
+    AttributeType typeExcludeBranch = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_BRANCH);
+    AttributeType typeIncludeAttribute = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
+    AttributeType typeExcludeAttribute = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
+    AttributeType typeIncludeFilter = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_FILTER);
+    AttributeType typeExcludeFilter = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_FILTER);
+    AttributeType typeRejectFile = getAttributeTypeOrDefault(ATTR_IMPORT_REJECT_FILE);
+    AttributeType typeSkipFile = getAttributeTypeOrDefault(ATTR_IMPORT_SKIP_FILE);
+    AttributeType typeOverwrite = getAttributeTypeOrDefault(ATTR_IMPORT_OVERWRITE);
+    AttributeType typeSkipSchemaValidation = getAttributeTypeOrDefault(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
+    AttributeType typeIsCompressed = getAttributeTypeOrDefault(ATTR_IMPORT_IS_COMPRESSED);
+    AttributeType typeIsEncrypted = getAttributeTypeOrDefault(ATTR_IMPORT_IS_ENCRYPTED);
+    AttributeType typeClearBackend = getAttributeTypeOrDefault(ATTR_IMPORT_CLEAR_BACKEND);
+    AttributeType typeRandomSeed = getAttributeTypeOrDefault(ATTR_IMPORT_RANDOM_SEED);
+    AttributeType typeThreadCount = getAttributeTypeOrDefault(ATTR_IMPORT_THREAD_COUNT);
+    AttributeType typeTmpDirectory = getAttributeTypeOrDefault(ATTR_IMPORT_TMP_DIRECTORY);
+    AttributeType typeDNCheckPhase2 = getAttributeTypeOrDefault(ATTR_IMPORT_SKIP_DN_VALIDATION);
 
     ArrayList<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
     ldifFiles = new ArrayList<>(ldifFilestmp.size());
@@ -834,7 +834,7 @@ public class ImportTask extends Task
     final HashSet<AttributeType> attrTypes = new HashSet<>(attrNames.size());
     for (String attrName : attrNames)
     {
-      attrTypes.add(DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
+      attrTypes.add(DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName));
     }
     return attrTypes;
   }

@@ -317,7 +317,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if (passwordChangedTime < 0)
     {
       // Get the password changed time for the user.
-      AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC, true);
+      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
       try
       {
         passwordChangedTime = getGeneralizedTime(userEntry, type);
@@ -335,7 +335,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       if (passwordChangedTime < 0)
       {
         // Get the time that the user's account was created.
-        AttributeType createTimeType = DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
+        AttributeType createTimeType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATE_TIMESTAMP_LC);
         try
         {
           passwordChangedTime = getGeneralizedTime(userEntry, createTimeType);
@@ -450,14 +450,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       logger.trace("Clearing password changed time for user %s", userDNString);
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
     Attribute a = Attributes.empty(type);
     modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
 
     // Fall back to using the entry creation time as the password changed time, if it's defined.
     // Otherwise, use a value of zero.
-    AttributeType createTimeType = DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
+    AttributeType createTimeType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATE_TIMESTAMP_LC);
     try
     {
       passwordChangedTime = getGeneralizedTime(userEntry, createTimeType);
@@ -495,7 +495,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     this.isDisabled = ConditionResult.not(this.isDisabled);
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_DISABLED);
 
     if (isDisabled)
     {
@@ -528,7 +528,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return isAccountExpired == ConditionResult.TRUE;
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_EXPIRATION_TIME);
 
     try {
       accountExpirationTime = getGeneralizedTime(userEntry, type);
@@ -607,7 +607,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
 
       this.accountExpirationTime = accountExpirationTime;
-      AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME, true);
+      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_EXPIRATION_TIME);
 
       Attribute a = Attributes.create(type, timeStr);
       modifications.add(new Modification(ModificationType.REPLACE, a, true));
@@ -628,7 +628,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     accountExpirationTime = -1;
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_EXPIRATION_TIME);
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
 
@@ -655,7 +655,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return authFailureTimes;
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_FAILURE_TIME_LC, OP_ATTR_PWPOLICY_FAILURE_TIME);
     try
     {
@@ -765,7 +765,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     failureTimes.add(highestFailureTime);
 
     // And the attribute in the user entry
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_FAILURE_TIME_LC, OP_ATTR_PWPOLICY_FAILURE_TIME);
     Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestFailureTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
@@ -800,7 +800,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return;
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_FAILURE_TIME_LC);
     this.authFailureTimes = authFailureTimes;
 
     AttributeBuilder builder = new AttributeBuilder(type);
@@ -847,7 +847,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     failureTimes.clear(); // Note: failureTimes != this.authFailureTimes
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_FAILURE_TIME_LC, OP_ATTR_PWPOLICY_FAILURE_TIME);
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
@@ -865,7 +865,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return failureLockedTime;
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_LOCKED_TIME_LC, OP_ATTR_PWPOLICY_LOCKED_TIME);
     try
     {
@@ -899,7 +899,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     failureLockedTime = time;
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_LOCKED_TIME_LC, OP_ATTR_PWPOLICY_LOCKED_TIME);
     Attribute a = Attributes.create(type, GeneralizedTimeSyntax.format(failureLockedTime));
     modifications.add(new Modification(ModificationType.REPLACE, a, true));
@@ -924,7 +924,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     failureLockedTime = -1L;
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_LOCKED_TIME_LC, OP_ATTR_PWPOLICY_LOCKED_TIME);
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
@@ -1250,7 +1250,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     lastLoginTime = -1;
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_LAST_LOGIN_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_LAST_LOGIN_TIME);
 
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
@@ -1367,7 +1367,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return false;
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_RESET_REQUIRED_LC, OP_ATTR_PWPOLICY_RESET_REQUIRED);
     try
     {
@@ -1415,7 +1415,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return;  // requested state matches current state
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_RESET_REQUIRED_LC, OP_ATTR_PWPOLICY_RESET_REQUIRED);
     this.mustChangePassword = ConditionResult.not(this.mustChangePassword);
     if (mustChangePassword)
@@ -1817,7 +1817,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return requiredChangeTime;
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME);
 
     try
     {
@@ -1870,7 +1870,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       this.requiredChangeTime = requiredChangeTime;
 
-      AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
+      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME);
 
       String timeValue = GeneralizedTimeSyntax.format(requiredChangeTime);
       Attribute a = Attributes.create(type, timeValue);
@@ -1894,7 +1894,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     this.requiredChangeTime = Long.MIN_VALUE;
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME);
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
 
@@ -1909,7 +1909,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     if (warnedTime == Long.MIN_VALUE)
     {
-      AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
+      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_WARNED_TIME);
       try
       {
         warnedTime = getGeneralizedTime(userEntry, type);
@@ -1960,7 +1960,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     this.warnedTime = warnedTime;
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_WARNED_TIME);
     Attribute a = Attributes.create(type, GeneralizedTimeSyntax.createGeneralizedTimeValue(currentTime));
 
     modifications.add(new Modification(ModificationType.REPLACE, a, true));
@@ -1989,7 +1989,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     warnedTime = -1;
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_WARNED_TIME);
     Attribute a = Attributes.empty(type);
     modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
@@ -2010,7 +2010,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     if (graceLoginTimes == null)
     {
-      AttributeType type = DirectoryServer.getAttributeType(
+      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
       try
       {
@@ -2078,7 +2078,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     graceTimes.add(highestGraceTime); // graceTimes == this.graceLoginTimes
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestGraceTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
@@ -2107,7 +2107,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     this.graceLoginTimes = graceLoginTimes;
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC);
     AttributeBuilder builder = new AttributeBuilder(type);
     for (Long l : graceLoginTimes)
     {
@@ -2137,7 +2137,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     graceTimes.clear(); // graceTimes == this.graceLoginTimes
 
-    AttributeType type = DirectoryServer.getAttributeType(
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
@@ -2651,7 +2651,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private TreeMap<Long,ByteString> getSortedHistoryValues(List<Attribute> removeAttrs)
   {
     TreeMap<Long, ByteString> historyMap = new TreeMap<>();
-    AttributeType historyType = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    AttributeType historyType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_HISTORY_LC);
     List<Attribute> attrList = userEntry.getAttribute(historyType);
     if (attrList != null)
     {
@@ -2884,7 +2884,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     // If there is a maximum number of values to retain and we would be over the limit with the new value,
     // then get rid of enough values (oldest first) to satisfy the count.
-    AttributeType historyType = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    AttributeType historyType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_HISTORY_LC);
     int historyCount = passwordPolicy.getPasswordHistoryCount();
     if  (historyCount > 0 && historyMap.size() >= historyCount)
     {
@@ -2986,7 +2986,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   public String[] getPasswordHistoryValues()
   {
     ArrayList<String> historyValues = new ArrayList<>();
-    AttributeType historyType = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    AttributeType historyType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_HISTORY_LC);
     List<Attribute> attrList = userEntry.getAttribute(historyType);
     if (attrList != null)
     {
@@ -3014,7 +3014,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       logger.trace("Clearing password history for user %s", userDNString);
     }
 
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_HISTORY_LC);
     modifications.add(new Modification(ModificationType.REPLACE, Attributes.empty(type), true));
   }
 

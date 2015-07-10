@@ -24,10 +24,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.admin;
-
-
 
 import static org.forgerock.util.Reject.ifNull;
 
@@ -36,11 +33,7 @@ import java.util.EnumSet;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 
-
-
-/**
- * Attribute type property definition.
- */
+/** Attribute type property definition. */
 public final class AttributeTypePropertyDefinition extends
     PropertyDefinition<AttributeType> {
 
@@ -170,18 +163,17 @@ public final class AttributeTypePropertyDefinition extends
     ifNull(value);
 
     String name = value.trim().toLowerCase();
-    AttributeType type = DirectoryServer.getAttributeType(name,
-        !isCheckSchema);
-
+    AttributeType type = isCheckSchema
+        ? DirectoryServer.getAttributeType(name)
+        : DirectoryServer.getAttributeTypeOrDefault(name);
     if (type == null) {
       throw PropertyException.illegalPropertyValueException(this, value);
-    } else {
-      try {
-        validateValue(type);
-        return type;
-      } catch (PropertyException e) {
-        throw PropertyException.illegalPropertyValueException(this, value);
-      }
+    }
+    try {
+      validateValue(type);
+      return type;
+    } catch (PropertyException e) {
+      throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 

@@ -132,7 +132,7 @@ class TargetAttr {
                     throw new AciException(message);
                 }
             } else {
-                AttributeType attrType = DirectoryServer.getAttributeType(attribute, true);
+                AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attribute);
                 if(attrType.isOperational())
                 {
                   opAttributes.add(attrType);

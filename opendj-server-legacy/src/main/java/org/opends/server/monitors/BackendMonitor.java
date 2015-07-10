@@ -36,6 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.*;
 
@@ -84,16 +85,12 @@ public class BackendMonitor
   {
     monitorName = backend.getBackendID() + " Backend";
 
-    backendIDType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ID, true);
-    baseDNType = DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_BASE_DN, true);
-    entryCountType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT, true);
-    baseDNEntryCountType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BASE_DN_ENTRY_COUNT, true);
-    isPrivateType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_IS_PRIVATE, true);
-    writabilityModeType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_WRITABILITY_MODE, true);
+    backendIDType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_ID);
+    baseDNType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_BASE_DN);
+    entryCountType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_ENTRY_COUNT);
+    baseDNEntryCountType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BASE_DN_ENTRY_COUNT);
+    isPrivateType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_IS_PRIVATE);
+    writabilityModeType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_WRITABILITY_MODE);
   }
 
   @Override

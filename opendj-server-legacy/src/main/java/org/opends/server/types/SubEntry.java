@@ -189,10 +189,8 @@ public class SubEntry {
     this.subTreeSpec = null;
     String specString = null;
     boolean isValidSpec = true;
-    AttributeType specAttrType = DirectoryServer.getAttributeType(
-            ATTR_SUBTREE_SPEC_LC, true);
-    List<Attribute> specAttrList =
-            entry.getAttribute(specAttrType);
+    AttributeType specAttrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_SUBTREE_SPEC_LC);
+    List<Attribute> specAttrList = entry.getAttribute(specAttrType);
     if (specAttrList != null)
     {
       for (Attribute attr : specAttrList)
@@ -298,10 +296,7 @@ public class SubEntry {
           {
             for (ByteString value : attr)
             {
-              this.inheritFromDNType =
-                      DirectoryServer.getAttributeType(
-                      value.toString().toLowerCase(),
-                      true);
+              this.inheritFromDNType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
               this.inheritFromDNAttrValue = value;
               break;
             }
@@ -311,41 +306,32 @@ public class SubEntry {
 
       if (this.isInheritedFromRDNCollective)
       {
-        List<Attribute> attrList = entry.getAttribute(
-                ATTR_INHERIT_COLLECTIVE_FROM_RDN);
+        List<Attribute> attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN);
         if ((attrList != null) && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)
           {
             for (ByteString value : attr)
             {
-              this.inheritFromRDNAttrType =
-                      DirectoryServer.getAttributeType(
-                      value.toString().toLowerCase(),
-                      true);
+              this.inheritFromRDNAttrType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
               this.inheritFromRDNAttrValue = value;
               break;
             }
           }
         }
-        attrList = entry.getAttribute(
-                ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE);
+        attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE);
         if ((attrList != null) && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)
           {
             for (ByteString value : attr)
             {
-              this.inheritFromRDNType =
-                      DirectoryServer.getAttributeType(
-                      value.toString().toLowerCase(),
-                      true);
+              this.inheritFromRDNType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
               break;
             }
           }
         }
-        attrList = entry.getAttribute(
-                ATTR_INHERIT_COLLECTIVE_FROM_BASE);
+        attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE);
         if ((attrList != null) && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)

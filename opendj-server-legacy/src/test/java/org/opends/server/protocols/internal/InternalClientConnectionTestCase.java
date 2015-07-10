@@ -467,7 +467,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
          conn.processCompare(DN.valueOf("cn=test,o=test"),
-                             DirectoryServer.getAttributeType("cn", true),
+                             DirectoryServer.getAttributeTypeOrDefault("cn"),
                              ByteString.valueOf("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }

@@ -121,7 +121,7 @@ public class IfAbsentTag
     }
 
     String lowerName = toLowerCase(arguments[0]);
-    AttributeType t = DirectoryServer.getAttributeType(lowerName, true);
+    AttributeType t = DirectoryServer.getAttributeTypeOrDefault(lowerName);
     if (! branch.hasAttribute(t))
     {
       LocalizableMessage message =
@@ -169,7 +169,7 @@ public class IfAbsentTag
     }
 
     String lowerName = toLowerCase(arguments[0]);
-    attributeType = DirectoryServer.getAttributeType(lowerName, true);
+    attributeType = DirectoryServer.getAttributeTypeOrDefault(lowerName);
     if (! template.hasAttribute(attributeType))
     {
       LocalizableMessage message =

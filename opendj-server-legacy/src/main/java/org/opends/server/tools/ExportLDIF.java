@@ -38,6 +38,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -569,35 +570,8 @@ public class ExportLDIF extends TaskTool {
 
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
-    HashSet<AttributeType> excludeAttributes;
-    if (excludeAttributeStrings == null)
-    {
-      excludeAttributes = null;
-    }
-    else
-    {
-      excludeAttributes = new HashSet<>();
-      for (String attrName : excludeAttributeStrings.getValues())
-      {
-        excludeAttributes.add(
-            DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
-      }
-    }
-
-    HashSet<AttributeType> includeAttributes;
-    if (includeAttributeStrings == null)
-    {
-      includeAttributes = null;
-    }
-    else
-    {
-      includeAttributes = new HashSet<>();
-      for (String attrName : includeAttributeStrings.getValues())
-      {
-        includeAttributes.add(
-            DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
-      }
-    }
+    Set<AttributeType> excludeAttributes = toAttributeTypes(excludeAttributeStrings);
+    Set<AttributeType> includeAttributes = toAttributeTypes(includeAttributeStrings);
 
     ArrayList<SearchFilter> excludeFilters;
     if (excludeFilterStrings == null)
@@ -866,14 +840,22 @@ public class ExportLDIF extends TaskTool {
 
     // Clean up after the export by closing the export config.
     exportConfig.close();
-    if (!errorOccurred)
+    return !errorOccurred ? 0 : 1;
+  }
+
+  private Set<AttributeType> toAttributeTypes(StringArgument attributeArg)
+  {
+    if (attributeArg == null)
     {
-      return 0;
+      return null;
     }
-    else
+
+    Set<AttributeType> results = new HashSet<>();
+    for (String attrName : attributeArg.getValues())
     {
-      return 1;
+      results.add(DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName));
     }
+    return results;
   }
 
   /** {@inheritDoc} */

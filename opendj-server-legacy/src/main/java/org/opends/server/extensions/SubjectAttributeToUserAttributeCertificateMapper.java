@@ -45,6 +45,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -58,7 +59,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -86,13 +86,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
   /** The DN of the configuration entry for this certificate mapper. */
   private DN configEntryDN;
-
   /** The mappings between certificate attribute names and user attribute types. */
   private LinkedHashMap<String,AttributeType> attributeMap;
-
   /** The current configuration for this certificate mapper. */
   private SubjectAttributeToUserAttributeCertificateMapperCfg currentConfig;
-
   /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
@@ -112,79 +109,32 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
-                   SubjectAttributeToUserAttributeCertificateMapperCfg
-                        configuration)
+      SubjectAttributeToUserAttributeCertificateMapperCfg configuration)
          throws ConfigException, InitializationException
   {
-    configuration
-        .addSubjectAttributeToUserAttributeChangeListener(this);
+    configuration.addSubjectAttributeToUserAttributeChangeListener(this);
 
     currentConfig = configuration;
     configEntryDN = configuration.dn();
 
     // Get and validate the subject attribute to user attribute mappings.
-    attributeMap = new LinkedHashMap<>();
-    for (String mapStr : configuration.getSubjectAttributeMapping())
+    ConfigChangeResult ccr = new ConfigChangeResult();
+    attributeMap = buildAttributeMap(configuration, configEntryDN, ccr);
+    List<LocalizableMessage> messages = ccr.getMessages();
+    if (!messages.isEmpty())
     {
-      String lowerMap = toLowerCase(mapStr);
-      int colonPos = lowerMap.indexOf(':');
-      if (colonPos <= 0)
-      {
-        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr);
-        throw new ConfigException(message);
-      }
-
-      String certAttrName = lowerMap.substring(0, colonPos).trim();
-      String userAttrName = lowerMap.substring(colonPos+1).trim();
-      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
-      {
-        LocalizableMessage message = ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr);
-        throw new ConfigException(message);
-      }
-
-      // Try to normalize the provided certAttrName
-      certAttrName = normalizeAttributeName(certAttrName);
-
-
-      if (attributeMap.containsKey(certAttrName))
-      {
-        LocalizableMessage message = ERR_SATUACM_DUPLICATE_CERT_ATTR.get(configEntryDN, certAttrName);
-        throw new ConfigException(message);
-      }
-
-      AttributeType userAttrType =
-           DirectoryServer.getAttributeType(userAttrName, false);
-      if (userAttrType == null)
-      {
-        LocalizableMessage message = ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, configEntryDN, userAttrName);
-        throw new ConfigException(message);
-      }
-
-      for (AttributeType attrType : attributeMap.values())
-      {
-        if (attrType.equals(userAttrType))
-        {
-          throw new ConfigException(ERR_SATUACM_DUPLICATE_USER_ATTR.get(configEntryDN, attrType.getNameOrOID()));
-        }
-      }
-
-      attributeMap.put(certAttrName, userAttrType);
+      throw new ConfigException(messages.iterator().next());
     }
 
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
-    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
+    Set<DN> cfgBaseDNs = getUserBaseDNs(configuration);
     for (DN baseDN : cfgBaseDNs)
     {
       for (AttributeType t : attributeMap.values())
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
               t.getNameOrOID(), b.getBackendID());
@@ -192,21 +142,18 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       }
     }
 
-    // Create the attribute list to include in search requests.  We want to
+    // Create the attribute list to include in search requests. We want to
     // include all user and operational attributes.
     requestedAttributes = new LinkedHashSet<>(2);
     requestedAttributes.add("*");
     requestedAttributes.add("+");
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
-    currentConfig
-        .removeSubjectAttributeToUserAttributeChangeListener(this);
+    currentConfig.removeSubjectAttributeToUserAttributeChangeListener(this);
   }
 
 
@@ -216,8 +163,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
-    SubjectAttributeToUserAttributeCertificateMapperCfg config =
-         currentConfig;
+    SubjectAttributeToUserAttributeCertificateMapperCfg config = currentConfig;
     LinkedHashMap<String,AttributeType> theAttributeMap = this.attributeMap;
 
 
@@ -257,8 +203,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       LocalizableMessage message = ERR_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN.get(
           peerName, de.getMessageObject());
-      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message,
-                                   de);
+      throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message, de);
     }
 
     LinkedList<SearchFilter> filterComps = new LinkedList<>();
@@ -275,8 +220,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         AttributeType attrType = theAttributeMap.get(lowerName);
         if (attrType != null)
         {
-          filterComps.add(SearchFilter.createEqualityFilter(attrType,
-                                            rdn.getAttributeValue(j)));
+          filterComps.add(SearchFilter.createEqualityFilter(attrType, rdn.getAttributeValue(j)));
         }
       }
     }
@@ -288,19 +232,9 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     }
 
     SearchFilter filter = SearchFilter.createANDFilter(filterComps);
+    Collection<DN> baseDNs = getUserBaseDNs(config);
 
-
-    // If we have an explicit set of base DNs, then use it.  Otherwise, use the
-    // set of public naming contexts in the server.
-    Collection<DN> baseDNs = config.getUserBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
-    {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
-
-    // For each base DN, issue an internal search in an attempt to map the
-    // certificate.
+    // For each base DN, issue an internal search in an attempt to map the certificate.
     Entry userEntry = null;
     InternalClientConnection conn = getRootConnection();
     for (DN baseDN : baseDNs)
@@ -360,8 +294,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     return userEntry;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
@@ -377,160 +309,34 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-              SubjectAttributeToUserAttributeCertificateMapperCfg
-                   configuration,
+              SubjectAttributeToUserAttributeCertificateMapperCfg configuration,
               List<LocalizableMessage> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Get and validate the subject attribute to user attribute mappings.
-    LinkedHashMap<String,AttributeType> newAttributeMap = new LinkedHashMap<>();
-mapLoop:
-    for (String mapStr : configuration.getSubjectAttributeMapping())
-    {
-      String lowerMap = toLowerCase(mapStr);
-      int colonPos = lowerMap.indexOf(':');
-      if (colonPos <= 0)
-      {
-        unacceptableReasons.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
-        configAcceptable = false;
-        break;
-      }
-
-      String certAttrName = lowerMap.substring(0, colonPos).trim();
-      String userAttrName = lowerMap.substring(colonPos+1).trim();
-      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
-      {
-        unacceptableReasons.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
-        configAcceptable = false;
-        break;
-      }
-
-      // Try to normalize the provided certAttrName
-      certAttrName = normalizeAttributeName(certAttrName);
-
-      if (newAttributeMap.containsKey(certAttrName))
-      {
-        unacceptableReasons.add(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(cfgEntryDN, certAttrName));
-        configAcceptable = false;
-        break;
-      }
-
-      AttributeType userAttrType =
-           DirectoryServer.getAttributeType(userAttrName, false);
-      if (userAttrType == null)
-      {
-        unacceptableReasons.add(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, cfgEntryDN, userAttrName));
-        configAcceptable = false;
-        break;
-      }
-
-      for (AttributeType attrType : newAttributeMap.values())
-      {
-        if (attrType.equals(userAttrType))
-        {
-          unacceptableReasons.add(ERR_SATUACM_DUPLICATE_USER_ATTR.get(cfgEntryDN, attrType.getNameOrOID()));
-          configAcceptable = false;
-          break mapLoop;
-        }
-      }
-
-      newAttributeMap.put(certAttrName, userAttrType);
-    }
-
-    return configAcceptable;
+    ConfigChangeResult ccr = new ConfigChangeResult();
+    buildAttributeMap(configuration, configuration.dn(), ccr);
+    unacceptableReasons.addAll(ccr.getMessages());
+    return ResultCode.SUCCESS.equals(ccr.getResultCode());
   }
-
-
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-              SubjectAttributeToUserAttributeCertificateMapperCfg
-                   configuration)
+  public ConfigChangeResult applyConfigurationChange(SubjectAttributeToUserAttributeCertificateMapperCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-
-    // Get and validate the subject attribute to user attribute mappings.
-    LinkedHashMap<String,AttributeType> newAttributeMap = new LinkedHashMap<>();
-mapLoop:
-    for (String mapStr : configuration.getSubjectAttributeMapping())
-    {
-      String lowerMap = toLowerCase(mapStr);
-      int colonPos = lowerMap.indexOf(':');
-      if (colonPos <= 0)
-      {
-        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-
-
-        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
-        break;
-      }
-
-      String certAttrName = lowerMap.substring(0, colonPos).trim();
-      String userAttrName = lowerMap.substring(colonPos+1).trim();
-      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
-      {
-        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-
-
-        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
-        break;
-      }
-
-      // Try to normalize the provided certAttrName
-      certAttrName = normalizeAttributeName(certAttrName);
-
-      if (newAttributeMap.containsKey(certAttrName))
-      {
-        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(configEntryDN, certAttrName));
-        break;
-      }
-
-      AttributeType userAttrType =
-           DirectoryServer.getAttributeType(userAttrName, false);
-      if (userAttrType == null)
-      {
-        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, configEntryDN, userAttrName));
-        break;
-      }
-
-      for (AttributeType attrType : newAttributeMap.values())
-      {
-        if (attrType.equals(userAttrType))
-        {
-          ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-
-
-          ccr.addMessage(ERR_SATUACM_DUPLICATE_USER_ATTR.get(configEntryDN, attrType.getNameOrOID()));
-          break mapLoop;
-        }
-      }
-
-      newAttributeMap.put(certAttrName, userAttrType);
-    }
+    LinkedHashMap<String, AttributeType> newAttributeMap = buildAttributeMap(configuration, configEntryDN, ccr);
 
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
-    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
+    Set<DN> cfgBaseDNs = getUserBaseDNs(configuration);
     for (DN baseDN : cfgBaseDNs)
     {
       for (AttributeType t : newAttributeMap.values())
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        if (b != null && !b.isIndexed(t, IndexType.EQUALITY))
         {
-          LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
-              configuration.dn(), t.getNameOrOID(), b.getBackendID());
+          LocalizableMessage message =
+              WARN_SATUACM_ATTR_UNINDEXED.get(configuration.dn(), t.getNameOrOID(), b.getBackendID());
           ccr.addMessage(message);
           logger.error(message);
         }
@@ -539,12 +345,78 @@ mapLoop:
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      attributeMap  = newAttributeMap;
+      attributeMap = newAttributeMap;
       currentConfig = configuration;
     }
 
+    return ccr;
+  }
 
-   return ccr;
+  /**
+   * If we have an explicit set of base DNs, then use it.
+   * Otherwise, use the set of public naming contexts in the server.
+   */
+  private Set<DN> getUserBaseDNs(SubjectAttributeToUserAttributeCertificateMapperCfg config)
+  {
+    Set<DN> baseDNs = config.getUserBaseDN();
+    if ((baseDNs == null) || baseDNs.isEmpty())
+    {
+      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+    return baseDNs;
+  }
+
+  /** Get and validate the subject attribute to user attribute mappings. */
+  private LinkedHashMap<String, AttributeType> buildAttributeMap(
+      SubjectAttributeToUserAttributeCertificateMapperCfg configuration, DN cfgEntryDN, ConfigChangeResult ccr)
+  {
+    LinkedHashMap<String, AttributeType> results = new LinkedHashMap<>();
+    for (String mapStr : configuration.getSubjectAttributeMapping())
+    {
+      String lowerMap = toLowerCase(mapStr);
+      int colonPos = lowerMap.indexOf(':');
+      if (colonPos <= 0)
+      {
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
+        return null;
+      }
+
+      String certAttrName = lowerMap.substring(0, colonPos).trim();
+      String userAttrName = lowerMap.substring(colonPos+1).trim();
+      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
+      {
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
+        return null;
+      }
+
+      // Try to normalize the provided certAttrName
+      certAttrName = normalizeAttributeName(certAttrName);
+      if (results.containsKey(certAttrName))
+      {
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(cfgEntryDN, certAttrName));
+        return null;
+      }
+
+      AttributeType userAttrType = DirectoryServer.getAttributeType(userAttrName);
+      if (userAttrType == null)
+      {
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, cfgEntryDN, userAttrName));
+        return null;
+      }
+      if (results.values().contains(userAttrType))
+      {
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_DUPLICATE_USER_ATTR.get(cfgEntryDN, userAttrType.getNameOrOID()));
+        return null;
+      }
+
+      results.put(certAttrName, userAttrType);
+    }
+    return results;
   }
 
 
@@ -559,8 +431,7 @@ mapLoop:
    */
   private static String normalizeAttributeName(String attrName)
   {
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(attrName, false);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
     if (attrType != null)
     {
       String attrNameNormalized = attrType.getNormalizedPrimaryName();
@@ -572,4 +443,3 @@ mapLoop:
     return attrName;
   }
 }
-

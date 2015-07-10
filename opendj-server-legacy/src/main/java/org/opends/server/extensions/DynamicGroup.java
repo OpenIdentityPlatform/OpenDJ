@@ -37,6 +37,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -138,8 +139,7 @@ public class DynamicGroup
     // Get the memberURL attribute from the entry, if there is one, and parse
     // out the LDAP URLs that it contains.
     LinkedHashSet<LDAPURL> memberURLs = new LinkedHashSet<>();
-    AttributeType memberURLType =
-         DirectoryConfig.getAttributeType(ATTR_MEMBER_URL_LC, true);
+    AttributeType memberURLType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MEMBER_URL_LC);
     List<Attribute> attrList = groupEntry.getAttribute(memberURLType);
     if (attrList != null)
     {

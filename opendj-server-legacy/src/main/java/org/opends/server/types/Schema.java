@@ -2474,9 +2474,6 @@ public final class Schema
                           AttributeType elementType,
                           List<Modification> mods)
   {
-    AttributeType attributeTypesType =
-      DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);
-
     AttributeBuilder builder = new AttributeBuilder(elementType);
     for (String s : oldElements)
     {

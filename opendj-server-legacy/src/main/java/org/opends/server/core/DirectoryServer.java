@@ -2883,19 +2883,14 @@ public final class DirectoryServer
    *
    * @param  lowerName      The lowercase name or OID for the attribute type to
    *                        retrieve.
-   * @param  returnDefault  Indicates whether to generate a default version if
-   *                        the requested attribute type is not defined in the
-   *                        server schema.
-   *
    * @return  The requested attribute type, or <CODE>null</CODE> if there is no
    *          attribute with the specified type defined in the server schema and
    *          a default type should not be returned.
    */
-  public static AttributeType getAttributeType(String lowerName,
-                                               boolean returnDefault)
+  public static AttributeType getAttributeTypeOrDefault(String lowerName)
   {
     AttributeType type = directoryServer.schema.getAttributeType(lowerName);
-    if (returnDefault && type == null)
+    if (type == null)
     {
       type = getDefaultAttributeType(lowerName);
     }
@@ -2914,7 +2909,7 @@ public final class DirectoryServer
    * @return The requested attribute type, or a generated "default" version if there is no attribute
    *         with the specified type defined in the server schema
    */
-  public static AttributeType getAttributeType(String lowerName, String upperName)
+  public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName)
   {
     AttributeType type = directoryServer.schema.getAttributeType(lowerName);
     if (type == null)

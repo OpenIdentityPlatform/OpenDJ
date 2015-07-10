@@ -109,8 +109,8 @@ public final class AdministrationDataSync
       return;
     }
 
-    AttributeType attrType1 = DirectoryServer.getAttributeType("adminport".toLowerCase(), true);
-    AttributeType attrType2 = DirectoryServer.getAttributeType("adminEnabled".toLowerCase(), true);
+    AttributeType attrType1 = DirectoryServer.getAttributeTypeOrDefault("adminport".toLowerCase());
+    AttributeType attrType2 = DirectoryServer.getAttributeTypeOrDefault("adminEnabled".toLowerCase());
 
     LinkedList<Modification> mods = new LinkedList<>();
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrType1, adminPort)));
@@ -257,7 +257,7 @@ public final class AdministrationDataSync
       adminConnectorEntry = result.getFirst();
     }
 
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName, true);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
     List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
     if (attrs != null)
     {

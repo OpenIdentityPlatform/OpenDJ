@@ -36,6 +36,7 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
 /**
@@ -94,25 +95,11 @@ public class ConnectionHandlerMonitor
   {
     monitorName = connectionHandler.getConnectionHandlerName();
 
-    connectionsType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_CONNHANDLER_CONNECTION,
-                                          true);
-
-    listenerType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_CONNHANDLER_LISTENER,
-                                          true);
-
-    numConnectionsType =
-         DirectoryConfig.getAttributeType(
-              ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS, true);
-
-    protocolType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_CONNHANDLER_PROTOCOL,
-                                          true);
-
-    configDnType =
-         DirectoryConfig.getAttributeType(ATTR_MONITOR_CONFIG_DN,
-                                          true);
+    connectionsType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_CONNECTION);
+    listenerType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_LISTENER);
+    numConnectionsType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS);
+    protocolType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_PROTOCOL);
+    configDnType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONFIG_DN);
   }
 
 

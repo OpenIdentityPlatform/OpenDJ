@@ -397,21 +397,8 @@ public class CompressedSchema
       final byte[] encodedAttribute, final String attributeName,
       final Collection<String> attributeOptions)
   {
-    final AttributeType type = DirectoryServer.getAttributeType(
-        toLowerCase(attributeName), true);
-    final Set<String> options;
-    switch (attributeOptions.size())
-    {
-    case 0:
-      options = Collections.emptySet();
-      break;
-    case 1:
-      options = Collections.singleton(attributeOptions.iterator().next());
-      break;
-    default:
-      options = new LinkedHashSet<>(attributeOptions);
-      break;
-    }
+    final AttributeType type = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeName));
+    final Set<String> options = getOptions(attributeOptions);
     final Entry<AttributeType, Set<String>> ad = new SimpleImmutableEntry<>(type, options);
     final int id = decodeId(encodedAttribute);
     synchronized (adEncodeMap)
@@ -434,7 +421,18 @@ public class CompressedSchema
     return ad;
   }
 
-
+  private Set<String> getOptions(final Collection<String> attributeOptions)
+  {
+    switch (attributeOptions.size())
+    {
+    case 0:
+      return Collections.emptySet();
+    case 1:
+      return Collections.singleton(attributeOptions.iterator().next());
+    default:
+      return new LinkedHashSet<>(attributeOptions);
+    }
+  }
 
   /**
    * Loads an encoded object class into this compressed schema. This method may

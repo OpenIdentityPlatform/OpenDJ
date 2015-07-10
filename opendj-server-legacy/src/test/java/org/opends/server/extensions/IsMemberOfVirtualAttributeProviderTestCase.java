@@ -79,7 +79,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
   {
     TestCaseUtils.restartServer();
 
-    isMemberOfType = DirectoryServer.getAttributeType("ismemberof", false);
+    isMemberOfType = DirectoryServer.getAttributeType("ismemberof");
     assertNotNull(isMemberOfType);
   }
 

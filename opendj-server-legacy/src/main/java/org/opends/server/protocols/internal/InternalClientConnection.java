@@ -125,12 +125,9 @@ public final class InternalClientConnection
 
 
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
-      AttributeType cnAT =
-           DirectoryServer.getAttributeType(ATTR_COMMON_NAME, true);
-      AttributeType snAT = DirectoryServer.getAttributeType(ATTR_SN, true);
-      AttributeType altDNAT =
-           DirectoryServer.getAttributeType(
-                ATTR_ROOTDN_ALTERNATE_BIND_DN, true);
+      AttributeType cnAT = DirectoryServer.getAttributeTypeOrDefault(ATTR_COMMON_NAME);
+      AttributeType snAT = DirectoryServer.getAttributeTypeOrDefault(ATTR_SN);
+      AttributeType altDNAT = DirectoryServer.getAttributeTypeOrDefault(ATTR_ROOTDN_ALTERNATE_BIND_DN);
 
       LinkedList<Attribute> attrList = new LinkedList<>();
       attrList.add(Attributes.create(ATTR_COMMON_NAME, commonName));
@@ -147,9 +144,7 @@ public final class InternalClientConnection
 
       LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs = new LinkedHashMap<>();
 
-      AttributeType privType =
-           DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME, true);
-
+      AttributeType privType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PRIVILEGE_NAME);
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {

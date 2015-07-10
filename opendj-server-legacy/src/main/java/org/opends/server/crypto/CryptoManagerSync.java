@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.crypto;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.api.plugin.PluginType.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -167,12 +168,9 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     ocCipherKey = DirectoryServer.getObjectClass(OC_CRYPTO_CIPHER_KEY, true);
     ocMacKey = DirectoryServer.getObjectClass(OC_CRYPTO_MAC_KEY, true);
 
-    attrCert = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
-    attrAlias = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_KEY_ID, true);
-    attrCompromisedTime = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME, true);
+    attrCert = getAttributeTypeOrDefault(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+    attrAlias = getAttributeTypeOrDefault(ATTR_CRYPTO_KEY_ID);
+    attrCompromisedTime = getAttributeTypeOrDefault(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
 
     if (DirectoryServer.getBackendWithBaseDN(adminSuffixDN) != null)
     {

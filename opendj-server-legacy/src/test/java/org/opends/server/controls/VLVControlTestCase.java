@@ -96,10 +96,10 @@ public class VLVControlTestCase
   {
     TestCaseUtils.startServer();
 
-    givenNameType = DirectoryServer.getAttributeType("givenname", false);
+    givenNameType = DirectoryServer.getAttributeType("givenname");
     assertNotNull(givenNameType);
 
-    snType = DirectoryServer.getAttributeType("sn", false);
+    snType = DirectoryServer.getAttributeType("sn");
     assertNotNull(snType);
 
     aaccfJohnsonDN    = DN.valueOf("uid=aaccf.johnson,dc=example,dc=com");

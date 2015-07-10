@@ -66,6 +66,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -598,8 +599,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     MockPolicyCfg withMappedAttribute(final String atype)
     {
-      mappedAttributes.add(DirectoryServer.getAttributeType(
-          StaticUtils.toLowerCase(atype), true));
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(atype));
+      mappedAttributes.add(attrType);
       return this;
     }
 

@@ -31,6 +31,7 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -271,31 +272,20 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     configEntryDN = configEntry.getDN();
 
     // Get all of the attribute types that we will use for schema elements.
-    attributeTypesType =
-         DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);
-    objectClassesType =
-         DirectoryServer.getAttributeType(ATTR_OBJECTCLASSES_LC, true);
-    matchingRulesType =
-         DirectoryServer.getAttributeType(ATTR_MATCHING_RULES_LC, true);
-    ldapSyntaxesType =
-         DirectoryServer.getAttributeType(ATTR_LDAP_SYNTAXES_LC, true);
-    ditContentRulesType =
-         DirectoryServer.getAttributeType(ATTR_DIT_CONTENT_RULES_LC, true);
-    ditStructureRulesType =
-         DirectoryServer.getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC, true);
-    matchingRuleUsesType =
-         DirectoryServer.getAttributeType(ATTR_MATCHING_RULE_USE_LC, true);
-    nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS_LC, true);
+    attributeTypesType = getAttributeTypeOrDefault(ATTR_ATTRIBUTE_TYPES_LC);
+    objectClassesType = getAttributeTypeOrDefault(ATTR_OBJECTCLASSES_LC);
+    matchingRulesType = getAttributeTypeOrDefault(ATTR_MATCHING_RULES_LC);
+    ldapSyntaxesType = getAttributeTypeOrDefault(ATTR_LDAP_SYNTAXES_LC);
+    ditContentRulesType = getAttributeTypeOrDefault(ATTR_DIT_CONTENT_RULES_LC);
+    ditStructureRulesType = getAttributeTypeOrDefault(ATTR_DIT_STRUCTURE_RULES_LC);
+    matchingRuleUsesType = getAttributeTypeOrDefault(ATTR_MATCHING_RULE_USE_LC);
+    nameFormsType = getAttributeTypeOrDefault(ATTR_NAME_FORMS_LC);
 
     // Initialize the lastmod attributes.
-    creatorsNameType =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
-    createTimestampType =
-         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
-    modifiersNameType =
-         DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
-    modifyTimestampType =
-         DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
+    creatorsNameType = getAttributeTypeOrDefault(OP_ATTR_CREATORS_NAME_LC);
+    createTimestampType = getAttributeTypeOrDefault(OP_ATTR_CREATE_TIMESTAMP_LC);
+    modifiersNameType = getAttributeTypeOrDefault(OP_ATTR_MODIFIERS_NAME_LC);
+    modifyTimestampType = getAttributeTypeOrDefault(OP_ATTR_MODIFY_TIMESTAMP_LC);
 
     // Construct the set of objectclasses to include in the schema entry.
     schemaObjectClasses = new LinkedHashMap<>(3);

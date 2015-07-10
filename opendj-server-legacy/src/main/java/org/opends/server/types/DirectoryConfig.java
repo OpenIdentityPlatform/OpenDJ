@@ -33,12 +33,12 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.AlertGenerator;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.config.ConfigEntry;
@@ -358,32 +358,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getAttributeTypes();
   }
-
-
-
-  /**
-   * Retrieves the attribute type for the provided lowercase name or
-   * OID.  It can optionally return a generated "default" version if
-   * the requested attribute type is not defined in the schema.
-   *
-   * @param  lowerName      The lowercase name or OID for the
-   *                        attribute type to retrieve.
-   * @param  returnDefault  Indicates whether to generate a default
-   *                        version if the requested attribute type is
-   *                        not defined in the server schema.
-   *
-   * @return  The requested attribute type, or <CODE>null</CODE> if
-   *          there is no attribute with the specified type defined in
-   *          the server schema and a default type should not be
-   *          returned.
-   */
-  public static AttributeType
-       getAttributeType(String lowerName, boolean returnDefault)
-  {
-    return DirectoryServer.getAttributeType(lowerName, returnDefault);
-  }
-
-
 
   /**
    * Retrieves the attribute type for the "objectClass" attribute.

@@ -121,7 +121,7 @@ public class AttributeValueTag
     }
 
     String lowerName = toLowerCase(arguments[0]);
-    attributeType = DirectoryServer.getAttributeType(lowerName, true);
+    attributeType = DirectoryServer.getAttributeTypeOrDefault(lowerName);
     if (! branch.hasAttribute(attributeType))
     {
       LocalizableMessage message =
@@ -184,7 +184,7 @@ public class AttributeValueTag
     }
 
     String lowerName = toLowerCase(arguments[0]);
-    attributeType = DirectoryServer.getAttributeType(lowerName, true);
+    attributeType = DirectoryServer.getAttributeTypeOrDefault(lowerName);
     if (! template.hasAttribute(attributeType))
     {
       LocalizableMessage message =

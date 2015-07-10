@@ -816,7 +816,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   }
 
   private AttributeType getAttrType(String attrTypeString) {
-    return DirectoryServer.getAttributeType(attrTypeString, true);
+    return DirectoryServer.getAttributeTypeOrDefault(attrTypeString);
   }
 
   /**

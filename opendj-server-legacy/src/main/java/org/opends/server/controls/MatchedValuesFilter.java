@@ -900,7 +900,7 @@ public class MatchedValuesFilter
     if (attributeType == null && rawAttributeType != null)
     {
       String lowerName = toLowerCase(rawAttributeType);
-      attributeType = DirectoryServer.getAttributeType(lowerName, rawAttributeType);
+      attributeType = DirectoryServer.getAttributeTypeOrDefault(lowerName, rawAttributeType);
     }
     return attributeType;
   }

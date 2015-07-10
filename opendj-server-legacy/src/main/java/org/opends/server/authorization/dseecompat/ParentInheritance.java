@@ -220,7 +220,7 @@ public class ParentInheritance {
      * @return The attribute type.
      */
     public AttributeType getAttributeType() {
-      return DirectoryServer.getAttributeType(attrTypeStr.toLowerCase(), true);
+      return DirectoryServer.getAttributeTypeOrDefault(attrTypeStr.toLowerCase());
     }
 
     /**

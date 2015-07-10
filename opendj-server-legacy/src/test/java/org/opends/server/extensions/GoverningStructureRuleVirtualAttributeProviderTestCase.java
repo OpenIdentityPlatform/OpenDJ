@@ -80,8 +80,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
-    governingStructureRuleType =
-         DirectoryServer.getAttributeType("governingstructurerule", false);
+    governingStructureRuleType = DirectoryServer.getAttributeType("governingstructurerule");
     assertNotNull(governingStructureRuleType);
     int resultCode = TestCaseUtils.applyModifications(true,
     "dn: cn=schema",

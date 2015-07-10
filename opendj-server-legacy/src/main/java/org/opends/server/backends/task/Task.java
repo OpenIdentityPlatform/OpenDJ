@@ -973,7 +973,7 @@ public abstract class Task
       String messageString = buffer.toString();
       logMessages.add(messageString);
 
-      AttributeType type = DirectoryServer.getAttributeType(
+      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
           ATTR_TASK_LOG_MESSAGES.toLowerCase(), ATTR_TASK_LOG_MESSAGES);
 
       List<Attribute> attrList = taskEntry.getAttribute(type);

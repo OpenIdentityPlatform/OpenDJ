@@ -380,13 +380,11 @@ public class LocalBackendAddOperation
 
       // Check to see if the entry includes a privilege specification. If so,
       // then the requester must have the PRIVILEGE_CHANGE privilege.
-      AttributeType privType =
-          DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME, true);
+      AttributeType privType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PRIVILEGE_NAME);
       if (entry.hasAttribute(privType)
           && !clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
       {
-        appendErrorMessage(ERR_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES
-            .get());
+        appendErrorMessage(ERR_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
         setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
         return;
       }

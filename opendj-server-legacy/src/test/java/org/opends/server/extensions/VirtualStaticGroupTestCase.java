@@ -251,10 +251,10 @@ public class VirtualStaticGroupTestCase
   {
     TestCaseUtils.startServer();
 
-    memberType = DirectoryServer.getAttributeType("member", false);
+    memberType = DirectoryServer.getAttributeType("member");
     assertNotNull(memberType);
 
-    uniqueMemberType = DirectoryServer.getAttributeType("uniquemember", false);
+    uniqueMemberType = DirectoryServer.getAttributeType("uniquemember");
     assertNotNull(uniqueMemberType);
 
     groupManager = DirectoryServer.getGroupManager();
