@@ -41,6 +41,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -166,15 +167,7 @@ class ID2Entry extends AbstractTree
       }
     }
 
-    private ByteString encodeCopy(Entry entry, DataConfig dataConfig)
-        throws DirectoryException
-    {
-      encodeVolatile(entry, dataConfig);
-      return encodedBuffer.toByteString();
-    }
-
-    private ByteString encodeInternal(Entry entry, DataConfig dataConfig)
-        throws DirectoryException
+    private ByteString encode(Entry entry, DataConfig dataConfig) throws DirectoryException
     {
       encodeVolatile(entry, dataConfig);
       return encodedBuffer.toByteString();
@@ -304,7 +297,19 @@ class ID2Entry extends AbstractTree
     EntryCodec codec = acquireEntryCodec();
     try
     {
-      return codec.encodeCopy(entry, dataConfig);
+      return codec.encode(entry, dataConfig);
+    }
+    finally
+    {
+      codec.release();
+    }
+  }
+
+  ByteString encode(Entry entry) throws DirectoryException {
+    final EntryCodec codec = acquireEntryCodec();
+    try
+    {
+      return codec.encode(entry, dataConfig);
     }
     finally
     {
@@ -325,18 +330,15 @@ class ID2Entry extends AbstractTree
   public void put(WriteableTransaction txn, EntryID id, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    Reject.ifNull(txn);
-    ByteString key = id.toByteString();
-    EntryCodec codec = acquireEntryCodec();
-    try
-    {
-      ByteString value = codec.encodeInternal(entry, dataConfig);
-      txn.put(getName(), key, value);
-    }
-    finally
-    {
-      codec.release();
-    }
+    Reject.ifNull(txn, "txn must not be null.");
+    txn.put(getName(), id.toByteString(), encode(entry));
+  }
+
+  public void put(WriteableTransaction txn, EntryID id, ByteSequence encodedEntry)
+      throws StorageRuntimeException, DirectoryException
+  {
+    Reject.ifNull(txn, "txn must not be null.");
+    txn.put(getName(), id.toByteString(), encodedEntry);
   }
 
   /**
@@ -351,18 +353,8 @@ class ID2Entry extends AbstractTree
   public void importPut(Importer importer, EntryID id, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    Reject.ifNull(importer);
-    ByteString key = id.toByteString();
-    EntryCodec codec = acquireEntryCodec();
-    try
-    {
-      ByteString value = codec.encodeInternal(entry, dataConfig);
-      importer.put(getName(), key, value);
-    }
-    finally
-    {
-      codec.release();
-    }
+    Reject.ifNull(importer, "importer must not be null.");
+    importer.put(getName(), id.toByteString(), encode(entry));
   }
 
   /**
