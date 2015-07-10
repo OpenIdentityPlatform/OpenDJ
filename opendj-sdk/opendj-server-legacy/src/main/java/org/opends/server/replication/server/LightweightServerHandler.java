@@ -30,11 +30,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.Attribute;
@@ -190,10 +190,7 @@ public class LightweightServerHandler
 
     // get the Server State
     AttributeBuilder builder = new AttributeBuilder("server-state");
-    for (String str : remoteState.toStringSet())
-    {
-      builder.add(str);
-    }
+    builder.addAllStrings(remoteState.toStringSet());
     if (builder.size() == 0)
     {
       builder.add("unknown");

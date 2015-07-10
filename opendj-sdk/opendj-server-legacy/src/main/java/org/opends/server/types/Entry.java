@@ -371,11 +371,7 @@ public class Entry
     {
       AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
       AttributeBuilder builder = new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
-      for (Map.Entry<ObjectClass, String> e : objectClasses.entrySet())
-      {
-        builder.add(e.getValue());
-      }
-
+      builder.addAllStrings(objectClasses.values());
       objectClassAttribute = builder.toAttribute();
     }
 
@@ -3803,7 +3799,6 @@ public class Entry
         int numValues = entryBuffer.getBERLength();
 
         // Next, we have the sequence of length-value pairs.
-        builder.setInitialCapacity(numValues);
         for (int j=0; j < numValues; j++)
         {
           int valueLength = entryBuffer.getBERLength();

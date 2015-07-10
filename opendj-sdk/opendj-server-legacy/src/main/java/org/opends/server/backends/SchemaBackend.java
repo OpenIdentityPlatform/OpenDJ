@@ -746,7 +746,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     AttributeBuilder builder = new AttributeBuilder(schemaAttributeType);
-    builder.setInitialCapacity(elements.size());
     for (Object element : elements)
     {
       /*

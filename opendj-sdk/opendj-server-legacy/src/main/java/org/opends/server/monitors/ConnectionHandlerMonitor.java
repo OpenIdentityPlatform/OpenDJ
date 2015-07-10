@@ -159,10 +159,7 @@ public class ConnectionHandlerMonitor
     if (!listeners.isEmpty())
     {
       AttributeBuilder builder = new AttributeBuilder(listenerType);
-      for (HostPort hp : listeners)
-      {
-        builder.add(hp.toString());
-      }
+      builder.addAllStrings(listeners);
       attrs.add(builder.toAttribute());
     }
 
@@ -183,4 +180,3 @@ public class ConnectionHandlerMonitor
     return attrs;
   }
 }
-

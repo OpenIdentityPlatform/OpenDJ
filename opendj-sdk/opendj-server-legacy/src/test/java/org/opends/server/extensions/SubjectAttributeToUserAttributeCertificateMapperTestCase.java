@@ -27,19 +27,20 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.testng.Assert.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SubjectAttributeToUserAttributeCertificateMapperCfgDefn;
 import org.opends.server.admin.std.server.SubjectAttributeToUserAttributeCertificateMapperCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -52,18 +53,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
-
-/**
- * A set of test cases for the Subject Attribute to User Attribute certificate
- * mapper.
- */
+/** A set of test cases for the Subject Attribute to User Attribute certificate mapper. */
 public class SubjectAttributeToUserAttributeCertificateMapperTestCase
        extends ExtensionsTestCase
 {
@@ -922,21 +916,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     String mapperDN = "cn=Subject Attribute to User Attribute," +
                       "cn=Certificate Mappers,cn=config";
 
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(
-              "ds-cfg-subject-attribute-mapping");
-
-    AttributeBuilder builder = new AttributeBuilder(attrType);
-    if (mappings != null)
-    {
-      for (String mapping : mappings)
-      {
-        builder.add(mapping);
-      }
-    }
-
     ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
+    mods.add(new Modification(ModificationType.REPLACE,
+        Attributes.create("ds-cfg-subject-attribute-mapping", mappings)));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -969,10 +951,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {
-      for (String baseDN : baseDNs)
-      {
-        builder.add(baseDN);
-      }
+      builder.addAllStrings(Arrays.asList(baseDNs));
     }
 
     ArrayList<Modification> mods = new ArrayList<>();

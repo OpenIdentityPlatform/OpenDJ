@@ -112,10 +112,7 @@ public class UserDefinedVirtualAttributeProvider
       return Attributes.create(rule.getAttributeType(), valueString);
     default:
       AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
-      for (String valueStr : userDefinedValues)
-      {
-        builder.add(valueStr);
-      }
+      builder.addAllStrings(userDefinedValues);
       return builder.toAttribute();
     }
   }

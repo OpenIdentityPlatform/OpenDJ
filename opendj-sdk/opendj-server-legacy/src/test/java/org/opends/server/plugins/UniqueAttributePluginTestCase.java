@@ -737,17 +737,9 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     getRootConnection().processModify(dn, mods);
   }
 
-
-
-  private void
-  replaceAttrInEntry(DN dn, String attrTypeString, String... attrValStrings) {
+  private void replaceAttrInEntry(DN dn, String attrName, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<>();
-    AttributeType attrType = getAttrType(attrTypeString);
-    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
-    for(String valString : attrValStrings) {
-      builder.add(valString);
-    }
-    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrName, attrValStrings)));
     getRootConnection().processModify(dn, mods);
   }
 
@@ -800,17 +792,11 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    * Add an attribute to an entry with specified values.
    *
    * @param entry  The entry to add the attribute to.
-   * @param attrTypeString The attribute type string name.
+   * @param attrName The attribute type string name.
    * @param attrValues The values use in building the attribute.
    */
-  private void
-  addAttribute(Entry entry, String attrTypeString, String... attrValues) {
-    AttributeType attrType=getAttrType(attrTypeString);
-    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
-    for(String attrValue : attrValues) {
-      builder.add(attrValue);
-    }
-    entry.addAttribute(builder.toAttribute(), null);
+  private void addAttribute(Entry entry, String attrName, String... attrValues) {
+    entry.addAttribute(Attributes.create(attrName, attrValues), null);
   }
 
   /**
@@ -818,20 +804,15 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    * type to a list of modifications.
    *
    * @param mods The modification list to add to.
-   * @param attrTypeString The attribute type string name.
+   * @param attrName The attribute type string name.
    * @param modificationType The modification type.
    * @param attrValues The values to build the modification from.
    */
   private void
-  addMods(LinkedList<Modification> mods, String attrTypeString,
+  addMods(LinkedList<Modification> mods, String attrName,
           ModificationType modificationType, String... attrValues) {
-    AttributeType attrType=getAttrType(attrTypeString);
-    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
-    for(String attrValue : attrValues) {
-      builder.add(attrValue);
-    }
     mods.add(new Modification(modificationType,
-             builder.toAttribute()));
+        Attributes.create(attrName, attrValues)));
   }
 
   /**
@@ -867,7 +848,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   /**
    *  Perform modify DN operation. Expect return value of rc.
    *
-   * @param dn  The DN to renmame or move.
+   * @param dn  The DN to rename or move.
    * @param rdn RDN value.
    * @param delOld Delete old flag.
    * @param newSuperior New superior to move to.

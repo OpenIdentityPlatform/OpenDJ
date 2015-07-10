@@ -26,18 +26,19 @@
  */
 package org.opends.server.monitors;
 
-
-
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class defines a Directory Server monitor provider that can be used to
@@ -47,7 +48,7 @@ import org.opends.server.types.*;
 public class StackTraceMonitorProvider
        extends MonitorProvider<StackTraceMonitorProviderCfg>
 {
-  /** {@inheritDoc} */
+  @Override
   public void initializeMonitorProvider(
                    StackTraceMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
@@ -55,33 +56,16 @@ public class StackTraceMonitorProvider
     // No initialization is required.
   }
 
-
-
-  /**
-   * Retrieves the name of this monitor provider.  It should be unique among all
-   * monitor providers, including all instances of the same monitor provider.
-   *
-   * @return  The name of this monitor provider.
-   */
+  @Override
   public String getMonitorInstanceName()
   {
     return "JVM Stack Trace";
   }
 
-
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
-  public ArrayList<Attribute> getMonitorData()
+  @Override
+  public List<Attribute> getMonitorData()
   {
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
-
 
     // Re-arrange all of the elements by thread ID so that there is some logical order.
     TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>> orderedStacks = new TreeMap<>();
@@ -89,7 +73,6 @@ public class StackTraceMonitorProvider
     {
       orderedStacks.put(e.getKey().getId(), e);
     }
-
 
     AttributeType attrType =
          DirectoryServer.getDefaultAttributeType("jvmThread");
@@ -100,21 +83,14 @@ public class StackTraceMonitorProvider
       StackTraceElement[] stackElements = e.getValue();
 
       long id = t.getId();
-
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("id=");
-      buffer.append(id);
-      buffer.append(" ---------- ");
-      buffer.append(t.getName());
-      buffer.append(" ----------");
-      builder.add(buffer.toString());
+      builder.add("id=" + id + " ---------- " + t.getName() + " ----------");
 
       // Create an attribute for the stack trace.
       if (stackElements != null)
       {
         for (int j=0; j < stackElements.length; j++)
         {
-          buffer = new StringBuilder();
+          StringBuilder buffer = new StringBuilder();
           buffer.append("id=");
           buffer.append(id);
           buffer.append(" frame[");

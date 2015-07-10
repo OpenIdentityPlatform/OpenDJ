@@ -26,8 +26,6 @@
  */
 package org.opends.server.monitors;
 
-
-
 import static org.opends.server.util.ServerConstants.*;
 
 import java.lang.management.ManagementFactory;
@@ -42,13 +40,16 @@ import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class defines a Directory Server monitor provider that can be used to
@@ -60,9 +61,7 @@ public class SystemInfoMonitorProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeMonitorProvider(
                    SystemInfoMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
@@ -70,30 +69,14 @@ public class SystemInfoMonitorProvider
     // No initialization is required.
   }
 
-
-
-  /**
-   * Retrieves the name of this monitor provider.  It should be unique among all
-   * monitor providers, including all instances of the same monitor provider.
-   *
-   * @return  The name of this monitor provider.
-   */
+  @Override
   public String getMonitorInstanceName()
   {
     return "System Information";
   }
 
-
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
-  public ArrayList<Attribute> getMonitorData()
+  @Override
+  public List<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<>(13);
 
@@ -199,32 +182,19 @@ public class SystemInfoMonitorProvider
       supportedTlsCiphers = Collections.emptyList();
     }
 
-
-    // Add the "supportedTLSProtocols" attribute.
-    AttributeType supportedTLSProtocolsAttrType = DirectoryServer
-        .getDefaultAttributeType(ATTR_SUPPORTED_TLS_PROTOCOLS);
-    AttributeBuilder builder = new AttributeBuilder(
-        supportedTLSProtocolsAttrType);
-    for (String value : supportedTlsProtocols)
-    {
-      builder.add(value);
-    }
-    attrs.add(builder.toAttribute());
-
-    // Add the "supportedTLSCiphers" attribute.
-    AttributeType supportedTLSCiphersAttrType = DirectoryServer
-        .getDefaultAttributeType(ATTR_SUPPORTED_TLS_CIPHERS);
-    builder = new AttributeBuilder(supportedTLSCiphersAttrType);
-    for (String value : supportedTlsCiphers)
-    {
-      builder.add(value);
-    }
-    attrs.add(builder.toAttribute());
+    addAttribute(attrs, ATTR_SUPPORTED_TLS_PROTOCOLS, supportedTlsProtocols);
+    addAttribute(attrs, ATTR_SUPPORTED_TLS_CIPHERS, supportedTlsCiphers);
 
     return attrs;
   }
 
-
+  private void addAttribute(ArrayList<Attribute> attrs, String attrName, Collection<String> values)
+  {
+    AttributeType attrType = DirectoryServer.getDefaultAttributeType(attrName);
+    AttributeBuilder builder = new AttributeBuilder(attrType);
+    builder.addAllStrings(values);
+    attrs.add(builder.toAttribute());
+  }
 
   /**
    * Constructs an attribute using the provided information.  It will have the

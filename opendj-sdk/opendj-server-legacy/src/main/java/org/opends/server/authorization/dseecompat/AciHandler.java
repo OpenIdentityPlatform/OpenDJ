@@ -30,6 +30,7 @@ package org.opends.server.authorization.dseecompat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -43,7 +44,11 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
-import org.opends.server.core.*;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -444,15 +449,9 @@ public final class AciHandler extends
       return true;
     }
 
-    final AttributeBuilder builder =
-        new AttributeBuilder(refAttrType, ATTR_REFERRAL_URL);
-
     // Load the values, a bind rule might want to evaluate them.
-    final List<String> URLStrings = reference.getReferralURLs();
-    for (String URLString : URLStrings)
-    {
-      builder.add(URLString);
-    }
+    final AttributeBuilder builder = new AttributeBuilder(refAttrType, ATTR_REFERRAL_URL);
+    builder.addAllStrings(reference.getReferralURLs());
 
     final Entry e = new Entry(dn, null, null, null);
     e.addAttribute(builder.toAttribute(), null);
