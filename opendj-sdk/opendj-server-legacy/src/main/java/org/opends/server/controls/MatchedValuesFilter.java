@@ -38,11 +38,13 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.util.Reject;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -897,11 +899,8 @@ public class MatchedValuesFilter
   {
     if (attributeType == null && rawAttributeType != null)
     {
-      attributeType = DirectoryServer.getAttributeType(toLowerCase(rawAttributeType));
-      if (attributeType == null)
-      {
-        attributeType = DirectoryServer.getDefaultAttributeType(rawAttributeType);
-      }
+      String lowerName = toLowerCase(rawAttributeType);
+      attributeType = DirectoryServer.getAttributeType(lowerName, rawAttributeType);
     }
     return attributeType;
   }

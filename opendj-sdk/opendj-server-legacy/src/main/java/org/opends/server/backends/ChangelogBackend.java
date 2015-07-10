@@ -749,11 +749,7 @@ public class ChangelogBackend extends Backend<Configuration>
   private SearchFilter buildSearchFilterFrom(final DN baseDN, final String lowerCaseAttr, final String upperCaseAttr)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerCaseAttr);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(upperCaseAttr);
-    }
+    AttributeType attrType = DirectoryServer.getAttributeType(lowerCaseAttr, upperCaseAttr);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1548,11 +1544,7 @@ public class ChangelogBackend extends Backend<Configuration>
       final Map<AttributeType, List<Attribute>> userAttrs,
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrNameLowercase);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(attrNameUppercase);
-    }
+    AttributeType attrType = DirectoryServer.getAttributeType(attrNameLowercase, attrNameUppercase);
     final Attribute a = addByType
         ? Attributes.create(attrType, attrValue)
         : Attributes.create(attrNameUppercase, attrValue);

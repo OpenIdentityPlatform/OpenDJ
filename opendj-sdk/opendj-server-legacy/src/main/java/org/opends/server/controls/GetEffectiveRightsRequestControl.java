@@ -26,22 +26,25 @@
  */
 package org.opends.server.controls;
 
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * This class partially implements the geteffectiverights control as defined
@@ -116,14 +119,8 @@ public class GetEffectiveRightsRequestControl extends Control
             attrs = new LinkedList<>();
             reader.readStartSequence();
             while(reader.hasNextElement()) {
-              //Decode as an octet string.
               String attrStr = reader.readOctetStringAsString();
-              AttributeType attrType = DirectoryServer.getAttributeType(attrStr);
-              //Get an attribute type for it and add to the list.
-              if (attrType == null) {
-                attrType = DirectoryServer.getDefaultAttributeType(attrStr);
-              }
-              attrs.add(attrType);
+              attrs.add(DirectoryServer.getAttributeType(attrStr, true));
             }
             reader.readEndSequence();
           }
@@ -145,7 +142,6 @@ public class GetEffectiveRightsRequestControl extends Control
     {
       return OID_GET_EFFECTIVE_RIGHTS;
     }
-
   }
 
   /**

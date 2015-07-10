@@ -39,18 +39,18 @@ import org.opends.server.types.AttributeType;
 /**
  * A class representing an ACI's targetattr keyword.
  */
-public class TargetAttr {
+class TargetAttr {
     /** Enumeration representing the targetattr operator. */
-    private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
+    private final EnumTargetOperator operator;
 
     /** Flags that is set if all user attributes pattern seen "*". */
     private boolean allUserAttributes;
     /** Flags that is set if all operational attributes pattern seen "+". */
     private boolean allOpAttributes;
     /** Set of the attribute types parsed by the constructor. */
-    private HashSet<AttributeType> attributes = new HashSet<>();
+    private final HashSet<AttributeType> attributes = new HashSet<>();
     /** Set of the operational attribute types parsed by the constructor. */
-    private HashSet<AttributeType> opAttributes = new HashSet<>();
+    private final HashSet<AttributeType> opAttributes = new HashSet<>();
 
     /**
      * Regular expression that matches one or more ATTR_NAME's separated by
@@ -132,10 +132,7 @@ public class TargetAttr {
                     throw new AciException(message);
                 }
             } else {
-                AttributeType attrType = DirectoryServer.getAttributeType(attribute);
-                if (attrType == null) {
-                    attrType = DirectoryServer.getDefaultAttributeType(attribute);
-                }
+                AttributeType attrType = DirectoryServer.getAttributeType(attribute, true);
                 if(attrType.isOperational())
                 {
                   opAttributes.add(attrType);
@@ -175,24 +172,6 @@ public class TargetAttr {
     }
 
     /**
-     * Return array holding each attribute type to be evaluated
-     * in the expression.
-     * @return Array holding each attribute types.
-     */
-    public HashSet<AttributeType> getAttributes() {
-        return attributes;
-    }
-
-    /**
-     * Return array holding  operational attribute types to be evaluated
-     * in the expression.
-     * @return  Array holding attribute types.
-     */
-    public HashSet<AttributeType> getOpAttributes() {
-        return opAttributes;
-    }
-
-    /**
      * Decodes an targetattr expression string into a targetattr class suitable
      * for evaluation.
      * @param operator The operator enumeration of the expression.
@@ -200,8 +179,7 @@ public class TargetAttr {
      * @return A TargetAttr suitable to evaluate this ACI's targetattrs.
      * @throws AciException If the expression string is invalid.
      */
-    public static TargetAttr decode(EnumTargetOperator operator, String expr)
-            throws AciException  {
+    static TargetAttr decode(EnumTargetOperator operator, String expr) throws AciException  {
         return new TargetAttr(operator, expr);
     }
 
@@ -224,8 +202,7 @@ public class TargetAttr {
      * @return The boolean result of the above tests and application
      * TargetAttr's operator value applied to the test result.
      */
-
-    public static boolean isApplicable(AttributeType a, TargetAttr targetAttr) {
+    static boolean isApplicable(AttributeType a, TargetAttr targetAttr) {
         if(targetAttr.isAllUserAttributes() && targetAttr.isAllOpAttributes()) {
             return !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
         } else {

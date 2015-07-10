@@ -650,21 +650,8 @@ public final class DN implements Comparable<DN>, Serializable
       {
         StringBuilder lowerName = new StringBuilder();
         toLowerCase(attributeName, lowerName, true);
-        AttributeType attrType  =
-             DirectoryServer.getAttributeType(lowerName.toString());
         String attributeNameString = attributeName.toString();
-
-        if (attrType == null)
-        {
-          // This must be an attribute type that we don't know about.
-          // In that case, we'll create a new attribute using the
-          // default syntax.  If this is a problem, it will be caught
-          // later either by not finding the target entry or by not
-          // allowing the entry to be added.
-          attrType = DirectoryServer.getDefaultAttributeType(
-              attributeNameString);
-        }
-
+        AttributeType attrType = getAttributeType(lowerName.toString(), attributeNameString);
         rdnComponents.add(
             new RDN(attrType, attributeNameString, ByteString.empty()));
         return new DN(rdnComponents);
@@ -883,8 +870,6 @@ public final class DN implements Comparable<DN>, Serializable
     }
   }
 
-
-
   /**
    * Decodes the provided string as a DN.
    *
@@ -1004,19 +989,7 @@ public final class DN implements Comparable<DN>, Serializable
       {
         String        name      = attributeName.toString();
         String        lowerName = toLowerCase(name);
-        AttributeType attrType  =
-             DirectoryServer.getAttributeType(lowerName);
-
-        if (attrType == null)
-        {
-          // This must be an attribute type that we don't know about.
-          // In that case, we'll create a new attribute using the
-          // default syntax.  If this is a problem, it will be caught
-          // later either by not finding the target entry or by not
-          // allowing the entry to be added.
-          attrType = DirectoryServer.getDefaultAttributeType(name);
-        }
-
+        AttributeType attrType = getAttributeType(lowerName, name);
         rdnComponents.add(new RDN(attrType, name, ByteString.empty()));
         return new DN(rdnComponents);
       }
@@ -1030,18 +1003,7 @@ public final class DN implements Comparable<DN>, Serializable
       // Create the new RDN with the provided information.
       String name            = attributeName.toString();
       String lowerName       = toLowerCase(name);
-      AttributeType attrType =
-           DirectoryServer.getAttributeType(lowerName);
-      if (attrType == null)
-      {
-        // This must be an attribute type that we don't know about.
-        // In that case, we'll create a new attribute using the
-        // default syntax.  If this is a problem, it will be caught
-        // later either by not finding the target entry or by not
-        // allowing the entry to be added.
-        attrType = DirectoryServer.getDefaultAttributeType(name);
-      }
-
+      AttributeType attrType = getAttributeType(lowerName, name);
       RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
 
 
@@ -1241,7 +1203,20 @@ public final class DN implements Comparable<DN>, Serializable
     }
   }
 
-
+  private static AttributeType getAttributeType(String lowerName, String name)
+  {
+    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+    if (attrType == null)
+    {
+      // This must be an attribute type that we don't know about.
+      // In that case, we'll create a new attribute using the
+      // default syntax.  If this is a problem, it will be caught
+      // later either by not finding the target entry or by not
+      // allowing the entry to be added.
+      attrType = DirectoryServer.getDefaultAttributeType(name);
+    }
+    return attrType;
+  }
 
   /**
    * Parses an attribute name from the provided DN string starting at

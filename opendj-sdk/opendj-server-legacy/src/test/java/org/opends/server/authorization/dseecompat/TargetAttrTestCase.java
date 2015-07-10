@@ -412,10 +412,7 @@ public class TargetAttrTestCase extends AciTestCase {
   {
     EnumTargetOperator op = EnumTargetOperator.createOperator(eqOperator);
     TargetAttr targetAttr = TargetAttr.decode(op, targetAttrString);
-    AttributeType attrType = DirectoryServer.getAttributeType(attribute);
-    if (attrType == null) {
-      attrType = DirectoryServer.getDefaultAttributeType(attribute);
-    }
+    AttributeType attrType = DirectoryServer.getAttributeType(attribute, true);
     assertEquals(TargetAttr.isApplicable(attrType, targetAttr), expectedResult);
   }
 }

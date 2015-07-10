@@ -26,7 +26,6 @@
  */
 package org.opends.server.monitors;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -137,11 +136,9 @@ public class ClientConnectionMonitorProvider extends
     if (handler == null)
     {
       // Get information about all the available connections.
-      for (ConnectionHandler<?> hdl : DirectoryServer
-          .getConnectionHandlers())
+      for (ConnectionHandler<?> hdl : DirectoryServer.getConnectionHandlers())
       {
-        // FIXME: connections from different handlers could have the
-        // same ID.
+        // FIXME: connections from different handlers could have the same ID.
         for (ClientConnection conn : hdl.getClientConnections())
         {
           connMap.put(conn.getConnectionID(), conn);
@@ -150,9 +147,7 @@ public class ClientConnectionMonitorProvider extends
     }
     else
     {
-      Collection<ClientConnection> collection =
-          handler.getClientConnections();
-      for (ClientConnection conn : collection)
+      for (ClientConnection conn : handler.getClientConnections())
       {
         connMap.put(conn.getConnectionID(), conn);
       }

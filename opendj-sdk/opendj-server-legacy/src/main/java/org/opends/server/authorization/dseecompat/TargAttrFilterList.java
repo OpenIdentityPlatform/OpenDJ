@@ -132,10 +132,7 @@ public class TargAttrFilterList {
               attributeName=attributeName.substring(0, semicolon);
             }
             String filterString=matcher.group(filterPos);
-            AttributeType attrType = DirectoryServer.getAttributeType(attributeName);
-            if (attrType == null) {
-                attrType = DirectoryServer.getDefaultAttributeType(attributeName);
-            }
+            AttributeType attrType = DirectoryServer.getAttributeType(attributeName, true);
             SearchFilter filter;
             //Check if it is a valid filter and add it to the list map if ok.
             try {

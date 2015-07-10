@@ -320,12 +320,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       }
       else
       {
-        AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
-        }
-
+        AttributeType attrType = DirectoryServer.getAttributeType(lowerName, attrName);
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
         for (Object value : getAttributeValues(attrName))
         {

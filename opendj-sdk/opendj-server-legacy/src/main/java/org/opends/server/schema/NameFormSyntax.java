@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -432,29 +433,10 @@ public class NameFormSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+                ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              // This isn't good because it means that the name form requires
-              // an attribute type that we don't know anything about.
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.get(oid, woidBuffer));
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -474,25 +456,8 @@ public class NameFormSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            // This isn't good because it means that the name form requires an
-            // attribute type that we don't know anything about.
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.get(oid, woidBuffer));
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+              ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR));
         }
 
         requiredAttributes.addAll(attrs);
@@ -512,29 +477,10 @@ public class NameFormSyntax
           {
             StringBuilder woidBuffer = new StringBuilder();
             pos = readWOID(lowerStr, woidBuffer, (pos));
+            attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+                ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR));
 
-            AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-            if (attr == null)
-            {
-              // This isn't good because it means that the name form allows an
-              // attribute type that we don't know anything about.
-              if (allowUnknownElements)
-              {
-                attr = DirectoryServer.getDefaultAttributeType(
-                                            woidBuffer.toString());
-              }
-              else
-              {
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(oid, woidBuffer));
-              }
-            }
-
-            attrs.add(attr);
-
-
-            // The next character must be either a dollar sign or a closing
-            // parenthesis.
+            // The next character must be either a dollar sign or a closing parenthesis.
             c = valueStr.charAt(pos++);
             if (c == ')')
             {
@@ -554,25 +500,8 @@ public class NameFormSyntax
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-
-          AttributeType attr = schema.getAttributeType(woidBuffer.toString());
-          if (attr == null)
-          {
-            // This isn't good because it means that the name form allows an
-            // attribute type that we don't know anything about.
-            if (allowUnknownElements)
-            {
-              attr = DirectoryServer.getDefaultAttributeType(
-                                          woidBuffer.toString());
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(oid, woidBuffer));
-            }
-          }
-
-          attrs.add(attr);
+          attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
+              ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR));
         }
 
         optionalAttributes.addAll(attrs);
@@ -604,6 +533,25 @@ public class NameFormSyntax
     return new NameForm(value.toString(), names, oid, description,
                         isObsolete, structuralClass, requiredAttributes,
                         optionalAttributes, extraProperties);
+  }
+
+  private static AttributeType getAttributeType(Schema schema, boolean allowUnknownElements, String oid,
+      StringBuilder woidBuffer, Arg2<Object, Object> msg) throws DirectoryException
+  {
+    String woidString = woidBuffer.toString();
+    AttributeType attr = schema.getAttributeType(woidString);
+    if (attr == null)
+    {
+      // This isn't good because it means that the name form
+      // refers to an attribute type that we don't know anything about.
+      if (!allowUnknownElements)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            msg.get(oid, woidString));
+      }
+      attr = DirectoryServer.getDefaultAttributeType(woidString);
+    }
+    return attr;
   }
 
   /**

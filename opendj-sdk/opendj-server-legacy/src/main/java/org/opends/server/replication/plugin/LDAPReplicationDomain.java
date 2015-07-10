@@ -3425,17 +3425,11 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     // For the checksum computing mode, only consider the 'stable' attributes
     if (checksumOutput)
     {
-      String includeAttributeStrings[] =
-        {"objectclass", "sn", "cn", "entryuuid"};
+      String includeAttributeStrings[] = { "objectclass", "sn", "cn", "entryuuid" };
       Set<AttributeType> includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings)
       {
-        AttributeType attrType  = DirectoryServer.getAttributeType(attrName);
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
-        }
-        includeAttributes.add(attrType);
+        includeAttributes.add(DirectoryServer.getAttributeType(attrName, true));
       }
       exportConfig.setIncludeAttributes(includeAttributes);
     }

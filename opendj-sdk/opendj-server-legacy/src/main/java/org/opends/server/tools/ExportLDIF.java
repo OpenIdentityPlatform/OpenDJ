@@ -579,14 +579,8 @@ public class ExportLDIF extends TaskTool {
       excludeAttributes = new HashSet<>();
       for (String attrName : excludeAttributeStrings.getValues())
       {
-        String        lowerName = attrName.toLowerCase();
-        AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
-        }
-
-        excludeAttributes.add(attrType);
+        excludeAttributes.add(
+            DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
       }
     }
 
@@ -600,14 +594,8 @@ public class ExportLDIF extends TaskTool {
       includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings.getValues())
       {
-        String        lowerName = attrName.toLowerCase();
-        AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
-        }
-
-        includeAttributes.add(attrType);
+        includeAttributes.add(
+            DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
       }
     }
 

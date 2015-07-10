@@ -26,9 +26,11 @@
  */
 package org.opends.server.admin;
 
+import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -55,23 +57,16 @@ import static org.opends.server.protocols.internal.Requests.*;
  */
 public final class AdministrationDataSync
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The root connection.
-   */
+  /** The root connection. */
   private InternalClientConnection internalConnection;
 
-  /**
-   * The attribute name used to store the port. TODO Use the default
-   * one.
-   */
+  /** The attribute name used to store the port. TODO Use the default one. */
   private static final String LDAP_PORT = "ds-cfg-listen-port";
 
-
-
   /**
-   * Create an object that will syncrhonize configuration and the
-   * admin data.
+   * Create an object that will synchronize configuration and the admin data.
    *
    * @param internalConnection
    *          The root connection.
@@ -81,11 +76,9 @@ public final class AdministrationDataSync
     this.internalConnection = internalConnection;
   }
 
-
-
   /**
    * Check if information found in "cn=admin data" is coherent with
-   * cn=config. If and inconsistancy is detected, we log a warning
+   * cn=config. If and inconsistency is detected, we log a warning
    * message and update "cn=admin data"
    */
   public void synchronize()
@@ -93,8 +86,6 @@ public final class AdministrationDataSync
     // Check if the admin connector is in sync
     checkAdminConnector();
   }
-
-
 
   /**
    * Check if the admin connector is in sync. The desynchronization
@@ -111,41 +102,23 @@ public final class AdministrationDataSync
     }
 
     // Get the admin port
-    String adminPort = getAttr("cn=Administration Connector,cn=config",
-        LDAP_PORT);
+    String adminPort = getAttr("cn=Administration Connector,cn=config", LDAP_PORT);
     if (adminPort == null)
     {
       // best effort.
       return;
     }
 
-    LinkedList<Modification> mods = new LinkedList<>();
-    // adminport
-    String attName = "adminport";
-    AttributeType attrType = DirectoryServer.getAttributeType(attName
-        .toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(attName.toLowerCase());
-    }
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
-        attrType, adminPort)));
+    AttributeType attrType1 = DirectoryServer.getAttributeType("adminport".toLowerCase(), true);
+    AttributeType attrType2 = DirectoryServer.getAttributeType("adminEnabled".toLowerCase(), true);
 
-    // adminEnabled
-    attName = "adminEnabled";
-    attrType = DirectoryServer.getAttributeType(attName.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(attName.toLowerCase());
-    }
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
-        attrType, "true")));
+    LinkedList<Modification> mods = new LinkedList<>();
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrType1, adminPort)));
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrType2, "true")));
 
     // Process modification
     internalConnection.processModify(serverEntryDN, mods);
   }
-
-
 
   /**
    * Look for the DN of the local register server. Assumption: default
@@ -158,21 +131,15 @@ public final class AdministrationDataSync
     DN returnDN = null;
 
     // Get the LDAP and LDAPS port
-    String ldapPort = getAttr(
-        "cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
-        LDAP_PORT);
-    String ldapsPort = getAttr(
-        "cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
-        LDAP_PORT);
+    String ldapPort = getAttr("cn=LDAP Connection Handler,cn=Connection Handlers,cn=config", LDAP_PORT);
+    String ldapsPort = getAttr("cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config", LDAP_PORT);
     boolean ldapsPortEnable = false;
-    String val = getAttr(
-        "cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config",
-        "ds-cfg-enabled");
+    String val = getAttr("cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config", "ds-cfg-enabled");
     if (val != null)
     {
-      ldapsPortEnable = val.toLowerCase().equals("true");
+      ldapsPortEnable = "true".equals(val.toLowerCase());
     }
-    if ((ldapPort == null) && (ldapsPort == null))
+    if (ldapPort == null && ldapsPort == null)
     {
       // best effort (see assumption)
       return null;
@@ -182,7 +149,7 @@ public final class AdministrationDataSync
     String hostName;
     try
     {
-      hostName = java.net.InetAddress.getLocalHost().getCanonicalHostName();
+      hostName = InetAddress.getLocalHost().getCanonicalHostName();
     }
     catch (Throwable t)
     {
@@ -197,50 +164,12 @@ public final class AdministrationDataSync
       InternalSearchOperation op = internalConnection.processSearch(request);
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
-        Entry entry = null;
-        for (Entry currentEntry : op.getSearchEntries())
-        {
-          String currentHostname =
-              currentEntry.parseAttribute("hostname").asString();
-          try
-          {
-            String currentIPAddress = java.net.InetAddress.getByName(
-                currentHostname).getCanonicalHostName();
-            if (currentIPAddress.equals(hostName))
-            {
-              // Check if one of the port match
-              String currentport =
-                  currentEntry.parseAttribute("ldapport").asString();
-              if (currentport.equals(ldapPort))
-              {
-                entry = currentEntry;
-                break;
-              }
-              if (ldapsPortEnable)
-              {
-                currentport =
-                    currentEntry.parseAttribute("ldapsport").asString();
-                if (currentport.equals(ldapsPort))
-                {
-                  entry = currentEntry;
-                  break;
-                }
-              }
-            }
-          }
-          catch (Exception e)
-          {
-            // best effort.
-            continue;
-          }
-        }
-
+        Entry entry = findSameHostAndPort(op.getSearchEntries(), hostName, ldapPort, ldapsPortEnable, ldapsPort);
         if (entry != null)
         {
           returnDN = entry.getName();
         }
       }
-
     }
     catch (DirectoryException e)
     {
@@ -250,7 +179,41 @@ public final class AdministrationDataSync
     return returnDN;
   }
 
-
+  private Entry findSameHostAndPort(LinkedList<SearchResultEntry> searchResultEntries,
+      String hostName, String ldapPort, boolean ldapsPortEnable, String ldapsPort)
+  {
+    for (Entry currentEntry : searchResultEntries)
+    {
+      String currentHostname = currentEntry.parseAttribute("hostname").asString();
+      try
+      {
+        String currentIPAddress = InetAddress.getByName(currentHostname).getCanonicalHostName();
+        if (currentIPAddress.equals(hostName))
+        {
+          // Check if one of the port match
+          String currentport = currentEntry.parseAttribute("ldapport").asString();
+          if (currentport.equals(ldapPort))
+          {
+            return currentEntry;
+          }
+          if (ldapsPortEnable)
+          {
+            currentport = currentEntry.parseAttribute("ldapsport").asString();
+            if (currentport.equals(ldapsPort))
+            {
+              return currentEntry;
+            }
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        // best effort.
+        continue;
+      }
+    }
+    return null;
+  }
 
   /**
    * Gets an attribute value from an entry.
@@ -282,7 +245,7 @@ public final class AdministrationDataSync
     {
       // can not happen
       // best effort.
-      // TODO Log an Error.
+      logger.traceException(e);
       return null;
     }
 
@@ -294,23 +257,17 @@ public final class AdministrationDataSync
       adminConnectorEntry = result.getFirst();
     }
 
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(attrName);
-    }
-
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName, true);
     List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
-    if (attrs == null)
+    if (attrs != null)
     {
-      // can not happen
-      // best effort.
-      // TODO Log an Error.
-      return null;
+      // Get the attribute value
+      return attrs.get(0).iterator().next().toString();
     }
 
-    // Get the attribute value
-    return attrs.get(0).iterator().next().toString();
+    // can not happen
+    // best effort.
+    // TODO Log an Error.
+    return null;
   }
-
 }

@@ -1020,13 +1020,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   private static AttributeType getAttributeType(String attributeName)
   {
-    String lc = toLowerCase(attributeName);
-    AttributeType type = DirectoryServer.getAttributeType(lc);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(attributeName);
-    }
-    return type;
+    return DirectoryServer.getAttributeType(toLowerCase(attributeName), attributeName);
   }
 
   /** The attribute type for this attribute. */

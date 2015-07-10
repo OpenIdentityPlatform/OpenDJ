@@ -479,8 +479,7 @@ public class ExportTask extends Task
       }
     }
 
-    // If we got here the task either completed successfully or
-    // was interrupted
+    // If we got here the task either completed successfully or was interrupted
     return getFinalTaskState();
   }
 
@@ -493,14 +492,7 @@ public class ExportTask extends Task
     HashSet<AttributeType> attributes = new HashSet<>();
     for (String attrName : attributeStrings)
     {
-      String lowerName = attrName.toLowerCase();
-      AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrName);
-      }
-
-      attributes.add(attrType);
+      attributes.add(DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
     }
     return attributes;
   }

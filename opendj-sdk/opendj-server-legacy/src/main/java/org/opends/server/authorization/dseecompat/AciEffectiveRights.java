@@ -28,12 +28,16 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
 
 /**
  * This class implements the dseecompat geteffectiverights evaluation.
@@ -274,20 +278,14 @@ public class AciEffectiveRights {
         }
         else
         {
-          AttributeType attrType = DirectoryServer.getAttributeType(a
-              .toLowerCase());
-          if (attrType == null)
-          {
-            attrType = DirectoryServer.getDefaultAttributeType(a.toLowerCase());
-          }
-          nonRightsAttrs.add(attrType);
+          nonRightsAttrs.add(DirectoryServer.getAttributeType(a.toLowerCase(), true));
         }
       }
     }
 
     // If the special geteffectiverights attributes were not found or
     // the user does not have both bypass-acl privs and is not allowed to
-    // perform rights evalation -- return the entry unchanged.
+    // perform rights evaluation -- return the entry unchanged.
     if (attrMask == ACI_NULL
         || (!skipCheck && !rightsAccessAllowed(container, handler, attrMask)))
     {

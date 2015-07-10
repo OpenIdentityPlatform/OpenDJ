@@ -152,12 +152,7 @@ public class RecurringTask
 
     // Get the recurring task ID from the entry.  If there isn't one, then fail.
     AttributeType attrType = DirectoryServer.getAttributeType(
-                                  ATTR_RECURRING_TASK_ID.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_RECURRING_TASK_ID);
-    }
-
+        ATTR_RECURRING_TASK_ID.toLowerCase(), ATTR_RECURRING_TASK_ID);
     List<Attribute> attrList = recurringTaskEntry.getAttribute(attrType);
     if (attrList == null || attrList.isEmpty())
     {

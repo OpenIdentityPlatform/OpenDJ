@@ -33,7 +33,10 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Modification;
 
 /**
  * This class stores an internal usable representation of the value of
@@ -114,11 +117,7 @@ public class HistoricalAttributeValue
     {
       // This HistVal was used to store the date when some
        // modifications were done to the entries.
-      attrType = DirectoryServer.getSchema().getAttributeType(attrString);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrString);
-      }
+      attrType = DirectoryServer.getAttributeType(attrString, true);
     }
     else
     {

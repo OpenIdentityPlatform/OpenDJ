@@ -164,7 +164,7 @@ final class Importer implements DiskSpaceMonitorHandler
   private static final int MINIMUM_AVAILABLE_MEMORY = 32 * MB;
 
   /** The DN attribute type. */
-  private static final AttributeType dnType;
+  private static final AttributeType dnType = DirectoryServer.getAttributeType("dn", true);
   static final IndexOutputBuffer.IndexComparator indexComparator =
       new IndexOutputBuffer.IndexComparator();
 
@@ -265,16 +265,6 @@ final class Importer implements DiskSpaceMonitorHandler
   private int phaseOneBufferCount;
 
   private final DiskSpaceMonitor diskSpaceMonitor;
-
-  static
-  {
-    AttributeType attrType = DirectoryServer.getAttributeType("dn");
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType("dn");
-    }
-    dnType = attrType;
-  }
 
   /**
    * Create a new import job with the specified rebuild index config.
