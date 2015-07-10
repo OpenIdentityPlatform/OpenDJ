@@ -462,13 +462,13 @@ public class RootDSEBackend
     HashMap<AttributeType,List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
 
-    Attribute publicNamingContextAttr = createDNAttribute(
+    Attribute publicNamingContextAttr = createAttribute(
         ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC,
         DirectoryServer.getPublicNamingContexts().keySet());
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "ds-private-naming-contexts" attribute.
-    Attribute privateNamingContextAttr = createDNAttribute(
+    Attribute privateNamingContextAttr = createAttribute(
         ATTR_PRIVATE_NAMING_CONTEXTS, ATTR_PRIVATE_NAMING_CONTEXTS,
         DirectoryServer.getPrivateNamingContexts().keySet());
     addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
@@ -621,34 +621,6 @@ public class RootDSEBackend
   }
 
   /**
-   * Creates an attribute for the root DSE meant to hold a set of DNs.
-   *
-   * @param  name       The name for the attribute.
-   * @param  lowerName  The name for the attribute formatted in all lowercase
-   *                    characters.
-   * @param  values     The set of DN values to use for the attribute.
-   *
-   * @return  The constructed attribute.
-   */
-  private Attribute createDNAttribute(String name, String lowerName,
-                                      Collection<DN> values)
-  {
-    AttributeType type = DirectoryServer.getAttributeType(lowerName);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(name);
-    }
-
-    AttributeBuilder builder = new AttributeBuilder(type, name);
-    for (DN dn : values) {
-      builder.add(dn.toString());
-    }
-    return builder.toAttribute();
-  }
-
-
-
-  /**
    * Creates an attribute for the root DSE with the following
    * criteria.
    *
@@ -662,7 +634,7 @@ public class RootDSEBackend
    * @return The constructed attribute.
    */
   private Attribute createAttribute(String name, String lowerName,
-                                    Collection<String> values)
+                                    Collection<? extends Object> values)
   {
     AttributeType type = DirectoryServer.getAttributeType(lowerName);
     if (type == null)
@@ -671,10 +643,7 @@ public class RootDSEBackend
     }
 
     AttributeBuilder builder = new AttributeBuilder(type, name);
-    builder.setInitialCapacity(values.size());
-    for (String s : values) {
-      builder.add(s);
-    }
+    builder.addAllStrings(values);
     return builder.toAttribute();
   }
 

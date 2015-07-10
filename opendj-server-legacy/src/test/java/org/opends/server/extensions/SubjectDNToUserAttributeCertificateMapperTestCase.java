@@ -26,19 +26,20 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.testng.Assert.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SubjectDNToUserAttributeCertificateMapperCfgDefn;
 import org.opends.server.admin.std.server.SubjectDNToUserAttributeCertificateMapperCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -51,13 +52,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * A set of test cases for the Subject DN to User Attribute certificate mapper.
@@ -688,16 +685,11 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     String mapperDN =
          "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
 
-    AttributeType attrType =
-         DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
-
+    AttributeType attrType = DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {
-      for (String baseDN : baseDNs)
-      {
-        builder.add(baseDN);
-      }
+      builder.addAllStrings(Arrays.asList(baseDNs));
     }
 
     ArrayList<Modification> mods = new ArrayList<>();

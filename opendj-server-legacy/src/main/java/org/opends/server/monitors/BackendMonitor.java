@@ -26,20 +26,18 @@
  */
 package org.opends.server.monitors;
 
-
-
 import static org.opends.server.util.ServerConstants.*;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.*;
-
 
 /**
  * This class implements a monitor provider that will report generic information
@@ -51,22 +49,14 @@ public class BackendMonitor
 {
   /** The attribute type that will be used to report the backend ID. */
   private AttributeType backendIDType;
-
   /** The attribute type that will be used to report the set of base DNs. */
   private AttributeType baseDNType;
-
   /** The attribute type that will be used to report the number of entries. */
   private AttributeType entryCountType;
-
-  /**
-   * The attribute type that will be used to report the number of entries per
-   * base DN.
-   */
+  /** The attribute type that will be used to report the number of entries per base DN. */
   private AttributeType baseDNEntryCountType;
-
   /** The attribute type that will be used to indicate if a backend is private. */
   private AttributeType isPrivateType;
-
   /** The attribute type that will be used to report the writability mode. */
   private AttributeType writabilityModeType;
 
@@ -89,9 +79,7 @@ public class BackendMonitor
     this.backend = backend;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = backend.getBackendID() + " Backend";
@@ -108,15 +96,11 @@ public class BackendMonitor
          DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_WRITABILITY_MODE, true);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public String getMonitorInstanceName()
   {
     return monitorName;
   }
-
-
 
   /**
    * Retrieves the objectclass that should be included in the monitor entry
@@ -125,25 +109,23 @@ public class BackendMonitor
    * @return  The objectclass that should be included in the monitor entry
    *          created from this monitor provider.
    */
+  @Override
   public ObjectClass getMonitorObjectClass()
   {
     return DirectoryConfig.getObjectClass(OC_MONITOR_BACKEND, true);
   }
 
-
-  /** {@inheritDoc} */
+  @Override
   public List<Attribute> getMonitorData()
   {
     LinkedList<Attribute> attrs = new LinkedList<>();
 
     attrs.add(Attributes.create(backendIDType, backend.getBackendID()));
 
-    AttributeBuilder builder = new AttributeBuilder(baseDNType);
     DN[] baseDNs = backend.getBaseDNs();
-    for (DN dn : baseDNs)
-    {
-      builder.add(dn.toString());
-    }
+
+    AttributeBuilder builder = new AttributeBuilder(baseDNType);
+    builder.addAllStrings(Arrays.asList(baseDNs));
     attrs.add(builder.toAttribute());
 
     attrs.add(Attributes.create(isPrivateType, BooleanSyntax

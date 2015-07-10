@@ -48,6 +48,7 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
@@ -120,22 +121,19 @@ public class CompressedSchema
     if (numValues == 1 && options.isEmpty())
     {
       final int valueLength = reader.getBERLength();
-      final ByteString valueBytes = reader.getByteSequence(valueLength)
-          .toByteString();
-      return Attributes.create(attrType, valueBytes);
+      final ByteSequence valueBytes = reader.getByteSequence(valueLength);
+      return Attributes.create(attrType, valueBytes.toByteString());
     }
     else
     {
       // Read the appropriate number of values.
       final AttributeBuilder builder = new AttributeBuilder(attrType);
       builder.setOptions(options);
-      builder.setInitialCapacity(numValues);
       for (int i = 0; i < numValues; i++)
       {
         final int valueLength = reader.getBERLength();
-        final ByteString valueBytes = reader.getByteSequence(valueLength)
-            .toByteString();
-        builder.add(valueBytes);
+        final ByteSequence valueBytes = reader.getByteSequence(valueLength);
+        builder.add(valueBytes.toByteString());
       }
       return builder.toAttribute();
     }

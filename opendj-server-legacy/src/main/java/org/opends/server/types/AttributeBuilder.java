@@ -1234,17 +1234,13 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return wasModified;
   }
 
-
-
   /**
    * Adds the specified attribute values to this attribute builder if
    * they are not already present.
    *
    * @param values
-   *          The attribute values to be added to this attribute
-   *          builder.
-   * @return <code>true</code> if this attribute builder was
-   *         modified.
+   *          The attribute values to be added to this attribute builder.
+   * @return <code>true</code> if this attribute builder was modified.
    */
   public boolean addAll(Collection<ByteString> values)
   {
@@ -1256,7 +1252,24 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return wasModified;
   }
 
-
+  /**
+   * Adds the specified attribute values to this attribute builder
+   * if they are not already present.
+   *
+   * @param values
+   *          The attribute values to be added to this attribute builder.
+   * @return <code>true</code> if this attribute builder was modified.
+   * @throws NullPointerException if any of the values is null
+   */
+  public boolean addAllStrings(Collection<? extends Object> values)
+  {
+    boolean wasModified = false;
+    for (Object v : values)
+    {
+      wasModified |= add(v.toString());
+    }
+    return wasModified;
+  }
 
   /**
    * Removes all attribute values from this attribute builder.
@@ -1538,36 +1551,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
   {
     setAttributeType(getAttributeType(attributeName), attributeName);
   }
-
-
-
-  /**
-   * Sets the initial capacity of this attribute builders internal set
-   * of attribute values.
-   * <p>
-   * The initial capacity of an attribute builder defaults to one.
-   * Applications should override this default if the attribute being
-   * built is expected to contain many values.
-   * <p>
-   * This method should only be called before any attribute values
-   * have been added to this attribute builder. If it is called
-   * afterwards an {@link IllegalStateException} will be thrown.
-   *
-   * @param initialCapacity
-   *          The initial capacity of this attribute builder.
-   * @return This attribute builder.
-   * @throws IllegalStateException
-   *           If this attribute builder already contains attribute
-   *           values.
-   */
-  public AttributeBuilder setInitialCapacity(int initialCapacity)
-      throws IllegalStateException
-  {
-    // This is now a no op.
-    return this;
-  }
-
-
 
   /**
    * Adds the specified option to this attribute builder if it is not

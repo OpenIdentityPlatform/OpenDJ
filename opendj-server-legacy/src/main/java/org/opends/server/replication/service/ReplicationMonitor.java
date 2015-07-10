@@ -112,10 +112,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     final String ATTR_SERVER_STATE = "server-state";
     AttributeType type = DirectoryServer.getDefaultAttributeType(ATTR_SERVER_STATE);
     AttributeBuilder builder = new AttributeBuilder(type, ATTR_SERVER_STATE);
-    for (String str : domain.getServerState().toStringSet())
-    {
-      builder.add(str);
-    }
+    builder.addAllStrings(domain.getServerState().toStringSet());
     attributes.add(builder.toAttribute());
 
     attributes.add(Attributes.create("ssl-encryption", String.valueOf(domain.isSessionEncrypted())));

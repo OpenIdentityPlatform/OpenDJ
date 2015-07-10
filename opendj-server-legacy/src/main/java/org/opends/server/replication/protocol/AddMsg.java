@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -232,11 +232,7 @@ public class AddMsg extends LDAPUpdateMsg
       //  Encode the object classes (SET OF LDAPString).
       AttributeBuilder builder = new AttributeBuilder(
           DirectoryServer.getObjectClassAttributeType());
-      builder.setInitialCapacity(objectClasses.size());
-      for (String s : objectClasses.values())
-      {
-        builder.add(s);
-      }
+      builder.addAllStrings(objectClasses.values());
       new LDAPAttribute(builder.toAttribute()).write(writer);
 
       // Encode the user and operational attributes (AttributeList).

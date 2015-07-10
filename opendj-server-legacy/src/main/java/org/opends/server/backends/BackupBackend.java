@@ -644,9 +644,7 @@ public class BackupBackend
     if (dependencies != null && !dependencies.isEmpty()) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DEPENDENCY, true);
       AttributeBuilder builder = new AttributeBuilder(t);
-      for (String s : dependencies) {
-        builder.add(s);
-      }
+      builder.addAllStrings(dependencies);
       userAttrs.put(t, builder.toAttributeList());
     }
 

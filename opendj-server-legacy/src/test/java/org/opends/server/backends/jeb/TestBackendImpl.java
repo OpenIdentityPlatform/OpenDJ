@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.schema.SchemaConstants.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -89,6 +87,7 @@ import static org.mockito.Mockito.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.types.Attributes.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -933,7 +932,6 @@ public class TestBackendImpl extends JebTestCase {
     Entry entry;
     Entry newEntry;
     EntryID entryID;
-    AttributeType attribute;
     AttributeIndex titleIndex;
     AttributeIndex nameIndex;
     Set<ByteString> addKeys;
@@ -947,29 +945,20 @@ public class TestBackendImpl extends JebTestCase {
       List<Modification> modifications = new ArrayList<>();
       modifications.add(new Modification(ADD, create("title", "debugger")));
 
-      AttributeBuilder builder = new AttributeBuilder("title");
-      builder.setOption("lang-en");
-      builder.add("debugger2");
-
-      modifications.add(new Modification(ADD, builder.toAttribute()));
+      Attribute attr = attributeWithOption("title", "debugger2", "lang-en");
+      modifications.add(new Modification(ADD, attr));
       modifications.add(new Modification(DELETE, create("cn", "Aaren Atp")));
       modifications.add(new Modification(ADD, create("cn", "Aaren Rigor")));
       modifications.add(new Modification(ADD, create("cn", "Aarenister Rigor")));
 
-      builder = new AttributeBuilder("givenname");
-      builder.add("test");
-      builder.setOption("lang-de");
-      modifications.add(new Modification(ADD, builder.toAttribute()));
+      attr = attributeWithOption("givenname", "test", "lang-de");
+      modifications.add(new Modification(ADD, attr));
 
-      builder = new AttributeBuilder("givenname");
-      builder.add("test2");
-      builder.setOption("lang-cn");
-      modifications.add(new Modification(DELETE, builder.toAttribute()));
+      attr = attributeWithOption("givenname", "test2", "lang-cn");
+      modifications.add(new Modification(DELETE, attr));
 
-      builder = new AttributeBuilder("givenname");
-      builder.add("newtest3");
-      builder.setOption("lang-es");
-      modifications.add(new Modification(REPLACE, builder.toAttribute()));
+      attr = attributeWithOption("givenname", "newtest3", "lang-es");
+      modifications.add(new Modification(REPLACE, attr));
       modifications.add(new Modification(REPLACE, create("employeenumber", "222")));
 
       newEntry = entries.get(1);
@@ -1059,6 +1048,14 @@ public class TestBackendImpl extends JebTestCase {
     {
       ec.sharedLock.unlock();
     }
+  }
+
+  private Attribute attributeWithOption(String attributeName, String value, String option)
+  {
+    AttributeBuilder builder = new AttributeBuilder(attributeName);
+    builder.add(value);
+    builder.setOption(option);
+    return builder.toAttribute();
   }
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex", "testSearchScope",

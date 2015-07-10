@@ -51,7 +51,6 @@ import org.opends.server.types.*;
  */
 public class ReplicationServerHandler extends ServerHandler
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Properties filled only if remote server is a RS. */
@@ -671,14 +670,11 @@ public class ReplicationServerHandler extends ServerHandler
         String.valueOf(md.getMissingChangesRS(serverId))));
 
     // get the Server State
-    AttributeBuilder builder = new AttributeBuilder("server-state");
     ServerState state = md.getRSStates(serverId);
     if (state != null)
     {
-      for (String str : state.toStringSet())
-      {
-        builder.add(str);
-      }
+      AttributeBuilder builder = new AttributeBuilder("server-state");
+      builder.addAllStrings(state.toStringSet());
       attributes.add(builder.toAttribute());
     }
 

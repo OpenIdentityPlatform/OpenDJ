@@ -259,14 +259,11 @@ public class DataServerHandler extends ServerHandler
         String.valueOf(md.getApproxDelay(serverId))));
 
     /* get the Server State */
-    AttributeBuilder builder = new AttributeBuilder("server-state");
     ServerState state = md.getLDAPServerState(serverId);
     if (state != null)
     {
-      for (String str : state.toStringSet())
-      {
-        builder.add(str);
-      }
+      AttributeBuilder builder = new AttributeBuilder("server-state");
+      builder.addAllStrings(state.toStringSet());
       attributes.add(builder.toAttribute());
     }
 

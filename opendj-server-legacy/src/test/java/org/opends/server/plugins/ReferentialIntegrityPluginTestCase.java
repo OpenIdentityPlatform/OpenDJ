@@ -47,12 +47,14 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
+import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -1023,58 +1025,36 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * Add specified attr type and type values to the entry specified by dn.
    *
    * @param dn The dn of the entry to add the attribute and values to.
-   *
-   * @param attrTypeString The attribute type to add the values to.
-   *
+   * @param attrName The attribute type to add the values to.
    * @param attrValStrings The values to add to the entry.
-   *
    */
   private ModifyOperation
-  addAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
+  addAttrEntry(DN dn, String attrName, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<>();
-    AttributeType attrType = getAttrType(attrTypeString);
-    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
-    for(String valString : attrValStrings) {
-      builder.add(valString);
-    }
-    mods.add(new Modification(ModificationType.ADD, builder.toAttribute()));
+    mods.add(new Modification(ModificationType.ADD, Attributes.create(attrName, attrValStrings)));
     return getRootConnection().processModify(dn, mods);
   }
 
-/**
+  /**
    * Replace specified attr type and type values to the entry specified by dn.
    *
    * @param dn The dn of the entry to replace the attribute and values to.
-   *
-   * @param attrTypeString The attribute type to replace the values in.
-   *
+   * @param attrName The attribute type to replace the values in.
    * @param attrValStrings The values to replace in the the entry.
- *
    */
-  private ModifyOperation
-  replaceAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
+  private ModifyOperation  replaceAttrEntry(DN dn, String attrName, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<>();
-    AttributeType attrType = getAttrType(attrTypeString);
-    AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
-    for(String valString : attrValStrings) {
-      builder.add(valString);
-    }
-    mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrName, attrValStrings)));
     return getRootConnection().processModify(dn, mods);
   }
-
 
   /**
    * Remove the attributes specified by the attribute type strings from the
    * entry corresponding to the dn argument.
    *
    * @param dn The entry to remove the attributes from.
-   *
-   * @param attrTypeStrings The attribute type string list to remove from the
-   *                        entry.
-   *
+   * @param attrTypeStrings The attribute type string list to remove from the entry.
    * @throws Exception  If an error occurs.
-   *
    */
   private void
   deleteAttrsEntry(DN dn, String... attrTypeStrings) throws Exception {

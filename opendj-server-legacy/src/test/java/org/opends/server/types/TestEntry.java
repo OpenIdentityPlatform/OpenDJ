@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -43,6 +42,7 @@ import org.opends.server.schema.AttributeTypeSyntax;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -90,8 +90,7 @@ public final class TestEntry extends TypesTestCase {
       throw new RuntimeException("Unable to resolve object class top");
     }
 
-    ObjectClass extensible = DirectoryServer
-        .getObjectClass("extensibleobject");
+    ObjectClass extensible = DirectoryServer.getObjectClass("extensibleobject");
     if (extensible == null) {
       throw new RuntimeException(
           "Unable to resolve object class extensibleObject");
@@ -105,14 +104,8 @@ public final class TestEntry extends TypesTestCase {
     Entry testEntry = new Entry(entryDN, objectClasses, null, null);
 
     // Now add the attribute.
-    AttributeBuilder builder = new AttributeBuilder(type);
-    for (String value : values) {
-      builder.add(value);
-    }
-    ArrayList<Attribute> attributes = new ArrayList<>();
-    attributes.add(builder.toAttribute());
-    testEntry.putAttribute(type, attributes);
-
+    Attribute attr = Attributes.create(type.getNameOrOID(), values);
+    testEntry.putAttribute(type, newArrayList(attr));
     return testEntry;
   }
 

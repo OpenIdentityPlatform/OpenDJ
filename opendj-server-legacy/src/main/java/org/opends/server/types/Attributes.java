@@ -26,6 +26,7 @@
  */
 package org.opends.server.types;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -188,8 +189,6 @@ public final class Attributes
         valueString);
   }
 
-
-
   /**
    * Creates a new multi-valued attribute with the specified attribute
    * name and attribute values.
@@ -201,35 +200,25 @@ public final class Attributes
    * typically be reserved for use in unit tests and places where
    * performance is not an issue. In particular, this method will
    * construct a temporary array containing the attribute's values.
-   * For peformance critical purposes, incrementally construct an
+   * For performance critical purposes, incrementally construct an
    * attribute using an {@link AttributeBuilder}.
    *
    * @param attributeName
    *          The name or OID of the attribute type for this attribute
    *          (can be mixed case).
-   * @param firstValueString
-   *          The string representation of the first attribute value.
-   * @param otherValueStrings
-   *          The string representation of the remaining attribute
-   *          values.
+   * @param valueStrings
+   *          The string representation of the attribute values.
    * @return A new attribute with the specified name and values.
    */
-  public static Attribute create(String attributeName,
-      String firstValueString, String... otherValueStrings)
+  public static Attribute create(String attributeName, String... valueStrings)
   {
-    AttributeBuilder builder = new AttributeBuilder(attributeName);
-
-    builder.add(firstValueString);
-
-    for (String value : otherValueStrings)
-    {
-      builder.add(value);
+    if (valueStrings.length == 0) {
+      return empty(attributeName);
     }
-
+    AttributeBuilder builder = new AttributeBuilder(attributeName);
+    builder.addAllStrings(Arrays.asList(valueStrings));
     return builder.toAttribute();
   }
-
-
 
   /**
    * Creates a new attribute which has the same attribute type and

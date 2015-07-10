@@ -1384,24 +1384,9 @@ public class ModifyConflictTest extends ReplicationTestCase
     return mods;
   }
 
-  private Modification buildMod(String attrName, ModificationType modType,
-      String... values)
+  private Modification buildMod(String attrName, ModificationType modType, String... values)
   {
-    Attribute attr;
-    if (values.length == 0)
-    {
-      attr = Attributes.empty(attrName);
-    }
-    else
-    {
-      AttributeBuilder builder = new AttributeBuilder(attrName);
-      for (String value : values)
-      {
-        builder.add(value);
-      }
-      attr = builder.toAttribute();
-    }
-    return new Modification(modType, attr);
+    return new Modification(modType, Attributes.create(attrName, values));
   }
 
   private Attribute buildSyncHist(String attrName, String... values)
