@@ -31,7 +31,7 @@ package org.opends.server.backends.pluggable.spi;
  * <p>
  * Note: This class assumes name components don't contain a '/'.
  */
-public final class TreeName
+public final class TreeName implements Comparable<TreeName>
 {
   private final String baseDN;
   private final String indexId;
@@ -126,5 +126,11 @@ public final class TreeName
   public String toString()
   {
     return s;
+  }
+
+  @Override
+  public int compareTo(TreeName o)
+  {
+    return s.compareTo(o.s);
   }
 }

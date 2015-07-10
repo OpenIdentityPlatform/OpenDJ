@@ -1475,6 +1475,15 @@ public class EntryContainer
   void addEntry(final Entry entry, final AddOperation addOperation)
   throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
+    final DN parentDN = getParentWithinBase(entry.getName());
+    final EntryID entryID = rootContainer.getNextEntryID();
+
+    // Insert into the indexes, in index configuration order.
+    final IndexBuffer indexBuffer = new IndexBuffer();
+    indexInsertEntry(indexBuffer, entry, entryID);
+
+    final ByteString encodedEntry = id2entry.encode(entry);
+
     try
     {
       storage.write(new WriteOperation()
@@ -1482,8 +1491,6 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          DN parentDN = getParentWithinBase(entry.getName());
-
           try
           {
             // Check whether the entry already exists.
@@ -1510,14 +1517,9 @@ public class EntryContainer
               id2childrenCount.addDelta(txn, parentID, 1);
             }
 
-            EntryID entryID = rootContainer.getNextEntryID();
             dn2id.put(txn, entry.getName(), entryID);
             dn2uri.addEntry(txn, entry);
-            id2entry.put(txn, entryID, entry);
-
-            // Insert into the indexes, in index configuration order.
-            final IndexBuffer indexBuffer = new IndexBuffer(EntryContainer.this);
-            indexInsertEntry(indexBuffer, entry, entryID);
+            id2entry.put(txn, entryID, encodedEntry);
 
             indexBuffer.flush(txn);
 
@@ -1525,13 +1527,6 @@ public class EntryContainer
             {
               // One last check before committing
               addOperation.checkIfCanceled(true);
-            }
-
-            // Update the entry cache.
-            EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-            if (entryCache != null)
-            {
-              entryCache.putEntry(entry, backendID, entryID.longValue());
             }
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
@@ -1555,6 +1550,12 @@ public class EntryContainer
     {
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
+
+    final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
+    if (entryCache != null)
+    {
+      entryCache.putEntry(entry, backendID, entryID.longValue());
+    }
   }
 
   /**
@@ -1576,6 +1577,20 @@ public class EntryContainer
   void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
   throws DirectoryException, StorageRuntimeException, CanceledOperationException
   {
+    final IndexBuffer indexBuffer = new IndexBuffer();
+    final boolean isSubtreeDelete =
+        deleteOperation != null && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
+
+    /*
+     * We will iterate forwards through a range of the dn2id keys to find subordinates of the target entry from the top
+     * of the tree downwards.
+     */
+    final ByteString entryDNKey = dnToDNKey(entryDN, baseDN.size());
+    final ByteStringBuilder suffix = beforeKey(entryDNKey);
+    final ByteStringBuilder end = afterKey(entryDNKey);
+
+    final DN parentDN = getParentWithinBase(entryDN);
+
     try
     {
       storage.write(new WriteOperation()
@@ -1583,31 +1598,15 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          final IndexBuffer indexBuffer = new IndexBuffer(EntryContainer.this);
-
           try
           {
             // Check for referral entries above the target entry.
             dn2uri.targetEntryReferrals(txn, entryDN, null);
 
-            // Determine whether this is a subtree delete.
-            boolean isSubtreeDelete =
-                deleteOperation != null && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
-
-            /*
-             * We will iterate forwards through a range of the dn2id keys to
-             * find subordinates of the target entry from the top of the tree
-             * downwards.
-             */
-            ByteString entryDNKey = dnToDNKey(entryDN, baseDN.size());
-            ByteStringBuilder suffix = beforeKey(entryDNKey);
-            ByteStringBuilder end = afterKey(entryDNKey);
-
             int subordinateEntriesDeleted = 0;
 
             // Since everything under targetDN will be deleted, we only have to decrement the counter of targetDN's
             // parent. Other counters will be removed in deleteEntry()
-            final DN parentDN = getParentWithinBase(entryDN);
             if (parentDN != null) {
               final EntryID parentID = dn2id.get(txn, parentDN);
               if ( parentID == null ) {
@@ -1961,7 +1960,7 @@ public class EntryContainer
             id2entry.put(txn, entryID, newEntry);
 
             // Update the indexes.
-            final IndexBuffer indexBuffer = new IndexBuffer(EntryContainer.this);
+            final IndexBuffer indexBuffer = new IndexBuffer();
             if (modifyOperation != null)
             {
               // In this case we know from the operation what the modifications were.
@@ -2061,7 +2060,7 @@ public class EntryContainer
             isApexEntryMoved = false;
           }
 
-          IndexBuffer buffer = new IndexBuffer(EntryContainer.this);
+          final IndexBuffer buffer = new IndexBuffer();
 
           try
           {

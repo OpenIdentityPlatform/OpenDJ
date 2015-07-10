@@ -105,6 +105,8 @@ import com.persistit.exception.TreeNotFoundException;
 public final class PDBStorage implements Storage, Backupable, ConfigurationChangeListener<PDBBackendCfg>,
   DiskSpaceMonitorHandler
 {
+  private static final double MAX_SLEEP_ON_RETRY_MS = 50.0;
+
   private static final String VOLUME_NAME = "dj";
 
   private static final String JOURNAL_NAME = VOLUME_NAME + "_journal";
@@ -888,7 +890,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
       catch (final RollbackException e)
       {
-        // retry
+        // retry after random sleep (reduces transactions collision. Drawback: increased latency)
+        Thread.sleep((long) (Math.random() * MAX_SLEEP_ON_RETRY_MS));
       }
       catch (final Exception e)
       {

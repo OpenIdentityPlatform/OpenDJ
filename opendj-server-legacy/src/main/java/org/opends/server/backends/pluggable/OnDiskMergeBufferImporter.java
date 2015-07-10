@@ -1434,7 +1434,7 @@ final class OnDiskMergeBufferImporter
     void processVLVIndexes(WriteableTransaction txn, Suffix suffix, Entry entry, EntryID entryID)
         throws DirectoryException
     {
-      final IndexBuffer buffer = new IndexBuffer(suffix.getEntryContainer());
+      final IndexBuffer buffer = new IndexBuffer();
       for (VLVIndex vlvIdx : suffix.getVLVIndexes())
       {
         vlvIdx.addEntry(buffer, entryID, entry);
@@ -2969,7 +2969,7 @@ final class OnDiskMergeBufferImporter
     private void processVLVIndexes(WriteableTransaction txn, Entry entry, EntryID entryID)
         throws StorageRuntimeException, DirectoryException
     {
-      final IndexBuffer buffer = new IndexBuffer(entryContainer);
+      final IndexBuffer buffer = new IndexBuffer();
       for (VLVIndex vlvIdx : suffix.getVLVIndexes())
       {
         vlvIdx.addEntry(buffer, entryID, entry);
