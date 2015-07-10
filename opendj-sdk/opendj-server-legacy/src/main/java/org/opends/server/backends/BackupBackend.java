@@ -280,7 +280,7 @@ public class BackupBackend
     int numEntries = 1;
 
     AttributeType backupPathType =
-         DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+         DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
 
     for (File dir : backupDirectories.keySet())
     {
@@ -397,7 +397,7 @@ public class BackupBackend
       Entry backupDirEntry = getBackupDirectoryEntry(entryDN);
 
       AttributeType t =
-          DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+          DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
       List<Attribute> attrList = backupDirEntry.getAttribute(t);
       if (attrList != null && !attrList.isEmpty())
       {
@@ -492,8 +492,7 @@ public class BackupBackend
          throws DirectoryException
   {
     // Make sure that the DN specifies a backup directory.
-    AttributeType t =
-         DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+    AttributeType t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
@@ -542,7 +541,7 @@ public class BackupBackend
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
     userAttrs.put(t, asList(t, v));
 
-    t = DirectoryServer.getAttributeType(ATTR_BACKUP_BACKEND_DN, true);
+    t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_BACKEND_DN);
     userAttrs.put(t, asList(t, ByteString.valueOf(backupDirectory.getConfigEntryDN().toString())));
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
@@ -568,7 +567,7 @@ public class BackupBackend
           throws DirectoryException
   {
     // First, get the backup ID from the entry DN.
-    AttributeType idType = DirectoryServer.getAttributeType(ATTR_BACKUP_ID, true);
+    AttributeType idType = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_ID);
     ByteString idValue = entryDN.rdn().getAttributeValue(idType);
     if (idValue == null) {
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(entryDN));
@@ -581,8 +580,7 @@ public class BackupBackend
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_PARENT_DN.get(entryDN));
     }
 
-    AttributeType t = DirectoryServer.getAttributeType(
-        ATTR_BACKUP_DIRECTORY_PATH, true);
+    AttributeType t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
     ByteString v = parentDN.rdn().getAttributeValue(t);
     if (v == null) {
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(entryDN));
@@ -631,7 +629,7 @@ public class BackupBackend
 
     Date backupDate = backupInfo.getBackupDate();
     if (backupDate != null) {
-      t = DirectoryServer.getAttributeType(ATTR_BACKUP_DATE, true);
+      t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DATE);
       userAttrs.put(t,
           asList(t, ByteString.valueOf(GeneralizedTimeSyntax.format(backupDate))));
     }
@@ -642,7 +640,7 @@ public class BackupBackend
 
     HashSet<String> dependencies = backupInfo.getDependencies();
     if (dependencies != null && !dependencies.isEmpty()) {
-      t = DirectoryServer.getAttributeType(ATTR_BACKUP_DEPENDENCY, true);
+      t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DEPENDENCY);
       AttributeBuilder builder = new AttributeBuilder(t);
       builder.addAllStrings(dependencies);
       userAttrs.put(t, builder.toAttributeList());
@@ -661,7 +659,7 @@ public class BackupBackend
     HashMap<String, String> properties = backupInfo.getBackupProperties();
     if (properties != null && !properties.isEmpty()) {
       for (Map.Entry<String, String> e : properties.entrySet()) {
-        t = DirectoryServer.getAttributeType(toLowerCase(e.getKey()), true);
+        t = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(e.getKey()));
         userAttrs.put(t, asList(t, ByteString.valueOf(e.getValue())));
       }
     }
@@ -673,13 +671,13 @@ public class BackupBackend
 
   private void putByteString(LinkedHashMap<AttributeType, List<Attribute>> userAttrs, String attrName, byte[] value)
   {
-    AttributeType t = DirectoryServer.getAttributeType(attrName, true);
+    AttributeType t = DirectoryServer.getAttributeTypeOrDefault(attrName);
     userAttrs.put(t, asList(t, ByteString.wrap(value)));
   }
 
   private void putBoolean(LinkedHashMap<AttributeType, List<Attribute>> attrsMap, String attrName, boolean value)
   {
-    AttributeType t = DirectoryServer.getAttributeType(attrName, true);
+    AttributeType t = DirectoryServer.getAttributeTypeOrDefault(attrName);
     attrsMap.put(t, asList(t, createBooleanValue(value)));
   }
 
@@ -765,7 +763,7 @@ public class BackupBackend
       if (scope != SearchScope.BASE_OBJECT && !backupDirectories.isEmpty())
       {
         AttributeType backupPathType =
-             DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+             DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
         for (File dir : backupDirectories.keySet())
         {
           // Check to see if the descriptor file exists.  If not, then skip this
@@ -819,7 +817,7 @@ public class BackupBackend
       if (scope != SearchScope.BASE_OBJECT)
       {
         AttributeType t =
-             DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
+             DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
         List<Attribute> attrList = backupDirEntry.getAttribute(t);
         returnEntries(searchOperation, baseDN, filter, attrList);
       }
@@ -861,7 +859,7 @@ public class BackupBackend
         {
           File dir = new File(v.toString());
           BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
-          AttributeType idType = DirectoryServer.getAttributeType(ATTR_BACKUP_ID, true);
+          AttributeType idType = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_ID);
 
           for (String backupID : backupDirectory.getBackups().keySet())
           {

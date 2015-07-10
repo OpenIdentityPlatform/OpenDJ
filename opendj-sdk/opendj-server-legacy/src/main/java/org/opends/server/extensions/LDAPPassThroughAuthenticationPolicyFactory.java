@@ -1516,10 +1516,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         super(userEntry);
 
-        this.cachedPasswordAttribute = DirectoryServer.getAttributeType(
-            OP_ATTR_PTAPOLICY_CACHED_PASSWORD, true);
-        this.cachedPasswordTimeAttribute = DirectoryServer.getAttributeType(
-            OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME, true);
+        this.cachedPasswordAttribute = DirectoryServer.getAttributeTypeOrDefault(
+            OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
+        this.cachedPasswordTimeAttribute = DirectoryServer.getAttributeTypeOrDefault(
+            OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
       }
 
 

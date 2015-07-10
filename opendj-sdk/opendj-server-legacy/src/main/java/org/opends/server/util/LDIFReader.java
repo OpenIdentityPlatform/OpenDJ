@@ -839,7 +839,7 @@ public class LDIFReader implements Closeable
     }
     else
     {
-      AttributeType attrType = DirectoryServer.getAttributeType(lowerName, attrName);
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, attrName);
       if (! importConfig.includeAttribute(attrType))
       {
         if (logger.isTraceEnabled())

@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -68,7 +69,7 @@ public class VirtualAttributeTestCase
   {
     TestCaseUtils.startServer();
 
-    entryDNType = DirectoryConfig.getAttributeType("entrydn", false);
+    entryDNType = DirectoryServer.getAttributeType("entrydn");
     assertNotNull(entryDNType);
 
     EntryDNVirtualAttributeProvider provider =

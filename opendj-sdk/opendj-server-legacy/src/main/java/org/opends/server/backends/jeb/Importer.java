@@ -164,7 +164,7 @@ final class Importer implements DiskSpaceMonitorHandler
   private static final int MINIMUM_AVAILABLE_MEMORY = 32 * MB;
 
   /** The DN attribute type. */
-  private static final AttributeType dnType = DirectoryServer.getAttributeType("dn", true);
+  private static final AttributeType dnType = DirectoryServer.getAttributeTypeOrDefault("dn");
   static final IndexOutputBuffer.IndexComparator indexComparator =
       new IndexOutputBuffer.IndexComparator();
 

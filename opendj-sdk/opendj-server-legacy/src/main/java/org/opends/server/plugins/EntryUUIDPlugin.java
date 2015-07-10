@@ -45,6 +45,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
@@ -89,7 +90,7 @@ public final class EntryUUIDPlugin
 
     // Get the entryUUID attribute type.  This needs to be done in the
     // constructor in order to make the associated variables "final".
-    AttributeType at = DirectoryConfig.getAttributeType(ENTRYUUID, false);
+    AttributeType at = DirectoryServer.getAttributeType(ENTRYUUID);
     if (at == null)
     {
       String definition =

@@ -132,8 +132,7 @@ public class VirtualStaticGroup
 
     // Get the target group DN attribute from the entry, if there is one.
     DN targetDN = null;
-    AttributeType targetType =
-         DirectoryServer.getAttributeType(ATTR_TARGET_GROUP_DN, true);
+    AttributeType targetType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TARGET_GROUP_DN);
     List<Attribute> attrList = groupEntry.getAttribute(targetType);
     if (attrList != null)
     {

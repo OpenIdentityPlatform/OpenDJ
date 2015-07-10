@@ -870,7 +870,7 @@ public final class ServerManagementContext {
     // undefined. We should log a warning here if this is the case
     // since the attribute should have been defined.
     String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
-    AttributeType type = DirectoryServer.getAttributeType(attrID, true);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(attrID);
     List<Attribute> attributes = configEntry.getEntry().getAttribute(type, true);
 
     List<ByteString> results = new LinkedList<>();

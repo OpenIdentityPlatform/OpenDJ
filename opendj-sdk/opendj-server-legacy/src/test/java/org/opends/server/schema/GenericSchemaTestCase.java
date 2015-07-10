@@ -187,8 +187,7 @@ public class GenericSchemaTestCase
         continue;
       }
 
-      AttributeType attrType =
-           DirectoryServer.getAttributeType("attributetypes", false);
+      AttributeType attrType = DirectoryServer.getAttributeType("attributetypes");
       assertNotNull(attrType);
       List<Attribute> attrList = e.getAttribute(attrType);
       if (attrList == null)
@@ -264,8 +263,7 @@ public class GenericSchemaTestCase
         continue;
       }
 
-      AttributeType attrType =
-           DirectoryServer.getAttributeType("objectclasses", false);
+      AttributeType attrType = DirectoryServer.getAttributeType("objectclasses");
       assertNotNull(attrType);
       List<Attribute> attrList = e.getAttribute(attrType);
       if (attrList == null)
@@ -340,8 +338,7 @@ public class GenericSchemaTestCase
         continue;
       }
 
-      AttributeType attrType =
-           DirectoryServer.getAttributeType("nameforms", false);
+      AttributeType attrType = DirectoryServer.getAttributeType("nameforms");
       assertNotNull(attrType);
       List<Attribute> attrList = e.getAttribute(attrType);
       if (attrList == null)

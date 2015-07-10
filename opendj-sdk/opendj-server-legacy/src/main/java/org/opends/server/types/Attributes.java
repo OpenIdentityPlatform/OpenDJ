@@ -185,8 +185,7 @@ public final class Attributes
   public static Attribute create(String attributeName,
       String valueString)
   {
-    return create(getAttributeType(attributeName), attributeName,
-        valueString);
+    return create(getAttributeType(attributeName), attributeName, valueString);
   }
 
   /**
@@ -411,16 +410,14 @@ public final class Attributes
   }
 
   /**
-   * Gets the named attribute type, creating a default attribute if
-   * necessary.
+   * Gets the named attribute type, creating a default attribute if necessary.
    *
    * @param attributeName
    *          The name of the attribute type.
-   * @return The attribute type associated with the provided attribute
-   *         name.
+   * @return The attribute type associated with the provided attribute name.
    */
   private static AttributeType getAttributeType(String attributeName)
   {
-    return DirectoryServer.getAttributeType(toLowerCase(attributeName), attributeName);
+    return DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeName), attributeName);
   }
 }

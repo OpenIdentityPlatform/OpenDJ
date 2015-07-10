@@ -60,6 +60,7 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.EnumEvalReason.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -122,10 +123,10 @@ public final class AciHandler extends
    */
   private static void initStatics()
   {
-    aciType = getAttributeType("aci");
-    globalAciType = getAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-    debugSearchIndex = getAttributeType(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
-    refAttrType = getAttributeType(ATTR_REFERRAL_URL);
+    aciType = getAttributeTypeOrDefault("aci");
+    globalAciType = getAttributeTypeOrDefault(ATTR_AUTHZ_GLOBAL_ACI);
+    debugSearchIndex = getAttributeTypeOrDefault(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
+    refAttrType = getAttributeTypeOrDefault(ATTR_REFERRAL_URL);
 
     try
     {
@@ -136,13 +137,6 @@ public final class AciHandler extends
       // Should never happen.
     }
   }
-
-  private static AttributeType getAttributeType(String name)
-  {
-    return DirectoryServer.getAttributeType(name, true);
-  }
-
-
 
   /** The list that holds that ACIs keyed by the DN of the entry holding the ACI. */
   private AciList aciList;
@@ -315,7 +309,7 @@ public final class AciHandler extends
       baseName = toLowerCase(rawAttributeType);
     }
 
-    container.setCurrentAttributeType(getAttributeType(baseName));
+    container.setCurrentAttributeType(getAttributeTypeOrDefault(baseName));
     container.setCurrentAttributeValue(operation.getAssertionValue());
     return isAllowed(container, operation);
   }

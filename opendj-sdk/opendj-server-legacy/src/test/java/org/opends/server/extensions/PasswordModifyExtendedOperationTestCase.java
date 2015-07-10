@@ -1695,8 +1695,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     try
     {
-      AttributeType lastLoginTimeAttr =
-           DirectoryServer.getAttributeType("ds-pwp-last-login-time", false);
+      AttributeType lastLoginTimeAttr = DirectoryServer.getAttributeType("ds-pwp-last-login-time");
       assertNotNull(lastLoginTimeAttr);
 
       DN userDN = DN.valueOf("uid=test.user,o=test");
@@ -1753,8 +1752,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     try
     {
-      AttributeType authFailureTimesAttr =
-           DirectoryServer.getAttributeType("pwdfailuretime", false);
+      AttributeType authFailureTimesAttr = DirectoryServer.getAttributeType("pwdfailuretime");
       assertNotNull(authFailureTimesAttr);
 
       DN userDN = DN.valueOf("uid=test.user,o=test");
@@ -1805,7 +1803,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     try
     {
-      AttributeType pwdHistoryAttr = DirectoryServer.getAttributeType("pwdhistory", false);
+      AttributeType pwdHistoryAttr = DirectoryServer.getAttributeType("pwdhistory");
       assertNotNull(pwdHistoryAttr);
 
       DN userDN = DN.valueOf("uid=test.user,o=test");

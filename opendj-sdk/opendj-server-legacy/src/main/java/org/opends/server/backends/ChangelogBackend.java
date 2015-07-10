@@ -100,7 +100,6 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilterType;
@@ -201,11 +200,10 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** The attribute type for the "creatorsName" attribute. */
   private static final AttributeType CREATORS_NAME_TYPE =
-      DirectoryConfig.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
-
+      DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATORS_NAME_LC);
   /** The attribute type for the "modifiersName" attribute. */
   private static final AttributeType MODIFIERS_NAME_TYPE =
-      DirectoryConfig.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
+      DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_MODIFIERS_NAME_LC);
 
   /** The base DN for the external change log. */
   public static final DN CHANGELOG_BASE_DN;
@@ -749,7 +747,7 @@ public class ChangelogBackend extends Backend<Configuration>
   private SearchFilter buildSearchFilterFrom(final DN baseDN, final String lowerCaseAttr, final String upperCaseAttr)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerCaseAttr, upperCaseAttr);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerCaseAttr, upperCaseAttr);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1544,7 +1542,7 @@ public class ChangelogBackend extends Backend<Configuration>
       final Map<AttributeType, List<Attribute>> userAttrs,
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrNameLowercase, attrNameUppercase);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrNameLowercase, attrNameUppercase);
     final Attribute a = addByType
         ? Attributes.create(attrType, attrValue)
         : Attributes.create(attrNameUppercase, attrValue);

@@ -42,6 +42,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
@@ -87,16 +88,11 @@ public final class LastModPlugin
 
 
     // Get the attribute types for the attributes that we will use.  This needs
-    // to be done in the constructor in order to make the associated variables
-    // "final".
-    createTimestampType =
-         DirectoryConfig.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
-    creatorsNameType =
-         DirectoryConfig.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
-    modifiersNameType =
-         DirectoryConfig.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
-    modifyTimestampType =
-         DirectoryConfig.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC, true);
+    // to be done in the constructor in order to make the associated variables "final".
+    createTimestampType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATE_TIMESTAMP_LC);
+    creatorsNameType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATORS_NAME_LC);
+    modifiersNameType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_MODIFIERS_NAME_LC);
+    modifyTimestampType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_MODIFY_TIMESTAMP_LC);
   }
 
 

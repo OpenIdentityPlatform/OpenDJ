@@ -4569,14 +4569,10 @@ public class SchemaBackendTestCase extends BackendTestCase
     Entry schemaEntry = DirectoryServer.getEntry(DN.valueOf("cn=schema"));
     assertNotNull(schemaEntry);
 
-    AttributeType cnType =
-         DirectoryServer.getAttributeType("creatorsname", true);
-    AttributeType ctType =
-         DirectoryServer.getAttributeType("createtimestamp", true);
-    AttributeType mnType =
-         DirectoryServer.getAttributeType("modifiersname", true);
-    AttributeType mtType =
-         DirectoryServer.getAttributeType("modifytimestamp", true);
+    AttributeType cnType = DirectoryServer.getAttributeTypeOrDefault("creatorsname");
+    AttributeType ctType = DirectoryServer.getAttributeTypeOrDefault("createtimestamp");
+    AttributeType mnType = DirectoryServer.getAttributeTypeOrDefault("modifiersname");
+    AttributeType mtType = DirectoryServer.getAttributeTypeOrDefault("modifytimestamp");
 
     assertTrue(schemaEntry.hasAttribute(cnType));
     assertTrue(schemaEntry.hasAttribute(ctType));

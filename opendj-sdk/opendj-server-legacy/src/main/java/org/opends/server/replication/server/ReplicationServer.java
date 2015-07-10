@@ -560,9 +560,7 @@ public final class ReplicationServer
       // create a rule and register it into the DirectoryServer
       provider.initializeVirtualAttributeProvider(null);
 
-      AttributeType attributeType = DirectoryServer.getAttributeType(
-          attrName, false);
-
+      AttributeType attributeType = DirectoryServer.getAttributeType(attrName);
       return new VirtualAttributeRule(attributeType, provider,
             baseDNs, SearchScope.BASE_OBJECT,
             groupDNs, filters, conflictBehavior);

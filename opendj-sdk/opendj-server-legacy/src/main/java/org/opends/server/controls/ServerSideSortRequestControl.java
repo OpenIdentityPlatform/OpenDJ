@@ -105,13 +105,11 @@ public class ServerSideSortRequestControl
         {
           reader.readStartSequence();
           String attrName = toLowerCase(reader.readOctetStringAsString());
-          AttributeType attrType =
-              DirectoryServer.getAttributeType(attrName, false);
+          AttributeType attrType = DirectoryServer.getAttributeType(attrName);
           if (attrType == null)
           {
             //This attribute is not defined in the schema. There is no point
-            //iterating over the next attribute and return a partially sorted
-            //result.
+            //iterating over the next attribute and return a partially sorted result.
             return new ServerSideSortRequestControl(isCritical,
             new SortOrder(sortKeys.toArray(new SortKey[0])));
           }
@@ -440,28 +438,22 @@ public class ServerSideSortRequestControl
     ArrayList<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
-      AttributeType attrType =
-          DirectoryServer.getAttributeType(decodedKey[0].toLowerCase(), false);
+      AttributeType attrType = DirectoryServer.getAttributeType(decodedKey[0].toLowerCase());
       if (attrType == null)
       {
         //This attribute is not defined in the schema. There is no point
-        //iterating over the next attribute and return a partially sorted
-        //result.
+        //iterating over the next attribute and return a partially sorted result.
         return new SortOrder(sortKeys.toArray(new SortKey[0]));
       }
 
       MatchingRule orderingRule = null;
       if(decodedKey[1] != null)
       {
-        orderingRule =
-            DirectoryServer.getMatchingRule(decodedKey[1].toLowerCase());
+        orderingRule = DirectoryServer.getMatchingRule(decodedKey[1].toLowerCase());
         if (orderingRule == null)
         {
-          LocalizableMessage message =
-              INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
-                  get(decodedKey[1]);
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-              message);
+          LocalizableMessage message = INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.get(decodedKey[1]);
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
         }
       }
 

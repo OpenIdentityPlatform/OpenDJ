@@ -117,7 +117,7 @@ public class HistoricalAttributeValue
     {
       // This HistVal was used to store the date when some
        // modifications were done to the entries.
-      attrType = DirectoryServer.getAttributeType(attrString, true);
+      attrType = DirectoryServer.getAttributeTypeOrDefault(attrString);
     }
     else
     {

@@ -140,7 +140,7 @@ public class ExportTask extends Task
 
 
     Entry taskEntry = getTaskEntry();
-    AttributeType typeWrapColumn = getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN, true);
+    AttributeType typeWrapColumn = getAttributeTypeOrDefault(ATTR_TASK_EXPORT_WRAP_COLUMN);
 
     ldifFile = toString(taskEntry, ATTR_TASK_EXPORT_LDIF_FILE);
     File f = new File (ldifFile);
@@ -177,21 +177,21 @@ public class ExportTask extends Task
 
   private boolean toBoolean(Entry entry, boolean defaultValue, String attrName)
   {
-    final AttributeType attrType = getAttributeType(attrName, true);
+    final AttributeType attrType = getAttributeTypeOrDefault(attrName);
     final List<Attribute> attrs = entry.getAttribute(attrType);
     return TaskUtils.getBoolean(attrs, defaultValue);
   }
 
   private ArrayList<String> toListOfString(Entry entry, String attrName)
   {
-    final AttributeType attrType = getAttributeType(attrName, true);
+    final AttributeType attrType = getAttributeTypeOrDefault(attrName);
     final List<Attribute> attrs = entry.getAttribute(attrType);
     return TaskUtils.getMultiValueString(attrs);
   }
 
   private String toString(Entry entry, String attrName)
   {
-    final AttributeType attrType = getAttributeType(attrName, true);
+    final AttributeType attrType = getAttributeTypeOrDefault(attrName);
     final List<Attribute> attrs = entry.getAttribute(attrType);
     return TaskUtils.getSingleValueString(attrs);
   }
@@ -492,7 +492,7 @@ public class ExportTask extends Task
     HashSet<AttributeType> attributes = new HashSet<>();
     for (String attrName : attributeStrings)
     {
-      attributes.add(DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName));
+      attributes.add(DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName));
     }
     return attributes;
   }

@@ -700,7 +700,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
-                              DirectoryServer.getAttributeType("cn", true),
+                              DirectoryServer.getAttributeTypeOrDefault("cn"),
                               ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
@@ -895,7 +895,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
-                              DirectoryServer.getAttributeType("cn", true),
+                              DirectoryServer.getAttributeTypeOrDefault("cn"),
                               ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 

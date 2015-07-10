@@ -484,8 +484,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    AttributeType attrType = DirectoryServer.getAttributeType("description",
-                                                              true);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault("description");
     UpdatePreOpPlugin.addAttributeToRemove(attrType);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);

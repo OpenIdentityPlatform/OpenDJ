@@ -71,7 +71,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
 
-    entryUUIDType = DirectoryServer.getAttributeType("entryuuid", false);
+    entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
     assertNotNull(entryUUIDType);
   }
 

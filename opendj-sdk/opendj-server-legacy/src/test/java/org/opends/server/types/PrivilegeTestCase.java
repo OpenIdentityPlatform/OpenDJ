@@ -1266,7 +1266,7 @@ public class PrivilegeTestCase extends TypesTestCase
     CompareOperation compareOperation = new CompareOperationBasis(conn,
                               nextOperationID(), nextMessageID(),
                               controls, targetDN,
-                              DirectoryServer.getAttributeType("cn", true),
+                              DirectoryServer.getAttributeTypeOrDefault("cn"),
                               ByteString.valueOf("PWReset Target"));
     compareOperation.run();
     if (hasProxyPrivilege)
@@ -1412,7 +1412,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperation compareOperation = new CompareOperationBasis(conn, nextOperationID(),
                               nextMessageID(), controls, targetDN,
-                              DirectoryServer.getAttributeType("cn", true),
+                              DirectoryServer.getAttributeTypeOrDefault("cn"),
              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
     if (hasProxyPrivilege)

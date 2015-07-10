@@ -173,10 +173,10 @@ public class LastModPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType ctType = DirectoryConfig.getAttributeType("createtimestamp", false);
-    AttributeType cnType = DirectoryConfig.getAttributeType("creatorsname", false);
-    AttributeType mtType = DirectoryConfig.getAttributeType("modifytimestamp", false);
-    AttributeType mnType = DirectoryConfig.getAttributeType("modifiersname", false);
+    AttributeType ctType = DirectoryServer.getAttributeType("createtimestamp");
+    AttributeType cnType = DirectoryServer.getAttributeType("creatorsname");
+    AttributeType mtType = DirectoryServer.getAttributeType("modifytimestamp");
+    AttributeType mnType = DirectoryServer.getAttributeType("modifiersname");
 
     DirectoryServer.deregisterAttributeType(ctType);
     DirectoryServer.deregisterAttributeType(cnType);

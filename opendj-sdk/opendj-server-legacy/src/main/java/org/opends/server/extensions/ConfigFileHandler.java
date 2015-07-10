@@ -1126,8 +1126,7 @@ public class ConfigFileHandler
       }
 
       AttributeType privType =
-           DirectoryServer.getAttributeType(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME,
-                                            true);
+           DirectoryServer.getAttributeTypeOrDefault(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME);
       for (Modification m : modifyOperation.getModifications())
       {
         if (m.getAttribute().getAttributeType().equals(privType))
@@ -1137,8 +1136,7 @@ public class ConfigFileHandler
           {
             LocalizableMessage message =
                 ERR_CONFIG_FILE_MODIFY_PRIVS_INSUFFICIENT_PRIVILEGES.get();
-            throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                         message);
+            throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS, message);
           }
 
           break;

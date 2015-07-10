@@ -149,38 +149,16 @@ public class BackupTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBackupAll;
-    AttributeType typeCompress;
-    AttributeType typeEncrypt;
-    AttributeType typeHash;
-    AttributeType typeIncremental;
-    AttributeType typeSignHash;
-    AttributeType typeBackendID;
-    AttributeType typeBackupID;
-    AttributeType typeBackupDirectory;
-    AttributeType typeIncrementalBaseID;
-
-
-    typeBackupAll =
-         getAttributeType(ATTR_TASK_BACKUP_ALL, true);
-    typeCompress =
-         getAttributeType(ATTR_TASK_BACKUP_COMPRESS, true);
-    typeEncrypt =
-         getAttributeType(ATTR_TASK_BACKUP_ENCRYPT, true);
-    typeHash =
-         getAttributeType(ATTR_TASK_BACKUP_HASH, true);
-    typeIncremental =
-         getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL, true);
-    typeSignHash =
-         getAttributeType(ATTR_TASK_BACKUP_SIGN_HASH, true);
-    typeBackendID =
-         getAttributeType(ATTR_TASK_BACKUP_BACKEND_ID, true);
-    typeBackupID =
-         getAttributeType(ATTR_BACKUP_ID, true);
-    typeBackupDirectory =
-         getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
-    typeIncrementalBaseID =
-         getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID, true);
+    AttributeType typeBackupAll = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_ALL);
+    AttributeType typeCompress = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_COMPRESS);
+    AttributeType typeEncrypt = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_ENCRYPT);
+    AttributeType typeHash = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_HASH);
+    AttributeType typeIncremental = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_INCREMENTAL);
+    AttributeType typeSignHash = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_SIGN_HASH);
+    AttributeType typeBackendID = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_BACKEND_ID);
+    AttributeType typeBackupID = getAttributeTypeOrDefault(ATTR_BACKUP_ID);
+    AttributeType typeBackupDirectory = getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType typeIncrementalBaseID = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID);
 
 
     List<Attribute> attrList;

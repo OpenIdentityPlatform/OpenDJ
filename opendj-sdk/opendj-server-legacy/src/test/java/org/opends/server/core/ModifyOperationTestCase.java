@@ -435,7 +435,7 @@ public class ModifyOperationTestCase
   public void testGetAndAddModifications() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
+    assertNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
 
     UpdatePreOpPlugin.reset();
     UpdatePreOpPlugin.addModification(
@@ -453,7 +453,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNotNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
+    assertNotNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
 
     UpdatePreOpPlugin.reset();
   }
@@ -552,7 +552,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttribute() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
+    assertNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
     ModifyOperation modifyOperation = processModify("o=test", replace(attr));
@@ -560,7 +560,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNotNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
+    assertNotNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
   }
 
 
@@ -577,7 +577,7 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
 
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("o", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
     assertEquals(countValues(attrList), 1);
 
     LDAPAttribute attr = newLDAPAttribute("o", "test2");
@@ -586,7 +586,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
+    attrList = e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
     assertEquals(countValues(attrList), 2);
   }
 
@@ -605,7 +605,7 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf(baseDN));
 
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("o", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
     assertEquals(countValues(attrList), 1);
 
     LDAPAttribute attr = newLDAPAttribute("o;lang-en-us", "test");
@@ -614,7 +614,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.valueOf(baseDN));
-    attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
+    attrList = e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
     assertEquals(countValues(attrList), 2);
   }
 
@@ -1878,7 +1878,7 @@ public class ModifyOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("employeenumber", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("employeenumber"));
     assertNotNull(attrList);
     assertIntegerValueExists(attrList, 2);
   }
@@ -1917,7 +1917,7 @@ public class ModifyOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("employeenumber", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("employeenumber"));
     assertNotNull(attrList);
     assertIntegerValueExists(attrList, 11);
   }
@@ -1956,7 +1956,7 @@ public class ModifyOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("employeenumber", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("employeenumber"));
     assertNotNull(attrList);
     assertIntegerValueExists(attrList, 0);
   }
@@ -3187,7 +3187,7 @@ responseLoop:
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
     assertFalse(DirectoryServer.getEntry(DN.valueOf("o=test")).hasAttribute(
-                     DirectoryServer.getAttributeType("description", true)));
+                     DirectoryServer.getAttributeTypeOrDefault("description")));
   }
 
 
@@ -3422,7 +3422,7 @@ responseLoop:
          "userPassword: password");
 
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("userpassword", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("userpassword"));
     assertNotNull(attrList);
 
     String passwd = null;
@@ -3661,7 +3661,7 @@ responseLoop:
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeType("usercertificate", true));
+         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("usercertificate"));
     assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
     Attribute a = attrList.get(0);

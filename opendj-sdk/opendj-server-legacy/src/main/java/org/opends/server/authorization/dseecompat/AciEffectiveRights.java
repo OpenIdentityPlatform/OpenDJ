@@ -278,7 +278,7 @@ public class AciEffectiveRights {
         }
         else
         {
-          nonRightsAttrs.add(DirectoryServer.getAttributeType(a.toLowerCase(), true));
+          nonRightsAttrs.add(DirectoryServer.getAttributeTypeOrDefault(a.toLowerCase()));
         }
       }
     }

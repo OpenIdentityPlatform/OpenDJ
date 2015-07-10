@@ -192,7 +192,7 @@ public final class ConfigEntry
          throws ConfigException
   {
     String attrName = stub.getName();
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName.toLowerCase(), attrName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName);
     List<Attribute> attrList = entry.getAttribute(attrType);
     if (attrList != null && !attrList.isEmpty())
     {

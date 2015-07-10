@@ -120,14 +120,9 @@ public class RestoreTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBackupDirectory;
-    AttributeType typebackupID;
-    AttributeType typeVerifyOnly;
-
-
-    typeBackupDirectory = getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
-    typebackupID        = getAttributeType(ATTR_BACKUP_ID, true);
-    typeVerifyOnly      = getAttributeType(ATTR_TASK_RESTORE_VERIFY_ONLY, true);
+    AttributeType typeBackupDirectory = getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType typebackupID = getAttributeTypeOrDefault(ATTR_BACKUP_ID);
+    AttributeType typeVerifyOnly = getAttributeTypeOrDefault(ATTR_TASK_RESTORE_VERIFY_ONLY);
 
     List<Attribute> attrList;
 

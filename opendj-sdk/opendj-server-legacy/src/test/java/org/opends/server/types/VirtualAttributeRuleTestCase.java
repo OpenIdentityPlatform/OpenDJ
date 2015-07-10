@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.testng.annotations.BeforeClass;
@@ -65,7 +66,7 @@ public class VirtualAttributeRuleTestCase
   {
     TestCaseUtils.startServer();
 
-    entryDNType = DirectoryConfig.getAttributeType("entrydn", false);
+    entryDNType = DirectoryServer.getAttributeType("entrydn");
     assertNotNull(entryDNType);
   }
 

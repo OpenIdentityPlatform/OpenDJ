@@ -43,7 +43,6 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.BeforeClass;
@@ -159,8 +158,7 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType entryUUIDType = DirectoryConfig.getAttributeType("entryuuid",
-                                                                   false);
+    AttributeType entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
     DirectoryServer.deregisterAttributeType(entryUUIDType);
 
     HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
