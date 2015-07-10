@@ -312,73 +312,71 @@ class ID2Entry extends AbstractTree
    * Write a record in the entry tree.
    *
    * @param txn a non null transaction
-   * @param id The entry ID which forms the key.
+   * @param entryID The entry ID which forms the key.
    * @param entry The LDAP entry.
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  public void put(WriteableTransaction txn, EntryID id, Entry entry)
+  public void put(WriteableTransaction txn, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    Reject.ifNull(txn, "txn must not be null.");
-    txn.put(getName(), id.toByteString(), encode(entry));
+    put(txn, entryID, encode(entry));
   }
 
-  public void put(WriteableTransaction txn, EntryID id, ByteSequence encodedEntry)
+  public void put(WriteableTransaction txn, EntryID entryID, ByteSequence encodedEntry)
       throws StorageRuntimeException, DirectoryException
   {
     Reject.ifNull(txn, "txn must not be null.");
-    txn.put(getName(), id.toByteString(), encodedEntry);
+    txn.put(getName(), entryID.toByteString(), encodedEntry);
   }
 
   /**
    * Remove a record from the entry tree.
    *
    * @param txn a non null transaction
-   * @param id The entry ID which forms the key.
+   * @param entryID The entry ID which forms the key.
    * @return true if the entry was removed, false if it was not.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  boolean remove(WriteableTransaction txn, EntryID id) throws StorageRuntimeException
+  boolean remove(WriteableTransaction txn, EntryID entryID) throws StorageRuntimeException
   {
-    return txn.delete(getName(), id.toByteString());
+    return txn.delete(getName(), entryID.toByteString());
   }
 
   /**
    * Fetch a record from the entry tree.
    *
    * @param txn a non null transaction
-   * @param id The desired entry ID which forms the key.
+   * @param entryID The desired entry ID which forms the key.
    * @return The requested entry, or null if there is no such record.
    * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  public Entry get(ReadableTransaction txn, EntryID id)
+  public Entry get(ReadableTransaction txn, EntryID entryID)
        throws DirectoryException, StorageRuntimeException
   {
-    return get0(id, txn.read(getName(), id.toByteString()));
+    return get0(entryID, txn.read(getName(), entryID.toByteString()));
   }
 
   /**
    * Check that a record entry exists in the entry tree.
    *
    * @param txn a non null transaction
-   * @param id The entry ID which forms the key.
+   * @param entryID The entry ID which forms the key.
    * @return True if an entry with entryID exists
-   * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  public boolean containsEntryID(ReadableTransaction txn, EntryID id)
+  public boolean containsEntryID(ReadableTransaction txn, EntryID entryID)
  {
     checkNotNull(txn, "txn must not be null");
-    checkNotNull(id, "id must not be null");
+    checkNotNull(entryID, "entryID must not be null");
     try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName())) {
-      return cursor.positionToKey(id.toByteString());
+      return cursor.positionToKey(entryID.toByteString());
     }
  }
 
-  private Entry get0(EntryID id, ByteString value) throws DirectoryException
+  private Entry get0(EntryID entryID, ByteString value) throws DirectoryException
   {
     if (value == null)
     {
@@ -393,7 +391,7 @@ class ID2Entry extends AbstractTree
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(id));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(entryID));
     }
   }
 
