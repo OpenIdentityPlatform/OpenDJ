@@ -2906,7 +2906,7 @@ public final class DirectoryServer
    * Retrieves the attribute type for the provided lowercase name or OID. It will return a generated
    * "default" version with the uppercase name or OID if the requested attribute type is not defined
    * in the schema.
-   * 
+   *
    * @param lowerName
    *          The lowercase name or OID for the attribute type to retrieve.
    * @param upperName
