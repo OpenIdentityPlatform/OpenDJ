@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
+import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSetWithKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -203,7 +204,8 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
               if (totalIDCount > IndexFilter.CURSOR_ENTRY_LIMIT)
               {
                 // There are too many. Give up and return an undefined list.
-                return newUndefinedSet();
+                // Use any key to have debugsearchindex return LIMIT-EXCEEDED instead of NOT-INDEXED.
+                return newUndefinedSetWithKey(cursor.getKey());
               }
               sets.add(set);
               success = cursor.next();
