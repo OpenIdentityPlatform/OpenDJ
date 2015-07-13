@@ -33,6 +33,7 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
+import static org.opends.quicksetup.installer.InstallProgressStep.*;
 import static org.opends.quicksetup.util.Utils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -45,6 +46,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +73,7 @@ import javax.swing.JPanel;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
@@ -154,7 +157,6 @@ public abstract class Installer extends GuiApplication
 {
   /** The minimum integer value that can be used for a port. */
   public static final int MIN_PORT_VALUE = 1;
-
   /** The maximum integer value that can be used for a port. */
   public static final int MAX_PORT_VALUE = 65535;
 
@@ -165,7 +167,6 @@ public abstract class Installer extends GuiApplication
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
 
   private static final int MIN_NUMBER_ENTRIES = 1;
-
   private static final int MAX_NUMBER_ENTRIES = 10000000;
 
   /**
@@ -233,21 +234,7 @@ public abstract class Installer extends GuiApplication
   /** Creates a default instance. */
   public Installer()
   {
-    lstSteps.add(WELCOME);
-    if (LicenseFile.exists())
-    {
-      lstSteps.add(LICENSE);
-    }
-    lstSteps.add(SERVER_SETTINGS);
-    lstSteps.add(REPLICATION_OPTIONS);
-    lstSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
-    lstSteps.add(SUFFIXES_OPTIONS);
-    lstSteps.add(REMOTE_REPLICATION_PORTS);
-    lstSteps.add(NEW_SUFFIX_OPTIONS);
-    lstSteps.add(RUNTIME_OPTIONS);
-    lstSteps.add(REVIEW);
-    lstSteps.add(PROGRESS);
-    lstSteps.add(FINISHED);
+    addStepsInOrder(lstSteps, LicenseFile.exists());
     try
     {
       if (!QuickSetupLog.isInitialized())
@@ -366,16 +353,14 @@ public abstract class Installer extends GuiApplication
   @Override
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs)
   {
-    if (cStep == Step.REVIEW)
-    {
-      updateUserDataForReviewPanel(qs);
-      qs.launch();
-      qs.setCurrentStep(Step.PROGRESS);
-    }
-    else
+    if (cStep != Step.REVIEW)
     {
       throw new IllegalStateException("Cannot click on finish when we are not in the Review window");
     }
+
+    updateUserDataForReviewPanel(qs);
+    qs.launch();
+    qs.setCurrentStep(Step.PROGRESS);
     // Installer responsible for updating the user data and launching
     return false;
   }
@@ -531,56 +516,37 @@ public abstract class Installer extends GuiApplication
   @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step)
   {
-    QuickSetupStepPanel p = null;
-    if (step == WELCOME)
+    if (step instanceof Step)
     {
-      p = new InstallWelcomePanel(this);
+      switch ((Step) step)
+      {
+      case WELCOME:
+        return new InstallWelcomePanel(this);
+      case LICENSE:
+        return new InstallLicensePanel(this);
+      case SERVER_SETTINGS:
+        return new ServerSettingsPanel(this);
+      case REPLICATION_OPTIONS:
+        return new DataReplicationPanel(this);
+      case CREATE_GLOBAL_ADMINISTRATOR:
+        return new GlobalAdministratorPanel(this);
+      case SUFFIXES_OPTIONS:
+        return new SuffixesToReplicatePanel(this);
+      case REMOTE_REPLICATION_PORTS:
+        return new RemoteReplicationPortsPanel(this);
+      case NEW_SUFFIX_OPTIONS:
+        return new DataOptionsPanel(this);
+      case RUNTIME_OPTIONS:
+        return new RuntimeOptionsPanel(this);
+      case REVIEW:
+        return new InstallReviewPanel(this);
+      case PROGRESS:
+        return new ProgressPanel(this);
+      case FINISHED:
+        return new FinishedPanel(this);
+      }
     }
-    else if (step == LICENSE)
-    {
-      p = new InstallLicensePanel(this);
-    }
-    else if (step == SERVER_SETTINGS)
-    {
-      p = new ServerSettingsPanel(this);
-    }
-    else if (step == REPLICATION_OPTIONS)
-    {
-      p = new DataReplicationPanel(this);
-    }
-    else if (step == CREATE_GLOBAL_ADMINISTRATOR)
-    {
-      p = new GlobalAdministratorPanel(this);
-    }
-    else if (step == SUFFIXES_OPTIONS)
-    {
-      p = new SuffixesToReplicatePanel(this);
-    }
-    else if (step == REMOTE_REPLICATION_PORTS)
-    {
-      p = new RemoteReplicationPortsPanel(this);
-    }
-    else if (step == NEW_SUFFIX_OPTIONS)
-    {
-      p = new DataOptionsPanel(this);
-    }
-    else if (step == RUNTIME_OPTIONS)
-    {
-      p = new RuntimeOptionsPanel(this);
-    }
-    else if (step == REVIEW)
-    {
-      p = new InstallReviewPanel(this);
-    }
-    else if (step == PROGRESS)
-    {
-      p = new ProgressPanel(this);
-    }
-    else if (step == FINISHED)
-    {
-      p = new FinishedPanel(this);
-    }
-    return p;
+    return null;
   }
 
   @Override
@@ -697,59 +663,7 @@ public abstract class Installer extends GuiApplication
   @Override
   public WizardStep getNextWizardStep(WizardStep step)
   {
-    WizardStep next = null;
-    if (step == Step.REPLICATION_OPTIONS)
-    {
-      if (getUserData().mustCreateAdministrator())
-      {
-        next = Step.CREATE_GLOBAL_ADMINISTRATOR;
-      }
-      else
-      {
-        switch (getUserData().getReplicationOptions().getType())
-        {
-        case FIRST_IN_TOPOLOGY:
-          next = Step.NEW_SUFFIX_OPTIONS;
-          break;
-        case STANDALONE:
-          next = Step.NEW_SUFFIX_OPTIONS;
-          break;
-        default:
-          next = Step.SUFFIXES_OPTIONS;
-        }
-      }
-    }
-    else if (step == Step.SUFFIXES_OPTIONS)
-    {
-      switch (getUserData().getSuffixesToReplicateOptions().getType())
-      {
-      case REPLICATE_WITH_EXISTING_SUFFIXES:
-
-        if (getUserData().getRemoteWithNoReplicationPort().size() > 0)
-        {
-          next = Step.REMOTE_REPLICATION_PORTS;
-        }
-        else
-        {
-          next = Step.RUNTIME_OPTIONS;
-        }
-        break;
-      default:
-        next = Step.NEW_SUFFIX_OPTIONS;
-      }
-    }
-    else if (step == Step.REMOTE_REPLICATION_PORTS)
-    {
-      next = Step.RUNTIME_OPTIONS;
-    }
-    else
-    {
-      int i = lstSteps.indexOf(step);
-      if (i != -1 && i + 1 < lstSteps.size())
-      {
-        next = lstSteps.get(i + 1);
-      }
-    }
+    WizardStep next = getNextWizardStep0(step);
     if (next != null)
     {
       hmPreviousSteps.put(next, step);
@@ -757,26 +671,78 @@ public abstract class Installer extends GuiApplication
     return next;
   }
 
+  private WizardStep getNextWizardStep0(WizardStep step)
+  {
+    if (step == Step.REPLICATION_OPTIONS)
+    {
+      if (getUserData().mustCreateAdministrator())
+      {
+        return Step.CREATE_GLOBAL_ADMINISTRATOR;
+      }
+
+      switch (getUserData().getReplicationOptions().getType())
+      {
+      case FIRST_IN_TOPOLOGY:
+      case STANDALONE:
+        return Step.NEW_SUFFIX_OPTIONS;
+      default:
+        return Step.SUFFIXES_OPTIONS;
+      }
+    }
+    else if (step == Step.SUFFIXES_OPTIONS)
+    {
+      switch (getUserData().getSuffixesToReplicateOptions().getType())
+      {
+      case REPLICATE_WITH_EXISTING_SUFFIXES:
+        if (getUserData().getRemoteWithNoReplicationPort().size() > 0)
+        {
+          return Step.REMOTE_REPLICATION_PORTS;
+        }
+        return Step.RUNTIME_OPTIONS;
+      default:
+        return Step.NEW_SUFFIX_OPTIONS;
+      }
+    }
+    else if (step == Step.REMOTE_REPLICATION_PORTS)
+    {
+      return Step.RUNTIME_OPTIONS;
+    }
+    else
+    {
+      int i = lstSteps.indexOf(step);
+      if (i != -1 && i + 1 < lstSteps.size())
+      {
+        return lstSteps.get(i + 1);
+      }
+    }
+    return null;
+  }
+
   @Override
   public LinkedHashSet<WizardStep> getOrderedSteps()
   {
     LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<>();
-    orderedSteps.add(WELCOME);
-    if (lstSteps.contains(LICENSE))
-    {
-      orderedSteps.add(LICENSE);
-    }
-    orderedSteps.add(SERVER_SETTINGS);
-    orderedSteps.add(REPLICATION_OPTIONS);
-    orderedSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
-    orderedSteps.add(SUFFIXES_OPTIONS);
-    orderedSteps.add(REMOTE_REPLICATION_PORTS);
-    orderedSteps.add(NEW_SUFFIX_OPTIONS);
-    orderedSteps.add(RUNTIME_OPTIONS);
-    orderedSteps.add(REVIEW);
-    orderedSteps.add(PROGRESS);
-    orderedSteps.add(FINISHED);
+    addStepsInOrder(orderedSteps, lstSteps.contains(LICENSE));
     return orderedSteps;
+  }
+
+  private void addStepsInOrder(Collection<WizardStep> steps, boolean licenseExists)
+  {
+    steps.add(WELCOME);
+    if (licenseExists)
+    {
+      steps.add(LICENSE);
+    }
+    steps.add(SERVER_SETTINGS);
+    steps.add(REPLICATION_OPTIONS);
+    steps.add(CREATE_GLOBAL_ADMINISTRATOR);
+    steps.add(SUFFIXES_OPTIONS);
+    steps.add(REMOTE_REPLICATION_PORTS);
+    steps.add(NEW_SUFFIX_OPTIONS);
+    steps.add(RUNTIME_OPTIONS);
+    steps.add(REVIEW);
+    steps.add(PROGRESS);
+    steps.add(FINISHED);
   }
 
   @Override
@@ -835,19 +801,17 @@ public abstract class Installer extends GuiApplication
    */
   private File createTemplateFile() throws ApplicationException
   {
-    File file;
     try
     {
       Set<String> baseDNs = new LinkedHashSet<>(getUserData().getNewSuffixOptions().getBaseDns());
       int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
-      file = SetupUtils.createTemplateFile(baseDNs, nEntries);
+      return SetupUtils.createTemplateFile(baseDNs, nEntries);
     }
     catch (IOException ioe)
     {
       LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CREATING_TEMP_FILE.get(), ioe);
       throw new ApplicationException(ReturnCode.FILE_SYSTEM_ACCESS_ERROR, failedMsg, ioe);
     }
-    return file;
   }
 
   /**
@@ -923,8 +887,7 @@ public abstract class Installer extends GuiApplication
 
     if (createNotReplicatedSuffix())
     {
-      LinkedList<String> baseDns = getUserData().getNewSuffixOptions().getBaseDns();
-      for (String baseDn : baseDns)
+      for (String baseDn : getUserData().getNewSuffixOptions().getBaseDns())
       {
         argList.add("-b");
         argList.add(baseDn);
@@ -1530,7 +1493,10 @@ public abstract class Installer extends GuiApplication
       {
         notifyListeners(getFormattedError(ae, true));
       }
-      StaticUtils.close(ctx);
+      finally
+      {
+        StaticUtils.close(ctx);
+      }
       notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
@@ -1896,25 +1862,21 @@ public abstract class Installer extends GuiApplication
    */
   protected void initSummaryMap(Map<ProgressStep, LocalizableMessage> hmSummary, boolean isCli)
   {
-    hmSummary.put(InstallProgressStep.NOT_STARTED, getFormattedSummary(INFO_SUMMARY_INSTALL_NOT_STARTED.get()));
-    hmSummary.put(InstallProgressStep.DOWNLOADING, getFormattedSummary(INFO_SUMMARY_DOWNLOADING.get()));
-    hmSummary.put(InstallProgressStep.EXTRACTING, getFormattedSummary(INFO_SUMMARY_EXTRACTING.get()));
-    hmSummary.put(InstallProgressStep.CONFIGURING_SERVER, getFormattedSummary(INFO_SUMMARY_CONFIGURING.get()));
-    hmSummary.put(InstallProgressStep.CREATING_BASE_ENTRY, getFormattedSummary(INFO_SUMMARY_CREATING_BASE_ENTRY.get()));
-    hmSummary.put(InstallProgressStep.IMPORTING_LDIF, getFormattedSummary(INFO_SUMMARY_IMPORTING_LDIF.get()));
-    hmSummary.put(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED,
-        getFormattedSummary(INFO_SUMMARY_IMPORTING_AUTOMATICALLY_GENERATED.get()));
-    hmSummary.put(InstallProgressStep.CONFIGURING_REPLICATION,
-                  getFormattedSummary(INFO_SUMMARY_CONFIGURING_REPLICATION.get()));
-    hmSummary.put(InstallProgressStep.STARTING_SERVER, getFormattedSummary(INFO_SUMMARY_STARTING.get()));
-    hmSummary.put(InstallProgressStep.STOPPING_SERVER, getFormattedSummary(INFO_SUMMARY_STOPPING.get()));
-    hmSummary.put(InstallProgressStep.CONFIGURING_ADS, getFormattedSummary(INFO_SUMMARY_CONFIGURING_ADS.get()));
-    hmSummary.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES,
-                  getFormattedSummary(INFO_SUMMARY_INITIALIZE_REPLICATED_SUFFIXES.get()));
-    hmSummary.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE,
-                  getFormattedSummary(INFO_SUMMARY_ENABLING_WINDOWS_SERVICE.get()));
-    hmSummary.put(InstallProgressStep.WAITING_TO_CANCEL, getFormattedSummary(INFO_SUMMARY_WAITING_TO_CANCEL.get()));
-    hmSummary.put(InstallProgressStep.CANCELING, getFormattedSummary(INFO_SUMMARY_CANCELING.get()));
+    put(hmSummary, NOT_STARTED, INFO_SUMMARY_INSTALL_NOT_STARTED);
+    put(hmSummary, DOWNLOADING, INFO_SUMMARY_DOWNLOADING);
+    put(hmSummary, EXTRACTING, INFO_SUMMARY_EXTRACTING);
+    put(hmSummary, CONFIGURING_SERVER, INFO_SUMMARY_CONFIGURING);
+    put(hmSummary, CREATING_BASE_ENTRY, INFO_SUMMARY_CREATING_BASE_ENTRY);
+    put(hmSummary, IMPORTING_LDIF, INFO_SUMMARY_IMPORTING_LDIF);
+    put(hmSummary, IMPORTING_AUTOMATICALLY_GENERATED, INFO_SUMMARY_IMPORTING_AUTOMATICALLY_GENERATED);
+    put(hmSummary, CONFIGURING_REPLICATION, INFO_SUMMARY_CONFIGURING_REPLICATION);
+    put(hmSummary, STARTING_SERVER, INFO_SUMMARY_STARTING);
+    put(hmSummary, STOPPING_SERVER, INFO_SUMMARY_STOPPING);
+    put(hmSummary, CONFIGURING_ADS, INFO_SUMMARY_CONFIGURING_ADS);
+    put(hmSummary, INITIALIZE_REPLICATED_SUFFIXES, INFO_SUMMARY_INITIALIZE_REPLICATED_SUFFIXES);
+    put(hmSummary, ENABLING_WINDOWS_SERVICE, INFO_SUMMARY_ENABLING_WINDOWS_SERVICE);
+    put(hmSummary, WAITING_TO_CANCEL, INFO_SUMMARY_WAITING_TO_CANCEL);
+    put(hmSummary, CANCELING, INFO_SUMMARY_CANCELING);
 
     Installation installation = getInstallation();
     String cmd = Utils.addWordBreaks(getPath(installation.getControlPanelCommandFile()), 60, 5);
@@ -1931,11 +1893,15 @@ public abstract class Installer extends GuiApplication
                 DynamicConstants.PRODUCT_NAME, formattedPath, INFO_GENERAL_SERVER_STOPPED.get(),
                 DynamicConstants.DOC_QUICK_REFERENCE_GUIDE, DynamicConstants.PRODUCT_NAME, cmd),
             LocalizableMessage.class);
-    hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY, getFormattedSuccess(successMessage));
-    hmSummary.put(InstallProgressStep.FINISHED_CANCELED, getFormattedSuccess(INFO_SUMMARY_INSTALL_FINISHED_CANCELED
-        .get()));
-    hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR, getFormattedError(INFO_SUMMARY_INSTALL_FINISHED_WITH_ERROR
-        .get(INFO_GENERAL_SERVER_STOPPED.get(), cmd)));
+    hmSummary.put(FINISHED_SUCCESSFULLY, getFormattedSuccess(successMessage));
+    hmSummary.put(FINISHED_CANCELED, getFormattedSuccess(INFO_SUMMARY_INSTALL_FINISHED_CANCELED.get()));
+    hmSummary.put(FINISHED_WITH_ERROR,
+        getFormattedError(INFO_SUMMARY_INSTALL_FINISHED_WITH_ERROR.get(INFO_GENERAL_SERVER_STOPPED.get(), cmd)));
+  }
+
+  private void put(Map<ProgressStep, LocalizableMessage> hmSummary, InstallProgressStep step, Arg0 msg)
+  {
+    hmSummary.put(step, getFormattedSummary(msg.get()));
   }
 
   /**
@@ -3044,7 +3010,7 @@ public abstract class Installer extends GuiApplication
   private void updateUserDataForReplicationOptionsPanel(QuickSetup qs) throws UserDataException
   {
     boolean hasGlobalAdministrators = false;
-    Integer replicationPort = -1;
+    int replicationPort = -1;
     boolean secureReplication = false;
     Integer port = null;
     List<LocalizableMessage> errorMsgs = new ArrayList<>();
@@ -3118,29 +3084,7 @@ public abstract class Installer extends GuiApplication
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);
 
-      DataReplicationOptions repl;
-      switch (type)
-      {
-      case IN_EXISTING_TOPOLOGY:
-      {
-        repl = DataReplicationOptions.createInExistingTopology(auth, replicationPort, secureReplication);
-        break;
-      }
-      case STANDALONE:
-      {
-        repl = DataReplicationOptions.createStandalone();
-        break;
-      }
-      case FIRST_IN_TOPOLOGY:
-      {
-        repl = DataReplicationOptions.createFirstInTopology(replicationPort, secureReplication);
-        break;
-      }
-      default:
-        throw new IllegalStateException("Do not know what to do with type: " + type);
-      }
-      getUserData().setReplicationOptions(repl);
-
+      getUserData().setReplicationOptions(createDataReplicationOptions(replicationPort, secureReplication, type, auth));
       getUserData().createAdministrator(
           !hasGlobalAdministrators && type == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY);
     }
@@ -3151,6 +3095,22 @@ public abstract class Installer extends GuiApplication
     if (confirmEx != null)
     {
       throw confirmEx;
+    }
+  }
+
+  private DataReplicationOptions createDataReplicationOptions(int replicationPort, boolean secureReplication,
+      DataReplicationOptions.Type type, AuthenticationData auth)
+  {
+    switch (type)
+    {
+    case IN_EXISTING_TOPOLOGY:
+      return DataReplicationOptions.createInExistingTopology(auth, replicationPort, secureReplication);
+    case STANDALONE:
+      return DataReplicationOptions.createStandalone();
+    case FIRST_IN_TOPOLOGY:
+      return DataReplicationOptions.createFirstInTopology(replicationPort, secureReplication);
+    default:
+      throw new IllegalStateException("Do not know what to do with type: " + type);
     }
   }
 
