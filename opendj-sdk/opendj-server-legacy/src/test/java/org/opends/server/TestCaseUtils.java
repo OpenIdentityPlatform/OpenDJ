@@ -82,7 +82,6 @@ import static org.opends.server.loggers.TextAccessLogPublisher.*;
 import static org.opends.server.loggers.TextErrorLogPublisher.*;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -1905,21 +1904,6 @@ public final class TestCaseUtils {
   {
     dsconfig("set-backend-prop", "--backend-name", backendID,
              "--set", "enabled:" + enabled);
-  }
-
-  public static <T> Set<T> newSet(T... elems)
-  {
-    return newHashSet(elems);
-  }
-
-  public static <T> SortedSet<T> newSortedSet(T... elems)
-  {
-    return newTreeSet(elems);
-  }
-
-  public static <T> List<T> newList(T... elems)
-  {
-    return newArrayList(elems);
   }
 
   public static HashSet<PluginType> getPluginTypes(Entry e)

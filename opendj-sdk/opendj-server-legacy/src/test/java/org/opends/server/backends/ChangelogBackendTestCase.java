@@ -724,7 +724,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         {
           Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
 
-          Set<String> eoc = newSet("person", "inetOrgPerson", "organizationalPerson", "top");
+          Set<String> eoc = newHashSet("person", "inetOrgPerson", "organizationalPerson", "top");
           assertAttributeValues(targetEntry, "objectclass", eoc);
 
           String changeType = getAttributeValue(resultEntry, "changetype");
@@ -785,7 +785,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(testName, "Starting test \n\n");
 
     Set<String> attributes =
-        newSet("firstchangenumber", "lastchangenumber", "changelog", "lastExternalChangelogCookie");
+        newHashSet("firstchangenumber", "lastchangenumber", "changelog", "lastExternalChangelogCookie");
 
     InternalSearchOperation searchOp = searchDNWithBaseScope(DN_OTEST, attributes);
     waitForSearchOpResult(searchOp, ResultCode.SUCCESS);
@@ -905,7 +905,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     String cookie = "";
     LDIFWriter ldifWriter = getLDIFWriter();
 
-    InternalSearchOperation searchOp = searchDNWithBaseScope(DN.rootDN(), newSet("lastExternalChangelogCookie"));
+    InternalSearchOperation searchOp = searchDNWithBaseScope(DN.rootDN(), newHashSet("lastExternalChangelogCookie"));
     List<SearchResultEntry> entries = searchOp.getSearchEntries();
     if (entries != null)
     {
@@ -1161,7 +1161,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   {
     final MultiDomainServerState state = new MultiDomainServerState(cookie);
     final Control cookieControl = new ExternalChangelogRequestControl(true, state);
-    return newList(cookieControl);
+    return newArrayList(cookieControl);
   }
 
   private static LDIFWriter getLDIFWriter() throws Exception

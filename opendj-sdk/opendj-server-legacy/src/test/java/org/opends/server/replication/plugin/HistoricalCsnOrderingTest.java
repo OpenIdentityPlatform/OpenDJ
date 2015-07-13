@@ -77,7 +77,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     private TestBroker(List<ReplicationMsg> list)
     {
       super(new DummyReplicationDomain(0), null,
-          new DomainFakeCfg(null, 0, TestCaseUtils.<String> newSortedSet()), null);
+          new DomainFakeCfg(null, 0, new TreeSet<String>()), null);
       this.list = list;
     }
 

@@ -29,11 +29,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.opends.server.ConfigurationMock.legacyMockCfg;
 import static org.opends.server.TestCaseUtils.makeEntry;
-import static org.opends.server.TestCaseUtils.newSortedSet;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
-import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_VLV_RESPONSE_CONTROL;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
@@ -132,7 +131,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
     final PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
     when(backendCfg.dn()).thenReturn(baseDN);
     when(backendCfg.getBackendId()).thenReturn(BACKEND_NAME);
-    when(backendCfg.getBaseDN()).thenReturn(newSortedSet(baseDN));
+    when(backendCfg.getBaseDN()).thenReturn(newTreeSet(baseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[] { SORT_ORDER_1, SORT_ORDER_2 });
 

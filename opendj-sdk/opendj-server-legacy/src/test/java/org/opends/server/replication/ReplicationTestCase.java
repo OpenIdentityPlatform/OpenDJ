@@ -77,9 +77,9 @@ import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -243,7 +243,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected DomainFakeCfg newFakeCfg(final DN baseDN, int serverId, int port)
   {
-    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newSortedSet("localhost:" + port));
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newTreeSet("localhost:" + port));
     fakeCfg.setHeartbeatInterval(100000);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     return fakeCfg;

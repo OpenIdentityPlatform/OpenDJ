@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.opends.server.ConfigurationMock.legacyMockCfg;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -238,17 +239,16 @@ public class ID2CountTest extends DirectoryServerTestCase
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
     when(backendCfg.getDBCacheSize()).thenReturn(0L);
     when(backendCfg.getDBCachePercent()).thenReturn(20);
-    when(backendCfg.getBaseDN()).thenReturn(TestCaseUtils.newSortedSet(DN.valueOf("dc=test,dc=com")));
+    when(backendCfg.getBaseDN()).thenReturn(newTreeSet(DN.valueOf("dc=test,dc=com")));
     when(backendCfg.dn()).thenReturn(DN.valueOf("dc=test,dc=com"));
     when(backendCfg.listBackendIndexes()).thenReturn(new String[] { "sn" });
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
 
     BackendIndexCfg indexCfg = legacyMockCfg(BackendIndexCfg.class);
-    when(indexCfg.getIndexType()).thenReturn(TestCaseUtils.newSortedSet(IndexType.PRESENCE, IndexType.EQUALITY));
+    when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
     when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType("sn"));
     when(backendCfg.getBackendIndex("sn")).thenReturn(indexCfg);
 
     return backendCfg;
   }
-
 }
