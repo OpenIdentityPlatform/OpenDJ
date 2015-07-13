@@ -73,6 +73,7 @@ import javax.swing.tree.TreePath;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -88,7 +89,6 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
@@ -100,7 +100,7 @@ import org.opends.server.types.Schema;
 public class BrowseSchemaPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -6462914563743569830L;
-  private JComboBox filterAttribute;
+  private JComboBox<LocalizableMessage> filterAttribute;
   private FilterTextField filter;
   private JButton applyButton;
   private JButton newAttribute;
@@ -299,7 +299,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
     filterAttribute = Utilities.createComboBox();
     filterAttribute.setModel(
-        new DefaultComboBoxModel(new LocalizableMessage[]{
+        new DefaultComboBoxModel<>(new LocalizableMessage[]{
             NAME,
             TYPE,
             PARENT_CLASS,
@@ -1311,27 +1311,24 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    */
   private boolean mustAdd(AttributeType attr)
   {
-    boolean mustAdd = true;
-
     String f = filter.getText().trim();
     if (f.length () > 0)
     {
       Object filterType = filterAttribute.getSelectedItem();
-
       if (NAME.equals(filterType))
       {
-        mustAdd = mustAddAttributeName(attr, f);
+        return mustAddAttributeName(attr, f);
       }
       else if (TYPE.equals(filterType))
       {
-        mustAdd = mustAddType(f, StandardAttributePanel.getTypeValue(attr));
+        return mustAddType(f, StandardAttributePanel.getTypeValue(attr));
       }
       else
       {
-        mustAdd = false;
+        return false;
       }
     }
-    return mustAdd;
+    return true;
   }
 
   private boolean mustAddType(String filter, LocalizableMessage typeValue)
@@ -1361,7 +1358,6 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    */
   private boolean mustAdd(ObjectClass oc)
   {
-    boolean mustAdd = true;
     String f = filter.getText().trim();
     if (f.length () > 0)
     {
@@ -1369,31 +1365,31 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
       if (NAME.equals(filterType))
       {
-        mustAdd = mustAddObjectClassName(oc, f);
+        return mustAddObjectClassName(oc, f);
       }
       else if (TYPE.equals(filterType))
       {
-        mustAdd = mustAddType(f, StandardObjectClassPanel.getTypeValue(oc));
+        return mustAddType(f, StandardObjectClassPanel.getTypeValue(oc));
       }
       else if (REQUIRED_ATTRIBUTES.equals(filterType) ||
           OPTIONAL_ATTRIBUTES.equals(filterType))
       {
-        mustAdd = mustAddAttributeName(oc, f, filterType);
+        return mustAddAttributeName(oc, f, filterType);
       }
       else if (CHILD_CLASS.equals(filterType))
       {
-        mustAdd = mustAddAnyObjectClassName(oc, f);
+        return mustAddAnyObjectClassName(oc, f);
       }
       else if (PARENT_CLASS.equals(filterType))
       {
-        mustAdd = mustAddParentObjectClassName(oc, f);
+        return mustAddParentObjectClassName(oc, f);
       }
       else
       {
-        mustAdd = false;
+        return false;
       }
     }
-    return mustAdd;
+    return true;
   }
 
   private boolean mustAddAnyObjectClassName(ObjectClass oc, String f)
@@ -1469,13 +1465,9 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   private boolean isDescendant(ObjectClass ocParent, ObjectClass oChild)
   {
     Set<ObjectClass> superiors = oChild.getSuperiorClasses();
-    if (superiors == null || superiors.isEmpty())
+    if (superiors != null)
     {
-      return false;
-    }
-    else
-    {
-      for (ObjectClass o : oChild.getSuperiorClasses())
+      for (ObjectClass o : superiors)
       {
         if (ocParent == o || isDescendant(ocParent, o))
         {
@@ -1501,10 +1493,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       {
         return mustAdd(f, matchingRule.getOID(), matchingRule.getNameOrOID());
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
     return true;
   }
@@ -1524,10 +1513,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       {
         return mustAdd(f, syntax.getOID(), syntax.getName());
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
     return true;
   }

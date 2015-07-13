@@ -220,15 +220,14 @@ public class LocalBackendWorkflowElement
    * @param backend
    *          the backend associated to that workflow element
    */
-  public LocalBackendWorkflowElement(DN baseDN, Backend<?> backend)
+  private LocalBackendWorkflowElement(DN baseDN, Backend<?> backend)
   {
     this.baseDN = baseDN;
     this.backend  = backend;
   }
 
   /**
-   * Indicates whether the workflow element encapsulates a private local
-   * backend.
+   * Indicates whether the workflow element encapsulates a private local backend.
    *
    * @return <code>true</code> if the workflow element encapsulates a private
    *         local backend, <code>false</code> otherwise
@@ -258,8 +257,6 @@ public class LocalBackendWorkflowElement
     }
     return localBackend;
   }
-
-
 
   /**
    * Removes a local backend that was registered with the server.
@@ -294,13 +291,9 @@ public class LocalBackendWorkflowElement
    * @return <code>true</code> if the OID is for a proxy auth v1 or v2 control,
    * <code>false</code> otherwise.
    */
-  public static boolean isProxyAuthzControl(String oid)
+  static boolean isProxyAuthzControl(String oid)
   {
-    if (OID_PROXIED_AUTH_V1.equals(oid) || OID_PROXIED_AUTH_V2.equals(oid))
-    {
-      return true;
-    }
-    return false;
+    return OID_PROXIED_AUTH_V1.equals(oid) || OID_PROXIED_AUTH_V2.equals(oid);
   }
 
   /**
@@ -320,8 +313,7 @@ public class LocalBackendWorkflowElement
    *           could not be decoded. Care must be taken not to expose any
    *           potentially sensitive information in the exception.
    */
-  static void removeAllDisallowedControls(DN targetDN, Operation operation)
-      throws DirectoryException
+  static void removeAllDisallowedControls(DN targetDN, Operation operation) throws DirectoryException
   {
     List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null && !requestControls.isEmpty())
@@ -344,8 +336,7 @@ public class LocalBackendWorkflowElement
                 ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
           }
 
-          // We do not want the backend to process this non-critical control, so
-          // remove it.
+          // We do not want the backend to process this non-critical control, so remove it.
           iter.remove();
         }
       }
@@ -361,8 +352,7 @@ public class LocalBackendWorkflowElement
    * @throws DirectoryException if a proxy auth control is found but cannot
    * be used.
    */
-  public static void evaluateProxyAuthControls(Operation operation)
-      throws DirectoryException
+  static void evaluateProxyAuthControls(Operation operation) throws DirectoryException
   {
     final List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null && !requestControls.isEmpty())
@@ -464,14 +454,8 @@ public class LocalBackendWorkflowElement
     checkAciForProxyAuthControl(operation, authorizationEntry);
     operation.setAuthorizationEntry(authorizationEntry);
 
-    if (authorizationEntry == null)
-    {
-      operation.setProxiedAuthorizationDN(DN.NULL_DN);
-    }
-    else
-    {
-      operation.setProxiedAuthorizationDN(authorizationEntry.getName());
-    }
+    operation.setProxiedAuthorizationDN(
+      authorizationEntry != null ? authorizationEntry.getName() : DN.NULL_DN);
   }
 
   /**
@@ -651,8 +635,6 @@ public class LocalBackendWorkflowElement
     }
   }
 
-
-
   /**
    * Adds the pre-read response control to the response if requested.
    *
@@ -712,8 +694,6 @@ public class LocalBackendWorkflowElement
     }
   }
 
-
-
   /**
    * Deregisters a local backend with the server.
    *
@@ -742,7 +722,7 @@ public class LocalBackendWorkflowElement
    * @throws CanceledOperationException
    *           if this operation should be canceled
    */
-  public void execute(Operation operation) throws CanceledOperationException {
+  private void execute(Operation operation) throws CanceledOperationException {
     switch (operation.getOperationType())
     {
       case BIND:
@@ -778,13 +758,10 @@ public class LocalBackendWorkflowElement
         break;
 
       default:
-        throw new AssertionError("Attempted to execute an invalid operation " +
-                                 "type:  " + operation.getOperationType() +
-                                 " (" + operation + ")");
+        throw new AssertionError("Attempted to execute an invalid operation type: "
+            + operation.getOperationType() + " (" + operation + ")");
     }
   }
-
-
 
   /**
    * Attaches the current local operation to the global operation so that
