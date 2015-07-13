@@ -26,6 +26,7 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.DefaultComboBoxModel;
@@ -83,6 +85,7 @@ import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.ModifyAttributeTask;
 import org.opends.guitools.controlpanel.task.Task;
+import org.opends.guitools.controlpanel.ui.UnsavedChangesDialog.Result;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
@@ -94,10 +97,8 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-/**
- * The panel that displays a custom attribute definition.
- */
-public class CustomAttributePanel extends SchemaElementPanel
+/** The panel that displays a custom attribute definition. */
+class CustomAttributePanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 2850763193735843746L;
   private JButton delete;
@@ -106,82 +107,62 @@ public class CustomAttributePanel extends SchemaElementPanel
   private String attrName;
   private ScrollPaneBorderListener scrollListener;
 
-  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
-      LocalizableMessage.EMPTY);
-  private JLabel lName = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get());
-  private JLabel lSuperior = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get());
-  private JLabel lOID = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get());
-  private JLabel lAliases = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_ALIASES_LABEL.get());
-  private JLabel lOrigin = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_ORIGIN_LABEL.get());
-  private JLabel lFile = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_FILE_LABEL.get());
-  private JLabel lDescription = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get());
-  private JLabel lUsage = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get());
-  private JLabel lSyntax = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get());
-  private JLabel lApproximate = Utilities.createPrimaryLabel(
+  private final TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
+  private final JLabel lName = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get());
+  private final JLabel lSuperior = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get());
+  private final JLabel lOID = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get());
+  private final JLabel lAliases = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_ALIASES_LABEL.get());
+  private final JLabel lOrigin = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_ORIGIN_LABEL.get());
+  private final JLabel lFile = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_FILE_LABEL.get());
+  private final JLabel lDescription = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get());
+  private final JLabel lUsage = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get());
+  private final JLabel lSyntax = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get());
+  private final JLabel lApproximate = createPrimaryLabel(
       INFO_CTRL_PANEL_ATTRIBUTE_APPROXIMATE_MATCHING_RULE_LABEL.get());
-  private JLabel lEquality = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_EQUALITY_MATCHING_RULE_LABEL.get());
-  private JLabel lOrdering = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_ORDERING_MATCHING_RULE_LABEL.get());
-  private JLabel lSubstring = Utilities.createPrimaryLabel(
-      INFO_CTRL_PANEL_ATTRIBUTE_SUBSTRING_MATCHING_RULE_LABEL.get());
-  private JLabel lType = Utilities.createPrimaryLabel();
+  private final JLabel lEquality = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_EQUALITY_MATCHING_RULE_LABEL.get());
+  private final JLabel lOrdering = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_ORDERING_MATCHING_RULE_LABEL.get());
+  private final JLabel lSubstring = createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_SUBSTRING_MATCHING_RULE_LABEL.get());
+  private final JLabel lType = createPrimaryLabel();
 
-  private JLabel[] labels = {lName, lSuperior, lOID, lAliases, lOrigin, lFile,
+  private final JLabel[] labels = {
+      lName, lSuperior, lOID, lAliases, lOrigin, lFile,
       lDescription, lUsage, lSyntax, lApproximate,
       lEquality, lOrdering, lSubstring, lType
   };
 
-  private JTextField name = Utilities.createMediumTextField();
-  private JComboBox parent = Utilities.createComboBox();
-  private JTextField oid = Utilities.createMediumTextField();
-  private JTextField aliases = Utilities.createLongTextField();
-  private JTextField description = Utilities.createLongTextField();
-  private JTextField origin = Utilities.createLongTextField();
-  private JTextField file = Utilities.createLongTextField();
-  private JComboBox usage = Utilities.createComboBox();
-  private JComboBox syntax = Utilities.createComboBox();
-  private JComboBox approximate = Utilities.createComboBox();
-  private JComboBox equality = Utilities.createComboBox();
-  private JComboBox ordering = Utilities.createComboBox();
-  private JComboBox substring = Utilities.createComboBox();
-  private JCheckBox nonModifiable = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_NON_MODIFIABLE_LABEL.get());
-  private JCheckBox singleValued = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_SINGLE_VALUED_LABEL.get());
-  private JCheckBox collective = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_COLLECTIVE_LABEL.get());
-  private JCheckBox obsolete = Utilities.createCheckBox(
-      INFO_CTRL_PANEL_ATTRIBUTE_OBSOLETE_LABEL.get());
-  private JList requiredBy = new JList(new DefaultListModel());
-  private JList optionalBy = new JList(new DefaultListModel());
+  private final JTextField name = createMediumTextField();
+  private final JComboBox parent = createComboBox();
+  private final JTextField oid = createMediumTextField();
+  private final JTextField aliases = createLongTextField();
+  private final JTextField description = createLongTextField();
+  private final JTextField origin = createLongTextField();
+  private final JTextField file = createLongTextField();
+  private final JComboBox usage = createComboBox();
+  private final JComboBox syntax = createComboBox();
+  private final JComboBox approximate = createComboBox();
+  private final JComboBox equality = createComboBox();
+  private final JComboBox ordering = createComboBox();
+  private final JComboBox substring = createComboBox();
+  private final JCheckBox nonModifiable = createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_NON_MODIFIABLE_LABEL.get());
+  private final JCheckBox singleValued = createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_SINGLE_VALUED_LABEL.get());
+  private final JCheckBox collective = createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_COLLECTIVE_LABEL.get());
+  private final JCheckBox obsolete = createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_OBSOLETE_LABEL.get());
+  private final JList requiredBy = new JList(new DefaultListModel());
+  private final JList optionalBy = new JList(new DefaultListModel());
 
-  private Set<String> lastAliases = new LinkedHashSet<>();
+  private final Set<String> lastAliases = new LinkedHashSet<>();
 
-  private LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
-  private LocalizableMessage NO_MATCHING_RULE =
+  private final LocalizableMessage NO_PARENT = INFO_CTRL_PANEL_NO_PARENT_FOR_ATTRIBUTE.get();
+  private final LocalizableMessage NO_MATCHING_RULE =
     INFO_CTRL_PANEL_NO_MATCHING_RULE_FOR_ATTRIBUTE.get();
 
   private Schema schema;
 
   private boolean ignoreChangeEvents;
 
-  /**
-   * Default constructor of the panel.
-   *
-   */
+  /** Default constructor of the panel. */
   public CustomAttributePanel()
   {
-    super();
     createLayout();
   }
 
@@ -195,7 +176,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   /**
    * Creates the layout of the panel (but the contents are not populated here).
    */
-  protected void createLayout()
+  private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
     JPanel p = new JPanel(new GridBagLayout());
@@ -246,18 +227,17 @@ public class CustomAttributePanel extends SchemaElementPanel
       @Override
       public void actionPerformed(ActionEvent ev)
       {
-        ArrayList<LocalizableMessage> errors = new ArrayList<>();
-        saveChanges(false, errors);
+        saveChanges();
       }
     });
   }
 
   /**
    * Creates the basic layout of the panel.
-   * @param c the container where all the components will be layed out.
+   * @param c the container where all the components will be laid out.
    * @param gbc the grid bag constraints.
    */
-  protected void createBasicLayout(Container c, GridBagConstraints gbc)
+  private void createBasicLayout(Container c, GridBagConstraints gbc)
   {
     requiredBy.setVisibleRowCount(5);
     optionalBy.setVisibleRowCount(9);
@@ -522,7 +502,6 @@ public class CustomAttributePanel extends SchemaElementPanel
   @Override
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
-    UnsavedChangesDialog.Result result;
     UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(
           Utilities.getParentDialog(this), getInfo());
     unsavedChangesDlg.setMessage(INFO_CTRL_PANEL_UNSAVED_CHANGES_SUMMARY.get(),
@@ -531,17 +510,12 @@ public class CustomAttributePanel extends SchemaElementPanel
     Utilities.centerGoldenMean(unsavedChangesDlg,
           Utilities.getParentDialog(this));
     unsavedChangesDlg.setVisible(true);
-    result = unsavedChangesDlg.getResult();
-    if (result == UnsavedChangesDialog.Result.SAVE)
-    {
-      ArrayList<LocalizableMessage> errors = new ArrayList<>();
-      saveChanges(true, errors);
-      if (!errors.isEmpty())
-      {
-        result = UnsavedChangesDialog.Result.CANCEL;
-      }
-    }
 
+    Result result = unsavedChangesDlg.getResult();
+    if (result == Result.SAVE && !saveChanges())
+    {
+      return Result.CANCEL;
+    }
     return result;
   }
 
@@ -552,8 +526,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     return false;
   }
 
-  /** {@inheritDoc} */
-  public void update(AttributeType attr, Schema schema)
+  void update(AttributeType attr, Schema schema)
   {
     ignoreChangeEvents = true;
     String n = attr.getPrimaryName();
@@ -575,14 +548,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     syntax.setSelectedItem(attr.getSyntax());
 
     AttributeType superior = attr.getSuperiorType();
-    if (superior == null)
-    {
-      parent.setSelectedItem(NO_PARENT);
-    }
-    else
-    {
-      parent.setSelectedItem(superior);
-    }
+    parent.setSelectedItem(superior != null ? superior : NO_PARENT);
     Set<String> someAliases = getAliases(attr);
     lastAliases.clear();
     lastAliases.addAll(someAliases);
@@ -615,14 +581,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     };
     for (int i=0; i<matchingRules.length; i++)
     {
-      if (rules[i] != null)
-      {
-        matchingRules[i].setSelectedItem(rules[i]);
-      }
-      else
-      {
-        matchingRules[i].setSelectedItem(NO_MATCHING_RULE);
-      }
+      MatchingRule rule = rules[i];
+      matchingRules[i].setSelectedItem(rule != null ? rule : NO_MATCHING_RULE);
     }
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
@@ -674,32 +634,15 @@ public class CustomAttributePanel extends SchemaElementPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<Syntax> newSyntaxes = new ArrayList<>();
-
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
 
-    boolean schemaChanged;
-    if (schema != null && s != null)
-    {
-      schemaChanged = !ServerDescriptor.areSchemasEqual(s, schema);
-    }
-    else if (schema == null && s != null)
-    {
-      schemaChanged = true;
-    }
-    else if (s == null && schema != null)
-    {
-      schemaChanged = false;
-    }
-    else
-    {
-      schemaChanged = false;
-    }
-    if (schemaChanged)
+    if (hasSchemaChanged(s))
     {
       schema = s;
-      HashMap<String, Syntax> syntaxNameMap = new HashMap<>();
+
+      LowerCaseComparator lowerCase = new LowerCaseComparator();
+      Map<String, Syntax> syntaxNameMap = new TreeMap<>(lowerCase);
       for (String key : schema.getSyntaxes().keySet())
       {
         Syntax syntax = schema.getSyntax(key);
@@ -711,58 +654,36 @@ public class CustomAttributePanel extends SchemaElementPanel
         syntaxNameMap.put(name, syntax);
       }
 
-      SortedSet<String> orderedKeys = new TreeSet<>(new LowerCaseComparator());
-      orderedKeys.addAll(syntaxNameMap.keySet());
-      for (String key : orderedKeys)
-      {
-        newSyntaxes.add(syntaxNameMap.get(key));
-      }
+      List<Syntax> newSyntaxes = new ArrayList<>(syntaxNameMap.values());
       updateComboBoxModel(newSyntaxes,
           ((DefaultComboBoxModel)syntax.getModel()));
 
-      HashMap<String, AttributeType> attributeNameMap = new HashMap<>();
+      Map<String, AttributeType> attributeNameMap = new TreeMap<>(lowerCase);
       for (String key : schema.getAttributeTypes().keySet())
       {
         AttributeType attr = schema.getAttributeType(key);
         attributeNameMap.put(attr.getNameOrOID(), attr);
       }
-      orderedKeys.clear();
-      orderedKeys.addAll(attributeNameMap.keySet());
-      ArrayList<Object> newParents = new ArrayList<>();
-      for (String key : orderedKeys)
-      {
-        newParents.add(attributeNameMap.get(key));
-      }
+      List<Object> newParents = new ArrayList<>();
+      newParents.addAll(attributeNameMap.values());
       newParents.add(0, NO_PARENT);
       updateComboBoxModel(newParents,
           ((DefaultComboBoxModel)parent.getModel()));
 
-      final List<MatchingRule> availableMatchingRules = new ArrayList<>();
-      final Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
+      final Map<String, MatchingRule> matchingRuleNameMap = new TreeMap<>(lowerCase);
       for (String key : schema.getMatchingRules().keySet())
       {
-        matchingRuleNameMap.put(schema.getMatchingRule(key).getNameOrOID(), schema.getMatchingRule(key));
+        MatchingRule rule = schema.getMatchingRule(key);
+        matchingRuleNameMap.put(rule.getNameOrOID(), rule);
       }
 
-      orderedKeys.clear();
-      orderedKeys.addAll(matchingRuleNameMap.keySet());
-      for (String key : orderedKeys)
-      {
-        availableMatchingRules.add(matchingRuleNameMap.get(key));
-      }
+      final List<MatchingRule> availableMatchingRules = new ArrayList<>(matchingRuleNameMap.values());
       JComboBox[] combos = {approximate, equality, ordering, substring};
       for (JComboBox<LocalizableMessage> combo : combos)
       {
         final DefaultComboBoxModel<LocalizableMessage> model = (DefaultComboBoxModel) combo.getModel();
         final List<Object> el = new ArrayList<Object>(availableMatchingRules);
-        if (model.getSize() == 0)
-        {
-          el.add(0, NO_MATCHING_RULE);
-        }
-        else
-        {
-          el.add(0, model.getElementAt(0));
-        }
+        el.add(0, model.getSize() != 0 ? model.getElementAt(0) : NO_MATCHING_RULE);
         updateComboBoxModel(el, model);
       }
     }
@@ -796,6 +717,15 @@ public class CustomAttributePanel extends SchemaElementPanel
             schema != null);
       }
     });
+  }
+
+  private boolean hasSchemaChanged(Schema s)
+  {
+    if (schema != null && s != null)
+    {
+      return !ServerDescriptor.areSchemasEqual(s, schema);
+    }
+    return schema == null && s != null;
   }
 
   /** {@inheritDoc} */
@@ -900,8 +830,9 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
   }
 
-  private void saveChanges(boolean modal, ArrayList<LocalizableMessage> errors)
+  private boolean saveChanges()
   {
+    ArrayList<LocalizableMessage> errors = new ArrayList<>();
     // Check if the aliases or the name have changed
     for (JLabel label : labels)
     {
@@ -964,26 +895,13 @@ public class CustomAttributePanel extends SchemaElementPanel
           errors.add(ERR_CTRL_PANEL_EMPTY_ALIAS.get());
           setPrimaryInvalid(lAliases);
         }
-        else
+        else if (notPreviouslyDefined(oldAliases, alias))
         {
-          boolean notPreviouslyDefined = true;
-          for (String oldAlias : oldAliases)
+          LocalizableMessage elementType = NewAttributePanel.getSchemaElementType(alias, schema);
+          if (elementType != null)
           {
-            if (oldAlias.equalsIgnoreCase(alias))
-            {
-              notPreviouslyDefined = false;
-              break;
-            }
-          }
-          if (notPreviouslyDefined)
-          {
-            LocalizableMessage elementType =
-              NewAttributePanel.getSchemaElementType(alias, schema);
-            if (elementType != null)
-            {
-              errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n, elementType));
-              setPrimaryInvalid(lAliases);
-            }
+            errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n, elementType));
+            setPrimaryInvalid(lAliases);
           }
         }
       }
@@ -1062,6 +980,19 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       displayErrorDialog(errors);
     }
+    return errors.isEmpty();
+  }
+
+  private boolean notPreviouslyDefined(Collection<String> oldAliases, String alias)
+  {
+    for (String oldAlias : oldAliases)
+    {
+      if (oldAlias.equalsIgnoreCase(alias))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   private void checkEnableSaveChanges()
@@ -1098,7 +1029,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     String o = oid.getText().trim();
     if (o.length() == 0)
     {
-      o = getAttributeName()+"-oid";
+      return getAttributeName() + "-oid";
     }
     return o;
   }
@@ -1139,52 +1070,13 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
   }
 
-  private MatchingRule getApproximateMatchingRule()
+  private MatchingRule getMatchingRule(JComboBox comboBox)
   {
-    if (approximate.getSelectedIndex() == 0)
+    if (comboBox.getSelectedIndex() != 0)
     {
-      return null;
+      return (MatchingRule) comboBox.getSelectedItem();
     }
-    else
-    {
-      return (MatchingRule)approximate.getSelectedItem();
-    }
-  }
-
-  private MatchingRule getEqualityMatchingRule()
-  {
-    if (equality.getSelectedIndex() == 0)
-    {
-      return null;
-    }
-    else
-    {
-      return (MatchingRule)equality.getSelectedItem();
-    }
-  }
-
-  private MatchingRule getSubstringMatchingRule()
-  {
-    if (substring.getSelectedIndex() == 0)
-    {
-      return null;
-    }
-    else
-    {
-      return (MatchingRule)substring.getSelectedItem();
-    }
-  }
-
-  private MatchingRule getOrderingMatchingRule()
-  {
-    if (ordering.getSelectedIndex() == 0)
-    {
-      return null;
-    }
-    else
-    {
-      return (MatchingRule)ordering.getSelectedItem();
-    }
+    return null;
   }
 
   private Map<String, List<String>> getExtraProperties()
@@ -1216,10 +1108,10 @@ public class CustomAttributePanel extends SchemaElementPanel
         getDescription(),
         getSuperior(),
         (Syntax)syntax.getSelectedItem(),
-        getApproximateMatchingRule(),
-        getEqualityMatchingRule(),
-        getOrderingMatchingRule(),
-        getSubstringMatchingRule(),
+        getMatchingRule(approximate),
+        getMatchingRule(equality),
+        getMatchingRule(ordering),
+        getMatchingRule(substring),
         (AttributeUsage)usage.getSelectedItem(),
         collective.isSelected(), nonModifiable.isSelected(),
         obsolete.isSelected(), singleValued.isSelected(),
