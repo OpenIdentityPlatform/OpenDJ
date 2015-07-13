@@ -118,7 +118,7 @@ public final class DNConfigAttribute
                            DN value)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
-          getValueSet(value));
+          getDNValueSet(value));
 
 
     if (value == null)
@@ -157,7 +157,7 @@ public final class DNConfigAttribute
                            List<DN> values)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
-          getValueSet(values));
+          getDNValueSet(values));
 
     activeValues  = values != null ? values : new ArrayList<DN>();
     pendingValues = activeValues;
@@ -189,8 +189,8 @@ public final class DNConfigAttribute
                            List<DN> activeValues, List<DN> pendingValues)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
-          getValueSet(activeValues), (pendingValues != null),
-          getValueSet(pendingValues));
+          getDNValueSet(activeValues), pendingValues != null,
+          getDNValueSet(pendingValues));
 
 
     if (activeValues == null)
@@ -356,14 +356,14 @@ public final class DNConfigAttribute
     if (requiresAdminAction())
     {
       pendingValues = newArrayList(value);
-      setPendingValues(getValueSet(value));
+      setPendingValues(getDNValueSet(value));
     }
     else
     {
       activeValues.clear();
       activeValues.add(value);
       pendingValues = activeValues;
-      setActiveValues(getValueSet(value));
+      setActiveValues(getDNValueSet(value));
     }
   }
 
@@ -385,32 +385,27 @@ public final class DNConfigAttribute
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
+      }
+
+      if (requiresAdminAction())
+      {
+        setPendingValues(new LinkedHashSet<ByteString>(0));
+        pendingValues = new ArrayList<>();
       }
       else
       {
-        if (requiresAdminAction())
-        {
-          setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<>();
-        }
-        else
-        {
-          setActiveValues(new LinkedHashSet<ByteString>(0));
-          activeValues.clear();
-        }
+        setActiveValues(new LinkedHashSet<ByteString>(0));
+        activeValues.clear();
       }
     }
 
 
     // Next check if the set contains multiple values and if that is allowed.
     int numValues = values.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && (numValues > 1))
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
 
 
@@ -421,16 +416,13 @@ public final class DNConfigAttribute
     {
       if (value == null)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_DN_NULL.get(getName()));
       }
 
       ByteString attrValue = ByteString.valueOf(value.toString());
       if (valueSet.contains(attrValue))
       {
-        LocalizableMessage message =
-            ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value));
       }
 
       valueSet.add(attrValue);
@@ -460,19 +452,13 @@ public final class DNConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<ByteString> getValueSet(DN value)
+  private static LinkedHashSet<ByteString> getDNValueSet(DN value)
   {
-    LinkedHashSet<ByteString> valueSet;
     if (value == null)
     {
-      valueSet = new LinkedHashSet<>(0);
+      return new LinkedHashSet<>(0);
     }
-    else
-    {
-      valueSet = new LinkedHashSet<>(1);
-      valueSet.add(ByteString.valueOf(value.toString()));
-    }
-    return valueSet;
+    return newLinkedHashSet(ByteString.valueOf(value.toString()));
   }
 
 
@@ -484,7 +470,7 @@ public final class DNConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<ByteString> getValueSet(List<DN> values)
+  private static LinkedHashSet<ByteString> getDNValueSet(List<DN> values)
   {
     if (values == null)
     {
@@ -584,13 +570,9 @@ public final class DNConfigAttribute
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
       }
-      else
-      {
-        return new LinkedHashSet<>();
-      }
+      return new LinkedHashSet<>();
     }
 
 
@@ -608,16 +590,8 @@ public final class DNConfigAttribute
     {
       if (valueString == null)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_DN_NULL.get(getName()));
+        continue;
       }
 
 
@@ -630,37 +604,32 @@ public final class DNConfigAttribute
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(valueString, getName(), e);
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(valueString, getName(), e));
+        continue;
       }
-
 
       valueSet.add(ByteString.valueOf(dn.toString()));
     }
-
 
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
     }
-
 
     return valueSet;
   }
 
-
+  private void reportError(boolean allowFailures, LocalizableMessage message) throws ConfigException
+  {
+    if (!allowFailures)
+    {
+      throw new ConfigException(message);
+    }
+    logger.error(message);
+  }
 
   /**
    * Converts the set of active values for this configuration attribute into a
@@ -760,24 +729,18 @@ public final class DNConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
             }
-            else
-            {
-              // This is fine.  The pending value set can be empty.
-              pendingValues = new ArrayList<>(0);
-            }
+            // This is fine. The pending value set can be empty.
+            pendingValues = new ArrayList<>(0);
           }
           else
           {
             int numValues = a.size();
-            if ((numValues > 1) && (! isMultiValued()))
+            if (numValues > 1 && (!isMultiValued()))
             {
               // This is illegal -- the attribute is single-valued.
-              LocalizableMessage message =
-                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
             }
 
             pendingValues = new ArrayList<>(numValues);
@@ -792,8 +755,7 @@ public final class DNConfigAttribute
               {
                 logger.traceException(e);
 
-                LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                    v, getName(), e);
+                LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(v, getName(), e);
                 throw new ConfigException(message, e);
               }
 
@@ -825,24 +787,18 @@ public final class DNConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
           }
-          else
-          {
-            // This is fine.  The active value set can be empty.
-            activeValues = new ArrayList<>(0);
-          }
+          // This is fine. The active value set can be empty.
+          activeValues = new ArrayList<>(0);
         }
         else
         {
           int numValues = a.size();
-          if ((numValues > 1) && (! isMultiValued()))
+          if (numValues > 1 && !isMultiValued())
           {
             // This is illegal -- the attribute is single-valued.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
           }
 
           activeValues = new ArrayList<>(numValues);
@@ -857,8 +813,7 @@ public final class DNConfigAttribute
             {
               logger.traceException(e);
 
-              LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                  v, getName(), e);
+              LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(v, getName(), e);
               throw new ConfigException(message, e);
             }
 
@@ -923,17 +878,14 @@ public final class DNConfigAttribute
 
       return new javax.management.Attribute(name, values);
     }
+    else if (!requestedValues.isEmpty())
+    {
+      DN dn = requestedValues.get(0);
+      return new javax.management.Attribute(name, dn.toString());
+    }
     else
     {
-      if (requestedValues.isEmpty())
-      {
-        return null;
-      }
-      else
-      {
-        DN dn = requestedValues.get(0);
-        return new javax.management.Attribute(name, dn.toString());
-      }
+      return null;
     }
   }
 
@@ -1046,44 +998,14 @@ public final class DNConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    if (isMultiValued())
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   JMX_TYPE_STRING_ARRAY,
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, true, false));
-    }
-    else
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   String.class.getName(),
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, true, false));
-    }
-
+    attributeInfoList.add(new MBeanAttributeInfo(getName(), getType(),
+        String.valueOf(getDescription()), true, true, false));
 
     if (requiresAdminAction())
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
-
-      if (isMultiValued())
-      {
-        attributeInfoList.add(new MBeanAttributeInfo(name,
-                                                     JMX_TYPE_STRING_ARRAY,
-                                                     String.valueOf(
-                                                             getDescription()),
-                                                     true, false, false));
-      }
-      else
-      {
-        attributeInfoList.add(new MBeanAttributeInfo(name,
-                                                     String.class.getName(),
-                                                     String.valueOf(
-                                                             getDescription()),
-                                                     true, false, false));
-      }
+      attributeInfoList.add(new MBeanAttributeInfo(name, getType(),
+          String.valueOf(getDescription()), true, false, false));
     }
   }
 
@@ -1098,19 +1020,13 @@ public final class DNConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    if (isMultiValued())
-    {
-      return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
-                                    String.valueOf(getDescription()));
-    }
-    else
-    {
-      return new MBeanParameterInfo(getName(), String.class.getName(),
-                                    String.valueOf(getDescription()));
-    }
+    return new MBeanParameterInfo(getName(), getType(), String.valueOf(getDescription()));
   }
 
-
+  private String getType()
+  {
+    return isMultiValued() ? JMX_TYPE_STRING_ARRAY : String.class.getName();
+  }
 
   /**
    * Attempts to set the value of this configuration attribute based on the
@@ -1129,8 +1045,7 @@ public final class DNConfigAttribute
     Object value = jmxAttribute.getValue();
     if (value == null)
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_DN_NULL.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_DN_NULL.get(getName()));
     }
     else if (value instanceof DN)
     {

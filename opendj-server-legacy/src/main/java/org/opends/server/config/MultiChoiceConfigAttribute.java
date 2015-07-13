@@ -26,25 +26,26 @@
  */
 package org.opends.server.config;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
 import org.opends.server.util.CollectionUtils;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.config.ConfigConstants.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 /**
  * This class defines a multi-choice configuration attribute, which can hold
@@ -438,25 +439,22 @@ public final class MultiChoiceConfigAttribute
          throws ConfigException
   {
     // First check if the set is empty and if that is allowed.
-    if ((values == null) || (values.isEmpty()))
+    if (values == null || values.isEmpty())
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
+      }
+
+      if (requiresAdminAction())
+      {
+        setPendingValues(new LinkedHashSet<ByteString>(0));
+        pendingValues = new ArrayList<>();
       }
       else
       {
-        if (requiresAdminAction())
-        {
-          setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<>();
-        }
-        else
-        {
-          setActiveValues(new LinkedHashSet<ByteString>(0));
-          activeValues.clear();
-        }
+        setActiveValues(new LinkedHashSet<ByteString>(0));
+        activeValues.clear();
       }
     }
 
@@ -465,9 +463,7 @@ public final class MultiChoiceConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
 
 
@@ -476,26 +472,19 @@ public final class MultiChoiceConfigAttribute
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String value : values)
     {
-      if ((value == null) || (value.length() == 0))
+      if (value == null || value.length() == 0)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       }
-
-
-      if (! allowedValues.contains(value.toLowerCase()))
+      if (!allowedValues.contains(value.toLowerCase()))
       {
-        LocalizableMessage message =
-            ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName()));
       }
 
       ByteString attrValue = ByteString.valueOf(value);
       if (valueSet.contains(attrValue))
       {
-        LocalizableMessage message =
-            ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value));
       }
 
       valueSet.add(attrValue);
@@ -515,48 +504,6 @@ public final class MultiChoiceConfigAttribute
       setActiveValues(valueSet);
     }
   }
-
-
-
-  /**
-   * Creates the appropriate value set with the provided value.
-   *
-   * @param  value  The value to use to create the value set.
-   *
-   * @return  The constructed value set.
-   */
-  private static LinkedHashSet<ByteString> getValueSet(String value)
-  {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
-    valueSet.add(ByteString.valueOf(value));
-    return valueSet;
-  }
-
-
-
-  /**
-   * Creates the appropriate value set with the provided values.
-   *
-   * @param  values  The values to use to create the value set.
-   *
-   * @return  The constructed value set.
-   */
-  private static LinkedHashSet<ByteString> getValueSet(List<String> values)
-  {
-    if (values == null)
-    {
-      return null;
-    }
-
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
-    for (String value : values)
-    {
-      valueSet.add(ByteString.valueOf(value));
-    }
-    return valueSet;
-  }
-
-
 
   /**
    * Applies the set of pending values, making them the active values for this
@@ -637,76 +584,58 @@ public final class MultiChoiceConfigAttribute
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
       }
       return new LinkedHashSet<>();
     }
 
-
     int numValues = valueStrings.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
-
 
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
-      if ((valueString == null) || (valueString.length() == 0))
+      if (valueString == null || valueString.length() == 0)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
+        continue;
       }
-
       if (! allowedValues.contains(valueString.toLowerCase()))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                valueString, getName());
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(valueString, getName()));
+        continue;
       }
 
       valueSet.add(ByteString.valueOf(valueString));
     }
 
-
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
     // attribute and if so deal with it accordingly.
-    if ((isRequired()) && valueSet.isEmpty())
+    if (isRequired() && valueSet.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
 
-
     return valueSet;
   }
 
-
+  private void reportError(boolean allowFailures, LocalizableMessage message) throws ConfigException
+  {
+    if (!allowFailures)
+    {
+      throw new ConfigException(message);
+    }
+    logger.error(message);
+  }
 
   /**
    * Converts the set of active values for this configuration attribute into a
@@ -715,8 +644,7 @@ public final class MultiChoiceConfigAttribute
    * compatible with the decoding used by the <CODE>stringsToValues</CODE>
    * method.
    *
-   * @return  The string representations of the set of active values for this
-   *          configuration attribute.
+   * @return The string representations of the set of active values for this configuration attribute.
    */
   public List<String> activeValuesToStrings()
   {
@@ -1051,46 +979,14 @@ public final class MultiChoiceConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    if (isMultiValued())
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   JMX_TYPE_STRING_ARRAY,
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, true,
-                                                   false));
-    }
-    else
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   String.class.getName(),
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, true,
-                                                   false));
-    }
-
+    attributeInfoList.add(new MBeanAttributeInfo(getName(), getType(),
+        String.valueOf(getDescription()), true, true, false));
 
     if (requiresAdminAction())
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
-
-      if (isMultiValued())
-      {
-        attributeInfoList.add(new MBeanAttributeInfo(name,
-                                                     JMX_TYPE_STRING_ARRAY,
-                                                     String.valueOf(
-                                                             getDescription()),
-                                                     true, false, false));
-      }
-      else
-      {
-        attributeInfoList.add(new MBeanAttributeInfo(name,
-                                                     String.class.getName(),
-                                                     String.valueOf(
-                                                             getDescription()),
-                                                     true, false, false));
-      }
+      attributeInfoList.add(new MBeanAttributeInfo(name, getType(),
+          String.valueOf(getDescription()), true, false, false));
     }
   }
 
@@ -1105,19 +1001,13 @@ public final class MultiChoiceConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    if (isMultiValued())
-    {
-      return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
-                                    String.valueOf(getDescription()));
-    }
-    else
-    {
-      return new MBeanParameterInfo(getName(), String.class.getName(),
-                                    String.valueOf(getDescription()));
-    }
+    return new MBeanParameterInfo(getName(), getType(), String.valueOf(getDescription()));
   }
 
-
+  private String getType()
+  {
+    return isMultiValued() ? JMX_TYPE_STRING_ARRAY : String.class.getName();
+  }
 
   /**
    * Attempts to set the value of this configuration attribute based on the
@@ -1198,4 +1088,3 @@ public final class MultiChoiceConfigAttribute
                                           activeValues, pendingValues);
   }
 }
-
