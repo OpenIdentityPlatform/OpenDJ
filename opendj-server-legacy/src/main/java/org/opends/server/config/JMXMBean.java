@@ -71,6 +71,7 @@ import org.opends.server.types.InvokableMethod;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -415,9 +416,7 @@ public final class JMXMBean
 
           if (iterator.hasNext())
           {
-            List<String> stringValues = new ArrayList<>();
-            stringValues.add(value.toString());
-
+            List<String> stringValues = newArrayList(value.toString());
             while (iterator.hasNext())
             {
               value = iterator.next();
@@ -602,9 +601,7 @@ monitorLoop:
 
             if (iterator.hasNext())
             {
-              List<String> stringValues = new ArrayList<>();
-              stringValues.add(value.toString());
-
+              List<String> stringValues = newArrayList(value.toString());
               while (iterator.hasNext())
               {
                 value = iterator.next();

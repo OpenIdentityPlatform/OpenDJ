@@ -2896,8 +2896,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     for (int i=0; i < rdn.getNumValues(); i++)
     {
       AttributeType type = rdn.getAttributeType(i);
-      List<Attribute> attrList = new LinkedList<>();
-      attrList.add(Attributes.create(type, rdn.getAttributeValue(i)));
+      List<Attribute> attrList = newLinkedList(Attributes.create(type, rdn.getAttributeValue(i)));
       if (type.isOperational())
       {
         operationalAttributes.put(type, attrList);

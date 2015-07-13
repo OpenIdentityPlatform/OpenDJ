@@ -26,7 +26,8 @@
  */
 package org.opends.server.monitors;
 
-import java.util.ArrayList;
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -118,8 +119,6 @@ public class StackTraceMonitorProvider
       }
     }
 
-    ArrayList<Attribute> attrs = new ArrayList<>();
-    attrs.add(builder.toAttribute());
-    return attrs;
+    return newArrayList(builder.toAttribute());
   }
 }

@@ -35,6 +35,7 @@ import java.util.zip.GZIPInputStream;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -134,8 +135,7 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public LDIFImportConfig(String ldifFile)
   {
-    ldifFiles = new ArrayList<>(1);
-    ldifFiles.add(ldifFile);
+    ldifFiles = CollectionUtils.newArrayList(ldifFile);
     ldifFileIterator = ldifFiles.iterator();
   }
 

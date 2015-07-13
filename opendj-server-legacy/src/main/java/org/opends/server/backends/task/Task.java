@@ -692,9 +692,8 @@ public abstract class Task
     {
       Entry taskEntry = getTaskEntry();
 
-      ArrayList<Modification> modifications = new ArrayList<>();
-      modifications.add(new Modification(ModificationType.REPLACE,
-          Attributes.create(name, value)));
+      List<Modification> modifications = newArrayList(
+          new Modification(ModificationType.REPLACE, Attributes.create(name, value)));
 
       taskEntry.applyModifications(modifications);
     }
@@ -976,13 +975,11 @@ public abstract class Task
       AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
           ATTR_TASK_LOG_MESSAGES.toLowerCase(), ATTR_TASK_LOG_MESSAGES);
 
-      List<Attribute> attrList = taskEntry.getAttribute(type);
+      final List<Attribute> attrList = taskEntry.getAttribute(type);
       ByteString value = ByteString.valueOf(messageString);
       if (attrList == null)
       {
-        attrList = new ArrayList<>();
-        attrList.add(Attributes.create(type, value));
-        taskEntry.putAttribute(type, attrList);
+        taskEntry.putAttribute(type, newArrayList(Attributes.create(type, value)));
       }
       else if (attrList.isEmpty())
       {

@@ -49,8 +49,11 @@ import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -903,17 +906,10 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = Attributes.create(DESCRIPTION, "Init Value");
     Modification mod2 = new Modification(ModificationType.ADD, attr);
 
-    List<Modification> mods = new LinkedList<>();
-    mods.add(mod1);
-    mods.add(mod2);
+    List<Modification> mods = newLinkedList(mod1, mod2);
 
     replayModifies(entry, hist, mods, 11);
-    assertEquals(mods.size(), 2,
-      "DEL and ADD of the same attribute same value was not correct");
-    assertEquals(mods.get(0), mod1,
-      "DEL and ADD of the same attribute same value was not correct");
-    assertEquals(mods.get(1), mod2,
-      "DEL and ADD of the same attribute same value was not correct");
+    assertThat(mods).as("DEL and ADD of the same attribute same value was not correct").containsExactly(mod1, mod2);
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000b000000000000:add:Init Value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -961,19 +957,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = Attributes.empty(DESCRIPTION);
     Modification mod2 = new Modification(ModificationType.REPLACE, attr);
 
-    List<Modification> mods = new LinkedList<>();
-    mods.add(mod1);
-    mods.add(mod2);
+    List<Modification> mods = newLinkedList(mod1, mod2);
 
     List<Modification> mods2 = new LinkedList<>(mods);
     replayModifies(entry, hist, mods, 12);
     assertEquals(hist.encodeAndPurge(), attrDel);
-    assertEquals(mods.size(), 2,
-      "DEL one value, del by Replace of the same attribute was not correct");
-    assertEquals(mods.get(0), mod1,
-      "DEL one value, del by Replace of the same attribute was not correct");
-    assertEquals(mods.get(1), mod2,
-      "DEL one value, del by Replace of the same attribute was not correct");
+    assertThat(mods).as("DEL one value, del by Replace of the same attribute was not correct").containsExactly(mod1, mod2);
 
     // Replay the same modifs again
     replayModifies(entry, hist, mods2, 12);
@@ -1004,20 +993,13 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = Attributes.create(DESCRIPTION, "Init Value");
     Modification mod2 = new Modification(ModificationType.DELETE, attr);
 
-    List<Modification> mods = new LinkedList<>();
-    mods.add(mod1);
-    mods.add(mod2);
+    List<Modification> mods = newLinkedList(mod1, mod2);
 
     replayModifies(entry, hist, mods, 11);
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000b000000000000:del:Init Value");
     assertEquals(hist.encodeAndPurge(), attr);
-    assertEquals(mods.size(), 2,
-      "DEL and ADD of the same attribute same value was not correct");
-    assertEquals(mods.get(0), mod1,
-      "DEL and ADD of the same attribute same value was not correct");
-    assertEquals(mods.get(1), mod2,
-      "DEL and ADD of the same attribute same value was not correct");
+    assertThat(mods).as("DEL and ADD of the same attribute same value was not correct").containsExactly(mod1, mod2);
   }
 
   /**
@@ -1320,15 +1302,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     entry.applyModifications(mods);
   }
 
-  private void replayModifies(
-      Entry entry, EntryHistorical hist, List<Modification> mods, int date)
+  private void replayModifies(Entry entry, EntryHistorical hist, List<Modification> mods, int date)
   {
-    InternalClientConnection aConnection =
-      InternalClientConnection.getRootConnection();
     CSN t = new CSN(date, 0, 0);
 
     ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getName(), mods);
+      new ModifyOperationBasis(getRootConnection(), 1, 1, null, entry.getName(), mods);
     LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
@@ -1543,19 +1522,17 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create description with values value1 and value2 and add
     // this attribute to the entry.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
+    Attribute attr = Attributes.create(DESCRIPTION, "value1", "value2");
 
     List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
+    entry.addAttribute(attr, duplicateValues);
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of same value in the same operation done at time t1
     testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
-    Attribute attr = buildSyncHist(DESCRIPTION,
+    attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
@@ -1583,11 +1560,8 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // The entry should have no value
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value2");
-    builder.add("value3");
-    builder.add("value4");
-    assertEquals(attrs.get(0), builder.toAttribute());
+    attr = Attributes.create(DESCRIPTION, "value2", "value3", "value4");
+    assertEquals(attrs.get(0), attr);
   }
 
   /**
@@ -1601,20 +1575,17 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create description with values value1 and value2 and add
     // this attribute to the entry.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    builder.add("value3");
+    Attribute attr = Attributes.create(DESCRIPTION, "value1", "value2", "value3");
 
     List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
+    entry.addAttribute(attr, duplicateValues);
 
     // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of a value in the same operation done at time t1
     testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
-    Attribute attr = buildSyncHist(DESCRIPTION,
+    attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
@@ -1644,10 +1615,8 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // The entry should have no value
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value3");
-    builder.add("value4");
-    assertEquals(attrs.get(0), builder.toAttribute());
+    attr = Attributes.create(DESCRIPTION, "value3", "value4");
+    assertEquals(attrs.get(0), attr);
   }
 
   /**

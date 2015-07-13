@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -203,8 +204,7 @@ public class ModifyObjectClassTask extends Task
   private void updateSchema() throws OpenDsException
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    ArrayList<ObjectClass> ocs = new ArrayList<>();
-    ocs.add(oldObjectClass);
+    ArrayList<ObjectClass> ocs = newArrayList(oldObjectClass);
     LinkedHashSet<ObjectClass> ocsToDelete =
       DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(ocs, schema);
 

@@ -46,6 +46,7 @@ import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -115,34 +116,14 @@ public final class InternalClientConnection
     try
     {
       LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
-      ObjectClass topOC = DirectoryServer.getTopObjectClass();
-      ObjectClass personOC = DirectoryServer.getObjectClass(OC_PERSON, true);
-      ObjectClass rootOC = DirectoryServer.getObjectClass(OC_ROOT_DN, true);
-
-      objectClasses.put(topOC, topOC.getPrimaryName());
-      objectClasses.put(personOC, personOC.getPrimaryName());
-      objectClasses.put(rootOC, rootOC.getPrimaryName());
-
+      put(objectClasses, DirectoryServer.getTopObjectClass());
+      put(objectClasses, DirectoryServer.getObjectClass(OC_PERSON, true));
+      put(objectClasses, DirectoryServer.getObjectClass(OC_ROOT_DN, true));
 
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
-      AttributeType cnAT = DirectoryServer.getAttributeTypeOrDefault(ATTR_COMMON_NAME);
-      AttributeType snAT = DirectoryServer.getAttributeTypeOrDefault(ATTR_SN);
-      AttributeType altDNAT = DirectoryServer.getAttributeTypeOrDefault(ATTR_ROOTDN_ALTERNATE_BIND_DN);
-
-      LinkedList<Attribute> attrList = new LinkedList<>();
-      attrList.add(Attributes.create(ATTR_COMMON_NAME, commonName));
-      userAttrs.put(cnAT, attrList);
-
-      attrList = new LinkedList<>();
-      attrList.add(Attributes.create(ATTR_SN, commonName));
-      userAttrs.put(snAT, attrList);
-
-      attrList = new LinkedList<>();
-      attrList.add(Attributes.create(ATTR_ROOTDN_ALTERNATE_BIND_DN, shortDNString));
-      userAttrs.put(altDNAT, attrList);
-
-
-      LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs = new LinkedHashMap<>();
+      put(userAttrs, ATTR_COMMON_NAME, commonName);
+      put(userAttrs, ATTR_SN, commonName);
+      put(userAttrs, ATTR_ROOTDN_ALTERNATE_BIND_DN, shortDNString);
 
       AttributeType privType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PRIVILEGE_NAME);
       AttributeBuilder builder = new AttributeBuilder(privType);
@@ -150,10 +131,9 @@ public final class InternalClientConnection
       {
         builder.add(p.getName());
       }
-      attrList = new LinkedList<>();
-      attrList.add(builder.toAttribute());
 
-      operationalAttrs.put(privType, attrList);
+      LinkedHashMap<AttributeType, List<Attribute>> operationalAttrs = new LinkedHashMap<>();
+      operationalAttrs.put(privType, builder.toAttributeList());
 
 
       DN internalUserDN = DN.valueOf(fullDNString);
@@ -177,7 +157,16 @@ public final class InternalClientConnection
     connectionID  = nextConnectionID.getAndDecrement();
   }
 
+  private void put(Map<ObjectClass, String> objectClasses, ObjectClass oc)
+  {
+    objectClasses.put(oc, oc.getPrimaryName());
+  }
 
+  private void put(Map<AttributeType, List<Attribute>> Attrs, String attrName, String value)
+  {
+    List<Attribute> attrs = newLinkedList(Attributes.create(attrName, value));
+    Attrs.put(DirectoryServer.getAttributeTypeOrDefault(attrName), attrs);
+  }
 
   /**
    * Creates a new internal client connection that will be

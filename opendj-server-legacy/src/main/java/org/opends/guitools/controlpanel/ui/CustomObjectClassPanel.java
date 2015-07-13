@@ -27,6 +27,8 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -65,41 +67,32 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.SortableListModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.guitools.controlpanel.event.
- ConfigurationElementCreatedListener;
-import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
-import org.opends.guitools.controlpanel.event.
- SuperiorObjectClassesChangedListener;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
+import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
+import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedListener;
 import org.opends.guitools.controlpanel.task.DeleteSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.ModifyObjectClassTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.components.DoubleAddRemovePanel;
-import org.opends.guitools.controlpanel.ui.components.
- SuperiorObjectClassesEditor;
+import org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEditor;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
-import org.opends.guitools.controlpanel.ui.renderer.
- SchemaElementComboBoxCellRenderer;
+import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.server.types.CommonSchemaElements.*;
-
-/**
- * The panel that displays a custom object class definition.
- *
- */
+/** The panel that displays a custom object class definition. */
 public class CustomObjectClassPanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 2105520588901380L;
@@ -964,16 +957,12 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     String f = file.getText().trim();
     if (f.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(f);
-      map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
+      map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, newArrayList(f));
     }
     String or = origin.getText().trim();
     if (or.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(or);
-      map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
+      map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, newArrayList(or));
     }
     return map;
   }

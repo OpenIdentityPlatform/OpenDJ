@@ -42,6 +42,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 
@@ -127,8 +129,7 @@ public final class StringConfigAttribute
     }
     else
     {
-      activeValues = new ArrayList<>(1);
-      activeValues.add(value);
+      activeValues = newArrayList(value);
     }
 
     pendingValues = activeValues;
@@ -357,8 +358,7 @@ public final class StringConfigAttribute
 
     if (requiresAdminAction())
     {
-      pendingValues = new ArrayList<>(1);
-      pendingValues.add(value);
+      pendingValues = newArrayList(value);
       setPendingValues(getValueSet(value));
     }
     else

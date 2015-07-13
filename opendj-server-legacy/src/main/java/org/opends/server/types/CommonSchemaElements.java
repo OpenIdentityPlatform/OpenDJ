@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -310,13 +311,11 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return The name or OID for this schema definition.
    */
   public final String getNameOrOID() {
-
     if (primaryName != null) {
       return primaryName;
-    } else {
-      // Guaranteed not to be null.
-      return oid;
     }
+    // Guaranteed not to be null.
+    return oid;
   }
 
   /**
@@ -327,13 +326,11 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return The name or OID for this schema definition.
    */
   public final String getNormalizedPrimaryNameOrOID() {
-
     if (lowerName != null) {
       return lowerName;
-    } else {
-      // Guaranteed not to be null.
-      return oid;
     }
+    // Guaranteed not to be null.
+    return oid;
   }
 
 
@@ -452,8 +449,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @param  name   The name for the "extra" property.  It must not be
    *                {@code null}.
    * @param  value  The value for the "extra" property.  If it is
-   *                {@code null}, then any existing definition will be
-   *                removed.
+   *                {@code null}, then any existing definition will be removed.
    */
   public static void setExtraProperty(SchemaFileElement elem,
       String name, String value)
@@ -466,10 +462,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     }
     else
     {
-      LinkedList<String> values = new LinkedList<>();
-      values.add(value);
-
-      elem.getExtraProperties().put(name, values);
+      elem.getExtraProperties().put(name, newLinkedList(value));
     }
   }
 

@@ -26,35 +26,36 @@
  */
 package org.opends.server.extensions;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.RepeatedCharactersPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.RepeatedCharactersPasswordValidatorCfg;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for the repeated characters password validator.
@@ -268,63 +269,8 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testPasswordIsAcceptable2Consecutive()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: doesntmatter");
-
-    Entry validatorEntry = TestCaseUtils.makeEntry(
-         "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-password-validator",
-         "objectClass: ds-cfg-repeated-characters-password-validator",
-         "cn: Repeated Characters",
-         "ds-cfg-java-class: org.opends.server.extensions." +
-              "RepeatedCharactersPasswordValidator",
-         "ds-cfg-enabled: true",
-         "ds-cfg-max-consecutive-length: 2",
-         "ds-cfg-case-sensitive-validation: false");
-
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
-
-    ByteString password = ByteString.valueOf("password");
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", "password")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
-                             new ArrayList<Control>(),
-                             DN.valueOf("uid=test.user,o=test"), mods);
-
-    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertTrue(validator.passwordIsAcceptable(password,
-                              new HashSet<ByteString>(0), modifyOperation,
-                              userEntry, invalidReason),
-               invalidReason.toString());
-
-    validator.finalizePasswordValidator();
+    assertAcceptable("password", 2, false, true);
   }
-
-
 
   /**
    * Tests the {@code passwordIsAcceptable} method with a password that falls
@@ -337,62 +283,8 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testPasswordIsAcceptable3Consecutive()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: doesntmatter");
-
-    Entry validatorEntry = TestCaseUtils.makeEntry(
-         "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-password-validator",
-         "objectClass: ds-cfg-repeated-characters-password-validator",
-         "cn: Repeated Characters",
-         "ds-cfg-java-class: org.opends.server.extensions." +
-              "RepeatedCharactersPasswordValidator",
-         "ds-cfg-enabled: true",
-         "ds-cfg-max-consecutive-length: 2",
-         "ds-cfg-case-sensitive-validation: false");
-
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
-
-    ByteString password = ByteString.valueOf("passsword");
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", "passsword")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
-                             new ArrayList<Control>(),
-                             DN.valueOf("uid=test.user,o=test"), mods);
-
-    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertFalse(validator.passwordIsAcceptable(password,
-                               new HashSet<ByteString>(0), modifyOperation,
-                               userEntry, invalidReason));
-
-    validator.finalizePasswordValidator();
+    assertAcceptable("passsword", 2, false, false);
   }
-
-
 
   /**
    * Tests the {@code passwordIsAcceptable} method with a password that falls
@@ -405,60 +297,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testPasswordIsAcceptableCaseSensitive()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: doesntmatter");
-
-    Entry validatorEntry = TestCaseUtils.makeEntry(
-         "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-password-validator",
-         "objectClass: ds-cfg-repeated-characters-password-validator",
-         "cn: Repeated Characters",
-         "ds-cfg-java-class: org.opends.server.extensions." +
-              "RepeatedCharactersPasswordValidator",
-         "ds-cfg-enabled: true",
-         "ds-cfg-max-consecutive-length: 2",
-         "ds-cfg-case-sensitive-validation: true");
-
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
-
-    ByteString password = ByteString.valueOf("passSword");
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", "passSword")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
-                             new ArrayList<Control>(),
-                             DN.valueOf("uid=test.user,o=test"), mods);
-
-    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertTrue(validator.passwordIsAcceptable(password,
-                              new HashSet<ByteString>(0), modifyOperation,
-                              userEntry, invalidReason),
-               invalidReason.toString());
-
-    validator.finalizePasswordValidator();
+    assertAcceptable("passSword", 2, true, true);
   }
 
 
@@ -474,59 +313,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testPasswordIsAcceptableCaseInsensitive()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: doesntmatter");
-
-    Entry validatorEntry = TestCaseUtils.makeEntry(
-         "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-password-validator",
-         "objectClass: ds-cfg-repeated-characters-password-validator",
-         "cn: Repeated Characters",
-         "ds-cfg-java-class: org.opends.server.extensions." +
-              "RepeatedCharactersPasswordValidator",
-         "ds-cfg-enabled: true",
-         "ds-cfg-max-consecutive-length: 2",
-         "ds-cfg-case-sensitive-validation: false");
-
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
-
-    ByteString password = ByteString.valueOf("passSword");
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", "passSword")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
-                             new ArrayList<Control>(),
-                             DN.valueOf("uid=test.user,o=test"), mods);
-
-    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertFalse(validator.passwordIsAcceptable(password,
-                               new HashSet<ByteString>(0), modifyOperation,
-                               userEntry, invalidReason));
-
-    validator.finalizePasswordValidator();
+    assertAcceptable("passSword", 2, false, false);
   }
 
 
@@ -541,63 +328,8 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testPasswordIsAcceptableUnlimitedRepeats()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: doesntmatter");
-
-    Entry validatorEntry = TestCaseUtils.makeEntry(
-         "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-password-validator",
-         "objectClass: ds-cfg-repeated-characters-password-validator",
-         "cn: Repeated Characters",
-         "ds-cfg-java-class: org.opends.server.extensions." +
-              "RepeatedCharactersPasswordValidator",
-         "ds-cfg-enabled: true",
-         "ds-cfg-max-consecutive-length: 0",
-         "ds-cfg-case-sensitive-validation: true");
-
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
-
-    ByteString password = ByteString.valueOf("aaaaaaaa");
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", "aaaaaaaa")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
-                             new ArrayList<Control>(),
-                             DN.valueOf("uid=test.user,o=test"), mods);
-
-    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertTrue(validator.passwordIsAcceptable(password,
-                              new HashSet<ByteString>(0), modifyOperation,
-                              userEntry, invalidReason),
-               invalidReason.toString());
-
-    validator.finalizePasswordValidator();
+    assertAcceptable("aaaaaaaa", 0, true, true);
   }
-
-
 
   /**
    * Tests the ability of the password validator to change its behavior when
@@ -643,24 +375,8 @@ public class RepeatedCharactersPasswordValidatorTestCase
          new RepeatedCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("aaaaaaaa");
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", "aaaaaaaa")));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
-                             new ArrayList<Control>(),
-                             DN.valueOf("uid=test.user,o=test"), mods);
-
-    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertTrue(validator.passwordIsAcceptable(password,
-                              new HashSet<ByteString>(0), modifyOperation,
-                              userEntry, invalidReason),
-               invalidReason.toString());
+    String value = "aaaaaaaa";
+    assertAcceptable(validator, value, userEntry, true);
 
     Entry updatedValidatorEntry = TestCaseUtils.makeEntry(
          "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
@@ -688,11 +404,68 @@ public class RepeatedCharactersPasswordValidatorTestCase
          validator.applyConfigurationChange(updatedConfiguration);
     assertEquals(changeResult.getResultCode(), ResultCode.SUCCESS);
 
-    assertFalse(validator.passwordIsAcceptable(password,
-                               new HashSet<ByteString>(0), modifyOperation,
-                               userEntry, invalidReason));
+    assertAcceptable(validator, value, userEntry, false);
 
     validator.finalizePasswordValidator();
   }
-}
 
+  private void assertAcceptable(String value, int maxConsecutiveLength, boolean caseSensitiveValidation,
+      boolean expectedResult) throws Exception, ConfigException, DirectoryException
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    Entry userEntry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "userPassword: doesntmatter");
+
+    Entry validatorEntry = TestCaseUtils.makeEntry(
+         "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-repeated-characters-password-validator",
+         "cn: Repeated Characters",
+         "ds-cfg-java-class: org.opends.server.extensions.RepeatedCharactersPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: " + maxConsecutiveLength,
+         "ds-cfg-case-sensitive-validation: " + caseSensitiveValidation);
+
+    RepeatedCharactersPasswordValidatorCfgDefn defn = RepeatedCharactersPasswordValidatorCfgDefn.getInstance();
+    RepeatedCharactersPasswordValidatorCfg configuration = AdminTestCaseUtils.getConfiguration(defn, validatorEntry);
+
+    RepeatedCharactersPasswordValidator validator = new RepeatedCharactersPasswordValidator();
+    validator.initializePasswordValidator(configuration);
+
+    assertAcceptable(validator, value, userEntry, expectedResult);
+
+    validator.finalizePasswordValidator();
+  }
+
+  private void assertAcceptable(RepeatedCharactersPasswordValidator validator, String value, Entry userEntry,
+      boolean expectedResult) throws DirectoryException
+  {
+    ByteString password = ByteString.valueOf(value);
+    ModifyOperationBasis modifyOperation = replaceUserPasswordAttribute(value);
+
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+    boolean acceptable =
+        validator.passwordIsAcceptable(password, new HashSet<ByteString>(0), modifyOperation, userEntry, invalidReason);
+    assertEquals(acceptable, expectedResult, invalidReason.toString());
+  }
+
+  private ModifyOperationBasis replaceUserPasswordAttribute(String newValue) throws DirectoryException
+  {
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("userpassword", newValue)));
+
+    return new ModifyOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(),
+        new ArrayList<Control>(), DN.valueOf("uid=test.user,o=test"), mods);
+  }
+}

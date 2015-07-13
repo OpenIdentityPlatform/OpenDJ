@@ -114,8 +114,7 @@ public final class EMailMessage
     this.sender  = sender;
     this.subject = subject;
 
-    recipients = new ArrayList<>();
-    recipients.add(recipient);
+    recipients = CollectionUtils.newArrayList(recipient);
 
     body         = new LocalizableMessageBuilder();
     attachments  = new LinkedList<>();

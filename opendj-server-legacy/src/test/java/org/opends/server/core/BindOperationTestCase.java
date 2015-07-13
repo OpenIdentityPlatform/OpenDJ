@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -48,8 +47,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -1665,9 +1666,7 @@ public class BindOperationTestCase
          InternalClientConnection.getRootConnection();
 
     String attr = "ds-cfg-bind-with-dn-requires-password";
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attr, "false")));
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create(attr, "false")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1677,9 +1676,7 @@ public class BindOperationTestCase
                                 ByteString.empty());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attr, "true")));
+    mods = newArrayList(new Modification(REPLACE, Attributes.create(attr, "true")));
     modifyOperation =  conn.processModify(DN.valueOf("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }

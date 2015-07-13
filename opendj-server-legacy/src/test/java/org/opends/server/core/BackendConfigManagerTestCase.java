@@ -28,7 +28,6 @@ package org.opends.server.core;
 
 import java.util.ArrayList;
 
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -45,9 +44,11 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -195,9 +196,7 @@ public class BackendConfigManagerTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Modify the backend to enable it.
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-enabled", "true")));
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "true")));
     ModifyOperation modifyOperation =
          conn.processModify(backendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -208,9 +207,7 @@ public class BackendConfigManagerTestCase
 
 
     // Modify the backend to disable it.
-    mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-enabled", "false")));
+    mods = newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "false")));
     modifyOperation = conn.processModify(backendEntry.getName(), mods);
     assertNull(DirectoryServer.getBackend(backendID));
     assertFalse(DirectoryServer.entryExists(baseDN));
@@ -434,8 +431,8 @@ public class BackendConfigManagerTestCase
 
 
     // Disable the intermediate (child) backend.  This should be allowed.
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create("ds-cfg-enabled", "false")));
+    ArrayList<Modification> mods =
+        newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "false")));
     ModifyOperation modifyOperation =
          conn.processModify(childBackendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -445,9 +442,7 @@ public class BackendConfigManagerTestCase
 
 
     // Re-enable the intermediate backend.
-    mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-enabled", "true")));
+    mods = newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "true")));
     modifyOperation = conn.processModify(childBackendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 

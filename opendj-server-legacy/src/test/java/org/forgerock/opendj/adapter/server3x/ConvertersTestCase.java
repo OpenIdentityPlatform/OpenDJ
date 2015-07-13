@@ -31,7 +31,6 @@ import static org.mockito.Mockito.*;
 
 import java.net.InetAddress;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -57,6 +56,8 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
@@ -65,8 +66,6 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -75,6 +74,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.util.CollectionUtils;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -239,11 +239,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
                         .newControl("dn:uid=kvaughan,ou=People,dc=example,dc=com");
         assertThat(control3.getOID()).isEqualTo("2.16.840.1.113730.3.4.18");
 
-        List<org.forgerock.opendj.ldap.controls.Control> mySDKControlsList = new LinkedList<>();
-        mySDKControlsList.add(control);
-        mySDKControlsList.add(control2);
-        mySDKControlsList.add(control3);
-        return mySDKControlsList;
+        return CollectionUtils.newLinkedList(control, control2, control3);
     }
 
     /**

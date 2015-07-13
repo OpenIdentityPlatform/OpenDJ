@@ -29,6 +29,7 @@ package org.opends.server.replication.service;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.AssuredMode.*;
 import static org.opends.server.replication.common.StatusMachine.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -3195,9 +3196,7 @@ public abstract class ReplicationDomain
             //   -> replay error occurred
             ackMsg.setHasReplayError(true);
             //   -> replay error occurred in our server
-            List<Integer> idList = new ArrayList<>();
-            idList.add(getServerId());
-            ackMsg.setFailedServers(idList);
+            ackMsg.setFailedServers(newArrayList(getServerId()));
           }
           broker.publish(ackMsg);
           if (replayErrorMsg != null)

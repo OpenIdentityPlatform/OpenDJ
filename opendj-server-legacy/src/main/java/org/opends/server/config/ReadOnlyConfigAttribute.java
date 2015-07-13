@@ -41,6 +41,7 @@ import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a configuration attribute that is only intended for use
@@ -99,8 +100,7 @@ public final class ReadOnlyConfigAttribute
     }
     else
     {
-      values = new ArrayList<>(1);
-      values.add(value);
+      values = newArrayList(value);
     }
   }
 

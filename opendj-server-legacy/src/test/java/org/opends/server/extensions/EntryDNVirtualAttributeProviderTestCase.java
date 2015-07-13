@@ -48,6 +48,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -494,8 +495,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    LinkedList<ByteString> subAny = new LinkedList<>();
-    subAny.add(ByteString.valueOf("="));
+    LinkedList<ByteString> subAny = newLinkedList(ByteString.valueOf("="));
 
     assertEquals(provider.matchesSubstring(entry, getRule(provider), null, subAny, null),
                  ConditionResult.UNDEFINED);

@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.Socket;
@@ -52,13 +50,19 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -366,9 +370,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attrName, "always")));
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -562,9 +564,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attrName, "always")));
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -642,9 +642,7 @@ public class ExternalSASLMechanismHandlerTestCase
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attrName, "always")));
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create(attrName, "always")));
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
@@ -131,7 +132,7 @@ public class LDIFSearch
     StringArgument      filterFile;
     IntegerArgument     sizeLimit;
     IntegerArgument     timeLimit;
-    MultiChoiceArgument scopeString;
+    MultiChoiceArgument<String> scopeString;
     StringArgument      baseDNString;
     StringArgument      configClass;
     StringArgument      configFile;
@@ -161,7 +162,7 @@ public class LDIFSearch
               INFO_LDIFSEARCH_DESCRIPTION_BASEDN.get());
       argParser.addArgument(baseDNString);
 
-      scopeString = new MultiChoiceArgument(
+      scopeString = new MultiChoiceArgument<>(
               "scope", 's', "searchScope", false, false,
               true, INFO_SCOPE_PLACEHOLDER.get(), SCOPE_STRING_SUB,
               null, scopeStrings, false,
@@ -338,32 +339,28 @@ public class LDIFSearch
         err.println(message);
         return 1;
       }
-      else
+
+      Iterator<String> iterator = trailingArguments.iterator();
+      filterStrings = newLinkedList(iterator.next());
+
+      while (iterator.hasNext())
       {
-        Iterator<String> iterator = trailingArguments.iterator();
-
-        filterStrings = new LinkedList<>();
-        filterStrings.add(iterator.next());
-
-        while (iterator.hasNext())
+        String lowerName = toLowerCase(iterator.next());
+        if (lowerName.equals("*"))
         {
-          String lowerName = toLowerCase(iterator.next());
-          if (lowerName.equals("*"))
-          {
-            allUserAttrs = true;
-          }
-          else if (lowerName.equals("+"))
-          {
-            allOperationalAttrs = true;
-          }
-          else if (lowerName.startsWith("@"))
-          {
-            objectClassNames.add(lowerName.substring(1));
-          }
-          else
-          {
-            attributeNames.add(lowerName);
-          }
+          allUserAttrs = true;
+        }
+        else if (lowerName.equals("+"))
+        {
+          allOperationalAttrs = true;
+        }
+        else if (lowerName.startsWith("@"))
+        {
+          objectClassNames.add(lowerName.substring(1));
+        }
+        else
+        {
+          attributeNames.add(lowerName);
         }
       }
     }

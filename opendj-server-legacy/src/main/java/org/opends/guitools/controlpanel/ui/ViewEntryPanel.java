@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Container;
 import java.awt.GridBagConstraints;
@@ -362,9 +363,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       {
         org.opends.server.types.Attribute attr =
           Attributes.create(rdn.getAttributeType(i), value);
-        ArrayList<ByteString> newValues = new ArrayList<>();
-        newValues.add(value);
-        entry.addAttribute(attr, newValues);
+        entry.addAttribute(attr, newArrayList(value));
       }
     }
   }

@@ -26,6 +26,8 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,14 +36,14 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.opends.server.types.DirectoryException;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 
 /**
  * This class defines a mechanism that may be used to iterate over the
@@ -167,9 +169,7 @@ public class DynamicGroupMemberList
       // the same hierarchy.
       if (baseDNs.isEmpty())
       {
-        LinkedList<LDAPURL> urlList = new LinkedList<>();
-        urlList.add(memberURL);
-        baseDNs.put(urlBaseDN, urlList);
+        baseDNs.put(urlBaseDN, newLinkedList(memberURL));
       }
       else
       {
@@ -212,15 +212,12 @@ public class DynamicGroupMemberList
 
           if (! found)
           {
-            urlList = new LinkedList<>();
-            urlList.add(memberURL);
-            baseDNs.put(urlBaseDN, urlList);
+            baseDNs.put(urlBaseDN, newLinkedList(memberURL));
           }
         }
         else
         {
-          // There was already a list with the same base DN, so just add the
-          // URL.
+          // There was already a list with the same base DN, so just add the URL.
           urlList.add(memberURL);
         }
       }
