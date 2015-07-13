@@ -31,17 +31,21 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_BIT_STRING
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Bit string syntax tests.
- */
+/** Bit string syntax tests. */
 @Test
 public class BitStringSyntaxTest extends AbstractSyntaxTestCase {
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
-        return new Object[][] { { "'0101'B", true }, { "'1'B", true }, { "'0'B", true }, { "invalid", false },
-            { "1", false }, { "'010100000111111010101000'B", true }, };
+        return new Object[][] {
+            { "'0101'B", true },
+            { "'1'B", true },
+            { "'0'B", true },
+            { "invalid", false },
+            { "1", false },
+            { "'010100000111111010101000'B", true },
+        };
     }
 
     /** {@inheritDoc} */
