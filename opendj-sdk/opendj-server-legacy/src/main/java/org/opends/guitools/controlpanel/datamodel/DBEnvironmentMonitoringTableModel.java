@@ -38,6 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 /**
  * The abstract table model used to display all the network groups.
@@ -132,27 +133,31 @@ implements Comparator<BackendDescriptor>
     CustomSearchResult monitor1 = desc1.getMonitoringEntry();
     CustomSearchResult monitor2 = desc2.getMonitoringEntry();
 
-    ArrayList<Integer> possibleResults = new ArrayList<>();
-    possibleResults.add(getName(desc1).compareTo(getName(desc2)));
+    ArrayList<Integer> possibleResults = newArrayList(getName(desc1).compareTo(getName(desc2)));
     computeMonitoringPossibleResults(monitor1, monitor2, possibleResults, attributes);
 
     int result = possibleResults.get(getSortColumn());
     if (result == 0)
     {
-      for (int i : possibleResults)
-      {
-        if (i != 0)
-        {
-          result = i;
-          break;
-        }
-      }
+      result = getFirstNonZero(possibleResults);
     }
     if (!isSortAscending())
     {
       result = -result;
     }
     return result;
+  }
+
+  private int getFirstNonZero(ArrayList<Integer> possibleResults)
+  {
+    for (int i : possibleResults)
+    {
+      if (i != 0)
+      {
+        return i;
+      }
+    }
+    return 0;
   }
 
   /**

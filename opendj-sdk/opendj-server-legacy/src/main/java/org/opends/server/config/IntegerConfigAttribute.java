@@ -40,6 +40,7 @@ import javax.management.MBeanParameterInfo;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.opends.server.util.CollectionUtils;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -166,9 +167,7 @@ public final class IntegerConfigAttribute
     this.hasUpperBound = hasUpperBound;
     this.upperBound    = upperBound;
 
-    activeValues = new ArrayList<>(1);
-    activeValues.add(value);
-
+    activeValues = CollectionUtils.newArrayList(value);
     pendingValues = activeValues;
   }
 
@@ -582,8 +581,7 @@ public final class IntegerConfigAttribute
 
     if (requiresAdminAction())
     {
-      pendingValues = new ArrayList<>(1);
-      pendingValues.add(value);
+      pendingValues = CollectionUtils.newArrayList(value);
       setPendingValues(getValueSet(value));
     }
     else

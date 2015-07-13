@@ -26,11 +26,8 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -49,8 +46,10 @@ import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -97,17 +96,13 @@ public class TraditionalWorkQueueTestCase
   {
     DN     dn   = DN.valueOf("cn=Work Queue,cn=config");
     String attr = "ds-cfg-num-worker-threads";
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attr, "30")));
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create(attr, "30")));
 
     InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-    mods.clear();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(attr, "24")));
+    mods = newArrayList(new Modification(REPLACE, Attributes.create(attr, "24")));
     modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 

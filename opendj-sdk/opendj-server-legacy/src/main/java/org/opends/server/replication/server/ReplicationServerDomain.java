@@ -81,6 +81,7 @@ import static org.opends.server.replication.common.StatusMachineEvent.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -1647,8 +1648,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
 
     // Create info for the local RS
-    List<RSInfo> rsInfos = new ArrayList<>();
-    rsInfos.add(toRSInfo(localReplicationServer, generationId));
+    List<RSInfo> rsInfos = newArrayList(toRSInfo(localReplicationServer, generationId));
 
     return new TopologyMsg(dsInfos, rsInfos);
   }

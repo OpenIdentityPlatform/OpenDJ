@@ -26,6 +26,9 @@
  */
 package org.opends.server.extensions;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -42,13 +45,13 @@ import org.opends.server.admin.std.meta.SubjectDNToUserAttributeCertificateMappe
 import org.opends.server.admin.std.server.SubjectDNToUserAttributeCertificateMapperCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
@@ -542,28 +545,19 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
   public void testRemoveSubjectAttribute()
          throws Exception
   {
-    String mapperDN =
-         "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
+    String mapperDN = "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-subject-attribute"));
 
-    Attribute a =
-      Attributes.empty(DirectoryServer.getAttributeType(
-                            "ds-cfg-subject-attribute"));
-
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.DELETE, a));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(new Modification(ModificationType.DELETE, a));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
+        getRootConnection().processModify(DN.valueOf(mapperDN), mods);
     assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
 
   /**
-   * Tests to ensure that an attmept to set an undefined subject attribute will
-   * fail.
+   * Tests to ensure that an attempt to set an undefined subject attribute will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -577,7 +571,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an invalid base DN will fail.
+   * Tests to ensure that an attempt to set an invalid base DN will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -603,15 +597,8 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     String mapperDN =
          "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(externalDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    Attribute attr = Attributes.create("ds-cfg-certificate-mapper", mapperDN);
+    assertModifyReplaceIsSuccess(externalDN, attr);
   }
 
 
@@ -628,15 +615,8 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Subject Equals DN,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(externalDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    Attribute attr = Attributes.create("ds-cfg-certificate-mapper", mapperDN);
+    assertModifyReplaceIsSuccess(externalDN, attr);
   }
 
 
@@ -656,15 +636,8 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
     String mapperDN =
          "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-subject-attribute", attrName)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    Attribute attr = Attributes.create("ds-cfg-subject-attribute", attrName);
+    assertModifyReplaceIsSuccess(mapperDN, attr);
   }
 
 
@@ -692,15 +665,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
       builder.addAllStrings(Arrays.asList(baseDNs));
     }
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              builder.toAttribute()));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    assertModifyReplaceIsSuccess(mapperDN, builder.toAttribute());
   }
 
   /**
@@ -762,5 +727,11 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
       disableMapper();
     }
   }
-}
 
+  private void assertModifyReplaceIsSuccess(String mapperDN, Attribute attr) throws DirectoryException
+  {
+    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, attr));
+    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(mapperDN), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+}

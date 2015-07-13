@@ -26,6 +26,8 @@
  */
 package org.opends.server.plugins;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -139,16 +141,13 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
      * Samba administrative user needs a permission to manipulate user accounts.
      * Hence, we add a very permissive ACI.
      */
-    InternalClientConnection conn = InternalClientConnection.getRootConnection();
-    LinkedList<Modification> mods = new LinkedList<>();
-
-    mods.add(new Modification(ModificationType.ADD, Attributes.create("aci",
+    LinkedList<Modification> mods =
+        newLinkedList(new Modification(ModificationType.ADD, Attributes.create("aci",
         "(target=\"ldap:///uid=*,o=test\")(targetattr=\"*\")"
             + "(version 3.0; acl \"Samba admin\"; allow (all) "
             + "userdn=\"ldap:///cn=samba admin,o=test\";)")));
 
-    ModifyOperation modOp = conn.processModify(DN.valueOf("o=test"), mods);
-
+    ModifyOperation modOp = getRootConnection().processModify(DN.valueOf("o=test"), mods);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -220,15 +219,10 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     TestCaseUtils.addEntry(testEntry);
 
     // Perform the modify operation
-    InternalClientConnection conn = InternalClientConnection.getRootConnection();
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(ModificationType.REPLACE, Attributes.create("userPassword", "password")));
 
-    LinkedList<Modification> mods = new LinkedList<>();
-
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
-        "userPassword", "password")));
-
-    ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
-
+    ModifyOperation modOp = getRootConnection().processModify(testEntry.getName(), mods);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the change
@@ -299,13 +293,9 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     InternalClientConnection conn = new InternalClientConnection(authInfo);
 
-    LinkedList<Modification> mods = new LinkedList<>();
-
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
-        "userPassword", "password")));
-
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(ModificationType.REPLACE, Attributes.create("userPassword", "password")));
     ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
-
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
@@ -346,27 +336,18 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     InternalClientConnection conn = new InternalClientConnection(authInfo);
 
-    LinkedList<Modification> mods = new LinkedList<>();
-
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
-        "userPassword", "password1")));
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(ModificationType.REPLACE, Attributes.create("userPassword", "password1")));
 
     ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
-
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
-
-    List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
-
-    assertNull(sambaAttribute);
-
-    sambaAttribute = entry.getAttribute("sambalmpassword");
-
-    assertNull(sambaAttribute);
+    assertNull(entry.getAttribute("sambantpassword"));
+    assertNull(entry.getAttribute("sambalmpassword"));
 
     TestCaseUtils.deleteEntry(entry);
   }
@@ -393,21 +374,12 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     TestCaseUtils.addEntry(testEntry);
 
     // Perform the modify operation
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
-
     LinkedList<Modification> mods = new LinkedList<>();
+    mods.add(new Modification(ModificationType.ADD, Attributes.create("userPassword", "password1")));
+    mods.add(new Modification(ModificationType.ADD, Attributes.create("userPassword", "password2")));
+    mods.add(new Modification(ModificationType.ADD, Attributes.create("userPassword", "password3")));
 
-    mods.add(new Modification(ModificationType.ADD, Attributes.create(
-        "userPassword", "password1")));
-    mods.add(new Modification(ModificationType.ADD, Attributes.create(
-        "userPassword", "password2")));
-
-    mods.add(new Modification(ModificationType.ADD, Attributes.create(
-        "userPassword", "password3")));
-
-    ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
-
+    ModifyOperation modOp = getRootConnection().processModify(testEntry.getName(), mods);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the result
@@ -705,29 +677,15 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       InternalClientConnection conn = InternalClientConnection
           .getRootConnection();
 
-      LinkedList<Modification> mods = new LinkedList<>();
-
-      mods.add(new Modification(ModificationType.REPLACE, Attributes.create(
-          "userPassword", "password")));
+      LinkedList<Modification> mods =
+          newLinkedList(new Modification(ModificationType.REPLACE, Attributes.create("userPassword", "password")));
 
       ModifyOperation modOp = conn.processModify(testEntry.getName(), mods);
-
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
       Attribute sambaPwdLastSetAttr =
         Attributes.create("sambapwdlastset", String.valueOf(1339012789L));
-      boolean attrPresent = false;
-
-      for (Modification mod : modOp.getModifications())
-      {
-        if (mod.getAttribute().equals(sambaPwdLastSetAttr))
-        {
-          attrPresent = true;
-          break;
-        }
-      }
-
-      assertTrue(attrPresent);
+      assertTrue(containsAttribute(modOp, sambaPwdLastSetAttr));
 
       TestCaseUtils.deleteEntry(testEntry);
     }
@@ -735,6 +693,18 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     {
       plugin.setTimeStampProvider(null);
     }
+  }
+
+  private boolean containsAttribute(ModifyOperation modOp, Attribute attr)
+  {
+    for (Modification mod : modOp.getModifications())
+    {
+      if (mod.getAttribute().equals(attr))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_FULL;
 import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_SPACE_LOW;
 import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_FULL;
@@ -287,9 +288,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
       List<MonitoredDirectory> diskHelpers = monitoredDirs.get(fsMountPoint);
       if (diskHelpers == null)
       {
-        List<MonitoredDirectory> newList = new ArrayList<>();
-        newList.add(newDSH);
-        monitoredDirs.put(fsMountPoint, newList);
+        monitoredDirs.put(fsMountPoint, newArrayList(newDSH));
       }
       else
       {

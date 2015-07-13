@@ -26,16 +26,20 @@
  */
 package org.opends.server.replication;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
 import java.util.LinkedList;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -44,12 +48,8 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Stress test for the synchronization code using the ReplicationBroker API.
@@ -318,19 +318,10 @@ public class StressTest extends ReplicationTestCase
     @Override
     public List<Attribute> getMonitorData()
     {
-      Attribute attr;
-      if (reader == null)
-      {
-        attr = Attributes.create("received-messages", "not yet started");
-      }
-      else
-      {
-        attr = Attributes.create("received-messages", String.valueOf(reader.getCurrentCount()));
-      }
+      String value = reader != null ? String.valueOf(reader.getCurrentCount()) : "not yet started";
       List<Attribute> list = new LinkedList<>();
-      list.add(attr);
-      attr = Attributes.create("base-dn", "ou=People," + TEST_ROOT_DN_STRING);
-      list.add(attr);
+      list.add(Attributes.create("received-messages", value));
+      list.add(Attributes.create("base-dn", "ou=People," + TEST_ROOT_DN_STRING));
       return list;
     }
 

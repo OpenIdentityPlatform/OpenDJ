@@ -26,6 +26,9 @@
  */
 package org.opends.server.extensions;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -33,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -41,7 +43,6 @@ import org.opends.server.admin.std.meta.FingerprintCertificateMapperCfgDefn;
 import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -448,13 +449,9 @@ public class FingerprintCertificateMapperTestCase
       Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-fingerprint-attribute"));
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.DELETE, a));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
+         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
     assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -475,13 +472,9 @@ public class FingerprintCertificateMapperTestCase
       Attributes.empty(DirectoryServer.getAttributeType(
                             "ds-cfg-fingerprint-algorithm"));
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.DELETE, a));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
+        getRootConnection().processModify(DN.valueOf(mapperDN), mods);
     assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -543,15 +536,10 @@ public class FingerprintCertificateMapperTestCase
     String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-certificate-mapper",
-                                            mapperDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(externalDN), mods);
+         getRootConnection().processModify(DN.valueOf(externalDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -569,15 +557,10 @@ public class FingerprintCertificateMapperTestCase
     String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Subject Equals DN,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-certificate-mapper",
-                                            mapperDN)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(externalDN), mods);
+         getRootConnection().processModify(DN.valueOf(externalDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -597,15 +580,10 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-fingerprint-attribute",
-                       attrName)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("ds-cfg-fingerprint-attribute", attrName)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
+         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -624,15 +602,10 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-fingerprint-algorithm",
-                                    algorithm)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("ds-cfg-fingerprint-algorithm", algorithm)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
+         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -653,14 +626,10 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-user-base-dn", baseDNs)));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("ds-cfg-user-base-dn", baseDNs)));
     ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf(mapperDN), mods);
+         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

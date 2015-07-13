@@ -27,8 +27,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,11 +51,10 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the dictionary password validator.
@@ -675,9 +672,8 @@ public class DictionaryPasswordValidatorTestCase
     validator.initializePasswordValidator(configuration);
 
     ByteString pwOS = ByteString.valueOf(password);
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("userpassword", password)));
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("userpassword", password)));
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();

@@ -48,6 +48,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -777,10 +778,8 @@ public class VirtualStaticGroupTestCase
     ByteString v = ByteString.valueOf(u4.toString());
     assertTrue(a.contains(v));
 
-    LinkedList<Modification> mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("memberurl",
-                       "ldap:///o=test??sub?(objectClass=person)")));
+    LinkedList<Modification> mods = newLinkedList(new Modification(ModificationType.ADD,
+        Attributes.create("memberurl", "ldap:///o=test??sub?(objectClass=person)")));
     ModifyOperation modifyOperation = getRootConnection().processModify(d1, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -818,8 +817,7 @@ public class VirtualStaticGroupTestCase
 
     InternalClientConnection conn = getRootConnection();
 
-    LinkedList<Modification> mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
+    LinkedList<Modification> mods = newLinkedList(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-allow-retrieving-membership", "false")));
     DN definitionDN =
          DN.valueOf("cn=Virtual Static member,cn=Virtual Attributes,cn=config");
@@ -838,8 +836,7 @@ public class VirtualStaticGroupTestCase
     assertTrue(a.contains(v));
 
 
-    mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
+    mods = newLinkedList(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-allow-retrieving-membership", "true")));
     modifyOperation = conn.processModify(definitionDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

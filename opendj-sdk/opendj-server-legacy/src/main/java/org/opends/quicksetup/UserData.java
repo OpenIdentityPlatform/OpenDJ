@@ -41,6 +41,7 @@ import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.CollectionUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
 
@@ -51,50 +52,30 @@ import com.forgerock.opendj.cli.CliConstants;
 public class UserData
 {
   private String serverLocation;
-
   private String hostName;
-
   private int serverPort;
-
   private int adminConnectorPort;
-
   private String directoryManagerDn;
-
   private String directoryManagerPwd;
-
   private String globalAdministratorUID;
-
   private String globalAdministratorPassword;
-
   private SecurityOptions securityOptions;
   private int serverJMXPort = -1;
 
   private boolean startServer;
-
   private boolean stopServer;
-
   private boolean enableWindowsService;
+  private boolean createAdministrator;
+  private boolean quiet;
+  private boolean verbose;
+  private boolean interactive;
+  private boolean forceOnError;
 
   private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType;
-
   private NewSuffixOptions newSuffixOptions;
-
   private DataReplicationOptions replicationOptions;
-
-  private boolean createAdministrator;
-
   private SuffixesToReplicateOptions suffixesToReplicateOptions;
-
-  private final Map<ServerDescriptor, AuthenticationData>
-  remoteWithNoReplicationPort;
-
-  private boolean quiet;
-
-  private boolean verbose;
-
-  private boolean interactive;
-
-  private boolean forceOnError;
+  private final Map<ServerDescriptor, AuthenticationData> remoteWithNoReplicationPort;
 
   private Map<String, JavaArguments> hmJavaArguments;
   private Map<String, JavaArguments> hmDefaultJavaArguments;
@@ -124,8 +105,7 @@ public class UserData
     forceOnError = true;
     verbose = false;
 
-    LinkedList<String> baseDn = new LinkedList<>();
-    baseDn.add("dc=example,dc=com");
+    LinkedList<String> baseDn = CollectionUtils.newLinkedList("dc=example,dc=com");
     NewSuffixOptions defaultNewSuffixOptions = NewSuffixOptions.createEmpty(baseDn);
     setNewSuffixOptions(defaultNewSuffixOptions);
 

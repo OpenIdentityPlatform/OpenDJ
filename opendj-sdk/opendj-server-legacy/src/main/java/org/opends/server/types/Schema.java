@@ -43,8 +43,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -59,6 +59,7 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -384,9 +385,7 @@ public final class Schema
     if (subTypes == null)
     {
       superiorType.setMayHaveSubordinateTypes();
-      subTypes = new LinkedList<>();
-      subTypes.add(attributeType);
-      subordinateTypes.put(superiorType, subTypes);
+      subordinateTypes.put(superiorType, newLinkedList(attributeType));
     }
     else if (! subTypes.contains(attributeType))
     {

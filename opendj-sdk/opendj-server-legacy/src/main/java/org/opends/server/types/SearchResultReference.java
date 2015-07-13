@@ -30,8 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 
-
-
+import org.opends.server.util.CollectionUtils;
 
 /**
  * This class defines a data structure for storing information about a
@@ -61,9 +60,7 @@ public final class SearchResultReference
    */
   public SearchResultReference(String referralURL)
   {
-    referralURLs = new ArrayList<>(1);
-    referralURLs.add(referralURL);
-
+    referralURLs = CollectionUtils.newArrayList(referralURL);
     this.controls = new ArrayList<>(0);
   }
 

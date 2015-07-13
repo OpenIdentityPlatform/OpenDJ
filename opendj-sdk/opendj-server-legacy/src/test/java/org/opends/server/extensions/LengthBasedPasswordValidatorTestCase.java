@@ -26,8 +26,9 @@
  */
 package org.opends.server.extensions;
 
-
-
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -35,26 +36,23 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LengthBasedPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.LengthBasedPasswordValidatorCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * A set of test cases for the length-based password validator.
@@ -362,16 +360,7 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<>();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword", buffer.toString())));
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis op =
-           new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.valueOf("cn=uid=test.user,o=test"), mods);
+      ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertTrue(validator.passwordIsAcceptable(password,
@@ -382,7 +371,16 @@ public class LengthBasedPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 
+  private ModifyOperationBasis newModifyOperation(StringBuilder buffer) throws DirectoryException
+  {
+    ArrayList<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("userpassword", buffer.toString())));
 
+    ModifyOperationBasis op = new ModifyOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(),
+        new ArrayList<Control>(), DN.valueOf("cn=uid=test.user,o=test"), mods);
+    return op;
+  }
 
   /**
    * Tests the <CODE>passwordIsAcceptable</CODE> method with a constraint on the
@@ -434,16 +432,7 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<>();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword", buffer.toString())));
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis op =
-           new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.valueOf("cn=uid=test.user,o=test"), mods);
+      ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals((buffer.length() >= 10),
@@ -508,16 +497,7 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<>();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword", buffer.toString())));
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis op =
-           new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.valueOf("cn=uid=test.user,o=test"), mods);
+      ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals((buffer.length() <= 10),
@@ -582,16 +562,7 @@ public class LengthBasedPasswordValidatorTestCase
       buffer.append('x');
       ByteString password = ByteString.valueOf(buffer.toString());
 
-      ArrayList<Modification> mods = new ArrayList<>();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("userpassword", buffer.toString())));
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis op =
-           new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
-                               DN.valueOf("cn=uid=test.user,o=test"), mods);
+      ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       assertEquals(((buffer.length() >= 6) && (buffer.length() <= 10)),
@@ -604,4 +575,3 @@ public class LengthBasedPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 }
-

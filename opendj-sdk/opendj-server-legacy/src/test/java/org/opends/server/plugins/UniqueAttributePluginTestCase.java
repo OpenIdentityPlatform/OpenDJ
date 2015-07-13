@@ -46,6 +46,7 @@ import org.opends.server.types.*;
 import org.testng.annotations.*;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -738,8 +739,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   }
 
   private void replaceAttrInEntry(DN dn, String attrName, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrName, attrValStrings)));
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(ModificationType.REPLACE, Attributes.create(attrName, attrValStrings)));
     getRootConnection().processModify(dn, mods);
   }
 

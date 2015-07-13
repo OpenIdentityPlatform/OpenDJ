@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -179,9 +180,7 @@ public class ZipExtractor {
      * Runtime.exec (which is required to update the file system permissions).
      */
     Map<String, ArrayList<String>> permissions = new HashMap<>();
-    ArrayList<String> list = new ArrayList<>();
-    list.add(destDir);
-    permissions.put(getProtectedDirectoryPermissionUnix(), list);
+    permissions.put(getProtectedDirectoryPermissionUnix(), newArrayList(destDir));
     try {
       if(application != null) {
         application.checkAbort();

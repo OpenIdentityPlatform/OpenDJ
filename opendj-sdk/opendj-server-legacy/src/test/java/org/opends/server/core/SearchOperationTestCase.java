@@ -55,6 +55,7 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -642,13 +643,9 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     // Add a matched values control.
     LDAPFilter ldapFilter = LDAPFilter.decode("(title=*director*)");
-    MatchedValuesFilter matchedValuesFilter =
-         MatchedValuesFilter.createFromLDAPFilter(ldapFilter);
-    ArrayList<MatchedValuesFilter> filters = new ArrayList<>();
-    filters.add(matchedValuesFilter);
-    MatchedValuesControl mvc = new MatchedValuesControl(true, filters);
-    ArrayList<Control> controls = new ArrayList<>();
-    controls.add(mvc);
+    ArrayList<MatchedValuesFilter> filters = newArrayList(MatchedValuesFilter.createFromLDAPFilter(ldapFilter));
+    Control mvc = new MatchedValuesControl(true, filters);
+    ArrayList<Control> controls = newArrayList(mvc);
 
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(

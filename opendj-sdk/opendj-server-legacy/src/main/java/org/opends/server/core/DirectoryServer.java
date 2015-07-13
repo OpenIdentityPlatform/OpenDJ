@@ -31,6 +31,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -5754,20 +5755,14 @@ public final class DirectoryServer
                                        int supportedLDAPVersion,
                                        ConnectionHandler connectionHandler)
   {
-    List<ConnectionHandler> handlers =
-         directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
+    List<ConnectionHandler> handlers = directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
     if (handlers == null)
     {
-      handlers = new LinkedList<>();
-      handlers.add(connectionHandler);
-      directoryServer.supportedLDAPVersions.put(supportedLDAPVersion, handlers);
+      directoryServer.supportedLDAPVersions.put(supportedLDAPVersion, newLinkedList(connectionHandler));
     }
-    else
+    else if (!handlers.contains(connectionHandler))
     {
-      if (! handlers.contains(connectionHandler))
-      {
-        handlers.add(connectionHandler);
-      }
+      handlers.add(connectionHandler);
     }
   }
 

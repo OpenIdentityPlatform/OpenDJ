@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -35,7 +36,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
@@ -52,7 +52,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
 /**
-*
 * The panel that allows the user to select which attributes must be displayed
 * in the traffic monitoring tables.
 *
@@ -300,9 +299,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
    if (selectedAttributes.isEmpty())
    {
-     ArrayList<LocalizableMessage> errors = new ArrayList<>();
-     errors.add(INFO_CTRL_PANEL_NO_OPERATION_SELECTED.get());
-     super.displayErrorDialog(errors);
+     super.displayErrorDialog(newArrayList(INFO_CTRL_PANEL_NO_OPERATION_SELECTED.get()));
    }
    else
    {

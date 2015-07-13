@@ -45,17 +45,18 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
 import org.opends.server.api.Group;
-import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
@@ -66,6 +67,7 @@ import org.opends.server.types.SearchFilter;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
 
@@ -322,15 +324,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msg);
       }
 
-      Attribute attr = Attributes.create(memberAttributeType, nestedGroupDN.toString());
-      LinkedList<Modification> mods = new LinkedList<>();
-      mods.add(new Modification(ModificationType.ADD, attr));
-
-      LinkedList<Control> requestControls = new LinkedList<>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
-
-      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
-          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
+      ModifyOperation modifyOperation = newModifyOperation(ModificationType.ADD, nestedGroupDN);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -364,15 +358,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
                 ERR_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP.get(nestedGroupDN, groupEntryDN));
       }
 
-      Attribute attr = Attributes.create(memberAttributeType, nestedGroupDN.toString());
-      LinkedList<Modification> mods = new LinkedList<>();
-      mods.add(new Modification(ModificationType.DELETE, attr));
-
-      LinkedList<Control> requestControls = new LinkedList<>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
-
-      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
-          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
+      ModifyOperation modifyOperation = newModifyOperation(ModificationType.DELETE, nestedGroupDN);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -520,15 +506,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, message);
       }
 
-      Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
-      LinkedList<Modification> mods = new LinkedList<>();
-      mods.add(new Modification(ModificationType.ADD, attr));
-
-      LinkedList<Control> requestControls = new LinkedList<>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
-
-      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
-          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
+      ModifyOperation modifyOperation = newModifyOperation(ModificationType.ADD, userDN);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -557,15 +535,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
       }
 
-      Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
-      LinkedList<Modification> mods = new LinkedList<>();
-      mods.add(new Modification(ModificationType.DELETE, attr));
-
-      LinkedList<Control> requestControls = new LinkedList<>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
-
-      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
-          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
+      ModifyOperation modifyOperation = newModifyOperation(ModificationType.DELETE, userDN);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -583,6 +553,16 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         nestedGroups = newNestedGroups;
       }
     }
+  }
+
+  private ModifyOperation newModifyOperation(ModificationType modType, DN userDN)
+  {
+    Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
+    LinkedList<Modification> mods = newLinkedList(new Modification(modType, attr));
+    Control control = new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false);
+
+    return new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        newLinkedList(control), groupEntryDN, mods);
   }
 
   /** {@inheritDoc} */

@@ -26,7 +26,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -642,58 +641,43 @@ public class LocalBackendAddOperation
       Map<AttributeType, List<Attribute>> attributes, AttributeType t,
       ByteString v, String n) throws DirectoryException
   {
-    List<Attribute> attrList = attributes.get(t);
+    final List<Attribute> attrList = attributes.get(t);
     if (attrList == null)
     {
-      if (isSynchronizationOperation() ||
-          DirectoryServer.addMissingRDNAttributes())
-      {
-        attrList = new ArrayList<>();
-        attrList.add(Attributes.create(t, n, v));
-        attributes.put(t, attrList);
-      }
-      else
+      if (!isSynchronizationOperation()
+          && !DirectoryServer.addMissingRDNAttributes())
       {
         throw newDirectoryException(entryDN, ResultCode.CONSTRAINT_VIOLATION,
             ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
       }
+      attributes.put(t, newArrayList(Attributes.create(t, n, v)));
+      return;
     }
-    else
-    {
-      boolean found = false;
-      for (int j = 0; j < attrList.size(); j++) {
-        Attribute a = attrList.get(j);
 
-        if (a.hasOptions())
-        {
-          continue;
-        }
-
-        if (!a.contains(v))
-        {
-          AttributeBuilder builder = new AttributeBuilder(a);
-          builder.add(v);
-          attrList.set(j, builder.toAttribute());
-        }
-
-        found = true;
-        break;
-      }
-
-      if (!found)
+    for (int j = 0; j < attrList.size(); j++) {
+      Attribute a = attrList.get(j);
+      if (a.hasOptions())
       {
-        if (isSynchronizationOperation() ||
-            DirectoryServer.addMissingRDNAttributes())
-        {
-          attrList.add(Attributes.create(t, n, v));
-        }
-        else
-        {
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
-        }
+        continue;
       }
+
+      if (!a.contains(v))
+      {
+        AttributeBuilder builder = new AttributeBuilder(a);
+        builder.add(v);
+        attrList.set(j, builder.toAttribute());
+      }
+
+      return;
     }
+
+    // not found
+    if (!isSynchronizationOperation() && !DirectoryServer.addMissingRDNAttributes())
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+          ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
+    }
+    attrList.add(Attributes.create(t, n, v));
   }
 
 

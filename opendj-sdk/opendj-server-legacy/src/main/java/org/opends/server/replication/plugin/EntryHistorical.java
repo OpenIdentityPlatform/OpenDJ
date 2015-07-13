@@ -27,6 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.*;
 
@@ -181,17 +182,14 @@ public class EntryHistorical
     List<Modification> mods = modifyOperation.getModifications();
     CSN modOpCSN = OperationContext.getCSN(modifyOperation);
 
-    for (Iterator<Modification> modsIterator = mods.iterator();
-         modsIterator.hasNext(); )
+    for (Iterator<Modification> it = mods.iterator(); it.hasNext(); )
     {
-      // Traverse the mods of this MOD operation
-      Modification m = modsIterator.next();
+      Modification m = it.next();
 
       // Read or create the attr historical for the attribute type and option
       // contained in the mod
       AttrHistorical attrHist = getOrCreateAttrHistorical(m);
-
-      if (attrHist.replayOperation(modsIterator, modOpCSN, modifiedEntry, m))
+      if (attrHist.replayOperation(it, modOpCSN, modifiedEntry, m))
       {
         bConflict = true;
       }
@@ -323,9 +321,7 @@ public class EntryHistorical
     Attribute attr = Attributes.create(historicalAttrType, attrValue);
 
     // Set the created attribute to the operation
-    List<Attribute> attrList = new LinkedList<>();
-    attrList.add(attr);
-    addOperation.setAttribute(historicalAttrType, attrList);
+    addOperation.setAttribute(historicalAttrType, newLinkedList(attr));
   }
 
   /**

@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -56,37 +57,29 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.guitools.controlpanel.event.
- ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
-import org.opends.guitools.controlpanel.event.
- SuperiorObjectClassesChangedListener;
+import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedListener;
 import org.opends.guitools.controlpanel.task.NewSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.components.DoubleAddRemovePanel;
-import org.opends.guitools.controlpanel.ui.components.
- SuperiorObjectClassesEditor;
-import
-org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
+import org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEditor;
+import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-/**
- * The panel displayed when the user wants to define a new object class in the
- * schema.
- *
- */
+/** The panel displayed when the user wants to define a new object class in the schema. */
 public class NewObjectClassPanel extends StatusGenericPanel
 {
  private static final long serialVersionUID = -4956885827963184571L;
@@ -416,11 +409,11 @@ public class NewObjectClassPanel extends StatusGenericPanel
       if (sel != null)
       {
         ArrayList<Integer> indexes = new ArrayList<>();
-        for (int j=0; j<sel.length; j++)
+        for (int element : sel)
         {
-          if (sel[j] < lists[i].getModel().getSize())
+          if (element < lists[i].getModel().getSize())
           {
-            indexes.add(sel[j]);
+            indexes.add(element);
           }
         }
         int[] newSelection = new int[indexes.size()];
@@ -660,16 +653,12 @@ public class NewObjectClassPanel extends StatusGenericPanel
     String f = file.getText().trim();
     if (f.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(f);
-      map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, list);
+      map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, newArrayList(f));
     }
     String or = origin.getText().trim();
     if (or.length() > 0)
     {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(or);
-      map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, list);
+      map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, newArrayList(or));
     }
     return map;
   }

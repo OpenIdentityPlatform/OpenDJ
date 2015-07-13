@@ -44,6 +44,7 @@ import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
@@ -420,10 +421,8 @@ public class CompareOperationTestCase extends OperationTestCase
          InternalClientConnection.getRootConnection();
 
     LDAPFilter ldapFilter = LDAPFilter.decode("(preferredlanguage=ja)");
-    LDAPAssertionRequestControl assertControl =
-         new LDAPAssertionRequestControl(true, ldapFilter);
-    List<Control> controls = new ArrayList<>();
-    controls.add(assertControl);
+    Control assertControl = new LDAPAssertionRequestControl(true, ldapFilter);
+    List<Control> controls = newArrayList(assertControl);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -450,10 +449,8 @@ public class CompareOperationTestCase extends OperationTestCase
          InternalClientConnection.getRootConnection();
 
     LDAPFilter ldapFilter = LDAPFilter.decode("(preferredlanguage=en)");
-    LDAPAssertionRequestControl assertControl =
-         new LDAPAssertionRequestControl(true, ldapFilter);
-    List<Control> controls = new ArrayList<>();
-    controls.add(assertControl);
+    Control assertControl = new LDAPAssertionRequestControl(true, ldapFilter);
+    List<Control> controls = newArrayList(assertControl);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -475,11 +472,10 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    ProxiedAuthV1Control authV1Control =
+    Control authV1Control =
          new ProxiedAuthV1Control(ByteString.valueOf(
               "cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = new ArrayList<>();
-    controls.add(authV1Control);
+    List<Control> controls = newArrayList(authV1Control);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -505,10 +501,8 @@ public class CompareOperationTestCase extends OperationTestCase
 
     InvocationCounterPlugin.resetAllCounters();
 
-    ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
-    List<Control> controls = new ArrayList<>();
-    controls.add(authV1Control);
+    Control authV1Control = new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
+    List<Control> controls = newArrayList(authV1Control);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -531,11 +525,10 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    ProxiedAuthV2Control authV2Control =
+    Control authV2Control =
          new ProxiedAuthV2Control(ByteString.valueOf(
                   "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = new ArrayList<>();
-    controls.add(authV2Control);
+    List<Control> controls = newArrayList(authV2Control);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -559,10 +552,8 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
-         ByteString.valueOf("dn:cn=nonexistent,o=test"));
-    List<Control> controls = new ArrayList<>();
-    controls.add(authV2Control);
+    Control authV2Control = new ProxiedAuthV2Control(ByteString.valueOf("dn:cn=nonexistent,o=test"));
+    List<Control> controls = newArrayList(authV2Control);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -589,8 +580,7 @@ public class CompareOperationTestCase extends OperationTestCase
          new LDAPControl(ServerConstants.OID_PROXIED_AUTH_V2, false,
                      ByteString.empty());
 
-    List<Control> controls = new ArrayList<>();
-    controls.add(authV2Control);
+    List<Control> controls = newArrayList(authV2Control);
 
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
@@ -617,10 +607,8 @@ public class CompareOperationTestCase extends OperationTestCase
          InternalClientConnection.getRootConnection();
 
     LDAPFilter.decode("(preferredlanguage=ja)");
-    LDAPControl assertControl =
-         new LDAPControl("1.1.1.1.1.1", true);
-    List<Control> controls = new ArrayList<>();
-    controls.add(assertControl);
+    Control assertControl = new LDAPControl("1.1.1.1.1.1", true);
+    List<Control> controls = newArrayList(assertControl);
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(
                               conn, InternalClientConnection.nextOperationID(),

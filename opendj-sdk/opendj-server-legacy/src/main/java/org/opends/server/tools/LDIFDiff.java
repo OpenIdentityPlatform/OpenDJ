@@ -25,6 +25,7 @@
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -71,10 +72,10 @@ import com.forgerock.opendj.cli.StringArgument;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
-
 
 /**
  * This class provides a program that may be used to determine the differences
@@ -759,8 +760,7 @@ public class LDIFDiff
    *                       change record.
    */
   private static boolean writeModify(LDIFWriter writer, Entry sourceEntry,
-                                     Entry targetEntry, Collection ignoreAttrs,
-                                     boolean singleValueChanges)
+      Entry targetEntry, Collection<String> ignoreAttrs, boolean singleValueChanges)
           throws IOException
   {
     // Create a list to hold the modifications that are found.
@@ -860,24 +860,20 @@ public class LDIFDiff
           else
           {
             // Compare the values.
-            AttributeBuilder addedValuesBuilder = new AttributeBuilder(
-                targetAttr);
+            AttributeBuilder addedValuesBuilder = new AttributeBuilder(targetAttr);
             addedValuesBuilder.removeAll(sourceAttr);
             Attribute addedValues = addedValuesBuilder.toAttribute();
             if (!addedValues.isEmpty())
             {
-              modifications.add(new Modification(ModificationType.ADD,
-                  addedValues));
+              modifications.add(new Modification(ModificationType.ADD, addedValues));
             }
 
-            AttributeBuilder deletedValuesBuilder = new AttributeBuilder(
-                sourceAttr);
+            AttributeBuilder deletedValuesBuilder = new AttributeBuilder(sourceAttr);
             deletedValuesBuilder.removeAll(targetAttr);
             Attribute deletedValues = deletedValuesBuilder.toAttribute();
             if (!deletedValues.isEmpty())
             {
-              modifications.add(new Modification(ModificationType.DELETE,
-                  deletedValues));
+              modifications.add(new Modification(ModificationType.DELETE, deletedValues));
             }
           }
         }
@@ -920,41 +916,37 @@ public class LDIFDiff
     {
       return false;
     }
-    else
-    {
-      if (singleValueChanges)
-      {
-        for (Modification m : modifications)
-        {
-          Attribute a = m.getAttribute();
-          if (a.isEmpty())
-          {
-            LinkedList<Modification> attrMods = new LinkedList<>();
-            attrMods.add(m);
-            writer.writeModifyChangeRecord(sourceEntry.getName(), attrMods);
-          }
-          else
-          {
-            LinkedList<Modification> attrMods = new LinkedList<>();
-            for (ByteString v : a)
-            {
-              AttributeBuilder builder = new AttributeBuilder(a, true);
-              builder.add(v);
-              Attribute attr = builder.toAttribute();
 
-              attrMods.clear();
-              attrMods.add(new Modification(m.getModificationType(), attr));
-              writer.writeModifyChangeRecord(sourceEntry.getName(), attrMods);
-            }
+    if (singleValueChanges)
+    {
+      for (Modification m : modifications)
+      {
+        Attribute a = m.getAttribute();
+        if (a.isEmpty())
+        {
+          writer.writeModifyChangeRecord(sourceEntry.getName(), newLinkedList(m));
+        }
+        else
+        {
+          LinkedList<Modification> attrMods = new LinkedList<>();
+          for (ByteString v : a)
+          {
+            AttributeBuilder builder = new AttributeBuilder(a, true);
+            builder.add(v);
+            Attribute attr = builder.toAttribute();
+
+            attrMods.clear();
+            attrMods.add(new Modification(m.getModificationType(), attr));
+            writer.writeModifyChangeRecord(sourceEntry.getName(), attrMods);
           }
         }
       }
-      else
-      {
-        writer.writeModifyChangeRecord(sourceEntry.getName(), modifications);
-      }
-
-      return true;
     }
+    else
+    {
+      writer.writeModifyChangeRecord(sourceEntry.getName(), modifications);
+    }
+
+    return true;
   }
 }

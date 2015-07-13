@@ -28,6 +28,7 @@ package org.opends.server.util;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
@@ -892,14 +893,13 @@ public class LDIFReader implements Closeable
       {
         attrBuilders = userAttrBuilders;
       }
-      List<AttributeBuilder> attrList = attrBuilders.get(attrType);
+
+      final List<AttributeBuilder> attrList = attrBuilders.get(attrType);
       if (attrList == null)
       {
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
         builder.add(attributeValue);
-        attrList = new ArrayList<>();
-        attrList.add(builder);
-        attrBuilders.put(attrType, attrList);
+        attrBuilders.put(attrType, newArrayList(builder));
         return;
       }
 
@@ -1705,40 +1705,32 @@ public class LDIFReader implements Closeable
       Map<AttributeType, List<Attribute>> attributes, AttributeType t,
       ByteString v, String n)
   {
-    List<Attribute> attrList = attributes.get(t);
+    final List<Attribute> attrList = attributes.get(t);
     if (attrList == null)
     {
-      attrList = new ArrayList<>();
-      attrList.add(Attributes.create(t, n, v));
-      attributes.put(t, attrList);
+      attributes.put(t, newArrayList(Attributes.create(t, n, v)));
+      return;
     }
-    else
+
+    for (int j = 0; j < attrList.size(); j++)
     {
-      boolean found = false;
-      for (int j = 0; j < attrList.size(); j++)
+      Attribute a = attrList.get(j);
+      if (a.hasOptions())
       {
-        Attribute a = attrList.get(j);
-
-        if (a.hasOptions())
-        {
-          continue;
-        }
-
-        if (!a.contains(v))
-        {
-          AttributeBuilder builder = new AttributeBuilder(a);
-          builder.add(v);
-          attrList.set(j, builder.toAttribute());
-        }
-
-        found = true;
-        break;
+        continue;
       }
 
-      if (!found)
+      if (!a.contains(v))
       {
-        attrList.add(Attributes.create(t, n, v));
+        AttributeBuilder builder = new AttributeBuilder(a);
+        builder.add(v);
+        attrList.set(j, builder.toAttribute());
       }
+
+      return;
     }
+
+    // not found
+    attrList.add(Attributes.create(t, n, v));
   }
 }

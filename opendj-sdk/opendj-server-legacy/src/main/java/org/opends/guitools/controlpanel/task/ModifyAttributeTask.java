@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,11 +40,11 @@ import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
@@ -52,7 +53,6 @@ import org.opends.server.types.Schema;
 /**
  * The task that is in charge of modifying an attribute definition (and all
  * the references to this attribute).
- *
  */
 public class ModifyAttributeTask extends Task
 {
@@ -248,8 +248,7 @@ public class ModifyAttributeTask extends Task
   private void updateSchema() throws OpenDsException
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    ArrayList<AttributeType> attrs = new ArrayList<>();
-    attrs.add(oldAttribute);
+    ArrayList<AttributeType> attrs = newArrayList(oldAttribute);
     LinkedHashSet<AttributeType> attrsToDelete =
       DeleteSchemaElementsTask.getOrderedAttributesToDelete(attrs, schema);
     LinkedHashSet<ObjectClass> ocsToDelete =

@@ -699,12 +699,10 @@ public class Entry
       }
     }
 
-    if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
-        (! objectClasses.isEmpty()))
+    if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME)
+        && !objectClasses.isEmpty())
     {
-      List<Attribute> attrList = new LinkedList<>();
-      attrList.add(getObjectClassAttribute());
-      return attrList;
+      return newLinkedList(getObjectClassAttribute());
     }
     return null;
   }
@@ -839,11 +837,9 @@ public class Entry
     }
 
     if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
-        ((options == null) || options.isEmpty()))
+        (options == null || options.isEmpty()))
     {
-      List<Attribute> attributes = new LinkedList<>();
-      attributes.add(getObjectClassAttribute());
-      return attributes;
+      return newLinkedList(getObjectClassAttribute());
     }
     return null;
   }
@@ -3136,19 +3132,14 @@ public class Entry
             attrList = operationalAttributes.get(attributeType);
             if (attrList == null || attrList.isEmpty())
             {
-              // There aren't any conflicts, so we can just add the
-              // attribute to the entry.
-              attrList = new LinkedList<>();
-              attrList.add(collectiveAttr);
-              putAttributes(attributeType, attrList);
+              // There aren't any conflicts, so we can just add the attribute to the entry.
+              putAttributes(attributeType, newLinkedList(collectiveAttr));
             }
             else
             {
-              // There is a conflict with an existing operational
-              // attribute.
+              // There is a conflict with an existing operational attribute.
               resolveCollectiveConflict(subEntry.getConflictBehavior(),
-                  collectiveAttr, attrList, operationalAttributes,
-                  attributeType);
+                  collectiveAttr, attrList, operationalAttributes, attributeType);
             }
           }
           else
@@ -3198,8 +3189,7 @@ public class Entry
     if (attrList.get(0).isVirtual())
     {
       // The existing attribute is already virtual,
-      // so we've got a different conflict, but
-      // we'll let the first win.
+      // so we've got a different conflict, but we'll let the first win.
       // FIXME -- Should we handle this differently?
       return;
     }
@@ -3214,13 +3204,10 @@ public class Entry
       break;
 
     case VIRTUAL_OVERRIDES_REAL:
-      // We need to move the real attribute to the
-      // suppressed list and replace it with the
-      // virtual attribute.
+      // We need to move the real attribute to the suppressed list
+      // and replace it with the virtual attribute.
       suppressedAttributes.put(attributeType, attrList);
-      attrList = new LinkedList<>();
-      attrList.add(collectiveAttr);
-      attributes.put(attributeType, attrList);
+      attributes.put(attributeType, newLinkedList(collectiveAttr));
       break;
 
     case MERGE_REAL_AND_VIRTUAL:
@@ -3240,9 +3227,7 @@ public class Entry
    */
   public void processVirtualAttributes()
   {
-    // Virtual attributes.
-    for (VirtualAttributeRule rule :
-         DirectoryServer.getVirtualAttributes(this))
+    for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes(this))
     {
       AttributeType attributeType = rule.getAttributeType();
       List<Attribute> attrList = userAttributes.get(attributeType);
@@ -3251,17 +3236,14 @@ public class Entry
         attrList = operationalAttributes.get(attributeType);
         if (attrList == null || attrList.isEmpty())
         {
-          // There aren't any conflicts, so we can just add the
-          // attribute to the entry.
-          attrList = new LinkedList<>();
-          attrList.add(new VirtualAttribute(attributeType, this, rule));
-          putAttributes(attributeType, attrList);
+          // There aren't any conflicts, so we can just add the attribute to the entry.
+          Attribute attr = new VirtualAttribute(attributeType, this, rule);
+          putAttributes(attributeType, newLinkedList(attr));
         }
         else
         {
           // There is a conflict with an existing operational attribute.
-          resolveVirtualConflict(rule, attrList, operationalAttributes,
-              attributeType);
+          resolveVirtualConflict(rule, attrList, operationalAttributes, attributeType);
         }
       }
       else
@@ -3312,9 +3294,8 @@ public class Entry
       // We need to move the real attribute to the suppressed
       // list and replace it with the virtual attribute.
       suppressedAttributes.put(attributeType, attrList);
-      attrList = new LinkedList<>();
-      attrList.add(new VirtualAttribute(attributeType, this, rule));
-      attributes.put(attributeType, attrList);
+      Attribute attr = new VirtualAttribute(attributeType, this, rule);
+      attributes.put(attributeType, newLinkedList(attr));
       break;
 
     case MERGE_REAL_AND_VIRTUAL:

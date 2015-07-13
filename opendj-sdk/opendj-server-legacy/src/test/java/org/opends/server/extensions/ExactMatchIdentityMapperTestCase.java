@@ -49,6 +49,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -804,8 +805,7 @@ public class ExactMatchIdentityMapperTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Create a modification to change the map attribute from uid to cn.
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("cn"));
+    ArrayList<ByteString> values = newArrayList(ByteString.valueOf("cn"));
 
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
@@ -883,8 +883,7 @@ public class ExactMatchIdentityMapperTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Create a modification to set the map base DN to "dc=example,dc=com".
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("dc=example,dc=com"));
+    ArrayList<ByteString> values = newArrayList(ByteString.valueOf("dc=example,dc=com"));
 
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,

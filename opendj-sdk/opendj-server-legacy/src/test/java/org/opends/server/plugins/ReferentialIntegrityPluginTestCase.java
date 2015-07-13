@@ -61,6 +61,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -1030,8 +1031,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private ModifyOperation
   addAttrEntry(DN dn, String attrName, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.ADD, Attributes.create(attrName, attrValStrings)));
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(ADD, Attributes.create(attrName, attrValStrings)));
     return getRootConnection().processModify(dn, mods);
   }
 
@@ -1043,8 +1044,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @param attrValStrings The values to replace in the the entry.
    */
   private ModifyOperation  replaceAttrEntry(DN dn, String attrName, String... attrValStrings) {
-    LinkedList<Modification> mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrName, attrValStrings)));
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(REPLACE, Attributes.create(attrName, attrValStrings)));
     return getRootConnection().processModify(dn, mods);
   }
 
