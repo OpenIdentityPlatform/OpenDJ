@@ -62,6 +62,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -421,7 +422,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       String attrType, String... values)
   {
     LDAPAttribute attr = new LDAPAttribute(attrType, Arrays.asList(values));
-    return newList((RawModification) new LDAPModification(modType, attr));
+    return newArrayList((RawModification) new LDAPModification(modType, attr));
   }
 
   @Test

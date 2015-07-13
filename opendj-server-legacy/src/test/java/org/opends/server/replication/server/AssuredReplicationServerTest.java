@@ -59,6 +59,7 @@ import static java.util.Arrays.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -320,7 +321,7 @@ public class AssuredReplicationServerTest
   {
     final int rsPort = getRsPort(rsId);
     final DomainFakeCfg fakeCfg = new DomainFakeCfg(
-        DN.valueOf(TEST_ROOT_DN_STRING), serverId, newSortedSet("localhost:" + rsPort),
+        DN.valueOf(TEST_ROOT_DN_STRING), serverId, newTreeSet("localhost:" + rsPort),
         getAssuredType(assuredMode),
         safeDataLevel, groupId, assuredTimeout, new TreeSet<String>());
     fakeCfg.setHeartbeatInterval(1000);
@@ -833,7 +834,7 @@ public class AssuredReplicationServerTest
 
         // Send our topo mesg
         RSInfo rsInfo = new RSInfo(serverId, fakeUrl, generationId, groupId, 1);
-        session.publish(new TopologyMsg(null, newList(rsInfo)));
+        session.publish(new TopologyMsg(null, newArrayList(rsInfo)));
 
         // Read topo msg
         TopologyMsg inTopoMsg = (TopologyMsg) session.receive();
@@ -908,7 +909,7 @@ public class AssuredReplicationServerTest
                   // Send the ack with timeout error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasTimeout(true);
-                  ackMsg.setFailedServers(newList(serverId + 10));
+                  ackMsg.setFailedServers(newArrayList(serverId + 10));
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -919,7 +920,7 @@ public class AssuredReplicationServerTest
                   // Send the ack with wrong status error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasWrongStatus(true);
-                  ackMsg.setFailedServers(newList(serverId + 10));
+                  ackMsg.setFailedServers(newArrayList(serverId + 10));
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -930,7 +931,7 @@ public class AssuredReplicationServerTest
                   // Send the ack with replay error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasReplayError(true);
-                  ackMsg.setFailedServers(newList(serverId + 10));
+                  ackMsg.setFailedServers(newArrayList(serverId + 10));
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -1389,7 +1390,7 @@ public class AssuredReplicationServerTest
       // Add each possible parameter as initial parameter lists
       for (Object possibleParameter : possibleParameters)
       {
-        newObjectArrayList.add(newList(possibleParameter));
+        newObjectArrayList.add(newArrayList(possibleParameter));
       }
       return newObjectArrayList;
     }

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 @SuppressWarnings("javadoc")
 public class CoreSchemaProviderTestCase extends CoreTestCase
@@ -71,7 +71,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
   public void testDisableSyntax() throws Exception
   {
     CoreSchemaCfg coreSchemaCfg = ConfigurationMock.mockCfg(CoreSchemaCfg.class);
-    when(coreSchemaCfg.getDisabledSyntax()).thenReturn(newSortedSet(DIRECTORY_STRING_SYNTAX_OID));
+    when(coreSchemaCfg.getDisabledSyntax()).thenReturn(newTreeSet(DIRECTORY_STRING_SYNTAX_OID));
     SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
@@ -84,7 +84,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
   public void testDisableMatchingRule() throws Exception
   {
     CoreSchemaCfg coreSchemaCfg = ConfigurationMock.mockCfg(CoreSchemaCfg.class);
-    when(coreSchemaCfg.getDisabledMatchingRule()).thenReturn(newSortedSet(GENERALIZED_TIME_MATCHING_RULE_OID));
+    when(coreSchemaCfg.getDisabledMatchingRule()).thenReturn(newTreeSet(GENERALIZED_TIME_MATCHING_RULE_OID));
     SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
     CoreSchemaProvider provider = new CoreSchemaProvider();

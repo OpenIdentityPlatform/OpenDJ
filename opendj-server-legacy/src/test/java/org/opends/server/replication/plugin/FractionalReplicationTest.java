@@ -51,6 +51,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -365,7 +366,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void createFakeReplicationDomain(boolean firstBackend,
       long generationId) throws Exception
   {
-    SortedSet<String> replicationServers = newSortedSet("localhost:" + replServerPort);
+    SortedSet<String> replicationServers = newTreeSet("localhost:" + replServerPort);
 
     DN baseDN = DN.valueOf(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
     replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 1000, generationId);

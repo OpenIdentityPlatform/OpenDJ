@@ -48,7 +48,6 @@ import static java.util.Collections.*;
 
 import static org.assertj.core.data.MapEntry.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.service.ReplicationBroker.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -721,7 +720,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1));
+        newHashSet(1));
     put(rsInfos,
         new RSInfo(12, "CwinnerHost:456", 0L, (byte)1, 1),
         EMPTY_SET);
@@ -745,10 +744,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "DwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1));
+        newHashSet(1));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(101));
+        newHashSet(101));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -768,10 +767,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "EwinnerHost:456", 0L, (byte)1, 1),
-        newSet(101));
+        newHashSet(101));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -791,10 +790,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1));
+        newHashSet(1));
     put(rsInfos,
         new RSInfo(12, "FwinnerHost:456", 0L, (byte)1, 2),
-        newSet(101));
+        newHashSet(101));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -815,10 +814,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1));
+        newHashSet(1));
     put(rsInfos,
         new RSInfo(12, "GwinnerHost:456", 0L, (byte)1, 2),
-        newSet(101, 102));
+        newHashSet(101, 102));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -839,10 +838,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "HwinnerHost:456", 0L, (byte)1, 2),
-        newSet(101, 102, 103, 104));
+        newHashSet(101, 102, 103, 104));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -863,13 +862,13 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1));
+        newHashSet(1));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 2),
-        newSet(101, 102));
+        newHashSet(101, 102));
     put(rsInfos,
         new RSInfo(13, "IwinnerHost:789", 0L, (byte)1, 3),
-        newSet(201, 202, 203));
+        newHashSet(201, 202, 203));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -889,13 +888,13 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "JwinnerHost:123", 0L, (byte)1, 5),
-        newSet(1, 2, 3));
+        newHashSet(1, 2, 3));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 3),
-        newSet(101, 102, 103, 104, 105));
+        newHashSet(101, 102, 103, 104, 105));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 2),
-        newSet(201));
+        newHashSet(201));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -919,10 +918,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1));
+        newHashSet(1));
     put(rsInfos,
         new RSInfo(12, "KwinnerHost:456", 0L, (byte)1, 1),
-        newSet(101));
+        newHashSet(101));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -942,7 +941,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "LwinnerHost:456", 0L, (byte)1, 1),
         EMPTY_SET);
@@ -966,7 +965,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "MwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
         EMPTY_SET);
@@ -990,16 +989,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
-        newSet(1, 2, 3, 4, 5, 6));
+        newHashSet(1, 2, 3, 4, 5, 6));
     put(rsInfos,
         new RSInfo(12, "NwinnerHost:456", 0L, (byte)1, 4),
-        newSet(101, 102, 103, 104, 105, 106, 107, 108));
+        newHashSet(101, 102, 103, 104, 105, 106, 107, 108));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(201, 202));
+        newHashSet(201, 202));
     put(rsInfos,
         new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
-        newSet(301, 302, 303, 304));
+        newHashSet(301, 302, 303, 304));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1023,16 +1022,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
-        newSet(1, 2, 3, 4));
+        newHashSet(1, 2, 3, 4));
     put(rsInfos,
         new RSInfo(12, "OwinnerHost:456", 0L, (byte)1, 4),
-        newSet(101, 102, 103, 104, 105, 106, 107, 108));
+        newHashSet(101, 102, 103, 104, 105, 106, 107, 108));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(201, 202));
+        newHashSet(201, 202));
     put(rsInfos,
         new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
-        newSet(301, 302, 303, 304, 305, 306));
+        newHashSet(301, 302, 303, 304, 305, 306));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1054,16 +1053,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "PwinnerHost:123", 0L, (byte)1, 3),
-        newSet(1, 2, 3, 4));
+        newHashSet(1, 2, 3, 4));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 4),
-        newSet(101, 102, 103, 104, 105, 106, 107, 108));
+        newHashSet(101, 102, 103, 104, 105, 106, 107, 108));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(201, 202));
+        newHashSet(201, 202));
     put(rsInfos,
         new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
-        newSet(306, 305, 304, 303, 302, 301));
+        newHashSet(306, 305, 304, 303, 302, 301));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1085,16 +1084,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
-        newSet(1, 2, 3, 4));
+        newHashSet(1, 2, 3, 4));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 4),
-        newSet(101, 102, 103, 104, 105, 106, 107, 108));
+        newHashSet(101, 102, 103, 104, 105, 106, 107, 108));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(201, 202));
+        newHashSet(201, 202));
     put(rsInfos,
         new RSInfo(14, "QwinnerHost:1011", 0L, (byte)1, 2),
-        newSet(306, 305, 304, 303, 302, 301));
+        newHashSet(306, 305, 304, 303, 302, 301));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1118,16 +1117,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte) 1, 3),
-        newSet(1, 2, 3, 4));
+        newHashSet(1, 2, 3, 4));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 4),
-        newSet(113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101));
+        newHashSet(113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(201, 202));
+        newHashSet(201, 202));
     put(rsInfos,
         new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
-        newSet(301));
+        newHashSet(301));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1151,10 +1150,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "RwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(3));
+        newHashSet(3));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1179,10 +1178,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "SwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(3));
+        newHashSet(3));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1205,13 +1204,13 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "TwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(3));
+        newHashSet(3));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(4));
+        newHashSet(4));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1234,13 +1233,13 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "UwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1, 2, 3));
+        newHashSet(1, 2, 3));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(4, 5));
+        newHashSet(4, 5));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
-        newSet(6, 7));
+        newHashSet(6, 7));
 
     testData[idx++] = new Object[] {
       rsInfos,
@@ -1261,10 +1260,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(3));
+        newHashSet(3));
     put(rsInfos,
         new RSInfo(13, "VwinnerHost:789", 0L, (byte)1, 1),
         EMPTY_SET);
@@ -1288,10 +1287,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     rsInfos = new HashMap<>();
     put(rsInfos,
         new RSInfo(11, "WwinnerHost:123", 0L, (byte)1, 1),
-        newSet(1, 2));
+        newHashSet(1, 2));
     put(rsInfos,
         new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
-        newSet(3));
+        newHashSet(3));
     put(rsInfos,
         new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
         EMPTY_SET);

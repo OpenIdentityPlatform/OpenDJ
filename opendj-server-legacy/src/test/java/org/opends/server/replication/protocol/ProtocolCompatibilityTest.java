@@ -51,9 +51,9 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -168,7 +168,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = newList(eattr1, eattr2);
+    List<Attribute> entryAttrList = newArrayList(eattr1, eattr2);
 
     return new Object[][] {
       {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
@@ -199,13 +199,13 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         "organization");
 
     Attribute attr = Attributes.create("o", "com");
-    List<Attribute> userAttributes = newList(attr);
+    List<Attribute> userAttributes = newArrayList(attr);
     HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
     attr = Attributes.create("creatorsName", "dc=creator");
-    List<Attribute> operationalAttributes = newList(attr);
+    List<Attribute> operationalAttributes = newArrayList(attr);
     HashMap<AttributeType, List<Attribute>> opList = new HashMap<>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
@@ -340,7 +340,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = newList(eattr1, eattr2);
+    List<Attribute> entryAttrList = newArrayList(eattr1, eattr2);
 
     return new Object[][] {
       {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
@@ -448,11 +448,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = newList(mod1);
+    List<Modification> mods1 = newArrayList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = newList(mod1, mod2);
+    List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
@@ -460,7 +460,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    List<Modification> mods3 = newList(mod3);
+    List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
@@ -471,12 +471,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     Attribute attr5 = Attributes.create("namingcontexts", "o=test");
     Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
-    List<Modification> mods5 = newList(mod5);
+    List<Modification> mods5 = newArrayList(mod5);
 
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = newList(eattr1, eattr2);
+    List<Attribute> entryAttrList = newArrayList(eattr1, eattr2);
 
     return new Object[][] {
         { csn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte) 0, null },
@@ -624,11 +624,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = newList(mod1);
+    List<Modification> mods1 = newArrayList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = newList(mod1, mod2);
+    List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
@@ -636,7 +636,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    List<Modification> mods3 = newList(mod3);
+    List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
@@ -648,7 +648,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = newList(eattr1, eattr2);
+    List<Attribute> entryAttrList = newArrayList(eattr1, eattr2);
 
     return new Object[][] {
         {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
@@ -915,7 +915,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createoldAckMsgData")
   public Object[][] createoldAckMsgData()
   {
-    List<Integer> fservers4 = newList(100, 2000, 30000);
+    List<Integer> fservers4 = newArrayList(100, 2000, 30000);
 
     return new Object[][] {
         {"05303030303031323366316535383832383030326430303030303037" +
@@ -969,16 +969,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider
   public Object[][] createTopologyData() throws Exception
   {
-    List<String> urls1 = newList(
+    List<String> urls1 = newArrayList(
         "ldap://ldap.iplanet.com/o=test??sub?(sn=Jensen)",
         "ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People,o=test?cn,mail,telephoneNumber");
 
-    List<String> urls2 = newList();
+    List<String> urls2 = newArrayList();
 
-    List<String> urls3 = newList(
+    List<String> urls3 = newArrayList(
         "ldaps://host:port/dc=foo??sub?(sn=One Entry)");
 
-    List<String> urls4 = newList(
+    List<String> urls4 = newArrayList(
         "ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)",
         "ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
@@ -994,17 +994,17 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     DSInfo dsInfo4 = new DSInfo(415, "", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    Set<DSInfo> dsList1 = newSet(dsInfo1);
-    Set<DSInfo> dsList2 = newSet();
-    Set<DSInfo> dsList3 = newSet(dsInfo2);
-    Set<DSInfo> dsList4 = newSet(dsInfo4, dsInfo3, dsInfo2, dsInfo1);
+    Set<DSInfo> dsList1 = newHashSet(dsInfo1);
+    Set<DSInfo> dsList2 = newHashSet();
+    Set<DSInfo> dsList3 = newHashSet(dsInfo2);
+    Set<DSInfo> dsList4 = newHashSet(dsInfo4, dsInfo3, dsInfo2, dsInfo1);
 
     RSInfo rsInfo1 = new RSInfo(4527, null, 45316, (byte)103, 1);
     RSInfo rsInfo2 = new RSInfo(4527, null, 0, (byte)0, 1);
     RSInfo rsInfo3 = new RSInfo(0, null, -21113, (byte)98, 1);
 
-    List<RSInfo> rsList1 = newList(rsInfo1);
-    List<RSInfo> rsList2 = newList(rsInfo1, rsInfo2, rsInfo3);
+    List<RSInfo> rsList1 = newArrayList(rsInfo1);
+    List<RSInfo> rsList2 = newArrayList(rsInfo1, rsInfo2, rsInfo3);
 
     return new Object[][] {
       {"1a01313300323600313534363331000300020c84026c6461703a2f2f6c6461702e697" +
@@ -1014,9 +1014,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
        "6c6570686f6e654e756d6265720001343532370034353331360067",dsList1, rsList1},
       {"1a0003343532370034353331360067343532370030000030002d32313131330062", dsList2, rsList2},
       {"1a012d34333600343933002d32323738393600020101f9f70001343532370034353331360067", dsList3, rsList1},
-      {"1a012d34333600343933002d32323738393600020101f9f70000", dsList3, newList()},
-      {"1a0001343532370034353331360067", newSet(), rsList1},
-      {"1a0000", newSet(), newList()},
+      {"1a012d34333600343933002d32323738393600020101f9f70000", dsList3, newArrayList()},
+      {"1a0001343532370034353331360067", newHashSet(), rsList1},
+      {"1a0000", newHashSet(), newArrayList()},
       {"1a0434313500313436003000040102020f026c646170733a2f2f686f73743a706f727" +
        "42f64633d666f6f626172313f3f7375623f28736e3d416e6f7468657220456e747279" +
        "203129006c646170733a2f2f686f73743a706f72742f64633d666f6f626172323f3f7" +

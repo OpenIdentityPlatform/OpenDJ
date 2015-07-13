@@ -29,11 +29,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.ModificationType.ADD;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.opends.server.TestCaseUtils.newSortedSet;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.types.Attributes.create;
 import static org.opends.server.types.IndexType.EQUALITY;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -148,12 +148,12 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     C backendCfg = createBackendCfg();
     when(backendCfg.dn()).thenReturn(testBaseDN);
     when(backendCfg.getBackendId()).thenReturn(backendTestName);
-    when(backendCfg.getBaseDN()).thenReturn(newSortedSet(testBaseDN));
+    when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(backendVlvIndexes);
 
     BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
-    when(indexCfg.getIndexType()).thenReturn(newSortedSet(IndexType.PRESENCE, IndexType.EQUALITY));
+    when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
     when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType(backendIndexes[0]));
     when(backendCfg.getBackendIndex(backendIndexes[0])).thenReturn(indexCfg);
 
@@ -992,7 +992,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     C backendCfg = createBackendCfg();
     when(backendCfg.dn()).thenReturn(testBaseDN);
     when(backendCfg.getBackendId()).thenReturn(backendTestName);
-    when(backendCfg.getBaseDN()).thenReturn(newSortedSet(testBaseDN));
+    when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
 

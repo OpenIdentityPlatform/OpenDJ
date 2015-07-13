@@ -59,7 +59,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.*;
-import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -227,7 +227,7 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationBroker createReplicationBroker(int dsId,
       ServerState state, long generationId) throws Exception
   {
-    SortedSet<String> replServers = newSortedSet("localhost:" + rs1Port);
+    SortedSet<String> replServers = newTreeSet("localhost:" + rs1Port);
     DomainFakeCfg fakeCfg = new DomainFakeCfg(EXAMPLE_DN_, dsId, replServers);
     fakeCfg.setHeartbeatInterval(0);
     fakeCfg.setChangetimeHeartbeatInterval(500);

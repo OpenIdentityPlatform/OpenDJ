@@ -50,6 +50,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -90,11 +91,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = newList(mod1);
+    List<Modification> mods1 = newArrayList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = newList(mod1, mod2);
+    List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
@@ -102,7 +103,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    List<Modification> mods3 = newList(mod3);
+    List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
@@ -113,7 +114,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr5 = Attributes.create("namingcontexts", TEST_ROOT_DN_STRING);
     Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
-    List<Modification> mods5 = newList(mod5);
+    List<Modification> mods5 = newArrayList(mod5);
 
     List<Attribute> eclIncludes = getEntryAttributes();
     return new Object[][] {
@@ -264,7 +265,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
   private List<Attribute> getEntryAttributes()
   {
-    return newList(
+    return newArrayList(
         Attributes.create("description", "eav description"),
         Attributes.create("namingcontexts", "eav naming contexts"));
   }
@@ -327,11 +328,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = newList(mod1);
+    List<Modification> mods1 = newArrayList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = newList(mod1, mod2);
+    List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
@@ -339,7 +340,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    List<Modification> mods3 = newList(mod3);
+    List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
@@ -443,13 +444,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     objectClassList.put(DirectoryServer.getObjectClass("organization"), "organization");
 
     Attribute attr = Attributes.create("o", "com");
-    List<Attribute> userAttributes = newList(attr);
+    List<Attribute> userAttributes = newArrayList(attr);
     Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
-    List<Attribute> operationalAttributes = newList(attr);
+    List<Attribute> operationalAttributes = newArrayList(attr);
     Map<AttributeType, List<Attribute>> opList = new HashMap<>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
@@ -555,10 +556,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
     CSN csn3 = new CSN(TimeThread.getTime(), 1234567, 45678);
 
-    List<Integer> fservers1 = newList(12345, -12345, 31657, -28456, 0);
-    List<Integer> fservers2 = newList();
-    List<Integer> fservers3 = newList(0);
-    List<Integer> fservers4 = newList(100, 2000, 30000, -100, -2000, -30000);
+    List<Integer> fservers1 = newArrayList(12345, -12345, 31657, -28456, 0);
+    List<Integer> fservers2 = newArrayList();
+    List<Integer> fservers3 = newArrayList(0);
+    List<Integer> fservers4 = newArrayList(100, 2000, 30000, -100, -2000, -30000);
 
     return new Object[][] {
         {csn1, true, false, false, fservers1},
@@ -781,20 +782,20 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider
   public Object[][] createTopologyData() throws Exception
   {
-    List<String> urls1 = newList(
+    List<String> urls1 = newArrayList(
         "ldap://ldap.iplanet.com/" + TEST_ROOT_DN_STRING + "??sub?(sn=Jensen)",
         "ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People,"
             + TEST_ROOT_DN_STRING + "?cn,mail,telephoneNumber");
-    List<String> urls2 = newList();
-    List<String> urls3 = newList("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
-    List<String> urls4 = newList(
+    List<String> urls2 = newArrayList();
+    List<String> urls3 = newArrayList("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
+    List<String> urls4 = newArrayList(
         "ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)",
         "ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
-    Set<String> a1 = newSet();
-    Set<String> a2 = newSet("dc");
-    Set<String> a3 = newSet("dc", "uid");
-    Set<String> a4 = newSet();
+    Set<String> a1 = newHashSet();
+    Set<String> a2 = newHashSet("dc");
+    Set<String> a3 = newHashSet("dc", "uid");
+    Set<String> a4 = newHashSet();
 
     DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
@@ -807,18 +808,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, 0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
-    List<DSInfo> dsList1 = newList(dsInfo1);
-    List<DSInfo> dsList2 = newList();
-    List<DSInfo> dsList3 = newList(dsInfo2);
-    List<DSInfo> dsList4 = newList(dsInfo5, dsInfo4, dsInfo3, dsInfo2, dsInfo1);
+    List<DSInfo> dsList1 = newArrayList(dsInfo1);
+    List<DSInfo> dsList2 = newArrayList();
+    List<DSInfo> dsList3 = newArrayList(dsInfo2);
+    List<DSInfo> dsList4 = newArrayList(dsInfo5, dsInfo4, dsInfo3, dsInfo2, dsInfo1);
 
     RSInfo rsInfo1 = new RSInfo(4527, "rsHost1:123", 45316, (byte)103, 1);
     RSInfo rsInfo2 = new RSInfo(4527, "rsHost2:456", 0, (byte)0, 1);
     RSInfo rsInfo3 = new RSInfo(0, "rsHost3:789", -21113, (byte)98, 1);
     RSInfo rsInfo4 = new RSInfo(45678, "rsHost4:1011", -21113, (byte)98, 1);
 
-    List<RSInfo> rsList1 = newList(rsInfo1);
-    List<RSInfo> rsList2 = newList(rsInfo1, rsInfo2, rsInfo3, rsInfo4);
+    List<RSInfo> rsList1 = newArrayList(rsInfo1);
+    List<RSInfo> rsList2 = newArrayList(rsInfo1, rsInfo2, rsInfo3, rsInfo4);
 
     return new Object[][] {
       {dsList1, rsList1},
@@ -876,9 +877,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=Fourth Entry)");
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=Fifth Entry)");
 
-    Set<String> a1 = newSet();
-    Set<String> a2 = newSet("dc");
-    Set<String> a3 = newSet("dc", "uid");
+    Set<String> a1 = newHashSet();
+    Set<String> a2 = newHashSet("dc");
+    Set<String> a3 = newHashSet("dc", "uid");
 
     return new Object[][]{
       {ServerStatus.NORMAL_STATUS, urls1, true, AssuredMode.SAFE_DATA_MODE, (byte)1, a1},
@@ -1174,12 +1175,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr = Attributes.create("o", "com");
     Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
-    userAttList.put(attr.getAttributeType(), newList(attr));
+    userAttList.put(attr.getAttributeType(), newArrayList(attr));
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
     Map<AttributeType, List<Attribute>> opList = new HashMap<>();
-    opList.put(attr.getAttributeType(), newList(attr));
+    opList.put(attr.getAttributeType(), newArrayList(attr));
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     DN dn = DN.valueOf(rawDN);
