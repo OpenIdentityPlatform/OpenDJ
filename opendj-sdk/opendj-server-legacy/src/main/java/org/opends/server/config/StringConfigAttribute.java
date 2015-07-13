@@ -26,7 +26,9 @@
  */
 package org.opends.server.config;
 
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -37,15 +39,12 @@ import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ConfigMessages.*;
+import org.opends.server.types.Attribute;
 
 /**
  * This class defines a string configuration attribute, which can hold zero or
@@ -330,11 +329,10 @@ public final class StringConfigAttribute
    */
   public List<String> pendingValues()
   {
-    if (! hasPendingValues())
+    if (!hasPendingValues())
     {
       return activeValues;
     }
-
     return pendingValues;
   }
 
@@ -350,10 +348,9 @@ public final class StringConfigAttribute
   public void setValue(String value)
          throws ConfigException
   {
-    if ((value == null) || (value.length() == 0))
+    if (value == null || value.length() == 0)
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
     }
 
     if (requiresAdminAction())
@@ -384,25 +381,22 @@ public final class StringConfigAttribute
          throws ConfigException
   {
     // First check if the set is empty and if that is allowed.
-    if ((values == null) || (values.isEmpty()))
+    if (values == null || values.isEmpty())
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
+      }
+
+      if (requiresAdminAction())
+      {
+        setPendingValues(new LinkedHashSet<ByteString>(0));
+        pendingValues = new ArrayList<>();
       }
       else
       {
-        if (requiresAdminAction())
-        {
-          setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<>();
-        }
-        else
-        {
-          setActiveValues(new LinkedHashSet<ByteString>(0));
-          activeValues.clear();
-        }
+        setActiveValues(new LinkedHashSet<ByteString>(0));
+        activeValues.clear();
       }
     }
 
@@ -411,9 +405,7 @@ public final class StringConfigAttribute
     int numValues = values.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
 
 
@@ -424,16 +416,13 @@ public final class StringConfigAttribute
     {
       if ((value == null) || (value.length() == 0))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       }
 
       ByteString attrValue = ByteString.valueOf(value);
       if (valueSet.contains(attrValue))
       {
-        LocalizableMessage message =
-            ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value));
       }
 
       valueSet.add(attrValue);
@@ -452,46 +441,6 @@ public final class StringConfigAttribute
       pendingValues = activeValues;
       setActiveValues(valueSet);
     }
-  }
-
-
-
-  /**
-   * Creates the appropriate value set with the provided value.
-   *
-   * @param  value  The value to use to create the value set.
-   *
-   * @return  The constructed value set.
-   */
-  private static LinkedHashSet<ByteString> getValueSet(String value)
-  {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
-    valueSet.add(ByteString.valueOf(value));
-    return valueSet;
-  }
-
-
-
-  /**
-   * Creates the appropriate value set with the provided values.
-   *
-   * @param  values  The values to use to create the value set.
-   *
-   * @return  The constructed value set.
-   */
-  private static LinkedHashSet<ByteString> getValueSet(List<String> values)
-  {
-    if (values == null)
-    {
-      return null;
-    }
-
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
-    for (String value : values)
-    {
-      valueSet.add(ByteString.valueOf(value));
-    }
-    return valueSet;
   }
 
 
@@ -559,50 +508,31 @@ public final class StringConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<ByteString>
-              stringsToValues(List<String> valueStrings,
-                              boolean allowFailures)
-         throws ConfigException
+  public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings, boolean allowFailures)
+      throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
       }
-      else
-      {
-        return new LinkedHashSet<>();
-      }
+      return new LinkedHashSet<>();
     }
-
 
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
-
 
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
-      if ((valueString == null) || (valueString.length() == 0))
+      if (valueString == null || valueString.length() == 0)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
-
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
+        continue;
       }
 
       valueSet.add(ByteString.valueOf(valueString));
@@ -611,16 +541,22 @@ public final class StringConfigAttribute
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
     // attribute and if so deal with it accordingly.
-    if ((isRequired()) && valueSet.isEmpty())
+    if (isRequired() && valueSet.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
     }
 
     return valueSet;
   }
 
-
+  private void reportError(boolean allowFailures, LocalizableMessage message) throws ConfigException
+  {
+    if (!allowFailures)
+    {
+      throw new ConfigException(message);
+    }
+    logger.error(message);
+  }
 
   /**
    * Converts the set of active values for this configuration attribute into a
@@ -656,10 +592,7 @@ public final class StringConfigAttribute
     {
       return pendingValues;
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -701,9 +634,7 @@ public final class StringConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName()));
           }
 
 
@@ -712,14 +643,10 @@ public final class StringConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
             }
-            else
-            {
-              // This is fine.  The pending value set can be empty.
-              pendingValues = new ArrayList<>(0);
-            }
+            // This is fine. The pending value set can be empty.
+            pendingValues = new ArrayList<>(0);
           }
           else
           {
@@ -743,9 +670,7 @@ public final class StringConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName()));
         }
       }
       else
@@ -754,9 +679,7 @@ public final class StringConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName()));
         }
 
 
@@ -765,14 +688,10 @@ public final class StringConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
           }
-          else
-          {
-            // This is fine.  The active value set can be empty.
-            activeValues = new ArrayList<>(0);
-          }
+          // This is fine. The active value set can be empty.
+          activeValues = new ArrayList<>(0);
         }
         else
         {
@@ -826,8 +745,8 @@ public final class StringConfigAttribute
    */
   private javax.management.Attribute _toJMXAttribute(boolean pending)
   {
-    List<String> requestedValues ;
-    String name ;
+    List<String> requestedValues;
+    String name;
     if (pending)
     {
         requestedValues = pendingValues ;
@@ -838,23 +757,19 @@ public final class StringConfigAttribute
         requestedValues = activeValues ;
         name = getName() ;
     }
+
     if (isMultiValued())
     {
-      String[] values = new String[requestedValues.size()];
-      requestedValues.toArray(values);
-
+      String[] values = requestedValues.toArray(new String[requestedValues.size()]);
       return new javax.management.Attribute(name, values);
+    }
+    else if (!requestedValues.isEmpty())
+    {
+      return new javax.management.Attribute(name, requestedValues.get(0));
     }
     else
     {
-      if (requestedValues.isEmpty())
-      {
-        return null;
-      }
-      else
-      {
-        return new javax.management.Attribute(name, requestedValues.get(0));
-      }
+      return null;
     }
   }
 
@@ -964,44 +879,14 @@ public final class StringConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    if (isMultiValued())
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   JMX_TYPE_STRING_ARRAY,
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, true, false));
-    }
-    else
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   String.class.getName(),
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, true, false));
-    }
-
+    attributeInfoList.add(new MBeanAttributeInfo(getName(), getType(),
+        String.valueOf(getDescription()), true, true, false));
 
     if (requiresAdminAction())
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
-
-      if (isMultiValued())
-      {
-        attributeInfoList.add(new MBeanAttributeInfo(name,
-                                                     JMX_TYPE_STRING_ARRAY,
-                                                     String.valueOf(
-                                                             getDescription()),
-                                                     true, false, false));
-      }
-      else
-      {
-        attributeInfoList.add(new MBeanAttributeInfo(name,
-                                                     String.class.getName(),
-                                                     String.valueOf(
-                                                             getDescription()),
-                                                     true, false, false));
-      }
+      attributeInfoList.add(new MBeanAttributeInfo(name, getType(),
+          String.valueOf(getDescription()), true, false, false));
     }
   }
 
@@ -1016,19 +901,13 @@ public final class StringConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    if (isMultiValued())
-    {
-      return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
-                                    String.valueOf(getDescription()));
-    }
-    else
-    {
-      return new MBeanParameterInfo(getName(), String.class.getName(),
-                                    String.valueOf(getDescription()));
-    }
+    return new MBeanParameterInfo(getName(), getType(), String.valueOf(getDescription()));
   }
 
-
+  private String getType()
+  {
+    return isMultiValued() ? JMX_TYPE_STRING_ARRAY : String.class.getName();
+  }
 
   /**
    * Attempts to set the value of this configuration attribute based on the
@@ -1108,4 +987,3 @@ public final class StringConfigAttribute
                                      activeValues, pendingValues);
   }
 }
-

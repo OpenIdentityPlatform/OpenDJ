@@ -592,17 +592,13 @@ public final class IntegerWithUnitConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<ByteString> getValueSet(long intValue,
-                                                           String unit)
+  private static LinkedHashSet<ByteString> getValueSet(long intValue, String unit)
   {
-    if (unit == null)
+    if (unit != null)
     {
-      return null;
+      return getValueSet(intValue + " " + unit);
     }
-
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
-    valueSet.add(ByteString.valueOf(intValue + " " + unit));
-    return valueSet;
+    return null;
   }
 
 
@@ -760,57 +756,33 @@ public final class IntegerWithUnitConfigAttribute
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
       }
-      else
-      {
-        return new LinkedHashSet<>();
-      }
+      return new LinkedHashSet<>();
     }
 
 
     int numValues = valueStrings.size();
     if ((! isMultiValued()) && (numValues > 1))
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
 
 
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
     {
-      if ((valueString == null) || (valueString.length() == 0))
+      if (valueString == null || valueString.length() == 0)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName());
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
+        continue;
       }
 
-
       StringBuilder rejectReason = new StringBuilder();
-      if (! valueIsAcceptable(valueString.toLowerCase(), rejectReason))
+      if (!valueIsAcceptable(valueString.toLowerCase(), rejectReason))
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT.get(
-                valueString, getName(), rejectReason);
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_INVALID_VALUE_WITH_UNIT.get(valueString, getName(), rejectReason));
+        continue;
       }
 
       valueSet.add(ByteString.valueOf(valueString));
@@ -822,15 +794,21 @@ public final class IntegerWithUnitConfigAttribute
     // attribute and if so deal with it accordingly.
     if ((isRequired()) && valueSet.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
     }
 
 
     return valueSet;
   }
 
-
+  private void reportError(boolean allowFailures, LocalizableMessage message) throws ConfigException
+  {
+    if (!allowFailures)
+    {
+      throw new ConfigException(message);
+    }
+    logger.error(message);
+  }
 
   /**
    * Converts the set of active values for this configuration attribute into a
@@ -908,86 +886,30 @@ public final class IntegerWithUnitConfigAttribute
       if (a.hasOptions())
       {
         // This must be the pending value.
-        if (a.hasOption(OPTION_PENDING_VALUES))
+        if (!a.hasOption(OPTION_PENDING_VALUES))
         {
-          if (pendingUnit != null)
-          {
-            // We cannot have multiple pending value sets.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
-            throw new ConfigException(message);
-          }
-
-
-          if (a.isEmpty())
-          {
-            // This is illegal -- it must have a value.
-            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-            throw new ConfigException(message);
-          }
-          else
-          {
-            Iterator<ByteString> iterator = a.iterator();
-            String valueString = iterator.next().toString();
-            if (iterator.hasNext())
-            {
-              // This is illegal -- the attribute is single-valued.
-              LocalizableMessage message =
-                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
-              throw new ConfigException(message);
-            }
-
-            try
-            {
-              int spacePos = valueString.indexOf(' ');
-              pendingIntValue =
-                   Long.parseLong(valueString.substring(0, spacePos));
-              pendingUnit = valueString.substring(spacePos+1).trim();
-            }
-            catch (Exception e)
-            {
-              throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.
-                  get(valueString, a.getName(), e));
-            }
-
-
-            // Get the unit and use it to determine the corresponding
-            // multiplier.
-            if (! units.containsKey(pendingUnit))
-            {
-              LocalizableMessage message =
-                  ERR_CONFIG_ATTR_INVALID_UNIT.get(pendingUnit, a.getName());
-              throw new ConfigException(message);
-            }
-
-            double multiplier = units.get(activeUnit);
-            pendingCalculatedValue = (long) (multiplier * pendingIntValue);
-
-
-            // Check the bounds set for this attribute.
-            if (hasLowerBound && (pendingCalculatedValue < lowerBound))
-            {
-              LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
-                  a.getName(), pendingCalculatedValue, lowerBound);
-              throw new ConfigException(message);
-            }
-
-            if (hasUpperBound && (pendingCalculatedValue > upperBound))
-            {
-              LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
-                  a.getName(), pendingCalculatedValue, upperBound);
-              throw new ConfigException(message);
-            }
-          }
+          // This is illegal -- only the pending option is allowed for configuration attributes.
+          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName()));
         }
-        else
+        if (pendingUnit != null)
         {
-          // This is illegal -- only the pending option is allowed for
-          // configuration attributes.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName());
-          throw new ConfigException(message);
+          // We cannot have multiple pending value sets.
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName()));
         }
+
+        String valueString = getValue(a);
+        try
+        {
+          int spacePos = valueString.indexOf(' ');
+          pendingIntValue = Long.parseLong(valueString.substring(0, spacePos));
+          pendingUnit = valueString.substring(spacePos + 1).trim();
+        }
+        catch (Exception e)
+        {
+          throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(valueString, a.getName(), e));
+        }
+
+        pendingCalculatedValue = calculateValue(pendingIntValue, activeUnit, pendingUnit, a);
       }
       else
       {
@@ -995,79 +917,29 @@ public final class IntegerWithUnitConfigAttribute
         if (activeUnit != null)
         {
           // We cannot have multiple active value sets.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName()));
         }
 
-
-        if (a.isEmpty())
+        String valueString = getValue(a);
+        try
         {
-          // This is illegal -- it must have a value.
-          LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-          throw new ConfigException(message);
+          int spacePos = valueString.indexOf(' ');
+          activeIntValue = Long.parseLong(valueString.substring(0, spacePos));
+          activeUnit = valueString.substring(spacePos + 1).trim();
         }
-        else
+        catch (Exception e)
         {
-          Iterator<ByteString> iterator = a.iterator();
-          String valueString = iterator.next().toString();
-          if (iterator.hasNext())
-          {
-            // This is illegal -- the attribute is single-valued.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName());
-            throw new ConfigException(message);
-          }
-
-          try
-          {
-            int spacePos = valueString.indexOf(' ');
-            activeIntValue =
-                 Long.parseLong(valueString.substring(0, spacePos));
-            activeUnit = valueString.substring(spacePos+1).trim();
-          }
-          catch (Exception e)
-          {
-            throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
-                valueString, a.getName(), e));
-          }
-
-
-          // Get the unit and use it to determine the corresponding multiplier.
-          if (! units.containsKey(activeUnit))
-          {
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_INVALID_UNIT.get(activeUnit, a.getName());
-            throw new ConfigException(message);
-          }
-
-          double multiplier = units.get(activeUnit);
-          activeCalculatedValue = (long) (multiplier * activeIntValue);
-
-
-          // Check the bounds set for this attribute.
-          if (hasLowerBound && (activeCalculatedValue < lowerBound))
-          {
-            LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
-                a.getName(), activeCalculatedValue, lowerBound);
-            throw new ConfigException(message);
-          }
-
-          if (hasUpperBound && (activeCalculatedValue > upperBound))
-          {
-            LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
-                a.getName(), activeCalculatedValue, upperBound);
-            throw new ConfigException(message);
-          }
+          throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(valueString, a.getName(), e));
         }
+
+        activeCalculatedValue = calculateValue(activeIntValue, activeUnit, activeUnit, a);
       }
     }
 
     if (activeUnit == null)
     {
       // This is not OK.  The value set must contain an active value.
-      LocalizableMessage message = ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_NO_ACTIVE_VALUE_SET.get(getName()));
     }
 
     if (pendingUnit == null)
@@ -1086,7 +958,46 @@ public final class IntegerWithUnitConfigAttribute
                                               pendingIntValue, pendingUnit);
   }
 
+  private String getValue(Attribute a) throws ConfigException
+  {
+    if (a.isEmpty())
+    {
+      // This is illegal -- it must have a value.
+      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
+    }
 
+    Iterator<ByteString> iterator = a.iterator();
+    String valueString = iterator.next().toString();
+    if (iterator.hasNext())
+    {
+      // This is illegal -- the attribute is single-valued.
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
+    }
+    return valueString;
+  }
+
+  private long calculateValue(long intValue, String activeUnit, String pendingUnit, Attribute a) throws ConfigException
+  {
+    // Get the unit and use it to determine the corresponding multiplier.
+    if (!units.containsKey(pendingUnit))
+    {
+      throw new ConfigException(ERR_CONFIG_ATTR_INVALID_UNIT.get(pendingUnit, a.getName()));
+    }
+
+    double multiplier = units.get(activeUnit);
+    final long result = (long) (multiplier * intValue);
+
+    // Check the bounds set for this attribute.
+    if (hasLowerBound && result < lowerBound)
+    {
+      throw new ConfigException(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(a.getName(), result, lowerBound));
+    }
+    if (hasUpperBound && result > upperBound)
+    {
+      throw new ConfigException(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(a.getName(), result, upperBound));
+    }
+    return result;
+  }
 
   /**
    * Retrieves a JMX attribute containing the active value set for this

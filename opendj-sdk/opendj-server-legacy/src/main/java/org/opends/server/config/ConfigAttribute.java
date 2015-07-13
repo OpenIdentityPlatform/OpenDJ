@@ -25,22 +25,22 @@
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ConfigMessages.*;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.ByteString;
 
-import static org.opends.messages.ConfigMessages.*;
 /**
  * This class defines a configuration attribute, which can hold zero or more
  * values associated with a configurable property within the Directory Server.
@@ -341,10 +341,7 @@ public abstract class ConfigAttribute
     {
       return pendingValues;
     }
-    else
-    {
-      return activeValues;
-    }
+    return activeValues;
   }
 
 
@@ -389,27 +386,23 @@ public abstract class ConfigAttribute
     {
       if (isRequired)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(name);
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(name));
+      }
+
+      if (requiresAdminAction)
+      {
+        pendingValues = notNull(values);
+        hasPendingValues = true;
       }
       else
       {
-        if (requiresAdminAction)
-        {
-          pendingValues = notNull(values);
+        activeValues = notNull(values);
 
-          hasPendingValues = true;
-        }
-        else
-        {
-          activeValues = notNull(values);
-
-          pendingValues    = activeValues;
-          hasPendingValues = false;
-        }
-
-        return;
+        pendingValues = activeValues;
+        hasPendingValues = false;
       }
+
+      return;
     }
 
 
@@ -880,5 +873,40 @@ public abstract class ConfigAttribute
    * @return  A duplicate of this configuration attribute.
    */
   public abstract ConfigAttribute duplicate();
-}
 
+  /**
+   * Creates the appropriate value set with the provided value.
+   *
+   * @param value
+   *          The value to use to create the value set.
+   * @return The value set constructed from the provided value.
+   */
+  static LinkedHashSet<ByteString> getValueSet(String value)
+  {
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
+    valueSet.add(ByteString.valueOf(value));
+    return valueSet;
+  }
+
+  /**
+   * Creates the appropriate value set with the provided values.
+   *
+   * @param values
+   *          The values to use to create the value set.
+   * @return The constructed value set.
+   */
+  static LinkedHashSet<ByteString> getValueSet(List<String> values)
+  {
+    if (values == null)
+    {
+      return null;
+    }
+
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
+    for (String value : values)
+    {
+      valueSet.add(ByteString.valueOf(value));
+    }
+    return valueSet;
+  }
+}

@@ -26,8 +26,6 @@
  */
 package org.opends.server.config;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -37,14 +35,16 @@ import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
 import org.opends.server.util.CollectionUtils;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.config.ConfigConstants.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 /**
  * This class defines an integer configuration attribute, which can hold zero or
@@ -64,23 +64,16 @@ public final class IntegerConfigAttribute
 
   /** The set of active values for this attribute. */
   private List<Long> activeValues;
-
   /** The set of pending values for this attribute. */
   private List<Long> pendingValues;
-
   /** Indicates whether this attribute will impose a lower bound for its values. */
   private boolean hasLowerBound;
-
   /** Indicates whether this attribute will impose an upper bound for its values. */
   private boolean hasUpperBound;
-
   /** The lower bound for values of this attribute. */
   private long lowerBound;
-
   /** The upper bound for values of this attribute. */
   private long upperBound;
-
-
 
   /**
    * Creates a new integer configuration attribute stub with the provided
@@ -114,7 +107,6 @@ public final class IntegerConfigAttribute
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction);
 
-
     this.hasLowerBound = hasLowerBound;
     this.lowerBound    = lowerBound;
     this.hasUpperBound = hasUpperBound;
@@ -123,8 +115,6 @@ public final class IntegerConfigAttribute
     activeValues  = new ArrayList<>();
     pendingValues = activeValues;
   }
-
-
 
   /**
    * Creates a new integer configuration attribute with the provided
@@ -159,8 +149,7 @@ public final class IntegerConfigAttribute
                                 long value)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
-          getValueSet(value));
-
+          getLongValueSet(value));
 
     this.hasLowerBound = hasLowerBound;
     this.lowerBound    = lowerBound;
@@ -170,8 +159,6 @@ public final class IntegerConfigAttribute
     activeValues = CollectionUtils.newArrayList(value);
     pendingValues = activeValues;
   }
-
-
 
   /**
    * Creates a new integer configuration attribute with the provided
@@ -206,8 +193,7 @@ public final class IntegerConfigAttribute
                                 List<Long> values)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
-          getValueSet(values));
-
+          getLongValueSet(values));
 
     this.hasLowerBound = hasLowerBound;
     this.lowerBound    = lowerBound;
@@ -217,8 +203,6 @@ public final class IntegerConfigAttribute
     activeValues  = values != null ? values : new ArrayList<Long>();
     pendingValues = activeValues;
   }
-
-
 
   /**
    * Creates a new integer configuration attribute with the provided
@@ -256,9 +240,8 @@ public final class IntegerConfigAttribute
                                 List<Long> pendingValues)
   {
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
-          getValueSet(activeValues), (pendingValues != null),
-          getValueSet(pendingValues));
-
+          getLongValueSet(activeValues), (pendingValues != null),
+          getLongValueSet(pendingValues));
 
     this.hasLowerBound = hasLowerBound;
     this.lowerBound    = lowerBound;
@@ -284,8 +267,6 @@ public final class IntegerConfigAttribute
     }
   }
 
-
-
   /**
    * Retrieves the name of the data type for this configuration attribute.  This
    * is for informational purposes (e.g., inclusion in method signatures and
@@ -299,8 +280,6 @@ public final class IntegerConfigAttribute
     return "Integer";
   }
 
-
-
   /**
    * Retrieves the attribute syntax for this configuration attribute.
    *
@@ -310,8 +289,6 @@ public final class IntegerConfigAttribute
   {
     return DirectoryServer.getDefaultIntegerSyntax();
   }
-
-
 
   /**
    * Retrieves the active value for this configuration attribute as a long.
@@ -325,7 +302,7 @@ public final class IntegerConfigAttribute
   public long activeValue()
          throws ConfigException
   {
-    if ((activeValues == null) || activeValues.isEmpty())
+    if (activeValues == null || activeValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
       throw new ConfigException(message);
@@ -339,8 +316,6 @@ public final class IntegerConfigAttribute
 
     return activeValues.get(0);
   }
-
-
 
   /**
    * Retrieves the active value for this configuration attribute as an integer.
@@ -357,7 +332,7 @@ public final class IntegerConfigAttribute
   public int activeIntValue()
          throws ConfigException
   {
-    if ((activeValues == null) || activeValues.isEmpty())
+    if (activeValues == null || activeValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
       throw new ConfigException(message);
@@ -382,8 +357,6 @@ public final class IntegerConfigAttribute
     }
   }
 
-
-
   /**
    * Retrieves the set of active values for this configuration attribute.
    *
@@ -393,8 +366,6 @@ public final class IntegerConfigAttribute
   {
     return activeValues;
   }
-
-
 
   /**
    * Retrieves the pending value for this configuration attribute as a long.
@@ -415,7 +386,7 @@ public final class IntegerConfigAttribute
       return activeValue();
     }
 
-    if ((pendingValues == null) || pendingValues.isEmpty())
+    if (pendingValues == null || pendingValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
       throw new ConfigException(message);
@@ -429,8 +400,6 @@ public final class IntegerConfigAttribute
 
     return pendingValues.get(0);
   }
-
-
 
   /**
    * Retrieves the pending value for this configuration attribute as an integer.
@@ -453,7 +422,7 @@ public final class IntegerConfigAttribute
       return activeIntValue();
     }
 
-    if ((pendingValues == null) || pendingValues.isEmpty())
+    if (pendingValues == null || pendingValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_INT_VALUE.get(getName());
       throw new ConfigException(message);
@@ -478,8 +447,6 @@ public final class IntegerConfigAttribute
     }
   }
 
-
-
   /**
    * Retrieves the set of pending values for this configuration attribute.  If
    * there are no pending values, then the set of active values will be
@@ -497,8 +464,6 @@ public final class IntegerConfigAttribute
     return pendingValues;
   }
 
-
-
   /**
    * Indicates whether a lower bound will be enforced for the value of this
    * configuration attribute.
@@ -512,8 +477,6 @@ public final class IntegerConfigAttribute
     return hasLowerBound;
   }
 
-
-
   /**
    * Retrieves the lower bound for the value of this configuration attribute.
    *
@@ -523,8 +486,6 @@ public final class IntegerConfigAttribute
   {
     return lowerBound;
   }
-
-
 
   /**
    * Indicates whether an upper bound will be enforced for the calculated value
@@ -539,8 +500,6 @@ public final class IntegerConfigAttribute
     return hasUpperBound;
   }
 
-
-
   /**
    * Retrieves the upper bound for the calculated value of this configuration
    * attribute.
@@ -553,8 +512,6 @@ public final class IntegerConfigAttribute
     return upperBound;
   }
 
-
-
   /**
    * Sets the value for this integer configuration attribute.
    *
@@ -565,14 +522,14 @@ public final class IntegerConfigAttribute
   public void setValue(long value)
          throws ConfigException
   {
-    if (hasLowerBound && (value < lowerBound))
+    if (hasLowerBound && value < lowerBound)
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
           getName(), value, lowerBound);
       throw new ConfigException(message);
     }
 
-    if (hasUpperBound && (value > upperBound))
+    if (hasUpperBound && value > upperBound)
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
           getName(), value, upperBound);
@@ -582,18 +539,16 @@ public final class IntegerConfigAttribute
     if (requiresAdminAction())
     {
       pendingValues = CollectionUtils.newArrayList(value);
-      setPendingValues(getValueSet(value));
+      setPendingValues(getLongValueSet(value));
     }
     else
     {
       activeValues.clear();
       activeValues.add(value);
       pendingValues = activeValues;
-      setActiveValues(getValueSet(value));
+      setActiveValues(getLongValueSet(value));
     }
   }
-
-
 
   /**
    * Sets the values for this integer configuration attribute.
@@ -607,52 +562,47 @@ public final class IntegerConfigAttribute
          throws ConfigException
   {
     // First check if the set is empty and if that is allowed.
-    if ((values == null) || (values.isEmpty()))
+    if (values == null || values.isEmpty())
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
+      }
+
+      if (requiresAdminAction())
+      {
+        setPendingValues(new LinkedHashSet<ByteString>(0));
+        pendingValues = new ArrayList<>();
       }
       else
       {
-        if (requiresAdminAction())
-        {
-          setPendingValues(new LinkedHashSet<ByteString>(0));
-          pendingValues = new ArrayList<>();
-        }
-        else
-        {
-          setActiveValues(new LinkedHashSet<ByteString>(0));
-          activeValues.clear();
-        }
+        setActiveValues(new LinkedHashSet<ByteString>(0));
+        activeValues.clear();
       }
     }
 
-
     // Next check if the set contains multiple values and if that is allowed.
     int numValues = values.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
       LocalizableMessage message =
           ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
       throw new ConfigException(message);
     }
 
-
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (long value : values)
     {
-      if (hasLowerBound && (value < lowerBound))
+      if (hasLowerBound && value < lowerBound)
       {
         LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
             getName(), value, lowerBound);
         throw new ConfigException(message);
       }
 
-      if (hasUpperBound && (value > upperBound))
+      if (hasUpperBound && value > upperBound)
       {
         LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
             getName(), value, upperBound);
@@ -671,7 +621,6 @@ public final class IntegerConfigAttribute
       valueSet.add(attrValue);
     }
 
-
     // Apply this value set to the new active or pending value set.
     if (requiresAdminAction())
     {
@@ -686,8 +635,6 @@ public final class IntegerConfigAttribute
     }
   }
 
-
-
   /**
    * Creates the appropriate value set with the provided value.
    *
@@ -695,14 +642,10 @@ public final class IntegerConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<ByteString> getValueSet(long value)
+  private static LinkedHashSet<ByteString> getLongValueSet(long value)
   {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
-    valueSet.add(ByteString.valueOf(String.valueOf(value)));
-    return valueSet;
+    return getValueSet(String.valueOf(value));
   }
-
-
 
   /**
    * Creates the appropriate value set with the provided values.
@@ -711,7 +654,7 @@ public final class IntegerConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<ByteString> getValueSet(List<Long> values)
+  private static LinkedHashSet<ByteString> getLongValueSet(List<Long> values)
   {
     if (values == null)
     {
@@ -725,8 +668,6 @@ public final class IntegerConfigAttribute
     }
     return valueSet;
   }
-
-
 
   /**
    * Applies the set of pending values, making them the active values for this
@@ -743,8 +684,6 @@ public final class IntegerConfigAttribute
     super.applyPendingValues();
     activeValues = pendingValues;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in this
@@ -776,28 +715,24 @@ public final class IntegerConfigAttribute
       return false;
     }
 
-
     // Perform any necessary bounds checking.
-    if (hasLowerBound && (longValue < lowerBound))
+    if (hasLowerBound && longValue < lowerBound)
     {
       rejectReason.append(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
               getName(), longValue, lowerBound));
       return false;
     }
 
-    if (hasUpperBound && (longValue > upperBound))
+    if (hasUpperBound && longValue > upperBound)
     {
       rejectReason.append(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
               getName(), longValue, upperBound));
       return false;
     }
 
-
     // If we've gotten here, then the value must be acceptable.
     return true;
   }
-
-
 
   /**
    * Converts the provided set of strings to a corresponding set of attribute
@@ -822,28 +757,20 @@ public final class IntegerConfigAttribute
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       if (isRequired())
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
       }
-      else
-      {
-        return new LinkedHashSet<>();
-      }
+      return new LinkedHashSet<>();
     }
-
 
     int numValues = valueStrings.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
-
 
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String valueString : valueStrings)
@@ -857,70 +784,43 @@ public final class IntegerConfigAttribute
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                valueString, getName(), e);
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(valueString, getName(), e));
+        continue;
       }
 
-
-      if (hasLowerBound && (longValue < lowerBound))
+      if (hasLowerBound && longValue < lowerBound)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
-                getName(), longValue, lowerBound);
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(getName(), longValue, lowerBound));
+        continue;
       }
-
-
-      if (hasUpperBound && (longValue > upperBound))
+      if (hasUpperBound && longValue > upperBound)
       {
-        LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
-                getName(), longValue, upperBound);
-
-        if (allowFailures)
-        {
-          logger.error(message);
-          continue;
-        }
-        else
-        {
-          throw new ConfigException(message);
-        }
+        reportError(allowFailures, ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(getName(), longValue, upperBound));
+        continue;
       }
 
       valueSet.add(ByteString.valueOf(valueString));
     }
 
-
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
     // attribute and if so deal with it accordingly.
-    if ((isRequired()) && valueSet.isEmpty())
+    if (isRequired() && valueSet.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
     }
-
 
     return valueSet;
   }
 
-
+  private void reportError(boolean allowFailures, LocalizableMessage message) throws ConfigException
+  {
+    if (!allowFailures)
+    {
+      throw new ConfigException(message);
+    }
+    logger.error(message);
+  }
 
   /**
    * Converts the set of active values for this configuration attribute into a
@@ -936,8 +836,6 @@ public final class IntegerConfigAttribute
   {
     return toListOfString(activeValues);
   }
-
-
 
   /**
    * Converts the set of pending values for this configuration attribute into a
@@ -956,29 +854,18 @@ public final class IntegerConfigAttribute
     {
       return toListOfString(pendingValues);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
-
-
-  /**
-   * @param pendingValues2
-   * @return
-   */
-  private List<String> toListOfString(List<Long> pendingValues2)
+  private List<String> toListOfString(List<Long> values)
   {
-    ArrayList<String> valueStrings = new ArrayList<>(pendingValues2.size());
-    for (long l : pendingValues2)
+    ArrayList<String> results = new ArrayList<>(values.size());
+    for (long l : values)
     {
-      valueStrings.add(String.valueOf(l));
+      results.add(String.valueOf(l));
     }
-    return valueStrings;
+    return results;
   }
-
-
 
   /**
    * Retrieves a new configuration attribute of this type that will contain the
@@ -1022,7 +909,6 @@ public final class IntegerConfigAttribute
             throw new ConfigException(message);
           }
 
-
           if (a.isEmpty())
           {
             if (isRequired())
@@ -1040,7 +926,7 @@ public final class IntegerConfigAttribute
           else
           {
             int numValues = a.size();
-            if ((numValues > 1) && (! isMultiValued()))
+            if (numValues > 1 && !isMultiValued())
             {
               // This is illegal -- the attribute is single-valued.
               LocalizableMessage message =
@@ -1063,16 +949,15 @@ public final class IntegerConfigAttribute
                 throw new ConfigException(message, e);
               }
 
-
               // Check the bounds set for this attribute.
-              if (hasLowerBound && (longValue < lowerBound))
+              if (hasLowerBound && longValue < lowerBound)
               {
                 LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
                     a.getName(), longValue, lowerBound);
                 throw new ConfigException(message);
               }
 
-              if (hasUpperBound && (longValue > upperBound))
+              if (hasUpperBound && longValue > upperBound)
               {
                 LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
                     a.getName(), longValue, upperBound);
@@ -1104,7 +989,6 @@ public final class IntegerConfigAttribute
           throw new ConfigException(message);
         }
 
-
         if (a.isEmpty())
         {
           if (isRequired())
@@ -1122,7 +1006,7 @@ public final class IntegerConfigAttribute
         else
         {
           int numValues = a.size();
-          if ((numValues > 1) && (! isMultiValued()))
+          if (numValues > 1 && !isMultiValued())
           {
             // This is illegal -- the attribute is single-valued.
             LocalizableMessage message =
@@ -1145,16 +1029,15 @@ public final class IntegerConfigAttribute
               throw new ConfigException(message, e);
             }
 
-
             // Check the bounds set for this attribute.
-            if (hasLowerBound && (longValue < lowerBound))
+            if (hasLowerBound && longValue < lowerBound)
             {
               LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
                   a.getName(), longValue, lowerBound);
               throw new ConfigException(message);
             }
 
-            if (hasUpperBound && (longValue > upperBound))
+            if (hasUpperBound && longValue > upperBound)
             {
               LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
                   a.getName(), longValue, upperBound);
@@ -1180,14 +1063,11 @@ public final class IntegerConfigAttribute
       pendingValues = activeValues;
     }
 
-
     return new IntegerConfigAttribute(getName(), getDescription(), isRequired(),
                                       isMultiValued(), requiresAdminAction(),
                                       hasLowerBound, lowerBound, hasUpperBound,
                                       upperBound, activeValues, pendingValues);
   }
-
-
 
   /**
    * Retrieves a JMX attribute containing the value set for this
@@ -1224,19 +1104,15 @@ public final class IntegerConfigAttribute
 
       return new javax.management.Attribute(name, values);
     }
+    else if (requestedValues.isEmpty())
+    {
+      return null;
+    }
     else
     {
-      if (requestedValues.isEmpty())
-      {
-        return null;
-      }
-      else
-      {
-        return new javax.management.Attribute(name, requestedValues.get(0));
-      }
+      return new javax.management.Attribute(name, requestedValues.get(0));
     }
   }
-
 
   /**
    * Retrieves a JMX attribute containing the active value set for this
@@ -1247,9 +1123,9 @@ public final class IntegerConfigAttribute
    *          any active values.
    */
   public javax.management.Attribute toJMXAttribute()
-    {
-        return _toJMXAttribute(false);
-    }
+  {
+    return _toJMXAttribute(false);
+  }
 
   /**
    * Retrieves a JMX attribute containing the pending value set for this
@@ -1262,8 +1138,6 @@ public final class IntegerConfigAttribute
   {
       return _toJMXAttribute(true);
   }
-
-
 
   /**
    * Adds information about this configuration attribute to the provided JMX
@@ -1309,9 +1183,9 @@ public final class IntegerConfigAttribute
       }
     }
 
-
-    if (requiresAdminAction() && (pendingValues != null) &&
-        (pendingValues != activeValues))
+    if (requiresAdminAction()
+        && pendingValues != null
+        && pendingValues != activeValues)
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
 
@@ -1332,8 +1206,6 @@ public final class IntegerConfigAttribute
       }
     }
   }
-
-
 
   /**
    * Adds information about this configuration attribute to the provided list in
@@ -1366,7 +1238,6 @@ public final class IntegerConfigAttribute
                                                    true, true, false));
     }
 
-
     if (requiresAdminAction())
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
@@ -1388,8 +1259,6 @@ public final class IntegerConfigAttribute
     }
   }
 
-
-
   /**
    * Retrieves a JMX <CODE>MBeanParameterInfo</CODE> object that describes this
    * configuration attribute.
@@ -1410,8 +1279,6 @@ public final class IntegerConfigAttribute
                                     String.valueOf(getDescription()));
     }
   }
-
-
 
   /**
    * Attempts to set the value of this configuration attribute based on the
@@ -1521,8 +1388,6 @@ public final class IntegerConfigAttribute
     }
   }
 
-
-
   /**
    * Creates a duplicate of this configuration attribute.
    *
@@ -1536,4 +1401,3 @@ public final class IntegerConfigAttribute
                                       upperBound, activeValues, pendingValues);
   }
 }
-

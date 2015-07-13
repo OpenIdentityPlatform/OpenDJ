@@ -26,23 +26,24 @@
  */
 package org.opends.server.config;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import javax.management.AttributeList;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.ByteString;
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.messages.ConfigMessages.*;
+
 /**
  * This class defines a configuration attribute that is only intended for use
  * in displaying information.  It will not allow its value to be altered.
@@ -240,11 +241,9 @@ public final class ReadOnlyConfigAttribute
    *
    * @throws  ConfigException  If the provided value is not acceptable.
    */
-  public void setValue(String value)
-         throws ConfigException
+  public void setValue(String value) throws ConfigException
   {
-    LocalizableMessage message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
-    throw new ConfigException(message);
+    throw new ConfigException(ERR_CONFIG_ATTR_READ_ONLY.get(getName()));
   }
 
 
@@ -257,45 +256,9 @@ public final class ReadOnlyConfigAttribute
    * @throws  ConfigException  If the provided value set or any of the
    *                           individual values are not acceptable.
    */
-  public void setValues(List<String> values)
-         throws ConfigException
+  public void setValues(List<String> values) throws ConfigException
   {
-    LocalizableMessage message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
-    throw new ConfigException(message);
-  }
-
-
-
-  /**
-   * Creates the appropriate value set with the provided value.
-   *
-   * @param  value  The value to use to create the value set.
-   *
-   * @return  The constructed value set.
-   */
-  private static LinkedHashSet<ByteString> getValueSet(String value)
-  {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
-    valueSet.add(ByteString.valueOf(value));
-    return valueSet;
-  }
-
-
-
-  /**
-   * Creates the appropriate value set with the provided values.
-   *
-   * @param  values  The values to use to create the value set.
-   *
-   * @return  The constructed value set.
-   */
-  private static LinkedHashSet<ByteString> getValueSet(List<String> values)
-  {
-    if (values != null)
-    {
-      return toByteStrings(values);
-    }
-    return null;
+    throw new ConfigException(ERR_CONFIG_ATTR_READ_ONLY.get(getName()));
   }
 
 
@@ -350,28 +313,15 @@ public final class ReadOnlyConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<ByteString>
-              stringsToValues(List<String> valueStrings, boolean allowFailures)
-         throws ConfigException
+  public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings, boolean allowFailures)
+      throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       return new LinkedHashSet<>();
     }
-    return toByteStrings(valueStrings);
+    return getValueSet(valueStrings);
   }
-
-  private static LinkedHashSet<ByteString> toByteStrings(List<String> strings)
-  {
-    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(strings.size());
-    for (String valueString : strings)
-    {
-      valueSet.add(ByteString.valueOf(valueString));
-    }
-    return valueSet;
-  }
-
-
 
   /**
    * Converts the set of active values for this configuration attribute into a
@@ -451,21 +401,16 @@ public final class ReadOnlyConfigAttribute
   {
     if (isMultiValued())
     {
-      String[] valueArray = new String[values.size()];
-      values.toArray(valueArray);
-
+      String[] valueArray = values.toArray(new String[values.size()]);
       return new javax.management.Attribute(getName(), valueArray);
+    }
+    else if (!values.isEmpty())
+    {
+      return new javax.management.Attribute(getName(), values.get(0));
     }
     else
     {
-      if (values.isEmpty())
-      {
-        return null;
-      }
-      else
-      {
-        return new javax.management.Attribute(getName(), values.get(0));
-      }
+      return null;
     }
   }
 
@@ -478,9 +423,10 @@ public final class ReadOnlyConfigAttribute
      *         configuration attribute, or <CODE>null</CODE> if it does
      *         not have any active values.
      */
+    @Override
     public javax.management.Attribute toJMXAttributePending()
     {
-        // Should never occurs !!!
+        // Should never occur !!!
         return toJMXAttribute();
     }
 
@@ -499,8 +445,7 @@ public final class ReadOnlyConfigAttribute
    */
   public void toJMXAttribute(AttributeList attributeList)
   {
-    javax.management.Attribute jmxAttr = toJMXAttribute();
-    attributeList.add(jmxAttr);
+    attributeList.add(toJMXAttribute());
   }
 
 
@@ -519,22 +464,8 @@ public final class ReadOnlyConfigAttribute
    */
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
-    if (isMultiValued())
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   JMX_TYPE_STRING_ARRAY,
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, false, false));
-    }
-    else
-    {
-      attributeInfoList.add(new MBeanAttributeInfo(getName(),
-                                                   String.class.getName(),
-                                                   String.valueOf(
-                                                           getDescription()),
-                                                   true, false, false));
-    }
+    attributeInfoList.add(new MBeanAttributeInfo(getName(), getType(),
+        String.valueOf(getDescription()), true, false, false));
   }
 
 
@@ -548,19 +479,13 @@ public final class ReadOnlyConfigAttribute
    */
   public MBeanParameterInfo toJMXParameterInfo()
   {
-    if (isMultiValued())
-    {
-      return new MBeanParameterInfo(getName(), JMX_TYPE_STRING_ARRAY,
-                                    String.valueOf(getDescription()));
-    }
-    else
-    {
-      return new MBeanParameterInfo(getName(), String.class.getName(),
-                                    String.valueOf(getDescription()));
-    }
+    return new MBeanParameterInfo(getName(), getType(), String.valueOf(getDescription()));
   }
 
-
+  private String getType()
+  {
+    return isMultiValued() ? JMX_TYPE_STRING_ARRAY : String.class.getName();
+  }
 
   /**
    * Attempts to set the value of this configuration attribute based on the
@@ -576,8 +501,7 @@ public final class ReadOnlyConfigAttribute
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
-    LocalizableMessage message = ERR_CONFIG_ATTR_READ_ONLY.get(getName());
-    throw new ConfigException(message);
+    throw new ConfigException(ERR_CONFIG_ATTR_READ_ONLY.get(getName()));
   }
 
 
@@ -589,8 +513,6 @@ public final class ReadOnlyConfigAttribute
    */
   public ConfigAttribute duplicate()
   {
-    return new ReadOnlyConfigAttribute(getName(), getDescription(),
-                                       activeValues());
+    return new ReadOnlyConfigAttribute(getName(), getDescription(), activeValues());
   }
 }
-
