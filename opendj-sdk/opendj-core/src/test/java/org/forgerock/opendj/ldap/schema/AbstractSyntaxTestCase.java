@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
@@ -34,9 +34,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Syntax tests.
- */
+/** Syntax tests. */
 @SuppressWarnings("javadoc")
 public abstract class AbstractSyntaxTestCase extends AbstractSchemaTestCase {
     /**
@@ -49,27 +47,22 @@ public abstract class AbstractSyntaxTestCase extends AbstractSchemaTestCase {
     @DataProvider(name = "acceptableValues")
     public abstract Object[][] createAcceptableValues();
 
-    /**
-     * Test the normalization and the approximate comparison.
-     */
+    /** Test the normalization and the approximate comparison. */
     @Test(dataProvider = "acceptableValues")
     public void testAcceptableValues(final String value, final Boolean result) throws Exception {
         // Make sure that the specified class can be instantiated as a task.
         final Syntax syntax = getRule();
 
         final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
-        // test the valueIsAcceptable method
         final Boolean liveResult = syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
-
-        if (!liveResult.equals(result)) {
-            fail(syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
-        }
+        assertEquals(liveResult, result,
+            syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
     }
 
     /**
-     * Get an instance of the attribute syntax that muste be tested.
+     * Get an instance of the attribute syntax that must be tested.
      *
-     * @return An instance of the attribute syntax that muste be tested.
+     * @return An instance of the attribute syntax that must be tested.
      */
     protected abstract Syntax getRule() throws SchemaException, DecodeException;
 }

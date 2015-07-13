@@ -86,15 +86,12 @@ public class JPEGSyntaxTest extends AbstractSchemaTestCase {
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAMAAAAoyzS7AAAABlBMVEX/JgAAAAAP"
             + "IsinAAAACklEQVQImWNgAAAAAgAB9HFkpgAAAABJRU5ErkJggg==";
 
-        try {
-            return new Object[][] {
-                { ByteString.valueOfBase64(nonImage), false },
-                { ByteString.valueOfBase64(jfifImage), true },
-                { ByteString.valueOfBase64(exifImage), true },
-                { ByteString.valueOfBase64(pngImage), false } };
-        } catch (Exception e) {
-            return new Object[][] {};
-        }
+        return new Object[][] {
+            { ByteString.valueOfBase64(nonImage), false },
+            { ByteString.valueOfBase64(jfifImage), true },
+            { ByteString.valueOfBase64(exifImage), true },
+            { ByteString.valueOfBase64(pngImage), false }
+        };
     }
 
     /** Test acceptable values for this syntax when not allowing malformed JPEG photos. */
