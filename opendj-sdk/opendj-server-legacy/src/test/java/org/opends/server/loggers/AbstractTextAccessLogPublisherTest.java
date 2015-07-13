@@ -25,14 +25,10 @@
  */
 package org.opends.server.loggers;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.opends.server.util.CollectionUtils.*;
 
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.AddressMask;
@@ -55,8 +51,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 @SuppressWarnings("javadoc")
 public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
@@ -188,7 +182,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   public void testCriteriaFilterRequestTargetDNEqualTo() throws Exception
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
-    when(cfg.getRequestTargetDNEqualTo()).thenReturn(setOf("dc=com"));
+    when(cfg.getRequestTargetDNEqualTo()).thenReturn(newTreeSet("dc=com"));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation = mockAnonymousSearchOperation();
     when(operation.getBaseDN()).thenReturn(dn("dc=com"), dn("dc=org"));
@@ -202,7 +196,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   public void testCriteriaFilterRequestTargetDNNotEqualTo() throws Exception
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
-    when(cfg.getRequestTargetDNNotEqualTo()).thenReturn(setOf("dc=com"));
+    when(cfg.getRequestTargetDNNotEqualTo()).thenReturn(newTreeSet("dc=com"));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation = mockAnonymousSearchOperation();
     when(operation.getBaseDN()).thenReturn(dn("dc=com"), dn("dc=org"));
@@ -244,7 +238,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   public void testCriteriaFilterResponseResultCodeEqualTo() throws Exception
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
-    when(cfg.getResponseResultCodeEqualTo()).thenReturn(setOf(32));
+    when(cfg.getResponseResultCodeEqualTo()).thenReturn(newTreeSet(32));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation = mockAnonymousSearchOperation();
     when(operation.getResultCode()).thenReturn(ResultCode.NO_SUCH_OBJECT,
@@ -259,7 +253,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   public void testCriteriaFilterResponseResultCodeNotEqualTo() throws Exception
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
-    when(cfg.getResponseResultCodeNotEqualTo()).thenReturn(setOf(32));
+    when(cfg.getResponseResultCodeNotEqualTo()).thenReturn(newTreeSet(32));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation = mockAnonymousSearchOperation();
     when(operation.getResultCode()).thenReturn(ResultCode.NO_SUCH_OBJECT,
@@ -275,7 +269,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
     when(cfg.getUserDNEqualTo())
-        .thenReturn(setOf(dnOfUserInGroup().toString()));
+        .thenReturn(newTreeSet(dnOfUserInGroup().toString()));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation1 = mockAuthenticatedSearchOperation(dnOfUserInGroup());
     assertThat(filter.isRequestLoggable(operation1)).isTrue();
@@ -290,7 +284,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
     when(cfg.getUserDNNotEqualTo()).thenReturn(
-        setOf(dnOfUserInGroup().toString()));
+        newTreeSet(dnOfUserInGroup().toString()));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation1 = mockAuthenticatedSearchOperation(dnOfUserInGroup());
     assertThat(filter.isRequestLoggable(operation1)).isFalse();
@@ -304,7 +298,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   public void testCriteriaFilterUserIsMemberOf() throws Exception
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
-    when(cfg.getUserIsMemberOf()).thenReturn(setOf(dnOfGroup()));
+    when(cfg.getUserIsMemberOf()).thenReturn(newTreeSet(dnOfGroup()));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation1 = mockAuthenticatedSearchOperation(dnOfUserInGroup());
     assertThat(filter.isRequestLoggable(operation1)).isTrue();
@@ -318,7 +312,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   public void testCriteriaFilterUserIsNotMemberOf() throws Exception
   {
     final AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
-    when(cfg.getUserIsNotMemberOf()).thenReturn(setOf(dnOfGroup()));
+    when(cfg.getUserIsNotMemberOf()).thenReturn(newTreeSet(dnOfGroup()));
     final CriteriaFilter filter = new CriteriaFilter(cfg);
     final SearchOperation operation1 = mockAuthenticatedSearchOperation(dnOfUserInGroup());
     assertThat(filter.isRequestLoggable(operation1)).isFalse();
@@ -406,8 +400,6 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
     return cfg;
   }
 
-
-
   private SearchOperation mockSearchOperation(final AuthenticationInfo authInfo)
       throws Exception
   {
@@ -418,12 +410,5 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
     when(operation.getResultCode()).thenReturn(ResultCode.SUCCESS);
     when(connection.getAuthenticationInfo()).thenReturn(authInfo);
     return operation;
-  }
-
-
-
-  private <T> SortedSet<T> setOf(final T... values)
-  {
-    return new TreeSet<>(Arrays.asList(values));
   }
 }

@@ -44,7 +44,6 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -753,7 +752,7 @@ public final class DirectoryServer
   private TreeMap<String, Backend<?>> backends;
 
   /** The set of supported controls registered with the Directory Server. */
-  private final TreeSet<String> supportedControls = new TreeSet<>(Arrays.asList(
+  private final TreeSet<String> supportedControls = newTreeSet(
       OID_LDAP_ASSERTION,
       OID_LDAP_READENTRY_PREREAD,
       OID_LDAP_READENTRY_POSTREAD,
@@ -771,23 +770,18 @@ public final class DirectoryServer
       OID_VIRTUAL_ATTRS_ONLY,
       OID_ACCOUNT_USABLE_CONTROL,
       OID_NS_PASSWORD_EXPIRED,
-      OID_NS_PASSWORD_EXPIRING));
+      OID_NS_PASSWORD_EXPIRING);
 
   /** The set of supported feature OIDs registered with the Directory Server. */
-  private final TreeSet<String> supportedFeatures = new TreeSet<>(Arrays.asList(
+  private final TreeSet<String> supportedFeatures = newTreeSet(
       OID_ALL_OPERATIONAL_ATTRS_FEATURE,
       OID_MODIFY_INCREMENT_FEATURE,
-      OID_TRUE_FALSE_FILTERS_FEATURE));
+      OID_TRUE_FALSE_FILTERS_FEATURE);
 
-  /**
-   * The trust manager provider configuration manager for the Directory Server.
-   */
+  /** The trust manager provider configuration manager for the Directory Server. */
   private TrustManagerProviderConfigManager trustManagerProviderConfigManager;
 
-  /**
-   * The virtual attribute provider configuration manager for the Directory
-   * Server.
-   */
+  /** The virtual attribute provider configuration manager for the Directory Server. */
   private final VirtualAttributeConfigManager virtualAttributeConfigManager;
 
   /** The work queue that will be used to service client requests. */

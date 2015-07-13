@@ -28,8 +28,6 @@ package org.opends.server.replication.server.changelog.je;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.SoftAssertions;
@@ -50,6 +48,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.DN;
+import org.opends.server.util.CollectionUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -115,7 +114,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
     // but use only 4 of them for update msg
     // beforeCsn, middleCsn and afterCsn are not used
     // in order to test cursor generation from a key not present in the log (before, in the middle, after)
-    final List<CSN> usedCsns = new ArrayList<>(Arrays.asList(sevenCsns));
+    final List<CSN> usedCsns = CollectionUtils.newArrayList(sevenCsns);
     usedCsns.remove(beforeCsn);
     usedCsns.remove(middleCsn);
     usedCsns.remove(afterCsn);

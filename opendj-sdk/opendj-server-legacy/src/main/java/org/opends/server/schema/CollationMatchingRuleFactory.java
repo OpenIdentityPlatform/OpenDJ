@@ -26,11 +26,9 @@
  */
 package org.opends.server.schema;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,6 +36,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -46,9 +45,9 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.CollectionUtils;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -64,7 +63,7 @@ public final class CollationMatchingRuleFactory extends
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Stores the list of available locales on this JVM. */
-  private static final Set<Locale> supportedLocales = new HashSet<>(Arrays.asList(Locale.getAvailableLocales()));
+  private static final Set<Locale> supportedLocales = CollectionUtils.newHashSet(Locale.getAvailableLocales());
 
   /** Current Configuration. */
   private CollationMatchingRuleCfg currentConfig;

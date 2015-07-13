@@ -51,14 +51,12 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-
-import static org.opends.server.protocols.internal.Requests.*;
-
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -287,12 +285,7 @@ public class PasswordPolicyStateExtendedOperation
          throws ConfigException, InitializationException
   {
     userFilter = SearchFilter.objectClassPresent();
-
-    // Construct the set of request attributes.
-    requestAttributes = new LinkedHashSet<>(2);
-    requestAttributes.add("*");
-    requestAttributes.add("+");
-
+    requestAttributes = newLinkedHashSet("*", "+");
 
     DirectoryServer.registerSupportedExtension(OID_PASSWORD_POLICY_STATE_EXTOP, this);
     // FIXME registerControlAndFeatures?

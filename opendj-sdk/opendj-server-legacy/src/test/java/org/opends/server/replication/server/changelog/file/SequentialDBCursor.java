@@ -25,12 +25,11 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.util.CollectionUtils;
 
 @SuppressWarnings("javadoc")
 class SequentialDBCursor implements DBCursor<UpdateMsg>
@@ -48,7 +47,7 @@ class SequentialDBCursor implements DBCursor<UpdateMsg>
    */
   public SequentialDBCursor(UpdateMsg... msgs)
   {
-    this.msgs = new ArrayList<>(Arrays.asList(msgs));
+    this.msgs = CollectionUtils.newArrayList(msgs);
   }
 
   public void add(UpdateMsg msg)

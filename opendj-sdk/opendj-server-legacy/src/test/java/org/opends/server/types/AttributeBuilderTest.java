@@ -26,13 +26,13 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.*;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
@@ -47,7 +47,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class AttributeBuilderTest extends TypesTestCase
 {
-
   /** CN attribute type used in all tests. */
   private AttributeType cnType;
 
@@ -1427,7 +1426,7 @@ public class AttributeBuilderTest extends TypesTestCase
           options.length)));
     }
 
-    List<String> tmp = new ArrayList<>(Arrays.asList(options));
+    List<String> tmp = newArrayList(options);
     tmp.add("xxxx");
     Assert.assertFalse(a.hasAllOptions(tmp));
 
@@ -1756,15 +1755,14 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Check optionsEquals.
-    Assert.assertTrue(a
-        .optionsEqual(new HashSet<String>(Arrays.asList(options))));
+    Assert.assertTrue(a.optionsEqual(newHashSet(options)));
 
     if (options.length > 1)
     {
       Assert.assertFalse(a.optionsEqual(Collections.singleton(options[0])));
     }
 
-    Set<String> stmp = new HashSet<>(Arrays.asList(options));
+    Set<String> stmp = newHashSet(options);
     stmp.add("xxxx");
     Assert.assertFalse(a.optionsEqual(stmp));
 

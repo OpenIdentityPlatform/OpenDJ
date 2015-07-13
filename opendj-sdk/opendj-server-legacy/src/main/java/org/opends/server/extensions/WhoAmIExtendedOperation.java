@@ -26,24 +26,23 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.WhoAmIExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.ExtendedOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH_AUTHZ_NOT_PERMITTED;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class implements the "Who Am I?" extended operation defined in RFC 4532.
@@ -61,8 +60,7 @@ public class WhoAmIExtendedOperation
    */
   public WhoAmIExtendedOperation()
   {
-    super(new HashSet<String>(Arrays.asList(
-        OID_PROXIED_AUTH_V1, OID_PROXIED_AUTH_V2)));
+    super(newHashSet(OID_PROXIED_AUTH_V1, OID_PROXIED_AUTH_V2));
   }
 
   /** {@inheritDoc} */

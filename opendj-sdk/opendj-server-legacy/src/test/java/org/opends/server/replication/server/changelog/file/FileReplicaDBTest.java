@@ -28,7 +28,6 @@ package org.opends.server.replication.server.changelog.file;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -57,6 +56,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -180,7 +180,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicaDB = newReplicaDB(replicationServer);
 
       final CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
-      final ArrayList<CSN> csns2 = new ArrayList<>(Arrays.asList(csns));
+      final ArrayList<CSN> csns2 = newArrayList(csns);
       csns2.remove(csns[3]);
 
       for (CSN csn : csns2)

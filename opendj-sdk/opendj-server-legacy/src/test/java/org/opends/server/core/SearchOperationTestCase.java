@@ -429,8 +429,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAllUserAttributes() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("*");
+    LinkedHashSet<String> attributes = newLinkedHashSet("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -473,8 +472,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAllUserAttributesOmitValues() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("*");
+    LinkedHashSet<String> attributes = newLinkedHashSet("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -498,8 +496,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalObjectClassAttribute() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("objectclass");
+    LinkedHashSet<String> attributes = newLinkedHashSet("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -523,8 +520,7 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchExternalObjectClassAttributeOmitValues()
        throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("objectclass");
+    LinkedHashSet<String> attributes = newLinkedHashSet("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -547,9 +543,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalSelectedAttributes() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("uid");
-    attributes.add("createtimestamp");
+    LinkedHashSet<String> attributes = newLinkedHashSet("uid", "createtimestamp");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -570,8 +564,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAttributeWithSubtypes() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("title");
+    LinkedHashSet<String> attributes = newLinkedHashSet("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -593,8 +586,7 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchExternalAttributeWithSubtypesOmitValues()
        throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("title");
+    LinkedHashSet<String> attributes = newLinkedHashSet("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
@@ -619,8 +611,7 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchExternalAttributeWithOptions() throws Exception
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
-    attributes.add("title;lang-ja;phonetic");
+    LinkedHashSet<String> attributes = newLinkedHashSet("title;lang-ja;phonetic");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
