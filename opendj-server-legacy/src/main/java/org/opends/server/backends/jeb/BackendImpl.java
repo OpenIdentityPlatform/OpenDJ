@@ -41,9 +41,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -99,6 +97,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.RuntimeInformation;
 
 import com.sleepycat.je.DatabaseException;
@@ -131,15 +130,13 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   private DiskSpaceMonitor diskMonitor;
   private StorageStatus storageStatus = StorageStatus.working();
 
-  /**
-   * The controls supported by this backend.
-   */
-  private static final Set<String> supportedControls = new HashSet<>(Arrays.asList(
+  /** The controls supported by this backend. */
+  private static final Set<String> supportedControls = CollectionUtils.newHashSet(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,
       OID_MANAGE_DSAIT_CONTROL,
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
-      OID_VLV_REQUEST_CONTROL));
+      OID_VLV_REQUEST_CONTROL);
 
   /** Begin a Backend API method that reads the database. */
   private void readerBegin()

@@ -67,6 +67,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -134,12 +135,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     dn2SubEntry = new HashMap<>();
     dn2CollectiveSubEntry = new HashMap<>();
     dit2SubEntry = new DITCacheMap<>();
-
     changeListeners = new CopyOnWriteArrayList<>();
-
-    requestAttrs = new LinkedHashSet<>();
-    requestAttrs.add("*");
-    requestAttrs.add("+");
+    requestAttrs = newLinkedHashSet("*", "+");
 
     DirectoryServer.registerInternalPlugin(this);
     DirectoryServer.registerBackendInitializationListener(this);

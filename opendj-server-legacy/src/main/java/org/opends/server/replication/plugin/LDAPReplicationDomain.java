@@ -117,7 +117,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * replication related operational attributes when used in a search operation.
    */
   private static final Set<String> USER_AND_REPL_OPERATIONAL_ATTRS =
-      new HashSet<>(Arrays.asList(HISTORICAL_ATTRIBUTE_NAME, ENTRYUUID_ATTRIBUTE_NAME, "*"));
+      newHashSet(HISTORICAL_ATTRIBUTE_NAME, ENTRYUUID_ATTRIBUTE_NAME, "*");
 
   /**
    * This class is used in the session establishment phase

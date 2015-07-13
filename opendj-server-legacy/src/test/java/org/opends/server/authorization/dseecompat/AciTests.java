@@ -29,6 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -842,7 +843,7 @@ public class AciTests extends AciTestCase {
   public Object[][] invalidAcis() throws Exception {
     TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
 
-    List<String> invalid = new ArrayList<>(Arrays.asList(INVALID_ACIS));
+    List<String> invalid = newArrayList(INVALID_ACIS);
     for (String[] aciAndMask: INVALID_ACIS_IF_ANY_CHAR_REMOVED) {
       invalid.addAll(getAciMissingCharCombos(aciAndMask[0], aciAndMask[1]));
     }
@@ -2595,7 +2596,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
   }
 
   private static String getNotThisDayOfWeek() {
-    Set<String> otherDays = new HashSet<>(Arrays.asList(DAYS_OF_WEEK));
+    Set<String> otherDays = newHashSet(DAYS_OF_WEEK);
     otherDays.remove(getThisDayOfWeek());
     String dayList = "";
     for (String otherDay: otherDays) {

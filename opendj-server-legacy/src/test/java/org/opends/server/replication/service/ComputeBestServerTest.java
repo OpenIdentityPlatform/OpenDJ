@@ -50,6 +50,7 @@ import static org.assertj.core.data.MapEntry.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.service.ReplicationBroker.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -255,10 +256,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
         entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS.ordinal()));
   }
 
-  private void containsOnly(final Map<Integer, LocalizableMessage> evaluations,
-      MapEntry... entries)
+  private void containsOnly(final Map<Integer, LocalizableMessage> evaluations, MapEntry... entries)
   {
-    final List<MapEntry> notFound = new ArrayList<>(Arrays.asList(entries));
+    final List<MapEntry> notFound = newArrayList(entries);
     for (Iterator<MapEntry> iter = notFound.iterator(); iter.hasNext();)
     {
       final MapEntry entry = iter.next();

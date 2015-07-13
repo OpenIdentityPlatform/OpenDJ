@@ -28,12 +28,11 @@ package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -302,8 +301,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       int replicationPort, String dirName, int windowSize,
       String... replServers) throws Exception
   {
-    return createReplicationServer(serverId, replicationPort, dirName,
-        windowSize, new TreeSet<String>(Arrays.asList(replServers)));
+    return createReplicationServer(serverId, replicationPort, dirName, windowSize, newTreeSet(replServers));
   }
 
   private ReplicationServer createReplicationServer(int serverId,

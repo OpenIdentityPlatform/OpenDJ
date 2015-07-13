@@ -51,11 +51,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 /**
  * This class implements a very simple Directory Server certificate mapper that
@@ -127,9 +128,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
-    requestedAttributes = new LinkedHashSet<>(2);
-    requestedAttributes.add("*");
-    requestedAttributes.add("+");
+    requestedAttributes = newLinkedHashSet("*", "+");
   }
 
 

@@ -29,7 +29,6 @@ package org.opends.server.core;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -202,7 +201,7 @@ public class AddOperationTestCase
 
   private ArrayList<RawAttribute> newRawAttributes(RawAttribute... attributes)
   {
-    return new ArrayList<>(Arrays.asList(attributes));
+    return newArrayList(attributes);
   }
 
   private ArrayList<ByteString> byteStrings(final String... v)

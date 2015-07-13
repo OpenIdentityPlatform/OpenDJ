@@ -30,7 +30,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,6 +64,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -110,12 +110,12 @@ public class NullBackend extends Backend<BackendCfg>
   private HashSet<DN> baseDNSet;
 
   /** The set of supported controls for this backend. */
-  private final Set<String> supportedControls = new HashSet<>(Arrays.asList(
+  private final Set<String> supportedControls = CollectionUtils.newHashSet(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,
       OID_MANAGE_DSAIT_CONTROL,
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
-      OID_VLV_REQUEST_CONTROL));
+      OID_VLV_REQUEST_CONTROL);
 
   /** The map of null entry object classes. */
   private Map<ObjectClass,String> objectClasses;

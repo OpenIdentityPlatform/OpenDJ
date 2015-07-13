@@ -26,6 +26,7 @@
  */
 package org.opends.server.util;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.BufferedReader;
@@ -1165,14 +1166,11 @@ public final class TestStaticUtils extends UtilTestCase {
         { Arrays.asList(0, 1), Arrays.asList(0, 1, 1), false },
 
         // Check multi-element sequential behaviour.
-        { new LinkedList<Integer>(Arrays.asList(0, 1)),
-            new LinkedList<Integer>(Arrays.asList(0, 1)), true },
-        { new LinkedList<Integer>(Arrays.asList(0, 1)),
-            new LinkedList<Integer>(Arrays.asList(1, 0)), false },
+        { newLinkedList(0, 1), newLinkedList(0, 1), true },
+        { newLinkedList(0, 1), newLinkedList(1, 0), false },
 
         // ...With duplicates.
-        { new LinkedList<Integer>(Arrays.asList(0, 1)),
-            new LinkedList<Integer>(Arrays.asList(0, 1, 1)), false } };
+        { newLinkedList(0, 1), newLinkedList(0, 1, 1), false } };
   }
 
   /**

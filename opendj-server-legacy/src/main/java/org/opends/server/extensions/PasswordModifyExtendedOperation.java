@@ -118,7 +118,7 @@ public class PasswordModifyExtendedOperation
    */
   public PasswordModifyExtendedOperation()
   {
-    super(new HashSet<String>(Arrays.asList(OID_LDAP_NOOP_OPENLDAP_ASSIGNED, OID_PASSWORD_POLICY_CONTROL)));
+    super(newHashSet(OID_LDAP_NOOP_OPENLDAP_ASSIGNED, OID_PASSWORD_POLICY_CONTROL));
   }
 
 

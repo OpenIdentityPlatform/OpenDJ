@@ -29,7 +29,6 @@ package org.opends.guitools.controlpanel.ui;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.Box;
@@ -39,6 +38,7 @@ import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.util.CollectionUtils;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
@@ -49,9 +49,9 @@ import static org.opends.messages.AdminToolMessages.*;
 public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
-  private static List<MonitoringAttributes> ngOperations = new ArrayList<MonitoringAttributes>(Arrays.asList(
+  private static List<MonitoringAttributes> ngOperations = CollectionUtils.<MonitoringAttributes> newArrayList(
       ENTRY_CACHE_TRIES, ENTRY_CACHE_HITS, ENTRY_CACHE_HIT_RATIO, CURRENT_ENTRY_CACHE_SIZE, MAX_ENTRY_CACHE_SIZE,
-      CURRENT_ENTRY_CACHE_COUNT, MAX_ENTRY_CACHE_COUNT));
+      CURRENT_ENTRY_CACHE_COUNT, MAX_ENTRY_CACHE_COUNT);
 
   private ArrayList<JLabel> monitoringLabels = new ArrayList<>();
   {

@@ -33,9 +33,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -84,6 +82,7 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
 
@@ -116,12 +115,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   private Storage storage;
 
   /** The controls supported by this backend. */
-  private static final Set<String> supportedControls = new HashSet<>(Arrays.asList(
+  private static final Set<String> supportedControls = CollectionUtils.newHashSet(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,
       OID_MANAGE_DSAIT_CONTROL,
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
-      OID_VLV_REQUEST_CONTROL));
+      OID_VLV_REQUEST_CONTROL);
 
   /**
    * Begin a Backend API method that accesses the {@link EntryContainer} for <code>entryDN</code>

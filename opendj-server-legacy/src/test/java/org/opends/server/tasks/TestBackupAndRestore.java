@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.api.TestTaskListener.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -160,25 +161,25 @@ public class TestBackupAndRestore extends TasksTestCase
 
   private String[] backupTask(String... additionalLdif)
   {
-    final ArrayList<String> l = new ArrayList<>(Arrays.asList(
+    final ArrayList<String> l = newArrayList(
         "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-backup",
         "ds-task-class-name: org.opends.server.tasks.BackupTask",
-        "ds-backup-directory-path: bak"));
+        "ds-backup-directory-path: bak");
     l.addAll(Arrays.asList(additionalLdif));
     return l.toArray(new String[0]);
   }
 
   private String[] restoreTask(String... additionalLdif)
   {
-    final ArrayList<String> l = new ArrayList<>(Arrays.asList(
+    final ArrayList<String> l = newArrayList(
         "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-restore",
-        "ds-task-class-name: org.opends.server.tasks.RestoreTask"));
+        "ds-task-class-name: org.opends.server.tasks.RestoreTask");
     l.addAll(Arrays.asList(additionalLdif));
     return l.toArray(new String[0]);
   }

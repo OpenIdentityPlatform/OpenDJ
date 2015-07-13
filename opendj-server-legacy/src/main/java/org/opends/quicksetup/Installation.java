@@ -34,8 +34,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +42,7 @@ import java.util.concurrent.FutureTask;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.SetupUtils;
 
 /**
@@ -198,7 +197,7 @@ public final class Installation
       String[] children = rootDirectory.list();
       if (children != null)
       {
-        Set<String> childrenSet = new HashSet<>(Arrays.asList(children));
+        Set<String> childrenSet = CollectionUtils.newHashSet(children);
         for (String dir : REQUIRED_DIRECTORIES)
         {
           if (!childrenSet.contains(dir))

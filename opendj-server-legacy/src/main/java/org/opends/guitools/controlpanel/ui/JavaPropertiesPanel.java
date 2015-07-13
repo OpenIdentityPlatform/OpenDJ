@@ -27,6 +27,8 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
+
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.awt.Component;
@@ -41,7 +43,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -85,7 +86,6 @@ import org.opends.server.util.StaticUtils;
 /**
  * The panel where the user can specify the java arguments and java home to be
  * used in the command-lines.
- *
  */
 public class JavaPropertiesPanel extends StatusGenericPanel
 {
@@ -111,7 +111,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private Set<JavaArgumentsDescriptor> readJavaArguments = new HashSet<>();
   private Set<JavaArgumentsDescriptor> currentJavaArguments = new HashSet<>();
-  private Set<String> allScriptNames = new HashSet<>(Arrays.asList(
+  private Set<String> allScriptNames = newHashSet(
         "start-ds", "import-ldif.offline", "backup.online", "base64",
         "create-rc-script", "dsconfig", "dsreplication",
         "export-ldif.online", "import-ldif.online", "ldapcompare",
@@ -122,14 +122,13 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         "ldif-diff", "ldifmodify", "ldifsearch", "make-ldif",
         "rebuild-index", "restore.offline", "upgrade",
         "verify-index", "dbtest"
-      ));
-
-  private Set<String> relevantScriptNames = new HashSet<>(Arrays.asList(
+      );
+  private Set<String> relevantScriptNames = newHashSet(
         "start-ds", "import-ldif.offline", "backup.offline",
         "export-ldif.offline",
         "ldif-diff", "make-ldif", "rebuild-index", "restore.offline",
         "verify-index", "dbtest"
-      ));
+      );
 
   private String readJavaHome;
   private boolean readUseOpenDSJavaHome;

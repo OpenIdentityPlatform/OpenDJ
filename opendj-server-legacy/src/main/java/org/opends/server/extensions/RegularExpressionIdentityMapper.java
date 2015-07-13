@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -163,9 +164,7 @@ public class RegularExpressionIdentityMapper
 
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
-    requestedAttributes = new LinkedHashSet<>(2);
-    requestedAttributes.add("*");
-    requestedAttributes.add("+");
+    requestedAttributes = newLinkedHashSet("*", "+");
   }
 
 
