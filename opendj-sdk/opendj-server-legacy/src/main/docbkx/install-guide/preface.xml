@@ -36,14 +36,22 @@
  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Release
  Notes</citetitle></link> before you get started.</para>
 
- <para>If you want only to try OpenDJ server software, and you
- do not plan to store any real or important data that you want to keep,
- then you need not read this entire guide. Instead try
+ <para>
+  If you want only to try OpenDJ server software,
+  and you do not plan to store any real or important data that you want to keep,
+  then you need not read this entire guide.
+  Instead read the procedures
   <link
    xlink:show="new"
-   xlink:href="install-guide#chap-install-gui"
+   xlink:href="install-guide#before-you-install"
    xlink:role="http://docbook.org/xlink/role/olink"
-  ><citetitle>Installing OpenDJ With a Graphical Installer</citetitle></link>.
+  ><citetitle>To Prepare For Installation</citetitle></link>
+  and
+  <link
+   xlink:show="new"
+   xlink:href="install-guide#gui-install"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><citetitle>To Install OpenDJ Directory Server (Graphical User Interface)</citetitle></link>.
  </para>
 
  <section>
