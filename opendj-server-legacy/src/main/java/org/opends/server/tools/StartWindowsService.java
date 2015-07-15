@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.server.tools;
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -45,19 +44,13 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
   */
 public class StartWindowsService
 {
-  /**
-    * The service was successfully started.
-    */
-  private static int SERVICE_START_SUCCESSFUL;
-  /**
-    * The service could not be found.
-    */
-  private static int SERVICE_NOT_FOUND = 1;
+  /** The service was successfully started. */
+  private static final int SERVICE_START_SUCCESSFUL = 0;
+  /** The service could not be found. */
+  private static final int SERVICE_NOT_FOUND = 1;
 
-  /**
-    * The service could not be started.
-    */
-  private static int SERVICE_START_ERROR = 2;
+  /** The service could not be started. */
+  private static final int SERVICE_START_ERROR = 2;
 
   /**
    * Invokes the net start on the service corresponding to this server.
@@ -66,25 +59,25 @@ public class StartWindowsService
    */
   public static void main(String[] args)
   {
-    int result = startWindowsService(System.out, System.err);
-
-    System.exit(filterExitCode(result));
+    System.exit(filterExitCode(startWindowsService(System.out, System.err)));
   }
 
   /**
    * Invokes the net start on the service corresponding to this server, it
    * writes information and error messages in the provided streams.
+   *
    * @return <CODE>SERVICE_START_SUCCESSFUL</CODE>,
-   * <CODE>SERVICE_NOT_FOUND</CODE>, <CODE>SERVICE_ALREADY_STARTED</CODE> or
-   * <CODE>SERVICE_START_ERROR</CODE> depending on whether the service could be
-   * stopped or not.
-   * @param  outStream  The stream to write standard output messages.
-   * @param  errStream  The stream to write error messages.
+   *         <CODE>SERVICE_NOT_FOUND</CODE>,
+   *         <CODE>SERVICE_ALREADY_STARTED</CODE> or
+   *         <CODE>SERVICE_START_ERROR</CODE> depending on whether the service
+   *         could be stopped or not.
+   * @param outStream
+   *          The stream to write standard output messages.
+   * @param errStream
+   *          The stream to write error messages.
    */
-  public static int startWindowsService(OutputStream outStream,
-                           OutputStream errStream)
+  public static int startWindowsService(OutputStream outStream, OutputStream errStream)
   {
-    int returnValue;
     NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.disableLogging();
@@ -94,51 +87,41 @@ public class StartWindowsService
     {
       LocalizableMessage message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
       err.println(message);
-      returnValue = SERVICE_NOT_FOUND;
+      return SERVICE_NOT_FOUND;
+    }
+
+    String[] cmd;
+    if (hasUAC())
+    {
+      cmd= new String[] {
+          ConfigureWindowsService.getLauncherBinaryFullPath(),
+          ConfigureWindowsService.LAUNCHER_OPTION,
+          ConfigureWindowsService.getLauncherAdministratorBinaryFullPath(),
+          ConfigureWindowsService.LAUNCHER_OPTION,
+          "net",
+          "start",
+          serviceName
+      };
     }
     else
     {
-      String[] cmd;
-      if (hasUAC())
-      {
-        cmd= new String[] {
-            ConfigureWindowsService.getLauncherBinaryFullPath(),
-            ConfigureWindowsService.LAUNCHER_OPTION,
-            ConfigureWindowsService.getLauncherAdministratorBinaryFullPath(),
-            ConfigureWindowsService.LAUNCHER_OPTION,
-            "net",
-            "start",
-            serviceName
-        };
-      }
-      else
-      {
-        cmd= new String[] {
-            "net",
-            "start",
-            serviceName
-        };
-      }
-      /* Check if is a running service */
-      try
-      {
-        if (Runtime.getRuntime().exec(cmd).waitFor() == 0)
-        {
-          returnValue = SERVICE_START_SUCCESSFUL;
-        }
-        else
-        {
-          returnValue = SERVICE_START_ERROR;
-        }
-      }
-      catch (Throwable t)
-      {
-        LocalizableMessage message = ERR_WINDOWS_SERVICE_START_ERROR.get();
-        err.println(message);
-        err.println("Exception:" + t);
-        returnValue = SERVICE_START_ERROR;
-      }
+      cmd= new String[] {
+          "net",
+          "start",
+          serviceName
+      };
     }
-    return returnValue;
+    /* Check if is a running service */
+    try
+    {
+      return Runtime.getRuntime().exec(cmd).waitFor() == 0 ? SERVICE_START_SUCCESSFUL : SERVICE_START_ERROR;
+    }
+    catch (Throwable t)
+    {
+      LocalizableMessage message = ERR_WINDOWS_SERVICE_START_ERROR.get();
+      err.println(message);
+      err.println("Exception:" + t);
+      return SERVICE_START_ERROR;
+    }
   }
 }

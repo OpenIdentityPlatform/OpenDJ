@@ -1408,7 +1408,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   private boolean isWindowsServiceEnabled() {
     if (isWindowsServiceEnabled == null) {
-      isWindowsServiceEnabled = serviceState(null, null) == SERVICE_STATE_ENABLED;
+      isWindowsServiceEnabled = serviceState() == SERVICE_STATE_ENABLED;
     }
     return isWindowsServiceEnabled.booleanValue();
   }
