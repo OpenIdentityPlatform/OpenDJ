@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
-
 package org.opends.server.tools;
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -38,7 +37,6 @@ import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
-
 /**
   * This class is used to stop the Windows service associated with this
   * instance on this machine.
@@ -46,17 +44,11 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
   */
 public class StopWindowsService
 {
-  /**
-    * The service was successfully stopped.
-    */
+  /** The service was successfully stopped. */
   public static final int SERVICE_STOP_SUCCESSFUL = 0;
-  /**
-    * The service could not be found.
-    */
+  /** The service could not be found. */
   public static final int SERVICE_NOT_FOUND = 1;
-  /**
-    * The service could not be stopped.
-    */
+  /** The service could not be stopped. */
   public static final int SERVICE_STOP_ERROR = 3;
 
   /**
@@ -66,24 +58,23 @@ public class StopWindowsService
    */
   public static void main(String[] args)
   {
-    int result = stopWindowsService(System.out, System.err);
-
-    System.exit(filterExitCode(result));
+    System.exit(filterExitCode(stopWindowsService(System.out, System.err)));
   }
 
   /**
    * Invokes the net stop on the service corresponding to this server, it writes
    * information and error messages in the provided streams.
+   *
    * @return <CODE>SERVICE_STOP_SUCCESSFUL</CODE>,
-   * <CODE>SERVICE_NOT_FOUND</CODE> or <CODE>SERVICE_STOP_ERROR</CODE>
-   * depending on whether the service could be stopped or not.
-   * @param  outStream  The stream to write standard output messages.
-   * @param  errStream  The stream to write error messages.
+   *         <CODE>SERVICE_NOT_FOUND</CODE> or <CODE>SERVICE_STOP_ERROR</CODE>
+   *         depending on whether the service could be stopped or not.
+   * @param outStream
+   *          The stream to write standard output messages.
+   * @param errStream
+   *          The stream to write error messages.
    */
-  public static int stopWindowsService(OutputStream outStream,
-                           OutputStream errStream)
+  public static int stopWindowsService(OutputStream outStream, OutputStream errStream)
   {
-    int returnValue;
     NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.disableLogging();
@@ -93,57 +84,49 @@ public class StopWindowsService
     {
       LocalizableMessage message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
       err.println(message);
-      returnValue = SERVICE_NOT_FOUND;
+      return SERVICE_NOT_FOUND;
+    }
+    String[] cmd;
+    if (hasUAC())
+    {
+      cmd= new String[] {
+          ConfigureWindowsService.getLauncherBinaryFullPath(),
+          ConfigureWindowsService.LAUNCHER_OPTION,
+          ConfigureWindowsService.getLauncherAdministratorBinaryFullPath(),
+          ConfigureWindowsService.LAUNCHER_OPTION,
+          "net",
+          "stop",
+          serviceName
+      };
     }
     else
     {
-      String[] cmd;
-      if (hasUAC())
+      cmd= new String[] {
+          "net",
+          "stop",
+          serviceName
+      };
+    }
+    /* Check if is a running service */
+    try
+    {
+      switch (Runtime.getRuntime().exec(cmd).waitFor())
       {
-        cmd= new String[] {
-            ConfigureWindowsService.getLauncherBinaryFullPath(),
-            ConfigureWindowsService.LAUNCHER_OPTION,
-            ConfigureWindowsService.getLauncherAdministratorBinaryFullPath(),
-            ConfigureWindowsService.LAUNCHER_OPTION,
-            "net",
-            "stop",
-            serviceName
-        };
-      }
-      else
-      {
-        cmd= new String[] {
-            "net",
-            "stop",
-            serviceName
-        };
-      }
-      /* Check if is a running service */
-      try
-      {
-        int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
-        if (resultCode == 0)
-        {
-          returnValue = SERVICE_STOP_SUCCESSFUL;
-        }
-        else if (resultCode == 2)
-        {
-          returnValue = SERVICE_STOP_SUCCESSFUL;
-        }
-        else
-        {
-          returnValue = SERVICE_STOP_ERROR;
-        }
-      }
-      catch (Throwable t)
-      {
-        LocalizableMessage message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
-        err.println(message);
-        err.println("Exception:" + t);
-        returnValue = SERVICE_STOP_ERROR;
+      case 0:
+        return SERVICE_STOP_SUCCESSFUL;
+      case 2:
+        return SERVICE_STOP_SUCCESSFUL;
+      default:
+        return SERVICE_STOP_ERROR;
       }
     }
-    return returnValue;
+    catch (Throwable t)
+    {
+      LocalizableMessage message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
+      err.println(message);
+      err.println("Exception:" + t);
+      return SERVICE_STOP_ERROR;
+    }
   }
 }
 

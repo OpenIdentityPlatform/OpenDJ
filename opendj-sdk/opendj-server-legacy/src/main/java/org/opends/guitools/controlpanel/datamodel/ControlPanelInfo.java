@@ -464,9 +464,7 @@ public class ControlPanelInfo
       boolean windowsServiceEnabled = false;
       if (isWindows())
       {
-        int result = ConfigureWindowsService.serviceState(null, null);
-        windowsServiceEnabled =
-          result == ConfigureWindowsService.SERVICE_STATE_ENABLED;
+        windowsServiceEnabled = ConfigureWindowsService.serviceState() == ConfigureWindowsService.SERVICE_STATE_ENABLED;
       }
       desc.setWindowsServiceEnabled(windowsServiceEnabled);
     }

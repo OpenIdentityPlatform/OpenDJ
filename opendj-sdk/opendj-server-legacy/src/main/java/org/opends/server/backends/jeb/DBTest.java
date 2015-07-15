@@ -187,9 +187,9 @@ public class DBTest
 
   /** Displays the provided message followed by a help usage reference. */
   private void displayMessageAndUsageReference(LocalizableMessage message) {
-    printMessage(message);
-    printMessage(LocalizableMessage.EMPTY);
-    printMessage(parser.getHelpUsageReference());
+    printErrorMessage(message);
+    printErrorMessage(LocalizableMessage.EMPTY);
+    printErrorMessage(parser.getHelpUsageReference());
   }
 
 
@@ -378,7 +378,7 @@ public class DBTest
       initializeSubCommands();
     } catch (ArgumentException e) {
       LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
-      printMessage(message);
+      printErrorMessage(message);
       return 1;
     }
 
@@ -404,7 +404,7 @@ public class DBTest
     }
     catch (InitializationException e)
     {
-      printMessage(e.getMessageObject());
+      printErrorMessage(e.getMessageObject());
       return 1;
     }
 
@@ -423,7 +423,7 @@ public class DBTest
       {
         LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
                 getExceptionMessage(e));
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
 
@@ -436,14 +436,14 @@ public class DBTest
       {
         LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(
             ie.getMessage());
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(
             getExceptionMessage(e));
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
 
@@ -457,13 +457,13 @@ public class DBTest
       catch (ConfigException | InitializationException e)
       {
         LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
 
@@ -478,13 +478,13 @@ public class DBTest
       catch (ConfigException | InitializationException e)
       {
         LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage());
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
 
@@ -497,13 +497,13 @@ public class DBTest
       catch (ConfigException | InitializationException e)
       {
         LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage());
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e));
-        printMessage(message);
+        printErrorMessage(message);
         return 1;
       }
     }
@@ -551,7 +551,7 @@ public class DBTest
       }
       return 0;
     } catch (Exception e) {
-      printMessage(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
+      printErrorMessage(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }
   }
@@ -598,13 +598,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -615,7 +615,7 @@ public class DBTest
     }
     catch(Exception e)
     {
-      printMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
+      printErrorMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
           backend.getBackendID(),
           StaticUtils.stackTraceToSingleLineString(e)));
       return 1;
@@ -648,7 +648,7 @@ public class DBTest
     }
     catch(DatabaseException de)
     {
-      printMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
+      printErrorMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
           StaticUtils.stackTraceToSingleLineString(de)));
       return 1;
     }
@@ -676,7 +676,7 @@ public class DBTest
       }
       catch(DirectoryException de)
       {
-        printMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
+        printErrorMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
                                                    getExceptionMessage(de)));
         return 1;
       }
@@ -689,13 +689,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -706,7 +706,7 @@ public class DBTest
     }
     catch(Exception e)
     {
-      printMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
+      printErrorMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
           backend.getBackendID(),
           StaticUtils.stackTraceToSingleLineString(e)));
       return 1;
@@ -729,7 +729,7 @@ public class DBTest
         EntryContainer ec = rc.getEntryContainer(base);
         if(ec == null)
         {
-          printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
+          printErrorMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
               base, backend.getBackendID()));
           return 1;
         }
@@ -754,7 +754,7 @@ public class DBTest
     }
     catch(DatabaseException de)
     {
-      printMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
+      printErrorMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
           StaticUtils.stackTraceToSingleLineString(de)));
       return 1;
     }
@@ -802,12 +802,12 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (!LockFileManager.releaseLock(lockFile, failureReason))
       {
-        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printErrorMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
       }
     }
     catch (Exception e)
     {
-      printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printErrorMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
     }
   }
 
@@ -829,12 +829,12 @@ public class DBTest
     {
       if (b.getBackendID().equalsIgnoreCase(backendID))
       {
-        printMessage(ERR_DBTEST_NOT_JE_BACKEND.get(backendID));
+        printErrorMessage(ERR_DBTEST_NOT_JE_BACKEND.get(backendID));
         return null;
       }
     }
 
-    printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID));
+    printErrorMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID));
     return null;
   }
 
@@ -855,7 +855,7 @@ public class DBTest
       }
       catch(DirectoryException de)
       {
-        printMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
+        printErrorMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
                                                    getExceptionMessage(de)));
         return 1;
       }
@@ -868,13 +868,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -885,7 +885,7 @@ public class DBTest
     }
     catch(Exception e)
     {
-      printMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
+      printErrorMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
           backend.getBackendID(),
           StaticUtils.stackTraceToSingleLineString(e)));
       return 1;
@@ -913,7 +913,7 @@ public class DBTest
       EntryContainer ec = rc.getEntryContainer(base);
       if(ec == null)
       {
-        printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
+        printErrorMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
         return 1;
       }
 
@@ -1026,7 +1026,7 @@ public class DBTest
     }
     catch(DatabaseException de)
     {
-      printMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
+      printErrorMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
           StaticUtils.stackTraceToSingleLineString(de)));
       return 1;
     }
@@ -1056,7 +1056,7 @@ public class DBTest
     }
     catch(DirectoryException de)
     {
-      printMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
+      printErrorMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
                                                  getExceptionMessage(de)));
       return 1;
     }
@@ -1068,13 +1068,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printErrorMessage(ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -1085,7 +1085,7 @@ public class DBTest
     }
     catch(Exception e)
     {
-      printMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
+      printErrorMessage(ERR_DBTEST_ERROR_INITIALIZING_BACKEND.get(
           backend.getBackendID(),
           StaticUtils.stackTraceToSingleLineString(e)));
       return 1;
@@ -1096,7 +1096,7 @@ public class DBTest
       EntryContainer ec = rc.getEntryContainer(base);
       if(ec == null)
       {
-        printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
+        printErrorMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
         return 1;
       }
 
@@ -1115,7 +1115,7 @@ public class DBTest
 
       if(databaseContainer == null)
       {
-        printMessage(ERR_DBTEST_NO_DATABASE_CONTAINERS_FOR_NAME.get(
+        printErrorMessage(ERR_DBTEST_NO_DATABASE_CONTAINERS_FOR_NAME.get(
             databaseName.getValue(), base, backend.getBackendID()));
         return 1;
       }
@@ -1145,7 +1145,7 @@ public class DBTest
           }
           catch(Exception e)
           {
-            printMessage(ERR_DBTEST_CANNOT_DECODE_SIZE.get(
+            printErrorMessage(ERR_DBTEST_CANNOT_DECODE_SIZE.get(
                 maxDataSize.getValue(), getExceptionMessage(e)));
             return 1;
           }
@@ -1159,7 +1159,7 @@ public class DBTest
           }
           catch(Exception e)
           {
-            printMessage(ERR_DBTEST_CANNOT_DECODE_SIZE.get(
+            printErrorMessage(ERR_DBTEST_CANNOT_DECODE_SIZE.get(
                 minDataSize.getValue(), getExceptionMessage(e)));
             return 1;
           }
@@ -1174,7 +1174,7 @@ public class DBTest
           }
           catch(Exception e)
           {
-            printMessage(ERR_DBTEST_CANNOT_DECODE_KEY.get(
+            printErrorMessage(ERR_DBTEST_CANNOT_DECODE_KEY.get(
                 minKeyValue.getValue(), getExceptionMessage(e)));
             return 1;
           }
@@ -1189,7 +1189,7 @@ public class DBTest
           }
           catch(Exception e)
           {
-            printMessage(ERR_DBTEST_CANNOT_DECODE_KEY.get(
+            printErrorMessage(ERR_DBTEST_CANNOT_DECODE_KEY.get(
                 maxKeyValue.getValue(), getExceptionMessage(e)));
             return 1;
           }
@@ -1243,7 +1243,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
+                  printErrorMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
                 formatedData = String.valueOf(
                   JebFormat.entryIDFromDatabase(data.getData()));
@@ -1264,7 +1264,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
+                  printErrorMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
               }
               else if(databaseContainer instanceof DN2URI)
@@ -1276,7 +1276,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
+                  printErrorMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
                 formatedData = new String(key.getData());
                 dataLabel = INFO_LABEL_DBTEST_URI.get();
@@ -1407,7 +1407,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
+                  printErrorMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
               }
             }
@@ -1452,7 +1452,7 @@ public class DBTest
     }
     catch(DatabaseException de)
     {
-      printMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
+      printErrorMessage(ERR_DBTEST_ERROR_READING_DATABASE.get(
           StaticUtils.stackTraceToSingleLineString(de)));
       return 1;
     }
@@ -1537,13 +1537,7 @@ public class DBTest
     return jeBackends;
   }
 
-  /**
-   * Displays a message to the error stream.
-   *
-   * @param msg
-   *          The message.
-   */
-  public final void printMessage(LocalizableMessage msg) {
+  private final void printErrorMessage(LocalizableMessage msg) {
     err.println(wrapText(msg.toString(), MAX_LINE_WIDTH));
   }
 }

@@ -8357,15 +8357,11 @@ public final class DirectoryServer
    */
   public static boolean isRunningAsWindowsService()
   {
-    boolean isRunningAsWindowsService;
+    boolean isRunningAsWindowsService = false;
     if (OperatingSystem.isWindows())
     {
-      isRunningAsWindowsService = ConfigureWindowsService.serviceState(null,
-      null) == ConfigureWindowsService.SERVICE_STATE_ENABLED;
-    }
-    else
-    {
-      isRunningAsWindowsService = false;
+      isRunningAsWindowsService =
+          ConfigureWindowsService.serviceState() == ConfigureWindowsService.SERVICE_STATE_ENABLED;
     }
     return isRunningAsWindowsService;
   }
