@@ -507,9 +507,7 @@ public class InstallDS extends ConsoleApplication
       return true;
     }
 
-    final PrintStream printStreamOut = getOutputStream();
-    final String licenseString = LicenseFile.getText();
-    printStreamOut.println(licenseString);
+    println(LocalizableMessage.raw(LicenseFile.getText()));
     // If the user asks for acceptLicense, license is displayed
     // and automatically accepted.
     if (!argParser.acceptLicense.isPresent())
