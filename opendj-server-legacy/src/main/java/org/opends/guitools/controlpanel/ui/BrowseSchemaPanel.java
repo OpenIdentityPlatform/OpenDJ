@@ -1370,8 +1370,9 @@ class BrowseSchemaPanel extends StatusGenericPanel
   private boolean mustAdd(MatchingRule matchingRule)
   {
     String f = filter.getText().trim();
-    return f.length () <= 0 || (FILTER_NAME.equals(filterAttribute.getSelectedItem())
-                                 && mustAdd(f, matchingRule.getOID(), matchingRule.getNameOrOID()));
+    return f.length() == 0
+        || (FILTER_NAME.equals(filterAttribute.getSelectedItem())
+            && mustAdd(f, matchingRule.getOID(), matchingRule.getNameOrOID()));
   }
 
   /**
@@ -1385,7 +1386,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
   private boolean mustAdd(Syntax syntax)
   {
     String f = filter.getText().trim();
-    return f.length() <= 0
+    return f.length() == 0
         || (FILTER_NAME.equals(filterAttribute.getSelectedItem()) && mustAdd(f, syntax.getOID(), syntax.getName()));
   }
 
@@ -1690,5 +1691,4 @@ class BrowseSchemaPanel extends StatusGenericPanel
     mb.append(confirmationMessage);
     return mb.toMessage();
   }
-
 }
