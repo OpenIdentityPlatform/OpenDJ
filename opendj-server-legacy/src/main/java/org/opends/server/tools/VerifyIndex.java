@@ -221,7 +221,7 @@ public class VerifyIndex
               ERR_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX.get();
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
