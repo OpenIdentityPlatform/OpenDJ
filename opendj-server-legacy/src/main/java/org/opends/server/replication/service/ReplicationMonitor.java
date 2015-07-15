@@ -162,7 +162,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   private void addMonitorData(List<Attribute> attributes, String attrType,
       Map<Integer, Integer> serverIdToNb)
   {
-    if (serverIdToNb.size() > 0)
+    if (!serverIdToNb.isEmpty())
     {
       AttributeType type = DirectoryServer.getDefaultAttributeType(attrType);
       final AttributeBuilder builder = new AttributeBuilder(type, attrType);

@@ -841,7 +841,7 @@ public class ReplicationBroker
           connectionError = true;
           connectPhaseLock.notify();
 
-          if (rsInfos.size() > 0)
+          if (!rsInfos.isEmpty())
           {
             logger.warn(WARN_COULD_NOT_FIND_CHANGELOG, serverId, baseDN,
                 Utils.joinAsString(", ", rsInfos.keySet()));

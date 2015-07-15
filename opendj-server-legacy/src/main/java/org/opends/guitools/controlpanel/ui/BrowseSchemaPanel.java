@@ -804,7 +804,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
     for (DefaultMutableTreeNode parent : categoryNodes)
     {
-      if (nodes.get(i).size() == 0)
+      if (nodes.get(i).isEmpty())
       {
         if (parent.getParent() != null)
         {

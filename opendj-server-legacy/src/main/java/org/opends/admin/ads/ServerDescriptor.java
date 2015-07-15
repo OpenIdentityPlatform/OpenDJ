@@ -58,9 +58,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.schema.SchemaConstants;
 
-/**
- * The object of this class represent an OpenDS server.
- */
+/** The object of this class represent an OpenDS server. */
 public class ServerDescriptor
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -109,10 +107,7 @@ public class ServerDescriptor
     IS_REPLICATION_ENABLED,
     /** The associated value is a Boolean. */
     IS_REPLICATION_SECURE,
-    /**
-     * List of servers specified in the Replication Server configuration.
-     * This is a Set of String.
-     */
+    /** List of servers specified in the Replication Server configuration. This is a Set of String. */
     EXTERNAL_REPLICATION_SERVERS,
     /** The associated value is an Integer. */
     REPLICATION_SERVER_ID,
@@ -255,12 +250,8 @@ public class ServerDescriptor
    */
   public boolean isReplicationSecure()
   {
-    if (isReplicationServer())
-    {
-      return Boolean.TRUE.equals(serverProperties.get(
-          ServerProperty.IS_REPLICATION_SECURE));
-    }
-    return false;
+    return isReplicationServer()
+        && Boolean.TRUE.equals(serverProperties.get(ServerProperty.IS_REPLICATION_SECURE));
   }
 
   /**
@@ -281,11 +272,11 @@ public class ServerDescriptor
   public String getHostName()
   {
     String host = (String)serverProperties.get(ServerProperty.HOST_NAME);
-    if (host == null)
+    if (host != null)
     {
-      return (String) adsProperties.get(ADSContext.ServerProperty.HOST_NAME);
+      return host;
     }
-    return host;
+    return (String) adsProperties.get(ADSContext.ServerProperty.HOST_NAME);
   }
 
   /**
@@ -421,7 +412,7 @@ public class ServerDescriptor
       for (ADSContext.ServerProperty prop : enabledAttrs)
       {
         Object v = adsProperties.get(prop);
-        if ((v != null) && "true".equalsIgnoreCase(String.valueOf(v)))
+        if (v != null && "true".equalsIgnoreCase(String.valueOf(v)))
         {
           ADSContext.ServerProperty portProp = getPortProperty(prop);
           Object p = adsProperties.get(portProp);
@@ -495,7 +486,7 @@ public class ServerDescriptor
   public String getId()
   {
     StringBuilder buf = new StringBuilder();
-    if (serverProperties.size() > 0)
+    if (!serverProperties.isEmpty())
     {
       buf.append(serverProperties.get(ServerProperty.HOST_NAME));
       ServerProperty [] props =
@@ -544,8 +535,7 @@ public class ServerDescriptor
    */
   public byte[] getInstancePublicKeyCertificate()
   {
-    return((byte[])
-          serverProperties.get(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE));
+    return (byte[]) serverProperties.get(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
   }
 
   /**
@@ -637,12 +627,11 @@ public class ServerDescriptor
     ArrayList<?> array = (ArrayList<?>)serverProperties.get(
         ServerProperty.STARTTLS_ENABLED);
     boolean startTLSEnabled = false;
-    if ((array != null) && !array.isEmpty())
+    if (array != null && !array.isEmpty())
     {
       startTLSEnabled = Boolean.TRUE.equals(array.get(array.size() -1));
     }
-    adsProperties.put(ADSContext.ServerProperty.STARTTLS_ENABLED,
-        startTLSEnabled ? "true" : "false");
+    adsProperties.put(ADSContext.ServerProperty.STARTTLS_ENABLED, Boolean.toString(startTLSEnabled));
     adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
     adsProperties.put(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
                       getInstancePublicKeyCertificate());
@@ -1230,8 +1219,7 @@ public class ServerDescriptor
       }
       catch (NameNotFoundException x) {
         if (0 == i) {
-          /* Poke CryptoManager to initialize truststore. Note the special
-             attribute in the request. */
+          // Poke CryptoManager to initialize truststore. Note the special attribute in the request.
           final Attributes attrs = new BasicAttributes();
           final Attribute oc = new BasicAttribute("objectclass");
           oc.add("top");
@@ -1279,7 +1267,7 @@ public class ServerDescriptor
   /**
    Seeds the bound instance's local ads-truststore with a set of instance
    key-pair public key certificates. The result is the instance will trust any
-   instance posessing the private key corresponding to one of the public-key
+   instance possessing the private key corresponding to one of the public-key
    certificates. This trust is necessary at least to initialize replication,
    which uses the trusted certificate entries in the ads-truststore for server
    authentication.
@@ -1310,9 +1298,7 @@ public class ServerDescriptor
       keyAttrs.put(new BasicAttribute(
               ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.
                       getAttributeName() + ";binary", keyEntry.getValue()));
-      final LdapName keyDn = new LdapName((new StringBuilder(rdnAttr.getID()))
-              .append("=").append(Rdn.escapeValue(rdnAttr.get())).append(",")
-              .append(TRUSTSTORE_DN).toString());
+      final LdapName keyDn = new LdapName(rdnAttr.getID() + "=" + Rdn.escapeValue(rdnAttr.get()) + "," + TRUSTSTORE_DN);
       try {
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }

@@ -337,7 +337,7 @@ public abstract class Installer extends GuiApplication
     else if (step == REMOTE_REPLICATION_PORTS)
     {
       return isVisible(SUFFIXES_OPTIONS, userData)
-          && userData.getRemoteWithNoReplicationPort().size() > 0
+          && !userData.getRemoteWithNoReplicationPort().isEmpty()
           && userData.getSuffixesToReplicateOptions().getType() ==
               SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
     }
@@ -694,7 +694,7 @@ public abstract class Installer extends GuiApplication
       switch (getUserData().getSuffixesToReplicateOptions().getType())
       {
       case REPLICATE_WITH_EXISTING_SUFFIXES:
-        if (getUserData().getRemoteWithNoReplicationPort().size() > 0)
+        if (!getUserData().getRemoteWithNoReplicationPort().isEmpty())
         {
           return Step.REMOTE_REPLICATION_PORTS;
         }

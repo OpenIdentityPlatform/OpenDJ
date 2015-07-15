@@ -355,7 +355,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertEquals(resultEntry.getObjectClasses().size(), 0);
     assertEquals(resultEntry.getUserAttributes().size(), 0);
-    assertTrue(resultEntry.getOperationalAttributes().size() > 0);
+    assertTrue(!resultEntry.getOperationalAttributes().isEmpty());
   }
 
   @Test
@@ -365,7 +365,7 @@ public class SearchOperationTestCase extends OperationTestCase
     Entry resultEntry = getSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
-    assertTrue(resultEntry.getOperationalAttributes().size() > 0);
+    assertTrue(!resultEntry.getOperationalAttributes().isEmpty());
 
     // Search results contain objectClass as an attribute.
     assertEquals(resultEntry.getUserAttributes().size(),
