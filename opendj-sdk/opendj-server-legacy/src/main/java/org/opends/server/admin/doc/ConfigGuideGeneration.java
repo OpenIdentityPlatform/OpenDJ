@@ -488,7 +488,7 @@ public class ConfigGuideGeneration {
     propertiesLinkTable(basicProps, advancedProps);
 
     // basic properties
-    if (basicProps.size() > 0) {
+    if (!basicProps.isEmpty()) {
       heading4("Basic Properties");
       for ( PropertyDefinition prop : basicProps.values()) {
         generateProperty(mo, prop);
@@ -498,7 +498,7 @@ public class ConfigGuideGeneration {
     }
 
     // advanced properties
-    if (advancedProps.size() > 0) {
+    if (!advancedProps.isEmpty()) {
       heading4("Advanced Properties");
       for ( PropertyDefinition prop : advancedProps.values()) {
         generateProperty(mo, prop);

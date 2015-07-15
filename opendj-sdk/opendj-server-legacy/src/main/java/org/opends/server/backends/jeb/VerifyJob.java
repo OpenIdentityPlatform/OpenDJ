@@ -294,7 +294,7 @@ public class VerifyJob
       else
       {
         logger.info(NOTE_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
-        if (entryLimitMap.size() > 0)
+        if (!entryLimitMap.isEmpty())
         {
           logger.debug(INFO_VERIFY_ENTRY_LIMIT_STATS_HEADER);
 

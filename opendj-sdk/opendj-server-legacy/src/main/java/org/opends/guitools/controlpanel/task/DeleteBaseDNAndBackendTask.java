@@ -40,10 +40,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -51,13 +54,14 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.client.*;
+import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
+import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
+import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
+import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -68,10 +72,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 
-/**
- * The task used to delete a set of base DNs or backends.
- *
- */
+/** The task used to delete a set of base DNs or backends. */
 public class DeleteBaseDNAndBackendTask extends Task
 {
   private Set<String> backendSet;
@@ -131,14 +132,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   /** {@inheritDoc} */
   public Type getType()
   {
-    if (baseDNsToDelete.size() > 0)
-    {
-      return Type.DELETE_BASEDN;
-    }
-    else
-    {
-      return Type.DELETE_BACKEND;
-    }
+    return !baseDNsToDelete.isEmpty() ? Type.DELETE_BASEDN : Type.DELETE_BACKEND;
   }
 
   /** {@inheritDoc} */
@@ -152,7 +146,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   {
     StringBuilder sb = new StringBuilder();
 
-    if (baseDNsToDelete.size() > 0)
+    if (!baseDNsToDelete.isEmpty())
     {
       ArrayList<String> dns = new ArrayList<>();
       for (Set<BaseDNDescriptor> set : baseDNsToDelete.values())
@@ -280,8 +274,8 @@ public class DeleteBaseDNAndBackendTask extends Task
                 getObfuscatedCommandLineArguments(
                     getDSConfigCommandLineArguments(baseDNs));
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLinePath(baseDNs),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BASE_DN.get());
+              printEquivalentCommandLine(getConfigCommandLinePath(), args,
+                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BASE_DN.get());
             }
           });
         }
@@ -361,8 +355,8 @@ public class DeleteBaseDNAndBackendTask extends Task
                 getObfuscatedCommandLineArguments(
                     getDSConfigCommandLineArguments(backend));
               args.removeAll(getConfigCommandLineArguments());
-              printEquivalentCommandLine(getConfigCommandLinePath(backend),
-                 args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BACKEND.get());
+              printEquivalentCommandLine(getConfigCommandLinePath(), args,
+                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BACKEND.get());
             }
           });
         }
@@ -532,41 +526,17 @@ public class DeleteBaseDNAndBackendTask extends Task
   }
 
   /**
-   * Returns the path of the command line to be used to delete the specified
-   * backend.
-   * @param backend the backend to be deleted.
-   * @return the path of the command line to be used to delete the specified
-   * backend.
+   * Returns the path of the command line to be used.
+   *
+   * @return the path of the command line to be used
    */
-  private String getConfigCommandLinePath(BackendDescriptor backend)
+  private String getConfigCommandLinePath()
   {
     if (isServerRunning())
     {
       return getCommandLinePath("dsconfig");
     }
-    else
-    {
-      return null;
-    }
-  }
-
-  /**
-   * Returns the path of the command line to be used to delete the specified
-   * base DNs.
-   * @param baseDNs the base DNs to be deleted.
-   * @return the path of the command line to be used to delete the specified
-   * base DNs.
-   */
-  private String getConfigCommandLinePath(Set<BaseDNDescriptor> baseDNs)
-  {
-    if (isServerRunning())
-    {
-      return getCommandLinePath("dsconfig");
-    }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /** {@inheritDoc} */
@@ -641,7 +611,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   {
     if (baseDN.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
-      final String[] domainName = {null};
+      final AtomicReference<String> domainName = new AtomicReference<>();
 
       try
       {
@@ -666,15 +636,13 @@ public class DeleteBaseDNAndBackendTask extends Task
             String[] domains = sync.listReplicationDomains();
             if (domains != null)
             {
-              for (int i=0; i<domains.length; i++)
+              for (String dName : domains)
               {
-                ReplicationDomainCfgClient domain =
-                  sync.getReplicationDomain(domains[i]);
-                DN dn = domain.getBaseDN();
-                if (dn.equals(baseDN.getDn()))
+                ReplicationDomainCfgClient domain = sync.getReplicationDomain(dName);
+                if (baseDN.getDn().equals(domain.getBaseDN()))
                 {
-                  domainName[0] = domains[i];
-                  sync.removeReplicationDomain(domains[i]);
+                  domainName.set(dName);
+                  sync.removeReplicationDomain(dName);
                   sync.commit();
                   break;
                 }
@@ -701,14 +669,13 @@ public class DeleteBaseDNAndBackendTask extends Task
             String[] domains = sync.listReplicationDomains();
             if (domains != null)
             {
-              for (int i=0; i<domains.length; i++)
+              for (String dName : domains)
               {
-                ReplicationDomainCfg domain =
-                  sync.getReplicationDomain(domains[i]);
+                ReplicationDomainCfg domain = sync.getReplicationDomain(dName);
                 DN dn = domain.getBaseDN();
                 if (dn.equals(baseDN.getDn()))
                 {
-                  domainName[0] = domains[i];
+                  domainName.set(dName);
                   DN entryDN = domain.dn();
                   Utilities.deleteConfigSubtree(
                       DirectoryServer.getConfigHandler(), entryDN);
@@ -721,9 +688,8 @@ public class DeleteBaseDNAndBackendTask extends Task
       }
       finally
       {
-        // This is not super clean, but this way we calculate the domain name
-        // only once.
-        if (isServerRunning() && (domainName[0] != null))
+        // This is not super clean, but this way we calculate the domain name only once.
+        if (isServerRunning() && domainName.get() != null)
         {
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -731,12 +697,11 @@ public class DeleteBaseDNAndBackendTask extends Task
             {
               List<String> args =
                 getObfuscatedCommandLineArguments(
-                    getCommandLineArgumentsToDisableReplication(domainName[0]));
+                    getCommandLineArgumentsToDisableReplication(domainName.get()));
               args.removeAll(getConfigCommandLineArguments());
               args.add(getNoPropertiesFileArgument());
-              printEquivalentCommandLine(
-                  getConfigCommandLinePath(baseDN.getBackend()),
-                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_DOMAIN.get(baseDN.getDn()));
+              printEquivalentCommandLine(getConfigCommandLinePath(), args,
+                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_DOMAIN.get(baseDN.getDn()));
               }
           });
         }

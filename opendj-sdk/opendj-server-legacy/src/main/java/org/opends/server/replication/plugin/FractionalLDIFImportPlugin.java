@@ -444,7 +444,7 @@ public final class FractionalLDIFImportPlugin
           add(attrBuilder, "*", fractionalAllClassesAttributes);
 
       // Add attribute values for specific classes
-      if (fractionalSpecificClassesAttributes.size() > 0)
+      if (!fractionalSpecificClassesAttributes.isEmpty())
       {
         for (Map.Entry<String, Set<String>> specific
             : fractionalSpecificClassesAttributes.entrySet())

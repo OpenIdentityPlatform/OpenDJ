@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.NewEntryTask;
@@ -42,7 +42,6 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFException;
@@ -51,21 +50,14 @@ import org.opends.server.util.LDIFReader;
 /**
  * Abstract class used to re-factor some code among the different panels that
  * are used to create a new entry.
- *
  */
 public abstract class AbstractNewEntryPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 6894546787832469213L;
 
-  /**
-   * The parent node that was selected when the user clicked on the new entry
-   * action.
-   */
+  /** The parent node that was selected when the user clicked on the new entry action. */
   protected BasicNode parentNode;
-
-  /**
-   * The browser controller.
-   */
+  /** The browser controller. */
   protected BrowserController controller;
 
   /**
@@ -243,12 +235,10 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
    */
   protected Entry getEntry() throws LDIFException, IOException
   {
-    Entry entry;
     LDIFImportConfig ldifImportConfig = null;
     try
     {
       String ldif = getLDIF();
-
       if (ldif.trim().length() == 0)
       {
         throw new LDIFException(ERR_LDIF_REPRESENTATION_REQUIRED.get());
@@ -256,18 +246,16 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
 
       ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
       LDIFReader reader = new LDIFReader(ldifImportConfig);
-      entry = reader.readEntry(checkSchema());
+      Entry entry = reader.readEntry(checkSchema());
       if (entry == null)
       {
         throw new LDIFException(ERR_LDIF_REPRESENTATION_REQUIRED.get());
       }
-      else
+      if (entry.getObjectClasses().isEmpty())
       {
-        if (entry.getObjectClasses().size() == 0)
-        {
-          throw new LDIFException(ERR_OBJECTCLASS_FOR_ENTRY_REQUIRED.get());
-        }
+        throw new LDIFException(ERR_OBJECTCLASS_FOR_ENTRY_REQUIRED.get());
       }
+      return entry;
     }
     finally
     {
@@ -276,7 +264,6 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
         ldifImportConfig.close();
       }
     }
-    return entry;
   }
 
   /**

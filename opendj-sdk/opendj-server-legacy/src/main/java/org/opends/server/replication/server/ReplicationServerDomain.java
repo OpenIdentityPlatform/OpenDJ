@@ -2425,7 +2425,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       mpThread.setPeriod(period);
     }
-    else if (connectedDSs.size() > 0 || connectedRSs.size() > 0)
+    else if (!connectedDSs.isEmpty() || !connectedRSs.isEmpty())
     {
       // Requested to start monitoring publishers with provided period value
       startMonitoringPublisher();

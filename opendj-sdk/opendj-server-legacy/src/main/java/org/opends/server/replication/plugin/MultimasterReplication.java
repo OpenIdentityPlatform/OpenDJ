@@ -202,7 +202,7 @@ public class MultimasterReplication
     {
       final LDAPReplicationDomain domain = new LDAPReplicationDomain(
           configuration, updateToReplayQueue, dsrsShutdownSync);
-      if (domains.size() == 0)
+      if (domains.isEmpty())
       {
         // Create the threads that will process incoming update messages
         createReplayThreads();
@@ -255,7 +255,7 @@ public class MultimasterReplication
     }
 
     // No replay threads running if no replication need
-    if (domains.size() == 0) {
+    if (domains.isEmpty()) {
       stopReplayThreads();
     }
   }
@@ -790,7 +790,7 @@ public class MultimasterReplication
     // Stop threads then restart new number of threads
     stopReplayThreads();
     replayThreadNumber = numUpdateRepayThread;
-    if (domains.size() > 0)
+    if (!domains.isEmpty())
     {
       createReplayThreads();
     }
