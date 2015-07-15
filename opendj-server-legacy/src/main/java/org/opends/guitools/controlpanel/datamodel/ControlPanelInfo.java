@@ -1235,7 +1235,7 @@ public class ControlPanelInfo
     {
       adminPort1 = server.getAdminConnector().getPort();
     }
-    
+
     if (getDirContext() != null)
     {
       adminPort2 = ConnectionUtils.getPort(getDirContext());
