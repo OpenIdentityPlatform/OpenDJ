@@ -76,17 +76,17 @@ import org.opends.server.util.StaticUtils;
 public class DeleteSchemaElementsTask extends Task
 {
   /** The list of object classes that the user asked to delete. */
-  private LinkedHashSet<ObjectClass> providedOcsToDelete = new LinkedHashSet<>();
+  private Set<ObjectClass> providedOcsToDelete = new LinkedHashSet<>();
   /** The list of attributes that the user asked to delete. */
-  private LinkedHashSet<AttributeType> providedAttrsToDelete = new LinkedHashSet<>();
+  private Set<AttributeType> providedAttrsToDelete = new LinkedHashSet<>();
   /** The list of object classes that will be actually deleted (some might be recreated). */
-  private LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<>();
+  private Set<ObjectClass> ocsToDelete = new LinkedHashSet<>();
   /** The list of attributes that will be actually deleted (some might be recreated). */
-  private LinkedHashSet<AttributeType> attrsToDelete = new LinkedHashSet<>();
+  private Set<AttributeType> attrsToDelete = new LinkedHashSet<>();
   /** The list of object classes that will be recreated. */
-  private LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<>();
+  private Set<ObjectClass> ocsToAdd = new LinkedHashSet<>();
   /** The list of attributes that will be recreated. */
-  private LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<>();
+  private Set<AttributeType> attrsToAdd = new LinkedHashSet<>();
 
   /**
    * Constructor of the task.
@@ -96,8 +96,7 @@ public class DeleteSchemaElementsTask extends Task
    * @param attrsToDelete the attributes that must be deleted (ordered).
    */
   public DeleteSchemaElementsTask(ControlPanelInfo info, ProgressDialog dlg,
-      LinkedHashSet<ObjectClass> ocsToDelete,
-      LinkedHashSet<AttributeType> attrsToDelete)
+      Set<ObjectClass> ocsToDelete, Set<AttributeType> attrsToDelete)
   {
     super(info, dlg);
 
