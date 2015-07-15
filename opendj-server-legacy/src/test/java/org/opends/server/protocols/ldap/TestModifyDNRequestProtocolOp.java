@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -299,8 +299,8 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
                                                   newSuperiorDn);
     modifyRequest.toString(buffer);
 
-    key.append("ModifyDNRequest(dn="+dn+", newRDN="+newRdn+", " +
-        "deleteOldRDN="+true+", newSuperior="+newSuperiorDn+")");
+    key.append("ModifyDNRequest(dn=").append(dn).append(", newRDN=").append(newRdn).append(", ").append("deleteOldRDN=").append(true).append(", newSuperior=")
+        .append(newSuperiorDn).append(")");
 
     assertEquals(buffer.toString(), key.toString());
   }

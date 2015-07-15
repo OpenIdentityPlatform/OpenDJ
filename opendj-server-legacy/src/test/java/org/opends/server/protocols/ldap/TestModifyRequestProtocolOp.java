@@ -352,7 +352,7 @@ public class TestModifyRequestProtocolOp extends LdapTestCase
         new ModifyRequestProtocolOp(dn, modifications);
     modifyRequest.toString(buffer);
 
-    key.append("ModifyRequest(dn="+dn+", mods={");
+    key.append("ModifyRequest(dn=").append(dn).append(", mods={");
     for (int i = 0; i < numModifications; i++)
     {
       modifications.get(i).toString(key);

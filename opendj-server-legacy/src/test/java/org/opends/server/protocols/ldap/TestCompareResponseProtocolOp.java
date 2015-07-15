@@ -27,6 +27,8 @@
 package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
@@ -40,7 +42,7 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.ldap.TestAddResponseProtocolOp.*;
+import static org.forgerock.util.Utils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -324,26 +326,22 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   @Test
   public void TestToStringSingleLine() throws Exception
   {
-    CompareResponseProtocolOp compareResponse;
+    List<String> referralURLs = Arrays.asList(
+        "ds1.example.com",
+        "ds2.example.com",
+        "ds3.example.com");
+
+    CompareResponseProtocolOp compareResponse = new CompareResponseProtocolOp(
+        resultCode, resultMsg, dn, referralURLs);
     StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-
-    ArrayList<String> referralURLs = new ArrayList<>();
-    referralURLs.add("ds1.example.com");
-    referralURLs.add("ds2.example.com");
-    referralURLs.add("ds3.example.com");
-
-    compareResponse = new CompareResponseProtocolOp(resultCode, resultMsg, dn,
-                                                  referralURLs);
     compareResponse.toString(buffer);
 
-    key.append("CompareResponse(resultCode=" + resultCode + ", "
-        + "errorMessage=" + resultMsg + ", matchedDN=" + dn
-        + ", " + "referralURLs={");
-    join(key, referralURLs);
-    key.append("})");
+    String key = "CompareResponse(resultCode=" + resultCode
+        + ", errorMessage=" + resultMsg
+        + ", matchedDN=" + dn
+        + ", referralURLs={" + joinAsString(", ", referralURLs) + "})";
 
-    assertEquals(buffer.toString(), key.toString());
+    assertEquals(buffer.toString(), key);
   }
 
   /**
@@ -375,35 +373,15 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
       indentBuf.append(' ');
     }
 
-    key.append(indentBuf);
-    key.append("Compare Response");
-    key.append(EOL);
+    key.append(indentBuf).append("Compare Response").append(EOL);
+    key.append(indentBuf).append("  Result Code:  ").append(resultCode).append(EOL);
+    key.append(indentBuf).append("  Error LocalizableMessage:  ").append(resultMsg).append(EOL);
+    key.append(indentBuf).append("  Matched DN:  ").append(dn).append(EOL);
 
-    key.append(indentBuf);
-    key.append("  Result Code:  ");
-    key.append(resultCode);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Error LocalizableMessage:  ");
-    key.append(resultMsg);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Matched DN:  ");
-    key.append(dn.toString());
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Referral URLs:  ");
-    key.append(EOL);
-
+    key.append(indentBuf).append("  Referral URLs:  ").append(EOL);
     for (String url : referralURLs)
     {
-      key.append(indentBuf);
-      key.append("  ");
-      key.append(url);
-      key.append(EOL);
+      key.append(indentBuf).append("  ").append(url).append(EOL);
     }
 
     assertEquals(buffer.toString(), key.toString());

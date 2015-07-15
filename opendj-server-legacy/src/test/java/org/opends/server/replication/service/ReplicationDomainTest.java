@@ -446,7 +446,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < ENTRYCOUNT; i++)
     {
-      sb.append("key : value" + i + "\n\n");
+      sb.append("key : value").append(i).append("\n\n");
     }
     return sb.toString();
   }

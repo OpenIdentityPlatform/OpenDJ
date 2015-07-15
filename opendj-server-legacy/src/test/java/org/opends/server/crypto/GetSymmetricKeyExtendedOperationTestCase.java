@@ -87,27 +87,12 @@ public class GetSymmetricKeyExtendedOperationTestCase
     final String baseDNStr // TODO: is this DN defined elsewhere as a constant?
             = "cn=secret keys," + ADSContext.getAdministrationSuffixDN();
     final DN baseDN = DN.valueOf(baseDNStr);
-    final String FILTER_OC_INSTANCE_KEY
-            = new StringBuilder("(objectclass=")
-            .append(ConfigConstants.OC_CRYPTO_CIPHER_KEY)
-            .append(")").toString();
-    final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
-            .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
-            .append("=*))").toString();
-    final String FILTER_CIPHER_TRANSFORMATION_NAME = new StringBuilder("(")
-            .append(ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME)
-            .append("=").append(cipherTransformationName)
-            .append(")").toString();
-    final String FILTER_CIPHER_KEY_LENGTH = new StringBuilder("(")
-            .append(ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS)
-            .append("=").append(String.valueOf(cipherKeyLength))
-            .append(")").toString();
-    final String searchFilter = new StringBuilder("(&")
-            .append(FILTER_OC_INSTANCE_KEY)
-            .append(FILTER_NOT_COMPROMISED)
-            .append(FILTER_CIPHER_TRANSFORMATION_NAME)
-            .append(FILTER_CIPHER_KEY_LENGTH)
-            .append(")").toString();
+    final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + OC_CRYPTO_CIPHER_KEY + ")";
+    final String FILTER_NOT_COMPROMISED = "(!(" + ATTR_CRYPTO_KEY_COMPROMISED_TIME + "=*))";
+    final String FILTER_CIPHER_TRANSFORMATION_NAME = "(" + ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME + "=" + cipherTransformationName + ")";
+    final String FILTER_CIPHER_KEY_LENGTH = "(" + ATTR_CRYPTO_KEY_LENGTH_BITS + "=" + cipherKeyLength + ")";
+    final String searchFilter =
+        "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + FILTER_CIPHER_TRANSFORMATION_NAME + FILTER_CIPHER_KEY_LENGTH + ")";
     final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter)
         .addAttribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
     InternalSearchOperation searchOp = getRootConnection().processSearch(request);

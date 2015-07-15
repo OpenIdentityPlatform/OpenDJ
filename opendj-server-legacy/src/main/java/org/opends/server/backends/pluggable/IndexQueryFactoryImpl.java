@@ -287,7 +287,7 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           }
           if (indexNameOut != null)
           {
-            indexNameOut.append(IndexFilterType.PRESENCE.toString());
+            indexNameOut.append(IndexFilterType.PRESENCE);
           }
           return entrySet;
         }

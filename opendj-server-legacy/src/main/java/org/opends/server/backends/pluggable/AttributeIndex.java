@@ -532,7 +532,7 @@ class AttributeIndex
   {
     if (indexNameOut.length() > 0)
     {
-      debugBuffer.append(newUndefinedSet().toString());
+      debugBuffer.append(newUndefinedSet());
       appendDebugIndexInformation(debugBuffer, indexNameOut.toString());
     }
   }

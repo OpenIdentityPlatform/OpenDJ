@@ -26,7 +26,7 @@
  */
 package org.opends.server.protocols.ldap;
 
-import static org.opends.server.protocols.ldap.TestAddResponseProtocolOp.*;
+import static org.forgerock.util.Utils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -330,25 +330,21 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
   @Test
   public void TestToStringSingleLine() throws Exception
   {
-    ModifyDNResponseProtocolOp modifyResponse;
-    StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-
     List<String> referralURLs = Arrays.asList(
         "ds1.example.com",
         "ds2.example.com",
         "ds3.example.com");
 
-    modifyResponse = new ModifyDNResponseProtocolOp(resultCode, resultMsg, dn, referralURLs);
+    ModifyDNResponseProtocolOp modifyResponse = new ModifyDNResponseProtocolOp(resultCode, resultMsg, dn, referralURLs);
+    StringBuilder buffer = new StringBuilder();
     modifyResponse.toString(buffer);
 
-    key.append("ModifyDNResponse(resultCode=" + resultCode + ", "
-        + "errorMessage=" + resultMsg + ", matchedDN=" + dn + ", "
-        + "referralURLs={");
-    join(key, referralURLs);
-    key.append("})");
+    String key = "ModifyDNResponse(resultCode=" + resultCode
+        + ", errorMessage=" + resultMsg
+        + ", matchedDN=" + dn
+        + ", referralURLs={" + joinAsString(", ", referralURLs) + "})";
 
-    assertEquals(buffer.toString(), key.toString());
+    assertEquals(buffer.toString(), key);
   }
 
   /**
@@ -380,35 +376,15 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
       indentBuf.append(' ');
     }
 
-    key.append(indentBuf);
-    key.append("Modify DN Response");
-    key.append(EOL);
+    key.append(indentBuf).append("Modify DN Response").append(EOL);
+    key.append(indentBuf).append("  Result Code:  ").append(resultCode).append(EOL);
+    key.append(indentBuf).append("  Error LocalizableMessage:  ").append(resultMsg).append(EOL);
+    key.append(indentBuf).append("  Matched DN:  ").append(dn).append(EOL);
 
-    key.append(indentBuf);
-    key.append("  Result Code:  ");
-    key.append(resultCode);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Error LocalizableMessage:  ");
-    key.append(resultMsg);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Matched DN:  ");
-    key.append(dn.toString());
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Referral URLs:  ");
-    key.append(EOL);
-
+    key.append(indentBuf).append("  Referral URLs:  ").append(EOL);
     for (String url : referralURLs)
     {
-      key.append(indentBuf);
-      key.append("  ");
-      key.append(url);
-      key.append(EOL);
+      key.append(indentBuf).append("  ").append(url).append(EOL);
     }
 
     assertEquals(buffer.toString(), key.toString());

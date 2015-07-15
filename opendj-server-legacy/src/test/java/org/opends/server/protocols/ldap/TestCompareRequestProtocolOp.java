@@ -227,19 +227,16 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test
   public void TestToStringSingleLine() throws Exception
   {
-    CompareRequestProtocolOp compareRequest;
+    CompareRequestProtocolOp  compareRequest = new CompareRequestProtocolOp(
+        dn, attributeType, assertionValue);
     StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-    int i;
-
-    compareRequest = new CompareRequestProtocolOp(dn, attributeType,
-                                                  assertionValue);
     compareRequest.toString(buffer);
 
-    key.append("CompareRequest(dn="+dn+", attribute="+attributeType+", " +
-        "value="+assertionValue+")");
+    String key = "CompareRequest(dn=" + dn
+        + ", attribute=" + attributeType
+        + ", value=" + assertionValue + ")";
 
-    assertEquals(buffer.toString(), key.toString());
+    assertEquals(buffer.toString(), key);
   }
 
   /**
@@ -250,40 +247,23 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
   @Test
   public void TestToStringMultiLine() throws Exception
   {
-    CompareRequestProtocolOp compareRequest;
-    StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-    int i;
-    int indent;
+    int indent = 5;
 
-    indent = 5;
-    compareRequest = new CompareRequestProtocolOp(dn, attributeType,
-                                                  assertionValue);
+    CompareRequestProtocolOp compareRequest = new CompareRequestProtocolOp(dn, attributeType, assertionValue);
+    StringBuilder buffer = new StringBuilder();
     compareRequest.toString(buffer, indent);
 
     StringBuilder indentBuf = new StringBuilder(indent);
-    for (i=0 ; i < indent; i++)
+    for (int i = 0 ; i < indent; i++)
     {
       indentBuf.append(' ');
     }
 
-    key.append(indentBuf);
-    key.append("Compare Request");
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Target DN:  ");
-    key.append(dn);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Attribute Type:  ");
-    key.append(attributeType);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Assertion Value:");
-    key.append(EOL);
+    StringBuilder key = new StringBuilder();
+    key.append(indentBuf).append("Compare Request").append(EOL);
+    key.append(indentBuf).append("  Target DN:  ").append(dn).append(EOL);
+    key.append(indentBuf).append("  Attribute Type:  ").append(attributeType).append(EOL);
+    key.append(indentBuf).append("  Assertion Value:").append(EOL);
     key.append(assertionValue.toHexPlusAsciiString(indent+4));
 
     assertEquals(buffer.toString(), key.toString());

@@ -284,8 +284,7 @@ public class ConfigGuideGeneration {
   }
 
    private void jumpSection() {
-     htmlBuff.append("<p class=\"category-index\">" +
-       "<strong>Jump To:</strong><br>\n");
+     htmlBuff.append("<p class=\"category-index\"><strong>Jump To:</strong><br>\n");
 
      String[] catNames = catTopMoList.keySet().toArray(new String[0]);
     for (int ii=0; ii < catNames.length; ii++) {
@@ -526,10 +525,10 @@ public class ConfigGuideGeneration {
   }
 
   private void homeLink() {
-    htmlBuff.append("<div style=\"font-size:11px;margin-top:-10px;" +
-      "margin-bottom:-10px; text-align:right\"><a href=\"" +
-      MAIN_FILE +
-      "\" target=\"_top\">Configuration Reference Home</a></div>");
+    htmlBuff.append("<div style=\"font-size:11px;margin-top:-10px;")
+      .append("margin-bottom:-10px; text-align:right\"><a href=\"")
+      .append(MAIN_FILE)
+      .append("\" target=\"_top\">Configuration Reference Home</a></div>");
   }
 
 
@@ -747,12 +746,11 @@ public class ConfigGuideGeneration {
   private void propertiesLinkTable(TreeMap<String,
     PropertyDefinition> basicProps,
     TreeMap<String, PropertyDefinition> advancedProps) {
-    htmlBuff.append(
-      "<table border=\"0\" cellspacing=\"0\" class=\"jump-table\">\n" +
-      "  <tr>\n" +
-      "    <th>Basic Properties:</th>\n" +
-      "    <th>Advanced Properties:</th>\n" +
-      "  </tr>\n");
+    htmlBuff.append("<table border=\"0\" cellspacing=\"0\" class=\"jump-table\">\n")
+        .append("  <tr>\n")
+        .append("    <th>Basic Properties:</th>\n")
+        .append("    <th>Advanced Properties:</th>\n")
+        .append("  </tr>\n");
 
     PropertyDefinition[] basicPropsArray =
       basicProps.values().toArray(new PropertyDefinition[0]);
@@ -788,7 +786,7 @@ public class ConfigGuideGeneration {
       }
 
       htmlBuff.append("<tr>\n");
-      htmlBuff.append(basicHtmlCell + advancedHtmlCell);
+      htmlBuff.append(basicHtmlCell).append(advancedHtmlCell);
       htmlBuff.append("</tr>\n");
     }
     htmlBuff.append("</table>\n");
@@ -864,14 +862,12 @@ public class ConfigGuideGeneration {
       if (!mo.getName().startsWith(firstChar)) {
         firstChar = mo.getName().substring(0, 1);
         String letter = firstChar.toUpperCase();
-        moPointers.append(getAnchor(letter) + getHeading2(letter));
+        moPointers.append(getAnchor(letter)).append(getHeading2(letter));
         lettersPointers += getLink(letter, "#" + letter) + " ";
       }
-      moPointers.append(
-        "<p> " +
-        getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html",
-        MAIN_FRAME) +
-        "</p>\n");
+      moPointers.append("<p> ")
+        .append(getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME))
+        .append("</p>\n");
     }
     paragraph(lettersPointers);
     htmlBuff.append(moPointers);
@@ -899,7 +895,7 @@ public class ConfigGuideGeneration {
       if (!propName.startsWith(firstChar)) {
         firstChar = propName.substring(0, 1);
         String letter = firstChar.toUpperCase();
-        htmlBuff.append(getAnchor(letter) + getHeading2(letter));
+        htmlBuff.append(getAnchor(letter)).append(getHeading2(letter));
         lettersPointers += getLink(letter, "#" + letter) + " ";
       }
       String propLink = getLink(propName,
@@ -1315,10 +1311,7 @@ public class ConfigGuideGeneration {
   }
 
   private void bullet(String str) {
-    htmlBuff.append(
-      "<li>" +
-      str +
-      "</li>\n");
+    htmlBuff.append("<li>").append(str).append("</li>\n");
   }
 
   private void heading2(String string) {
@@ -1354,8 +1347,7 @@ public class ConfigGuideGeneration {
   }
 
   private void htmlHeader(String pageTitle) {
-    htmlBuff.append(getHtmlHeader(pageTitle) +
-      "<body>\n");
+    htmlBuff.append(getHtmlHeader(pageTitle)).append("<body>\n");
 
   }
 
@@ -1444,7 +1436,7 @@ public class ConfigGuideGeneration {
     if (!inList) {
       htmlStr += "<br>";
     }
-    htmlBuff.append(htmlStr + "\n");
+    htmlBuff.append(htmlStr).append("\n");
   }
 
   private void newline() {
@@ -1486,14 +1478,9 @@ public class ConfigGuideGeneration {
       classStr = "class=" + pClass;
     }
 
-    htmlBuff.append(
-      "<p " +
-      indentStr + " " +
-      styleStr + " " +
-      classStr +
-      ">" +
-      description +
-      "</p>\n");
+    htmlBuff.append("<p ").append(indentStr).append(" ").append(styleStr).append(" ").append(classStr).append(">")
+        .append(description)
+        .append("</p>\n");
   }
 
   private int getIndentPixels() {
@@ -1501,13 +1488,12 @@ public class ConfigGuideGeneration {
   }
 
   private void startTable() {
-    htmlBuff.append(
-      "<table " +
-      "style=\"width: 100%; text-align: left;\"" +
-      "border=\"1\"" +
-      "cellpadding=\"1\"" +
-      "cellspacing=\"0\"" +
-      ">\n");
+    htmlBuff.append("<table ")
+            .append("style=\"width: 100%; text-align: left;\"")
+            .append("border=\"1\"")
+            .append("cellpadding=\"1\"")
+            .append("cellspacing=\"0\"")
+            .append(">\n");
 
     htmlBuff.append("<tbody>\n");
   }
@@ -1536,13 +1522,12 @@ public class ConfigGuideGeneration {
       "<tr>\n");
     for (int ii = 0; ii < strings.length; ii++) {
       String string = strings[ii];
-      htmlBuff.append(
-        "<td style=\"" +
-        "vertical-align: top; " +
-        ((ii == 0) ? "width: 20%;" : "") +
-        "\">" +
-        string +
-        "<br></td>");
+      htmlBuff.append("<td style=\"")
+              .append("vertical-align: top; ")
+              .append(ii == 0 ? "width: 20%;" : "")
+              .append("\">")
+              .append(string)
+              .append("<br></td>");
     }
     htmlBuff.append(
       "</tr>\n");
@@ -1573,18 +1558,14 @@ public class ConfigGuideGeneration {
   }
 
   private void htmlFooter() {
-    htmlBuff.append(
-      "</body>\n" +
-      "</html>\n");
+    htmlBuff.append("</body>\n").append("</html>\n");
   }
 
   private void viewHelp(String helpStr) {
-    htmlBuff.append(
-      "<p class=\"view-help\" >" +
-      helpStr +
-      "</p>" +
-      "\n"
-      );
+    htmlBuff.append("<p class=\"view-help\" >")
+            .append(helpStr)
+            .append("</p>")
+            .append("\n");
   }
 
   private void generateFile(String fileName) {
