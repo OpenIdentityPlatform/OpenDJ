@@ -196,7 +196,7 @@ public class RebuildIndex extends TaskTool
           ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get();
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -204,7 +204,7 @@ public class RebuildIndex extends TaskTool
     {
       final LocalizableMessage msg = ERR_REBUILDINDEX_REBUILD_ALL_ERROR.get();
       err.println(wrapText(msg, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -212,7 +212,7 @@ public class RebuildIndex extends TaskTool
     {
       final LocalizableMessage msg = ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("index");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -221,7 +221,7 @@ public class RebuildIndex extends TaskTool
       final LocalizableMessage msg =
           ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -230,7 +230,7 @@ public class RebuildIndex extends TaskTool
       final LocalizableMessage msg =
           ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildDegraded");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -239,7 +239,7 @@ public class RebuildIndex extends TaskTool
       final LocalizableMessage msg =
           ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
-      out.println(argParser.getUsage());
+      err.println(argParser.getUsage());
       return 1;
     }
 
