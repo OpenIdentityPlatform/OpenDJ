@@ -47,7 +47,11 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 
-import com.forgerock.opendj.cli.*;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
   * This class is used to configure the Windows service for this instance on
@@ -272,11 +276,11 @@ public class ConfigureWindowsService
    */
   static String getServiceName()
   {
-    String serviceName = null;
     String serverRoot = getServerRoot();
     String[] cmd = { getBinaryFullPath(), "state", serverRoot };
     try
     {
+      String serviceName = null;
       Process p = Runtime.getRuntime().exec(cmd);
       BufferedReader stdout = new BufferedReader(new InputStreamReader(p.getInputStream()));
       boolean processDone = false;
@@ -300,13 +304,12 @@ public class ConfigureWindowsService
           }
         }
       }
+      return serviceName;
     }
     catch (Throwable t)
     {
-      serviceName = null;
+      return null;
     }
-
-    return serviceName;
   }
 
   /**
