@@ -42,7 +42,7 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.ldap.TestAddResponseProtocolOp.*;
+import static org.forgerock.util.Utils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -326,25 +326,21 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void TestToStringSingleLine() throws Exception
   {
-    ModifyResponseProtocolOp modifyResponse;
-    StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-
     List<String> referralURLs = Arrays.asList(
         "ds1.example.com",
         "ds2.example.com",
         "ds3.example.com");
 
-    modifyResponse = new ModifyResponseProtocolOp(resultCode, resultMsg, dn, referralURLs);
+    ModifyResponseProtocolOp modifyResponse = new ModifyResponseProtocolOp(resultCode, resultMsg, dn, referralURLs);
+    StringBuilder buffer = new StringBuilder();
     modifyResponse.toString(buffer);
 
-    key.append("ModifyResponse(resultCode=" + resultCode + ", "
-        + "errorMessage=" + resultMsg + ", matchedDN=" + dn
-        + ", " + "referralURLs={");
-    join(key, referralURLs);
-    key.append("})");
+    String key = "ModifyResponse(resultCode=" + resultCode
+        + ", errorMessage=" + resultMsg
+        + ", matchedDN=" + dn
+        + ", referralURLs={" + joinAsString(", ", referralURLs) + "})";
 
-    assertEquals(buffer.toString(), key.toString());
+    assertEquals(buffer.toString(), key);
   }
 
   /**
@@ -357,7 +353,6 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   {
     ModifyResponseProtocolOp modifyResponse;
     StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
 
     ArrayList<String> referralURLs = new ArrayList<>();
     referralURLs.add("ds1.example.com");
@@ -366,8 +361,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     int indent = 5;
     int i;
 
-    modifyResponse = new ModifyResponseProtocolOp(resultCode, resultMsg, dn,
-                                                  referralURLs);
+    modifyResponse = new ModifyResponseProtocolOp(resultCode, resultMsg, dn, referralURLs);
     modifyResponse.toString(buffer, indent);
 
     StringBuilder indentBuf = new StringBuilder(indent);
@@ -376,35 +370,16 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
       indentBuf.append(' ');
     }
 
-    key.append(indentBuf);
-    key.append("Modify Response");
-    key.append(EOL);
+    StringBuilder key = new StringBuilder();
+    key.append(indentBuf).append("Modify Response").append(EOL);
+    key.append(indentBuf).append("  Result Code:  ").append(resultCode).append(EOL);
+    key.append(indentBuf).append("  Error LocalizableMessage:  ").append(resultMsg).append(EOL);
+    key.append(indentBuf).append("  Matched DN:  ").append(dn).append(EOL);
 
-    key.append(indentBuf);
-    key.append("  Result Code:  ");
-    key.append(resultCode);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Error LocalizableMessage:  ");
-    key.append(resultMsg);
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Matched DN:  ");
-    key.append(dn.toString());
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  Referral URLs:  ");
-    key.append(EOL);
-
+    key.append(indentBuf).append("  Referral URLs:  ").append(EOL);
     for (String url : referralURLs)
     {
-      key.append(indentBuf);
-      key.append("  ");
-      key.append(url);
-      key.append(EOL);
+      key.append(indentBuf).append("  ").append(url).append(EOL);
     }
 
     assertEquals(buffer.toString(), key.toString());

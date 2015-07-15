@@ -119,17 +119,12 @@ public class ConfigFileHandlerTestCase
     if (! violatingDNs.isEmpty())
     {
       StringBuilder message = new StringBuilder();
-      message.append("The extensibleObject object class is not allowed for " +
-                     "use in the server configuration.");
-      message.append(EOL);
-      message.append("Configuration entries containing the extensibleObject " +
-                     "object class:");
-      message.append(EOL);
+      message.append("The extensibleObject object class is not allowed for use in the server configuration.")
+             .append(EOL);
+      message.append("Configuration entries containing the extensibleObject object class:").append(EOL);
       for (DN dn : violatingDNs)
       {
-        message.append("- ");
-        message.append(dn.toString());
-        message.append(EOL);
+        message.append("- ").append(dn).append(EOL);
       }
 
       throw new AssertionError(message.toString());

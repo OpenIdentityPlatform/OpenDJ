@@ -205,10 +205,9 @@ class ADSContextHelper
         }
 
         /* add public-key certificate entry */
-        final LdapName keyDn = new LdapName((new StringBuilder())
-            .append(ServerProperty.INSTANCE_KEY_ID.getAttributeName())
-            .append("=").append(Rdn.escapeValue(keyID)).append(",")
-            .append(ADSContext.getInstanceKeysContainerDN()).toString());
+        final LdapName keyDn = new LdapName(
+            ServerProperty.INSTANCE_KEY_ID.getAttributeName() + "=" + Rdn.escapeValue(keyID)
+                + "," + ADSContext.getInstanceKeysContainerDN());
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
 

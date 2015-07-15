@@ -99,15 +99,11 @@ public class GenericSchemaTestCase
     if (! invalidOIDs.isEmpty())
     {
       StringBuilder message = new StringBuilder();
-      message.append("All attribute syntaxes defined in OpenDS must have " +
-                     "valid OIDs assigned.");
-      message.append(EOL);
-      message.append("Attribute syntaxes without valid OIDs:");
-      message.append(EOL);
+      message.append("All attribute syntaxes defined in OpenDS must have valid OIDs assigned.").append(EOL);
+      message.append("Attribute syntaxes without valid OIDs:").append(EOL);
       for (String s : invalidOIDs)
       {
-        message.append("- " + s);
-        message.append(EOL);
+        message.append("- ").append(s).append(EOL);
       }
 
       throw new AssertionError(message.toString());
@@ -137,14 +133,13 @@ public class GenericSchemaTestCase
     if (! invalidOIDs.isEmpty())
     {
       StringBuilder message = new StringBuilder();
-      message.append("All matching rules defined in OpenDS must have valid " +
-                     "OIDs assigned.");
+      message.append("All matching rules defined in OpenDS must have valid ").append("OIDs assigned.");
       message.append(EOL);
       message.append("Matching rules without valid OIDs:");
       message.append(EOL);
       for (String s : invalidOIDs)
       {
-        message.append("- " + s);
+        message.append("- ").append(s);
         message.append(EOL);
       }
 
@@ -213,14 +208,13 @@ public class GenericSchemaTestCase
     if (! invalidOIDs.isEmpty())
     {
       StringBuilder message = new StringBuilder();
-      message.append("All attribute types defined in OpenDS must have valid " +
-                     "OIDs assigned.");
+      message.append("All attribute types defined in OpenDS must have valid ").append("OIDs assigned.");
       message.append(EOL);
       message.append("Attribute types without valid OIDs:");
       message.append(EOL);
       for (String s : invalidOIDs)
       {
-        message.append("- " + s);
+        message.append("- ").append(s);
         message.append(EOL);
       }
 
@@ -289,14 +283,13 @@ public class GenericSchemaTestCase
     if (! invalidOIDs.isEmpty())
     {
       StringBuilder message = new StringBuilder();
-      message.append("All object classes defined in OpenDS must have valid " +
-                     "OIDs assigned.");
+      message.append("All object classes defined in OpenDS must have valid ").append("OIDs assigned.");
       message.append(EOL);
       message.append("Object classes without valid OIDs:");
       message.append(EOL);
       for (String s : invalidOIDs)
       {
-        message.append("- " + s);
+        message.append("- ").append(s);
         message.append(EOL);
       }
 
@@ -364,14 +357,13 @@ public class GenericSchemaTestCase
     if (! invalidOIDs.isEmpty())
     {
       StringBuilder message = new StringBuilder();
-      message.append("All name forms defined in OpenDS must have valid OIDs " +
-                     "assigned.");
+      message.append("All name forms defined in OpenDS must have valid OIDs ").append("assigned.");
       message.append(EOL);
       message.append("Name forms without valid OIDs:");
       message.append(EOL);
       for (String s : invalidOIDs)
       {
-        message.append("- " + s);
+        message.append("- ").append(s);
         message.append(EOL);
       }
 

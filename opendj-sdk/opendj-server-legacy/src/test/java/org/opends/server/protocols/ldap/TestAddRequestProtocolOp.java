@@ -404,7 +404,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     addRequest.toString(buffer);
 
     StringBuilder key = new StringBuilder();
-    key.append("AddRequest(dn="+dn+", attrs={");
+    key.append("AddRequest(dn=").append(dn).append(", attrs={");
     for (int i = 0; i < numAttributes; i++)
     {
       attributes.get(i).toString(key);
@@ -443,18 +443,9 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     }
 
     StringBuilder key = new StringBuilder();
-    key.append(indentBuf);
-    key.append("Add Request");
-    key.append(EOL);
-
-    key.append(indentBuf);
-    key.append("  DN:  ");
-    key.append(dn.toString());
-    key.append(EOL);
-
-    key.append("  Attributes:");
-    key.append(EOL);
-
+    key.append(indentBuf).append("Add Request").append(EOL);
+    key.append(indentBuf).append("  DN:  ").append(dn).append(EOL);
+    key.append("  Attributes:").append(EOL);
     for (RawAttribute attribute : attributes)
     {
       attribute.toString(key, indent+4);

@@ -154,7 +154,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   private void testSetUp(String tc) throws Exception
   {
     personEntry = TestCaseUtils.makeEntry(
-        "dn: uid=user.1." + tc + "," + baseDN + "",
+        "dn: uid=user.1." + tc + "," + baseDN,
         "objectClass: top",
         "objectClass: person",
         "objectClass: organizationalPerson",
@@ -187,7 +187,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     user1entrysecondUUID = "22222222-2222-2222-2222-222222222222";
     user1dn = DN.valueOf("uid=user1" + tc + "," + baseDN);
     personWithUUIDEntry = TestCaseUtils.makeEntry(
-        "dn: "+ user1dn + "",
+        "dn: " + user1dn,
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson",
         "objectClass: inetOrgPerson", "uid: user.1",
