@@ -3133,7 +3133,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (Throwable t)
       {
-        server.setBindDn(getDefaultValue(args.bindDnArg));
+        server.setBindDn(getValueOrDefault(args.bindDnArg));
         server.setPwd(pwd);
       }
     }
