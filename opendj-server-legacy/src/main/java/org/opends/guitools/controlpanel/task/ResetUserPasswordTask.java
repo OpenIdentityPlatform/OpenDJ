@@ -106,7 +106,7 @@ public class ResetUserPasswordTask extends Task
     {
       InitialLdapContext ctx =
         controller.findConnectionForDisplayedEntry(node);
-      if ((ctx != null) && isBoundAs(dn, ctx))
+      if (ctx != null && isBoundAs(dn, ctx))
       {
         currentPassword = ConnectionUtils.getBindPassword(ctx).toCharArray();
       }
@@ -199,9 +199,7 @@ public class ResetUserPasswordTask extends Task
     try
     {
       ArrayList<String> arguments = getCommandLineArguments();
-
       String[] args = new String[arguments.size()];
-
       arguments.toArray(args);
 
       returnCode = LDAPPasswordModify.mainPasswordModify(args, false,
@@ -213,7 +211,7 @@ public class ResetUserPasswordTask extends Task
       }
       else
       {
-        if ((lastException == null) && (currentPassword != null))
+        if (lastException == null && currentPassword != null)
         {
           // The connections must be updated, just update the environment, which
           // is what we use to clone connections and to launch scripts.

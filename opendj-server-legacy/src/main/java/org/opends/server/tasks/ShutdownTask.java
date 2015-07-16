@@ -115,8 +115,8 @@ public class ShutdownTask
       if (!attr.isEmpty())
       {
         String valueString = toLowerCase(attr.iterator().next().toString());
-        restart = (valueString.equals("true") || valueString.equals("yes")
-            || valueString.equals("on") || valueString.equals("1"));
+        restart = valueString.equals("true") || valueString.equals("yes")
+            || valueString.equals("on") || valueString.equals("1");
       }
     }
 

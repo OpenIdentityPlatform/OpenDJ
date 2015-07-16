@@ -112,7 +112,7 @@ public class Utilities {
 
     if (multipleScreen)
     {
-      comp.setLocation((screenSize.width / 4) - (width / 2),
+      comp.setLocation(screenSize.width / 4 - width / 2,
           (screenSize.height - height) / 2);
     } else
     {

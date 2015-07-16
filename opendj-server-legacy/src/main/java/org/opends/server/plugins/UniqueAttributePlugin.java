@@ -136,7 +136,7 @@ public class UniqueAttributePlugin
     }
 
     Set<DN> cfgBaseDNs = configuration.getBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -146,7 +146,7 @@ public class UniqueAttributePlugin
       for (DN baseDN : cfgBaseDNs)
       {
         Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID()));
@@ -578,7 +578,7 @@ public class UniqueAttributePlugin
   private Set<DN> getBaseDNs(UniqueAttributePluginCfg config, DN entryDN)
   {
     Set<DN> baseDNs = config.getBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
+    if (baseDNs == null || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -716,7 +716,7 @@ public class UniqueAttributePlugin
     }
 
     Set<DN> cfgBaseDNs = configuration.getBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -726,7 +726,7 @@ public class UniqueAttributePlugin
       for (DN baseDN : cfgBaseDNs)
       {
         Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID()));

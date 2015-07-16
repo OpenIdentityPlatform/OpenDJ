@@ -342,7 +342,7 @@ public class FileManagerTest extends QuickSetupTestCase {
     fileManager.deleteRecursively(dir, killChildFileFilter,
             FileManager.DeletionPolicy.DELETE_IMMEDIATELY);
     assertTrue(dir.exists());
-    assertEquals((childCount -1), countSelfAndAllChildren(dir));
+    assertEquals(childCount - 1, countSelfAndAllChildren(dir));
     assertFalse(f2b1.exists());
   }
 

@@ -156,7 +156,7 @@ public class AddRemovePanel<T> extends JPanel
     {
       /** {@inheritDoc} */
       public void mouseClicked(MouseEvent e) {
-        if (isEnabled() && (e.getClickCount() == 2))
+        if (isEnabled() && e.getClickCount() == 2)
         {
           if (e.getSource() == availableList)
           {
@@ -389,19 +389,19 @@ public class AddRemovePanel<T> extends JPanel
   private void updateButtonEnabling()
   {
     int index = availableList.getSelectedIndex();
-    add.setEnabled((index != -1) &&
-        (index <availableListModel.getSize()) && isEnabled());
+    add.setEnabled(index != -1 &&
+        index <availableListModel.getSize() && isEnabled());
     index = selectedList.getSelectedIndex();
-    remove.setEnabled((index != -1) &&
-        (index <selectedListModel.getSize()) && isEnabled());
+    remove.setEnabled(index != -1 &&
+        index <selectedListModel.getSize() && isEnabled());
 
     if (addAll != null)
     {
-      addAll.setEnabled((availableListModel.getSize() > 0) && isEnabled());
+      addAll.setEnabled(availableListModel.getSize() > 0 && isEnabled());
     }
     if (removeAll != null)
     {
-      removeAll.setEnabled((selectedListModel.getSize() > 0) && isEnabled());
+      removeAll.setEnabled(selectedListModel.getSize() > 0 && isEnabled());
     }
   }
 

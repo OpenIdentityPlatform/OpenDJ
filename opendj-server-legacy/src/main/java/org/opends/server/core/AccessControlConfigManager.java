@@ -241,7 +241,7 @@ public final class AccessControlConfigManager
             getHandler(newHandlerClass,newConfiguration, false, false);
           }
         }
-      } else if (enabledOld && (! enabledNew)) {
+      } else if (enabledOld && !enabledNew) {
         //Access control has been disabled, switch to the default handler and
         //finalize the old handler.
         newHandlerClass = DefaultAccessControlHandler.class.getName();

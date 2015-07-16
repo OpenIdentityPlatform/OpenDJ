@@ -97,9 +97,8 @@ public class AlertHandlerTestCase
   {
     int count = DummyAlertHandler.getAlertCount();
 
-    DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
-                                          ALERT_MESSAGE);
-    assertEquals(DummyAlertHandler.getAlertCount(), (count+1));
+    DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_MESSAGE);
+    assertEquals(DummyAlertHandler.getAlertCount(), count+1);
   }
 
 
@@ -119,9 +118,8 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
-                                            ALERT_MESSAGE);
-      assertEquals(DummyAlertHandler.getAlertCount(), (count+1));
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_MESSAGE);
+      assertEquals(DummyAlertHandler.getAlertCount(), count+1);
     }
     finally
     {
@@ -150,8 +148,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
-                                            ALERT_MESSAGE);
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), count);
     }
     finally
@@ -181,8 +178,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
-                                            ALERT_MESSAGE);
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), count);
     }
     finally
@@ -212,9 +208,8 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
-                                            ALERT_MESSAGE);
-      assertEquals(DummyAlertHandler.getAlertCount(), (count+1));
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_MESSAGE);
+      assertEquals(DummyAlertHandler.getAlertCount(), count+1);
     }
     finally
     {
@@ -244,8 +239,7 @@ public class AlertHandlerTestCase
     {
       int count = DummyAlertHandler.getAlertCount();
 
-      DirectoryServer.sendAlertNotification(this, ALERT_TYPE,
-                                            ALERT_MESSAGE);
+      DirectoryServer.sendAlertNotification(this, ALERT_TYPE, ALERT_MESSAGE);
       assertEquals(DummyAlertHandler.getAlertCount(), count);
     }
     finally

@@ -96,9 +96,9 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   {
     String sName = sr.getName();
     Name name;
-    if ((baseDN != null) && (baseDN.length() > 0))
+    if (baseDN != null && baseDN.length() > 0)
     {
-      if ((sName != null) && (sName.length() > 0))
+      if (sName != null && sName.length() > 0)
       {
         name = new CompositeName(sName);
         name.add(baseDN);
@@ -115,12 +115,12 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     for (int i=0; i<name.size(); i++)
     {
       String n = name.get(i);
-      if ((buf.length() != 0) && (n != null) && (n.length() > 0))
+      if (n != null && n.length() > 0)
       {
-        buf.append(",");
-      }
-      if ((n != null) && (n.length() > 0))
-      {
+        if (buf.length() != 0)
+        {
+          buf.append(",");
+        }
         buf.append(n);
       }
     }

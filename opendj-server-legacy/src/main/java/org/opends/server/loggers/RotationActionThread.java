@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -86,27 +86,15 @@ public class RotationActionThread extends DirectoryThread
             action = new ZIPAction(filename, zipFile, true);
             break;
           case SIGN:
-           //String alias = RotationConfigUtil.getCertificateAlias(configEntry);
-            //action = new SignatureAction(filename, alias);
-            break;
           case ENCRYPT:
-          //String certAlias =
-            //  RotationConfigUtil.getCertificateAlias(configEntry);
-            // FIXME - make the encryption algorithm configurable.
-            //action = new EncryptAction(filename, encFile, false, certAlias,
-            //                           "RSA");
             break;
           default:
             System.err.println("Invalid post rollover action:" + at);
             break;
         }
-        if(action != null)
+        if(action != null && !action.execute())
         {
-          boolean val = action.execute();
-          if(val == false)
-          {
-            System.err.println("Post rotation action failed.");
-          }
+          System.err.println("Post rotation action failed.");
         }
       }
     } catch(Exception e)
@@ -114,6 +102,4 @@ public class RotationActionThread extends DirectoryThread
       logger.traceException(e);
     }
   }
-
 }
-

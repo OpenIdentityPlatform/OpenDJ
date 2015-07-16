@@ -124,7 +124,7 @@ final class ID2Count extends AbstractTree
 
   private ByteSequence getShardedKey(EntryID entryID)
   {
-    final long bucket = (Thread.currentThread().getId() & (SHARD_COUNT - 1));
+    final long bucket = Thread.currentThread().getId() & (SHARD_COUNT - 1);
     return getKeyFromEntryIDAndBucket(entryID, bucket);
   }
 

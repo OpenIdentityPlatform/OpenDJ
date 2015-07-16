@@ -174,16 +174,16 @@ public class GenericFrame extends JFrame
     for (int i=0; i < container.getComponentCount(); i++)
     {
       Component comp = container.getComponent(i);
-      if ((comp instanceof AbstractButton) ||
-          (comp instanceof JTextComponent) ||
-          (comp instanceof JList) ||
-          (comp instanceof JComboBox) ||
-          (comp instanceof JTable))
+      if (comp instanceof AbstractButton ||
+          comp instanceof JTextComponent ||
+          comp instanceof JList ||
+          comp instanceof JComboBox ||
+          comp instanceof JTable)
       {
         comp.addFocusListener(focusListener);
       }
-      else if ((comp instanceof JPanel) || (comp instanceof JScrollPane)
-          || (comp instanceof JViewport))
+      else if (comp instanceof JPanel || comp instanceof JScrollPane
+          || comp instanceof JViewport)
       {
         addFocusListener(focusListener, (Container)comp);
       }
@@ -197,7 +197,7 @@ public class GenericFrame extends JFrame
     {
       lastComponentWithFocus = panel.getPreferredFocusComponent();
     }
-    if (visible && (lastComponentWithFocus != null))
+    if (visible && lastComponentWithFocus != null)
     {
       lastComponentWithFocus.requestFocusInWindow();
     }

@@ -246,14 +246,14 @@ public class SchemaConfigManager
         }
 
         long modificationTime = f.lastModified();
-        if ((oldestModificationTime <= 0L) ||
-            (modificationTime < oldestModificationTime))
+        if (oldestModificationTime <= 0L ||
+            modificationTime < oldestModificationTime)
         {
           oldestModificationTime = modificationTime;
         }
 
-        if ((youngestModificationTime <= 0) ||
-            (modificationTime > youngestModificationTime))
+        if (youngestModificationTime <= 0 ||
+            modificationTime > youngestModificationTime)
         {
           youngestModificationTime = modificationTime;
         }

@@ -1822,8 +1822,7 @@ public final class Schema
 
       for (AttributeType at : attributeTypes.values())
       {
-        if ((at.getSuperiorType() != null) &&
-            at.getSuperiorType().equals(t))
+        if (at.getSuperiorType() != null && at.getSuperiorType().equals(t))
         {
           AttributeType newAT = recreateFromDefinition(at);
           deregisterAttributeType(at);
@@ -2266,7 +2265,7 @@ public final class Schema
         {
           break;
         }
-        else if (line.startsWith("#") || (line.length() == 0))
+        else if (line.startsWith("#") || line.length() == 0)
         {
           continue;
         }

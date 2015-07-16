@@ -168,8 +168,8 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
       /** {@inheritDoc} */
       public void keyTyped(KeyEvent ev)
       {
-        if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
-            (ev.getKeyChar() == KeyEvent.VK_ENTER))
+        if (ev.getKeyChar() == KeyEvent.VK_SPACE ||
+            ev.getKeyChar() == KeyEvent.VK_ENTER)
         {
           usedBySelected();
         }

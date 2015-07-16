@@ -142,7 +142,7 @@ public class AciListenerManager implements
     {
       Entry entry = modifyOperation.getCurrentEntry();
       Entry modEntry = modifyOperation.getModifiedEntry();
-      if ((entry != null) && (modEntry != null))
+      if (entry != null && modEntry != null)
       {
         doPostModify(modifyOperation.getModifications(), entry, modEntry);
       }

@@ -83,11 +83,10 @@ public class SMTPAlertHandler
   {
     // Make sure that the Directory Server is configured with information about
     // at least one SMTP server.
-    if ((DirectoryServer.getMailServerPropertySets() == null) ||
+    if (DirectoryServer.getMailServerPropertySets() == null ||
         DirectoryServer.getMailServerPropertySets().isEmpty())
     {
-      LocalizableMessage message = ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS.get());
     }
 
     configuration.addSMTPChangeListener(this);

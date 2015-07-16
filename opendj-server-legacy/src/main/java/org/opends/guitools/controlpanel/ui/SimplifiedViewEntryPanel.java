@@ -407,7 +407,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
-    if ((searchResult != null) && (sr != null))
+    if (searchResult != null && sr != null)
     {
       sameEntry = searchResult.getDN().equals(sr.getDN());
     }
@@ -534,7 +534,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         {
           gbc.anchor = GridBagConstraints.WEST;
         }
-        else if ((values.size() <= 1) &&
+        else if (values.size() <= 1 &&
                 (hasBinaryValue(values) || isBinary(attr)))
         {
           gbc.anchor = GridBagConstraints.WEST;
@@ -605,7 +605,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       /** {@inheritDoc} */
       public void run()
       {
-        if ((p != null) && (scrollAttributes.getViewport().contains(p)))
+        if (p != null && scrollAttributes.getViewport().contains(p))
         {
           scrollAttributes.getViewport().setViewPosition(p);
         }
@@ -630,7 +630,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       basicAttrName = attrName.substring(0, index);
       subType = attrName.substring(index + 1);
     }
-    if ((subType != null) && (subType.equalsIgnoreCase("binary")))
+    if (subType != null && subType.equalsIgnoreCase("binary"))
     {
       // TODO: use message
       subType = "binary";
@@ -1006,7 +1006,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
               Utilities.centerGoldenMean(editOcDlg,
                   Utilities.getParentDialog(SimplifiedViewEntryPanel.this));
             }
-            if ((newValue == null) && (ocDescriptor != null))
+            if (newValue == null && ocDescriptor != null)
             {
               editOcPanel.setValue(ocDescriptor);
             }
@@ -1128,7 +1128,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
             {
               // We use an empty binary array to not breaking the logic:
               // it means that there is no value for the attribute.
-              if ((binaryValue != null) && (binaryValue.length > 0))
+              if (binaryValue != null && binaryValue.length > 0)
               {
                 newValue = BinaryValue.createBase64(binaryValue);
                 editBinaryPanel.setValue(attrName, newValue);
@@ -1413,21 +1413,17 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean isAttrName(String attrName, CustomSearchResult sr)
   {
-    boolean isAttrName = false;
-    List<Object> values =
-      sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    List<Object> values = sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     for (Object o : values)
     {
       String ocName = (String)o;
       String attr = hmNameAttrNames.get(ocName.toLowerCase());
-      if ((attr != null) && (attr.equalsIgnoreCase(attrName)))
+      if (attr != null && attr.equalsIgnoreCase(attrName))
       {
-        isAttrName = true;
-        break;
+        return true;
       }
     }
-
-    return isAttrName;
+    return false;
   }
 
   private boolean hasBinaryValue(List<Object> values)
@@ -1935,7 +1931,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         }
         values.addAll(ocDesc.getAuxiliary());
         Schema schema = getInfo().getServerDescriptor().getSchema();
-        if ((schema != null) && (structural != null))
+        if (schema != null && structural != null)
         {
           ObjectClass oc = schema.getObjectClass(structural.toLowerCase());
           if (oc != null)

@@ -131,7 +131,7 @@ public class UserPasswordSyntax
          throws DirectoryException
   {
     // Make sure that there actually is a value to decode.
-    if ((userPasswordValue == null) || (userPasswordValue.length() == 0))
+    if (userPasswordValue == null || userPasswordValue.length() == 0)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
       throw new DirectoryException(

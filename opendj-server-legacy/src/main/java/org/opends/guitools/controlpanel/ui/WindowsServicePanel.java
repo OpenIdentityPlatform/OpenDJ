@@ -188,8 +188,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     isWindowsServiceEnabled = ev.getNewDescriptor().isWindowsServiceEnabled();
 
     final boolean isLocal = ev.getNewDescriptor().isLocal();
-    if ((isLocal != previousLocal) ||
-        (isWindowsServiceEnabled != previousValue))
+    if (isLocal != previousLocal || isWindowsServiceEnabled != previousValue)
     {
       previousLocal = isLocal;
       SwingUtilities.invokeLater(new Runnable()
@@ -342,10 +341,9 @@ public class WindowsServicePanel extends StatusGenericPanel
       {
         if (enableService)
         {
-          returnCode = ConfigureWindowsService.enableService(outPrintStream,
-              errorPrintStream);
-          if ((returnCode != ConfigureWindowsService.SERVICE_ALREADY_ENABLED) &&
-              (returnCode != ConfigureWindowsService.SERVICE_ENABLE_SUCCESS))
+          returnCode = ConfigureWindowsService.enableService(outPrintStream, errorPrintStream);
+          if (returnCode != ConfigureWindowsService.SERVICE_ALREADY_ENABLED &&
+              returnCode != ConfigureWindowsService.SERVICE_ENABLE_SUCCESS)
           {
             state = State.FINISHED_WITH_ERROR;
           }
@@ -356,11 +354,9 @@ public class WindowsServicePanel extends StatusGenericPanel
         }
         else
         {
-          returnCode = ConfigureWindowsService.disableService(outPrintStream,
-              errorPrintStream);
-          if ((returnCode != ConfigureWindowsService.SERVICE_ALREADY_DISABLED)
-              &&
-              (returnCode != ConfigureWindowsService.SERVICE_DISABLE_SUCCESS))
+          returnCode = ConfigureWindowsService.disableService(outPrintStream, errorPrintStream);
+          if (returnCode != ConfigureWindowsService.SERVICE_ALREADY_DISABLED
+              && returnCode != ConfigureWindowsService.SERVICE_DISABLE_SUCCESS)
           {
             state = State.FINISHED_WITH_ERROR;
           }

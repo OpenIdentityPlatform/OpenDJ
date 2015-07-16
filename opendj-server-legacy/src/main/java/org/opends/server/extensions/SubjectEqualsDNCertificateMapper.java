@@ -101,7 +101,7 @@ public class SubjectEqualsDNCertificateMapper
          throws DirectoryException
   {
     // Make sure that a peer certificate was provided.
-    if ((certificateChain == null) || (certificateChain.length == 0))
+    if (certificateChain == null || certificateChain.length == 0)
     {
       LocalizableMessage message = ERR_SEDCM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);

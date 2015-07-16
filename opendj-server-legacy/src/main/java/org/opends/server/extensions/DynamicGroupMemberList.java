@@ -410,7 +410,7 @@ public class DynamicGroupMemberList
       } catch (Exception e) {}
     }
 
-    return (resultQueue.peek() != null);
+    return resultQueue.peek() != null;
   }
 
 

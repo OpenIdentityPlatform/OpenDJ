@@ -79,7 +79,7 @@ public class TimeOfDay implements KeywordBindRule {
            WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_FORMAT.get(expr, nfe.getMessage());
             throw new AciException(message);
         }
-        if ((valueAsInt < 0) || (valueAsInt > 2359))
+        if (valueAsInt < 0 || valueAsInt > 2359)
         {
             LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_TIMEOFDAY_RANGE.get(expr);
             throw new AciException(message);

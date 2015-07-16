@@ -118,9 +118,8 @@ public final class TextAuditLogPublisher extends
         if (writer instanceof AsynchronousTextWriter
             && !config.isAsynchronous())
         {
-          // The asynronous setting is being turned off.
-          AsynchronousTextWriter asyncWriter =
-              ((AsynchronousTextWriter) writer);
+          // The asynchronous setting is being turned off.
+          AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -133,8 +132,8 @@ public final class TextAuditLogPublisher extends
               config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
-        if ((cfg.isAsynchronous() && config.isAsynchronous())
-            && (cfg.getQueueSize() != config.getQueueSize()))
+        if (cfg.isAsynchronous() && config.isAsynchronous()
+            && cfg.getQueueSize() != config.getQueueSize())
         {
           ccr.setAdminActionRequired(true);
         }

@@ -414,12 +414,12 @@ public class JavaPropertiesTool extends ConsoleApplication
         else if (key != null)
         {
           int index = line.indexOf('=');
-          if ((index != -1) && ((index + 1) < line.length()))
+          if (index != -1 && index + 1 < line.length())
           {
             lineValue = line.substring(index+1);
           }
         }
-        if ((lineValue != null) && (lineValue.length() > 0))
+        if (lineValue != null && lineValue.length() > 0)
         {
           if (sbValue == null)
           {
@@ -427,7 +427,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           }
           sbValue.append(lineValue);
         }
-        if (!hasSlash && (key != null) && (sbValue != null))
+        if (!hasSlash && key != null && sbValue != null)
         {
           properties.put(key, sbValue.toString());
         }

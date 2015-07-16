@@ -143,7 +143,7 @@ public class RegularExpressionIdentityMapper
          currentConfig.getMatchAttribute().toArray(new AttributeType[0]);
 
     Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -153,7 +153,7 @@ public class RegularExpressionIdentityMapper
       for (DN baseDN : cfgBaseDNs)
       {
         Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_REGEXMAP_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID()));
@@ -218,7 +218,7 @@ public class RegularExpressionIdentityMapper
     // then use size and time limits to constrain costly searches resulting from
     // non-unique or inefficient criteria.
     Collection<DN> baseDNs = config.getMatchBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
+    if (baseDNs == null || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -265,7 +265,7 @@ public class RegularExpressionIdentityMapper
 
       LinkedList<SearchResultEntry> searchEntries =
            internalSearch.getSearchEntries();
-      if ((searchEntries != null) && (! searchEntries.isEmpty()))
+      if (searchEntries != null && ! searchEntries.isEmpty())
       {
         if (matchingEntry == null)
         {
@@ -313,7 +313,7 @@ public class RegularExpressionIdentityMapper
     // Make sure that all of the configured attributes are indexed for equality
     // in all appropriate backends.
     Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -323,7 +323,7 @@ public class RegularExpressionIdentityMapper
       for (DN baseDN : cfgBaseDNs)
       {
         Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_REGEXMAP_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID()));

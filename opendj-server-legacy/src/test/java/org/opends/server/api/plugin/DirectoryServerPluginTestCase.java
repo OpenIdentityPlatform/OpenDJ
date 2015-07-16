@@ -155,8 +155,7 @@ public class DirectoryServerPluginTestCase
       System.err.println();
     }
 
-    if ((! newAbstractMethods.isEmpty()) ||
-        (! expectedAbstractMethods.isEmpty()))
+    if (!newAbstractMethods.isEmpty() || !expectedAbstractMethods.isEmpty())
     {
       fail("It appears that set of abstract methods defined in the plugin " +
            "API have been altered.  This will only be allowed under " +
@@ -657,8 +656,8 @@ public class DirectoryServerPluginTestCase
         continue;
       }
 
-      if (Modifier.isPublic(m.getModifiers()) &&
-          (! Modifier.isAbstract(m.getModifiers())))
+      if (Modifier.isPublic(m.getModifiers())
+          && !Modifier.isAbstract(m.getModifiers()))
       {
         LinkedList<String> foundList = new LinkedList<>();
         foundList.add(m.getName());

@@ -147,7 +147,7 @@ public class SystemInfoMonitorProvider
     // Get the JVM input arguments.
     RuntimeMXBean rtBean = ManagementFactory.getRuntimeMXBean();
     List<String> jvmArguments = rtBean.getInputArguments();
-    if ((jvmArguments != null) && (! jvmArguments.isEmpty()))
+    if (jvmArguments != null && ! jvmArguments.isEmpty())
     {
       StringBuilder argList = new StringBuilder();
       for (String jvmArg : jvmArguments)

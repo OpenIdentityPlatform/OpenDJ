@@ -231,7 +231,7 @@ public class ProfileStackFrame
    */
   public boolean hasSubFrames()
   {
-    return (! subordinateFrames.isEmpty());
+    return !subordinateFrames.isEmpty();
   }
 
 
@@ -280,7 +280,7 @@ public class ProfileStackFrame
     }
     stackMap.put(stack, count);
 
-    subFrame.recurseSubFrames(stack, (depth-1), count, stacksByMethod);
+    subFrame.recurseSubFrames(stack, depth-1, count, stacksByMethod);
   }
 
 
@@ -294,7 +294,7 @@ public class ProfileStackFrame
   @Override
   public int hashCode()
   {
-    return (className.hashCode() + methodName.hashCode());
+    return className.hashCode() + methodName.hashCode();
   }
 
 
@@ -324,7 +324,7 @@ public class ProfileStackFrame
     try
     {
       ProfileStackFrame f = (ProfileStackFrame) o;
-      return (className.equals(f.className) && methodName.equals(f.methodName));
+      return className.equals(f.className) && methodName.equals(f.methodName);
     }
     catch (Exception e)
     {
@@ -342,7 +342,7 @@ public class ProfileStackFrame
    * occurrences, with an equivalent number of occurrences falling back on
    * alphabetical by class and method names.
    *
-   * @param  o  The objectfor which to make the comparison.
+   * @param  o  The object for which to make the comparison.
    *
    * @return  A negative integer if this stack frame should come before the
    *          provided object in a sorted list, a positive integer if it should

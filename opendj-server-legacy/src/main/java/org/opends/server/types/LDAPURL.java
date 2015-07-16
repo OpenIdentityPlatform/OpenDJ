@@ -162,14 +162,7 @@ public final class LDAPURL
       this.scheme = toLowerCase(scheme);
     }
 
-    if ((port <= 0) || (port > 65535))
-    {
-      this.port = DEFAULT_PORT;
-    }
-    else
-    {
-      this.port = port;
-    }
+    this.port = toPort(port);
 
     if (rawBaseDN == null)
     {
@@ -249,14 +242,7 @@ public final class LDAPURL
       this.scheme = toLowerCase(scheme);
     }
 
-    if ((port <= 0) || (port > 65535))
-    {
-      this.port = DEFAULT_PORT;
-    }
-    else
-    {
-      this.port = port;
-    }
+    this.port = toPort(port);
 
     if (baseDN == null)
     {
@@ -1013,17 +999,17 @@ public final class LDAPURL
    */
   public void setPort(int port)
   {
-    if ((port <= 0) || (port > 65535))
-    {
-      this.port = DEFAULT_PORT;
-    }
-    else
-    {
-      this.port = port;
-    }
+    this.port = toPort(port);
   }
 
-
+  private int toPort(int port)
+  {
+    if (0 < port && port <= 65535)
+    {
+      return port;
+    }
+    return DEFAULT_PORT;
+  }
 
   /**
    * Retrieve the raw, unprocessed base DN for this LDAP URL.
@@ -1066,7 +1052,7 @@ public final class LDAPURL
   {
     if (baseDN == null)
     {
-      if ((rawBaseDN == null) || (rawBaseDN.length() == 0))
+      if (rawBaseDN == null || rawBaseDN.length() == 0)
       {
         return DEFAULT_BASE_DN;
       }

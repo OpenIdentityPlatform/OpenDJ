@@ -287,7 +287,7 @@ public class LDIFModify
 
       // If the entry is to be modified, then process the changes.
       LinkedList<Modification> mods = modifications.remove(entryDN);
-      if ((mods != null) && (! mods.isEmpty()))
+      if (mods != null && !mods.isEmpty())
       {
         try
         {
@@ -635,8 +635,7 @@ public class LDIFModify
     boolean successful;
     try
     {
-      successful = modifyLDIF(sourceReader, changeReader, targetWriter,
-                              errorList);
+      successful = modifyLDIF(sourceReader, changeReader, targetWriter, errorList);
     }
     catch (Exception e)
     {
@@ -650,7 +649,6 @@ public class LDIFModify
     {
       err.println(s);
     }
-    return (successful ? 0 : 1);
+    return successful ? 0 : 1;
   }
 }
-

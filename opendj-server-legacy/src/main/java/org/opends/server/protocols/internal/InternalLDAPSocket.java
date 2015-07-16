@@ -612,7 +612,7 @@ public final class InternalLDAPSocket
   @Override
   public boolean isConnected()
   {
-    return (! closed);
+    return !closed;
   }
 
 

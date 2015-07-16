@@ -272,8 +272,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
       String f = file.getText();
       if (f.trim().length() == 0)
       {
-        if (hasImageSyntax(attrName.getText()) && (oldValue != null) &&
-            !updateImage)
+        if (hasImageSyntax(attrName.getText()) && oldValue != null && !updateImage)
         {
           // Do nothing.  We do not want to regenerate the image and we
           // are on the case where the user simply did not change the image.

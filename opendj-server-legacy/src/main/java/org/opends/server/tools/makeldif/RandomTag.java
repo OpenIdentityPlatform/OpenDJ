@@ -315,7 +315,7 @@ public class RandomTag
 
     // There must be at least one argument, to specify the type of random value
     // to generate.
-    if ((arguments == null) || (arguments.length == 0))
+    if (arguments == null || arguments.length == 0)
     {
       LocalizableMessage message =
           ERR_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT.get(lineNumber);
@@ -361,7 +361,7 @@ public class RandomTag
           throw new InitializationException(message, nfe);
         }
       }
-      else if ((numArgs == 3) || (numArgs == 4))
+      else if (numArgs == 3 || numArgs == 4)
       {
         randomType = RANDOM_TYPE_NUMERIC;
 
@@ -427,7 +427,7 @@ public class RandomTag
     }
     else if (randomTypeString.equals("chars"))
     {
-      if ((numArgs < 3) || (numArgs > 4))
+      if (numArgs < 3 || numArgs > 4)
       {
         LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
             getName(), lineNumber, 3, 4, numArgs);
@@ -647,7 +647,7 @@ public class RandomTag
 
       case RANDOM_TYPE_MONTH:
         String month = MONTHS[random.nextInt(MONTHS.length)];
-        if ((maxLength == 0) || (month.length() <= maxLength))
+        if (maxLength == 0 || month.length() <= maxLength)
         {
           buffer.append(month);
         }

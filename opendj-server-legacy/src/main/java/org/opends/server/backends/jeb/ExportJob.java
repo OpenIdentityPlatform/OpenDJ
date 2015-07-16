@@ -156,7 +156,7 @@ public class ExportJob
 
 
     long finishTime = System.currentTimeMillis();
-    long totalTime = (finishTime - startTime);
+    long totalTime = finishTime - startTime;
 
     float rate = 0;
     if (totalTime > 0)
@@ -289,7 +289,7 @@ public class ExportJob
     public void run()
     {
       long latestCount = exportedCount;
-      long deltaCount = (latestCount - previousCount);
+      long deltaCount = latestCount - previousCount;
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
 

@@ -2441,7 +2441,7 @@ public class PrivilegeTestCase extends TypesTestCase
     if (task == null)
     {
       long stopWaitingTime = System.currentTimeMillis() + 10000L;
-      while ((task == null) && (System.currentTimeMillis() < stopWaitingTime))
+      while (task == null && System.currentTimeMillis() < stopWaitingTime)
       {
         Thread.sleep(10);
         task = taskBackend.getScheduledTask(taskEntryDN);
@@ -2453,8 +2453,8 @@ public class PrivilegeTestCase extends TypesTestCase
     if (! TaskState.isDone(task.getTaskState()))
     {
       long stopWaitingTime = System.currentTimeMillis() + 20000L;
-      while ((! TaskState.isDone(task.getTaskState())) &&
-             (System.currentTimeMillis() < stopWaitingTime))
+      while (!TaskState.isDone(task.getTaskState())
+          && System.currentTimeMillis() < stopWaitingTime)
       {
         Thread.sleep(10);
       }

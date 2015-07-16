@@ -25,22 +25,20 @@
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
+
 import org.forgerock.i18n.LocalizableMessage;
 
-
-import java.util.Iterator;
 import java.util.List;
 import java.io.IOException;
 
 import org.forgerock.opendj.io.*;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Utils;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP extended response
@@ -283,7 +281,7 @@ public class ExtendedResponseProtocolOp
       stream.writeOctetString(errorMessage.toString());
     }
 
-    if ((referralURLs != null) && (! referralURLs.isEmpty()))
+    if (referralURLs != null && !referralURLs.isEmpty())
     {
       stream.writeStartSequence(TYPE_REFERRAL_SEQUENCE);
       for (String s : referralURLs)
@@ -293,7 +291,7 @@ public class ExtendedResponseProtocolOp
       stream.writeEndSequence();
     }
 
-    if ((oid != null) && (oid.length() > 0))
+    if (oid != null && oid.length() > 0)
     {
       stream.writeOctetString(TYPE_EXTENDED_RESPONSE_OID, oid);
     }
@@ -319,40 +317,27 @@ public class ExtendedResponseProtocolOp
     buffer.append("ExtendedResponse(resultCode=");
     buffer.append(resultCode);
 
-    if ((errorMessage != null) && (errorMessage.length() > 0))
+    if (errorMessage != null && errorMessage.length() > 0)
     {
       buffer.append(", errorMessage=");
       buffer.append(errorMessage);
     }
-
     if (matchedDN != null)
     {
       buffer.append(", matchedDN=");
       buffer.append(matchedDN);
     }
-
-    if ((referralURLs != null) && (! referralURLs.isEmpty()))
+    if (referralURLs != null && !referralURLs.isEmpty())
     {
       buffer.append(", referralURLs={");
-
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
+      buffer.append(Utils.joinAsString(", ", referralURLs));
       buffer.append("}");
     }
-
-    if ((oid != null) && (oid.length() > 0))
+    if (oid != null && oid.length() > 0)
     {
       buffer.append(", oid=");
       buffer.append(oid);
     }
-
     if (value != null)
     {
       buffer.append(", value=");
@@ -405,7 +390,7 @@ public class ExtendedResponseProtocolOp
       buffer.append(EOL);
     }
 
-    if ((referralURLs != null) && (! referralURLs.isEmpty()))
+    if (referralURLs != null && !referralURLs.isEmpty())
     {
       buffer.append(indentBuf);
       buffer.append("  Referral URLs:  ");
@@ -420,7 +405,7 @@ public class ExtendedResponseProtocolOp
       }
     }
 
-    if ((oid != null) && (oid.length() > 0))
+    if (oid != null && oid.length() > 0)
     {
       buffer.append(indentBuf);
       buffer.append("  Response OID:  ");

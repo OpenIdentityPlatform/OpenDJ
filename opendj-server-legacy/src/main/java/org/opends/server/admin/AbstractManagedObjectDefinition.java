@@ -370,7 +370,7 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final AbstractManagedObjectDefinition<? extends C, ? extends S>
       getChild(String name) throws IllegalArgumentException {
-    if ((name == null) || (name.length() == 0)) {
+    if (name == null || name.length() == 0) {
       throw new IllegalArgumentException("null or empty managed object name");
     }
 
@@ -510,7 +510,7 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final PropertyDefinition<?> getPropertyDefinition(String name)
       throws IllegalArgumentException {
-    if ((name == null) || (name.length() == 0)) {
+    if (name == null || name.length() == 0) {
       throw new IllegalArgumentException("null or empty property name");
     }
 
@@ -556,7 +556,7 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final RelationDefinition<?, ?> getRelationDefinition(String name)
       throws IllegalArgumentException {
-    if ((name == null) || (name.length() == 0)) {
+    if (name == null || name.length() == 0) {
       throw new IllegalArgumentException("null or empty relation name");
     }
 
@@ -619,7 +619,7 @@ public abstract class AbstractManagedObjectDefinition
   public final AggregationPropertyDefinition<?, ?>
     getAggregationPropertyDefinition(String name)
     throws IllegalArgumentException {
-    if ((name == null) || (name.length() == 0)) {
+    if (name == null || name.length() == 0) {
       throw new IllegalArgumentException(
         "null or empty aggregation property name");
     }
@@ -873,7 +873,7 @@ public abstract class AbstractManagedObjectDefinition
    *         definition is the {@link TopCfgDefn}.
    */
   public final boolean isTop() {
-    return (this instanceof TopCfgDefn);
+    return this instanceof TopCfgDefn;
   }
 
 

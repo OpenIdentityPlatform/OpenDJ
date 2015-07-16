@@ -25,21 +25,19 @@
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
+
 import org.forgerock.i18n.LocalizableMessage;
 
-
-import java.util.Iterator;
 import java.util.List;
 import java.io.IOException;
 
 import org.forgerock.opendj.io.*;
+import org.forgerock.util.Utils;
 import org.opends.server.types.DN;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP delete response
@@ -223,7 +221,7 @@ public class DeleteResponseProtocolOp
       stream.writeOctetString(errorMessage.toString());
     }
 
-    if ((referralURLs != null) && (! referralURLs.isEmpty()))
+    if (referralURLs != null && !referralURLs.isEmpty())
     {
       stream.writeStartSequence(TYPE_REFERRAL_SEQUENCE);
       for (String s : referralURLs)
@@ -249,31 +247,20 @@ public class DeleteResponseProtocolOp
     buffer.append("DeleteResponse(resultCode=");
     buffer.append(resultCode);
 
-    if ((errorMessage != null) && (errorMessage.length() > 0))
+    if (errorMessage != null && errorMessage.length() > 0)
     {
       buffer.append(", errorMessage=");
       buffer.append(errorMessage);
     }
-
     if (matchedDN != null)
     {
       buffer.append(", matchedDN=");
       buffer.append(matchedDN);
     }
-
-    if ((referralURLs != null) && (! referralURLs.isEmpty()))
+    if (referralURLs != null && !referralURLs.isEmpty())
     {
       buffer.append(", referralURLs={");
-
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
+      buffer.append(Utils.joinAsString(", ", referralURLs));
       buffer.append("}");
     }
 
@@ -323,7 +310,7 @@ public class DeleteResponseProtocolOp
       buffer.append(EOL);
     }
 
-    if ((referralURLs != null) && (! referralURLs.isEmpty()))
+    if (referralURLs != null && !referralURLs.isEmpty())
     {
       buffer.append(indentBuf);
       buffer.append("  Referral URLs:  ");

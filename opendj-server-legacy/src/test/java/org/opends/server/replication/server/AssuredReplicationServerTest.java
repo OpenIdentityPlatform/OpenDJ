@@ -1486,7 +1486,7 @@ public class AssuredReplicationServerTest
       // Wait for connections to be finished
       // DS must see expected numbers of fake DSs and RSs
       final FakeReplicationDomain fakeRd1 = fakeRDs[1];
-      waitForStableTopo(fakeRd1, (otherFakeDS ? 1 : 0), 4);
+      waitForStableTopo(fakeRd1, otherFakeDS ? 1 : 0, 4);
 
       /***********************************************************************
        * Send update from DS 1 (3 fake RSs available) and check what happened
@@ -1521,7 +1521,7 @@ public class AssuredReplicationServerTest
 
       // Wait for disconnection to be finished
       // DS must see expected numbers of fake DSs and RSs
-      waitForStableTopo(fakeRd1, (otherFakeDS ? 1 : 0), 3);
+      waitForStableTopo(fakeRd1, otherFakeDS ? 1 : 0, 3);
 
       // Keep track of monitoring values for incremental test step
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
@@ -1552,7 +1552,7 @@ public class AssuredReplicationServerTest
 
       // Wait for disconnection to be finished
       // DS must see expected numbers of fake DSs and RSs
-      waitForStableTopo(fakeRd1, (otherFakeDS ? 1 : 0), 2);
+      waitForStableTopo(fakeRd1, otherFakeDS ? 1 : 0, 2);
 
       // Keep track of monitoring values for incremental test step
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
@@ -1583,7 +1583,7 @@ public class AssuredReplicationServerTest
 
       // Wait for disconnection to be finished
       // DS must see expected numbers of fake DSs and RSs
-      waitForStableTopo(fakeRd1, (otherFakeDS ? 1 : 0), 1);
+      waitForStableTopo(fakeRd1, otherFakeDS ? 1 : 0, 1);
 
       // Keep track of monitoring values for incremental test step
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
@@ -1948,8 +1948,8 @@ public class AssuredReplicationServerTest
       /*
        * Now check timeout or not according to test configuration parameters
        */
-      if ( (sdLevel == 1) || (fakeRsGid != DEFAULT_GID) ||
-        (fakeRsGenId != DEFAULT_GENID) || (!sendInAssured) )
+      if (sdLevel == 1 || fakeRsGid != DEFAULT_GID
+          || fakeRsGenId != DEFAULT_GENID || !sendInAssured )
       {
         // Should have timed out (no ack)
         assertTrue(timeout);
@@ -2431,8 +2431,8 @@ public class AssuredReplicationServerTest
 
       // Check monitoring values in DS 1
       final SafeReadAssertions srAssertsRD1 = fakeRd1.newSafeReadAssertions().sentUpdates(1);
-      if (( (otherFakeDsGid == DEFAULT_GID) && (otherFakeDsGenId == DEFAULT_GENID) && (otherFakeDsScen != REPLY_OK_DS_SCENARIO) )
-         || ( (otherFakeRsGid == DEFAULT_GID) && (otherFakeRsGenId == DEFAULT_GENID) && (otherFakeRsScen != REPLY_OK_RS_SCENARIO) ))
+      if ((otherFakeDsGid == DEFAULT_GID && otherFakeDsGenId == DEFAULT_GENID && otherFakeDsScen != REPLY_OK_DS_SCENARIO)
+         || (otherFakeRsGid == DEFAULT_GID && otherFakeRsGenId == DEFAULT_GENID && otherFakeRsScen != REPLY_OK_RS_SCENARIO))
       {
         srAssertsRD1.notAcknowledgedUpdates(1);
       }
@@ -2908,7 +2908,7 @@ public class AssuredReplicationServerTest
       boolean fakeDsIsEligible = areGroupAndGenerationIdOk(fakeDsGid, fakeDsGenId);
 
       // Check call time
-      if (fakeDsIsEligible && (fakeDsScen == TIMEOUT_DS_SCENARIO))
+      if (fakeDsIsEligible && fakeDsScen == TIMEOUT_DS_SCENARIO)
       {
         assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, SMALL_TIMEOUT + 1000);
       }

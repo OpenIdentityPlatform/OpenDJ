@@ -191,7 +191,7 @@ public class TaskClient {
     ocValues.add("top");
     ocValues.add(ConfigConstants.OC_TASK);
     if (scheduleRecurring) {
-      ocValues.add((ConfigConstants.OC_RECURRING_TASK));
+      ocValues.add(ConfigConstants.OC_RECURRING_TASK);
     }
     ocValues.add(information.getTaskObjectclass());
     attributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, ocValues));

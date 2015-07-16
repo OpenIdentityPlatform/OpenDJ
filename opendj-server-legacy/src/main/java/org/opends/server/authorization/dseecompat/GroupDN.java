@@ -116,7 +116,7 @@ public class GroupDN implements KeywordBindRule {
         EnumEvalResult matched = EnumEvalResult.FALSE;
         for (DN groupDN : groupDNs) {
             Group<?> group = getGroupManager().getGroupInstance(groupDN);
-            if((group != null) && (evalCtx.isMemberOf(group))) {
+            if(group != null && evalCtx.isMemberOf(group)) {
                matched = EnumEvalResult.TRUE;
                break;
             }
@@ -151,7 +151,7 @@ public class GroupDN implements KeywordBindRule {
                   continue;
                 }
                 Group<?> group = getGroupManager().getGroupInstance(groupDN);
-                if((group != null) && (evalCtx.isMemberOf(group))) {
+                if(group != null && evalCtx.isMemberOf(group)) {
                     matched=EnumEvalResult.TRUE;
                     break;
                 }

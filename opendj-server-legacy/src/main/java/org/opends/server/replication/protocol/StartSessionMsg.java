@@ -217,7 +217,7 @@ public class StartSessionMsg extends ReplicationMsg
       safeDataLevel = asn1Reader.readOctetString().byteAt(0);
       */
       status = ServerStatus.valueOf(reader.get());
-      assuredFlag = (reader.get() == 1);
+      assuredFlag = reader.get() == 1;
       assuredMode = AssuredMode.valueOf(reader.get());
       safeDataLevel = reader.get();
 

@@ -64,7 +64,7 @@ public class AttrValueHistorical
     if (obj instanceof AttrValueHistorical)
     {
       AttrValueHistorical objVal = (AttrValueHistorical) obj;
-      return (value.equals(objVal.getAttributeValue()));
+      return value.equals(objVal.getAttributeValue());
     }
     return false;
   }

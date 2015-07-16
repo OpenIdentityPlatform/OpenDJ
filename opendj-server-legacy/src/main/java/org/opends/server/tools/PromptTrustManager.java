@@ -122,7 +122,7 @@ public class PromptTrustManager
   public void checkServerTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
-    if ((chain == null) || (chain.length == 0))
+    if (chain == null || chain.length == 0)
     {
       System.out.println(WARN_PROMPTTM_NO_SERVER_CERT_CHAIN.get());
     }

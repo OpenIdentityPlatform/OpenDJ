@@ -152,7 +152,7 @@ public final class NameForm
       this.definition = definition;
     }
 
-    if ((names == null) || names.isEmpty())
+    if (names == null || names.isEmpty())
     {
       this.names = new LinkedHashMap<>(0);
     }
@@ -161,7 +161,7 @@ public final class NameForm
       this.names = new LinkedHashMap<>(names);
     }
 
-    if ((requiredAttributes == null) || requiredAttributes.isEmpty())
+    if (requiredAttributes == null || requiredAttributes.isEmpty())
     {
       this.requiredAttributes = new LinkedHashSet<>(0);
     }
@@ -170,7 +170,7 @@ public final class NameForm
       this.requiredAttributes = new LinkedHashSet<>(requiredAttributes);
     }
 
-    if ((optionalAttributes == null) || optionalAttributes.isEmpty())
+    if (optionalAttributes == null || optionalAttributes.isEmpty())
     {
       this.optionalAttributes = new LinkedHashSet<>(0);
     }
@@ -179,7 +179,7 @@ public final class NameForm
       this.optionalAttributes = new LinkedHashSet<>(optionalAttributes);
     }
 
-    if ((extraProperties == null) || extraProperties.isEmpty())
+    if (extraProperties == null || extraProperties.isEmpty())
     {
       this.extraProperties = new LinkedHashMap<>(0);
     }
@@ -375,8 +375,8 @@ public final class NameForm
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
-    return (requiredAttributes.contains(attributeType) ||
-            optionalAttributes.contains(attributeType));
+    return requiredAttributes.contains(attributeType) ||
+            optionalAttributes.contains(attributeType);
   }
 
 

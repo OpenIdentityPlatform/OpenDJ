@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -114,7 +114,7 @@ class DebugTracer
     StackTraceElement[] stackTrace = null;
     StackTraceElement[] filteredStackTrace = null;
     StackTraceElement callerFrame = null;
-    final boolean hasException = (exception != null);
+    final boolean hasException = exception != null;
     for (PublisherSettings settings : publisherSettings)
     {
       TraceSettings activeSettings = settings.classSettings;

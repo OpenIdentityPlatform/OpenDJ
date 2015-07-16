@@ -86,7 +86,7 @@ public final class AttributeParser {
     }
 
     private static boolean isEmpty(final Attribute attribute) {
-        return (attribute == null) || attribute.isEmpty();
+        return attribute == null || attribute.isEmpty();
     }
 
     private final Attribute attribute;

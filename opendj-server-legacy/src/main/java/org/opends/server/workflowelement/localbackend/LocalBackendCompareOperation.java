@@ -265,7 +265,7 @@ public class LocalBackendCompareOperation
       AttributeType attrType = getAttributeType();
 
       List<Attribute> attrList = entry.getAttribute(attrType, options);
-      if ((attrList == null) || attrList.isEmpty())
+      if (attrList == null || attrList.isEmpty())
       {
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
         if (options == null)

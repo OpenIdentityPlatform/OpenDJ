@@ -519,7 +519,7 @@ public class TestDN extends TypesTestCase {
   public void testGetParent(String s, String p, String r)
       throws Exception {
     DN dn = DN.valueOf(s);
-    DN parent = (p != null ? DN.valueOf(p) : null);
+    DN parent = p != null ? DN.valueOf(p) : null;
 
     assertEquals(dn.parent(), parent, "For DN " + s);
   }
@@ -628,7 +628,7 @@ public class TestDN extends TypesTestCase {
   public void testGetRDN(String s, String p, String r)
       throws Exception {
     DN dn = DN.valueOf(s);
-    RDN rdn = (r != null ? RDN.decode(r) : null);
+    RDN rdn = r != null ? RDN.decode(r) : null;
 
     assertEquals(dn.rdn(), rdn, "For DN " + s);
   }

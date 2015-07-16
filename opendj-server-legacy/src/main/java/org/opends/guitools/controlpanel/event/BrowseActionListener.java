@@ -199,7 +199,7 @@ public class BrowseActionListener implements ActionListener
     if (path != null && path.trim().length() > 0)
     {
       File f = new File(path);
-      while ((f != null) && !f.isDirectory())
+      while (f != null && !f.isDirectory())
       {
         f = f.getParentFile();
       }

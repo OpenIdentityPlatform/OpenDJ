@@ -480,7 +480,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     {
       TreePath[] paths = treePane.getTree().getSelectionPaths();
       TreePath path = null;
-      if ((paths != null) && (paths.length == 1))
+      if (paths != null && paths.length == 1)
       {
         path = paths[0];
       }
@@ -515,7 +515,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       }
       else
       {
-        if ((paths != null) && (paths.length > 1))
+        if (paths != null && paths.length > 1)
         {
           entryPane.displayMessage(MULTIPLE_ITEMS_SELECTED);
         }

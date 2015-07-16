@@ -127,20 +127,7 @@ implements Comparator<ServerDescriptor>
         for (String id : hmLabels.keySet())
         {
           String sPort = hmFields.get(id).getText();
-          boolean isValid = false;
-          try
-          {
-            int replicationPort = Integer.parseInt(sPort);
-            if ((replicationPort >= 1) &&
-                (replicationPort <= 65535))
-            {
-              isValid = true;
-            }
-          }
-          catch (Throwable t)
-          {
-          }
-          if (!isValid)
+          if (!isValid(sPort))
           {
             UIFactory.setTextStyle(hmLabels.get(id),
               UIFactory.TextStyle.SECONDARY_FIELD_INVALID);
@@ -148,6 +135,22 @@ implements Comparator<ServerDescriptor>
         }
       }
     }
+  }
+
+  private boolean isValid(String sPort)
+  {
+    try
+    {
+      int port = Integer.parseInt(sPort);
+      if (port >= 1 && port <= 65535)
+      {
+        return true;
+      }
+    }
+    catch (Throwable t)
+    {
+    }
+    return false;
   }
 
   /** {@inheritDoc} */

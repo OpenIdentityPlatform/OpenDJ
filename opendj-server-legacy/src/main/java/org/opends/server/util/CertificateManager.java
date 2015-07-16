@@ -149,8 +149,7 @@ public final class CertificateManager {
         }
       } else {
         final File keyStoreDirectory = keyStoreFile.getParentFile();
-        if ((keyStoreDirectory == null) || (! keyStoreDirectory.exists()) ||
-            (! keyStoreDirectory.isDirectory())) {
+        if (keyStoreDirectory == null || !keyStoreDirectory.exists() || !keyStoreDirectory.isDirectory()) {
           LocalizableMessage msg = ERR_CERTMGR_INVALID_PARENT.get(keyStorePath);
           throw new IllegalArgumentException(msg.toString());
         }
@@ -303,8 +302,7 @@ public final class CertificateManager {
   throws  KeyStoreException, IllegalArgumentException {
     ensureValid(alias, CERT_ALIAS_MSG);
     ensureFileValid(certificateFile, CERT_REQUEST_FILE_MSG);
-    if ((! certificateFile.exists()) ||
-        (! certificateFile.isFile())) {
+    if (!certificateFile.exists() || !certificateFile.isFile()) {
       LocalizableMessage msg = ERR_CERTMGR_INVALID_CERT_FILE.get(
           certificateFile.getAbsolutePath());
       throw new IllegalArgumentException(msg.toString());

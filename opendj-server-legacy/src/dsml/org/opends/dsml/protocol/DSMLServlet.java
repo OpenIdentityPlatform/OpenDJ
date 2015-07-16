@@ -446,7 +446,7 @@ public class DSMLServlet extends HttpServlet {
       }
     } else {
       // otherwise if DN or password is null, send back an error
-      if (((!authenticationIsID && (bindDN == null)) || bindPassword == null)
+      if (((!authenticationIsID && bindDN == null) || bindPassword == null)
          && batchResponses.isEmpty()) {
         batchResponses.add(
               createErrorResponse(objFactory,
@@ -502,7 +502,7 @@ public class DSMLServlet extends HttpServlet {
            *  Process optional authRequest (i.e. use authz)
            */
           if (batchRequest.authRequest != null) {
-            if (authenticationIsID == true) {
+            if (authenticationIsID) {
               // If we are using SASL, then use the bind authz.
               connOptions.addSASLProperty("authzid=" +
                   batchRequest.authRequest.getPrincipal());

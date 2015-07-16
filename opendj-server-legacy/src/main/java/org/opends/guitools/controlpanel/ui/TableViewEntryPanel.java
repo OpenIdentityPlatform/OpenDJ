@@ -166,7 +166,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
-    if ((searchResult != null) && (sr != null))
+    if (searchResult != null && sr != null)
     {
       sameEntry = searchResult.getDN().equals(sr.getDN());
     }
@@ -188,7 +188,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     {
       public void run()
       {
-        if ((p != null) && (scroll.getViewport().contains(p)))
+        if (p != null && scroll.getViewport().contains(p))
         {
           scroll.getViewport().setViewPosition(p);
         }
@@ -668,7 +668,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
         addedAttrs.add(
             Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase());
       }
-      if ((ocs != null) && (schema != null))
+      if (ocs != null && schema != null)
       {
         for (Object o : ocs)
         {

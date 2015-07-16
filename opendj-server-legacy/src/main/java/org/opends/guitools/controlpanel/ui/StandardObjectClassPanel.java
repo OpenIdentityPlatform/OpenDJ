@@ -245,8 +245,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
         @Override
         public void keyTyped(KeyEvent ev)
         {
-          if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
-              (ev.getKeyChar() == KeyEvent.VK_ENTER))
+          if (ev.getKeyChar() == KeyEvent.VK_SPACE ||
+              ev.getKeyChar() == KeyEvent.VK_ENTER)
           {
             attrSelected(list);
           }
@@ -294,7 +294,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
    */
   public void update(ObjectClass oc, Schema schema)
   {
-    if ((oc == null) || (schema == null))
+    if (oc == null || schema == null)
     {
       // Ignore: this is called to get an initial panel size.
       return;

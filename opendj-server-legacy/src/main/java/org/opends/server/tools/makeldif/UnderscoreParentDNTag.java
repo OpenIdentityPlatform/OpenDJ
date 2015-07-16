@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 
@@ -35,8 +34,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;
-
-
 
 /**
  * This class defines a tag that is used to include the DN of the parent entry
@@ -124,7 +121,7 @@ public class UnderscoreParentDNTag
                                  TemplateValue templateValue)
   {
     DN parentDN = templateEntry.getParentDN();
-    if ((parentDN == null) || parentDN.isRootDN())
+    if (parentDN == null || parentDN.isRootDN())
     {
       return TagResult.SUCCESS_RESULT;
     }

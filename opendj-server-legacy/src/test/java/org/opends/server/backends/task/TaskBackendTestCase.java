@@ -161,7 +161,7 @@ public class TaskBackendTestCase
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
-      if (System.currentTimeMillis() > (startTime + 300000L))
+      if (System.currentTimeMillis() > startTime + 300000L)
       {
         throw new AssertionError("Waited too long for the task to start");
       }
@@ -308,7 +308,7 @@ public class TaskBackendTestCase
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
-      if (System.currentTimeMillis() > (startTime + 300000L))
+      if (System.currentTimeMillis() > startTime + 300000L)
       {
         throw new AssertionError("Waited too long for the task to start");
       }
@@ -338,7 +338,7 @@ public class TaskBackendTestCase
     // We may have to wait for the task to register as done, but it should
     // definitely be done before it would have stopped normally.
     task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
-    assertTrue((System.currentTimeMillis() - startTime) < 300000L);
+    assertTrue(System.currentTimeMillis() - startTime < 300000L);
     assertTrue(TaskState.isDone(task.getTaskState()));
 
 

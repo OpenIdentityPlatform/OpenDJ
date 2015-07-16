@@ -864,7 +864,7 @@ public class GeneralizedTimeSyntax
       case '-':
         // These are fine only if there are exactly two or four more digits that
         // specify a valid offset.
-        if ((length == 13) || (length == 15))
+        if (length == 13 || length == 15)
         {
           try
           {
@@ -1036,7 +1036,7 @@ public class GeneralizedTimeSyntax
       case '-':
         // These are fine only if there are exactly two or four more digits that
         // specify a valid offset.
-        if ((length == 15) || (length == 17))
+        if (length == 15 || length == 17)
         {
           try
           {
@@ -1126,7 +1126,7 @@ public class GeneralizedTimeSyntax
       case '-':
         // These are fine only if there are exactly two or four more digits that
         // specify a valid offset.
-        if ((length == 17) || (length == 19))
+        if (length == 17 || length == 19)
         {
           try
           {
@@ -1224,7 +1224,7 @@ outerLoop:
 
         case 'Z':
           // This is only acceptable if we're at the end of the value.
-          if (i != (value.length() - 1))
+          if (i != value.length() - 1)
           {
             LocalizableMessage message =
                 WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR.
@@ -1307,7 +1307,8 @@ outerLoop:
           throws DirectoryException
   {
     String offSetStr = value.substring(startPos);
-    if ((offSetStr.length() != 3) && (offSetStr.length() != 5))
+    int len = offSetStr.length();
+    if (len != 3 && len != 5)
     {
       LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(
           value, offSetStr);
@@ -1389,7 +1390,7 @@ outerLoop:
 
     // If there are two more characters, then they must be an integer between
     // 00 and 59.
-    if (offSetStr.length() == 5)
+    if (len == 5)
     {
       switch (offSetStr.charAt(3))
       {

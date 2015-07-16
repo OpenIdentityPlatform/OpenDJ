@@ -524,7 +524,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
       op = connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
     }
-    while (op.getSearchEntries().isEmpty() && (count<100));
+    while (op.getSearchEntries().isEmpty() && count<100);
     assertFalse(op.getSearchEntries().isEmpty(), "Could not read monitoring information");
 
     SearchResultEntry entry = op.getSearchEntries().getFirst();
@@ -551,7 +551,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       if (newEntry != null)
       {
         List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-        if ((tmpAttrList != null) && (!tmpAttrList.isEmpty()))
+        if (tmpAttrList != null && !tmpAttrList.isEmpty())
         {
           Attribute tmpAttr = tmpAttrList.get(0);
           found = tmpAttr.contains(ByteString.valueOf(valueString));
@@ -562,7 +562,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         Thread.sleep(100);
       }
-    } while ((--count > 0) && (found != hasAttribute));
+    } while (--count > 0 && found != hasAttribute);
     return found;
   }
 
@@ -579,7 +579,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
     Thread.sleep(50);
     boolean found = DirectoryServer.entryExists(dn);
-    while ((count> 0) && (found != exist))
+    while (count> 0 && found != exist)
     {
       Thread.sleep(200);
 
@@ -612,7 +612,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorDelta() throws Exception
   {
     long currentCount = getMonitorAttrValue(monitorDN, monitorAttr);
-    long delta = (currentCount - lastCount);
+    long delta = currentCount - lastCount;
     lastCount = currentCount;
     return delta;
   }
@@ -757,7 +757,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     while (taskState != expectedTaskState
         && taskState != TaskState.STOPPED_BY_ERROR
         && taskState != TaskState.COMPLETED_SUCCESSFULLY
-        && (System.currentTimeMillis() - startTime < maxWaitTimeInMillis));
+        && System.currentTimeMillis() - startTime < maxWaitTimeInMillis);
 
     // Check that the task contains some log messages.
     Set<String> logMessages = resultEntry.parseAttribute(
@@ -917,7 +917,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
       logger.trace("waitForSpecificMsg received : " + replMsg);
       msgs.add(replMsg);
-      timedOut = (System.currentTimeMillis() - startTime) > timeOut;
+      timedOut = System.currentTimeMillis() - startTime > timeOut;
     }
     // Timeout
     fail("Failed to receive an expected " + msgType + " message after 5 seconds."

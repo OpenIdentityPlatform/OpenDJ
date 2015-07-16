@@ -113,7 +113,7 @@ public class IfPresentTag
                                   List<LocalizableMessage> warnings)
          throws InitializationException
   {
-    if ((arguments.length < 1) || (arguments.length > 2))
+    if (arguments.length < 1 || arguments.length > 2)
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
@@ -161,7 +161,7 @@ public class IfPresentTag
                                     int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
-    if ((arguments.length < 1) || (arguments.length > 2))
+    if (arguments.length < 1 || arguments.length > 2)
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
@@ -202,7 +202,7 @@ public class IfPresentTag
                                  TemplateValue templateValue)
   {
     List<TemplateValue> values = templateEntry.getValues(attributeType);
-    if ((values == null) || values.isEmpty())
+    if (values == null || values.isEmpty())
     {
       return TagResult.OMIT_FROM_ENTRY;
     }
@@ -211,18 +211,14 @@ public class IfPresentTag
     {
       return TagResult.SUCCESS_RESULT;
     }
-    else
-    {
-      for (TemplateValue v : values)
-      {
-        if (assertionValue.equals(v.getValue().toString()))
-        {
-          return TagResult.SUCCESS_RESULT;
-        }
-      }
 
-      return TagResult.OMIT_FROM_ENTRY;
+    for (TemplateValue v : values)
+    {
+      if (assertionValue.equals(v.getValue().toString()))
+      {
+        return TagResult.SUCCESS_RESULT;
+      }
     }
+    return TagResult.OMIT_FROM_ENTRY;
   }
 }
-

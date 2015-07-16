@@ -196,7 +196,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
       numKnownAckStatus++;
     }
 
-    return (numKnownAckStatus == expectedServersAckStatus.size());
+    return numKnownAckStatus == expectedServersAckStatus.size();
   }
 
   /** {@inheritDoc} */

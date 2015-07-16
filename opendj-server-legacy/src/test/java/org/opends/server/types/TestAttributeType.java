@@ -228,7 +228,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
         for (String property : extraProperties.keySet())
         {
           List<String> values = extraProperties.get(property);
-          if ((values == null) || values.isEmpty())
+          if (values == null || values.isEmpty())
           {
             continue;
           }

@@ -507,8 +507,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       for (int i =0; i< CLIENT_THREADS; i++)
       {
-        clientBroker[i] = openReplicationSession(TEST_ROOT_DN,
-            (100+i), 100, replicationServerPort, 1000);
+        clientBroker[i] = openReplicationSession(TEST_ROOT_DN, 100+i, 100, replicationServerPort, 1000);
         client[i] = new BrokerReader(clientBroker[i], TOTAL_MSG);
       }
 

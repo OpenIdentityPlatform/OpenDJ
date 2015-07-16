@@ -199,7 +199,7 @@ implements IndexModifiedListener
       public void itemStateChanged(ItemEvent ev)
       {
         if (!ignoreSelectionEvents &&
-            (ev.getStateChange() == ItemEvent.SELECTED))
+            ev.getStateChange() == ItemEvent.SELECTED)
         {
           repopulateTree(treePane.getTree());
         }
@@ -614,20 +614,19 @@ implements IndexModifiedListener
         }
         else
         {
-          expand = tree.isExpanded(new TreePath(parent)) ||
-          (parent.getChildCount() == 0);
+          expand = tree.isExpanded(new TreePath(parent)) || parent.getChildCount() == 0;
           parent.removeAllChildren();
         }
         for (AbstractIndexTreeNode node : nodes.get(i))
         {
           parent.add(node);
-          if ((newSelectionPath == null) &&
-              ((lastSelectedNode != null) || (lastCreatedIndex != null)))
+          if (newSelectionPath == null &&
+              (lastSelectedNode != null || lastCreatedIndex != null))
           {
             if (lastCreatedIndex != null)
             {
-              if ((node instanceof IndexTreeNode) &&
-                  (lastCreatedIndex instanceof IndexDescriptor))
+              if (node instanceof IndexTreeNode &&
+                  lastCreatedIndex instanceof IndexDescriptor)
               {
                 if (node.getName().equals(lastCreatedIndex.getName()))
                 {
@@ -698,7 +697,7 @@ implements IndexModifiedListener
     ViewPositions pos = Utilities.getViewPositions(entryPane);
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     TreePath path = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       path = paths[0];
     }
@@ -732,7 +731,7 @@ implements IndexModifiedListener
     }
     else
     {
-      if ((paths != null) && (paths.length > 1))
+      if (paths != null && paths.length > 1)
       {
         entryPane.displayMultiple();
       }

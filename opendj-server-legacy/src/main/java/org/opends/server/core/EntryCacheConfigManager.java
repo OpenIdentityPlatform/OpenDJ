@@ -235,8 +235,8 @@ public class EntryCacheConfigManager
         int currentCacheLevel = cacheNameToLevelMap.get(normDN);
 
         // Check if there any existing cache at the same level.
-        if ((currentCacheLevel != configuration.getCacheLevel()) &&
-          (cacheOrderMap.containsKey(configuration.getCacheLevel()))) {
+        if (currentCacheLevel != configuration.getCacheLevel() &&
+          cacheOrderMap.containsKey(configuration.getCacheLevel())) {
           unacceptableReasons.add(
             ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
               configuration.dn(), configuration.getCacheLevel()));
@@ -309,7 +309,7 @@ public class EntryCacheConfigManager
     if ( entryCache != null)
     {
       String curClassName = entryCache.getClass().getName();
-      boolean classIsNew = (! newClassName.equals (curClassName));
+      boolean classIsNew = !newClassName.equals(curClassName);
       if (classIsNew)
       {
         changeResult.setAdminActionRequired (true);
@@ -318,7 +318,7 @@ public class EntryCacheConfigManager
     }
 
     // New entry cache is enabled and there were no previous one.
-    // Instantiate the new class and initalize it.
+    // Instantiate the new class and initialize it.
     try
     {
       loadAndInstallEntryCache (newClassName, configuration);
@@ -562,7 +562,7 @@ public class EntryCacheConfigManager
       // If there is some entry cache instance already initialized work with
       // it instead of creating a new one unless explicit init is requested.
       EntryCache<T> cache;
-      if (initialize || (entryCache == null)) {
+      if (initialize || entryCache == null) {
         cache = cacheClass.newInstance();
       } else {
         cache = entryCache;
@@ -603,8 +603,8 @@ public class EntryCacheConfigManager
         }
       }
       LocalizableMessage message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
-        className, (e.getCause() != null ? e.getCause().getMessage() :
-          stackTraceToSingleLineString(e)));
+        className, e.getCause() != null ? e.getCause().getMessage() :
+          stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
   }

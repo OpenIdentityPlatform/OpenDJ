@@ -384,14 +384,14 @@ public class GenericSchemaTestCase
   private boolean isNumericOID(String oid)
   {
     // It must not be null, and it must not be empty.
-    if ((oid == null) || (oid.length() == 0))
+    if (oid == null || oid.length() == 0)
     {
       return false;
     }
 
     // It must start and end with numeric digits.
-    if ((! Character.isDigit(oid.charAt(0))) ||
-        (! Character.isDigit(oid.charAt(oid.length()-1))))
+    if (!Character.isDigit(oid.charAt(0)) ||
+        !Character.isDigit(oid.charAt(oid.length()-1)))
     {
       return false;
     }

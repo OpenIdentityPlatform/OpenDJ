@@ -771,7 +771,7 @@ public final class LDAPConnectionHandler extends
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
 
-    if ((currentConfig == null)
+    if (currentConfig == null
         || (!currentConfig.isEnabled() && config.isEnabled()))
     {
       // Attempt to bind to the listen port on all configured addresses to
@@ -982,7 +982,7 @@ public final class LDAPConnectionHandler extends
         // Enter a loop, waiting for new connections to arrive and
         // then accepting them as they come in.
         boolean lastIterationFailed = false;
-        while (enabled && (!shutdownRequested))
+        while (enabled && !shutdownRequested)
         {
           try
           {
@@ -1082,7 +1082,7 @@ public final class LDAPConnectionHandler extends
         }
       }
 
-      if (selectorState == 0 && enabled && (!shutdownRequested)
+      if (selectorState == 0 && enabled && !shutdownRequested
           && logger.isTraceEnabled())
       {
         // Selected keys was non empty but select() returned 0.
@@ -1163,7 +1163,7 @@ public final class LDAPConnectionHandler extends
     InetAddress clientAddr = clientConnection.getRemoteAddress();
     // Check to see if the client is on the denied list.
     // If so, then reject it immediately.
-    if ((!deniedClients.isEmpty())
+    if (!deniedClients.isEmpty()
         && AddressMask.matchesAny(deniedClients, clientAddr))
     {
       clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
@@ -1175,8 +1175,8 @@ public final class LDAPConnectionHandler extends
     // Check to see if there is an allowed list and if
     // there is whether the client is on that list. If
     // not, then reject the connection.
-    if ((!allowedClients.isEmpty())
-        && (!AddressMask.matchesAny(allowedClients, clientAddr)))
+    if (!allowedClients.isEmpty()
+        && !AddressMask.matchesAny(allowedClients, clientAddr))
     {
       clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),

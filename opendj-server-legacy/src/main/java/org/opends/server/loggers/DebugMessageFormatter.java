@@ -26,7 +26,11 @@
  */
 package org.opends.server.loggers;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.IllegalFormatException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class is responsible for formatting messages and replacing
@@ -69,8 +73,10 @@ class DebugMessageFormatter
 
   private static void concatenateArgs(Object[] args, StringBuilder buffer)
   {
-    for (int i = 0; (args != null) && (i < args.length); i++) {
-      buffer.append(" ").append(args[i]);
+    if (args != null) {
+      for (Object arg : args) {
+        buffer.append(" ").append(arg);
+      }
     }
   }
 

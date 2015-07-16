@@ -428,8 +428,8 @@ class CustomAttributePanel extends SchemaElementPanel
         @Override
         public void keyTyped(KeyEvent ev)
         {
-          if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
-              (ev.getKeyChar() == KeyEvent.VK_ENTER))
+          if (ev.getKeyChar() == KeyEvent.VK_SPACE ||
+              ev.getKeyChar() == KeyEvent.VK_ENTER)
           {
             objectClassSelected(list);
           }
@@ -655,8 +655,7 @@ class CustomAttributePanel extends SchemaElementPanel
       }
 
       List<Syntax> newSyntaxes = new ArrayList<>(syntaxNameMap.values());
-      updateComboBoxModel(newSyntaxes,
-          ((DefaultComboBoxModel)syntax.getModel()));
+      updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
 
       Map<String, AttributeType> attributeNameMap = new TreeMap<>(lowerCase);
       for (String key : schema.getAttributeTypes().keySet())
@@ -667,8 +666,7 @@ class CustomAttributePanel extends SchemaElementPanel
       List<Object> newParents = new ArrayList<>();
       newParents.addAll(attributeNameMap.values());
       newParents.add(0, NO_PARENT);
-      updateComboBoxModel(newParents,
-          ((DefaultComboBoxModel)parent.getModel()));
+      updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
 
       final Map<String, MatchingRule> matchingRuleNameMap = new TreeMap<>(lowerCase);
       for (String key : schema.getMatchingRules().keySet())

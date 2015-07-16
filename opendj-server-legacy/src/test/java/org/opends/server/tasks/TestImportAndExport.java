@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.server.tasks;
@@ -375,22 +375,20 @@ public class TestImportAndExport extends TasksTestCase
     // Use a big timeout since this test is sensitive to host environment (e.g.
     // low memory, etc). See issue OPENDJ-256.
     testTask(taskEntry, expectedState, 600);
-     if ((expectedState == TaskState.COMPLETED_SUCCESSFULLY) ||
-        (expectedState == TaskState.COMPLETED_WITH_ERRORS))
+     if (expectedState == TaskState.COMPLETED_SUCCESSFULLY ||
+        expectedState == TaskState.COMPLETED_WITH_ERRORS)
     {
       if (taskEntry.hasObjectClass(exportClass))
       {
-        assertEquals(TestTaskListener.exportBeginCount.get(),
-                     (exportBeginCount+1));
-        assertEquals(TestTaskListener.exportEndCount.get(), (exportEndCount+1));
+        assertEquals(TestTaskListener.exportBeginCount.get(), exportBeginCount+1);
+        assertEquals(TestTaskListener.exportEndCount.get(), exportEndCount+1);
         assertEquals(TestTaskListener.exportBeginCount.get(),
                      TestTaskListener.exportEndCount.get());
       }
       else
       {
-        assertEquals(TestTaskListener.importBeginCount.get(),
-                     (importBeginCount+1));
-        assertEquals(TestTaskListener.importEndCount.get(), (importEndCount+1));
+        assertEquals(TestTaskListener.importBeginCount.get(), importBeginCount+1);
+        assertEquals(TestTaskListener.importEndCount.get(), importEndCount+1);
         assertEquals(TestTaskListener.importBeginCount.get(),
                      TestTaskListener.importEndCount.get());
       }

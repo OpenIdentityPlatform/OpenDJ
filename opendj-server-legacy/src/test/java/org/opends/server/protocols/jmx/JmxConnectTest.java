@@ -189,7 +189,7 @@ public class JmxConnectTest extends JmxTestCase {
       boolean expectedResult) throws Exception {
     OpendsJmxConnector connector = connect(user, password,
         TestCaseUtils.getServerJmxPort());
-    assertEquals((connector != null), expectedResult);
+    assertEquals(connector != null, expectedResult);
     if (connector != null) {
       connector.close();
     }
@@ -507,7 +507,7 @@ public class JmxConnectTest extends JmxTestCase {
     // Provide the credentials required by the server to successfully
     // perform user authentication
     String[] credentials;
-    if ((user == null) && (password == null)) {
+    if (user == null && password == null) {
       credentials = null;
     }
     else
@@ -544,7 +544,7 @@ public class JmxConnectTest extends JmxTestCase {
     // Provide the credentials required by the server to successfully
     // perform user authentication
     String[] credentials;
-    if ((user == null) && (password == null)) {
+    if (user == null && password == null) {
       credentials = null;
     }
     else

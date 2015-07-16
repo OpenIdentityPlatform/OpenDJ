@@ -166,8 +166,7 @@ public final class TextAccessLogPublisher extends
             && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          final AsynchronousTextWriter asyncWriter =
-            ((AsynchronousTextWriter) writer);
+          final AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -175,7 +174,7 @@ public final class TextAccessLogPublisher extends
         if (writer instanceof ParallelTextWriter && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          final ParallelTextWriter asyncWriter = ((ParallelTextWriter) writer);
+          final ParallelTextWriter asyncWriter = (ParallelTextWriter) writer;
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -195,8 +194,8 @@ public final class TextAccessLogPublisher extends
               config.isAutoFlush(), mfWriter);
         }
 
-        if ((cfg.isAsynchronous() && config.isAsynchronous())
-            && (cfg.getQueueSize() != config.getQueueSize()))
+        if (cfg.isAsynchronous() && config.isAsynchronous()
+            && cfg.getQueueSize() != config.getQueueSize())
         {
           ccr.setAdminActionRequired(true);
         }
@@ -1198,7 +1197,7 @@ public final class TextAccessLogPublisher extends
     buffer.append(operation.getResultCode().intValue());
 
     final LocalizableMessageBuilder msg = operation.getErrorMessage();
-    if ((msg != null) && (msg.length() > 0))
+    if (msg != null && msg.length() > 0)
     {
       appendLabel(buffer, "message", msg);
     }
@@ -1337,7 +1336,7 @@ public final class TextAccessLogPublisher extends
     searchOperation.getRawFilter().toString(buffer);
 
     final Set<String> attrs = searchOperation.getAttributes();
-    if ((attrs == null) || attrs.isEmpty())
+    if (attrs == null || attrs.isEmpty())
     {
       buffer.append("\" attrs=\"ALL\"");
     }

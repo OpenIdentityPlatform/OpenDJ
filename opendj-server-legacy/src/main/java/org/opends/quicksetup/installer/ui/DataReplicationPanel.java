@@ -283,17 +283,15 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   /** {@inheritDoc} */
   protected LocalizableMessage getTextForIcon(UIFactory.IconType iconType)
   {
-    LocalizableMessage text;
-    if ((iconType == UIFactory.IconType.WAIT) &&
+    if (iconType == UIFactory.IconType.WAIT &&
         rbReplicated.isSelected() && cbTopologyExists.isSelected())
     {
-      text = INFO_CONTACTING_SERVER_LABEL.get();
+      return INFO_CONTACTING_SERVER_LABEL.get();
     }
     else
     {
-      text = super.getTextForIcon(iconType);
+      return super.getTextForIcon(iconType);
     }
-    return text;
   }
 
   /**
@@ -304,41 +302,25 @@ public class DataReplicationPanel extends QuickSetupStepPanel
    */
   private Object getDefaultValue(FieldName fieldName)
   {
-    Object value;
     AuthenticationData auth =
       defaultUserData.getReplicationOptions().getAuthenticationData();
     switch (fieldName)
     {
     case REPLICATION_PORT:
-      value = defaultUserData.getReplicationOptions().getReplicationPort();
-      break;
-
+      return defaultUserData.getReplicationOptions().getReplicationPort();
     case REMOTE_SERVER_DN:
-      value = auth.getDn();
-      break;
-
+      return auth.getDn();
     case REMOTE_SERVER_PWD:
-      value = auth.getPwd();
-      break;
-
+      return auth.getPwd();
     case REMOTE_SERVER_HOST:
-      value = auth.getHostName();
-      break;
-
+      return auth.getHostName();
     case REMOTE_SERVER_PORT:
-      value = auth.getPort();
-      break;
-
+      return auth.getPort();
     case REPLICATION_OPTIONS:
-      value = defaultUserData.getReplicationOptions().getType();
-      break;
-
+      return defaultUserData.getReplicationOptions().getType();
     default:
-      throw new IllegalArgumentException("Unknown field name: " +
-          fieldName);
+      throw new IllegalArgumentException("Unknown field name: " + fieldName);
     }
-
-    return value;
   }
 
   /**
@@ -349,20 +331,12 @@ public class DataReplicationPanel extends QuickSetupStepPanel
    */
   private String getDefaultStringValue(FieldName fieldName)
   {
-    String value = null;
-
     Object v = getDefaultValue(fieldName);
     if (v != null)
     {
-      if (v instanceof String)
-      {
-        value = (String) v;
-      } else
-      {
-        value = String.valueOf(v);
-      }
+      return String.valueOf(v);
     }
-    return value;
+    return null;
   }
 
   /**
@@ -408,16 +382,14 @@ public class DataReplicationPanel extends QuickSetupStepPanel
 
     for (FieldName fieldName : hm.keySet())
     {
-      JTextComponent field;
       LabelFieldDescriptor desc = hm.get(fieldName);
 
       String defaultValue = getDefaultStringValue(fieldName);
-      field = UIFactory.makeJTextComponent(desc, defaultValue);
+      JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);
 
       hmFields.put(fieldName, field);
 
       JLabel l = UIFactory.makeJLabel(desc);
-
       l.setLabelFor(field);
 
       hmLabels.put(fieldName, l);

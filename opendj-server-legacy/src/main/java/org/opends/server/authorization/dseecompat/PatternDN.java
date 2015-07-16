@@ -182,7 +182,7 @@ public class PatternDN
       }
 
 
-      if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
+      if (subAnyElements != null && ! subAnyElements.isEmpty())
       {
         for (PatternRDN[] element : subAnyElements)
         {
@@ -218,7 +218,7 @@ public class PatternDN
       {
         int finalLength = subFinal.length;
 
-        if ((valueLength - finalLength) < pos)
+        if (valueLength - finalLength < pos)
         {
           return false;
         }
@@ -400,7 +400,7 @@ public class PatternDN
       {
         pos++;
       }
-      else if ((c == ',' || c == ';'))
+      else if (c == ',' || c == ';')
       {
         if (name.equals("*"))
         {
@@ -427,7 +427,7 @@ public class PatternDN
       }
 
       // Skip over any spaces after the equal sign.
-      while ((pos < length) && (dnString.charAt(pos) == ' '))
+      while (pos < length && dnString.charAt(pos) == ' ')
       {
         pos++;
       }
@@ -456,7 +456,7 @@ public class PatternDN
 
 
       // Skip over any spaces that might be after the attribute value.
-      while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+      while (pos < length && ((c = dnString.charAt(pos)) == ' '))
       {
         pos++;
       }
@@ -470,7 +470,7 @@ public class PatternDN
         rdnComponents.add(rdn);
         break;
       }
-      else if ((c == ',') || (c == ';'))
+      else if (c == ',' || c == ';')
       {
         // We're at the end of the RDN component, so add it to the list,
         // skip over the comma/semicolon, and start on the next component.
@@ -495,7 +495,7 @@ public class PatternDN
         // Skip over the plus sign and any spaces that may follow it
         // before the next attribute name.
         pos++;
-        while ((pos < length) && (dnString.charAt(pos) == ' '))
+        while (pos < length && dnString.charAt(pos) == ' ')
         {
           pos++;
         }
@@ -555,7 +555,7 @@ public class PatternDN
 
 
         // Skip over any spaces after the equal sign.
-        while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+        while (pos < length && ((c = dnString.charAt(pos)) == ' '))
         {
           pos++;
         }
@@ -584,17 +584,15 @@ public class PatternDN
         rdn.addValue(name, parsedValue, dnString);
 
 
-        // Skip over any spaces that might be after the attribute
-        // value.
-        while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+        // Skip over any spaces that might be after the attribute value.
+        while (pos < length && ((c = dnString.charAt(pos)) == ' '))
         {
           pos++;
         }
 
 
         // Most likely, we will be at either the end of the RDN
-        // component or the end of the DN.  If so, then handle that
-        // appropriately.
+        // component or the end of the DN.  If so, then handle that appropriately.
         if (pos >= length)
         {
           // We're at the end of the DN string and should have a valid
@@ -602,11 +600,10 @@ public class PatternDN
           rdnComponents.add(rdn);
           break;
         }
-        else if ((c == ',') || (c == ';'))
+        else if (c == ',' || c == ';')
         {
           // We're at the end of the RDN component, so add it to the
-          // list, skip over the comma/semicolon, and start on the
-          // next component.
+          // list, skip over the comma/semicolon, and start on the next component.
           rdnComponents.add(rdn);
           pos++;
           break;
@@ -617,8 +614,7 @@ public class PatternDN
           // character, so throw an exception.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_DN_INVALID_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
       }
     }
@@ -1012,27 +1008,27 @@ public class PatternDN
         }
       }
 
-      while (validOID && (namePos < nameLength))
+      while (validOID && namePos < nameLength)
       {
         char ch = attributeName.charAt(namePos++);
         if (isDigit(ch))
         {
-          while (validOID && (namePos < nameLength) &&
+          while (validOID && namePos < nameLength &&
                  isDigit(attributeName.charAt(namePos)))
           {
             namePos++;
           }
 
-          if ((namePos < nameLength) &&
-              (attributeName.charAt(namePos) != '.'))
+          if (namePos < nameLength &&
+              attributeName.charAt(namePos) != '.')
           {
             validOID = false;
           }
         }
         else if (ch == '.')
         {
-          if ((namePos == 1) ||
-              (attributeName.charAt(namePos-2) == '.'))
+          if (namePos == 1 ||
+              attributeName.charAt(namePos-2) == '.')
           {
             validOID = false;
           }
@@ -1044,7 +1040,7 @@ public class PatternDN
       }
 
 
-      if (validOID && (attributeName.charAt(nameLength-1) == '.'))
+      if (validOID && attributeName.charAt(nameLength-1) == '.')
       {
         validOID = false;
       }
@@ -1100,7 +1096,7 @@ public class PatternDN
     {
       // The first two characters must be hex characters.
       StringBuilder hexString = new StringBuilder();
-      if ((pos+2) > length)
+      if (pos+2 > length)
       {
         LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
@@ -1157,7 +1153,7 @@ public class PatternDN
                                          message);
           }
         }
-        else if ((c == ' ') || (c == ',') || (c == ';'))
+        else if (c == ' ' || c == ',' || c == ';')
         {
           // This denotes the end of the value.
           pos--;
@@ -1332,7 +1328,7 @@ public class PatternDN
         {
           escaped = true;
         }
-        else if ((c == ',') || (c == ';'))
+        else if (c == ',' || c == ';')
         {
           appendHexChars(dnString, valueString, hexChars);
           pos--;

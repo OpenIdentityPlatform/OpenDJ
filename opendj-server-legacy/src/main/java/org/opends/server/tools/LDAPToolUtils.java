@@ -258,7 +258,7 @@ public class LDAPToolUtils
                                        int resultCode, LocalizableMessage errorMessage,
                                        DN matchedDN)
   {
-    if ((explanation != null) && (explanation.length() > 0))
+    if (explanation != null && explanation.length() > 0)
     {
       err.println(explanation);
     }
@@ -269,7 +269,7 @@ public class LDAPToolUtils
                              LDAPResultCode.toString(resultCode)));
     }
 
-    if ((errorMessage != null) && (errorMessage.length() > 0))
+    if (errorMessage != null && errorMessage.length() > 0)
     {
       err.println(ERR_TOOL_ERROR_MESSAGE.get(errorMessage));
     }

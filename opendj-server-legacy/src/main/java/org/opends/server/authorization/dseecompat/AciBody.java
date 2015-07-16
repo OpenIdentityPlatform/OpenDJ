@@ -28,6 +28,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import static org.opends.server.authorization.dseecompat.EnumEvalResult.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -289,11 +290,10 @@ public class AciBody {
      * @return An enumeration result of the evaluation.
      */
     public  EnumEvalResult evaluate(AciEvalContext evalCtx) {
-        EnumEvalResult res=EnumEvalResult.FALSE;
+        EnumEvalResult res = FALSE;
         List<PermBindRulePair>pairs=getPermBindRulePairs();
         for(PermBindRulePair p : pairs) {
-            if(evalCtx.isDenyEval() &&
-                    (p.hasAccessType(EnumAccessType.ALLOW))) {
+            if (evalCtx.isDenyEval() && p.hasAccessType(EnumAccessType.ALLOW)) {
                 continue;
             }
             if(!p.hasRights(getEvalRights(evalCtx))) {
@@ -302,22 +302,17 @@ public class AciBody {
             res=p.getBindRule().evaluate(evalCtx);
             // The evaluation result could be FAIL. Stop processing and return
             //FAIL. Maybe an internal search failed.
-            if((res != EnumEvalResult.TRUE) &&
-                    (res != EnumEvalResult.FALSE)) {
-                res=EnumEvalResult.FAIL;
+            if(res != TRUE && res != FALSE) {
+                res = FAIL;
                 break;
                 //If the access type is DENY and the pair evaluated to TRUE,
-                //then stop processing and return TRUE. A deny pair
-                //succeeded.
-            } else if((p.hasAccessType(EnumAccessType.DENY)) &&
-                    (res == EnumEvalResult.TRUE)) {
-                res=EnumEvalResult.TRUE;
+                //then stop processing and return TRUE. A deny pair succeeded.
+            } else if (p.hasAccessType(EnumAccessType.DENY) && res == TRUE) {
+                res = TRUE;
                 break;
-                //An allow access type evaluated TRUE, stop processing
-                //and return TRUE.
-            } else if((p.hasAccessType(EnumAccessType.ALLOW) &&
-                    (res == EnumEvalResult.TRUE))) {
-                res=EnumEvalResult.TRUE;
+                //An allow access type evaluated TRUE, stop processing and return TRUE.
+            } else if (p.hasAccessType(EnumAccessType.ALLOW) && res == TRUE) {
+                res = TRUE;
                 break;
             }
         }
@@ -346,8 +341,7 @@ public class AciBody {
    * @return  The evaluation rights to used in the evaluation.
    */
   private int getEvalRights(AciEvalContext evalCtx) {
-    if(evalCtx.hasRights(ACI_WRITE) &&
-            evalCtx.hasRights(ACI_SELF)) {
+    if(evalCtx.hasRights(ACI_WRITE) && evalCtx.hasRights(ACI_SELF)) {
       return ACI_SELF;
     } else  if(evalCtx.hasRights(ACI_COMPARE)) {
       return ACI_COMPARE;
@@ -405,5 +399,4 @@ public class AciBody {
       buffer.append(pair);
     }
   }
-
 }

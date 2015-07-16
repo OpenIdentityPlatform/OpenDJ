@@ -548,7 +548,7 @@ public class AciTargets {
     public static boolean skipRightsHasRights(int rights) {
       //geteffectiverights sets this flag, turn it off before evaluating.
       int tmpRights=rights & ~ACI_SKIP_PROXY_CHECK;
-      return  ((skipRights & tmpRights) == tmpRights);
+      return (skipRights & tmpRights) == tmpRights;
     }
 
 
@@ -593,8 +593,7 @@ public class AciTargets {
          * contains a simple target DN and a equality operator, that
          * simple target DN is used as the target DN.
          */
-        if((targets.getTarget() != null) &&
-                (!targets.getTarget().isPattern())) {
+        if(targets.getTarget() != null && !targets.getTarget().isPattern()) {
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op != EnumTargetOperator.NOT_EQUALITY)
             {
@@ -628,7 +627,7 @@ public class AciTargets {
             }
             break;
         case SUBORDINATES:
-            if ((entryDN.size() <= targetDN.size()) ||
+            if (entryDN.size() <= targetDN.size() ||
                  !entryDN.isDescendantOf(targetDN)) {
               return false;
             }
@@ -641,8 +640,8 @@ public class AciTargets {
          * against the entry containing the ACI. If operator is inequality,
          * check that it doesn't match the target DN.
          */
-        if((targets.getTarget() != null) &&
-                (!targets.getTarget().isPattern())) {
+        if(targets.getTarget() != null &&
+                !targets.getTarget().isPattern()) {
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op == EnumTargetOperator.NOT_EQUALITY) {
                 DN tmpDN=targets.getTarget().getDN();
@@ -657,8 +656,8 @@ public class AciTargets {
          * created when the ACI was decoded. If inequality flip the
          * result.
          */
-        if((targets.getTarget() != null) &&
-                (targets.getTarget().isPattern()))  {
+        if(targets.getTarget() != null &&
+                targets.getTarget().isPattern())  {
             final boolean ret = targets.getTarget().matchesPattern(entryDN);
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op == EnumTargetOperator.NOT_EQUALITY)

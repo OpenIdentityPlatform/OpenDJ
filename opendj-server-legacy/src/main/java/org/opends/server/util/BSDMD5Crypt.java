@@ -61,7 +61,7 @@ public final class BSDMD5Crypt {
 
     while (--length >= 0)
     {
-      output.append(itoa64.charAt((value & 0x3f)));
+      output.append(itoa64.charAt(value & 0x3f));
       value >>= 6;
     }
 
@@ -197,11 +197,11 @@ public final class BSDMD5Crypt {
       {
         ctx1.update(digest);
       }
-      if ((i % 3) != 0)
+      if (i % 3 != 0)
       {
         ctx1.update(salt.getBytes());
       }
-      if ((i % 7) != 0)
+      if (i % 7 != 0)
       {
         ctx1.update(plaintextBytes);
       }
@@ -232,7 +232,7 @@ public final class BSDMD5Crypt {
     l = ((digest[4] & 0xff) << 16) | ((digest[10] & 0xff) << 8)
             | (digest[5] & 0xff);
     output.append(intTo64(l, 4));
-    l = (digest[11] & 0xff);
+    l = digest[11] & 0xff;
     output.append(intTo64(l, 2));
 
     /* Don't leave anything around in vm they could use. */
@@ -263,7 +263,7 @@ public final class BSDMD5Crypt {
    */
   public static void main(String argv[])
   {
-    if ((argv.length < 1) || (argv.length > 2))
+    if (argv.length < 1 || argv.length > 2)
     {
       System.err.println("Usage: BSDMD5Crypt password salt");
       System.exit(1);

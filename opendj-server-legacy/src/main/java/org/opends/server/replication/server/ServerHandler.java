@@ -746,7 +746,7 @@ public abstract class ServerHandler extends MessageHandler
     final Random random = new Random();
     final int randomTime = random.nextInt(6); // Random from 0 to 5
     // Wait at least 3 seconds + (0 to 5 seconds)
-    final long timeout = 3000 + (randomTime * 1000);
+    final long timeout = 3000 + randomTime * 1000;
     final boolean lockAcquired = replicationServerDomain.tryLock(timeout);
     if (!lockAcquired)
     {

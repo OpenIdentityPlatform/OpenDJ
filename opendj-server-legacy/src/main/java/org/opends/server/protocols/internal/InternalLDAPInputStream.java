@@ -146,7 +146,7 @@ public final class InternalLDAPInputStream
    * from this input stream without blocking.
    *
    * @return  The number of bytes that can be read (or skipped over)
-   *          from this input stream wihtout blocking.
+   *          from this input stream without blocking.
    * @throws IOException if an I/O error occurs.
    */
   @Override
@@ -155,7 +155,7 @@ public final class InternalLDAPInputStream
     if (messageReader.remaining() < 1)
     {
       LDAPMessage message = messageQueue.poll();
-      if ((message == null) || (message instanceof NullLDAPMessage))
+      if (message == null || message instanceof NullLDAPMessage)
       {
         if (message != null)
         {
@@ -181,7 +181,7 @@ public final class InternalLDAPInputStream
   /**
    * Closes this input stream.  This will add a special marker
    * element to the message queue indicating that the end of the
-   * stream has been reached.  If the queue is full, thenit will be
+   * stream has been reached.  If the queue is full, then it will be
    * cleared before adding the marker element.
    */
   @Override
@@ -222,7 +222,7 @@ public final class InternalLDAPInputStream
 
   /**
    * Marks the current position in the input stream.  This will not
-   * have any effect, as this input stream inplementation does not
+   * have any effect, as this input stream implementation does not
    * support marking.
    *
    * @param  readLimit  The maximum limit of bytes that can be read
@@ -237,7 +237,7 @@ public final class InternalLDAPInputStream
 
 
   /**
-   * Indicates whether this input stream inplementation supports the
+   * Indicates whether this input stream implementation supports the
    * use of the {@code mark} and {@code reset} methods.  This
    * implementation does not support that functionality.
    *
@@ -280,7 +280,7 @@ public final class InternalLDAPInputStream
         message = new NullLDAPMessage();
       }
 
-      if ((message == null) || (message instanceof NullLDAPMessage))
+      if (message == null || message instanceof NullLDAPMessage)
       {
         if (message instanceof NullLDAPMessage)
         {
@@ -299,7 +299,7 @@ public final class InternalLDAPInputStream
       }
     }
 
-    return (0xFF & messageReader.get());
+    return 0xFF & messageReader.get();
   }
 
 
@@ -362,7 +362,7 @@ public final class InternalLDAPInputStream
         message = new NullLDAPMessage();
       }
 
-      if ((message == null) || (message instanceof NullLDAPMessage))
+      if (message == null || message instanceof NullLDAPMessage)
       {
         if (message instanceof NullLDAPMessage)
         {
@@ -391,7 +391,7 @@ public final class InternalLDAPInputStream
   /**
    * Repositions this stream to the position at the time that the
    * {@code mark} method was called on this stream.  This will not
-   * have any effect, as this input stream inplementation does not
+   * have any effect, as this input stream implementation does not
    * support marking.
    */
   @Override
@@ -465,7 +465,6 @@ public final class InternalLDAPInputStream
   @Override
   public String toString()
   {
-    return "InternalLDAPInputStream";
+    return getClass().getSimpleName();
   }
 }
-

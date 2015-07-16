@@ -109,7 +109,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
       updateComponent(ocPanel, table, row, column, isSelected);
       return ocPanel;
     }
-    else if ((value instanceof byte[]) || (value instanceof BinaryValue))
+    else if (value instanceof byte[] || value instanceof BinaryValue)
     {
       if (value instanceof byte[])
       {
@@ -195,7 +195,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     }
     else
     {
-      if ((column == 1) && !table.isCellEditable(row, column))
+      if (column == 1 && !table.isCellEditable(row, column))
       {
         lockLabel.setIcon(lockIcon);
       }
@@ -209,27 +209,25 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
 
   private boolean isPassword(JTable table, int row, int col)
   {
-    boolean isPassword = false;
     if (col == 1)
     {
       Object o = table.getValueAt(row, 0);
       if (Utilities.hasPasswordSyntax((String)o, getSchema()))
       {
-        isPassword = true;
+        return true;
       }
     }
-    return isPassword;
+    return false;
   }
 
   private boolean isImage(JTable table, int row, int col)
   {
-    boolean isImage = false;
     if (col == 1)
     {
       Object o = table.getValueAt(row, 0);
-      isImage = Utilities.hasImageSyntax((String)o, schema);
+      return Utilities.hasImageSyntax((String)o, schema);
     }
-    return isImage;
+    return false;
   }
 
   /**
@@ -263,13 +261,12 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
 
   private boolean isRequired(JTable table, int row, int col)
   {
-    boolean isRequired = false;
     if (col == 0)
     {
       Object o = table.getValueAt(row, 0);
-      isRequired = requiredAttrs.contains(
+      return requiredAttrs.contains(
           Utilities.getAttributeNameWithoutOptions((String)o).toLowerCase());
     }
-    return isRequired;
+    return false;
   }
 }

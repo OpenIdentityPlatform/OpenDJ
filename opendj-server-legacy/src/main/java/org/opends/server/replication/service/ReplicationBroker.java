@@ -929,7 +929,7 @@ public class ReplicationBroker
          * also need to make sure that we don't overflow the semaphore by
          * releasing too many permits.
          */
-        final int MAX_PERMITS = (Integer.MAX_VALUE >>> 2);
+        final int MAX_PERMITS = Integer.MAX_VALUE >>> 2;
         if (sendWindow.availablePermits() < MAX_PERMITS)
         {
           /*

@@ -452,7 +452,7 @@ public final class RDN
 
     needsEscaping: {
       char c = value.charAt(0);
-      if ((c == ' ') || (c == '#')) {
+      if (c == ' ' || c == '#') {
         needsEscaping = true;
         break needsEscaping;
       }
@@ -494,7 +494,7 @@ public final class RDN
     // If the lead character is a space or a # it must be escaped.
     int start = 0;
     char c = value.charAt(0);
-    if ((c == ' ') || (c == '#')) {
+    if (c == ' ' || c == '#') {
       buffer.append('\\');
       buffer.append(c);
       start = 1;
@@ -635,7 +635,7 @@ public final class RDN
 
 
     // Skip over any spaces between the equal sign and the value.
-    while ((pos < length) && ((c = rdnString.charAt(pos)) == ' '))
+    while (pos < length && ((c = rdnString.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -678,7 +678,7 @@ public final class RDN
 
 
     // Skip over any spaces that might be after the attribute value.
-    while ((pos < length) && ((c = rdnString.charAt(pos)) == ' '))
+    while (pos < length && ((c = rdnString.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -693,7 +693,7 @@ public final class RDN
 
     // If the next character is a comma or semicolon, then that is not
     // allowed.  It would be legal for a DN but not an RDN.
-    if ((c == ',') || (c == ';'))
+    if (c == ',' || c == ';')
     {
       LocalizableMessage message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
@@ -716,7 +716,7 @@ public final class RDN
       // Skip over the plus sign and any spaces that may follow it
       // before the next attribute name.
       pos++;
-      while ((pos < length) && ((c = rdnString.charAt(pos)) == ' '))
+      while (pos < length && ((c = rdnString.charAt(pos)) == ' '))
       {
         pos++;
       }
@@ -768,7 +768,7 @@ public final class RDN
 
 
       // Skip over any spaces after the equal sign.
-      while ((pos < length) && ((c = rdnString.charAt(pos)) == ' '))
+      while (pos < length && ((c = rdnString.charAt(pos)) == ' '))
       {
         pos++;
       }
@@ -822,7 +822,7 @@ public final class RDN
 
 
       // Skip over any spaces that might be after the attribute value.
-      while ((pos < length) && ((c = rdnString.charAt(pos)) == ' '))
+      while (pos < length && ((c = rdnString.charAt(pos)) == ' '))
       {
         pos++;
       }
@@ -837,7 +837,7 @@ public final class RDN
 
       // If the next character is a comma or semicolon, then that is
       // not allowed.  It would be legal for a DN but not an RDN.
-      if ((c == ',') || (c == ';'))
+      if (c == ',' || c == ';')
       {
         LocalizableMessage message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);

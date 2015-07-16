@@ -172,16 +172,13 @@ public final class ReadOnlyConfigAttribute
   public String activeValue()
          throws ConfigException
   {
-    if ((values == null) || values.isEmpty())
+    if (values == null || values.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName()));
     }
-
     if (values.size() > 1)
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName()));
     }
 
     return values.get(0);

@@ -273,7 +273,7 @@ public class FilePermission
    */
   public boolean isOwnerReadable()
   {
-    return ((encodedPermission & OWNER_READABLE) == OWNER_READABLE);
+    return is(encodedPermission, OWNER_READABLE);
   }
 
 
@@ -287,7 +287,7 @@ public class FilePermission
    */
   public boolean isOwnerWritable()
   {
-    return ((encodedPermission & OWNER_WRITABLE) == OWNER_WRITABLE);
+    return is(encodedPermission, OWNER_WRITABLE);
   }
 
 
@@ -301,8 +301,7 @@ public class FilePermission
    */
   public boolean isOwnerExecutable()
   {
-    return ((encodedPermission & OWNER_EXECUTABLE) ==
-            OWNER_EXECUTABLE);
+    return is(encodedPermission, OWNER_EXECUTABLE);
   }
 
 
@@ -316,7 +315,7 @@ public class FilePermission
    */
   public boolean isGroupReadable()
   {
-    return ((encodedPermission & GROUP_READABLE) == GROUP_READABLE);
+    return is(encodedPermission, GROUP_READABLE);
   }
 
 
@@ -330,7 +329,7 @@ public class FilePermission
    */
   public boolean isGroupWritable()
   {
-    return ((encodedPermission & GROUP_WRITABLE) == GROUP_WRITABLE);
+    return is(encodedPermission, GROUP_WRITABLE);
   }
 
 
@@ -344,8 +343,7 @@ public class FilePermission
    */
   public boolean isGroupExecutable()
   {
-    return ((encodedPermission & GROUP_EXECUTABLE) ==
-            GROUP_EXECUTABLE);
+    return is(encodedPermission, GROUP_EXECUTABLE);
   }
 
 
@@ -359,7 +357,7 @@ public class FilePermission
    */
   public boolean isOtherReadable()
   {
-    return ((encodedPermission & OTHER_READABLE) == OTHER_READABLE);
+    return is(encodedPermission, OTHER_READABLE);
   }
 
 
@@ -373,7 +371,7 @@ public class FilePermission
    */
   public boolean isOtherWritable()
   {
-    return ((encodedPermission & OTHER_WRITABLE) == OTHER_WRITABLE);
+    return is(encodedPermission, OTHER_WRITABLE);
   }
 
 
@@ -387,11 +385,13 @@ public class FilePermission
    */
   public boolean isOtherExecutable()
   {
-    return ((encodedPermission & OTHER_EXECUTABLE) ==
-            OTHER_EXECUTABLE);
+    return is(encodedPermission, OTHER_EXECUTABLE);
   }
 
-
+  private boolean is(int encodedPermissions, int permission)
+  {
+    return (encodedPermissions & permission) == permission;
+  }
 
   /**
    * Attempts to set the given permissions on the specified file.  If
@@ -538,7 +538,7 @@ public class FilePermission
   public static FilePermission decodeUNIXMode(String modeString)
          throws DirectoryException
   {
-    if ((modeString == null) || (modeString.length() != 3))
+    if (modeString == null || modeString.length() != 3)
     {
       LocalizableMessage message = ERR_FILEPERM_INVALID_UNIX_MODE_STRING.get(modeString);
       throw new DirectoryException(ResultCode.OTHER, message);

@@ -671,7 +671,7 @@ public class ConnectionUtils
 
     boolean throwException = false;
 
-    if ((timeout > 0) && t.isAlive())
+    if (timeout > 0 && t.isAlive())
     {
       t.interrupt();
       try
@@ -685,7 +685,7 @@ public class ConnectionUtils
       throwException = true;
     }
 
-    if ((pair[0] == null) && (pair[1] == null))
+    if (pair[0] == null && pair[1] == null)
     {
       throwException = true;
     }
@@ -748,7 +748,7 @@ public class ConnectionUtils
     if (attrs != null)
     {
       Attribute attr = attrs.get(attrName);
-      if ((attr != null) && (attr.size() > 0))
+      if (attr != null && attr.size() > 0)
       {
         Object o = attr.get();
         if (o instanceof String)

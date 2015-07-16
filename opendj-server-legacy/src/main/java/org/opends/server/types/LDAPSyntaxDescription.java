@@ -113,7 +113,7 @@ public final class LDAPSyntaxDescription
       this.definition = definition;
     }
 
-    if ((extraProperties == null) || extraProperties.isEmpty())
+    if (extraProperties == null || extraProperties.isEmpty())
     {
       this.extraProperties = new LinkedHashMap<>(0);
     }
@@ -208,7 +208,7 @@ public final class LDAPSyntaxDescription
   {
     ifNull(name);
 
-    if ((values == null) || values.isEmpty())
+    if (values == null || values.isEmpty())
     {
       extraProperties.remove(name);
     }

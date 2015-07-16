@@ -468,13 +468,13 @@ abstract class AbstractTextAccessLogPublisher
       final long etime = operation.getProcessingTime();
 
       final Integer etimeGT = cfg.getResponseEtimeGreaterThan();
-      if (etimeGT != null && etime <= ((long) etimeGT))
+      if (etimeGT != null && etime <= etimeGT)
       {
         return false;
       }
 
       final Integer etimeLT = cfg.getResponseEtimeLessThan();
-      if (etimeLT != null && etime >= ((long) etimeLT))
+      if (etimeLT != null && etime >= etimeLT)
       {
         return false;
       }
@@ -583,7 +583,7 @@ abstract class AbstractTextAccessLogPublisher
           final Group<?> group = groupManager.getGroupInstance(groupDN);
           try
           {
-            if ((group != null) && group.isMember(userEntry))
+            if (group != null && group.isMember(userEntry))
             {
               return false;
             }
@@ -602,7 +602,7 @@ abstract class AbstractTextAccessLogPublisher
           final Group<?> group = groupManager.getGroupInstance(groupDN);
           try
           {
-            if ((group != null) && group.isMember(userEntry))
+            if (group != null && group.isMember(userEntry))
             {
               return true;
             }

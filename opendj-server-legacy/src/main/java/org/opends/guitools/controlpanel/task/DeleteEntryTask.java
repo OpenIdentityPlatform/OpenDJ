@@ -295,7 +295,7 @@ public class DeleteEntryTask extends Task
         controller.getTree().setSelectionPath(pathToSelect);
       }
       else if (!selectedPath.equals(pathToSelect) &&
-          (pathToSelect.getPathCount() < selectedPath.getPathCount()))
+          pathToSelect.getPathCount() < selectedPath.getPathCount())
       {
         controller.getTree().setSelectionPath(pathToSelect);
       }
@@ -309,9 +309,9 @@ public class DeleteEntryTask extends Task
     lastDn = dnToRemove;
 
     long t = System.currentTimeMillis();
+    boolean canDelete = nToDelete > 0 && nToDelete > nDeleted;
     boolean displayProgress =
-      (((nDeleted % 20) == 0) || ((t - lastProgressTime) > 5000))  &&
-      (nToDelete > 0) && (nToDelete > nDeleted);
+      canDelete && ((nDeleted % 20) == 0 || t - lastProgressTime > 5000);
 
     if (displayProgress)
     {

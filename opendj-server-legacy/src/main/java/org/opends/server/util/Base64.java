@@ -197,7 +197,7 @@ public final class Base64
 
     // The encoded value must have  length that is a multiple of four bytes.
     int length = encodedData.length();
-    if ((length % 4) != 0)
+    if (length % 4 != 0)
     {
       LocalizableMessage message = ERR_BASE64_DECODE_INVALID_LENGTH.get(encodedData);
       throw new ParseException(message.toString(), 0);

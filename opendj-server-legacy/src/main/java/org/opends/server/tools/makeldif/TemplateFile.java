@@ -563,7 +563,7 @@ public class TemplateFile
   {
     templatePath = null;
     File f = getFile(filename);
-    if ((f == null) || (! f.exists()))
+    if (f == null || !f.exists())
     {
       LocalizableMessage message = ERR_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE.get(filename);
       throw new IOException(message.toString());
@@ -650,7 +650,7 @@ public class TemplateFile
                               templateFileConstants, warnings);
 
       String lowerLine = toLowerCase(line);
-      if ((line.length() == 0) || line.startsWith("#"))
+      if (line.length() == 0 || line.startsWith("#"))
       {
         // This is a comment or a blank line, so we'll ignore it.
         continue;
@@ -866,8 +866,8 @@ public class TemplateFile
         StringBuilder lineBuffer = new StringBuilder(line);
         int openPos = line.lastIndexOf('[', closePos);
         // Find the opening bracket. If it's escaped, then it's not a constant
-        if ((openPos > 0 && line.charAt(openPos - 1) != '\\') ||
-            (openPos == 0))
+        if ((openPos > 0 && line.charAt(openPos - 1) != '\\')
+            || openPos == 0)
         {
           String constantName =
               toLowerCase(line.substring(openPos+1, closePos));
@@ -1273,7 +1273,7 @@ public class TemplateFile
       }
     }
     //  Then, find the position of the first non-blank character in the line.
-    while ((pos < length) && (lowerLine.charAt(pos) == ' '))
+    while (pos < length && lowerLine.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -1673,7 +1673,7 @@ public class TemplateFile
     for (Branch b : branches.values())
     {
       TagResult result = b.writeEntries(entryWriter);
-      if (! (result.keepProcessingTemplateFile()))
+      if (!result.keepProcessingTemplateFile())
       {
         return result;
       }

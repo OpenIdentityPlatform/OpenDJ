@@ -1417,8 +1417,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             for(; i > 0; i--)
             {
               wrappedListener = delayListener.getDelayedAddListener();
-              if(wrappedListener != null &&
-                  wrappedListener instanceof DelayedConfigAddListener)
+              if(wrappedListener instanceof DelayedConfigAddListener)
               {
                 delayListener = (DelayedConfigAddListener) l;
               }
@@ -1438,8 +1437,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             ConfigAddListener delayedListener =
                 delayListener.getDelayedAddListener();
 
-            if (delayedListener != null &&
-                 delayedListener instanceof ConfigAddListenerAdaptor) {
+            if (delayedListener instanceof ConfigAddListenerAdaptor) {
               ConfigAddListenerAdaptor<?> adaptor =
                   (ConfigAddListenerAdaptor<?>) delayedListener;
               ServerManagedObjectAddListener<?> l2 = adaptor
@@ -1486,8 +1484,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             for(; i > 0; i--)
             {
               wrappedListener = delayListener.getDelayedAddListener();
-              if(wrappedListener != null &&
-                  wrappedListener instanceof DelayedConfigAddListener)
+              if(wrappedListener instanceof DelayedConfigAddListener)
               {
                 delayListener = (DelayedConfigAddListener) l;
               }
@@ -1507,8 +1504,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             ConfigDeleteListener delayedListener =
                 delayListener.getDelayedDeleteListener();
 
-            if (delayedListener != null &&
-                delayedListener instanceof ConfigDeleteListenerAdaptor) {
+            if (delayedListener instanceof ConfigDeleteListenerAdaptor) {
               ConfigDeleteListenerAdaptor<?> adaptor =
                   (ConfigDeleteListenerAdaptor<?>) delayedListener;
               ServerManagedObjectDeleteListener<?> l2 = adaptor
@@ -1553,8 +1549,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             for(; i > 0; i--)
             {
               wrappedListener = delayListener.getDelayedAddListener();
-              if(wrappedListener != null &&
-                  wrappedListener instanceof DelayedConfigAddListener)
+              if(wrappedListener instanceof DelayedConfigAddListener)
               {
                 delayListener = (DelayedConfigAddListener) l;
               }
@@ -1574,8 +1569,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             ConfigAddListener delayedListener =
                 delayListener.getDelayedAddListener();
 
-            if (delayedListener != null &&
-                 delayedListener instanceof ConfigAddListenerAdaptor) {
+            if (delayedListener instanceof ConfigAddListenerAdaptor) {
               ConfigAddListenerAdaptor<?> adaptor =
                   (ConfigAddListenerAdaptor<?>) delayedListener;
               if (adaptor.getServerManagedObjectAddListener() == listener) {
@@ -1616,8 +1610,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             for(; i > 0; i--)
             {
               wrappedListener = delayListener.getDelayedAddListener();
-              if(wrappedListener != null &&
-                  wrappedListener instanceof DelayedConfigAddListener)
+              if(wrappedListener instanceof DelayedConfigAddListener)
               {
                 delayListener = (DelayedConfigAddListener) l;
               }
@@ -1637,8 +1630,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             ConfigDeleteListener delayedListener =
                 delayListener.getDelayedDeleteListener();
 
-            if (delayedListener != null &&
-                 delayedListener instanceof ConfigDeleteListenerAdaptor) {
+            if (delayedListener instanceof ConfigDeleteListenerAdaptor) {
               ConfigDeleteListenerAdaptor<?> adaptor =
                   (ConfigDeleteListenerAdaptor<?>) delayedListener;
               if (adaptor.getServerManagedObjectDeleteListener() == listener) {

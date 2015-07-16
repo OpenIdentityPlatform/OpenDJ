@@ -221,7 +221,7 @@ implements BackupCreatedListener
       public void valueChanged(ListSelectionEvent ev)
       {
         BackupDescriptor backup = getSelectedBackup();
-        setEnabledOK((backup != null) && !errorPane.isVisible());
+        setEnabledOK(backup != null && !errorPane.isVisible());
       }
     };
     backupList.getSelectionModel().addListSelectionListener(listener);
@@ -248,7 +248,7 @@ implements BackupCreatedListener
 
     if (isLocal())
     {
-      boolean selected = backupList.isVisible() && (backup != null);
+      boolean selected = backupList.isVisible() && backup != null;
       if (!selected)
       {
         if (backupList.getRowCount() == 0)
@@ -266,14 +266,14 @@ implements BackupCreatedListener
     else
     {
       String parentPath = parentDirectory.getText();
-      if ((parentPath == null) || (parentPath.trim().equals("")))
+      if (parentPath == null || parentPath.trim().equals(""))
       {
         errors.add(ERR_CTRL_PANEL_NO_BACKUP_PATH_PROVIDED.get());
         setPrimaryInvalid(lPath);
       }
 
       String id = backupID.getText();
-      if ((id == null) || (id.trim().equals("")))
+      if (id == null || id.trim().equals(""))
       {
         errors.add(ERR_CTRL_PANEL_NO_BACKUP_ID_PROVIDED.get());
         setPrimaryInvalid(lBackupID);
@@ -299,7 +299,7 @@ implements BackupCreatedListener
             INFO_CTRL_PANEL_CONFIRM_RESTORE_DETAILS.get());
       }
 
-      if ((errors.isEmpty()) && confirmed)
+      if (errors.isEmpty() && confirmed)
       {
         launchOperation(newTask,
             INFO_CTRL_PANEL_RESTORING_SUMMARY.get(backup.getID()),

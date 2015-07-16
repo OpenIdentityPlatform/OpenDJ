@@ -507,22 +507,20 @@ public final class IntegerWithUnitConfigAttribute
   public void setValue(long intValue, String unit)
          throws ConfigException
   {
-    if ((unit == null) || (! units.containsKey(unit)))
+    if (unit == null || !units.containsKey(unit))
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName()));
     }
 
 
     long calculatedValue = (long) (intValue * units.get(unit));
-    if (hasLowerBound && (calculatedValue < lowerBound))
+    if (hasLowerBound && calculatedValue < lowerBound)
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
           getName(), calculatedValue, lowerBound);
       throw new ConfigException(message);
     }
-
-    if (hasUpperBound && (calculatedValue > upperBound))
+    if (hasUpperBound && calculatedValue > upperBound)
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
           getName(), calculatedValue, upperBound);
@@ -692,29 +690,24 @@ public final class IntegerWithUnitConfigAttribute
     // The rest of the value should be the unit.  See if it is in the set of
     // available units.
     String unit = lowerValue.substring(spacePos+1);
-    double multiplier;
-    if (! units.containsKey(unit))
+    if (!units.containsKey(unit))
     {
       rejectReason.append(ERR_CONFIG_ATTR_INVALID_UNIT.get(unit, getName()));
       return false;
-    }
-    else
-    {
-      multiplier = units.get(unit);
     }
 
 
     // Multiply the int value by the unit multiplier and see if that is within
     // the specified bounds.
+    double multiplier = units.get(unit);
     long calculatedValue = (long) (longValue * multiplier);
-    if (hasLowerBound && (calculatedValue < lowerBound))
+    if (hasLowerBound && calculatedValue < lowerBound)
     {
       rejectReason.append(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
               getName(), calculatedValue, lowerBound));
       return false;
     }
-
-    if (hasUpperBound && (calculatedValue > upperBound))
+    if (hasUpperBound && calculatedValue > upperBound)
     {
       rejectReason.append(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
               getName(), calculatedValue, upperBound));
@@ -752,7 +745,7 @@ public final class IntegerWithUnitConfigAttribute
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       if (isRequired())
       {
@@ -763,7 +756,7 @@ public final class IntegerWithUnitConfigAttribute
 
 
     int numValues = valueStrings.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
       throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
@@ -792,7 +785,7 @@ public final class IntegerWithUnitConfigAttribute
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
     // attribute and if so deal with it accordingly.
-    if ((isRequired()) && valueSet.isEmpty())
+    if (isRequired() && valueSet.isEmpty())
     {
       throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
     }
@@ -1048,8 +1041,7 @@ public final class IntegerWithUnitConfigAttribute
     String activeValue = activeIntValue + " " + activeUnit;
     attributeList.add(new javax.management.Attribute(getName(), activeValue));
 
-    if (requiresAdminAction() &&
-        (pendingCalculatedValue != activeCalculatedValue))
+    if (requiresAdminAction() && pendingCalculatedValue != activeCalculatedValue)
     {
       String name         = getName() + ";" + OPTION_PENDING_VALUES;
       String pendingValue = pendingIntValue + " " + pendingUnit;

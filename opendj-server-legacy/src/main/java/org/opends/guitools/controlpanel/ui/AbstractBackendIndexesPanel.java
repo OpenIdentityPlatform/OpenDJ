@@ -208,7 +208,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
       public void mouseReleased(MouseEvent ev)
       {
         int selectedRow = table.getSelectedRow();
-        if ((selectedRow != -1) && (lastRowMouseOver == selectedRow))
+        if (selectedRow != -1 && lastRowMouseOver == selectedRow)
         {
           AbstractIndexDescriptor index = tableModel.getIndexAt(selectedRow);
           final IndexSelectionEvent ise = new IndexSelectionEvent(table, index);

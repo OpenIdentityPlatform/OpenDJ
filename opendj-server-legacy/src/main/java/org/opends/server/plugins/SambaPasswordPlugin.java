@@ -209,7 +209,7 @@ public final class SambaPasswordPlugin extends
       //
       // fill the current word
       //
-      while ((xBufOff != 0) && (len > 0))
+      while (xBufOff != 0 && len > 0)
       {
         update(in[inOff]);
 
@@ -255,7 +255,7 @@ public final class SambaPasswordPlugin extends
 
     private void finish()
     {
-      final long bitLength = (byteCount << 3);
+      final long bitLength = byteCount << 3;
 
       //
       // add the pad bytes.
@@ -400,7 +400,7 @@ public final class SambaPasswordPlugin extends
      */
     private int rotateLeft(final int x, final int n)
     {
-      return (x << n) | (x >>> (32 - n));
+      return (x << n) | (x >>> 32 - n);
     }
 
 
@@ -478,17 +478,17 @@ public final class SambaPasswordPlugin extends
     }
 
     key8[0] = key7[0];
-    key8[1] = ((key7[0] << 7) & 0xFF | (key7[1] >> 1));
-    key8[2] = ((key7[1] << 6) & 0xFF | (key7[2] >> 2));
-    key8[3] = ((key7[2] << 5) & 0xFF | (key7[3] >> 3));
-    key8[4] = ((key7[3] << 4) & 0xFF | (key7[4] >> 4));
-    key8[5] = ((key7[4] << 3) & 0xFF | (key7[5] >> 5));
-    key8[6] = ((key7[5] << 2) & 0xFF | (key7[6] >> 6));
-    key8[7] = (key7[6] << 1);
+    key8[1] = ((key7[0] << 7) & 0xFF) | (key7[1] >> 1);
+    key8[2] = ((key7[1] << 6) & 0xFF) | (key7[2] >> 2);
+    key8[3] = ((key7[2] << 5) & 0xFF) | (key7[3] >> 3);
+    key8[4] = ((key7[3] << 4) & 0xFF) | (key7[4] >> 4);
+    key8[5] = ((key7[4] << 3) & 0xFF) | (key7[5] >> 5);
+    key8[6] = ((key7[5] << 2) & 0xFF) | (key7[6] >> 6);
+    key8[7] = key7[6] << 1;
 
     for (int i = 0; i < 8; i++)
     {
-      key64[i] = (byte) (setOddParity(key8[i]));
+      key64[i] = (byte) setOddParity(key8[i]);
     }
 
     return key64;
@@ -600,10 +600,10 @@ public final class SambaPasswordPlugin extends
    */
   private static int setOddParity(final int parity)
   {
-    final boolean hasEvenBits = ((parity >>> 7) ^ (parity >>> 6)
-                               ^ (parity >>> 5) ^ (parity >>> 4)
-                               ^ (parity >>> 3) ^ (parity >>> 2)
-                               ^ (parity >>> 1) & 0x01) == 0;
+    final boolean hasEvenBits = (parity >>> 7 ^ parity >>> 6
+                               ^ parity >>> 5 ^ parity >>> 4
+                               ^ parity >>> 3 ^ parity >>> 2
+                               ^ ((parity >>> 1) & 0x01)) == 0;
     if (hasEvenBits)
     {
       return parity | 0x01;

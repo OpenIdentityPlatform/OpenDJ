@@ -579,7 +579,7 @@ public class LDAPFilter
           {
             // The next two bytes must be the hex characters that comprise the
             // binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
@@ -778,8 +778,8 @@ public class LDAPFilter
 
     // The first and last characters must be parentheses.  If not, then that's
     // an error.
-    if ((filterString.charAt(startPos) != '(') ||
-        (filterString.charAt(endPos-1) != ')'))
+    if (filterString.charAt(startPos) != '(' ||
+        filterString.charAt(endPos-1) != ')')
     {
       LocalizableMessage message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES.get(
           filterString, startPos, endPos);
@@ -933,7 +933,7 @@ public class LDAPFilter
           {
             // The next two bytes must be the hex characters that comprise the
             // binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
@@ -1095,7 +1095,7 @@ public class LDAPFilter
           {
             // The next two bytes must be the hex characters that comprise the
             // binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
@@ -1266,7 +1266,7 @@ public class LDAPFilter
           {
             // The next two bytes must be the hex characters that comprise the
             // binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                   filterString, equalPos+i+1);
@@ -1461,7 +1461,7 @@ public class LDAPFilter
       {
         dnAttributes = true;
 
-        if((startPos+4) < (equalPos-1))
+        if(startPos+4 < equalPos-1)
         {
           matchingRuleID = filterString.substring(startPos+4, equalPos-1);
         }
@@ -1487,13 +1487,13 @@ public class LDAPFilter
 
       // If there is anything left, then it should be ":dn" and/or ":" followed
       // by the matching rule ID.
-      if (colonPos < (equalPos-1))
+      if (colonPos < equalPos-1)
       {
         if (lowerLeftStr.startsWith(":dn:", colonPos - startPos))
         {
           dnAttributes = true;
 
-          if ((colonPos+4) < (equalPos-1))
+          if (colonPos+4 < equalPos-1)
           {
             matchingRuleID = filterString.substring(colonPos+4, equalPos-1);
           }
@@ -1528,7 +1528,7 @@ public class LDAPFilter
         {
           // The next two bytes must be the hex characters that comprise the
           // binary value.
-          if ((i + 2) >= valueBytes.length)
+          if (i + 2 >= valueBytes.length)
           {
             LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                 filterString, equalPos+i+1);
@@ -1676,7 +1676,7 @@ public class LDAPFilter
 
     // Make sure that the filter has at least one of an attribute description
     // and/or a matching rule ID.
-    if ((attributeType == null) && (matchingRuleID == null))
+    if (attributeType == null && matchingRuleID == null)
     {
       LocalizableMessage message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(
           filterString, startPos);
@@ -2002,7 +2002,7 @@ public class LDAPFilter
           valueToFilterString(buffer, subInitialElement);
         }
 
-        if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
+        if (subAnyElements != null && !subAnyElements.isEmpty())
         {
           for (ByteString s : subAnyElements)
           {

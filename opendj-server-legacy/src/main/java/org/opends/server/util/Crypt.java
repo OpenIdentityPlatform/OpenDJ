@@ -500,6 +500,6 @@ public final class Crypt
     {
       _c._iobuf[1] = _c._iobuf[0];
     }
-    return (_c._iobuf);
+    return _c._iobuf;
   }
 }

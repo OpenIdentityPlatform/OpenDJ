@@ -338,7 +338,7 @@ public class RestoreTask extends Task
         finally
         {
           // Release the exclusive lock on the backend.
-          if ( (!verifyOnly) && !unlockBackend(backend))
+          if (!verifyOnly && !unlockBackend(backend))
           {
             errorsEncountered = true;
           }

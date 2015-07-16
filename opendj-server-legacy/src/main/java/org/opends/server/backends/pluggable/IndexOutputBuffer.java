@@ -467,7 +467,7 @@ final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     for (int i = 0; i < INT_SIZE; i++) {
       byte b = buffer[index + i];
       answer <<= 8;
-      answer |= (b & 0xff);
+      answer |= b & 0xff;
     }
     return answer;
   }

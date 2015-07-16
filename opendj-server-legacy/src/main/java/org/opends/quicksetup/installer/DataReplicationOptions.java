@@ -22,10 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
-
 package org.opends.quicksetup.installer;
 
 import org.opends.quicksetup.Constants;
@@ -34,14 +32,12 @@ import org.opends.quicksetup.util.Utils;
 /**
  * This class is used to provide a data model for the Data Replication
  * Options panel of the installer.
- *
  */
 public class DataReplicationOptions
 {
   /**
    * This enumeration is used to know what the user wants to do for the data
    * (import data or not, what use as source of the data...).
-   *
    */
   public enum Type
   {
@@ -179,7 +175,7 @@ public class DataReplicationOptions
   {
     int defaultPort = -1;
 
-    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    for (int i=0;i<10000 && defaultPort == -1;i+=1000)
     {
       int port = i + Constants.DEFAULT_REPLICATION_PORT;
       if (Utils.canUseAsPort(port))

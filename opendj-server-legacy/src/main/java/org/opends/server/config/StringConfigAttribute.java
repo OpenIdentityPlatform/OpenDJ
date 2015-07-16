@@ -256,7 +256,7 @@ public final class StringConfigAttribute
   public String activeValue()
          throws org.forgerock.opendj.config.server.ConfigException
   {
-    if ((activeValues == null) || activeValues.isEmpty())
+    if (activeValues == null || activeValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new org.forgerock.opendj.config.server.ConfigException(message);
@@ -303,7 +303,7 @@ public final class StringConfigAttribute
       return activeValue();
     }
 
-    if ((pendingValues == null) || pendingValues.isEmpty())
+    if (pendingValues == null || pendingValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
       throw new org.forgerock.opendj.config.server.ConfigException(message);
@@ -403,7 +403,7 @@ public final class StringConfigAttribute
 
     // Next check if the set contains multiple values and if that is allowed.
     int numValues = values.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
       throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
@@ -414,7 +414,7 @@ public final class StringConfigAttribute
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(numValues);
     for (String value : values)
     {
-      if ((value == null) || (value.length() == 0))
+      if (value == null || value.length() == 0)
       {
         throw new ConfigException(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       }
@@ -521,7 +521,7 @@ public final class StringConfigAttribute
     }
 
     int numValues = valueStrings.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
       throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
@@ -651,7 +651,7 @@ public final class StringConfigAttribute
           else
           {
             int numValues = a.size();
-            if ((numValues > 1) && (! isMultiValued()))
+            if (numValues > 1 && !isMultiValued())
             {
               // This is illegal -- the attribute is single-valued.
               LocalizableMessage message =
@@ -696,7 +696,7 @@ public final class StringConfigAttribute
         else
         {
           int numValues = a.size();
-          if ((numValues > 1) && (! isMultiValued()))
+          if (numValues > 1 && !isMultiValued())
           {
             // This is illegal -- the attribute is single-valued.
             LocalizableMessage message =
@@ -843,8 +843,7 @@ public final class StringConfigAttribute
     }
 
 
-    if (requiresAdminAction() && (pendingValues != null) &&
-        (pendingValues != activeValues))
+    if (requiresAdminAction() && pendingValues != null && pendingValues != activeValues)
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
 
@@ -857,8 +856,7 @@ public final class StringConfigAttribute
       }
       else if (! pendingValues.isEmpty())
       {
-        attributeList.add(new javax.management.Attribute(name,
-                                                         pendingValues.get(0)));
+        attributeList.add(new javax.management.Attribute(name, pendingValues.get(0)));
       }
     }
   }

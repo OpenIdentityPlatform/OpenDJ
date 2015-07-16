@@ -222,7 +222,7 @@ public final class PasswordPolicyFactory implements
       else
       {
         String syntax = passwordAttribute.getSyntax().getName();
-        if ((syntax == null) || (syntax.length() == 0))
+        if (syntax == null || syntax.length() == 0)
         {
           syntax = syntaxOID;
         }
@@ -239,7 +239,7 @@ public final class PasswordPolicyFactory implements
         PasswordStorageScheme<?> scheme = DirectoryServer
             .getPasswordStorageScheme(schemeDN);
 
-        if (authPasswordSyntax && (!scheme.supportsAuthPasswordSyntax()))
+        if (authPasswordSyntax && !scheme.supportsAuthPasswordSyntax())
         {
           throw new ConfigException(ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
               schemeDN, passwordAttribute.getNameOrOID()));
@@ -300,8 +300,8 @@ public final class PasswordPolicyFactory implements
 
       // If the expire without warning option is disabled, then there must be a
       // warning interval.
-      if ((!configuration.isExpirePasswordsWithoutWarning())
-          && (configuration.getPasswordExpirationWarningInterval() <= 0))
+      if (!configuration.isExpirePasswordsWithoutWarning()
+          && configuration.getPasswordExpirationWarningInterval() <= 0)
       {
         LocalizableMessage message =
           ERR_PWPOLICY_MUST_HAVE_WARNING_IF_NOT_EXPIRE_WITHOUT_WARNING.get(configEntryDN);
@@ -380,8 +380,7 @@ public final class PasswordPolicyFactory implements
             configuration.getPasswordExpirationWarningInterval());
         if (configuration.getMinPasswordAge() > 0)
         {
-          if ((warnInterval + configuration.getMinPasswordAge()) >=configuration
-              .getMaxPasswordAge())
+          if (warnInterval + configuration.getMinPasswordAge() >= configuration.getMaxPasswordAge())
           {
             LocalizableMessage message =
               ERR_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE.get(configEntryDN);
@@ -530,7 +529,7 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
 
       buffer.append("Default Password Storage Schemes:      ");
-      if ((defaultStorageSchemes == null) || defaultStorageSchemes.isEmpty())
+      if (defaultStorageSchemes == null || defaultStorageSchemes.isEmpty())
       {
         buffer.append("{none specified}");
         buffer.append(EOL);
@@ -551,8 +550,7 @@ public final class PasswordPolicyFactory implements
       }
 
       buffer.append("Deprecated Password Storage Schemes:   ");
-      if ((deprecatedStorageSchemes == null)
-          || deprecatedStorageSchemes.isEmpty())
+      if (deprecatedStorageSchemes == null || deprecatedStorageSchemes.isEmpty())
       {
         buffer.append("{none specified}");
         buffer.append(EOL);
@@ -609,7 +607,7 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
 
       buffer.append("Password Validators:                   ");
-      if ((passwordValidators == null) || passwordValidators.isEmpty())
+      if (passwordValidators == null || passwordValidators.isEmpty())
       {
         buffer.append("{none specified}");
         buffer.append(EOL);
@@ -644,7 +642,7 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
 
       buffer.append("Account Status Notification Handlers:  ");
-      if ((notificationHandlers == null) || notificationHandlers.isEmpty())
+      if (notificationHandlers == null || notificationHandlers.isEmpty())
       {
         buffer.append("{none specified}");
         buffer.append(EOL);
@@ -746,7 +744,7 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
 
       buffer.append("Previous Last Login Time Formats:      ");
-      if ((configuration.getPreviousLastLoginTimeFormat().isEmpty()))
+      if (configuration.getPreviousLastLoginTimeFormat().isEmpty())
       {
         buffer.append("{none specified}");
         buffer.append(EOL);

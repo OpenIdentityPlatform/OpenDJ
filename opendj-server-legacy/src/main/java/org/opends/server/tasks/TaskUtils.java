@@ -312,7 +312,7 @@ public class TaskUtils
   public static boolean getBoolean(List<Attribute> attrList,
                                    boolean defaultValue)
   {
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       return defaultValue;
     }

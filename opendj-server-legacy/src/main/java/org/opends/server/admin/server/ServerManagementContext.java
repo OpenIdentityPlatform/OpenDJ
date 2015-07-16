@@ -699,7 +699,7 @@ public final class ServerManagementContext {
     // Get the configuration entry.
     DN targetDN = DNBuilder.create(path);
     try {
-      return (getManagedObjectConfigEntry(targetDN) != null);
+      return getManagedObjectConfigEntry(targetDN) != null;
     } catch (ConfigException e) {
       // Assume it doesn't exist.
       return false;

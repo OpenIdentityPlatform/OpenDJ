@@ -305,7 +305,7 @@ public class EntryCacheCommon
     Set<SearchFilter> searchFilters = new HashSet<>();
 
     // Convert the string filters to search filters.
-    if ((filters != null) && (! filters.isEmpty()))
+    if (filters != null && ! filters.isEmpty())
     {
       for (String curFilter: filters)
       {
@@ -317,8 +317,8 @@ public class EntryCacheCommon
         {
           // We couldn't decode this filter. Report an error and continue.
           LocalizableMessage message = decodeErrorMsg.get(String.valueOf(configEntryDN),
-            curFilter, (de.getMessage() != null ? de.getMessage() :
-              stackTraceToSingleLineString(de)));
+            curFilter, de.getMessage() != null ? de.getMessage() :
+              stackTraceToSingleLineString(de));
           errorHandler.reportError(message, false,
             ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         }

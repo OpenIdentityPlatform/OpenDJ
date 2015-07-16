@@ -156,14 +156,14 @@ public class FilteredStaticGroupMemberList extends MemberList
             break;
 
           case SUBORDINATES:
-            if (baseDN.equals(nextDN) || (! baseDN.isAncestorOf(nextDN)))
+            if (baseDN.equals(nextDN) || !baseDN.isAncestorOf(nextDN))
             {
               continue;
             }
             break;
 
           default:
-            if (! baseDN.isAncestorOf(nextDN))
+            if (!baseDN.isAncestorOf(nextDN))
             {
               continue;
             }

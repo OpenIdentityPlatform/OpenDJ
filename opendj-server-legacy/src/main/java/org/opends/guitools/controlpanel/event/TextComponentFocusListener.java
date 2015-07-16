@@ -53,7 +53,7 @@ public class TextComponentFocusListener implements FocusListener
   /** {@inheritDoc} */
   public void focusGained(FocusEvent e)
   {
-    if ((tf.getText() == null) || "".equals(tf.getText()))
+    if (tf.getText() == null || "".equals(tf.getText()))
     {
       tf.setText(" ");
       tf.selectAll();

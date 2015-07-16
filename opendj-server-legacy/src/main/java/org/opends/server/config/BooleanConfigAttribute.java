@@ -303,7 +303,7 @@ public final class BooleanConfigAttribute
   public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings,
       boolean allowFailures) throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
@@ -563,7 +563,7 @@ public final class BooleanConfigAttribute
   {
     attributeList.add(new javax.management.Attribute(getName(), activeValue));
 
-    if (requiresAdminAction() && (pendingValue != activeValue))
+    if (requiresAdminAction() && pendingValue != activeValue)
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
       attributeList.add(new javax.management.Attribute(name, pendingValue));

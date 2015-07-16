@@ -1754,7 +1754,7 @@ public class Entry
     else
     {
       ditContentRule = DirectoryServer.getDITContentRule(structuralClass);
-      if ((ditContentRule != null) && ditContentRule.isObsolete())
+      if (ditContentRule != null && ditContentRule.isObsolete())
       {
         ditContentRule = null;
       }
@@ -1809,10 +1809,10 @@ public class Entry
         }
 
 
-        if (validateStructureRules && (nameForm != null))
+        if (validateStructureRules && nameForm != null)
         {
           ditStructureRule = DirectoryServer.getDITStructureRule(nameForm);
-          if ((ditStructureRule != null) && ditStructureRule.isObsolete())
+          if (ditStructureRule != null && ditStructureRule.isObsolete())
           {
             ditStructureRule = null;
           }
@@ -1868,9 +1868,8 @@ public class Entry
         return false;
       }
 
-      if ((o.getObjectClassType() == ObjectClassType.AUXILIARY) &&
-          (ditContentRule != null) &&
-          (! ditContentRule.getAuxiliaryClasses().contains(o)))
+      if (o.getObjectClassType() == ObjectClassType.AUXILIARY
+          && ditContentRule != null && !ditContentRule.getAuxiliaryClasses().contains(o))
       {
         LocalizableMessage message =
                 ERR_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS.get(
@@ -1945,7 +1944,7 @@ public class Entry
             invalidReason.append(ERR_ENTRY_SCHEMA_ATTR_NO_VALUES.get(dn, t.getNameOrOID()));
             return false;
           }
-          else if (t.isSingleValue() && (a.size() != 1))
+          else if (t.isSingleValue() && a.size() != 1)
           {
             invalidReason.append(ERR_ENTRY_SCHEMA_ATTR_SINGLE_VALUED.get(dn, t.getNameOrOID()));
             return false;

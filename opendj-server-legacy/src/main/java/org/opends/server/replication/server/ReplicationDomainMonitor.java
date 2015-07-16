@@ -147,8 +147,7 @@ class ReplicationDomainMonitor
     // Only allow monitor recalculation at a time.
     synchronized (pendingMonitorLock)
     {
-      if ((monitorDataLastBuildDate + monitorDataLifeTime) < TimeThread
-          .getTime())
+      if (monitorDataLastBuildDate + monitorDataLifeTime < TimeThread.getTime())
       {
         try
         {

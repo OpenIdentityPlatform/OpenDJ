@@ -150,12 +150,12 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
       comp.setBackground(ColorAndFontConstants.treeBackground);
       comp.setForeground(ColorAndFontConstants.treeForeground);
     }
-    else if (isBeingPressed && hasMouseOver && (row == lastRowMouseOver))
+    else if (isBeingPressed && hasMouseOver && row == lastRowMouseOver)
     {
       comp.setBackground(pressedBackground);
       comp.setForeground(pressedForeground);
     }
-    else if ((hasMouseOver && (row == lastRowMouseOver)) || isSelected)
+    else if ((hasMouseOver && row == lastRowMouseOver) || isSelected)
     {
       comp.setBackground(mouseOverBackground);
       comp.setForeground(mouseOverForeground);

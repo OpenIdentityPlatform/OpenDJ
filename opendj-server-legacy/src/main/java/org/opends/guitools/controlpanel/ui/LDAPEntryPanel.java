@@ -419,7 +419,7 @@ implements EntryReadListener
       {
         boolean isReadOnly = true;
         boolean canDelete = false;
-        if ((searchResult != null) && desc.isAuthenticated())
+        if (searchResult != null && desc.isAuthenticated())
         {
           isReadOnly = isReadOnly(searchResult.getDN());
           canDelete = canDelete(searchResult.getDN());
@@ -711,7 +711,7 @@ implements EntryReadListener
    */
   public boolean mustCheckUnsavedChanges()
   {
-    return (displayedEntryPanel != null) &&
+    return displayedEntryPanel != null &&
         saveChanges.isVisible() && saveChanges.isEnabled();
   }
 
@@ -735,7 +735,7 @@ implements EntryReadListener
     if (result == UnsavedChangesDialog.Result.SAVE)
     {
       saveChanges(false);
-      if ((newTask == null) || // The user data is not valid
+      if (newTask == null || // The user data is not valid
           newTask.getState() != Task.State.FINISHED_SUCCESSFULLY)
       {
         result = UnsavedChangesDialog.Result.CANCEL;

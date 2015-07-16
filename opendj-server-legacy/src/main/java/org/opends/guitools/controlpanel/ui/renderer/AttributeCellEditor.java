@@ -247,7 +247,7 @@ implements TableCellEditor
           value, isSelected, row, column));
       return ocPanel;
     }
-    else if ((value instanceof byte[]) || (value instanceof BinaryValue))
+    else if (value instanceof byte[] || value instanceof BinaryValue)
     {
       attrName = getAttributeName(table, row);
       boolean isImage = Utilities.hasImageSyntax(attrName,

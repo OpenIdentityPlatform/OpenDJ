@@ -132,7 +132,7 @@ public class DITStructureRuleSyntax
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -153,13 +153,13 @@ public class DITStructureRuleSyntax
     if (c != '(')
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
-          valueStr, (pos-1), c);
+          valueStr, pos-1, c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -176,12 +176,12 @@ public class DITStructureRuleSyntax
 
     // The next set of characters must be the rule ID, which is an integer.
     int ruleIDStartPos = pos;
-    while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+    while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
     {
       if (! isDigit(c))
       {
         LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(
-            valueStr, c, (pos-1));
+            valueStr, c, pos-1);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                      message);
       }
@@ -203,7 +203,7 @@ public class DITStructureRuleSyntax
 
 
     // Skip over the space(s) after the rule ID.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -246,7 +246,7 @@ public class DITStructureRuleSyntax
         if (pos < length)
         {
           LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNEXPECTED_CLOSE_PARENTHESIS.
-              get(valueStr, (pos-1));
+              get(valueStr, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -263,8 +263,7 @@ public class DITStructureRuleSyntax
         {
           StringBuilder userBuffer  = new StringBuilder();
           StringBuilder lowerBuffer = new StringBuilder();
-          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
-                                 (pos-1));
+          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer, pos-1);
           names.put(lowerBuffer.toString(), userBuffer.toString());
         }
         else if (c == '(')
@@ -282,7 +281,7 @@ public class DITStructureRuleSyntax
             {
               // Skip over any spaces after the parenthesis.
               pos++;
-              while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+              while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
               {
                 pos++;
               }
@@ -304,9 +303,8 @@ public class DITStructureRuleSyntax
         {
           // This is an illegal character.
           LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR.get(valueStr, c, pos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
       else if (lowerTokenName.equals("desc"))
@@ -331,7 +329,7 @@ public class DITStructureRuleSyntax
 
         nameFormGiven = true;
         nameForm = schema.getNameForm(woidBuffer.toString());
-        if ((nameForm == null) && (! allowUnknownElements))
+        if (nameForm == null && ! allowUnknownElements)
         {
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(valueStr, woidBuffer));
@@ -350,7 +348,7 @@ public class DITStructureRuleSyntax
           while (true)
           {
             // Skip over any leading spaces.
-            while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+            while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
             {
               pos++;
             }
@@ -365,12 +363,12 @@ public class DITStructureRuleSyntax
 
             // Read the next integer value.
             ruleIDStartPos = pos;
-            while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+            while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
             {
               if (! isDigit(c))
               {
                 LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.
-                    get(valueStr, c, (pos-1));
+                    get(valueStr, c, pos-1);
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
@@ -413,7 +411,7 @@ public class DITStructureRuleSyntax
 
 
             // Skip over any trailing spaces.
-            while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+            while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
             {
               pos++;
             }
@@ -432,7 +430,7 @@ public class DITStructureRuleSyntax
             if (c == ')')
             {
               pos++;
-              while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+              while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
               {
                 pos++;
               }
@@ -460,11 +458,11 @@ public class DITStructureRuleSyntax
 
           // Read the next integer value.
           ruleIDStartPos = pos - 1;
-          while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+          while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
           {
             if (! isDigit(c))
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(valueStr, c, (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_RULE_ID.get(valueStr, c, pos-1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -505,7 +503,7 @@ public class DITStructureRuleSyntax
 
 
           // Skip over any trailing spaces.
-          while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+          while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
           {
             pos++;
           }
@@ -533,7 +531,7 @@ public class DITStructureRuleSyntax
     }
 
 
-    if ((nameForm == null) && (! nameFormGiven))
+    if (nameForm == null && !nameFormGiven)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(valueStr);
       throw new DirectoryException(
@@ -569,7 +567,7 @@ public class DITStructureRuleSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -583,14 +581,14 @@ public class DITStructureRuleSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos++)) != ' '))
     {
       tokenName.append(c);
     }
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -625,7 +623,7 @@ public class DITStructureRuleSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -650,7 +648,7 @@ public class DITStructureRuleSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
     {
       valueBuffer.append(c);
       startPos++;
@@ -659,7 +657,7 @@ public class DITStructureRuleSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -708,7 +706,7 @@ public class DITStructureRuleSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -733,7 +731,7 @@ public class DITStructureRuleSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) != '\''))
     {
       lowerBuffer.append(c);
       userBuffer.append(valueStr.charAt(startPos));
@@ -743,7 +741,7 @@ public class DITStructureRuleSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -785,7 +783,7 @@ public class DITStructureRuleSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -805,14 +803,14 @@ public class DITStructureRuleSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (c == '.')
         {
           if (lastWasPeriod)
           {
             LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                get(lowerStr, (startPos-1));
+                get(lowerStr, startPos-1);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -832,11 +830,11 @@ public class DITStructureRuleSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(lowerStr, c, (startPos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_NUMERIC_OID.get(lowerStr, c, startPos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
@@ -851,10 +849,10 @@ public class DITStructureRuleSyntax
       // This must be an attribute type/objectclass description.  In this case,
       // we will only accept alphabetic characters, numeric digits, and the
       // hyphen.
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           woidBuffer.append(c);
         }
@@ -868,11 +866,11 @@ public class DITStructureRuleSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID.get(lowerStr, c, (startPos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_CHAR_IN_STRING_OID.get(lowerStr, c, startPos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
@@ -885,7 +883,7 @@ public class DITStructureRuleSyntax
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -927,7 +925,7 @@ public class DITStructureRuleSyntax
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = '\u0000';
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -950,7 +948,7 @@ public class DITStructureRuleSyntax
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
       startPos++;
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
       {
         valueBuffer.append(c);
         startPos++;
@@ -965,7 +963,7 @@ public class DITStructureRuleSyntax
       while (true)
       {
         // Skip over any leading spaces;
-        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
         }
@@ -995,8 +993,7 @@ public class DITStructureRuleSyntax
           // We have a quoted string
           StringBuilder valueBuffer = new StringBuilder();
           startPos++;
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != '\''))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
           {
             valueBuffer.append(c);
             startPos++;
@@ -1009,8 +1006,7 @@ public class DITStructureRuleSyntax
         {
           //Consider unquoted string
           StringBuilder valueBuffer = new StringBuilder();
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != ' '))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
           {
             valueBuffer.append(c);
             startPos++;
@@ -1023,8 +1019,7 @@ public class DITStructureRuleSyntax
         {
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_DSR_TRUNCATED_VALUE.get(valueStr);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -1032,7 +1027,7 @@ public class DITStructureRuleSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
       {
         valueBuffer.append(c);
         startPos++;
@@ -1042,7 +1037,7 @@ public class DITStructureRuleSyntax
     }
 
     // Skip over any trailing spaces.
-    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && valueStr.charAt(startPos) == ' ')
     {
       startPos++;
     }

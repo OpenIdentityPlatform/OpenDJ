@@ -139,7 +139,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
     // Process and register any password policy subentries.
     List<SubEntry> pwpSubEntries = DirectoryServer.getSubentryManager().getSubentries();
-    if ((pwpSubEntries != null) && (!pwpSubEntries.isEmpty()))
+    if (pwpSubEntries != null && !pwpSubEntries.isEmpty())
     {
       for (SubEntry subentry : pwpSubEntries)
       {

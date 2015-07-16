@@ -429,7 +429,7 @@ public abstract class GuiApplication extends Application {
     String authType = ce.getAuthType();
     String host = ce.getHost();
 
-    if ((chain != null) && (authType != null) && (host != null))
+    if (chain != null && authType != null && host != null)
     {
       logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
       getTrustManager().acceptCertificate(chain, authType, host);
@@ -492,13 +492,13 @@ public abstract class GuiApplication extends Application {
     int lastPercentage = -1;
     WebStartDownloader.Status lastStatus =
       WebStartDownloader.Status.DOWNLOADING;
-    while (!loader.isFinished() && (loader.getException() == null))
+    while (!loader.isFinished() && loader.getException() == null)
     {
       checkAbort();
       // Pool until is over
       int perc = loader.getDownloadPercentage();
       WebStartDownloader.Status downloadStatus = loader.getStatus();
-      if ((perc != lastPercentage) || (downloadStatus != lastStatus))
+      if (perc != lastPercentage || downloadStatus != lastStatus)
       {
         lastPercentage = perc;
         int ratio = (perc * maxRatio) / 100;

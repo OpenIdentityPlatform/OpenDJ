@@ -262,12 +262,11 @@ public final class AccountStatusNotification
       props.put(PASSWORD_EXPIRATION_TIME, newArrayList(new Date(expTime).toString()));
     }
 
-    if ((oldPasswords != null) && (! oldPasswords.isEmpty()))
+    if (oldPasswords != null && !oldPasswords.isEmpty())
     {
       props.put(OLD_PASSWORD, toStrings(oldPasswords));
     }
-
-    if ((newPasswords != null) && (! newPasswords.isEmpty()))
+    if (newPasswords != null && !newPasswords.isEmpty())
     {
       props.put(NEW_PASSWORD, toStrings(newPasswords));
     }

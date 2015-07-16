@@ -113,7 +113,7 @@ public class AttributeValueTag
                                   List<LocalizableMessage> warnings)
          throws InitializationException
   {
-    if ((arguments.length < 1) || (arguments.length > 2))
+    if (arguments.length < 1 || arguments.length > 2)
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
@@ -176,7 +176,7 @@ public class AttributeValueTag
                                     int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
-    if ((arguments.length < 1) || (arguments.length > 2))
+    if (arguments.length < 1 || arguments.length > 2)
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);

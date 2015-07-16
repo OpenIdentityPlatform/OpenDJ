@@ -350,16 +350,16 @@ public class Configuration {
     while (index1 != -1) {
       int index2 = lowerCaseContents.indexOf(Constants.LINE_SEPARATOR, index1);
       String value;
-      if (index2 > (index1 + attrName.length())) {
+      if (index2 > index1 + attrName.length()) {
         value = contents.substring(attrName.length() + index1, index2).trim();
-      } else if (lowerCaseContents.length() > (index1 + attrName.length())) {
+      } else if (lowerCaseContents.length() > index1 + attrName.length()) {
         // Assume end of file
         value = contents.substring(attrName.length() + index1).trim();
       } else {
         value = null;
       }
 
-      if ((value != null) && (value.length() > 0)) {
+      if (value != null && value.length() > 0) {
         set.add(value);
       }
 
@@ -368,5 +368,4 @@ public class Configuration {
     }
     return set;
   }
-
 }

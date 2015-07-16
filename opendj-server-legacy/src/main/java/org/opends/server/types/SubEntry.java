@@ -290,7 +290,7 @@ public class SubEntry {
       {
         List<Attribute> attrList = entry.getAttribute(
                 ATTR_INHERIT_COLLECTIVE_FROM_DN);
-        if ((attrList != null) && !attrList.isEmpty())
+        if (attrList != null && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)
           {
@@ -307,7 +307,7 @@ public class SubEntry {
       if (this.isInheritedFromRDNCollective)
       {
         List<Attribute> attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN);
-        if ((attrList != null) && !attrList.isEmpty())
+        if (attrList != null && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)
           {
@@ -320,7 +320,7 @@ public class SubEntry {
           }
         }
         attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE);
-        if ((attrList != null) && !attrList.isEmpty())
+        if (attrList != null && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)
           {
@@ -332,7 +332,7 @@ public class SubEntry {
           }
         }
         attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE);
-        if ((attrList != null) && !attrList.isEmpty())
+        if (attrList != null && !attrList.isEmpty())
         {
           for (Attribute attr : attrList)
           {
@@ -349,7 +349,7 @@ public class SubEntry {
 
       List<Attribute> attrList = entry.getAttribute(
               ATTR_INHERIT_COLLECTIVE_ATTR);
-      if ((attrList != null) && !attrList.isEmpty())
+      if (attrList != null && !attrList.isEmpty())
       {
         for (Attribute attr : attrList)
         {
@@ -369,7 +369,7 @@ public class SubEntry {
     {
       List<Attribute> attrList = entry.getAttribute(
               ATTR_COLLECTIVE_CONFLICT_BEHAVIOR);
-      if ((attrList != null) && !attrList.isEmpty())
+      if (attrList != null && !attrList.isEmpty())
       {
         for (Attribute attr : attrList)
         {

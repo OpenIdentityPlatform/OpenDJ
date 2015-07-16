@@ -27,7 +27,6 @@
 package org.opends.server.protocols.ldap;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -36,6 +35,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.RawFilter;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Utils;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -282,16 +282,9 @@ public class SearchRequestProtocolOp
     filter.toString(buffer);
     buffer.append(", attributes={");
 
-    if ((attributes != null) && (! attributes.isEmpty()))
+    if (attributes != null && ! attributes.isEmpty())
     {
-      Iterator<String> iterator = attributes.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
+      buffer.append(Utils.joinAsString(", ", attributes));
     }
 
     buffer.append("})");

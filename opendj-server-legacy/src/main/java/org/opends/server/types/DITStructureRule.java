@@ -144,7 +144,7 @@ public final class DITStructureRule
       this.definition = definition;
     }
 
-    if ((names == null) || names.isEmpty())
+    if (names == null || names.isEmpty())
     {
       this.names = new LinkedHashMap<>(0);
     }
@@ -153,7 +153,7 @@ public final class DITStructureRule
       this.names = new LinkedHashMap<>(names);
     }
 
-    if ((superiorRules == null) || superiorRules.isEmpty())
+    if (superiorRules == null || superiorRules.isEmpty())
     {
       this.superiorRules = new LinkedHashSet<>(0);
     }
@@ -162,7 +162,7 @@ public final class DITStructureRule
       this.superiorRules = new LinkedHashSet<>(superiorRules);
     }
 
-    if ((extraProperties == null) || extraProperties.isEmpty())
+    if (extraProperties == null || extraProperties.isEmpty())
     {
       this.extraProperties = new LinkedHashMap<>(0);
     }

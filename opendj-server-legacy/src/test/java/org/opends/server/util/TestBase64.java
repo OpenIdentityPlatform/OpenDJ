@@ -172,7 +172,7 @@ public final class TestBase64 extends UtilTestCase {
   private byte[] getBytes(String hexData) {
     int sz = hexData.length();
 
-    if ((sz % 2) != 0) {
+    if (sz % 2 != 0) {
       throw new IllegalArgumentException(
           "Hex string does not contain an even number of hex digits");
     }

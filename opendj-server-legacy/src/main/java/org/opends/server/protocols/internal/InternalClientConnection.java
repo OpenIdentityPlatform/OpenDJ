@@ -238,7 +238,7 @@ public final class InternalClientConnection
   private static AuthenticationInfo getAuthInfoForDN(DN userDN)
           throws DirectoryException
   {
-    if ((userDN == null) || userDN.isRootDN())
+    if (userDN == null || userDN.isRootDN())
     {
       return new AuthenticationInfo();
     }

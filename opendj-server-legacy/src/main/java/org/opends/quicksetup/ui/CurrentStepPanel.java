@@ -177,7 +177,7 @@ public class CurrentStepPanel extends QuickSetupPanel
    */
   public void setDisplayedStep(final WizardStep step, final UserData userData)
   {
-    final CardLayout cl = (CardLayout) (getLayout());
+    final CardLayout cl = (CardLayout) getLayout();
 
     if (getPanel(step).blockingBeginDisplay())
     {

@@ -81,7 +81,7 @@ public class LengthBasedPasswordValidator extends
     // maximum length is greater than or equal to the minimum length.
     int maxLength = configuration.getMaxPasswordLength();
     int minLength = configuration.getMinPasswordLength();
-    if ((maxLength > 0) && (minLength > 0) && (minLength > maxLength))
+    if (maxLength > 0 && minLength > 0 && minLength > maxLength)
     {
       LocalizableMessage message =
           ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(minLength, maxLength);
@@ -112,14 +112,14 @@ public class LengthBasedPasswordValidator extends
     int numChars = newPassword.toString().length();
 
     int minLength = config.getMinPasswordLength();
-    if ((minLength > 0) && (numChars < minLength))
+    if (minLength > 0 && numChars < minLength)
     {
       invalidReason.append(ERR_PWLENGTHVALIDATOR_TOO_SHORT.get(minLength));
       return false;
     }
 
     int maxLength = config.getMaxPasswordLength();
-    if ((maxLength > 0) && (numChars > maxLength))
+    if (maxLength > 0 && numChars > maxLength)
     {
       invalidReason.append(ERR_PWLENGTHVALIDATOR_TOO_LONG.get(maxLength));
       return false;
@@ -151,7 +151,7 @@ public class LengthBasedPasswordValidator extends
     // maximum length is greater than or equal to the minimum length.
     int maxLength = configuration.getMaxPasswordLength();
     int minLength = configuration.getMinPasswordLength();
-    if ((maxLength > 0) && (minLength > 0) && (minLength > maxLength))
+    if (maxLength > 0 && minLength > 0 && minLength > maxLength)
     {
       LocalizableMessage message = ERR_PWLENGTHVALIDATOR_MIN_GREATER_THAN_MAX.get(
               minLength, maxLength);

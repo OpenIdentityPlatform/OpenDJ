@@ -861,8 +861,8 @@ public class AciTests extends AciTestCase {
       // Add this test only if the mask tells us we haven't seen it before.
       // Also guard against ArrayIndexOutOfBoundsExceptions in case the
       // mask isn't long enough.
-      if ((i < mask.length()) &&
-              ((mask.charAt(i) == '-') || (mask.charAt(i) == '\"'))) {
+      if (i < mask.length()
+          && (mask.charAt(i) == '-' || mask.charAt(i) == '\"')) {
         acisMissingOneChar.add("aci: " + aci.substring(0, i) + aci.substring(i + 1, aci.length()));
       }
     }
@@ -2155,7 +2155,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
      * @return  An ACI string.
      */
     private static String buildGlobalAciValue(String... aciFields) {
-     return(_buildAciValue(ATTR_AUTHZ_GLOBAL_ACI + ": ", aciFields));
+     return _buildAciValue(ATTR_AUTHZ_GLOBAL_ACI + ": ", aciFields);
     }
 
   /**
@@ -2164,7 +2164,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * to more easily generate combinations of acis.
    */
   private static String buildAciValue(String... aciFields) {
-     return(_buildAciValue("aci:", aciFields));
+     return _buildAciValue("aci:", aciFields);
   }
 
   /**
@@ -2275,7 +2275,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
   private void ldapModify(String[] args, boolean expectSuccess) throws Exception {
     clearOutputStream();
     int retVal = LDAPModify.mainModify(args, false, getOutputStream(), getOutputStream());
-    assertEquals((retVal == 0), expectSuccess, "Return value = " + retVal);
+    assertEquals(retVal == 0, expectSuccess, "Return value = " + retVal);
   }
 
   private String ldapSearch(String[] args) throws Exception {

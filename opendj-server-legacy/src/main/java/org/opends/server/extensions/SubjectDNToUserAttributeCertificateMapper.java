@@ -110,7 +110,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     // Make sure that the subject attribute is configured for equality in all
     // appropriate backends.
     Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -119,7 +119,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     for (DN baseDN : cfgBaseDNs)
     {
       Backend b = DirectoryServer.getBackend(baseDN);
-      if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+      if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
             t.getNameOrOID(), b.getBackendID());
@@ -153,7 +153,7 @@ public class SubjectDNToUserAttributeCertificateMapper
 
 
     // Make sure that a peer certificate was provided.
-    if ((certificateChain == null) || (certificateChain.length == 0))
+    if (certificateChain == null || certificateChain.length == 0)
     {
       LocalizableMessage message = ERR_SDTUACM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
@@ -186,7 +186,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the
     // set of public naming contexts in the server.
     Collection<DN> baseDNs = config.getUserBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
+    if (baseDNs == null || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }

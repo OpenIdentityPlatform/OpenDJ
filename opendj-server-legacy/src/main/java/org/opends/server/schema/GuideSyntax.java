@@ -153,7 +153,7 @@ public class GuideSyntax
             else
             {
               c = criteria.charAt(i+1);
-              if ((c == '|') || (c == '&'))
+              if (c == '|' || c == '&')
               {
                 return criteriaIsValid(criteria.substring(i+2), valueStr,
                                        invalidReason);
@@ -162,7 +162,7 @@ public class GuideSyntax
               {
                 invalidReason.append(
                         ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
-                                valueStr, criteria, c, (i+1)));
+                                valueStr, criteria, c, i+1));
                 return false;
               }
             }
@@ -198,7 +198,7 @@ public class GuideSyntax
         {
           // The only characters allowed next are a pipe or an ampersand.
           c = criteria.charAt(5);
-          if ((c == '|') || (c == '&'))
+          if (c == '|' || c == '&')
           {
             return criteriaIsValid(criteria.substring(6), valueStr,
                                    invalidReason);
@@ -221,7 +221,7 @@ public class GuideSyntax
         {
           // The only characters allowed next are a pipe or an ampersand.
           c = criteria.charAt(6);
-          if ((c == '|') || (c == '&'))
+          if (c == '|' || c == '&')
           {
             return criteriaIsValid(criteria.substring(7), valueStr,
                                    invalidReason);
@@ -370,7 +370,7 @@ public class GuideSyntax
     else
     {
       c = criteria.charAt(endPos);
-      if ((c == '|') || (c == '&'))
+      if (c == '|' || c == '&')
       {
         return criteriaIsValid(criteria.substring(endPos+1), valueStr,
                                invalidReason);

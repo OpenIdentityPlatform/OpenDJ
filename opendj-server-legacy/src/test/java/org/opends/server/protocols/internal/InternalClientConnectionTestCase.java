@@ -143,7 +143,7 @@ public class InternalClientConnectionTestCase
   {
     long opID1 = InternalClientConnection.nextOperationID();
     long opID2 = InternalClientConnection.nextOperationID();
-    assertEquals(opID2, (opID1 + 1));
+    assertEquals(opID2, opID1 + 1);
   }
 
 
@@ -158,7 +158,7 @@ public class InternalClientConnectionTestCase
   {
     int msgID1 = InternalClientConnection.nextMessageID();
     int msgID2 = InternalClientConnection.nextMessageID();
-    assertEquals(msgID2, (msgID1 + 1));
+    assertEquals(msgID2, msgID1 + 1);
   }
 
 

@@ -95,7 +95,7 @@ public class AddSchemaFileTask
     Entry taskEntry = getTaskEntry();
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
     List<Attribute> attrList = taskEntry.getAttribute(attrType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
           ATTR_TASK_ADDSCHEMAFILE_FILENAME, taskEntry.getName());

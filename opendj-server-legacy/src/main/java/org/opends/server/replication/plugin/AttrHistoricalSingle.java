@@ -163,8 +163,8 @@ public class AttrHistoricalSingle extends AttrHistorical
             conflict = true;
             modsIterator.remove();
           }
-          else if ((newValue != null) &&
-              (!modifiedEntry.hasValue(type, modAttr.getOptions(), newValue)))
+          else if (newValue != null &&
+              !modifiedEntry.hasValue(type, modAttr.getOptions(), newValue))
           {
             conflict = true;
             modsIterator.remove();
@@ -184,8 +184,8 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       else if (csn.equals(addTime))
       {
-        if ((lastMod == HistAttrModificationKey.ADD)
-            || (lastMod == HistAttrModificationKey.REPL))
+        if (lastMod == HistAttrModificationKey.ADD
+            || lastMod == HistAttrModificationKey.REPL)
         {
           if (csn.isNewerThan(deleteTime))
           {
@@ -220,7 +220,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       else
       {
         if (csn.isNewerThanOrEqualTo(deleteTime)
-            && ((addTime == null ) || addTime.isOlderThan(deleteTime)))
+            && (addTime == null || addTime.isOlderThan(deleteTime)))
         {
           // no conflict : don't do anything beside setting the addTime
           addTime = csn;
@@ -231,7 +231,7 @@ public class AttrHistoricalSingle extends AttrHistorical
         {
           // Case where CSN = addTime = deleteTime
           if (csn.equals(deleteTime) && csn.equals(addTime)
-              && (lastMod == HistAttrModificationKey.DEL))
+              && lastMod == HistAttrModificationKey.DEL)
           {
             // No conflict, record the new value.
             value = newValue;

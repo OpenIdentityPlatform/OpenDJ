@@ -416,8 +416,7 @@ public final class ObjectClass
 
     // FIXME -- Do we need to do any other checks here, like whether
     // the attribute type is actually defined in the schema?
-    return (isExtensibleObject ||
-            requiredAndOptionalChain.contains(attributeType));
+    return isExtensibleObject || requiredAndOptionalChain.contains(attributeType);
   }
 
 

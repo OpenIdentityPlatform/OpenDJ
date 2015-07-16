@@ -198,7 +198,7 @@ public class PasswordStorageSchemeConfigManager
     if (storageScheme != null)
     {
       String curClassName = storageScheme.getClass().getName();
-      boolean classIsNew = (! newClassName.equals (curClassName));
+      boolean classIsNew = !newClassName.equals(curClassName);
       if (classIsNew)
       {
         changeResult.setAdminActionRequired (true);
@@ -207,7 +207,7 @@ public class PasswordStorageSchemeConfigManager
     }
 
     // New entry cache is enabled and there were no previous one.
-    // Instantiate the new class and initalize it.
+    // Instantiate the new class and initialize it.
     try
     {
       loadAndInstallPasswordStorageScheme (newClassName, configuration);

@@ -363,7 +363,7 @@ public class LDAPAuthenticationHandler
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
     List<Control> respControls = responseMessage.getControls();
-    if ((respControls != null) && (! respControls.isEmpty()))
+    if (respControls != null && !respControls.isEmpty())
     {
       responseControls.addAll(respControls);
     }
@@ -372,34 +372,7 @@ public class LDAPAuthenticationHandler
     // Look at the protocol op from the response.  If it's a bind response, then
     // continue.  If it's an extended response, then it could be a notice of
     // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException( ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
+    generateError(responseMessage);
 
 
     BindResponseProtocolOp bindResponse =
@@ -466,7 +439,7 @@ public class LDAPAuthenticationHandler
       bindDN = ByteString.empty();
     }
 
-    if ((mechanism == null) || (mechanism.length() == 0))
+    if (mechanism == null || mechanism.length() == 0)
     {
       LocalizableMessage message = ERR_LDAPAUTH_NO_SASL_MECHANISM.get();
       throw new ClientException(
@@ -551,17 +524,14 @@ public class LDAPAuthenticationHandler
 
     // Evaluate the properties provided.  The only one we'll allow is the trace
     // property, but it is not required.
-    if ((saslProperties == null) || saslProperties.isEmpty())
+    if (saslProperties == null || saslProperties.isEmpty())
     {
-      // This is fine because there are no required properties for this
-      // mechanism.
+      // This is fine because there are no required properties for this mechanism.
     }
     else
     {
-      Iterator<String> propertyNames = saslProperties.keySet().iterator();
-      while (propertyNames.hasNext())
+      for (String name : saslProperties.keySet())
       {
-        String name = propertyNames.next();
         if (name.equalsIgnoreCase(SASL_PROPERTY_TRACE))
         {
           // This is acceptable, and we'll take any single value.
@@ -574,8 +544,7 @@ public class LDAPAuthenticationHandler
             if (iterator.hasNext())
             {
               LocalizableMessage message = ERR_LDAPAUTH_TRACE_SINGLE_VALUED.get();
-              throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                        message);
+              throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
             }
           }
         }
@@ -665,7 +634,7 @@ public class LDAPAuthenticationHandler
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
     List<Control> respControls = responseMessage.getControls();
-    if ((respControls != null) && (! respControls.isEmpty()))
+    if (respControls != null && ! respControls.isEmpty())
     {
       responseControls.addAll(respControls);
     }
@@ -674,34 +643,7 @@ public class LDAPAuthenticationHandler
     // Look at the protocol op from the response.  If it's a bind response, then
     // continue.  If it's an extended response, then it could be a notice of
     // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
+    generateError(responseMessage);
 
 
     BindResponseProtocolOp bindResponse =
@@ -782,7 +724,7 @@ public class LDAPAuthenticationHandler
 
     // Evaluate the properties provided.  The authID is required, no other
     // properties are allowed.
-    if ((saslProperties == null) || saslProperties.isEmpty())
+    if (saslProperties == null || saslProperties.isEmpty())
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_CRAM_MD5);
@@ -790,27 +732,13 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    Iterator<String> propertyNames = saslProperties.keySet().iterator();
-    while (propertyNames.hasNext())
+    for (String name : saslProperties.keySet())
     {
-      String name      = propertyNames.next();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          authID = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        authID = getAuthID(saslProperties, authID, name);
       }
       else
       {
@@ -823,7 +751,7 @@ public class LDAPAuthenticationHandler
 
 
     // Make sure that the authID was provided.
-    if ((authID == null) || (authID.length() == 0))
+    if (authID == null || authID.length() == 0)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_CRAM_MD5);
@@ -918,7 +846,7 @@ public class LDAPAuthenticationHandler
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage1.getExtendedResponseProtocolOp();
         String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
+        if (responseOID != null &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
           LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
@@ -1044,7 +972,7 @@ public class LDAPAuthenticationHandler
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
     List<Control> respControls = responseMessage2.getControls();
-    if ((respControls != null) && (! respControls.isEmpty()))
+    if (respControls != null && ! respControls.isEmpty())
     {
       responseControls.addAll(respControls);
     }
@@ -1063,7 +991,7 @@ public class LDAPAuthenticationHandler
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage2.getExtendedResponseProtocolOp();
         String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
+        if (responseOID != null &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
           LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
@@ -1099,6 +1027,32 @@ public class LDAPAuthenticationHandler
         ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_CRAM_MD5);
     throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
                             message, bindResponse2.getMatchedDN(), null);
+  }
+
+
+
+  /**
+   * @param saslProperties
+   * @param authID
+   * @param name
+   * @return
+   * @throws ClientException
+   */
+  private String getAuthID(Map<String, List<String>> saslProperties, String authID, String name) throws ClientException
+  {
+    List<String> values = saslProperties.get(name);
+    Iterator<String> iterator = values.iterator();
+    if (iterator.hasNext())
+    {
+      authID = iterator.next();
+
+      if (iterator.hasNext())
+      {
+        LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
+        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
+      }
+    }
+    return authID;
   }
 
 
@@ -1261,35 +1215,20 @@ public class LDAPAuthenticationHandler
 
     // Evaluate the properties provided.  The authID is required.  The realm,
     // QoP, digest URI, and authzID are optional.
-    if ((saslProperties == null) || saslProperties.isEmpty())
+    if (saslProperties == null || saslProperties.isEmpty())
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_DIGEST_MD5);
-      throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-              message);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    Iterator<String> propertyNames = saslProperties.keySet().iterator();
-    while (propertyNames.hasNext())
+    for (String name : saslProperties.keySet())
     {
-      String name      = propertyNames.next();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          authID = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        authID = getAuthID(saslProperties, authID, name);
       }
       else if (lowerName.equals(SASL_PROPERTY_REALM))
       {
@@ -1386,7 +1325,7 @@ public class LDAPAuthenticationHandler
 
 
     // Make sure that the authID was provided.
-    if ((authID == null) || (authID.length() == 0))
+    if (authID == null || authID.length() == 0)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_DIGEST_MD5);
@@ -1482,7 +1421,7 @@ public class LDAPAuthenticationHandler
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage1.getExtendedResponseProtocolOp();
         String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
+        if (responseOID != null &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
           LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
@@ -1648,7 +1587,7 @@ public class LDAPAuthenticationHandler
     // Generate the response digest, and initialize the necessary remaining
     // variables to use in the generation of that digest.
     String nonceCount = "00000001";
-    String charset    = (useUTF8 ? "UTF-8" : "ISO-8859-1");
+    String charset    = useUTF8 ? "UTF-8" : "ISO-8859-1";
     String responseDigest;
     try
     {
@@ -1777,7 +1716,7 @@ public class LDAPAuthenticationHandler
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
     List<Control> respControls = responseMessage2.getControls();
-    if ((respControls != null) && (! respControls.isEmpty()))
+    if (respControls != null && ! respControls.isEmpty())
     {
       responseControls.addAll(respControls);
     }
@@ -1796,7 +1735,7 @@ public class LDAPAuthenticationHandler
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage2.getExtendedResponseProtocolOp();
         String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
+        if (responseOID != null &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
           LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
@@ -2005,7 +1944,7 @@ public class LDAPAuthenticationHandler
               // We found the closing quote before the end of the token.  This
               // is not fine.
               LocalizableMessage message =
-                  ERR_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS.get((pos-2));
+                  ERR_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS.get(pos-2);
               throw new LDAPException(ReturnCode.INVALID_CREDENTIALS.get(),
                                       message);
             }
@@ -2357,7 +2296,7 @@ public class LDAPAuthenticationHandler
          throws ClientException, LDAPException
   {
     // Make sure that no SASL properties were provided.
-    if ((saslProperties != null) && (! saslProperties.isEmpty()))
+    if (saslProperties != null && ! saslProperties.isEmpty())
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_ALLOWED_SASL_PROPERTIES.get(SASL_MECHANISM_EXTERNAL);
@@ -2433,7 +2372,7 @@ public class LDAPAuthenticationHandler
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
     List<Control> respControls = responseMessage.getControls();
-    if ((respControls != null) && (! respControls.isEmpty()))
+    if (respControls != null && ! respControls.isEmpty())
     {
       responseControls.addAll(respControls);
     }
@@ -2452,7 +2391,7 @@ public class LDAPAuthenticationHandler
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage.getExtendedResponseProtocolOp();
         String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
+        if (responseOID != null &&
             responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
         {
           LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
@@ -2563,7 +2502,7 @@ public class LDAPAuthenticationHandler
 
     // Evaluate the properties provided.  The authID is required.  The authzID,
     // KDC, QoP, and realm are optional.
-    if ((saslProperties == null) || saslProperties.isEmpty())
+    if (saslProperties == null || saslProperties.isEmpty())
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_GSSAPI);
@@ -2571,10 +2510,8 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    Iterator<String> propertyNames = saslProperties.keySet().iterator();
-    while (propertyNames.hasNext())
+    for (String name : saslProperties.keySet())
     {
-      String name      = propertyNames.next();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
@@ -2588,8 +2525,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
           }
         }
       }
@@ -2689,7 +2625,7 @@ public class LDAPAuthenticationHandler
 
 
     // Make sure that the authID was provided.
-    if ((gssapiAuthID == null) || (gssapiAuthID.length() == 0))
+    if (gssapiAuthID == null || gssapiAuthID.length() == 0)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_GSSAPI);
@@ -2867,7 +2803,7 @@ public class LDAPAuthenticationHandler
 
     // Evaluate the properties provided.  The authID is required, and authzID is
     // optional.
-    if ((saslProperties == null) || saslProperties.isEmpty())
+    if (saslProperties == null || saslProperties.isEmpty())
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_PLAIN);
@@ -2875,27 +2811,13 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    Iterator<String> propertyNames = saslProperties.keySet().iterator();
-    while (propertyNames.hasNext())
+    for (String name : saslProperties.keySet())
     {
-      String name      = propertyNames.next();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          authID = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        authID = getAuthID(saslProperties, authID, name);
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
@@ -2924,7 +2846,7 @@ public class LDAPAuthenticationHandler
 
 
     // Make sure that at least the authID was provided.
-    if ((authID == null) || (authID.length() == 0))
+    if (authID == null || authID.length() == 0)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_PLAIN);
@@ -3018,7 +2940,7 @@ public class LDAPAuthenticationHandler
     // See if there are any controls in the response.  If so, then add them to
     // the response controls list.
     List<Control> respControls = responseMessage.getControls();
-    if ((respControls != null) && (! respControls.isEmpty()))
+    if (respControls != null && !respControls.isEmpty())
     {
       responseControls.addAll(respControls);
     }
@@ -3027,34 +2949,7 @@ public class LDAPAuthenticationHandler
     // Look at the protocol op from the response.  If it's a bind response, then
     // continue.  If it's an extended response, then it could be a notice of
     // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
+    generateError(responseMessage);
 
 
     BindResponseProtocolOp bindResponse =
@@ -3241,34 +3136,7 @@ public class LDAPAuthenticationHandler
       // Look at the protocol op from the response.  If it's a bind response,
       // then continue.  If it's an extended response, then it could be a notice
       // of disconnection so check for that.  Otherwise, generate an error.
-      switch (responseMessage.getProtocolOpType())
-      {
-        case OP_TYPE_BIND_RESPONSE:
-          // We'll deal with this later.
-          break;
-
-        case OP_TYPE_EXTENDED_RESPONSE:
-          ExtendedResponseProtocolOp extendedResponse =
-               responseMessage.getExtendedResponseProtocolOp();
-          String responseOID = extendedResponse.getOID();
-          if ((responseOID != null) &&
-              responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-                get(extendedResponse.getResultCode(),
-                    extendedResponse.getErrorMessage());
-            throw new LDAPException(extendedResponse.getResultCode(), message);
-          }
-          else
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-          }
-
-        default:
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-      }
+      generateError(responseMessage);
 
 
       while (true)
@@ -3408,35 +3276,7 @@ public class LDAPAuthenticationHandler
           // response, then continue.  If it's an extended response, then it
           // could be a notice of disconnection so check for that.  Otherwise,
           // generate an error.
-          switch (responseMessage.getProtocolOpType())
-          {
-            case OP_TYPE_BIND_RESPONSE:
-              // We'll deal with this later.
-              break;
-
-            case OP_TYPE_EXTENDED_RESPONSE:
-              ExtendedResponseProtocolOp extendedResponse =
-                   responseMessage.getExtendedResponseProtocolOp();
-              String responseOID = extendedResponse.getOID();
-              if ((responseOID != null) &&
-                  responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-              {
-                LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-                    get(extendedResponse.getResultCode(),
-                        extendedResponse.getErrorMessage());
-                throw new LDAPException(extendedResponse.getResultCode(),
-                        message);
-              }
-              else
-              {
-                LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-                throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-              }
-
-            default:
-              LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-              throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-          }
+          generateError(responseMessage);
         }
         else
         {
@@ -3462,7 +3302,35 @@ public class LDAPAuthenticationHandler
     return null;
   }
 
+  private void generateError(LDAPMessage responseMessage) throws LDAPException, ClientException
+  {
+    switch (responseMessage.getProtocolOpType())
+    {
+      case OP_TYPE_BIND_RESPONSE:
+        // We'll deal with this later.
+        break;
 
+      case OP_TYPE_EXTENDED_RESPONSE:
+        ExtendedResponseProtocolOp extendedResponse =
+             responseMessage.getExtendedResponseProtocolOp();
+        String responseOID = extendedResponse.getOID();
+        if (OID_NOTICE_OF_DISCONNECTION.equals(responseOID))
+        {
+          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
+              get(extendedResponse.getResultCode(), extendedResponse.getErrorMessage());
+          throw new LDAPException(extendedResponse.getResultCode(), message);
+        }
+        else
+        {
+          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        }
+
+      default:
+        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
+    }
+  }
 
   /**
    * Handles the authentication callbacks to provide information needed by the
@@ -3617,8 +3485,7 @@ public class LDAPAuthenticationHandler
     ExtendedResponseProtocolOp extendedResponse =
          responseMessage.getExtendedResponseProtocolOp();
     String responseOID = extendedResponse.getOID();
-    if ((responseOID != null) &&
-        responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
+    if (OID_NOTICE_OF_DISCONNECTION.equals(responseOID))
     {
       LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.get(
           extendedResponse.getResultCode(), extendedResponse.getErrorMessage());
@@ -3641,13 +3508,13 @@ public class LDAPAuthenticationHandler
 
     // Get the authorization ID (if there is one) and return it to the caller.
     ByteString authzID = extendedResponse.getValue();
-    if ((authzID == null) || (authzID.length() == 0))
+    if (authzID == null || authzID.length() == 0)
     {
       return null;
     }
 
     String valueString = authzID.toString();
-    if ((valueString == null) || (valueString.length() == 0) ||
+    if (valueString == null || valueString.length() == 0 ||
         valueString.equalsIgnoreCase("dn:"))
     {
       return null;
@@ -3656,4 +3523,3 @@ public class LDAPAuthenticationHandler
     return authzID;
   }
 }
-

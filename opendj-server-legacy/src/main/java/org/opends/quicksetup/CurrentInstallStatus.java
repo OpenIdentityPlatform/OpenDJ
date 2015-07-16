@@ -24,7 +24,6 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -49,21 +48,15 @@ import org.opends.quicksetup.util.Utils;
  *
  * This class assumes that we are running in the case of an offline install.
  */
-
 public class CurrentInstallStatus
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private boolean isInstalled;
-
   private boolean canOverwriteCurrentInstall;
-
   private LocalizableMessage installationMsg;
 
-  /**
-   * The constructor of a CurrentInstallStatus object.
-   *
-   */
+  /** The constructor of a CurrentInstallStatus object. */
   public CurrentInstallStatus()
   {
     if (Utils.isWebStart())
@@ -170,14 +163,12 @@ public class CurrentInstallStatus
 
   private int getPort()
   {
-    int port = -1;
     try {
-      port = Installation.getLocal().getCurrentConfiguration().
-              getPort();
+      return Installation.getLocal().getCurrentConfiguration().getPort();
     } catch (IOException ioe) {
       logger.info(LocalizableMessage.raw("Failed to get port", ioe));
+      return -1;
     }
-    return port;
   }
 
 
@@ -192,7 +183,7 @@ public class CurrentInstallStatus
   {
     File dbDir = Installation.getLocal().getDatabasesDirectory();
     File[] children = dbDir.listFiles();
-    return ((children != null) && (children.length > 0));
+    return children != null && children.length > 0;
   }
 
 
@@ -207,7 +198,6 @@ public class CurrentInstallStatus
   {
     File configDir = Installation.getLocal().getConfigurationDirectory();
     File[] children = configDir.listFiles();
-    return ((children != null) && (children.length > 0));
+    return children != null && children.length > 0;
   }
-
 }

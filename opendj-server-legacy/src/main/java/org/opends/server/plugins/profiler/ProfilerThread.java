@@ -130,7 +130,7 @@ public class ProfilerThread
 
         // We'll skip over any stack that doesn't have any information.
         StackTraceElement[] threadStack = stacks.get(t);
-        if ((threadStack == null) || (threadStack.length == 0))
+        if (threadStack == null || threadStack.length == 0)
         {
           continue;
         }

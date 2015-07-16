@@ -116,12 +116,12 @@ public class TimeDocumentFilter extends DocumentFilter
     String allText =
       fb.getDocument().getText(0, fb.getDocument().getLength());
     int index = allText.indexOf(':');
-    if ((index != -1) && (newText.length() == 1))
+    if (index != -1 && newText.length() == 1)
     {
       int minuteLength = allText.length() - index - 1;
       int hourLength = index;
 
-      if ((minuteLength > 2) || (hourLength > 2))
+      if (minuteLength > 2 || hourLength > 2)
       {
         if (offset < previousLength)
         {
@@ -148,8 +148,8 @@ public class TimeDocumentFilter extends DocumentFilter
       int hourLength = index;
       int caretPosition = tf.getCaretPosition();
 
-      if ((minuteLength >= 2) &&
-          (caretPosition == allText.length()))
+      if (minuteLength >= 2 &&
+          caretPosition == allText.length())
       {
         tf.setCaretPosition(0);
       }

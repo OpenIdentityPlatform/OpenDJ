@@ -402,9 +402,9 @@ public class Branch
     for (TemplateLine l : extraLines)
     {
       TagResult r = l.generateLine(entry);
-      if ((!r.keepProcessingEntry()
+      if (!r.keepProcessingEntry()
           || !r.keepProcessingParent()
-          || !r.keepProcessingTemplateFile()))
+          || !r.keepProcessingTemplateFile())
       {
         return r;
       }

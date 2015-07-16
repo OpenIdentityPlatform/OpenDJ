@@ -173,8 +173,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
-        setEnabledOK((text != null) && (text.length() > 0) &&
-            !errorPane.isVisible());
+        setEnabledOK(text != null && text.length() > 0 && !errorPane.isVisible());
       }
       /** {@inheritDoc} */
       public void removeUpdate(DocumentEvent ev)
@@ -360,7 +359,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     }
 
     String ldifPath = file.getText();
-    if ((ldifPath == null) || (ldifPath.trim().equals("")))
+    if (ldifPath == null || ldifPath.trim().equals(""))
     {
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);
@@ -410,7 +409,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
               INFO_CTRL_PANEL_CONFIRMATION_EXPORT_LDIF_DETAILS.get(ldifPath));
         }
       }
-      if ((errors.isEmpty()) && confirmed)
+      if (errors.isEmpty() && confirmed)
       {
         launchOperation(newTask,
             INFO_CTRL_PANEL_EXPORTING_LDIF_SUMMARY.get(backends.getSelectedItem()),

@@ -238,7 +238,7 @@ public class ProfileViewer
 
       long startTime = reader.readInteger();
       long stopTime  = reader.readInteger();
-      totalDuration += (stopTime - startTime);
+      totalDuration += stopTime - startTime;
       reader.readEndSequence();
 
 
@@ -643,7 +643,7 @@ public class ProfileViewer
                                String highlightClassAndMethod)
   {
     int numFrames = stack.getNumFrames();
-    for (int i=(numFrames-1); i >= 0; i--)
+    for (int i=numFrames-1; i >= 0; i--)
     {
       html.append("<BR>     ");
 
@@ -651,8 +651,7 @@ public class ProfileViewer
       String methodName = stack.getMethodName(i);
       int    lineNumber = stack.getLineNumber(i);
 
-      String safeMethod =
-           (methodName.equals("<init>") ? "&lt;init&gt;" : methodName);
+      String safeMethod = methodName.equals("<init>") ? "&lt;init&gt;" : methodName;
 
       String classAndMethod = className + "." + methodName;
       if (classAndMethod.equals(highlightClassAndMethod))

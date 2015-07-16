@@ -122,7 +122,7 @@ public class AuthPasswordSyntax
     // First, ignore any leading whitespace.
     int length = authPasswordValue.length();
     int  pos   = 0;
-    while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
+    while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -204,12 +204,12 @@ readScheme:
 
     // Ignore any spaces before the dollar sign separator.  Then read the dollar
     // sign and ignore any trailing spaces.
-    while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
+    while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
     }
 
-    if ((pos < length) && (authPasswordValue.charAt(pos) == '$'))
+    if (pos < length && authPasswordValue.charAt(pos) == '$')
     {
       pos++;
     }
@@ -220,7 +220,7 @@ readScheme:
               message);
     }
 
-    while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
+    while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -232,7 +232,7 @@ readAuthInfo:
     while (pos < length)
     {
       char c = authPasswordValue.charAt(pos);
-      if ((c == ' ') || (c == '$'))
+      if (c == ' ' || c == '$')
       {
         break readAuthInfo;
       }
@@ -262,12 +262,12 @@ readAuthInfo:
 
     // Ignore any spaces before the dollar sign separator.  Then read the dollar
     // sign and ignore any trailing spaces.
-    while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
+    while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
     }
 
-    if ((pos < length) && (authPasswordValue.charAt(pos) == '$'))
+    if (pos < length && authPasswordValue.charAt(pos) == '$')
     {
       pos++;
     }
@@ -278,7 +278,7 @@ readAuthInfo:
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
-    while ((pos < length) && (authPasswordValue.charAt(pos) == ' '))
+    while (pos < length && authPasswordValue.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -289,7 +289,7 @@ readAuthInfo:
     while (pos < length)
     {
       char c = authPasswordValue.charAt(pos);
-      if ((c == ' ') || (c == '$'))
+      if (c == ' ' || c == '$')
       {
         break ;
       }

@@ -111,8 +111,8 @@ public class ThreadFilterTextErrorLogPublisher
   public boolean isEnabledFor(String category, Severity severity)
   {
     Thread currentThread = Thread.currentThread();
-    return (this.thread.equals(currentThread) || this.thread.getThreadGroup()
-        .equals(currentThread.getThreadGroup()));
+    return this.thread.equals(currentThread)
+        || this.thread.getThreadGroup().equals(currentThread.getThreadGroup());
   }
 
   /** {@inheritDoc} */

@@ -127,9 +127,9 @@ public class EntryCacheMonitorProvider
   @Override
   public List<Attribute> getMonitorData()
   {
-    if ((entryCache != null) &&
-        (monitorConfiguration != null) &&
-        (monitorConfiguration.isEnabled())) {
+    if (entryCache != null &&
+        monitorConfiguration != null &&
+        monitorConfiguration.isEnabled()) {
       // Get monitor data from the cache.
       return entryCache.getMonitorData();
     }

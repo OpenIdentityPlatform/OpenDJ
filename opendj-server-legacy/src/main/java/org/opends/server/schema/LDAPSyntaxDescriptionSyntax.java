@@ -217,7 +217,7 @@ public class LDAPSyntaxDescriptionSyntax
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -239,14 +239,14 @@ public class LDAPSyntaxDescriptionSyntax
     if (c != '(')
     {
       LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(valueStr, pos-1, c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
 
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -267,7 +267,7 @@ public class LDAPSyntaxDescriptionSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+      while (pos < length && ((c = valueStr.charAt(pos)) != ' ')
               && (c = valueStr.charAt(pos)) != ')')
       {
         if (c == '.')
@@ -276,7 +276,7 @@ public class LDAPSyntaxDescriptionSyntax
           {
             LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(valueStr, (pos-1));
+                  get(valueStr, pos-1);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -290,7 +290,7 @@ public class LDAPSyntaxDescriptionSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, c, (pos-1));
+                get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -305,11 +305,11 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+      while (pos < length && ((c = valueStr.charAt(pos)) != ' ')
               && (c=valueStr.charAt(pos))!=')')
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
           pos++;
@@ -319,7 +319,7 @@ public class LDAPSyntaxDescriptionSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
                   ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_STRING_OID.
-              get(valueStr, c, (pos-1));
+              get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -339,7 +339,7 @@ public class LDAPSyntaxDescriptionSyntax
     oid = toLowerCase(valueStr.substring(oidStartPos, pos));
 
     // Skip over the space(s) after the OID.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -378,10 +378,8 @@ public class LDAPSyntaxDescriptionSyntax
         if (pos < length)
         {
           LocalizableMessage message =
-            ERR_ATTR_SYNTAX_LDAPSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.
-                get(valueStr, (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+            ERR_ATTR_SYNTAX_LDAPSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(valueStr, pos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
         break;
@@ -556,7 +554,7 @@ public class LDAPSyntaxDescriptionSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -571,14 +569,14 @@ public class LDAPSyntaxDescriptionSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos++)) != ' '))
     {
       tokenName.append(c);
     }
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -613,7 +611,7 @@ public class LDAPSyntaxDescriptionSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -638,7 +636,7 @@ public class LDAPSyntaxDescriptionSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
     {
       valueBuffer.append(c);
       startPos++;
@@ -647,7 +645,7 @@ public class LDAPSyntaxDescriptionSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -691,7 +689,7 @@ public class LDAPSyntaxDescriptionSyntax
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = '\u0000';
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -714,7 +712,7 @@ public class LDAPSyntaxDescriptionSyntax
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
       startPos++;
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
       {
         valueBuffer.append(c);
         startPos++;
@@ -729,7 +727,7 @@ public class LDAPSyntaxDescriptionSyntax
       while (true)
       {
         // Skip over any leading spaces;
-        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
         }
@@ -762,8 +760,7 @@ public class LDAPSyntaxDescriptionSyntax
           // We have a quoted string
           StringBuilder valueBuffer = new StringBuilder();
           startPos++;
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != '\''))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
           {
             valueBuffer.append(c);
             startPos++;
@@ -776,8 +773,7 @@ public class LDAPSyntaxDescriptionSyntax
         {
           //Consider unquoted string
           StringBuilder valueBuffer = new StringBuilder();
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != ' '))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
           {
             valueBuffer.append(c);
             startPos++;
@@ -799,7 +795,7 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
       {
         valueBuffer.append(c);
         startPos++;
@@ -809,7 +805,7 @@ public class LDAPSyntaxDescriptionSyntax
     }
 
     // Skip over any trailing spaces.
-    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && valueStr.charAt(startPos) == ' ')
     {
       startPos++;
     }

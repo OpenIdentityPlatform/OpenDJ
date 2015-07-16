@@ -253,16 +253,13 @@ public final class DNConfigAttribute
   public DN activeValue()
          throws ConfigException
   {
-    if ((activeValues == null) || activeValues.isEmpty())
+    if (activeValues == null || activeValues.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName()));
     }
-
     if (activeValues.size() > 1)
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName()));
     }
 
     return activeValues.get(0);
@@ -301,16 +298,13 @@ public final class DNConfigAttribute
       return activeValue();
     }
 
-    if ((pendingValues == null) || pendingValues.isEmpty())
+    if (pendingValues == null || pendingValues.isEmpty())
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName()));
     }
-
     if (pendingValues.size() > 1)
     {
-      LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName()));
     }
 
     return pendingValues.get(0);
@@ -381,7 +375,7 @@ public final class DNConfigAttribute
          throws ConfigException
   {
     // First check if the set is empty and if that is allowed.
-    if ((values == null) || (values.isEmpty()))
+    if (values == null || values.isEmpty())
     {
       if (isRequired())
       {
@@ -403,7 +397,7 @@ public final class DNConfigAttribute
 
     // Next check if the set contains multiple values and if that is allowed.
     int numValues = values.size();
-    if (!isMultiValued() && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
       throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
@@ -566,7 +560,7 @@ public final class DNConfigAttribute
   public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
-    if ((valueStrings == null) || valueStrings.isEmpty())
+    if (valueStrings == null || valueStrings.isEmpty())
     {
       if (isRequired())
       {
@@ -577,11 +571,9 @@ public final class DNConfigAttribute
 
 
     int numValues = valueStrings.size();
-    if ((! isMultiValued()) && (numValues > 1))
+    if (!isMultiValued() && numValues > 1)
     {
-      LocalizableMessage message =
-          ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(getName()));
     }
 
 
@@ -614,7 +606,7 @@ public final class DNConfigAttribute
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
     // attribute and if so deal with it accordingly.
-    if ((isRequired()) && valueSet.isEmpty())
+    if (isRequired() && valueSet.isEmpty())
     {
       throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(getName()));
     }
@@ -737,7 +729,7 @@ public final class DNConfigAttribute
           else
           {
             int numValues = a.size();
-            if (numValues > 1 && (!isMultiValued()))
+            if (numValues > 1 && !isMultiValued())
             {
               // This is illegal -- the attribute is single-valued.
               throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
@@ -959,8 +951,7 @@ public final class DNConfigAttribute
     }
 
 
-    if (requiresAdminAction() && (pendingValues != null) &&
-        (pendingValues != activeValues))
+    if (requiresAdminAction() && pendingValues != null && pendingValues != activeValues)
     {
       String name = getName() + ";" + OPTION_PENDING_VALUES;
 

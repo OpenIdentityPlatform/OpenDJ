@@ -22,17 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.config;
-
-
 
 import java.io.File;
 
 import org.opends.server.types.SSLClientAuthPolicy;
-
-
 
 /**
  * This class defines a number of constants used by the Directory Server
@@ -1333,7 +1329,7 @@ public final class ConfigConstants
    * The default maximum request size that should be used if none is specified
    * in the configuration.
    */
-  public static final int DEFAULT_MAX_REQUEST_SIZE = (5 * 1024 * 1024); // 5 MB
+  public static final int DEFAULT_MAX_REQUEST_SIZE = 5 * 1024 * 1024; // 5 MB
 
 
 

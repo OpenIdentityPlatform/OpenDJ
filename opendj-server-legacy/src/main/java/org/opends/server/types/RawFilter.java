@@ -470,7 +470,7 @@ public abstract class RawFilter
         }
 
         ArrayList<ByteString> subAnyElements = getSubAnyElements();
-        if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
+        if (subAnyElements != null && !subAnyElements.isEmpty())
         {
           for (ByteString s : subAnyElements)
           {

@@ -643,7 +643,7 @@ public class UserData
   {
     int defaultJMXPort = -1;
 
-    for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
+    for (int i=0;i<65000 && defaultJMXPort == -1;i+=1000)
     {
       int port = i + CliConstants.DEFAULT_JMX_PORT;
       boolean isForbidden = false;

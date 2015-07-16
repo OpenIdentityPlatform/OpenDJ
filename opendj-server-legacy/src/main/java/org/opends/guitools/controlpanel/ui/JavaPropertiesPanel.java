@@ -594,11 +594,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         }
 
         String v = properties.getProperty("overwrite-env-java-home");
-        readUseOpenDSJavaHome =
-          (v == null) || ("false".equalsIgnoreCase(v.trim()));
+        readUseOpenDSJavaHome = v == null || "false".equalsIgnoreCase(v.trim());
         v = properties.getProperty("overwrite-env-java-args");
-        readUseOpenDSJavaArgs =
-          (v == null) || ("false".equalsIgnoreCase(v.trim()));
+        readUseOpenDSJavaArgs = v == null || "false".equalsIgnoreCase(v.trim());
 
         readJavaHome = properties.getProperty("default.java-home");
         if (readJavaHome == null)
@@ -769,7 +767,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           {
             jvms = new String[]{userJVM};
           }
-          else if ((userJVM != null) && (userJVM.trim().length() > 0))
+          else if (userJVM != null && userJVM.trim().length() > 0)
           {
             jvms = new String[]{defaultJVM, userJVM};
           }
@@ -1423,7 +1421,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         while ((line = reader.readLine()) != null)
         {
           String trimmedLine = line.trim();
-          if (trimmedLine.startsWith("#") || (trimmedLine.length() == 0))
+          if (trimmedLine.startsWith("#") || trimmedLine.length() == 0)
           {
             commentLines.add(line);
           }
@@ -1457,7 +1455,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         writer.write("overwrite-env-java-args="+overwriteOpenDSJavaArgs);
         writer.newLine();
         writer.newLine();
-        if ((defaultJavaHome != null) && (defaultJavaHome.length() > 0))
+        if (defaultJavaHome != null && defaultJavaHome.length() > 0)
         {
           writer.write("default.java-home="+defaultJavaHome);
           writer.newLine();
