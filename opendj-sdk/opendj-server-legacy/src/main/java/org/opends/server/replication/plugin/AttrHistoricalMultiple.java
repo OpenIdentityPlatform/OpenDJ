@@ -254,8 +254,8 @@ public class AttrHistoricalMultiple extends AttrHistorical
     // on another master server and this operation has a potential
     // conflict with some more recent operations on this same entry
     // we need to take the more complex path to solve them
-    if ((CSN.compare(csn, getLastUpdateTime()) < 0) ||
-        (m.getModificationType() != ModificationType.REPLACE))
+    if (CSN.compare(csn, getLastUpdateTime()) < 0 ||
+        m.getModificationType() != ModificationType.REPLACE)
     {
       // the attribute was modified after this change -> conflict
 

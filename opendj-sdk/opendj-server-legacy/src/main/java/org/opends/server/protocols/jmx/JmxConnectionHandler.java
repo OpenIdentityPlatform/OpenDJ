@@ -130,12 +130,8 @@ public final class JmxConnectionHandler extends
       rmiConnectorRestart = true;
     }
 
-    if (((currentConfig.getSSLCertNickname() != null) &&
-          !currentConfig.getSSLCertNickname().equals(
-          config.getSSLCertNickname())) ||
-        ((config.getSSLCertNickname() != null) &&
-          !config.getSSLCertNickname().equals(
-          currentConfig.getSSLCertNickname()))) {
+    if (notEqualsNotNull(config.getSSLCertNickname(), currentConfig.getSSLCertNickname())
+        || notEqualsNotNull(config.getSSLCertNickname(), currentConfig.getSSLCertNickname())) {
       rmiConnectorRestart = true;
     }
 
@@ -179,6 +175,10 @@ public final class JmxConnectionHandler extends
   }
 
 
+  private boolean notEqualsNotNull(String o1, String o2)
+  {
+    return o1 != null && !o1.equals(o2);
+  }
 
   /** {@inheritDoc} */
   @Override

@@ -145,7 +145,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     catch (Throwable th)
     {
     }
-    if ((t <= 0) || (t > MAX_VALUE))
+    if (t <= 0 || t > MAX_VALUE)
     {
       errors.add(INFO_CTRL_PANEL_INVALID_PERIOD_VALUE.get(MAX_VALUE));
     }

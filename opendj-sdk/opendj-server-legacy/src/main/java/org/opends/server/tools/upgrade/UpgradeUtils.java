@@ -282,12 +282,12 @@ final class UpgradeUtils
       {
         return false;
       }
-      while ((descendant != null) && !ancestor.equals(descendant))
+      while (descendant != null && !ancestor.equals(descendant))
       {
         descendant = descendant.getParentFile();
       }
     }
-    return (ancestor != null) && (descendant != null);
+    return ancestor != null && descendant != null;
   }
 
   /**
@@ -300,17 +300,16 @@ final class UpgradeUtils
    * either of the files are null
    */
   static boolean isDescendant(File descendant, File path) {
-    boolean isDescendant = false;
     if (descendant != null && path != null) {
       File parent = descendant.getParentFile();
-      while ((parent != null) && !isDescendant) {
-        isDescendant = path.equals(parent);
-        if (!isDescendant) {
-          parent = parent.getParentFile();
+      while (parent != null) {
+        if (path.equals(parent)) {
+          return true;
         }
+        parent = parent.getParentFile();
       }
     }
-    return isDescendant;
+    return false;
   }
 
   /**

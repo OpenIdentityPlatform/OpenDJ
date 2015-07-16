@@ -299,7 +299,7 @@ public class ReferentialIntegrityPlugin
     }
 
     Set<DN> cfgBaseDNs = pluginCfg.getBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -322,7 +322,7 @@ public class ReferentialIntegrityPlugin
       for (DN baseDN : cfgBaseDNs)
       {
         Backend<?> b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (!b.isIndexed(type, IndexType.EQUALITY)))
+        if (b != null && !b.isIndexed(type, IndexType.EQUALITY))
         {
           isAcceptable = false;
           unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
@@ -413,7 +413,7 @@ public class ReferentialIntegrityPlugin
     DN newEntryDN=modifyDNOperation.getUpdatedEntry().getName();
     modDNmap.put(oldEntryDN, newEntryDN);
 
-    processModifyDN(modDNmap, (interval != 0));
+    processModifyDN(modDNmap, interval != 0);
 
     return PluginResult.PostOperation.continueOperationProcessing();
   }
@@ -442,7 +442,7 @@ public class ReferentialIntegrityPlugin
     }
     deleteDNset.add(deleteOperation.getEntryDN());
 
-    processDelete(deleteDNset, (interval != 0));
+    processDelete(deleteDNset, interval != 0);
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
@@ -494,8 +494,8 @@ public class ReferentialIntegrityPlugin
    */
   private boolean isAttributeSyntaxValid(AttributeType attribute)
   {
-    return (attribute.getSyntax().getOID().equals(SYNTAX_DN_OID) ||
-            attribute.getSyntax().getOID().equals(SYNTAX_NAME_AND_OPTIONAL_UID_OID));
+    return attribute.getSyntax().getOID().equals(SYNTAX_DN_OID) ||
+            attribute.getSyntax().getOID().equals(SYNTAX_NAME_AND_OPTIONAL_UID_OID);
   }
 
   /**
@@ -1086,8 +1086,8 @@ public class ReferentialIntegrityPlugin
 
       /* Process only ADD and REPLACE modification types.
        */
-      if ((modType != ModificationType.ADD)
-          && (modType != ModificationType.REPLACE))
+      if (modType != ModificationType.ADD
+          && modType != ModificationType.REPLACE)
       {
         break;
       }

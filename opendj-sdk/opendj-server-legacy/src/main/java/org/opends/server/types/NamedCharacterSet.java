@@ -81,7 +81,7 @@ public final class NamedCharacterSet
 
     random     = new Random();
 
-    if ((name == null) || (name.length() == 0))
+    if (name == null || name.length() == 0)
     {
       LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
       throw new ConfigException(message);
@@ -118,7 +118,7 @@ public final class NamedCharacterSet
     this.characters = characters;
     this.random     = random;
 
-    if ((name == null) || (name.length() == 0))
+    if (name == null || name.length() == 0)
     {
       LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
       throw new ConfigException(message);
@@ -167,7 +167,7 @@ public final class NamedCharacterSet
    */
   public char getRandomCharacter()
   {
-    if ((characters == null) || (characters.length == 0))
+    if (characters == null || characters.length == 0)
     {
       return 0;
     }
@@ -188,7 +188,7 @@ public final class NamedCharacterSet
    */
   public void getRandomCharacters(StringBuilder buffer, int count)
   {
-    if ((characters == null) || (characters.length == 0))
+    if (characters == null || characters.length == 0)
     {
       return;
     }

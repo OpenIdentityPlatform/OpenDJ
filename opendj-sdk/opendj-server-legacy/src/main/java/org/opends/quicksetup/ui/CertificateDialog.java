@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.ui;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -45,9 +47,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.swing.Box;
@@ -64,11 +63,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class is used to present the user a certificate to the user in order
@@ -82,17 +81,11 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   public enum ReturnType
   {
-    /**
-     * The user did not accept the certificate.
-     */
+    /** The user did not accept the certificate. */
     NOT_ACCEPTED,
-    /**
-     * The user accepted the certificate only for this session.
-     */
+    /** The user accepted the certificate only for this session. */
     ACCEPTED_FOR_SESSION,
-    /**
-     * The user accepted the certificate permanently.
-     */
+    /** The user accepted the certificate permanently. */
     ACCEPTED_PERMANENTLY
   }
   private static final long serialVersionUID = -8989965057591475064L;
@@ -165,6 +158,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    *
    * @param e the HyperlinkEvent.
    */
+  @Override
   public void hyperlinkUpdate(HyperlinkEvent e)
   {
     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
@@ -309,7 +303,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     explanationPane.setEditable(false);
     explanationPane.addHyperlinkListener(this);
     p.add(explanationPane, gbc);
-    if ((ce.getChain() != null) && (ce.getChain().length > 0))
+    if (ce.getChain() != null && ce.getChain().length > 0)
     {
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(text);
@@ -360,6 +354,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_TOOLTIP.get());
     buttonsPanel.add(acceptSessionButton, gbc);
     acceptSessionButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent ev) {
         acceptForSession();
       }
@@ -372,6 +367,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_TOOLTIP.get());
     buttonsPanel.add(acceptPermanentlyButton, gbc);
     acceptPermanentlyButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent ev) {
         acceptPermanently();
       }
@@ -385,6 +381,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     buttonsPanel.add(doNotAcceptButton, gbc);
     doNotAcceptButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         doNotAccept();
@@ -402,7 +399,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   {
     JPanel p = UIFactory.makeJPanel();
     p.setLayout(new GridBagLayout());
-    if ((ce.getChain() != null) && (ce.getChain().length > 0))
+    if (ce.getChain() != null && ce.getChain().length > 0)
     {
       final JComboBox combo = new JComboBox();
       combo.setToolTipText(
@@ -510,6 +507,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
       combo.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           String selectedItem = (String)combo.getSelectedItem();
@@ -610,29 +608,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   public static LocalizableMessage getSHA1FingerPrint(X509Certificate cert)
   {
-    LocalizableMessage msg = null;
-    try {
-      MessageDigest md = MessageDigest.getInstance("SHA1");
-
-      byte[] b = md.digest(cert.getEncoded());
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < b.length; i++)
-      {
-        if (i > 0)
-        {
-          sb.append(":");
-        }
-        sb.append(Integer.toHexString(((int) b[i]) & 0xFF));
-      }
-      msg = LocalizableMessage.raw(sb);
-    }
-    catch (NoSuchAlgorithmException nsae) {
-      logger.warn(LocalizableMessage.raw("SHA1 algorithm not supported: "+nsae, nsae));
-    }
-    catch (CertificateEncodingException cee) {
-      logger.warn(LocalizableMessage.raw("Certificate encoding exception: "+cee, cee));
-    }
-    return msg;
+    return getFingerPrint(cert, "SHA1");
   }
 
   /**
@@ -642,10 +618,13 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    */
   public static LocalizableMessage getMD5FingerPrint(X509Certificate cert)
   {
-    LocalizableMessage msg = null;
-    try {
-      MessageDigest md = MessageDigest.getInstance("MD5");
+    return getFingerPrint(cert, "MD5");
+  }
 
+  private static LocalizableMessage getFingerPrint(X509Certificate cert, String algorithm)
+  {
+    try {
+      MessageDigest md = MessageDigest.getInstance(algorithm);
       byte[] b = md.digest(cert.getEncoded());
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < b.length; i++)
@@ -654,17 +633,18 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
         {
           sb.append(":");
         }
-        sb.append(Integer.toHexString(((int) b[i]) & 0xFF));
+        sb.append(Integer.toHexString(b[i] & 0xFF));
       }
-      msg = LocalizableMessage.raw(sb);
+      return LocalizableMessage.raw(sb);
     }
     catch (NoSuchAlgorithmException nsae) {
-      logger.warn(LocalizableMessage.raw("MD5 algorithm not supported: "+nsae, nsae));
+      logger.warn(LocalizableMessage.raw(algorithm + " algorithm not supported: " + nsae, nsae));
+      return null;
     }
     catch (CertificateEncodingException cee) {
       logger.warn(LocalizableMessage.raw("Certificate encoding exception: "+cee, cee));
+      return null;
     }
-    return msg;
   }
 
   private JComponent createSHA1FingerprintComponent(X509Certificate cert)
@@ -696,61 +676,34 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     {
       LdapName dn = new LdapName(name);
       Rdn rdn = dn.getRdn(0);
-      name = rdn.getValue().toString();
+      return rdn.getValue().toString();
     }
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error parsing subject dn: "+
           cert.getSubjectX500Principal(), t));
+      return name;
     }
-    return name;
   }
 
-  /**
-   * Method called when user clicks on ok.
-   *
-   */
+  /** Method called when user clicks on ok. */
   private void acceptForSession()
   {
     returnValue = ReturnType.ACCEPTED_FOR_SESSION;
     dispose();
   }
 
-  /**
-   * Method called when user clicks on cancel.
-   *
-   */
+  /** Method called when user clicks on cancel. */
   private void doNotAccept()
   {
     returnValue = ReturnType.NOT_ACCEPTED;
     dispose();
   }
 
-  /**
-   * Method called when user clicks on ok.
-   *
-   */
+  /** Method called when user clicks on ok. */
   private void acceptPermanently()
   {
     returnValue = ReturnType.ACCEPTED_PERMANENTLY;
     dispose();
   }
-
-  /**
-   * Method written for testing purposes.
-   * @param args the arguments to be passed to the test program.
-   */
-  /*
-  public static void main(String[] args)
-  {
-    try
-    {
-      // TODO
-    } catch (Exception ex)
-    {
-      ex.printStackTrace();
-    }
-  }
-  */
 }
-

@@ -206,7 +206,7 @@ public class BinaryCellPanel extends JPanel
   public void setValue(byte[] value, boolean isImage)
   {
     label.setText(getString(value, isImage).toString());
-    deleteButton.setVisible((value != null) && isDisplayDelete());
+    deleteButton.setVisible(value != null && isDisplayDelete());
     this.value = value;
     if (!isImage)
     {
@@ -228,7 +228,7 @@ public class BinaryCellPanel extends JPanel
   public void setValue(BinaryValue value, boolean isImage)
   {
     label.setText(getMessage(value, isImage).toString());
-    deleteButton.setVisible((value != null) && isDisplayDelete());
+    deleteButton.setVisible(value != null && isDisplayDelete());
     this.value = value;
     if (!isImage)
     {
@@ -260,7 +260,7 @@ public class BinaryCellPanel extends JPanel
     else
     {
       Icon icon = getIcon(value);
-      if ((icon == null) || (icon.getIconHeight() <= 0))
+      if (icon == null || icon.getIconHeight() <= 0)
       {
         Utilities.setWarningLabel(label, ERR_LOADING_IMAGE.get());
         label.setVisible(true);

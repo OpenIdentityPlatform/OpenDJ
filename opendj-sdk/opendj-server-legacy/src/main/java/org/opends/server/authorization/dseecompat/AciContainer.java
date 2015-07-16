@@ -805,7 +805,7 @@ implements AciTargetMatchContext, AciEvalContext {
   /** {@inheritDoc} */
   @Override
   public  void setEvalUserAttributes(int v) {
-    if(operation instanceof SearchOperation && (rightsMask == ACI_READ)) {
+    if(operation instanceof SearchOperation && rightsMask == ACI_READ) {
       if(v == ACI_FOUND_USER_ATTR_RULE) {
         evalAllAttributes |= ACI_FOUND_USER_ATTR_RULE;
         evalAllAttributes &= ~ACI_USER_ATTR_STAR_MATCHED;
@@ -820,7 +820,7 @@ implements AciTargetMatchContext, AciEvalContext {
   /** {@inheritDoc} */
   @Override
   public  void setEvalOpAttributes(int v) {
-    if(operation instanceof SearchOperation && (rightsMask == ACI_READ)) {
+    if(operation instanceof SearchOperation && rightsMask == ACI_READ) {
       if(v == ACI_FOUND_OP_ATTR_RULE) {
         evalAllAttributes |= ACI_FOUND_OP_ATTR_RULE;
         evalAllAttributes &= ~ACI_OP_ATTR_PLUS_MATCHED;

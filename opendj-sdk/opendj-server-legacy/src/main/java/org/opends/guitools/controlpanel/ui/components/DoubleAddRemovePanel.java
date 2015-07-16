@@ -82,8 +82,8 @@ public class DoubleAddRemovePanel<T> extends JPanel
   private JScrollPane selectedScroll1;
   private JScrollPane selectedScroll2;
   private JList availableList;
-  private JList selectedList1;
-  private JList selectedList2;
+  private JList<T> selectedList1;
+  private JList<T> selectedList2;
   private Class<T> theClass;
   private Collection<T> unmovableItems = new ArrayList<>();
   private boolean ignoreListEvents;
@@ -167,13 +167,13 @@ public class DoubleAddRemovePanel<T> extends JPanel
     {
       /** {@inheritDoc} */
       public void mouseClicked(MouseEvent e) {
-        if (isEnabled() && (e.getClickCount() == 2))
+        if (isEnabled() && e.getClickCount() == 2)
         {
           if (e.getSource() == availableList)
           {
             if (availableList.getSelectedValue() != null)
             {
-              add1Clicked();
+              addClicked(selectedListModel1);
             }
           }
           else if (e.getSource() == selectedList1)
@@ -195,21 +195,21 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
     availableListModel = new SortableListModel<>();
     availableListModel.addListDataListener(listDataListener);
-    availableList = new JList();
+    availableList = new JList<>();
     availableList.setModel(availableListModel);
     availableList.setVisibleRowCount(15);
     availableList.addMouseListener(doubleClickListener);
 
     selectedListModel1 = new SortableListModel<>();
     selectedListModel1.addListDataListener(listDataListener);
-    selectedList1 = new JList();
+    selectedList1 = new JList<>();
     selectedList1.setModel(selectedListModel1);
     selectedList1.setVisibleRowCount(7);
     selectedList1.addMouseListener(doubleClickListener);
 
     selectedListModel2 = new SortableListModel<>();
     selectedListModel2.addListDataListener(listDataListener);
-    selectedList2 = new JList();
+    selectedList2 = new JList<>();
     selectedList2.setModel(selectedListModel2);
     selectedList2.setVisibleRowCount(7);
     selectedList2.addMouseListener(doubleClickListener);
@@ -247,7 +247,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
-        add1Clicked();
+        addClicked(selectedListModel1);
       }
     });
     gbc.insets = new Insets(5, 5, 0, 5);
@@ -324,7 +324,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       /** {@inheritDoc} */
       public void actionPerformed(ActionEvent ev)
       {
-        add2Clicked();
+        addClicked(selectedListModel2);
       }
     });
     gbc.insets = new Insets(5, 5, 0, 5);
@@ -560,7 +560,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     ignoreListEvents = true;
 
     JList[] lists = {availableList, selectedList1, selectedList2};
-    for (JList list : lists)
+    for (JList<T> list : lists)
     {
       for (T element : unmovableItems)
       {
@@ -583,39 +583,36 @@ public class DoubleAddRemovePanel<T> extends JPanel
     }
 
     ignoreListEvents = false;
-    int index = availableList.getSelectedIndex();
-    add1.setEnabled((index != -1) &&
-        (index <availableListModel.getSize()) && isEnabled());
+    add1.setEnabled(isEnabled(availableList, availableListModel));
     add2.setEnabled(add1.isEnabled());
-    index = selectedList1.getSelectedIndex();
-    remove1.setEnabled((index != -1) &&
-        (index <selectedListModel1.getSize()) && isEnabled());
-    index = selectedList2.getSelectedIndex();
-    remove2.setEnabled((index != -1) &&
-        (index <selectedListModel2.getSize()) && isEnabled());
+    remove1.setEnabled(isEnabled(selectedList1, selectedListModel1));
+    remove2.setEnabled(isEnabled(selectedList2, selectedListModel2));
 
     if (addAll1 != null)
     {
-      boolean onlyUnmovable =
-        unmovableItems.containsAll(availableListModel.getData());
-      addAll1.setEnabled((availableListModel.getSize() > 0) && isEnabled() &&
-          !onlyUnmovable);
+      addAll1.setEnabled(isEnabled(availableListModel));
       addAll2.setEnabled(addAll1.isEnabled());
     }
     if (removeAll1 != null)
     {
-      boolean onlyUnmovable =
-        unmovableItems.containsAll(selectedListModel1.getData());
-      removeAll1.setEnabled((selectedListModel1.getSize() > 0) && isEnabled() &&
-          !onlyUnmovable);
+      removeAll1.setEnabled(isEnabled(selectedListModel1));
     }
     if (removeAll2 != null)
     {
-      boolean onlyUnmovable =
-        unmovableItems.containsAll(selectedListModel2.getData());
-      removeAll2.setEnabled((selectedListModel2.getSize() > 0) && isEnabled() &&
-          !onlyUnmovable);
+      removeAll2.setEnabled(isEnabled(selectedListModel2));
     }
+  }
+
+  private boolean isEnabled(JList<T> list, SortableListModel<T> model)
+  {
+    int index = list.getSelectedIndex();
+    return index != -1 && index < model.getSize() && isEnabled();
+  }
+
+  private boolean isEnabled(SortableListModel<T> model)
+  {
+    boolean onlyUnmovable = unmovableItems.containsAll(model.getData());
+    return model.getSize() > 0 && isEnabled() && !onlyUnmovable;
   }
 
   /**
@@ -631,7 +628,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
    * Returns the first selected list.
    * @return the first selected list.
    */
-  public JList getSelectedList1()
+  public JList<T> getSelectedList1()
   {
     return selectedList1;
   }
@@ -640,73 +637,42 @@ public class DoubleAddRemovePanel<T> extends JPanel
    * Returns the second selected list.
    * @return the second selected list.
    */
-  public JList getSelectedList2()
+  public JList<T> getSelectedList2()
   {
     return selectedList2;
   }
 
-  private void add1Clicked()
+  private void addClicked(SortableListModel<T> selectedListModel)
   {
-    @SuppressWarnings("deprecation")
-    Object[] selectedObjects = availableList.getSelectedValues();
-    for (int i=0; i<selectedObjects.length; i++)
+    for (Object selectedObject : availableList.getSelectedValuesList())
     {
-      T value = DoubleAddRemovePanel.this.theClass.cast(selectedObjects[i]);
-      selectedListModel1.add(value);
+      T value = DoubleAddRemovePanel.this.theClass.cast(selectedObject);
+      selectedListModel.add(value);
       availableListModel.remove(value);
     }
-    selectedListModel1.fireContentsChanged(selectedListModel1, 0,
-        selectedListModel1.getSize());
-    availableListModel.fireContentsChanged(availableListModel, 0,
-        availableListModel.getSize());
-  }
-
-  private void add2Clicked()
-  {
-    @SuppressWarnings("deprecation")
-    Object[] selectedObjects = availableList.getSelectedValues();
-    for (int i=0; i<selectedObjects.length; i++)
-    {
-      T value = DoubleAddRemovePanel.this.theClass.cast(selectedObjects[i]);
-      selectedListModel2.add(value);
-      availableListModel.remove(value);
-    }
-    selectedListModel2.fireContentsChanged(selectedListModel2, 0,
-        selectedListModel2.getSize());
-    availableListModel.fireContentsChanged(availableListModel, 0,
-        availableListModel.getSize());
+    selectedListModel.fireContentsChanged(selectedListModel, 0, selectedListModel.getSize());
+    availableListModel.fireContentsChanged(availableListModel, 0, availableListModel.getSize());
   }
 
   private void remove1Clicked()
   {
-    @SuppressWarnings("deprecation")
-    Object[] selectedObjects = selectedList1.getSelectedValues();
-    for (int i=0; i<selectedObjects.length; i++)
-    {
-      T value = DoubleAddRemovePanel.this.theClass.cast(selectedObjects[i]);
-      availableListModel.add(value);
-      selectedListModel1.remove(value);
-    }
-    selectedListModel1.fireContentsChanged(selectedListModel1, 0,
-        selectedListModel1.getSize());
-    availableListModel.fireContentsChanged(availableListModel, 0,
-        availableListModel.getSize());
+    removeClicked(selectedListModel1, selectedList1);
   }
 
   private void remove2Clicked()
   {
-    @SuppressWarnings("deprecation")
-    Object[] selectedObjects = selectedList2.getSelectedValues();
-    for (int i=0; i<selectedObjects.length; i++)
+    removeClicked(selectedListModel2, selectedList2);
+  }
+
+  private void removeClicked(SortableListModel<T> selectedListModel, JList<T> selectedList)
+  {
+    for (T value : selectedList.getSelectedValuesList())
     {
-      T value = DoubleAddRemovePanel.this.theClass.cast(selectedObjects[i]);
       availableListModel.add(value);
-      selectedListModel2.remove(value);
+      selectedListModel.remove(value);
     }
-    selectedListModel2.fireContentsChanged(selectedListModel2, 0,
-        selectedListModel2.getSize());
-    availableListModel.fireContentsChanged(availableListModel, 0,
-        availableListModel.getSize());
+    selectedListModel.fireContentsChanged(selectedListModel, 0, selectedListModel.getSize());
+    availableListModel.fireContentsChanged(availableListModel, 0, availableListModel.getSize());
   }
 
   /**

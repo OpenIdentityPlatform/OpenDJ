@@ -209,7 +209,7 @@ public final class LDAPClientConnection extends ClientConnection implements
           // fall back to a more inefficient way that will work without a
           // selector.
           while (byteBuffer.hasRemaining()
-              && (System.currentTimeMillis() < stopTime))
+              && System.currentTimeMillis() < stopTime)
           {
             bytesWritten = clientChannel.write(byteBuffer);
             if (bytesWritten < 0)
@@ -770,7 +770,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       }
 
       List<String> opReferrals = operation.getReferralURLs();
-      if ((opReferrals != null) && (!opReferrals.isEmpty()))
+      if (opReferrals != null && !opReferrals.isEmpty())
       {
         StringBuilder referralsStr = new StringBuilder();
         Iterator<String> iterator = opReferrals.iterator();
@@ -1075,9 +1075,8 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     // See if we should send a notification to the client. If so, then
     // construct and send a notice of disconnection unsolicited
-    // response. Note that we cannot send this notification to an LDAPv2
-    // client.
-    if (sendNotification && (ldapVersion != 2))
+    // response. Note that we cannot send this notification to an LDAPv2 client.
+    if (sendNotification && ldapVersion != 2)
     {
       try
       {
@@ -1561,7 +1560,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     {
       logger.traceException(e);
 
-      if (asn1Reader.hasRemainingData() || (e instanceof SSLException))
+      if (asn1Reader.hasRemainingData() || e instanceof SSLException)
       {
         // The connection failed, but there was an unread partial message so
         // interpret this as an IO error.
@@ -1722,11 +1721,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    *         connection has been closed as a result (it is the
    *         responsibility of this method to close the connection).
    */
-  private boolean processAbandonRequest(LDAPMessage message,
-      List<Control> controls)
+  private boolean processAbandonRequest(LDAPMessage message, List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
@@ -1772,11 +1769,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    *         connection has been closed as a result (it is the
    *         responsibility of this method to close the connection).
    */
-  private boolean processAddRequest(LDAPMessage message,
-      List<Control> controls)
+  private boolean processAddRequest(LDAPMessage message, List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       AddResponseProtocolOp responseOp =
@@ -1858,7 +1853,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         return false;
       }
 
-      if ((controls != null) && (!controls.isEmpty()))
+      if (controls != null && !controls.isEmpty())
       {
         // LDAPv2 clients aren't allowed to send controls.
         BindResponseProtocolOp responseOp =
@@ -1963,11 +1958,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    *         connection has been closed as a result (it is the
    *         responsibility of this method to close the connection).
    */
-  private boolean processCompareRequest(LDAPMessage message,
-      List<Control> controls)
+  private boolean processCompareRequest(LDAPMessage message, List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       CompareResponseProtocolOp responseOp =
@@ -2023,11 +2016,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    *         connection has been closed as a result (it is the
    *         responsibility of this method to close the connection).
    */
-  private boolean processDeleteRequest(LDAPMessage message,
-      List<Control> controls)
+  private boolean processDeleteRequest(LDAPMessage message, List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       DeleteResponseProtocolOp responseOp =
@@ -2147,11 +2138,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    *         connection has been closed as a result (it is the
    *         responsibility of this method to close the connection).
    */
-  private boolean processModifyRequest(LDAPMessage message,
-      List<Control> controls)
+  private boolean processModifyRequest(LDAPMessage message, List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       ModifyResponseProtocolOp responseOp =
@@ -2208,11 +2197,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    *         connection has been closed as a result (it is the
    *         responsibility of this method to close the connection).
    */
-  private boolean processModifyDNRequest(LDAPMessage message,
-      List<Control> controls)
+  private boolean processModifyDNRequest(LDAPMessage message, List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       ModifyDNResponseProtocolOp responseOp =
@@ -2271,8 +2258,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   private boolean processSearchRequest(LDAPMessage message,
       List<Control> controls)
   {
-    if ((ldapVersion == 2) && (controls != null)
-        && (!controls.isEmpty()))
+    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       SearchResultDoneProtocolOp responseOp =
@@ -2483,7 +2469,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     if (operationsInProgress.isEmpty()
         && getPersistentSearches().isEmpty())
     {
-      return (TimeThread.getTime() - lastCompletionTime.get());
+      return TimeThread.getTime() - lastCompletionTime.get();
     }
     else
     {

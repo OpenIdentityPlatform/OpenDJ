@@ -172,7 +172,7 @@ class NodeSearcherQueue implements Runnable {
     do {
       int waitingSize = waitingQueue.size();
       int i = 0;
-      while ((i < waitingSize) && !canBeFetched(i)) {
+      while (i < waitingSize && !canBeFetched(i)) {
         i++;
       }
       if (i == waitingSize) { // Nothing found

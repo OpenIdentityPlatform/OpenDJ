@@ -286,7 +286,7 @@ public final class ChangeNumberControlPlugin
    */
   private void processCsnControl(PostOperationOperation operation) {
     List<Control> requestControls = operation.getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty())) {
+    if (requestControls != null && ! requestControls.isEmpty()) {
       for (Control c : requestControls) {
         if (c.getOID().equals(OID_CSN_CONTROL)) {
           OperationContext ctx = (OperationContext)

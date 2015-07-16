@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -107,7 +107,7 @@ public final class AuthenticationInfo
     this.authenticationEntry = authenticationEntry;
     this.isRoot              = isRoot;
 
-    isAuthenticated     = (authenticationEntry != null);
+    isAuthenticated     = authenticationEntry != null;
     mustChangePassword  = false;
     simpleBindDN        = authenticationEntry != null ?
         authenticationEntry.getName() : null;

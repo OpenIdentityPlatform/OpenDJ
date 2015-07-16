@@ -66,8 +66,7 @@ public class ColorAndFontConstants
     Color bg = Color.white;
     try
     {
-      if ((foreground.getGreen() + foreground.getRed() + foreground.getBlue()) >
-      (200 * 3))
+      if (foreground.getGreen() + foreground.getRed() + foreground.getBlue() > 200 * 3)
       {
         // This is done to avoid problem in high contrast UIs
         bg = UIManager.getColor("TextField.background");

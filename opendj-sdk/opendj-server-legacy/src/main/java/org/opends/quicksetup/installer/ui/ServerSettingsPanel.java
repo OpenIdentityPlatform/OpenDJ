@@ -113,11 +113,11 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     {
       String parent = tfServerLocationParent.getText();
       String relative = tfServerLocationRelativePath.getText();
-      if ((parent != null) && (parent.length() > 0))
+      if (parent != null && parent.length() > 0)
       {
         value = parent;
       }
-      if ((relative != null) && (relative.length() > 0))
+      if (relative != null && relative.length() > 0)
       {
         if (value == null)
         {

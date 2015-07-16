@@ -958,8 +958,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     Entry oldEntry = modifyOperation.getCurrentEntry();
     Entry newEntry = modifyOperation.getModifiedEntry();
 
-    if ((newEntry.isSubentry() || newEntry.isLDAPSubentry()) ||
-        (oldEntry.isSubentry() || oldEntry.isLDAPSubentry()))
+    if (newEntry.isSubentry() || newEntry.isLDAPSubentry() ||
+        oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
     {
       ClientConnection conn = modifyOperation.getClientConnection();
       if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
@@ -1146,7 +1146,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     Entry entry = modifyOperation.getCurrentEntry();
     Entry modEntry = modifyOperation.getModifiedEntry();
-    if ((entry != null) && (modEntry != null))
+    if (entry != null && modEntry != null)
     {
       doPostModify(entry, modEntry);
     }
@@ -1159,7 +1159,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     Entry oldEntry = modifyDNOperation.getOriginalEntry();
     Entry newEntry = modifyDNOperation.getUpdatedEntry();
-    if ((oldEntry != null) && (newEntry != null))
+    if (oldEntry != null && newEntry != null)
     {
       doPostModifyDN(oldEntry, newEntry);
     }

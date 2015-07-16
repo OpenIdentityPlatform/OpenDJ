@@ -738,7 +738,7 @@ public final class InternalLDAPOutputStream
     }
     catch (DirectoryException e)
     {
-      final String cause = (baseDN == null ? "baseDN" : "filter");
+      final String cause = baseDN == null ? "baseDN" : "filter";
       throw error(LocalizableMessage.raw("Could not decode " + cause), e);
     }
     SearchRequest sr = newSearchRequest(baseDN, request.getScope(), filter)
@@ -791,20 +791,16 @@ public final class InternalLDAPOutputStream
          new SearchResultEntryProtocolOp(searchEntry);
 
     socket.getInputStream().addLDAPMessage(
-         new LDAPMessage(searchOperation.getMessageID(), entry,
-                         entryControls));
+         new LDAPMessage(searchOperation.getMessageID(), entry, entryControls));
   }
 
 
 
   /**
-   * Performs any processing necessary for the provided search result
-   * reference.
+   * Performs any processing necessary for the provided search result reference.
    *
-   * @param  searchOperation  The internal search operation being
-   *                          processed.
-   * @param  searchReference  The search result reference to be
-   *                          processed.
+   * @param  searchOperation  The internal search operation being processed.
+   * @param  searchReference  The search result reference to be processed.
    */
   @Override
   @org.opends.server.types.PublicAPI(
@@ -836,7 +832,6 @@ public final class InternalLDAPOutputStream
   @Override
   public String toString()
   {
-    return "InternalLDAPOutputStream";
+    return getClass().getSimpleName();
   }
 }
-

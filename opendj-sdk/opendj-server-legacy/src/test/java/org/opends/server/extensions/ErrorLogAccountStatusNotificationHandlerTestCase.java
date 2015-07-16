@@ -267,8 +267,8 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
       Date date = new Date(System.currentTimeMillis() + 86400000L);
       notificationProperties.put(PASSWORD_EXPIRATION_TIME, newArrayList(date.toString()));
     }
-    else if ((notificationType == PASSWORD_CHANGED) ||
-             (notificationType == PASSWORD_RESET))
+    else if (notificationType == PASSWORD_CHANGED ||
+             notificationType == PASSWORD_RESET)
     {
       notificationProperties.put(OLD_PASSWORD, newArrayList("oldpassword"));
       notificationProperties.put(NEW_PASSWORD,  newArrayList("newpassword"));

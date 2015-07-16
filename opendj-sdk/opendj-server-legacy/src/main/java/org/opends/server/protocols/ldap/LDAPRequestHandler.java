@@ -136,7 +136,7 @@ public class LDAPRequestHandler
     catch (IOException ioe)
     {
       StackTraceElement[] stackElements = ioe.getStackTrace();
-      if ((stackElements != null) && (stackElements.length > 0))
+      if (stackElements != null && stackElements.length > 0)
       {
         StackTraceElement ste = stackElements[0];
         if (ste.getClassName().equals("sun.nio.ch.DevPollArrayWrapper")

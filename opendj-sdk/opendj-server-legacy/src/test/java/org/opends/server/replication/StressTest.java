@@ -293,7 +293,7 @@ public class StressTest extends ReplicationTestCase
       synchronized (this)
       {
         int i = 20;
-        while ((finished != true) && (i-- >0))
+        while (!finished && (i-- >0))
         {
           try
           {

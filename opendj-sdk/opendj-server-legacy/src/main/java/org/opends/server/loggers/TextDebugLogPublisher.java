@@ -280,8 +280,7 @@ public class TextDebugLogPublisher
         if(writer instanceof AsynchronousTextWriter && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          AsynchronousTextWriter asyncWriter =
-              ((AsynchronousTextWriter)writer);
+          AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -294,8 +293,8 @@ public class TextDebugLogPublisher
               config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
-        if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&
-            (currentConfig.getQueueSize() != config.getQueueSize()))
+        if(currentConfig.isAsynchronous() && config.isAsynchronous() &&
+            currentConfig.getQueueSize() != config.getQueueSize())
         {
           ccr.setAdminActionRequired(true);
         }

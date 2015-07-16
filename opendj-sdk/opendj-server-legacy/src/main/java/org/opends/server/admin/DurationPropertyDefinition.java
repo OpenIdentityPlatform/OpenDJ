@@ -464,7 +464,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
       throw PropertyException.illegalPropertyValueException(this, value);
     }
 
-    if ((upperLimit != null) && (nvalue > upperLimit)) {
+    if (upperLimit != null && nvalue > upperLimit) {
       throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
@@ -508,7 +508,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
 
     // Check the unit is in range - values must not be more granular
     // than the base unit.
-    if ((ms % baseUnit.getDuration()) != 0) {
+    if (ms % baseUnit.getDuration() != 0) {
       throw PropertyException.illegalPropertyValueException(this, value);
     }
 

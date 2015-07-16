@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.naming.NamingException;
@@ -477,40 +478,37 @@ public abstract class Task
     {
       return OBFUSCATED_VALUE;
     }
-    else
+    else if (o instanceof byte[])
     {
-      if (o instanceof byte[])
+      byte[] bytes = (byte[])o;
+      if (displayBase64(attrName))
       {
-        byte[] bytes = (byte[])o;
-        if (displayBase64(attrName))
+        if (bytes.length > MAX_BINARY_LENGTH_TO_DISPLAY)
         {
-          if (bytes.length > MAX_BINARY_LENGTH_TO_DISPLAY)
-          {
-            return INFO_CTRL_PANEL_VALUE_IN_BASE64.get().toString();
-          }
-          else
-          {
-            return Base64.encode(bytes);
-          }
+          return INFO_CTRL_PANEL_VALUE_IN_BASE64.get().toString();
         }
         else
         {
-          if (bytes.length > MAX_BINARY_LENGTH_TO_DISPLAY)
-          {
-            return INFO_CTRL_PANEL_BINARY_VALUE.get().toString();
-          }
-          else
-          {
-            // Get the String value
-            ByteString v = ByteString.wrap(bytes);
-            return v.toString();
-          }
+          return Base64.encode(bytes);
         }
       }
       else
       {
-        return String.valueOf(o);
+        if (bytes.length > MAX_BINARY_LENGTH_TO_DISPLAY)
+        {
+          return INFO_CTRL_PANEL_BINARY_VALUE.get().toString();
+        }
+        else
+        {
+          // Get the String value
+          ByteString v = ByteString.wrap(bytes);
+          return v.toString();
+        }
       }
+    }
+    else
+    {
+      return String.valueOf(o);
     }
   }
 
@@ -521,27 +519,17 @@ public abstract class Task
    */
   protected String obfuscateLDIFLine(String line)
   {
-    String returnValue;
     int index = line.indexOf(":");
     if (index != -1)
     {
       String attrName = line.substring(0, index).trim();
-
       if (Utilities.mustObfuscate(attrName,
           getInfo().getServerDescriptor().getSchema()))
       {
-        returnValue = attrName + ": " + OBFUSCATED_VALUE;
-      }
-      else
-      {
-        returnValue = line;
+        return attrName + ": " + OBFUSCATED_VALUE;
       }
     }
-    else
-    {
-      returnValue = line;
-    }
-    return returnValue;
+    return line;
   }
 
   /**
@@ -603,7 +591,7 @@ public abstract class Task
    * @param incompatibilityReasons the list of incompatibility reasons that
    * must be updated.
    * @return <CODE>true</CODE> if the task that we are trying to launch can be
-   * launched in paralel with this task and <CODE>false</CODE> otherwise.
+   * launched in parallel with this task and <CODE>false</CODE> otherwise.
    */
   public abstract boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons);
@@ -638,7 +626,7 @@ public abstract class Task
       {
         binDir = f.getAbsolutePath();
       }
-      if (binDir.lastIndexOf(File.separatorChar) != (binDir.length() - 1))
+      if (binDir.lastIndexOf(File.separatorChar) != binDir.length() - 1)
       {
         binDir += File.separatorChar;
       }
@@ -655,41 +643,22 @@ public abstract class Task
    */
   protected boolean runningOnSameServer(Task task)
   {
-    boolean runningOnSameServer = false;
     if (getServer().isLocal() && task.getServer().isLocal())
     {
-      runningOnSameServer = true;
+      return true;
     }
-    else
+
+    // Compare the host name and the instance path. This is safer than
+    // comparing ports: we might be running locally on a stopped instance with
+    // the same configuration as a "remote" (though located on the same machine) server.
+    String host1 = getServer().getHostname();
+    String host2 = task.getServer().getHostname();
+    boolean runningOnSameServer = host1 == null ? host2 == null : host1.equalsIgnoreCase(host2);
+    if (runningOnSameServer)
     {
-      // Compare the host name and the instance path.  This is safer than
-      // comparing ports: we might be running locally on a stopped instance with
-      // the same configuration as a "remote" (though located on the same
-      // machine) server.
       String f1 = getServer().getInstancePath();
       String f2 = task.getServer().getInstancePath();
-
-      String host1 = getServer().getHostname();
-      String host2 = task.getServer().getHostname();
-      if (host1 == null)
-      {
-        runningOnSameServer = host2 == null;
-      }
-      else
-      {
-        runningOnSameServer = host1.equalsIgnoreCase(host2);
-      }
-      if (runningOnSameServer)
-      {
-        if (f1 == null)
-        {
-          runningOnSameServer = f2 == null;
-        }
-        else
-        {
-          runningOnSameServer = f1.equals(f2);
-        }
-      }
+      return Objects.equals(f1, f2);
     }
     return runningOnSameServer;
   }
@@ -718,16 +687,11 @@ public abstract class Task
    */
   protected String getCommandLinePath(String scriptBasicName)
   {
-    String cmdLineName;
     if (isWindows())
     {
-      cmdLineName = getBinaryDir()+scriptBasicName+".bat";
+      return getBinaryDir() + scriptBasicName + ".bat";
     }
-    else
-    {
-      cmdLineName = getBinaryDir()+scriptBasicName;
-    }
-    return cmdLineName;
+    return getBinaryDir() + scriptBasicName;
   }
 
   /**
@@ -744,11 +708,9 @@ public abstract class Task
    * @param clearArgs the arguments in clear.
    * @return the list of obfuscated command-line arguments.
    */
-  protected List<String> getObfuscatedCommandLineArguments(
-      List<String> clearArgs)
+  protected List<String> getObfuscatedCommandLineArguments(List<String> clearArgs)
   {
-    String[] toObfuscate = {"--bindPassword", "--currentPassword",
-        "--newPassword"};
+    String[] toObfuscate = { "--bindPassword", "--currentPassword", "--newPassword" };
     ArrayList<String> args = new ArrayList<>(clearArgs);
     for (int i=1; i<args.size(); i++)
     {
@@ -817,10 +779,10 @@ public abstract class Task
     {
       ctx = getInfo().getUserDataDirContext();
     }
-    if (isServerRunning() && (ctx != null))
+    if (isServerRunning() && ctx != null)
     {
       String hostName = localHostName;
-      if ((hostName == null) || !getInfo().getServerDescriptor().isLocal())
+      if (hostName == null || !getInfo().getServerDescriptor().isLocal())
       {
         hostName = ConnectionUtils.getHostName(ctx);
       }
@@ -877,10 +839,7 @@ public abstract class Task
       args.removeAll(getConfigCommandLineArguments());
       return getEquivalentCommandLine(cmdLineName, args);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -938,8 +897,7 @@ public abstract class Task
     ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
-    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
-        args);
+    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"), args);
 
     StringBuilder sb = new StringBuilder();
     sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY.get()).append("<br><b>");
@@ -1077,8 +1035,7 @@ public abstract class Task
     ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
-    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
-        args);
+    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"), args);
     StringBuilder sb = new StringBuilder();
     sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RENAME.get()).append("<br><b>");
     sb.append(equiv);

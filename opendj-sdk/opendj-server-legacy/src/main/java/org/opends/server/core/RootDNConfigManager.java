@@ -274,8 +274,7 @@ public class RootDNConfigManager
     for (DN altBindDN: configuration.getAlternateBindDN())
     {
       DN existingRootDN = DirectoryServer.getActualRootBindDN(altBindDN);
-      if ((existingRootDN != null) &&
-          (! existingRootDN.equals(configuration.dn())))
+      if (existingRootDN != null && !existingRootDN.equals(configuration.dn()))
       {
         unacceptableReasons.add(ERR_CONFIG_ROOTDN_CONFLICTING_MAPPING.get(
             altBindDN, configuration.dn(), existingRootDN));

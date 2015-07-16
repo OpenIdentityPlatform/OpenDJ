@@ -458,7 +458,7 @@ public class InitOnLineTest extends ReplicationTestCase
     int count = 0;
     while (count<=entryBytes.length-2)
     {
-      if ((entryBytes[count] == '\n') && (entryBytes[count+1] == '\n'))
+      if (entryBytes[count] == '\n' && entryBytes[count+1] == '\n')
       {
         entryCount++;
         count++;

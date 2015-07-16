@@ -77,7 +77,7 @@ final class ImportRecord implements Comparable<ImportRecord>
     {
       byte b = buffer[index + i];
       answer <<= 8;
-      answer |= (b & 0xff);
+      answer |= b & 0xff;
     }
     return answer;
   }

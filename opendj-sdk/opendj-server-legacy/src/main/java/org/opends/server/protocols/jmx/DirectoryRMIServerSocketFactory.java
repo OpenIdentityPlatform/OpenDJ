@@ -169,7 +169,7 @@ public class DirectoryRMIServerSocketFactory implements
     }
     DirectoryRMIServerSocketFactory that =
       (DirectoryRMIServerSocketFactory) obj;
-    return (getClass().equals(that.getClass()) && checkParameters(that));
+    return getClass().equals(that.getClass()) && checkParameters(that);
   }
 
   /**
@@ -193,8 +193,7 @@ public class DirectoryRMIServerSocketFactory implements
   public int hashCode()
   {
     return getClass().hashCode()
-        + (needClientCertificate ? Boolean.TRUE.hashCode() : Boolean.FALSE
-            .hashCode()) + (sslSocketFactory.hashCode());
+        + Boolean.valueOf(needClientCertificate).hashCode()
+        + sslSocketFactory.hashCode();
   }
-
 }

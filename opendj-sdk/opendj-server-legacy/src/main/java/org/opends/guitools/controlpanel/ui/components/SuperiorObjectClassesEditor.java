@@ -258,19 +258,13 @@ public class SuperiorObjectClassesEditor extends JPanel
     {
       return Collections.unmodifiableSet(selectedMultipleSuperiors);
     }
-    else
+
+    ObjectClass oc = (ObjectClass)singleSuperior.getSelectedItem();
+    if (oc != null)
     {
-      ObjectClass oc = (ObjectClass)singleSuperior.getSelectedItem();
-      if (oc == null)
-      {
-        return Collections.emptySet();
-      }
-      else
-      {
-        return Collections.singleton(
-            (ObjectClass)(singleSuperior.getSelectedItem()));
-      }
+      return Collections.singleton(oc);
     }
+    return Collections.emptySet();
   }
 
   /**

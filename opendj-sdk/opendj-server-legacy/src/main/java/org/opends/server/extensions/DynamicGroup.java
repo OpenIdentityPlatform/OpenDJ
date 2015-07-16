@@ -324,7 +324,7 @@ public class DynamicGroup
                                SearchFilter filter)
          throws DirectoryException
   {
-    if ((baseDN == null) && (filter == null))
+    if (baseDN == null && filter == null)
     {
       return new DynamicGroupMemberList(groupEntryDN, memberURLs);
     }

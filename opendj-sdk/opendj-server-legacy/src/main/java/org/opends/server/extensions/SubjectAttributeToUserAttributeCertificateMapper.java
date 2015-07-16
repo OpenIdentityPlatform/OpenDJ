@@ -167,7 +167,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
     // Make sure that a peer certificate was provided.
-    if ((certificateChain == null) || (certificateChain.length == 0))
+    if (certificateChain == null || certificateChain.length == 0)
     {
       LocalizableMessage message = ERR_SATUACM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
@@ -358,7 +358,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   private Set<DN> getUserBaseDNs(SubjectAttributeToUserAttributeCertificateMapperCfg config)
   {
     Set<DN> baseDNs = config.getUserBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
+    if (baseDNs == null || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -383,7 +383,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
       String certAttrName = lowerMap.substring(0, colonPos).trim();
       String userAttrName = lowerMap.substring(colonPos+1).trim();
-      if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
+      if (certAttrName.length() == 0 || userAttrName.length() == 0)
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
         ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));

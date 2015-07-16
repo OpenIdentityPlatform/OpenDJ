@@ -202,7 +202,7 @@ class DN2ID extends AbstractTree
         }
       }
     }
-    return (nbSeparator == 1);
+    return nbSeparator == 1;
   }
 
   /**

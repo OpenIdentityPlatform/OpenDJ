@@ -193,8 +193,7 @@ public class ZipExtractor {
         int ratioBeforeCompleted = minRatio
                 + ((nEntries - 1) * (maxRatio - minRatio) / numberZipEntries);
         int ratioWhenCompleted =
-                minRatio + (nEntries * (maxRatio - minRatio) /
-                        numberZipEntries);
+                minRatio + (nEntries * (maxRatio - minRatio) / numberZipEntries);
 
         String name = entry.getName();
         if (name != null && removeFirstPath) {

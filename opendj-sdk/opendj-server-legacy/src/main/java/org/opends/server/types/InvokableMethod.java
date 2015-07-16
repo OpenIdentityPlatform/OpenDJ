@@ -359,7 +359,7 @@ public class InvokableMethod
     buffer.append(name);
     buffer.append('(');
 
-    if ((arguments != null) && (arguments.length > 0))
+    if (arguments != null && arguments.length > 0)
     {
       buffer.append(arguments[0].getDataType());
       buffer.append(' ');

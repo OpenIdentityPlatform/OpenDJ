@@ -206,7 +206,7 @@ public abstract class RawAttribute
 
     stream.writeStartSet();
     List<ByteString> values = getValues();
-    if ((values != null))
+    if (values != null)
     {
       for(ByteString value : values)
       {

@@ -479,7 +479,7 @@ public class FileManager {
 
         if (!destination.exists()) {
           if (Utils.insureParentsExist(destination)) {
-            if ((application != null) && application.isVerbose()) {
+            if (application != null && application.isVerbose()) {
               application.notifyListeners(application.getFormattedWithPoints(
                       INFO_PROGRESS_COPYING_FILE.get(
                               objectFile.getAbsolutePath(),
@@ -505,7 +505,7 @@ public class FileManager {
                 Utils.setPermissionsUnix(Utils.getPath(destination), permissions);
               }
 
-              if ((application != null) && application.isVerbose()) {
+              if (application != null && application.isVerbose()) {
                 application.notifyListeners(
                         application.getFormattedDoneWithLineBreak());
               }
@@ -532,7 +532,7 @@ public class FileManager {
           logger.info(LocalizableMessage.raw("Ignoring file '" +
                   objectFile.getAbsolutePath() + "' since '" +
                   destination.getAbsolutePath() + "' already exists"));
-          if ((application != null) && application.isVerbose()) {
+          if (application != null && application.isVerbose()) {
             application.notifyListeners(
                     INFO_INFO_IGNORING_FILE.get(
                                     objectFile.getAbsolutePath(),
@@ -576,7 +576,7 @@ public class FileManager {
       File file = getObjectFile();
       boolean isFile = file.isFile();
 
-      if ((application != null) && application.isVerbose()) {
+      if (application != null && application.isVerbose()) {
         if (isFile) {
           application.notifyListeners(application.getFormattedWithPoints(
                   INFO_PROGRESS_DELETING_FILE.get(file.getAbsolutePath())));
@@ -631,7 +631,7 @@ public class FileManager {
                 errMsg, null);
       }
 
-      if ((application != null) && application.isVerbose()) {
+      if (application != null && application.isVerbose()) {
         application.notifyListeners(
                 application.getFormattedDoneWithLineBreak());
       }

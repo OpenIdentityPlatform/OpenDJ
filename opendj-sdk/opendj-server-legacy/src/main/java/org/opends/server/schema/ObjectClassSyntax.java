@@ -139,7 +139,7 @@ public class ObjectClassSyntax
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -160,13 +160,13 @@ public class ObjectClassSyntax
     if (c != '(')
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.
-          get(valueStr, (pos-1), c);
+          get(valueStr, pos-1, c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -192,7 +192,7 @@ public class ObjectClassSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
       {
         if (c == '.')
         {
@@ -200,21 +200,17 @@ public class ObjectClassSyntax
           {
             LocalizableMessage message =
                 ERR_ATTR_SYNTAX_OBJECTCLASS_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(valueStr, (pos-1));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+                  get(valueStr, pos-1);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
-          else
-          {
-            lastWasPeriod = true;
-          }
+          lastWasPeriod = true;
         }
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, c, (pos-1));
+                get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
@@ -227,10 +223,10 @@ public class ObjectClassSyntax
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && allowExceptions))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && allowExceptions))
         {
           // This is fine.  It is an acceptable character.
         }
@@ -239,7 +235,7 @@ public class ObjectClassSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.
-                get(valueStr, c, (pos-1));
+                get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -249,7 +245,6 @@ public class ObjectClassSyntax
 
     // If we're at the end of the value, then it isn't a valid objectclass
     // description.  Otherwise, parse out the OID.
-    String oid;
     if (pos >= length)
     {
       LocalizableMessage message =
@@ -257,14 +252,11 @@ public class ObjectClassSyntax
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
-    else
-    {
-      oid = lowerStr.substring(oidStartPos, (pos-1));
-    }
 
+    String oid = lowerStr.substring(oidStartPos, pos-1);
 
     // Skip over the space(s) after the OID.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -312,7 +304,7 @@ public class ObjectClassSyntax
         {
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_OBJECTCLASS_UNEXPECTED_CLOSE_PARENTHESIS.
-                get(valueStr, (pos-1));
+                get(valueStr, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -329,8 +321,7 @@ public class ObjectClassSyntax
         {
           StringBuilder userBuffer  = new StringBuilder();
           StringBuilder lowerBuffer = new StringBuilder();
-          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
-                                 (pos-1));
+          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer, pos-1);
           primaryName = userBuffer.toString();
           names.add(primaryName);
         }
@@ -350,7 +341,7 @@ public class ObjectClassSyntax
             {
               // Skip over any spaces after the parenthesis.
               pos++;
-              while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+              while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
               {
                 pos++;
               }
@@ -371,7 +362,7 @@ public class ObjectClassSyntax
         else
         {
           // This is an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -496,7 +487,7 @@ public class ObjectClassSyntax
             }
             else if (c != '$')
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, pos-1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -505,7 +496,7 @@ public class ObjectClassSyntax
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
-          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          pos = readWOID(lowerStr, woidBuffer, pos-1);
           ObjectClass superiorClass =
                   schema.getObjectClass(woidBuffer.toString());
           if (superiorClass == null)
@@ -561,7 +552,7 @@ public class ObjectClassSyntax
           while (true)
           {
             StringBuilder woidBuffer = new StringBuilder();
-            pos = readWOID(lowerStr, woidBuffer, (pos));
+            pos = readWOID(lowerStr, woidBuffer, pos);
             attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
                 WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR));
 
@@ -574,7 +565,7 @@ public class ObjectClassSyntax
             }
             else if (c != '$')
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, pos-1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -583,7 +574,7 @@ public class ObjectClassSyntax
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
-          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          pos = readWOID(lowerStr, woidBuffer, pos-1);
           attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
               WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR));
         }
@@ -604,7 +595,7 @@ public class ObjectClassSyntax
           while (true)
           {
             StringBuilder woidBuffer = new StringBuilder();
-            pos = readWOID(lowerStr, woidBuffer, (pos));
+            pos = readWOID(lowerStr, woidBuffer, pos);
             attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
                 WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR));
 
@@ -617,7 +608,7 @@ public class ObjectClassSyntax
             }
             else if (c != '$')
             {
-              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+              LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(valueStr, c, pos-1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -626,7 +617,7 @@ public class ObjectClassSyntax
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
-          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          pos = readWOID(lowerStr, woidBuffer, pos-1);
           attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
               WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR));
         }
@@ -674,8 +665,8 @@ public class ObjectClassSyntax
           case AUXILIARY:
             // Auxiliary classes may only inherit from abstract classes or other
             // auxiliary classes.
-            if ((superiorType != ObjectClassType.ABSTRACT) &&
-                (superiorType != ObjectClassType.AUXILIARY))
+            if (superiorType != ObjectClassType.ABSTRACT &&
+                superiorType != ObjectClassType.AUXILIARY)
             {
               LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
@@ -689,8 +680,8 @@ public class ObjectClassSyntax
           case STRUCTURAL:
             // Structural classes may only inherit from abstract classes or
             // other structural classes.
-            if ((superiorType != ObjectClassType.ABSTRACT) &&
-                (superiorType != ObjectClassType.STRUCTURAL))
+            if (superiorType != ObjectClassType.ABSTRACT &&
+                superiorType != ObjectClassType.STRUCTURAL)
             {
               LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
@@ -764,7 +755,7 @@ public class ObjectClassSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -779,14 +770,14 @@ public class ObjectClassSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos++)) != ' '))
     {
       tokenName.append(c);
     }
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -821,7 +812,7 @@ public class ObjectClassSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -847,7 +838,7 @@ public class ObjectClassSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
     {
       valueBuffer.append(c);
       startPos++;
@@ -856,7 +847,7 @@ public class ObjectClassSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -906,7 +897,7 @@ public class ObjectClassSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -932,7 +923,7 @@ public class ObjectClassSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) != '\''))
     {
       lowerBuffer.append(c);
       userBuffer.append(valueStr.charAt(startPos));
@@ -942,7 +933,7 @@ public class ObjectClassSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -987,7 +978,7 @@ public class ObjectClassSyntax
     int  length = lowerStr.length();
     boolean allowExceptions = DirectoryServer.isRunning()?
                         DirectoryServer.allowAttributeNameExceptions():true;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1008,7 +999,7 @@ public class ObjectClassSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (c == '.')
         {
@@ -1016,17 +1007,13 @@ public class ObjectClassSyntax
           {
             LocalizableMessage message =
               ERR_ATTR_SYNTAX_OBJECTCLASS_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(lowerStr, (startPos-1));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+                  get(lowerStr, startPos-1);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
-          else
-          {
-            woidBuffer.append(c);
-            lastWasPeriod = true;
-          }
+          woidBuffer.append(c);
+          lastWasPeriod = true;
         }
-        else if ((!isDigit(c) && (!allowExceptions || (!isAlpha(c) && (c != '-') && (c != '_')))))
+        else if (!isDigit(c) && (!allowExceptions || (!isAlpha(c) && c != '-' && c != '_')))
         {
           // Technically, this must be an illegal character.  However, it is
           // possible that someone just got sloppy and did not include a space
@@ -1036,15 +1023,14 @@ public class ObjectClassSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(lowerStr, c, (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+                get(lowerStr, c, startPos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -1057,10 +1043,10 @@ public class ObjectClassSyntax
     {
       // This must be an objectclass description.  In this case, we will only
       // accept alphabetic characters, numeric digits, and the hyphen.
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && allowExceptions))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && allowExceptions))
         {
           woidBuffer.append(c);
         }
@@ -1074,15 +1060,14 @@ public class ObjectClassSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR_IN_STRING_OID.
-                get(lowerStr, c, (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+                get(lowerStr, c, startPos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -1096,7 +1081,7 @@ public class ObjectClassSyntax
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1139,7 +1124,7 @@ public class ObjectClassSyntax
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = valueStr.charAt(startPos++);
-    while ((startPos < length) && (c == ' '))
+    while (startPos < length && c == ' ')
     {
       c = valueStr.charAt(startPos++);
     }
@@ -1161,7 +1146,7 @@ public class ObjectClassSyntax
     {
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != '\''))
+      while (startPos < length && ((c = valueStr.charAt(startPos++)) != '\''))
       {
         valueBuffer.append(c);
       }
@@ -1174,7 +1159,7 @@ public class ObjectClassSyntax
       while (true)
       {
         // Skip over any leading spaces;
-        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
         }
@@ -1212,7 +1197,7 @@ public class ObjectClassSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = valueStr.charAt(startPos++)) != ' '))
       {
         valueBuffer.append(c);
       }
@@ -1221,7 +1206,7 @@ public class ObjectClassSyntax
     }
 
     // Skip over any trailing spaces.
-    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && valueStr.charAt(startPos) == ' ')
     {
       startPos++;
     }

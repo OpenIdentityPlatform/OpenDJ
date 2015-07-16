@@ -139,13 +139,11 @@ public class ServerSideSortRequestControl
           }
           reader.readEndSequence();
 
-          if ((orderingRule == null) &&
-              (attrType.getOrderingMatchingRule() == null))
+          if (orderingRule == null && attrType.getOrderingMatchingRule() == null)
           {
             LocalizableMessage message =
                 INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(attrName);
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                message);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
 
           sortKeys.add(new SortKey(attrType, ascending, orderingRule));

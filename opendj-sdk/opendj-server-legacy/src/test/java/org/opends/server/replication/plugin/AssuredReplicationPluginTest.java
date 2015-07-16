@@ -452,7 +452,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         sslEncryption = serverStartMsg.getSSLEncryption();
 
         // Send replication server start
-        String serverURL = ("localhost:" + port);
+        String serverURL = "localhost:" + port;
         ReplServerStartMsg replServerStartMsg = new ReplServerStartMsg(serverId,
           serverURL, baseDN, windowSize, serverState, generationId, sslEncryption,
           groupId, degradedStatusThreshold);
@@ -812,7 +812,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       else
       {
         // RS has a different group id, addEntry should have returned quickly
-        assertTrue((endTime - startTime) < 3000);
+        assertTrue(endTime - startTime < 3000);
 
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
@@ -925,7 +925,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       else
       {
         // RS has a different group id, addEntry should have returned quickly
-        assertTrue((endTime - startTime) < 3000);
+        assertTrue(endTime - startTime < 3000);
 
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
@@ -1341,7 +1341,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    */
   private void assertBlockedLongerThanTimeout(long startTime, long endTime, int TIMEOUT)
   {
-    assertTrue((endTime - startTime) >= TIMEOUT);
+    assertTrue(endTime - startTime >= TIMEOUT);
   }
 
   /**
@@ -1535,8 +1535,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private void waitOpResult(Operation operation, ResultCode expectedResult) throws Exception
   {
     int ii=0;
-    while((operation.getResultCode()==ResultCode.UNDEFINED) ||
-        (operation.getResultCode()!=expectedResult))
+    while (operation.getResultCode() == ResultCode.UNDEFINED ||
+        operation.getResultCode() != expectedResult)
     {
       Thread.sleep(50);
       ii++;

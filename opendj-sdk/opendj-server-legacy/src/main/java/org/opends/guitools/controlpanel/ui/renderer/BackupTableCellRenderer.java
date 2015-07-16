@@ -149,9 +149,8 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
       throw new IllegalArgumentException(
           "Unknown class for "+value+": "+" row: "+row+ "column: "+column);
     }
-    super.getTableCellRendererComponent(table, s, isSelected, hasFocus, row,
-        column);
-    if (isFull && (row != 0))
+    super.getTableCellRendererComponent(table, s, isSelected, hasFocus, row, column);
+    if (isFull && row != 0)
     {
       setBorder(fullBorder);
     }
@@ -159,14 +158,7 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
     {
       setBorder(incrementalBorder);
     }
-    if (isDate)
-    {
-      setHorizontalAlignment(SwingConstants.RIGHT);
-    }
-    else
-    {
-      setHorizontalAlignment(SwingConstants.LEFT);
-    }
+    setHorizontalAlignment(isDate ? SwingConstants.RIGHT : SwingConstants.LEFT);
 
     return this;
   }

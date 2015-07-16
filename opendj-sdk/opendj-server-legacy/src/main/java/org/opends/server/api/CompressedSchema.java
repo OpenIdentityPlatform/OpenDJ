@@ -539,7 +539,7 @@ public class CompressedSchema
     for (final byte b : idBytes)
     {
       id <<= 8;
-      id |= (b & 0xFF);
+      id |= b & 0xFF;
     }
     return id - 1; // Subtract 1 to compensate for old behavior.
   }

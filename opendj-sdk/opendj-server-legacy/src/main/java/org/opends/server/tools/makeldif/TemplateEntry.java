@@ -344,7 +344,7 @@ public class TemplateEntry
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // First, write the DN.  It will always be included.
@@ -381,8 +381,7 @@ public class TemplateEntry
       {
         for (Attribute a : userAttributes.get(attrType))
         {
-          if (a.isVirtual() &&
-              (! exportConfig.includeVirtualAttributes()))
+          if (a.isVirtual() && !exportConfig.includeVirtualAttributes())
           {
             continue;
           }
@@ -425,8 +424,7 @@ public class TemplateEntry
         {
           for (Attribute a : operationalAttributes.get(attrType))
           {
-            if (a.isVirtual() &&
-                (! exportConfig.includeVirtualAttributes()))
+            if (a.isVirtual() && !exportConfig.includeVirtualAttributes())
             {
               continue;
             }

@@ -176,7 +176,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     ASN1Reader reader = ASN1.getReader(in);
     while (reader.hasNextElement())
     {
-      mods.add((LDAPModification.decode(reader)).toModification());
+      mods.add(LDAPModification.decode(reader).toModification());
     }
     return mods;
   }

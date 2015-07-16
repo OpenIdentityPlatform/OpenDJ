@@ -85,7 +85,7 @@ public class JebFormat
     for (int i = start; i < end; i++)
     {
       v <<= 8;
-      v |= (bytes[i] & 0xFF);
+      v |= bytes[i] & 0xFF;
     }
     return v;
   }
@@ -108,11 +108,11 @@ public class JebFormat
     if(bytes.length == 8)
     {
       long v = 0;
-      v |= (bytes[0] & 0x7F);
+      v |= bytes[0] & 0x7F;
       for (int i = 1; i < 8; i++)
       {
         v <<= 8;
-        v |= (bytes[i] & 0xFF);
+        v |= bytes[i] & 0xFF;
       }
       return v;
     }
@@ -145,7 +145,7 @@ public class JebFormat
       v |= (decodedBytes[pos++] & 0xFFL) << 24;
       v |= (decodedBytes[pos++] & 0xFFL) << 16;
       v |= (decodedBytes[pos++] & 0xFFL) << 8;
-      v |= (decodedBytes[pos++] & 0xFFL);
+      v |= decodedBytes[pos++] & 0xFFL;
       entryIDList[i] = v;
     }
 
@@ -169,7 +169,7 @@ public class JebFormat
       v |= (decodedBytes[pos++] & 0xFFL) << 24;
       v |= (decodedBytes[pos++] & 0xFFL) << 16;
       v |= (decodedBytes[pos++] & 0xFFL) << 8;
-      v |= (decodedBytes[pos++] & 0xFFL);
+      v |= decodedBytes[pos++] & 0xFFL;
       entryIDList[i] = v;
     }
 

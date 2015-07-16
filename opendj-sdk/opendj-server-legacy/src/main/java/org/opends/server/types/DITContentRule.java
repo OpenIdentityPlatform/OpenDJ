@@ -166,7 +166,7 @@ public final class DITContentRule
       this.definition = definition;
     }
 
-    if ((names == null) || names.isEmpty())
+    if (names == null || names.isEmpty())
     {
       this.names = new LinkedHashMap<>(0);
     }
@@ -175,7 +175,7 @@ public final class DITContentRule
       this.names = new LinkedHashMap<>(names);
     }
 
-    if ((auxiliaryClasses == null) || auxiliaryClasses.isEmpty())
+    if (auxiliaryClasses == null || auxiliaryClasses.isEmpty())
     {
       this.auxiliaryClasses = new LinkedHashSet<>(0);
     }
@@ -184,7 +184,7 @@ public final class DITContentRule
       this.auxiliaryClasses = new LinkedHashSet<>(auxiliaryClasses);
     }
 
-    if ((requiredAttributes == null) || requiredAttributes.isEmpty())
+    if (requiredAttributes == null || requiredAttributes.isEmpty())
     {
       this.requiredAttributes = new LinkedHashSet<>(0);
     }
@@ -193,7 +193,7 @@ public final class DITContentRule
       this.requiredAttributes = new LinkedHashSet<>(requiredAttributes);
     }
 
-    if ((optionalAttributes == null) || optionalAttributes.isEmpty())
+    if (optionalAttributes == null || optionalAttributes.isEmpty())
     {
       this.optionalAttributes = new LinkedHashSet<>(0);
     }
@@ -202,8 +202,7 @@ public final class DITContentRule
       this.optionalAttributes = new LinkedHashSet<>(optionalAttributes);
     }
 
-    if ((prohibitedAttributes == null) ||
-        prohibitedAttributes.isEmpty())
+    if (prohibitedAttributes == null || prohibitedAttributes.isEmpty())
     {
       this.prohibitedAttributes = new LinkedHashSet<>(0);
     }
@@ -212,7 +211,7 @@ public final class DITContentRule
       this.prohibitedAttributes = new LinkedHashSet<>(prohibitedAttributes);
     }
 
-    if ((extraProperties == null) || extraProperties.isEmpty())
+    if (extraProperties == null || extraProperties.isEmpty())
     {
       this.extraProperties = new LinkedHashMap<>(0);
     }
@@ -380,8 +379,8 @@ public final class DITContentRule
    */
   public boolean isRequiredOrOptional(AttributeType attributeType)
   {
-    return (requiredAttributes.contains(attributeType) ||
-            optionalAttributes.contains(attributeType));
+    return requiredAttributes.contains(attributeType) ||
+            optionalAttributes.contains(attributeType);
   }
 
 
@@ -450,14 +449,13 @@ public final class DITContentRule
     {
       return true;
     }
-
-    if ((o == null) || (! (o instanceof DITContentRule)))
+    if (!(o instanceof DITContentRule))
     {
       return false;
     }
 
     DITContentRule dcr = (DITContentRule) o;
-    if (! structuralClass.equals(dcr.structuralClass))
+    if (!structuralClass.equals(dcr.structuralClass))
     {
       return false;
     }

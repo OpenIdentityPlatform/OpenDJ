@@ -143,7 +143,7 @@ public class TraditionalWorkQueueTestCase
     long startTime = System.currentTimeMillis();
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
     long stopTime = System.currentTimeMillis();
-    assertTrue((stopTime - startTime) <= 1000);
+    assertTrue(stopTime - startTime <= 1000);
   }
 
 
@@ -163,7 +163,7 @@ public class TraditionalWorkQueueTestCase
     long startTime = System.currentTimeMillis();
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(0));
     long stopTime = System.currentTimeMillis();
-    assertTrue((stopTime - startTime) <= 1000);
+    assertTrue(stopTime - startTime <= 1000);
   }
 
 
@@ -189,7 +189,7 @@ public class TraditionalWorkQueueTestCase
     long startTime = System.currentTimeMillis();
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
     long stopTime = System.currentTimeMillis();
-    assertTrue((stopTime - startTime) >= 4000);
+    assertTrue(stopTime - startTime >= 4000);
   }
 
   /**
@@ -213,7 +213,7 @@ public class TraditionalWorkQueueTestCase
     long startTime = System.currentTimeMillis();
     assertFalse(DirectoryServer.getWorkQueue().waitUntilIdle(1000));
     long stopTime = System.currentTimeMillis();
-    assertTrue((stopTime - startTime) <= 2000);
+    assertTrue(stopTime - startTime <= 2000);
   }
 }
 

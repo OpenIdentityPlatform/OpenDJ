@@ -220,7 +220,7 @@ public class EncodePasswordTestCase
   @Test(dataProvider = "invalidArgs")
   public void testInvalidArguments(String[] args, String invalidReason)
   {
-    assertFalse((EncodePassword.encodePassword(args, false, null, null) == 0),
+    assertFalse(EncodePassword.encodePassword(args, false, null, null) == 0,
                 "Should have been invalid because:  " + invalidReason);
   }
 

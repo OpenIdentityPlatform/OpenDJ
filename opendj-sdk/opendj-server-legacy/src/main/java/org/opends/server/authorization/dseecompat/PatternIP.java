@@ -231,7 +231,7 @@ public class PatternIP {
         }
         try {
             //Can only have one prefix value and one address string.
-            if((numParts  < 1) || (numParts > 2) ) {
+            if(numParts  < 1 || numParts > 2 ) {
                 LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_PREFIX_FORMAT.get(expr);
                 throw new AciException(message);
@@ -240,7 +240,7 @@ public class PatternIP {
                 prefix = Integer.parseInt(prefixStr);
             }
             //Must be between 0 to maxprefix.
-            if((prefix < 0) || (prefix > maxPrefix)) {
+            if(prefix < 0 || prefix > maxPrefix) {
                 LocalizableMessage message =
                     WARN_ACI_SYNTAX_INVALID_PREFIX_VALUE.get(expr);
                 throw new AciException(message);
@@ -273,7 +273,7 @@ public class PatternIP {
             prefixBytes[i] = (byte) 0xff;
             prefix -= 8;
         }
-        prefixBytes[i] = (byte) ((0xff) << (8 - prefix));
+        prefixBytes[i] = (byte) (0xff << 8 - prefix);
         return prefixBytes;
     }
 
@@ -302,7 +302,7 @@ public class PatternIP {
             throw new AciException(message);
         }
         //Can only have one netmask value and one address string.
-        if((numParts  < 1) || (numParts > 2) ) {
+        if(numParts  < 1 || numParts > 2 ) {
             LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_NETMASK_FORMAT.get(expr);
             throw new AciException(message);
         }
@@ -353,7 +353,7 @@ public class PatternIP {
                 else {
                     long val=Integer.parseInt(quad);
                     //must be between 0-255
-                    if((val < 0) ||  (val > 0xff)) {
+                    if(val < 0 ||  val > 0xff) {
                         LocalizableMessage message =
                             WARN_ACI_SYNTAX_INVALID_IPV4_VALUE.get(expr);
                         throw new AciException(message);

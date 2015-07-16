@@ -2005,7 +2005,7 @@ public abstract class ReplicationDomain
     int count = 0;
     while (count<=length-2)
     {
-      if ((entryBytes[pos+count] == '\n') && (entryBytes[pos+count+1] == '\n'))
+      if (entryBytes[pos+count] == '\n' && entryBytes[pos+count+1] == '\n')
       {
         entryCount++;
         count++;
@@ -2070,7 +2070,7 @@ public abstract class ReplicationDomain
             " our=" + ourLastExportedCnt + " slowest=" + slowestCnt);
       }
 
-      if ((ourLastExportedCnt - slowestCnt) > ieCtx.initWindow)
+      if (ourLastExportedCnt - slowestCnt > ieCtx.initWindow)
       {
         if (logger.isTraceEnabled())
         {
@@ -3327,7 +3327,7 @@ public abstract class ReplicationDomain
           break;
         }
         // Timeout ?
-        if ((System.currentTimeMillis() - startTime) >= getAssuredTimeout())
+        if (System.currentTimeMillis() - startTime >= getAssuredTimeout())
         {
           /*
           Timeout occurred, be sure that ack is not being received and if so,

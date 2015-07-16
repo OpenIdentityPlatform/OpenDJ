@@ -142,7 +142,7 @@ public final class CacheEntry
     }
 
     CacheEntry e = (CacheEntry) o;
-    return ((e.entryID == entryID) && (e.entry.equals(entry)));
+    return e.entryID == entryID && e.entry.equals(entry);
   }
 }
 

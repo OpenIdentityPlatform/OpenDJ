@@ -528,7 +528,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     }
 
     s = filter.getText();
-    if ((s != null) && (s.trim().length() > 0))
+    if (s != null && s.trim().length() > 0)
     {
       try
       {

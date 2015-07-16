@@ -133,7 +133,7 @@ public class MatchingRuleUseSyntax
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -153,13 +153,13 @@ public class MatchingRuleUseSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(valueStr, pos-1, c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -184,27 +184,22 @@ public class MatchingRuleUseSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
       {
         if (c == '.')
         {
           if (lastWasPeriod)
           {
             LocalizableMessage message =
-                ERR_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(valueStr, (pos-1));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+                ERR_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID.get(valueStr, pos-1);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
-          else
-          {
-            lastWasPeriod = true;
-          }
+          lastWasPeriod = true;
         }
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, (pos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
@@ -217,10 +212,10 @@ public class MatchingRuleUseSyntax
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
         }
@@ -228,7 +223,7 @@ public class MatchingRuleUseSyntax
         {
           // This must have been an illegal character.
           LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID.
-              get(valueStr, c, (pos-1));
+              get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
@@ -237,18 +232,14 @@ public class MatchingRuleUseSyntax
 
     // If we're at the end of the value, then it isn't a valid matching rule use
     // description.  Otherwise, parse out the OID.
-    String oid;
     if (pos >= length)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
-    else
-    {
-      oid = lowerStr.substring(oidStartPos, (pos-1));
-    }
 
+    String oid = lowerStr.substring(oidStartPos, pos-1);
 
     // Get the matching rule with the specified OID.
     MatchingRule matchingRule = schema.getMatchingRule(oid);
@@ -264,7 +255,7 @@ public class MatchingRuleUseSyntax
 
 
     // Skip over the space(s) after the OID.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -304,9 +295,8 @@ public class MatchingRuleUseSyntax
         if (pos < length)
         {
           LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNEXPECTED_CLOSE_PARENTHESIS.
-              get(valueStr, (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              get(valueStr, pos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
 
         break;
@@ -321,8 +311,7 @@ public class MatchingRuleUseSyntax
         {
           StringBuilder userBuffer  = new StringBuilder();
           StringBuilder lowerBuffer = new StringBuilder();
-          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
-                                 (pos-1));
+          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer, pos-1);
           names.put(lowerBuffer.toString(), userBuffer.toString());
         }
         else if (c == '(')
@@ -340,7 +329,7 @@ public class MatchingRuleUseSyntax
             {
               // Skip over any spaces after the parenthesis.
               pos++;
-              while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+              while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
               {
                 pos++;
               }
@@ -361,7 +350,7 @@ public class MatchingRuleUseSyntax
         else
         {
           // This is an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
@@ -394,7 +383,7 @@ public class MatchingRuleUseSyntax
           while (true)
           {
             StringBuilder woidBuffer = new StringBuilder();
-            pos = readWOID(lowerStr, woidBuffer, (pos));
+            pos = readWOID(lowerStr, woidBuffer, pos);
             attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer));
 
             // The next character must be either a dollar sign or a closing parenthesis.
@@ -407,7 +396,7 @@ public class MatchingRuleUseSyntax
             else if (c != '$')
             {
               LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+                  ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR.get(valueStr, c, pos-1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
@@ -415,7 +404,7 @@ public class MatchingRuleUseSyntax
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
-          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          pos = readWOID(lowerStr, woidBuffer, pos-1);
           attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer));
         }
 
@@ -490,7 +479,7 @@ public class MatchingRuleUseSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -504,14 +493,14 @@ public class MatchingRuleUseSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos++)) != ' '))
     {
       tokenName.append(c);
     }
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -546,7 +535,7 @@ public class MatchingRuleUseSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -571,7 +560,7 @@ public class MatchingRuleUseSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
     {
       valueBuffer.append(c);
       startPos++;
@@ -580,7 +569,7 @@ public class MatchingRuleUseSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -629,7 +618,7 @@ public class MatchingRuleUseSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -653,7 +642,7 @@ public class MatchingRuleUseSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) != '\''))
     {
       lowerBuffer.append(c);
       userBuffer.append(valueStr.charAt(startPos));
@@ -663,7 +652,7 @@ public class MatchingRuleUseSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -705,7 +694,7 @@ public class MatchingRuleUseSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -725,23 +714,18 @@ public class MatchingRuleUseSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (c == '.')
         {
           if (lastWasPeriod)
           {
             LocalizableMessage message =
-                ERR_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(lowerStr, (startPos-1));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+                ERR_ATTR_SYNTAX_MRUSE_DOUBLE_PERIOD_IN_NUMERIC_OID.get(lowerStr, startPos-1);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
-          else
-          {
-            woidBuffer.append(c);
-            lastWasPeriod = true;
-          }
+          woidBuffer.append(c);
+          lastWasPeriod = true;
         }
         else if (! isDigit(c))
         {
@@ -753,12 +737,12 @@ public class MatchingRuleUseSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_NUMERIC_OID.
-              get(lowerStr, c, (startPos-1));
+              get(lowerStr, c, startPos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
@@ -772,10 +756,10 @@ public class MatchingRuleUseSyntax
     {
       // This must be an attribute type description.  In this case, we will only
       // accept alphabetic characters, numeric digits, and the hyphen.
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           woidBuffer.append(c);
         }
@@ -789,12 +773,12 @@ public class MatchingRuleUseSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_CHAR_IN_STRING_OID.
-              get(lowerStr, c, (startPos-1));
+              get(lowerStr, c, startPos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
@@ -807,7 +791,7 @@ public class MatchingRuleUseSyntax
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -849,7 +833,7 @@ public class MatchingRuleUseSyntax
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = '\u0000';
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -872,7 +856,7 @@ public class MatchingRuleUseSyntax
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
       startPos++;
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
       {
         valueBuffer.append(c);
         startPos++;
@@ -887,7 +871,7 @@ public class MatchingRuleUseSyntax
       while (true)
       {
         // Skip over any leading spaces;
-        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
         }
@@ -917,8 +901,7 @@ public class MatchingRuleUseSyntax
           // We have a quoted string
           StringBuilder valueBuffer = new StringBuilder();
           startPos++;
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != '\''))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
           {
             valueBuffer.append(c);
             startPos++;
@@ -931,8 +914,7 @@ public class MatchingRuleUseSyntax
         {
           //Consider unquoted string
           StringBuilder valueBuffer = new StringBuilder();
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != ' '))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
           {
             valueBuffer.append(c);
             startPos++;
@@ -954,7 +936,7 @@ public class MatchingRuleUseSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
       {
         valueBuffer.append(c);
         startPos++;
@@ -964,7 +946,7 @@ public class MatchingRuleUseSyntax
     }
 
     // Skip over any trailing spaces.
-    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && valueStr.charAt(startPos) == ' ')
     {
       startPos++;
     }

@@ -755,7 +755,7 @@ public class JavaArgumentsDialog extends JDialog
     if (!Utils.isWebStart())
     {
       String javaHome = System.getProperty("java.home");
-      if ((javaHome == null) || (javaHome.length() == 0))
+      if (javaHome == null || javaHome.length() == 0)
       {
         javaHome = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
       }
@@ -912,21 +912,20 @@ public class JavaArgumentsDialog extends JDialog
 
   private boolean displayWebStartWarningIfRequired()
   {
-    boolean returnValue = true;
     if (Utils.isWebStart() && !userAgreedWithWebStart)
     {
       JavaArguments args = getJavaArguments();
       if (!args.equals(javaArguments) &&
-          ((args.getInitialMemory() != -1) ||
-              (args.getMaxMemory() != -1) ||
-              (args.getAdditionalArguments().length > 0)))
+          (args.getInitialMemory() != -1 ||
+              args.getMaxMemory() != -1 ||
+              args.getAdditionalArguments().length > 0))
       {
-        returnValue = displayConfirmationDialog(
+        userAgreedWithWebStart = displayConfirmationDialog(
             INFO_JAVA_ARGUMENTS_CANNOT_BE_CHECKED_IN_WEBSTART.get(),
             INFO_CONFIRMATION_TITLE.get());
-        userAgreedWithWebStart = returnValue;
+        return userAgreedWithWebStart;
       }
     }
-    return returnValue;
+    return true;
   }
 }

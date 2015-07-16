@@ -67,10 +67,7 @@ public class TreeCellRenderer extends DefaultTreeCellRenderer
   private Border rootBorder = BorderFactory.createEmptyBorder(0, 5, 0, 0);
   private Border normalBorder = BorderFactory.createEmptyBorder(0, 0, 0, 0);
 
-  /**
-   * Constructor of the renderer.
-   *
-   */
+  /** Constructor of the renderer. */
   public TreeCellRenderer()
   {
     backgroundNonSelectionColor = nonselectionBackground;
@@ -89,7 +86,7 @@ public class TreeCellRenderer extends DefaultTreeCellRenderer
         isLeaf, row, hasFocus);
     setIcon(null);
 
-    if ((row == 0) && (tree.isRootVisible()))
+    if (row == 0 && tree.isRootVisible())
     {
       setBorder(rootBorder);
     }

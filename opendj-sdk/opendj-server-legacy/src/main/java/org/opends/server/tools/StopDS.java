@@ -595,7 +595,7 @@ public class StopDS
     catch (LDAPConnectionException lce)
     {
       LocalizableMessage message = null;
-      if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
+      if (lce.getCause() != null && lce.getCause().getCause() != null &&
         lce.getCause().getCause() instanceof SSLException) {
       message = ERR_STOPDS_CANNOT_CONNECT_SSL.get(host.getValue(),
         port.getValue());
@@ -689,8 +689,7 @@ public class StopDS
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage.getExtendedResponseProtocolOp();
         String responseOID = extendedResponse.getOID();
-        if ((responseOID != null) &&
-            (responseOID.equals(LDAPConstants.OID_NOTICE_OF_DISCONNECTION)))
+        if (LDAPConstants.OID_NOTICE_OF_DISCONNECTION.equals(responseOID))
         {
           LocalizableMessage message = extendedResponse.getErrorMessage();
           if (message != null)
@@ -739,7 +738,7 @@ public class StopDS
 
     boolean quietMode = false;
     Argument quietArg = argParser.getArgumentForLongID(ArgumentConstants.OPTION_LONG_QUIET);
-    if ((quietArg != null) && quietArg.isPresent())
+    if (quietArg != null && quietArg.isPresent())
     {
       quietMode = true;
     }

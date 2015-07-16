@@ -262,7 +262,7 @@ public class AddRequestProtocolOp
     }
 
     int dnLength = dnString.length();
-    if ((dnLength <= colsRemaining) || (colsRemaining <= 0))
+    if (dnLength <= colsRemaining || colsRemaining <= 0)
     {
       buffer.append(dnString);
       buffer.append(EOL);
@@ -273,13 +273,13 @@ public class AddRequestProtocolOp
       buffer.append(EOL);
 
       int startPos = colsRemaining;
-      while ((dnLength - startPos) > (wrapColumn - 1))
+      while (dnLength - startPos > wrapColumn - 1)
       {
         buffer.append(" ");
-        buffer.append(dnString, startPos, (startPos+wrapColumn-1));
+        buffer.append(dnString, startPos, startPos+wrapColumn-1);
         buffer.append(EOL);
 
-        startPos += (wrapColumn-1);
+        startPos += wrapColumn-1;
       }
 
       if (startPos < dnLength)
@@ -318,7 +318,7 @@ public class AddRequestProtocolOp
         }
 
         int valueLength = valueString.length();
-        if ((valueLength <= colsRemaining) || (colsRemaining <= 0))
+        if (valueLength <= colsRemaining || colsRemaining <= 0)
         {
           buffer.append(valueString);
           buffer.append(EOL);
@@ -329,13 +329,13 @@ public class AddRequestProtocolOp
           buffer.append(EOL);
 
           int startPos = colsRemaining;
-          while ((valueLength - startPos) > (wrapColumn - 1))
+          while (valueLength - startPos > wrapColumn - 1)
           {
             buffer.append(" ");
-            buffer.append(valueString, startPos, (startPos+wrapColumn-1));
+            buffer.append(valueString, startPos, startPos+wrapColumn-1);
             buffer.append(EOL);
 
-            startPos += (wrapColumn-1);
+            startPos += wrapColumn-1;
           }
 
           if (startPos < valueLength)

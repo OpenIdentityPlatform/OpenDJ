@@ -39,6 +39,7 @@ import org.opends.server.admin.ACIPropertyDefinition;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AdministratorAction.Type;
+import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.*;
 import org.opends.server.types.InitializationException;
@@ -101,7 +102,7 @@ public class ConfigGuideGeneration {
     }
     // Create new dir if necessary
     try {
-      (new File(generationDir)).mkdir();
+      new File(generationDir).mkdir();
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(1);
@@ -248,11 +249,10 @@ public class ConfigGuideGeneration {
     for (String catName : list.keySet()) {
       heading3(getFriendlyName(catName));
       // Get the list of the category
-      TreeMap<String, AbstractManagedObjectDefinition> catList =
-        list.get(catName);
+      TreeMap<String, AbstractManagedObjectDefinition> catList = list.get(catName);
       for (AbstractManagedObjectDefinition mo : catList.values()) {
-        if ((relList.get(mo.getName()) != null) &&
-          (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
+        RelationDefinition relDefn = relList.get(mo.getName());
+        if (relDefn != null && relDefn.hasOption(RelationOption.HIDDEN)) {
           continue;
         }
         paragraph(
@@ -383,8 +383,8 @@ public class ConfigGuideGeneration {
     TreeMap<String, AbstractManagedObjectDefinition> list) {
 
     for (AbstractManagedObjectDefinition mo : list.values()) {
-      if ((relList.get(mo.getName()) != null) &&
-        (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
+      RelationDefinition relDefn = relList.get(mo.getName());
+      if (relDefn != null && relDefn.hasOption(RelationOption.HIDDEN)) {
         continue;
       }
       moList.put(mo.getName(), mo);
@@ -698,7 +698,7 @@ public class ConfigGuideGeneration {
     tableRow("Allowed Values", getSyntaxStr(prop));
 
     tableRow("Multi-valued",
-      (prop.hasOption(PropertyOption.MULTI_VALUED) ? "Yes" : "No"));
+      prop.hasOption(PropertyOption.MULTI_VALUED) ? "Yes" : "No");
 
     if (prop.hasOption(PropertyOption.MANDATORY)) {
       tableRow("Required", "Yes");
@@ -720,7 +720,7 @@ public class ConfigGuideGeneration {
       } else if (actionType == Type.NONE) {
         actionStr = "None";
       }
-      String dot = (actionStr.equals("") ? "" : ". ");
+      String dot = actionStr.equals("") ? "" : ". ";
       action = actionStr +
         ((synopsis != null) ? dot + synopsis : "");
     }
@@ -758,7 +758,7 @@ public class ConfigGuideGeneration {
       advancedProps.values().toArray(new PropertyDefinition[0]);
 
     for (int ii=0;
-        (ii < basicPropsArray.length) || (ii < advancedPropsArray.length);
+        ii < basicPropsArray.length || ii < advancedPropsArray.length;
         ii++) {
       String basicPropName =
         ii < basicPropsArray.length ? basicPropsArray[ii].getName() : null;
@@ -770,7 +770,7 @@ public class ConfigGuideGeneration {
       if (basicPropName != null) {
         basicHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + basicPropName + "\">"
           + basicPropName + "</a></td>\n";
-      } else if ((basicPropsArray.length == 0) && (ii == 0)) {
+      } else if (basicPropsArray.length == 0 && ii == 0) {
         basicHtmlCell = "  <td>&nbsp;None</td>\n";
       } else if (ii >= basicPropsArray.length) {
         // Case of nb of basic props < nb of advanced props
@@ -781,7 +781,7 @@ public class ConfigGuideGeneration {
       if (advancedPropName != null) {
         advancedHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + advancedPropName +
           "\">" + advancedPropName + "</a></td>\n";
-      } else if ((advancedPropsArray.length == 0) && (ii == 0)) {
+      } else if (advancedPropsArray.length == 0 && ii == 0) {
         advancedHtmlCell = "  <td>&nbsp;None</td>\n";
       }
 
@@ -1353,7 +1353,7 @@ public class ConfigGuideGeneration {
 
   private final String Now = new Date().toString();
   private String getHtmlHeader(String pageTitle) {
-    return ("<html>\n" +
+    return "<html>\n" +
       "<head>\n" +
       "<meta http-equiv=\"content-type\"\n" +
       "content=\"text/html; charset=ISO-8859-1\">\n" +
@@ -1362,7 +1362,7 @@ public class ConfigGuideGeneration {
       "href=\"" + CSS_FILE + "\">\n" +
       "<link rel=\"shortcut icon\" href=\"" + FAVICON + "\">\n" +
       "<meta name=\"date generated\" content=\"" + Now + "\">\n" +
-      "</head>\n");
+      "</head>\n";
   }
 
   /** Add a Tab Menu, the active tab is the one given as parameter. */
@@ -1484,7 +1484,7 @@ public class ConfigGuideGeneration {
   }
 
   private int getIndentPixels() {
-    return (ind * 40);
+    return ind * 40;
   }
 
   private void startTable() {

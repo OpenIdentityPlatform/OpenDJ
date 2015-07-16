@@ -48,6 +48,7 @@ import org.opends.server.types.operation.PreOperationBindOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.types.Privilege.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -221,7 +222,7 @@ public class LocalBackendBindOperation
 
     // Update the authentication information for the user.
     AuthenticationInfo authInfo = getAuthenticationInfo();
-    if ((getResultCode() == ResultCode.SUCCESS) && (authInfo != null))
+    if (getResultCode() == ResultCode.SUCCESS && authInfo != null)
     {
       clientConnection.setAuthenticationInfo(authInfo);
       clientConnection.setSizeLimit(sizeLimit);
@@ -421,7 +422,7 @@ public class LocalBackendBindOperation
     // See if this is an anonymous bind.  If so, then determine whether
     // to allow it.
     ByteString simplePassword = getSimplePassword();
-    if ((simplePassword == null) || (simplePassword.length() == 0))
+    if (simplePassword == null || simplePassword.length() == 0)
     {
       return processAnonymousSimpleBind();
     }
@@ -484,7 +485,7 @@ public class LocalBackendBindOperation
 
       AttributeType pwType = policy.getPasswordAttribute();
       List<Attribute> pwAttr = userEntry.getAttribute(pwType);
-      if ((pwAttr == null) || (pwAttr.isEmpty()))
+      if (pwAttr == null || pwAttr.isEmpty())
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
             ERR_BIND_OPERATION_NO_PASSWORD.get());
@@ -509,8 +510,7 @@ public class LocalBackendBindOperation
         checkVerifiedPasswordPolicyState(userEntry, null);
 
         if (DirectoryServer.lockdownMode()
-            && (!ClientConnection.hasPrivilege(userEntry,
-                Privilege.BYPASS_LOCKDOWN)))
+            && !ClientConnection.hasPrivilege(userEntry, BYPASS_LOCKDOWN))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
               ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
@@ -579,8 +579,7 @@ public class LocalBackendBindOperation
         setResultCode(ResultCode.SUCCESS);
 
         if (DirectoryServer.lockdownMode()
-            && (!ClientConnection.hasPrivilege(userEntry,
-                Privilege.BYPASS_LOCKDOWN)))
+            && !ClientConnection.hasPrivilege(userEntry, BYPASS_LOCKDOWN))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
               ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
@@ -689,7 +688,7 @@ public class LocalBackendBindOperation
       if (resultCode != ResultCode.SASL_BIND_IN_PROGRESS
           && (resultCode != ResultCode.SUCCESS
               || saslAuthUserEntry == null
-              || !ClientConnection.hasPrivilege(saslAuthUserEntry, Privilege.BYPASS_LOCKDOWN)))
+              || !ClientConnection.hasPrivilege(saslAuthUserEntry, BYPASS_LOCKDOWN)))
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                                      ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
@@ -862,7 +861,7 @@ public class LocalBackendBindOperation
     PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
     PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
-    boolean isSASLBind = (saslHandler != null);
+    boolean isSASLBind = saslHandler != null;
 
     // If the password policy is configured to track authentication failures or
     // keep the last login time and the associated backend is disabled, then we
@@ -888,7 +887,7 @@ public class LocalBackendBindOperation
     // Check to see if the authentication must be done in a secure
     // manner.  If so, then the client connection must be secure.
     if (policy.isRequireSecureAuthentication()
-        && (!clientConnection.isSecure()))
+        && !clientConnection.isSecure())
     {
       if (isSASLBind)
       {
@@ -924,7 +923,7 @@ public class LocalBackendBindOperation
     PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
     PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
-    boolean isSASLBind = (saslHandler != null);
+    boolean isSASLBind = saslHandler != null;
 
     // Check to see if the user is administratively disabled or locked.
     if (pwPolicyState.isDisabled())
@@ -971,7 +970,7 @@ public class LocalBackendBindOperation
 
     // If it's a simple bind, or if it's a password-based SASL bind, then
     // perform a number of password-based checks.
-    if ((! isSASLBind) || saslHandler.isPasswordBased(saslMechanism))
+    if (!isSASLBind || saslHandler.isPasswordBased(saslMechanism))
     {
       // Check to see if the account is locked due to the maximum reset age.
       if (pwPolicyState.lockedDueToMaximumResetAge())
@@ -1001,11 +1000,11 @@ public class LocalBackendBindOperation
         }
 
         int maxGraceLogins = policy.getGraceLoginCount();
-        if ((maxGraceLogins > 0) && pwPolicyState.mayUseGraceLogin())
+        if (maxGraceLogins > 0 && pwPolicyState.mayUseGraceLogin())
         {
           List<Long> graceLoginTimes = pwPolicyState.getGraceLoginTimes();
-          if ((graceLoginTimes == null) ||
-              (graceLoginTimes.size() < maxGraceLogins))
+          if (graceLoginTimes == null ||
+              graceLoginTimes.size() < maxGraceLogins)
           {
             isGraceLogin       = true;
             mustChangePassword = true;
@@ -1129,7 +1128,7 @@ public class LocalBackendBindOperation
   {
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attributeTypeName);
     List<Attribute> attrList = userEntry.getAttribute(attrType);
-    if ((attrList != null) && (attrList.size() == 1))
+    if (attrList != null && attrList.size() == 1)
     {
       Attribute a = attrList.get(0);
       if (a.size() == 1)

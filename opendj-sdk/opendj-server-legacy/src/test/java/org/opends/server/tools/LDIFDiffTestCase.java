@@ -432,7 +432,7 @@ public class LDIFDiffTestCase
   {
     // If the command is expected to fail, or if there aren't any differences,
     // then bail out now.
-    if ((normalDiffFile == null) || normalDiffFile.equals(noDiffsFile))
+    if (normalDiffFile == null || normalDiffFile.equals(noDiffsFile))
     {
       return;
     }
@@ -539,7 +539,7 @@ public class LDIFDiffTestCase
   {
     // If the command is expected to fail, or if there aren't any differences,
     // then bail out now.
-    if ((normalDiffFile == null) || singleValueDiffFile.equals(noDiffsFile))
+    if (normalDiffFile == null || singleValueDiffFile.equals(noDiffsFile))
     {
       return;
     }

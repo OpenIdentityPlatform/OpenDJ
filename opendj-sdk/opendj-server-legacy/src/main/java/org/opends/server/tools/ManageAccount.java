@@ -1369,7 +1369,7 @@ public class ManageAccount
     catch (LDAPConnectionException lce)
     {
       LocalizableMessage message;
-      if ((lce.getCause() != null) && (lce.getCause().getCause() != null) &&
+      if (lce.getCause() != null && lce.getCause().getCause() != null &&
         lce.getCause().getCause() instanceof SSLException) {
         message = ERR_PWPSTATE_CANNOT_CONNECT_SSL.get(host.getValue(),
           port.getValue());
@@ -1425,7 +1425,7 @@ public class ManageAccount
     else if (subCommandName.equals(SC_SET_ACCOUNT_DISABLED_STATE))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         String valueStr = a.getValue();
         if (isTrueValue(valueStr))
@@ -1461,7 +1461,7 @@ public class ManageAccount
     else if (subCommandName.equals(SC_SET_ACCOUNT_EXPIRATION_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_ACCOUNT_EXPIRATION_TIME, a.getValue());
       }
@@ -1485,7 +1485,7 @@ public class ManageAccount
     else if (subCommandName.equals(SC_SET_PASSWORD_CHANGED_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_PASSWORD_CHANGED_TIME, a.getValue());
       }
@@ -1505,7 +1505,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_SET_PASSWORD_EXP_WARNED_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_PASSWORD_EXPIRATION_WARNED_TIME,
                               a.getValue());
@@ -1539,7 +1539,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_ADD_AUTHENTICATION_FAILURE_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_ADD_AUTHENTICATION_FAILURE_TIME,
                               a.getValue());
@@ -1552,7 +1552,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_SET_AUTHENTICATION_FAILURE_TIMES))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         ArrayList<String> valueList = new ArrayList<>(a.getValues());
         String[] values = new String[valueList.size()];
@@ -1588,7 +1588,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_SET_LAST_LOGIN_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_LAST_LOGIN_TIME, a.getValue());
       }
@@ -1612,7 +1612,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_SET_PASSWORD_RESET_STATE))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         String valueStr = a.getValue();
         if (isTrueValue(valueStr))
@@ -1653,7 +1653,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_ADD_GRACE_LOGIN_USE_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_ADD_GRACE_LOGIN_USE_TIME, a.getValue());
       }
@@ -1665,7 +1665,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_SET_GRACE_LOGIN_USE_TIMES))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         ArrayList<String> valueList = new ArrayList<>(a.getValues());
         String[] values = new String[valueList.size()];
@@ -1694,7 +1694,7 @@ public class ManageAccount
     else if(subCommandName.equals(SC_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME))
     {
       Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
-      if ((a != null) && a.isPresent())
+      if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
                               a.getValue());
@@ -1746,7 +1746,7 @@ public class ManageAccount
   private static void printLabelAndValues(LocalizableMessage msg, ArrayList<String> values)
   {
     String label = String.valueOf(msg);
-    if ((values == null) || values.isEmpty())
+    if (values == null || values.isEmpty())
     {
       out.print(label);
       out.println(":");

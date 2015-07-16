@@ -64,16 +64,15 @@ public class EnterLockdownModeTask
     if (operation != null)
     {
       DN authzDN = operation.getAuthorizationDN();
-      if ((authzDN == null) || (! operation.getClientConnection().hasPrivilege(
-          Privilege.SERVER_LOCKDOWN, operation)))
+      if (authzDN == null || !operation.getClientConnection().hasPrivilege(
+          Privilege.SERVER_LOCKDOWN, operation))
       {
         LocalizableMessage message = ERR_TASK_ENTERLOCKDOWN_NOT_ROOT.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
-      InetAddress clientAddress =
-           operation.getClientConnection().getRemoteAddress();
-      if ((clientAddress != null) && (! clientAddress.isLoopbackAddress()))
+      InetAddress clientAddress = operation.getClientConnection().getRemoteAddress();
+      if (clientAddress != null && !clientAddress.isLoopbackAddress())
       {
         LocalizableMessage message = ERR_TASK_ENTERLOCKDOWN_NOT_LOOPBACK.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);

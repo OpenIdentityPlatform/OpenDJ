@@ -361,8 +361,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    */
   public boolean mustCheckUnsavedChanges()
   {
-    return (schemaElementPanel != null) &&
-    schemaElementPanel.mustCheckUnsavedChanges();
+    return schemaElementPanel != null && schemaElementPanel.mustCheckUnsavedChanges();
   }
 
   /**
@@ -373,13 +372,10 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    */
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
-    if (schemaElementPanel == null)
-    {
-     return UnsavedChangesDialog.Result.DO_NOT_SAVE;
-    }
-    else
+    if (schemaElementPanel != null)
     {
       return schemaElementPanel.checkUnsavedChanges();
     }
+    return UnsavedChangesDialog.Result.DO_NOT_SAVE;
   }
 }

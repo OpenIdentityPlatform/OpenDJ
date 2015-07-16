@@ -486,7 +486,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
 
     ifNull(name);
 
-    if ((values == null) || values.isEmpty())
+    if (values == null || values.isEmpty())
     {
       extraProperties.remove(name);
     }

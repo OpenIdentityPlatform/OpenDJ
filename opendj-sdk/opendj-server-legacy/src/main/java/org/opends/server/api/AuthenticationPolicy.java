@@ -144,7 +144,7 @@ public abstract class AuthenticationPolicy
     // search for the nearest applicable sub-entry.
     List<SubEntry> pwpSubEntries = DirectoryServer.getSubentryManager()
         .getSubentries(userEntry);
-    if ((pwpSubEntries != null) && (!pwpSubEntries.isEmpty()))
+    if (pwpSubEntries != null && !pwpSubEntries.isEmpty())
     {
       for (SubEntry subentry : pwpSubEntries)
       {

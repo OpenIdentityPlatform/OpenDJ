@@ -437,7 +437,7 @@ public class LDAPSearch
     }
 
     int dnLength = dnString.length();
-    if ((dnLength <= colsRemaining) || (colsRemaining <= 0))
+    if (dnLength <= colsRemaining || colsRemaining <= 0)
     {
       buffer.append(dnString);
       buffer.append(EOL);
@@ -448,13 +448,13 @@ public class LDAPSearch
       buffer.append(EOL);
 
       int startPos = colsRemaining;
-      while ((dnLength - startPos) > (wrapColumn - 1))
+      while (dnLength - startPos > wrapColumn - 1)
       {
         buffer.append(" ");
-        buffer.append(dnString, startPos, (startPos+wrapColumn-1));
+        buffer.append(dnString, startPos, startPos+wrapColumn-1);
         buffer.append(EOL);
 
-        startPos += (wrapColumn-1);
+        startPos += wrapColumn-1;
       }
 
       if (startPos < dnLength)
@@ -500,7 +500,7 @@ public class LDAPSearch
           }
 
           int valueLength = valueString.length();
-          if ((valueLength <= colsRemaining) || (colsRemaining <= 0))
+          if (valueLength <= colsRemaining || colsRemaining <= 0)
           {
             buffer.append(valueString);
             buffer.append(EOL);
@@ -510,13 +510,13 @@ public class LDAPSearch
             buffer.append(EOL);
 
             int startPos = colsRemaining;
-            while ((valueLength - startPos) > (wrapColumn - 1))
+            while (valueLength - startPos > wrapColumn - 1)
             {
               buffer.append(" ");
-              buffer.append(valueString, startPos, (startPos+wrapColumn-1));
+              buffer.append(valueString, startPos, startPos+wrapColumn-1);
               buffer.append(EOL);
 
-              startPos += (wrapColumn-1);
+              startPos += wrapColumn-1;
             }
 
             if (startPos < valueLength)
@@ -1247,13 +1247,8 @@ public class LDAPSearch
       err.println(wrapText(ex1.getMessage(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
     }
-    boolean val = searchOptions.setSearchScope(searchScope.getValue(), err);
-    if(val == false)
-    {
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-    val = searchOptions.setDereferencePolicy(dereferencePolicy.getValue(), err);
-    if(val == false)
+    if (!searchOptions.setSearchScope(searchScope.getValue(), err)
+        || !searchOptions.setDereferencePolicy(dereferencePolicy.getValue(), err))
     {
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -1551,15 +1546,13 @@ public class LDAPSearch
       {
         if(saslOption.startsWith("mech="))
         {
-          boolean mechValue = connectionOptions.setSASLMechanism(saslOption);
-          if(mechValue == false)
+          if (!connectionOptions.setSASLMechanism(saslOption))
           {
             return CLIENT_SIDE_PARAM_ERROR;
           }
         } else
         {
-          boolean propValue = connectionOptions.addSASLProperty(saslOption);
-          if(propValue == false)
+          if (!connectionOptions.addSASLProperty(saslOption))
           {
             return CLIENT_SIDE_PARAM_ERROR;
           }

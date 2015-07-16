@@ -985,14 +985,14 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (node instanceof SuffixNode)
     {
       String dn = node.getDN();
-      return (Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) ||
+      return Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TASK_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_CONFIG_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_MONITOR_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TRUST_STORE_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_BACKUP_ROOT) ||
-          Utilities.areDnsEqual(dn, DN_EXTERNAL_CHANGELOG_ROOT));
+          Utilities.areDnsEqual(dn, DN_EXTERNAL_CHANGELOG_ROOT);
     }
     else
     {
@@ -1301,8 +1301,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         nodeChanged = updateNodeRendering(node, task.getDisplayedEntry());
       }
     }
-    else if ((newState == NodeRefresher.State.CANCELLED) ||
-        (newState == NodeRefresher.State.INTERRUPTED)) {
+    else if (newState == NodeRefresher.State.CANCELLED ||
+        newState == NodeRefresher.State.INTERRUPTED) {
 
       // Let's collapse task.getNode()
       tree.collapsePath(new TreePath(treeModel.getPathToRoot(node)));

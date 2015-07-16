@@ -136,7 +136,7 @@ public class SMTPAccountStatusNotificationHandler
     // Make sure that the Directory Server is configured with information about
     // one or more mail servers.
     List<Properties> propList = DirectoryServer.getMailServerPropertySets();
-    if ((propList == null) || propList.isEmpty())
+    if (propList == null || propList.isEmpty())
     {
       throw new ConfigException(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));
     }
@@ -145,8 +145,8 @@ public class SMTPAccountStatusNotificationHandler
     // address attributes were provided.
     Set<AttributeType> mailAttrs = configuration.getEmailAddressAttributeType();
     Set<String> recipients = configuration.getRecipientAddress();
-    if (((mailAttrs == null) || mailAttrs.isEmpty()) &&
-        ((recipients == null) || recipients.isEmpty()))
+    if ((mailAttrs == null || mailAttrs.isEmpty()) &&
+        (recipients == null || recipients.isEmpty()))
     {
       throw new ConfigException(ERR_SMTP_ASNH_NO_RECIPIENTS.get(configuration.dn()));
     }
@@ -518,7 +518,7 @@ public class SMTPAccountStatusNotificationHandler
     LinkedList<String> recipients = new LinkedList<>();
     Set<AttributeType> addressAttrs = config.getEmailAddressAttributeType();
     Set<String> recipientAddrs = config.getRecipientAddress();
-    if ((addressAttrs != null) && (! addressAttrs.isEmpty()))
+    if (addressAttrs != null && !addressAttrs.isEmpty())
     {
       Entry userEntry = notification.getUserEntry();
       for (AttributeType t : addressAttrs)
@@ -544,7 +544,7 @@ public class SMTPAccountStatusNotificationHandler
 
       if (recipients.isEmpty())
       {
-        if ((recipientAddrs == null) || recipientAddrs.isEmpty())
+        if (recipientAddrs == null || recipientAddrs.isEmpty())
         {
           // There are no recipients at all, so there's no point in generating
           // the message.  Return without doing anything.
@@ -660,7 +660,7 @@ public class SMTPAccountStatusNotificationHandler
     // Make sure that the Directory Server is configured with information about
     // one or more mail servers.
     List<Properties> propList = DirectoryServer.getMailServerPropertySets();
-    if ((propList == null) || propList.isEmpty())
+    if (propList == null || propList.isEmpty())
     {
       unacceptableReasons.add(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));
       configAcceptable = false;
@@ -671,8 +671,8 @@ public class SMTPAccountStatusNotificationHandler
     // address attributes were provided.
     Set<AttributeType> mailAttrs = configuration.getEmailAddressAttributeType();
     Set<String> recipients = configuration.getRecipientAddress();
-    if (((mailAttrs == null) || mailAttrs.isEmpty()) &&
-        ((recipients == null) || recipients.isEmpty()))
+    if ((mailAttrs == null || mailAttrs.isEmpty()) &&
+        (recipients == null || recipients.isEmpty()))
     {
       unacceptableReasons.add(ERR_SMTP_ASNH_NO_RECIPIENTS.get(configuration.dn()));
       configAcceptable = false;

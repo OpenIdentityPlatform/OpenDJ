@@ -530,7 +530,7 @@ public final class SearchFilter
                                   boolean dnAttributes)
          throws DirectoryException
   {
-    if ((attributeType == null) && (matchingRuleID == null))
+    if (attributeType == null && matchingRuleID == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR.get();
@@ -575,7 +575,7 @@ public final class SearchFilter
                                   boolean dnAttributes)
          throws DirectoryException
   {
-    if ((attributeType == null) && (matchingRuleID == null))
+    if (attributeType == null && matchingRuleID == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR.get();
@@ -838,7 +838,7 @@ public final class SearchFilter
           {
             // The next two bytes must be the hex characters that
             // comprise the binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
@@ -1046,8 +1046,8 @@ public final class SearchFilter
 
     // The first and last characters must be parentheses.  If not,
     // then that's an error.
-    if ((filterString.charAt(startPos) != '(') ||
-        (filterString.charAt(endPos-1) != ')'))
+    if (filterString.charAt(startPos) != '(' ||
+        filterString.charAt(endPos-1) != ')')
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_COMPOUND_MISSING_PARENTHESES.
@@ -1226,7 +1226,7 @@ public final class SearchFilter
           {
             // The next two bytes must be the hex characters that
             // comprise the binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
@@ -1394,7 +1394,7 @@ public final class SearchFilter
           {
             // The next two bytes must be the hex characters that
             // comprise the binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
@@ -1571,7 +1571,7 @@ public final class SearchFilter
           {
             // The next two bytes must be the hex characters that
             // comprise the binary value.
-            if ((i + 2) >= valueBytes.length)
+            if (i + 2 >= valueBytes.length)
             {
               LocalizableMessage message =
                   ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
@@ -1833,13 +1833,13 @@ public final class SearchFilter
 
       // If there is anything left, then it should be ":dn" and/or ":"
       // followed by the matching rule ID.
-      if (colonPos < (equalPos-1))
+      if (colonPos < equalPos-1)
       {
         if (lowerLeftStr.startsWith(":dn:", colonPos))
         {
           dnAttributes = true;
 
-          if ((colonPos+4) < (equalPos-1))
+          if (colonPos+4 < equalPos-1)
           {
             matchingRuleID =
                  filterString.substring(colonPos+4, equalPos-1);
@@ -1878,7 +1878,7 @@ public final class SearchFilter
         {
           // The next two bytes must be the hex characters that
           // comprise the binary value.
-          if ((i + 2) >= valueBytes.length)
+          if (i + 2 >= valueBytes.length)
           {
             LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.
                 get(filterString, equalPos+i+1);
@@ -2639,7 +2639,7 @@ public final class SearchFilter
     // See if the entry has an attribute with the requested type.
     List<Attribute> attrs = entry.getAttribute(attributeType,
                                                attributeOptions);
-    if ((attrs == null) || (attrs.isEmpty()))
+    if (attrs == null || attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2730,11 +2730,10 @@ public final class SearchFilter
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
-    // Make sure that at least one substring element has been
-    // defined.
-    if ((subInitialElement == null) &&
-        (subFinalElement == null) &&
-        ((subAnyElements == null) || subAnyElements.isEmpty()))
+    // Make sure that at least one substring element has been defined.
+    if (subInitialElement == null &&
+        subFinalElement == null &&
+        (subAnyElements == null || subAnyElements.isEmpty()))
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
@@ -2743,9 +2742,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs =
-         entry.getAttribute(attributeType, attributeOptions);
-    if ((attrs == null) || (attrs.isEmpty()))
+    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    if (attrs == null || attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2845,9 +2843,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs =
-         entry.getAttribute(attributeType, attributeOptions);
-    if ((attrs == null) || (attrs.isEmpty()))
+    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    if (attrs == null || attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2947,7 +2944,7 @@ public final class SearchFilter
     // See if the entry has an attribute with the requested type.
     List<Attribute> attrs =
          entry.getAttribute(attributeType, attributeOptions);
-    if ((attrs == null) || (attrs.isEmpty()))
+    if (attrs == null || attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -3092,7 +3089,7 @@ public final class SearchFilter
     // See if the entry has an attribute with the requested type.
     List<Attribute> attrs =
          entry.getAttribute(attributeType, attributeOptions);
-    if ((attrs == null) || (attrs.isEmpty()))
+    if (attrs == null || attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -3452,8 +3449,7 @@ public final class SearchFilter
         {
           try
           {
-            if ((attributeType == null) ||
-                attributeType.equals(rdn.getAttributeType(i)))
+            if (attributeType == null || attributeType.equals(rdn.getAttributeType(i)))
             {
               ByteString v = rdn.getAttributeValue(i);
               ByteString nv = matchingRule.normalizeAttributeValue(v);
@@ -3546,8 +3542,8 @@ public final class SearchFilter
       case LESS_OR_EQUAL:
         return typeAndOptionsAndAssertionEqual(f);
       case PRESENT:
-        return (attributeType.equals(f.attributeType) &&
-                optionsEqual(attributeOptions, f.attributeOptions));
+        return attributeType.equals(f.attributeType) &&
+                optionsEqual(attributeOptions, f.attributeOptions);
       case APPROXIMATE_MATCH:
         return typeAndOptionsAndAssertionEqual(f);
       case EXTENSIBLE_MATCH:
@@ -3735,11 +3731,11 @@ outerComponentLoop:
   private static boolean optionsEqual(Set<String> options1,
                                       Set<String> options2)
   {
-    if ((options1 == null) || options1.isEmpty())
+    if (options1 == null || options1.isEmpty())
     {
-      return ((options2 == null) || options2.isEmpty());
+      return options2 == null || options2.isEmpty();
     }
-    else if ((options2 == null) || options2.isEmpty())
+    else if (options2 == null || options2.isEmpty())
     {
       return false;
     }
@@ -3934,7 +3930,7 @@ outerComponentLoop:
           valueToFilterString(buffer, subInitialElement);
         }
 
-        if ((subAnyElements != null) && (! subAnyElements.isEmpty()))
+        if (subAnyElements != null && !subAnyElements.isEmpty())
         {
           for (ByteString s : subAnyElements)
           {

@@ -144,7 +144,7 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public DN(List<RDN> rdnComponents)
   {
-    if ((rdnComponents == null) || rdnComponents.isEmpty())
+    if (rdnComponents == null || rdnComponents.isEmpty())
     {
       this.rdnComponents = new RDN[0];
     }
@@ -213,7 +213,7 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public boolean isRootDN()
   {
-    return (numComponents == 0);
+    return numComponents == 0;
   }
 
 
@@ -340,15 +340,13 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public DN getParentDNInSuffix()
   {
-    if ((numComponents <= 1) ||
-        DirectoryServer.isNamingContext(this))
+    if (numComponents <= 1 || DirectoryServer.isNamingContext(this))
     {
       return null;
     }
 
     RDN[] parentComponents = new RDN[numComponents-1];
-    System.arraycopy(rdnComponents, 1, parentComponents, 0,
-                     numComponents-1);
+    System.arraycopy(rdnComponents, 1, parentComponents, 0, numComponents-1);
     return new DN(parentComponents);
   }
 
@@ -523,7 +521,7 @@ public final class DN implements Comparable<DN>, Serializable
       case SUBORDINATES:
         // This DN must be a descendant of the provided base DN, but
         // not equal to it.
-        return ((! equals(baseDN)) && isDescendantOf(baseDN));
+        return !equals(baseDN) && isDescendantOf(baseDN);
 
       default:
         // This is a scope that we don't recognize.
@@ -566,7 +564,7 @@ public final class DN implements Comparable<DN>, Serializable
     for (int i = 0; i < length; i++)
     {
       b = dnString.byteAt(i);
-      if (((b & 0x7F) != b) || (b == '\\'))
+      if ((b & 0x7F) != b || b == '\\')
       {
         return valueOf(dnString.toString());
       }
@@ -610,8 +608,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
 
 
-      // Skip over any spaces between the attribute name and its
-      // value.
+      // Skip over any spaces between the attribute name and its value.
       b = ' ';
       while (dnReader.remaining() > 0 && (b = dnReader.get()) == ' ')
       {}
@@ -699,7 +696,7 @@ public final class DN implements Comparable<DN>, Serializable
         rdnComponents.add(rdn);
         return new DN(rdnComponents);
       }
-      else if ((b == ',') || (b == ';'))
+      else if (b == ',' || b == ';')
       {
         // We're at the end of the RDN component, so add it to the
         // list, skip over the comma/semicolon, and start on the next
@@ -743,8 +740,7 @@ public final class DN implements Comparable<DN>, Serializable
         }
 
 
-        // Skip over any spaces between the attribute name and its
-        // value.
+        // Skip over any spaces between the attribute name and its value.
         b = ' ';
         while (dnReader.remaining() > 0 &&
             (b = dnReader.get()) == ' ')
@@ -830,10 +826,8 @@ public final class DN implements Comparable<DN>, Serializable
         rdn.addValue(attrType, attributeNameString, parsedValue);
 
 
-        // Skip over any spaces that might be after the attribute
-        // value.
-        // Skip over any spaces that might be after the attribute
-        // value.
+        // Skip over any spaces that might be after the attribute value.
+        // Skip over any spaces that might be after the attribute value.
         b = ' ';
         while (dnReader.remaining() > 0 &&
             (b = dnReader.get()) == ' ')
@@ -850,7 +844,7 @@ public final class DN implements Comparable<DN>, Serializable
           rdnComponents.add(rdn);
           return new DN(rdnComponents);
         }
-        else if ((b == ',') || (b == ';'))
+        else if (b == ',' || b == ';')
         {
           // We're at the end of the RDN component, so add it to the
           // list, skip over the comma/semicolon, and start on the
@@ -939,8 +933,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
 
 
-      // Skip over any spaces between the attribute name and its
-      // value.
+      // Skip over any spaces between the attribute name and its value.
       c = dnString.charAt(pos);
       while (c == ' ')
       {
@@ -953,10 +946,7 @@ public final class DN implements Comparable<DN>, Serializable
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
               ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
         }
-        else
-        {
-          c = dnString.charAt(pos);
-        }
+        c = dnString.charAt(pos);
       }
 
 
@@ -974,7 +964,7 @@ public final class DN implements Comparable<DN>, Serializable
 
 
       // Skip over any spaces after the equal sign.
-      while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+      while (pos < length && ((c = dnString.charAt(pos)) == ' '))
       {
         pos++;
       }
@@ -1008,7 +998,7 @@ public final class DN implements Comparable<DN>, Serializable
 
 
       // Skip over any spaces that might be after the attribute value.
-      while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+      while (pos < length && ((c = dnString.charAt(pos)) == ' '))
       {
         pos++;
       }
@@ -1024,7 +1014,7 @@ public final class DN implements Comparable<DN>, Serializable
         rdnComponents.add(rdn);
         return new DN(rdnComponents);
       }
-      else if ((c == ',') || (c == ';'))
+      else if (c == ',' || c == ';')
       {
         // We're at the end of the RDN component, so add it to the
         // list, skip over the comma/semicolon, and start on the next
@@ -1052,7 +1042,7 @@ public final class DN implements Comparable<DN>, Serializable
         // Skip over the plus sign and any spaces that may follow it
         // before the next attribute name.
         pos++;
-        while ((pos < length) && (dnString.charAt(pos) == ' '))
+        while (pos < length && dnString.charAt(pos) == ' ')
         {
           pos++;
         }
@@ -1073,8 +1063,7 @@ public final class DN implements Comparable<DN>, Serializable
         }
 
 
-        // Skip over any spaces between the attribute name and its
-        // value.
+        // Skip over any spaces between the attribute name and its value.
         c = dnString.charAt(pos);
         while (c == ' ')
         {
@@ -1087,10 +1076,7 @@ public final class DN implements Comparable<DN>, Serializable
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
                 ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
           }
-          else
-          {
-            c = dnString.charAt(pos);
-          }
+          c = dnString.charAt(pos);
         }
 
 
@@ -1108,7 +1094,7 @@ public final class DN implements Comparable<DN>, Serializable
 
 
         // Skip over any spaces after the equal sign.
-        while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+        while (pos < length && ((c = dnString.charAt(pos)) == ' '))
         {
           pos++;
         }
@@ -1163,9 +1149,8 @@ public final class DN implements Comparable<DN>, Serializable
         rdn.addValue(attrType, name, parsedValue.toByteString());
 
 
-        // Skip over any spaces that might be after the attribute
-        // value.
-        while ((pos < length) && ((c = dnString.charAt(pos)) == ' '))
+        // Skip over any spaces that might be after the attribute value.
+        while (pos < length && ((c = dnString.charAt(pos)) == ' '))
         {
           pos++;
         }
@@ -1181,7 +1166,7 @@ public final class DN implements Comparable<DN>, Serializable
           rdnComponents.add(rdn);
           return new DN(rdnComponents);
         }
-        else if ((c == ',') || (c == ';'))
+        else if (c == ',' || c == ';')
         {
           // We're at the end of the RDN component, so add it to the
           // list, skip over the comma/semicolon, and start on the
@@ -1514,27 +1499,25 @@ public final class DN implements Comparable<DN>, Serializable
         }
       }
 
-      while (validOID && (namePos < nameLength))
+      while (validOID && namePos < nameLength)
       {
         byte ch = nameBytes.byteAt(namePos++);
         if (isDigit((char)ch))
         {
-          while (validOID && (namePos < nameLength) &&
+          while (validOID && namePos < nameLength &&
                  isDigit((char)nameBytes.byteAt(namePos)))
           {
             namePos++;
           }
 
-          if ((namePos < nameLength) &&
-              (nameBytes.byteAt(namePos) != '.'))
+          if (namePos < nameLength && nameBytes.byteAt(namePos) != '.')
           {
             validOID = false;
           }
         }
         else if (ch == '.')
         {
-          if ((namePos == 1) ||
-              (nameBytes.byteAt(namePos-2) == '.'))
+          if (namePos == 1 || nameBytes.byteAt(namePos-2) == '.')
           {
             validOID = false;
           }
@@ -1546,22 +1529,22 @@ public final class DN implements Comparable<DN>, Serializable
       }
 
 
-      if (validOID && (nameBytes.byteAt(nameLength-1) == '.'))
+      if (validOID && nameBytes.byteAt(nameLength-1) == '.')
       {
         validOID = false;
       }
 
 
-      if (! validOID)
+      if (!validOID)
       {
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
             ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(dnBytes, nameBytes));
       }
     }
-    else if (isDigit((char)nameBytes.byteAt(0)) && (!allowExceptions))
+    else if (isDigit((char)nameBytes.byteAt(0)) && !allowExceptions)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT.
-          get(dnBytes, ((char)nameBytes.byteAt(0)),
+          get(dnBytes, (char)nameBytes.byteAt(0),
               ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
@@ -1919,27 +1902,25 @@ public final class DN implements Comparable<DN>, Serializable
         }
       }
 
-      while (validOID && (namePos < nameLength))
+      while (validOID && namePos < nameLength)
       {
         char ch = attributeName.charAt(namePos++);
         if (isDigit(ch))
         {
-          while (validOID && (namePos < nameLength) &&
+          while (validOID && namePos < nameLength &&
                  isDigit(attributeName.charAt(namePos)))
           {
             namePos++;
           }
 
-          if ((namePos < nameLength) &&
-              (attributeName.charAt(namePos) != '.'))
+          if (namePos < nameLength && attributeName.charAt(namePos) != '.')
           {
             validOID = false;
           }
         }
         else if (ch == '.')
         {
-          if ((namePos == 1) ||
-              (attributeName.charAt(namePos-2) == '.'))
+          if (namePos == 1 || attributeName.charAt(namePos-2) == '.')
           {
             validOID = false;
           }
@@ -1951,7 +1932,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
 
 
-      if (validOID && (attributeName.charAt(nameLength-1) == '.'))
+      if (validOID && attributeName.charAt(nameLength-1) == '.')
       {
         validOID = false;
       }
@@ -1962,8 +1943,7 @@ public final class DN implements Comparable<DN>, Serializable
             ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_PERIOD.get(dnString, attributeName));
       }
     }
-    else if (isDigit(attributeName.charAt(0)) &&
-             (! allowExceptions))
+    else if (isDigit(attributeName.charAt(0)) && !allowExceptions)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DIGIT.
           get(dnString, attributeName.charAt(0),
@@ -2058,7 +2038,7 @@ public final class DN implements Comparable<DN>, Serializable
                 ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnBytes));
           }
         }
-        else if ((b == ' ') || (b == ',') || (b == ';') || (b == '+'))
+        else if (b == ' ' || b == ',' || b == ';' || b == '+')
         {
           // This denotes the end of the value.
           dnBytes.skip(-1);
@@ -2140,13 +2120,12 @@ public final class DN implements Comparable<DN>, Serializable
       {
         if (dnBytes.remaining() <= 0)
         {
-          // This is the end of the DN and therefore the end of the
-          // value.
+          // This is the end of the DN and therefore the end of the value.
           break;
         }
 
         b = dnBytes.get();
-        if ((b == ',') || (b == ';') || (b == '+'))
+        if (b == ',' || b == ';' || b == '+')
         {
           dnBytes.skip(-1);
           break;
@@ -2207,7 +2186,7 @@ public final class DN implements Comparable<DN>, Serializable
     {
       // The first two characters must be hex characters.
       StringBuilder hexString = new StringBuilder();
-      if ((pos+2) > length)
+      if (pos+2 > length)
       {
         LocalizableMessage message =
             ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
@@ -2265,7 +2244,7 @@ public final class DN implements Comparable<DN>, Serializable
                                          message);
           }
         }
-        else if ((c == ' ') || (c == ',') || (c == ';'))
+        else if (c == ' ' || c == ',' || c == ';')
         {
           // This denotes the end of the value.
           pos--;
@@ -2341,8 +2320,7 @@ public final class DN implements Comparable<DN>, Serializable
         }
         else
         {
-          // This is just a regular character that should be in the
-          // value.
+          // This is just a regular character that should be in the value.
           valueString.append(c);
         }
       }
@@ -2410,8 +2388,7 @@ public final class DN implements Comparable<DN>, Serializable
             // containing one or more multi-byte UTF-8 characters so
             // we can't just treat this byte in isolation.  Collect
             // all the bytes together and make sure to take care of
-            // these hex bytes before appending anything else to the
-            // value.
+            // these hex bytes before appending anything else to the value.
             if (pos >= length)
             {
               LocalizableMessage message =
@@ -2450,7 +2427,7 @@ public final class DN implements Comparable<DN>, Serializable
         {
           escaped = true;
         }
-        else if ((c == ',') || (c == ';'))
+        else if (c == ',' || c == ';')
         {
           appendHexChars(dnString, valueString, hexChars);
           pos--;
@@ -2470,8 +2447,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
 
 
-      // Strip off any unescaped spaces that may be at the end of the
-      // value.
+      // Strip off any unescaped spaces that may be at the end of the value.
       if (pos > 2 && dnString.charAt(pos-1) == ' ' &&
            dnString.charAt(pos-2) != '\\')
       {

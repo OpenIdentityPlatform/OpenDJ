@@ -534,7 +534,7 @@ public class LDAPPasswordModify
         return CLIENT_SIDE_PARAM_ERROR;
       }
 
-      if ((!authzID.isPresent() || (!currentPW.isPresent() && !currentPWFile.isPresent())))
+      if (!authzID.isPresent() || (!currentPW.isPresent() && !currentPWFile.isPresent()))
       {
         LocalizableMessage message =
                 ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get();
@@ -807,7 +807,7 @@ public class LDAPPasswordModify
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
       LocalizableMessage errorMessage = extendedResponse.getErrorMessage();
-      if ((errorMessage != null) && (errorMessage.length() > 0))
+      if (errorMessage != null && errorMessage.length() > 0)
       {
         message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
         err.println(wrapText(message, MAX_LINE_WIDTH));
@@ -830,7 +830,7 @@ public class LDAPPasswordModify
       out.println(wrapText(message, MAX_LINE_WIDTH));
 
       LocalizableMessage additionalInfo = extendedResponse.getErrorMessage();
-      if ((additionalInfo != null) && (additionalInfo.length() > 0))
+      if (additionalInfo != null && additionalInfo.length() > 0)
       {
         message = INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo);
         out.println(wrapText(message, MAX_LINE_WIDTH));

@@ -171,7 +171,7 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
       public void valueChanged(TreeSelectionEvent ev)
       {
         TreePath[] paths = tree.getSelectionPaths();
-        setEnabledOK((paths != null) && (paths.length > 0));
+        setEnabledOK(paths != null && paths.length > 0);
       }
     });
     MouseListener mouseListener = new MouseAdapter() {
@@ -179,7 +179,7 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
       @Override
       public void mousePressed(MouseEvent e) {
         int selRow = tree.getRowForLocation(e.getX(), e.getY());
-        if ((selRow != -1) && (e.getClickCount() == 2))
+        if (selRow != -1 && e.getClickCount() == 2)
         {
           okClicked();
         }

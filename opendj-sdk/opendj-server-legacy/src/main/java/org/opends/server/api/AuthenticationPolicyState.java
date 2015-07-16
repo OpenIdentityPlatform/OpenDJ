@@ -315,13 +315,13 @@ public abstract class AuthenticationPolicyState
       return false;
     }
 
+    final boolean result = isDisabled == ConditionResult.TRUE;
     if (logger.isTraceEnabled())
     {
       logger.trace("User %s is%s administratively disabled.", userEntry.getName(),
-          (isDisabled == ConditionResult.TRUE ? "" : " not"));
+          result ? "" : " not");
     }
-
-    return isDisabled == ConditionResult.TRUE;
+    return result;
   }
 
 

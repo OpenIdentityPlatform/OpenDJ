@@ -156,7 +156,7 @@ public class MatchedValuesControlTest
     // As we provide dummy type and value string, attType and attVal
     // could
     // be null.
-    if ((attType != null) && (attVal != null))
+    if (attType != null && attVal != null)
     {
       mvf = MatchedValuesFilter.createEqualityFilter(attType, attVal);
       assertNotNull(mvf);
@@ -247,7 +247,7 @@ public class MatchedValuesControlTest
       {
         rawAttTypeTestCurrent = null ;
       }
-      boolean exceptionExpected = (attTypeCurrent == null);
+      boolean exceptionExpected = attTypeCurrent == null;
 
       try
       {
@@ -358,9 +358,8 @@ public class MatchedValuesControlTest
     }
 
     // Check type, value
-    // As we provide dummy type and value string, attType and attVal could
-    // be null.
-    if ((type != null) && (value != null))
+    // As we provide dummy type and value string, attType and attVal could be null.
+    if (type != null && value != null)
     {
       MatchedValuesFilter mvf;
       mvf = MatchedValuesFilter.createGreaterOrEqualFilter(type,
@@ -411,7 +410,7 @@ public class MatchedValuesControlTest
     }
 
     // Check type, value
-    if ((attType != null) && (attVal != null))
+    if (attType != null && attVal != null)
     {
       MatchedValuesFilter mvf;
       mvf = MatchedValuesFilter.createGreaterOrEqualFilter(attType, attVal);
@@ -507,9 +506,8 @@ public class MatchedValuesControlTest
     }
 
     // Check type, value
-    // As we provide dummy type and value string, attType and attVal could
-    // be null.
-    if ((attType != null) && (attVal != null))
+    // As we provide dummy type and value string, attType and attVal could be null.
+    if (attType != null && attVal != null)
     {
       mvf = MatchedValuesFilter.createLessOrEqualFilter(attType, attVal);
       assertNotNull(mvf);
@@ -653,9 +651,8 @@ public class MatchedValuesControlTest
     }
 
     // Check type, value
-    // As we provide dummy type and value string, attType and attVal could
-    // be null.
-    if ((attType != null) && (attVal != null))
+    // As we provide dummy type and value string, attType and attVal could be null.
+    if (attType != null && attVal != null)
     {
       mvf = MatchedValuesFilter.createApproximateFilter(attType, attVal);
       assertNotNull(mvf);
@@ -742,8 +739,9 @@ public class MatchedValuesControlTest
         attValueTestCurrent = attValueTest;
       }
 
-      boolean exceptionExpected = (attTypeTestCurrent == null)
-          || (attValueTestCurrent == null) || (matchingRuleidTestCurrent == null);
+      boolean exceptionExpected = attTypeTestCurrent == null
+          || attValueTestCurrent == null
+          || matchingRuleidTestCurrent == null;
 
       MatchedValuesFilter mvf = null;
       try

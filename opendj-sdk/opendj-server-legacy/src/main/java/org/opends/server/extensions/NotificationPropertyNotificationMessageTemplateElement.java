@@ -63,7 +63,7 @@ public class NotificationPropertyNotificationMessageTemplateElement
   {
     List<String> propertyValues =
          notification.getNotificationProperty(property);
-    if ((propertyValues != null) && (! propertyValues.isEmpty()))
+    if (propertyValues != null && ! propertyValues.isEmpty())
     {
       buffer.append(propertyValues.get(0));
     }

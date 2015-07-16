@@ -147,7 +147,7 @@ public final class MatchingRuleUse
       this.definition = definition;
     }
 
-    if ((names == null) || names.isEmpty())
+    if (names == null || names.isEmpty())
     {
       this.names = new LinkedHashMap<>(0);
     }
@@ -156,7 +156,7 @@ public final class MatchingRuleUse
       this.names = new LinkedHashMap<>(names);
     }
 
-    if ((attributes == null) || attributes.isEmpty())
+    if (attributes == null || attributes.isEmpty())
     {
       this.attributes = new LinkedHashSet<>(0);
     }
@@ -165,7 +165,7 @@ public final class MatchingRuleUse
       this.attributes = new LinkedHashSet<>(attributes);
     }
 
-    if ((extraProperties == null) || extraProperties.isEmpty())
+    if (extraProperties == null || extraProperties.isEmpty())
     {
       this.extraProperties = new LinkedHashMap<>(0);
     }

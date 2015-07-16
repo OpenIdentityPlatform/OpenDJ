@@ -281,8 +281,7 @@ public class TargAttrFilters {
         {
           return firstFilterList;
         }
-        else if((secondFilterList != null) &&
-                secondFilterList.hasMask(mask))
+        else if (secondFilterList != null && secondFilterList.hasMask(mask))
         {
           return secondFilterList;
         }
@@ -317,7 +316,7 @@ public class TargAttrFilters {
         //the attribute types value(s) against the corresponding filter.
         // If the filter list does not contain the attribute type skip the
         // attribute type.
-        if((attrType != null) && (filterList.containsKey(attrType))) {
+        if(attrType != null && filterList.containsKey(attrType)) {
             ByteString value = matchCtx.getCurrentAttributeValue();
             SearchFilter filter = filterList.get(attrType);
             attrMatched=matchFilterAttributeValue(attrType, value, filter);

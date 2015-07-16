@@ -392,7 +392,7 @@ public class BackUpDB extends TaskTool
 
     // If the signHash option was provided, then make sure that the hash option
     // was given.
-    if (signHash.isPresent() && (! hash.isPresent()))
+    if (signHash.isPresent() && !hash.isPresent())
     {
       LocalizableMessage message = ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(
               signHash.getLongIdentifier(),
@@ -688,7 +688,7 @@ public class BackUpDB extends TaskTool
 
 
       // See if there are multiple backends to archive.
-      multiple = (backendsToArchive.size() > 1);
+      multiple = backendsToArchive.size() > 1;
     }
 
 

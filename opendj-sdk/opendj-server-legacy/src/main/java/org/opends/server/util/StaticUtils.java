@@ -794,7 +794,7 @@ public final class StaticUtils
    */
   public static char byteToASCII(byte b)
   {
-    if ((b >= 32) && (b <= 126))
+    if (32 <= b && b <= 126)
     {
       return (char) b;
     }
@@ -814,7 +814,7 @@ public final class StaticUtils
    */
   public static String bytesToHexNoSpace(byte[] b)
   {
-    if ((b == null) || (b.length == 0))
+    if (b == null || b.length == 0)
     {
       return "";
     }
@@ -842,7 +842,7 @@ public final class StaticUtils
    */
   public static String bytesToHex(byte[] b)
   {
-    if ((b == null) || (b.length == 0))
+    if (b == null || b.length == 0)
     {
       return "";
     }
@@ -870,7 +870,7 @@ public final class StaticUtils
    */
   public static String bytesToHex(ByteSequence b)
   {
-    if ((b == null) || (b.length() == 0))
+    if (b == null || b.length() == 0)
     {
       return "";
     }
@@ -901,7 +901,7 @@ public final class StaticUtils
    */
   public static String bytesToColonDelimitedHex(byte[] b)
   {
-    if ((b == null) || (b.length == 0))
+    if (b == null || b.length == 0)
     {
       return "";
     }
@@ -986,7 +986,7 @@ public final class StaticUtils
 
     int length = b.length;
     int pos    = 0;
-    while ((length - pos) >= 16)
+    while (length - pos >= 16)
     {
       StringBuilder asciiBuf = new StringBuilder(17);
 
@@ -1014,7 +1014,7 @@ public final class StaticUtils
     }
 
 
-    int remaining = (length - pos);
+    int remaining = length - pos;
     if (remaining > 0)
     {
       StringBuilder asciiBuf = new StringBuilder(remaining+1);
@@ -1084,7 +1084,7 @@ public final class StaticUtils
     int limit    = b.limit();
     int length   = limit - position;
     int pos      = 0;
-    while ((length - pos) >= 16)
+    while (length - pos >= 16)
     {
       StringBuilder asciiBuf = new StringBuilder(17);
 
@@ -1114,7 +1114,7 @@ public final class StaticUtils
     }
 
 
-    int remaining = (length - pos);
+    int remaining = length - pos;
     if (remaining > 0)
     {
       StringBuilder asciiBuf = new StringBuilder(remaining+1);
@@ -1474,7 +1474,7 @@ public final class StaticUtils
       }
     }
 
-    return (a.length - a2.length);
+    return a.length - a2.length;
   }
 
 
@@ -1496,7 +1496,7 @@ public final class StaticUtils
   {
     if (list1 == null)
     {
-      return (list2 == null);
+      return list2 == null;
     }
     else if (list2 == null)
     {
@@ -1550,14 +1550,7 @@ public final class StaticUtils
    */
   public static boolean objectsAreEqual(Object o1, Object o2)
   {
-    if (o1 == null)
-    {
-      return (o2 == null);
-    }
-    else
-    {
-      return o1.equals(o2);
-    }
+    return Objects.equals(o1, o2);
   }
 
 
@@ -1608,8 +1601,7 @@ public final class StaticUtils
       message.append(")");
       return message.toMessage();
     }
-    else if ((t instanceof InvocationTargetException) &&
-             (t.getCause() != null))
+    else if (t instanceof InvocationTargetException && t.getCause() != null)
     {
       return getExceptionMessage(t.getCause());
     }
@@ -2082,7 +2074,7 @@ public final class StaticUtils
          throws ParseException
   {
     int length;
-    if ((hexString == null) || ((length = hexString.length()) == 0))
+    if (hexString == null || ((length = hexString.length()) == 0))
     {
       return new byte[0];
     }
@@ -2096,7 +2088,7 @@ public final class StaticUtils
 
 
     int pos = 0;
-    int arrayLength = (length / 2);
+    int arrayLength = length / 2;
     byte[] returnArray = new byte[arrayLength];
     for (int i=0; i < arrayLength; i++)
     {
@@ -2243,7 +2235,7 @@ public final class StaticUtils
   public static boolean needsBase64Encoding(ByteSequence valueBytes)
   {
     int length;
-    if ((valueBytes == null) || ((length = valueBytes.length()) == 0))
+    if (valueBytes == null || ((length = valueBytes.length()) == 0))
     {
       return false;
     }
@@ -2261,7 +2253,7 @@ public final class StaticUtils
 
 
     // If the value ends with a space, then it needs to be base64-encoded.
-    if ((length > 1) && (valueBytes.byteAt(length-1) == 0x20))
+    if (length > 1 && valueBytes.byteAt(length-1) == 0x20)
     {
       return true;
     }
@@ -2273,7 +2265,7 @@ public final class StaticUtils
     for (int i = 0; i < valueBytes.length(); i++)
     {
       b = valueBytes.byteAt(i);
-      if ((b > 127) || (b < 0))
+      if (b < 0 || 127 < b)
       {
         return true;
       }
@@ -2307,7 +2299,7 @@ public final class StaticUtils
   public static boolean needsBase64Encoding(String valueString)
   {
     int length;
-    if ((valueString == null) || ((length = valueString.length()) == 0))
+    if (valueString == null || ((length = valueString.length()) == 0))
     {
       return false;
     }
@@ -2325,7 +2317,7 @@ public final class StaticUtils
 
 
     // If the value ends with a space, then it needs to be base64-encoded.
-    if ((length > 1) && (valueString.charAt(length-1) == ' '))
+    if (length > 1 && valueString.charAt(length-1) == ' ')
     {
       return true;
     }
@@ -2336,7 +2328,7 @@ public final class StaticUtils
     for (int i=0; i < length; i++)
     {
       char c = valueString.charAt(i);
-      if ((c <= 0) || (c == 0x0A) || (c == 0x0D) || (c > 127))
+      if (c <= 0 || c == 0x0A || c == 0x0D || c > 127)
       {
         return true;
       }
@@ -2360,7 +2352,7 @@ public final class StaticUtils
    */
   public static boolean mayUseExec()
   {
-    return (! DirectoryServer.getEnvironmentConfig().disableExec());
+    return !DirectoryServer.getEnvironmentConfig().disableExec();
   }
 
 
@@ -2418,12 +2410,12 @@ public final class StaticUtils
     ProcessBuilder processBuilder = new ProcessBuilder(commandAndArgs);
     processBuilder.redirectErrorStream(true);
 
-    if ((workingDirectory != null) && workingDirectory.isDirectory())
+    if (workingDirectory != null && workingDirectory.isDirectory())
     {
       processBuilder.directory(workingDirectory);
     }
 
-    if ((environment != null) && (! environment.isEmpty()))
+    if (environment != null && !environment.isEmpty())
     {
       processBuilder.environment().putAll(environment);
     }
@@ -2499,7 +2491,7 @@ public final class StaticUtils
                                              int endPos,
                                              LocalizableMessageBuilder invalidReason)
   {
-    if ((element == null) || (startPos >= endPos))
+    if (element == null || startPos >= endPos)
     {
       invalidReason.append(ERR_SCHEMANAME_EMPTY_VALUE.get());
       return false;
@@ -2530,7 +2522,7 @@ public final class StaticUtils
       // This should indicate an OID, but it may also be a name if name
       // exceptions are enabled.  Since we don't know for sure, we'll just
       // hold off until we know for sure.
-      boolean isKnown    = (! DirectoryServer.allowAttributeNameExceptions());
+      boolean isKnown    = !DirectoryServer.allowAttributeNameExceptions();
       boolean isNumeric  = true;
       boolean lastWasDot = false;
 
@@ -2577,7 +2569,7 @@ public final class StaticUtils
         {
           lastWasDot = false;
 
-          if (isAlpha(c) || (c == '-') || (c == '_'))
+          if (isAlpha(c) || c == '-' || c == '_')
           {
             if (isKnown)
             {
@@ -2880,9 +2872,8 @@ public final class StaticUtils
       {
         case ' ':
           // If we don't care about trimming, then we can always append the
-          // space.  Otherwise, only do so if there are other characters in the
-          // value.
-          if (trim && (bufferLength == 0))
+          // space.  Otherwise, only do so if there are other characters in the value.
+          if (trim && bufferLength == 0)
           {
             break;
           }
@@ -3178,9 +3169,8 @@ public final class StaticUtils
       {
         case ' ':
           // If we don't care about trimming, then we can always append the
-          // space.  Otherwise, only do so if there are other characters in the
-          // value.
-          if (trim && (bufferLength == 0))
+          // space.  Otherwise, only do so if there are other characters in the value.
+          if (trim && bufferLength == 0)
           {
             break;
           }
@@ -3408,7 +3398,7 @@ public final class StaticUtils
         }
       }
 
-      return (successful & file.delete());
+      return successful & file.delete();
     }
     return false;
   }
@@ -3529,7 +3519,7 @@ public final class StaticUtils
   public static boolean isRelativePath(String path)
   {
     File f = new File(path);
-    return (! f.isAbsolute());
+    return !f.isAbsolute();
   }
 
 
@@ -3617,7 +3607,7 @@ public final class StaticUtils
   {
     // If the provided DN was null or empty, then return null because we don't
     // support it.
-    if ((dn == null) || dn.isRootDN())
+    if (dn == null || dn.isRootDN())
     {
       return null;
     }
@@ -3651,8 +3641,7 @@ public final class StaticUtils
 
       // First, see if this type is allowed by the untypedObject class.  If not,
       // then we'll need to include the extensibleObject class.
-      if ((! structuralClass.isRequiredOrOptional(attrType)) &&
-          (! extensibleObjectAdded))
+      if (!structuralClass.isRequiredOrOptional(attrType) && !extensibleObjectAdded)
       {
         ObjectClass extensibleObjectOC =
              DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC);
@@ -3926,7 +3915,7 @@ public final class StaticUtils
       // fall back
       // to a more inefficient way that will work without a selector.
       while (buffer.hasRemaining()
-          && (System.currentTimeMillis() < stopTime))
+          && System.currentTimeMillis() < stopTime)
       {
         if (socketChannel.write(buffer) < 0)
         {

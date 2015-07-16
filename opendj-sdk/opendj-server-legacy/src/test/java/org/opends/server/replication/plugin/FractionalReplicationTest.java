@@ -463,7 +463,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           else
           {
             // Other strings are attributes
-            String endString = (addSynchroAttribute ? ("," + SYNCHRO_OPTIONAL_ATTR + "\n") : "\n");
+            String endString = addSynchroAttribute ? ("," + SYNCHRO_OPTIONAL_ATTR + "\n") : "\n";
             topEntryLdif += fracCfgValue + ( (i<size-1) ? "," : endString);
           }
           i++;
@@ -503,7 +503,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         else
         {
           // Other strings are attributes
-          String endString = (addSynchroAttribute ? ("," + SYNCHRO_OPTIONAL_ATTR + "\n") : "\n");
+          String endString = addSynchroAttribute ? ("," + SYNCHRO_OPTIONAL_ATTR + "\n") : "\n";
           configEntryLdif += fracCfgValue + ( (i<size-1) ? "," : endString);
         }
           i++;

@@ -86,7 +86,7 @@ public class ProfileStack
     methodNames = new String[numFrames];
     lineNumbers = new int[numFrames];
 
-    for (int i=0, j=(numFrames-1); i < numFrames; i++,j--)
+    for (int i=0, j=numFrames-1; i < numFrames; i++,j--)
     {
       classNames[i]  = stackElements[j].getClassName();
       methodNames[i] = stackElements[j].getMethodName();
@@ -228,15 +228,11 @@ public class ProfileStack
    */
   public int hashCode()
   {
-    if (numFrames == 0)
+    if (numFrames != 0)
     {
-      return 0;
+      return classNames[0].hashCode() + methodNames[0].hashCode() + lineNumbers[0];
     }
-    else
-    {
-      return (classNames[0].hashCode() + methodNames[0].hashCode() +
-              lineNumbers[0]);
-    }
+    return 0;
   }
 
 
@@ -273,9 +269,9 @@ public class ProfileStack
 
       for (int i=0; i < numFrames; i++)
       {
-        if ((lineNumbers[i] != s.lineNumbers[i]) ||
-            (! classNames[i].equals(s.classNames[i])) ||
-            (! methodNames[i].equals(s.methodNames[i])))
+        if (lineNumbers[i] != s.lineNumbers[i] ||
+            !classNames[i].equals(s.classNames[i]) ||
+            !methodNames[i].equals(s.methodNames[i]))
         {
           return false;
         }

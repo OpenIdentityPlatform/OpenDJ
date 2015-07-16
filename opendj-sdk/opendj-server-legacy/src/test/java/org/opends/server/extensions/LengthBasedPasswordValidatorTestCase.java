@@ -435,11 +435,9 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-      assertEquals((buffer.length() >= 10),
-                   validator.passwordIsAcceptable(password,
-                                                  new HashSet<ByteString>(0),
-                                                  op, userEntry,
-                                                  invalidReason));
+      boolean actual = validator.passwordIsAcceptable(
+          password, new HashSet<ByteString>(0), op, userEntry, invalidReason);
+      assertEquals(buffer.length() >= 10, actual);
     }
 
     validator.finalizePasswordValidator();
@@ -500,11 +498,9 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-      assertEquals((buffer.length() <= 10),
-                   validator.passwordIsAcceptable(password,
-                                                  new HashSet<ByteString>(0),
-                                                  op, userEntry,
-                                                  invalidReason));
+      boolean actual = validator.passwordIsAcceptable(
+          password, new HashSet<ByteString>(0), op, userEntry, invalidReason);
+      assertEquals(buffer.length() <= 10, actual);
     }
 
     validator.finalizePasswordValidator();
@@ -565,11 +561,9 @@ public class LengthBasedPasswordValidatorTestCase
       ModifyOperationBasis op = newModifyOperation(buffer);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-      assertEquals(((buffer.length() >= 6) && (buffer.length() <= 10)),
-                   validator.passwordIsAcceptable(password,
-                                                  new HashSet<ByteString>(0),
-                                                  op, userEntry,
-                                                  invalidReason));
+      boolean actual = validator.passwordIsAcceptable(
+          password, new HashSet<ByteString>(0), op, userEntry, invalidReason);
+      assertEquals(buffer.length() >= 6 && buffer.length() <= 10, actual);
     }
 
     validator.finalizePasswordValidator();

@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,7 +62,6 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
@@ -121,8 +121,7 @@ public class ModifyEntryTask extends Task
     }
     catch (OpenDsException ode)
     {
-      throw new RuntimeException("Could not parse DN: "+oldEntry.getDN(),
-          ode);
+      throw new RuntimeException("Could not parse DN: " + oldEntry.getDN(), ode);
     }
     modifications = getModifications(newEntry, oldEntry, getInfo());
     // Find password modifications
@@ -276,8 +275,9 @@ public class ModifyEntryTask extends Task
   /** {@inheritDoc} */
   public void postOperation()
   {
-    if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY) &&
-        (passwordModification != null))
+    if (lastException == null
+        && state == State.FINISHED_SUCCESSFULLY
+        && passwordModification != null)
     {
       try
       {
@@ -344,54 +344,15 @@ public class ModifyEntryTask extends Task
     RDN oldRDN = oldDN.rdn();
     RDN newRDN = newEntry.getName().rdn();
 
-    boolean rdnTypeChanged =
-    newRDN.getNumValues() != oldRDN.getNumValues();
-
-    for (int i=0; (i<newRDN.getNumValues()) && !rdnTypeChanged; i++) {
-      boolean found = false;
-      for (int j=0;
-      (j<oldRDN.getNumValues()) && !found; j++) {
-        found = newRDN.getAttributeName(i).equalsIgnoreCase(
-            oldRDN.getAttributeName(j));
-      }
-      rdnTypeChanged = !found;
+    if (rdnTypeChanged(oldRDN, newRDN)
+        && userChangedObjectclass(originalMods)
+        /* See if the original entry contains the new naming attribute(s) if it does we will be able
+        to perform the renaming and then the modifications without problem */
+        && !entryContainsRdnTypes(originalEntry, newRDN))
+    {
+      throw new CannotRenameException(AdminToolMessages.ERR_CANNOT_MODIFY_OBJECTCLASS_AND_RENAME.get());
     }
 
-    if (rdnTypeChanged) {
-      /* Check if user changed the objectclass...*/
-      boolean changedOc = false;
-      for (ModificationItem mod : originalMods)
-      {
-        Attribute attr = mod.getAttribute();
-        changedOc = attr.getID().equalsIgnoreCase(
-            ConfigConstants.ATTR_OBJECTCLASS);
-        if (changedOc)
-        {
-          break;
-        }
-      }
-
-      if (changedOc)
-      {
-        /* See if the original entry contains the new
-        naming attribute(s) if it does we will be able
-        to perform the renaming and then the
-        modifications without problem */
-        boolean entryContainsRdnTypes = true;
-        for (int i=0; (i<newRDN.getNumValues()) && entryContainsRdnTypes; i++)
-        {
-          List<Object> values = originalEntry.getAttributeValues(
-          newRDN.getAttributeName(i));
-          entryContainsRdnTypes = !values.isEmpty();
-        }
-
-        if (!entryContainsRdnTypes)
-        {
-          throw new CannotRenameException(
-              AdminToolMessages.ERR_CANNOT_MODIFY_OBJECTCLASS_AND_RENAME.get());
-        }
-      }
-    }
     SwingUtilities.invokeLater(new Runnable()
     {
       public void run()
@@ -442,8 +403,7 @@ public class ModifyEntryTask extends Task
         }
       });
 
-      ctx.modifyAttributes(Utilities.getJNDIName(newEntry.getName().toString()),
-          mods);
+      ctx.modifyAttributes(Utilities.getJNDIName(newEntry.getName().toString()), mods);
 
       SwingUtilities.invokeLater(new Runnable()
       {
@@ -458,6 +418,60 @@ public class ModifyEntryTask extends Task
         }
       });
     }
+  }
+
+  private boolean rdnTypeChanged(RDN oldRDN, RDN newRDN)
+  {
+    if (newRDN.getNumValues() != oldRDN.getNumValues())
+    {
+      return true;
+    }
+
+    for (int i = 0; i < newRDN.getNumValues(); i++)
+    {
+      if (!find(oldRDN, newRDN.getAttributeName(i)))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean find(RDN rdn, String attrName)
+  {
+    for (int j = 0; j < rdn.getNumValues(); j++)
+    {
+      if (attrName.equalsIgnoreCase(rdn.getAttributeName(j)))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean userChangedObjectclass(final ArrayList<ModificationItem> mods)
+  {
+    for (ModificationItem mod : mods)
+    {
+      if (ATTR_OBJECTCLASS.equalsIgnoreCase(mod.getAttribute().getID()))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean entryContainsRdnTypes(CustomSearchResult entry, RDN rdn)
+  {
+    for (int i = 0; i < rdn.getNumValues(); i++)
+    {
+      List<Object> values = entry.getAttributeValues(rdn.getAttributeName(i));
+      if (!!values.isEmpty())
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -481,12 +495,10 @@ public class ModifyEntryTask extends Task
       {
         continue;
       }
-      AttributeType attrType = schema.getAttributeType(
-          attr.getName().toLowerCase());
+      AttributeType attrType = schema.getAttributeType(attr.getName().toLowerCase());
       if (attrType == null)
       {
-        attrType = DirectoryServer.getDefaultAttributeType(
-            attr.getName().toLowerCase());
+        attrType = DirectoryServer.getDefaultAttributeType(attr.getName().toLowerCase());
       }
       List<ByteString> newValues = new ArrayList<>();
       Iterator<ByteString> it = attr.iterator();
@@ -535,19 +547,9 @@ public class ModifyEntryTask extends Task
         if (oldRDN.getAttributeName(i).equalsIgnoreCase(attrName))
         {
           ByteString value = oldRDN.getAttributeValue(i);
-          boolean containsValue = false;
-          it = attr.iterator();
-          while (it.hasNext())
+          if (containsValue(attr, value))
           {
-            if (value.equals(it.next()))
-            {
-              containsValue = true;
-              break;
-            }
-          }
-          if (containsValue)
-          {
-            if ((rdnValue == null) || !rdnValue.equals(value))
+            if (rdnValue == null || !rdnValue.equals(value))
             {
               oldRdnValueToAdd = value;
             }
@@ -583,7 +585,7 @@ public class ModifyEntryTask extends Task
         {
           toAdd.add(oldRdnValueToAdd);
         }
-        if ((toDelete.size() + toAdd.size() >= newValues.size()) &&
+        if (toDelete.size() + toAdd.size() >= newValues.size() &&
             !isAttributeInNewRdn)
         {
           modifications.add(new ModificationItem(
@@ -627,21 +629,8 @@ public class ModifyEntryTask extends Task
       String attrNoOptions =
         Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
 
-      List<org.opends.server.types.Attribute> attrs =
-        newEntry.getAttribute(attrNoOptions);
-      boolean found = false;
-      if (attrs != null)
-      {
-        for (org.opends.server.types.Attribute attr : attrs)
-        {
-          if (attr.getNameWithOptions().equalsIgnoreCase(attrName))
-          {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found && !oldValues.isEmpty())
+      List<org.opends.server.types.Attribute> attrs = newEntry.getAttribute(attrNoOptions);
+      if (!find(attrs, attrName) && !oldValues.isEmpty())
       {
         modifications.add(new ModificationItem(
             DirContext.REMOVE_ATTRIBUTE,
@@ -649,6 +638,33 @@ public class ModifyEntryTask extends Task
       }
     }
     return modifications;
+  }
+
+  private static boolean find(List<org.opends.server.types.Attribute> attrs, String attrName)
+  {
+    if (attrs != null)
+    {
+      for (org.opends.server.types.Attribute attr : attrs)
+      {
+        if (attr.getNameWithOptions().equalsIgnoreCase(attrName))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean containsValue(org.opends.server.types.Attribute attr, Object value)
+  {
+    for (Iterator<ByteString> it = attr.iterator(); it.hasNext();)
+    {
+      if (value.equals(it.next()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

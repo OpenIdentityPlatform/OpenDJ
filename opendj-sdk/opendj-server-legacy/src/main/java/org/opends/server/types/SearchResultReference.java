@@ -145,7 +145,7 @@ public final class SearchResultReference
    */
   public String getReferralURLString()
   {
-    if ((referralURLs == null) || (referralURLs.isEmpty()))
+    if (referralURLs == null || referralURLs.isEmpty())
     {
       return "";
     }

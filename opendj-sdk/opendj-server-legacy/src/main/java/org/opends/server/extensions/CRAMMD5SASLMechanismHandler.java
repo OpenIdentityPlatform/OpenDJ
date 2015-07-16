@@ -246,13 +246,13 @@ public class CRAMMD5SASLMechanismHandler
 
     // Look at the digest portion of the provided credentials.  It must have a
     // length of exactly 32 bytes and be comprised only of hex characters.
-    if (digest.length() != (2*MD5_DIGEST_LENGTH))
+    if (digest.length() != 2*MD5_DIGEST_LENGTH)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
       LocalizableMessage message = ERR_SASLCRAMMD5_INVALID_DIGEST_LENGTH.get(
               digest.length(),
-              (2*MD5_DIGEST_LENGTH));
+              2*MD5_DIGEST_LENGTH);
       bindOperation.setAuthFailureReason(message);
       return;
     }
@@ -388,7 +388,7 @@ public class CRAMMD5SASLMechanismHandler
 
       PasswordPolicyState pwPolicyState = (PasswordPolicyState) authState;
       clearPasswords = pwPolicyState.getClearPasswords();
-      if ((clearPasswords == null) || clearPasswords.isEmpty())
+      if (clearPasswords == null || clearPasswords.isEmpty())
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 

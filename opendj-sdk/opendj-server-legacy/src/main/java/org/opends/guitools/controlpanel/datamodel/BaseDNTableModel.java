@@ -128,8 +128,7 @@ implements Comparator<BaseDNDescriptor>
   public void setData(Set<BaseDNDescriptor> newData,
       ServerDescriptor.ServerStatus status, boolean isAuthenticated)
   {
-    if (!newData.equals(data) || (serverStatus != status) ||
-        (this.isAuthenticated != isAuthenticated))
+    if (!newData.equals(data) || serverStatus != status || this.isAuthenticated != isAuthenticated)
     {
       serverStatus = status;
       this.isAuthenticated = isAuthenticated;
@@ -474,8 +473,9 @@ implements Comparator<BaseDNDescriptor>
 
   private int compareRepl(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
-    return (String.valueOf(desc1.getType()).compareTo(
-        String.valueOf(desc2.getType())));
+    String val1 = String.valueOf(desc1.getType());
+    String val2 = String.valueOf(desc2.getType());
+    return val1.compareTo(val2);
   }
 
   private int compareMissingChanges(BaseDNDescriptor desc1,

@@ -124,7 +124,7 @@ public class HistoricalAttributeValue
       // This HistVal is used to store the date when the entry
       // was added to the directory or when it was last renamed.
       attrType = null;
-      if ((token.length >= 3) && (token[2].compareTo("moddn") == 0))
+      if (token.length >= 3 && token[2].compareTo("moddn") == 0)
       {
         ismodDN = true;
       }

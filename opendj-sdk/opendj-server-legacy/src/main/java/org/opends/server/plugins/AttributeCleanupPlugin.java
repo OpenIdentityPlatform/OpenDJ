@@ -302,9 +302,9 @@ public class AttributeCleanupPlugin extends
        * ignore attribute options.
        */
       final int semicolonPos = toAttr.indexOf(";");
-      final String toAttrType = (semicolonPos < 0)
-          && (semicolonPos < (toAttr.length() - 1)) ? toAttr : toAttr
-          .substring(semicolonPos + 1);
+      final String toAttrType = semicolonPos < 0 && semicolonPos < toAttr.length() - 1
+          ? toAttr
+          : toAttr.substring(semicolonPos + 1);
 
       if (DirectoryServer.getAttributeType(toLowerCase(toAttrType)) == null)
       {

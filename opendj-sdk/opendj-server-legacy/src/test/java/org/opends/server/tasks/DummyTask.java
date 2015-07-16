@@ -90,8 +90,7 @@ public class DummyTask
   protected TaskState runTask()
   {
     long stopTime = System.currentTimeMillis() + sleepTime;
-    while ((interruptedState == null) &&
-           (System.currentTimeMillis() < stopTime))
+    while (interruptedState == null && System.currentTimeMillis() < stopTime)
     {
       try
       {
@@ -99,14 +98,11 @@ public class DummyTask
       } catch (Exception e) {}
     }
 
-    if (interruptedState == null)
-    {
-      return TaskState.COMPLETED_SUCCESSFULLY;
-    }
-    else
+    if (interruptedState != null)
     {
       return interruptedState;
     }
+    return TaskState.COMPLETED_SUCCESSFULLY;
   }
 
 

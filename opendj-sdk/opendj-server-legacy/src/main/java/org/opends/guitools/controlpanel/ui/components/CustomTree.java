@@ -151,7 +151,7 @@ public class CustomTree extends JTree
         MouseEvent newEvent = getTranslatedEvent(ev);
 
         if (isMacOS() && ev.isPopupTrigger() &&
-            (ev.getButton() != MouseEvent.BUTTON1))
+            ev.getButton() != MouseEvent.BUTTON1)
         {
           MouseEvent baseEvent = ev;
           if (newEvent != null)
@@ -159,8 +159,8 @@ public class CustomTree extends JTree
             baseEvent = newEvent;
           }
           int mods = baseEvent.getModifiersEx();
-          mods &= (InputEvent.ALT_DOWN_MASK | InputEvent.META_DOWN_MASK |
-              InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK);
+          mods &= InputEvent.ALT_DOWN_MASK | InputEvent.META_DOWN_MASK |
+              InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK;
           mods |=  InputEvent.BUTTON1_DOWN_MASK;
           final MouseEvent  macEvent = new MouseEvent(
               baseEvent.getComponent(),
@@ -266,8 +266,8 @@ public class CustomTree extends JTree
             Rectangle r = getPathBounds(path);
             if (r != null)
             {
-              int newX = r.x + (r.width / 2);
-              int newY = r.y + (r.height / 2);
+              int newX = r.x + r.width / 2;
+              int newY = r.y + r.height / 2;
               // Simulate an event
               newEvent = new MouseEvent(
                   ev.getComponent(),
@@ -318,8 +318,8 @@ public class CustomTree extends JTree
     {
       Rectangle pathBounds = getPathBounds(closestPath);
       if (pathBounds != null &&
-         x >= pathBounds.x && x < (getX() + getWidth()) &&
-         y >= pathBounds.y && y < (pathBounds.y + pathBounds.height))
+         x >= pathBounds.x && x < getX() + getWidth() &&
+         y >= pathBounds.y && y < pathBounds.y + pathBounds.height)
       {
         path = closestPath;
       }

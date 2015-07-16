@@ -241,8 +241,7 @@ public class UserDN implements KeywordBindRule {
             case PARENT:
             {
                 DN parentDN = resDN.parent();
-                if ((parentDN != null) &&
-                        (parentDN.equals(clientDN)))
+                if (parentDN != null && parentDN.equals(clientDN))
                 {
                   matched = EnumEvalResult.TRUE;
                 }
@@ -342,13 +341,13 @@ public class UserDN implements KeywordBindRule {
             }
         } else if(scope == SearchScope.SINGLE_LEVEL) {
             DN parent=evalCtx.getClientDN().parent();
-            if((parent != null) && !parent.equals(urlDN))
+            if(parent != null && !parent.equals(urlDN))
             {
               return EnumEvalResult.FALSE;
             }
         } else if(scope == SearchScope.SUBORDINATES) {
             DN userDN = evalCtx.getClientDN();
-            if ((userDN.size() <= urlDN.size()) ||
+            if (userDN.size() <= urlDN.size() ||
                  !userDN.isDescendantOf(urlDN)) {
               return EnumEvalResult.FALSE;
             }

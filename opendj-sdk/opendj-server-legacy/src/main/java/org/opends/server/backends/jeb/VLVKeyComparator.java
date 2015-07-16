@@ -261,7 +261,7 @@ public class VLVKeyComparator implements DatabaseComparator
         break;
       }
 
-      ByteString b1Bytes = set.getValue((index * orderingRules.length) + j);
+      ByteString b1Bytes = set.getValue(index * orderingRules.length + j);
       ByteString b2Bytes = null;
 
       if(values[j] != null)

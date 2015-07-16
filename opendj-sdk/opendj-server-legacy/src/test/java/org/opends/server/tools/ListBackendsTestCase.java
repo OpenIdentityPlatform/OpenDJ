@@ -182,7 +182,7 @@ public class ListBackendsTestCase
   @Test(dataProvider = "invalidArgs")
   public void testInvalidArguments(String[] args, String invalidReason)
   {
-    assertFalse((ListBackends.listBackends(args, false, null, null) == 0),
+    assertFalse(ListBackends.listBackends(args, false, null, null) == 0,
                 "Should have been invalid because:  " + invalidReason);
   }
 

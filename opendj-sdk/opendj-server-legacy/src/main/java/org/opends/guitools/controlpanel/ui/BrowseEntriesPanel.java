@@ -97,7 +97,6 @@ import org.opends.server.util.ServerConstants;
 /**
  * The pane that is displayed when the user clicks on 'Browse Entries...'.
  * It contains its own menu bar with all the actions to edit the entries.
- *
  */
 public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 {
@@ -290,26 +289,13 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           }
           ignoreTreeSelectionEvents = false;
         }
-        if ((paths != null) && (paths.length == 1))
+        if (paths != null && paths.length == 1)
         {
           path = paths[0];
         }
 
 //      Update menu items
-        boolean enableDelete = false;
-        if ((paths != null) && (paths.length > 0))
-        {
-          enableDelete = true;
-          for (TreePath p : paths)
-          {
-            BasicNode n = (BasicNode)p.getLastPathComponent();
-            enableDelete = entryPane.canDelete(n.getDN());
-            if (!enableDelete)
-            {
-              break;
-            }
-          }
-        }
+        boolean enableDelete = enableDelete(paths);
         popupDeleteMenuItem.setEnabled(enableDelete);
         menuBar.deleteMenuItem.setEnabled(enableDelete);
 
@@ -335,7 +321,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         menuBar.resetPasswordMenuItem.setEnabled(enableResetPassword);
 
 //      Assume that if we cannot delete, we cannot create a new path
-        boolean enableNewEntry = (path != null) && enableDelete;
+        boolean enableNewEntry = path != null && enableDelete;
         popupNewUserMenuItem.setEnabled(enableNewEntry);
         menuBar.newUserMenuItem.setEnabled(enableNewEntry);
 
@@ -352,6 +338,23 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         menuBar.newDomainMenuItem.setEnabled(enableNewEntry);
 
         updateRightPane(paths);
+      }
+
+      private boolean enableDelete(TreePath[] paths)
+      {
+        if (paths != null && paths.length > 0)
+        {
+          for (TreePath p : paths)
+          {
+            BasicNode n = (BasicNode)p.getLastPathComponent();
+            if (!entryPane.canDelete(n.getDN()))
+            {
+              return false;
+            }
+          }
+          return true;
+        }
+        return false;
       }
     };
     tree.getSelectionModel().addTreeSelectionListener(treeSelectionListener);
@@ -500,7 +503,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   private void updateRightPane(TreePath[] paths)
   {
     TreePath path = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       path = paths[0];
     }
@@ -560,7 +563,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     else
     {
       stopCurrentReader();
-      if ((paths != null) && (paths.length > 1))
+      if (paths != null && paths.length > 1)
       {
         entryPane.multipleEntriesSelected();
       }
@@ -586,7 +589,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   private void startReader(LDAPEntryReader reader)
   {
     entryReader = reader;
-    if ((entryReaderThread == null) || !entryReaderThread.isAlive())
+    if (entryReaderThread == null || !entryReaderThread.isAlive())
     {
       entryReaderThread = new Thread(new Runnable()
       {
@@ -815,7 +818,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           Utilities.getParentDialog(this));
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       BasicNode node = (BasicNode)path.getLastPathComponent();
@@ -862,7 +865,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode parentNode = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       parentNode = (BasicNode)path.getLastPathComponent();
@@ -886,7 +889,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode parentNode = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       parentNode = (BasicNode)path.getLastPathComponent();
@@ -907,7 +910,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode parentNode = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       parentNode = (BasicNode)path.getLastPathComponent();
@@ -929,7 +932,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode parentNode = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       parentNode = (BasicNode)path.getLastPathComponent();
@@ -951,7 +954,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode parentNode = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       parentNode = (BasicNode)path.getLastPathComponent();
@@ -973,7 +976,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode parentNode = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       parentNode = (BasicNode)path.getLastPathComponent();
@@ -999,7 +1002,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     TreePath[] paths = treePane.getTree().getSelectionPaths();
     BasicNode node = null;
-    if ((paths != null) && (paths.length == 1))
+    if (paths != null && paths.length == 1)
     {
       TreePath path = paths[0];
       node = (BasicNode)path.getLastPathComponent();
@@ -1013,7 +1016,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     ArrayList<LocalizableMessage> errors = new ArrayList<>();
     TreePath[] paths = treePane.getTree().getSelectionPaths();
 
-    if ((paths != null) && (paths.length > 0))
+    if (paths != null && paths.length > 0)
     {
       ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(),
@@ -1511,7 +1514,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     boolean isInterruptedException = false;
     isInterruptedException = t instanceof java.io.InterruptedIOException ||
     t instanceof InterruptedNamingException;
-    while ((t != null) && !isInterruptedException)
+    while (t != null && !isInterruptedException)
     {
       t = t.getCause();
       isInterruptedException = t instanceof java.io.InterruptedIOException ||

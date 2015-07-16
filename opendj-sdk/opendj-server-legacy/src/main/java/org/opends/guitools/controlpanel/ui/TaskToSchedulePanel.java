@@ -378,7 +378,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     try
     {
       d = Integer.parseInt(day.getText().trim());
-      if ((d < 0) || (d > 31))
+      if (d < 0 || d > 31)
       {
         errorMessages.add(ERR_CTRL_PANEL_INVALID_DAY.get());
         setPrimaryInvalid(lDay);

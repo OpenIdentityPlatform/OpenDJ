@@ -464,7 +464,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     ignoreChangeEvents = true;
 
     objectClass = oc;
-    if ((oc == null) || (schema == null))
+    if (oc == null || schema == null)
     {
       // Ignore: this is called to get an initial panel size.
       return;

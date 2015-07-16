@@ -131,11 +131,10 @@ public class NameFormSyntax
     String lowerStr = toLowerCase(valueStr);
 
 
-    // We'll do this a character at a time.  First, skip over any leading
-    // whitespace.
+    // We'll do this a character at a time.  First, skip over any leading whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -145,8 +144,7 @@ public class NameFormSyntax
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
       LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
@@ -156,14 +154,13 @@ public class NameFormSyntax
     if (c != '(')
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
-          valueStr, (pos-1), c);
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+          valueStr, pos-1, c);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -188,7 +185,7 @@ public class NameFormSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
       {
         if (c == '.')
         {
@@ -196,7 +193,7 @@ public class NameFormSyntax
           {
             LocalizableMessage message =
                 ERR_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(valueStr, (pos-1));
+                  get(valueStr, pos-1);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -210,7 +207,7 @@ public class NameFormSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, c, (pos-1));
+                get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -224,10 +221,10 @@ public class NameFormSyntax
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while (pos < length && ((c = valueStr.charAt(pos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
         }
@@ -236,7 +233,7 @@ public class NameFormSyntax
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID.
-                get(valueStr, c, (pos-1));
+                get(valueStr, c, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -253,14 +250,11 @@ public class NameFormSyntax
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
-    else
-    {
-      oid = lowerStr.substring(oidStartPos, (pos-1));
-    }
+    oid = lowerStr.substring(oidStartPos, pos-1);
 
 
     // Skip over the space(s) after the OID.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -304,7 +298,7 @@ public class NameFormSyntax
         {
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_UNEXPECTED_CLOSE_PARENTHESIS.
-                get(valueStr, (pos-1));
+                get(valueStr, pos-1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
@@ -321,8 +315,7 @@ public class NameFormSyntax
         {
           StringBuilder userBuffer  = new StringBuilder();
           StringBuilder lowerBuffer = new StringBuilder();
-          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
-                                 (pos-1));
+          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer, pos-1);
           names.put(lowerBuffer.toString(), userBuffer.toString());
         }
         else if (c == '(')
@@ -340,7 +333,7 @@ public class NameFormSyntax
             {
               // Skip over any spaces after the parenthesis.
               pos++;
-              while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+              while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
               {
                 pos++;
               }
@@ -362,9 +355,8 @@ public class NameFormSyntax
         {
           // This is an illegal character.
           LocalizableMessage message =
-              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(valueStr, c, pos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
       else if (lowerTokenName.equals("desc"))
@@ -432,7 +424,7 @@ public class NameFormSyntax
           while (true)
           {
             StringBuilder woidBuffer = new StringBuilder();
-            pos = readWOID(lowerStr, woidBuffer, (pos));
+            pos = readWOID(lowerStr, woidBuffer, pos);
             attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
                 ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR));
 
@@ -446,7 +438,7 @@ public class NameFormSyntax
             else if (c != '$')
             {
               LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(
-                  valueStr, c, (pos-1));
+                  valueStr, c, pos-1);
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                            message);
             }
@@ -455,7 +447,7 @@ public class NameFormSyntax
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
-          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          pos = readWOID(lowerStr, woidBuffer, pos-1);
           attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
               ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR));
         }
@@ -476,7 +468,7 @@ public class NameFormSyntax
           while (true)
           {
             StringBuilder woidBuffer = new StringBuilder();
-            pos = readWOID(lowerStr, woidBuffer, (pos));
+            pos = readWOID(lowerStr, woidBuffer, pos);
             attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
                 ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR));
 
@@ -490,16 +482,15 @@ public class NameFormSyntax
             else if (c != '$')
             {
               LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR.get(
-                  valueStr, c, (pos-1));
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
+                  valueStr, c, pos-1);
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
         }
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
-          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          pos = readWOID(lowerStr, woidBuffer, pos-1);
           attrs.add(getAttributeType(schema, allowUnknownElements, oid, woidBuffer,
               ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR));
         }
@@ -576,7 +567,7 @@ public class NameFormSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -590,14 +581,14 @@ public class NameFormSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos++)) != ' '))
     {
       tokenName.append(c);
     }
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -632,7 +623,7 @@ public class NameFormSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -657,7 +648,7 @@ public class NameFormSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
     {
       valueBuffer.append(c);
       startPos++;
@@ -666,7 +657,7 @@ public class NameFormSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -715,7 +706,7 @@ public class NameFormSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -740,7 +731,7 @@ public class NameFormSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) != '\''))
     {
       lowerBuffer.append(c);
       userBuffer.append(valueStr.charAt(startPos));
@@ -750,7 +741,7 @@ public class NameFormSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -792,7 +783,7 @@ public class NameFormSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -812,7 +803,7 @@ public class NameFormSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (c == '.')
         {
@@ -820,15 +811,11 @@ public class NameFormSyntax
           {
             LocalizableMessage message =
                 ERR_ATTR_SYNTAX_NAME_FORM_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(lowerStr, (startPos-1));
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+                  get(lowerStr, startPos-1);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
-          else
-          {
-            woidBuffer.append(c);
-            lastWasPeriod = true;
-          }
+          woidBuffer.append(c);
+          lastWasPeriod = true;
         }
         else if (! isDigit(c))
         {
@@ -840,15 +827,14 @@ public class NameFormSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(lowerStr, c, (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+                get(lowerStr, c, startPos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -861,10 +847,10 @@ public class NameFormSyntax
     {
       // This must be an attribute type description.  In this case, we will only
       // accept alphabetic characters, numeric digits, and the hyphen.
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c) || isDigit(c) || c == '-' ||
+            (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           woidBuffer.append(c);
         }
@@ -878,15 +864,14 @@ public class NameFormSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos-1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_CHAR_IN_STRING_OID.
-                get(lowerStr, c, (startPos-1));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+                get(lowerStr, c, startPos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -900,7 +885,7 @@ public class NameFormSyntax
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -942,7 +927,7 @@ public class NameFormSyntax
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = '\u0000';
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -965,7 +950,7 @@ public class NameFormSyntax
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
       startPos++;
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
       {
         valueBuffer.append(c);
         startPos++;
@@ -980,7 +965,7 @@ public class NameFormSyntax
       while (true)
       {
         // Skip over any leading spaces;
-        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
         }
@@ -1013,8 +998,7 @@ public class NameFormSyntax
           // We have a quoted string
           StringBuilder valueBuffer = new StringBuilder();
           startPos++;
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != '\''))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
           {
             valueBuffer.append(c);
             startPos++;
@@ -1027,8 +1011,7 @@ public class NameFormSyntax
         {
           //Consider unquoted string
           StringBuilder valueBuffer = new StringBuilder();
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != ' '))
+          while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
           {
             valueBuffer.append(c);
             startPos++;
@@ -1050,7 +1033,7 @@ public class NameFormSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
       {
         valueBuffer.append(c);
         startPos++;
@@ -1060,7 +1043,7 @@ public class NameFormSyntax
     }
 
     // Skip over any trailing spaces.
-    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && valueStr.charAt(startPos) == ' ')
     {
       startPos++;
     }

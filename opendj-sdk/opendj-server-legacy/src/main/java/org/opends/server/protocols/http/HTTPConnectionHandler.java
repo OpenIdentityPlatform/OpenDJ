@@ -524,7 +524,7 @@ public class HTTPConnectionHandler extends
   {
     HTTPConnectionHandlerCfg config = (HTTPConnectionHandlerCfg) configuration;
 
-    if ((currentConfig == null) || (!this.enabled && config.isEnabled()))
+    if (currentConfig == null || (!this.enabled && config.isEnabled()))
     {
       // Attempt to bind to the listen port on all configured addresses to
       // verify whether the connection handler will be able to start.

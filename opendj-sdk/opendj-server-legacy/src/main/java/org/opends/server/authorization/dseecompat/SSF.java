@@ -63,7 +63,7 @@ public class SSF implements KeywordBindRule {
                  WARN_ACI_SYNTAX_INVALID_SSF_FORMAT.get(expr, nfe.getMessage());
             throw new AciException(message);
         }
-        if ((valueAsInt <= 0) || (valueAsInt > MAX_KEY_BITS)) {
+        if (valueAsInt <= 0 || valueAsInt > MAX_KEY_BITS) {
             LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_SSF_RANGE.get(expr);
             throw new AciException(message);
         }

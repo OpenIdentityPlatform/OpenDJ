@@ -528,7 +528,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public boolean hasAllOptions(Collection<String> options)
     {
-      return (options == null || options.isEmpty());
+      return options == null || options.isEmpty();
     }
 
 
@@ -555,7 +555,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public boolean optionsEqual(Set<String> options)
     {
-      return (options == null || options.isEmpty());
+      return options == null || options.isEmpty();
     }
   }
 
@@ -814,7 +814,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
         return elements.contains(o);
       }
 
-      return (firstElement != null && firstElement.equals(o));
+      return firstElement != null && firstElement.equals(o);
     }
 
     /**

@@ -100,7 +100,7 @@ public class MemoryUsageMonitorProvider
       {
         long recentGCCount = gcCount - lastGCCount;
         long recentGCTime  = gcTime  - lastGCTime;
-        recentGCDuration   = (recentGCTime / recentGCCount);
+        recentGCDuration   = recentGCTime / recentGCCount;
       }
 
       lastGCCounts.put(gcName, gcCount);
@@ -233,7 +233,7 @@ public class MemoryUsageMonitorProvider
         if (Character.isUpperCase(c))
         {
           char lowerCaseCharacter = Character.toLowerCase(c);
-          if ((buffer.length() > 0) && (! lastWasUppercase) && (! lastWasDash))
+          if (buffer.length() > 0 && !lastWasUppercase && !lastWasDash)
           {
             buffer.append('-');
           }
@@ -255,7 +255,7 @@ public class MemoryUsageMonitorProvider
         lastWasUppercase = false;
         lastWasDash = false;
       }
-      else if ((c == ' ') || (c == '_') || (c == '-'))
+      else if (c == ' ' || c == '_' || c == '-')
       {
         if (! lastWasDash)
         {

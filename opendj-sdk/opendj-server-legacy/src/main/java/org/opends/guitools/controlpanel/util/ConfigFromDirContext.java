@@ -745,7 +745,7 @@ public class ConfigFromDirContext extends ConfigReader
     String replicaId = ConnectionUtils.getFirstValue(sr, "server-id");
     String missingChanges = ConnectionUtils.getFirstValue(sr, "missing-changes");
 
-    if ((dn != null)  && (replicaId != null) && (missingChanges != null))
+    if (dn != null  && replicaId != null && missingChanges != null)
     {
       for (BackendDescriptor backend : backends)
       {
@@ -785,7 +785,7 @@ public class ConfigFromDirContext extends ConfigReader
       String backendID = ConnectionUtils.getFirstValue(sr, "ds-backend-id");
       String entryCount = ConnectionUtils.getFirstValue(sr, "ds-backend-entry-count");
       Set<String> baseDnEntries = ConnectionUtils.getValues(sr, "ds-base-dn-entry-count");
-      if ((backendID != null) && ((entryCount != null) || (baseDnEntries != null)))
+      if (backendID != null && (entryCount != null || baseDnEntries != null))
       {
         for (BackendDescriptor backend : backends)
         {
@@ -831,7 +831,7 @@ public class ConfigFromDirContext extends ConfigReader
       {
         // Check if it is the DB monitor entry
         String cn = ConnectionUtils.getFirstValue(sr, "cn");
-        if ((cn != null) && cn.endsWith(DATABASE_ENVIRONMENT_SUFFIX))
+        if (cn != null && cn.endsWith(DATABASE_ENVIRONMENT_SUFFIX))
         {
           String monitorBackendID = cn.substring(0, cn.length() - DATABASE_ENVIRONMENT_SUFFIX.length());
           for (BackendDescriptor backend : backends)
@@ -845,27 +845,27 @@ public class ConfigFromDirContext extends ConfigReader
       }
       try
       {
-        if ((rootMonitor == null) && isRootMonitor(csr))
+        if (rootMonitor == null && isRootMonitor(csr))
         {
           rootMonitor = csr;
         }
-        else if ((entryCaches == null) && isEntryCaches(csr))
+        else if (entryCaches == null && isEntryCaches(csr))
         {
           entryCaches = csr;
         }
-        else if ((workQueue == null) && isWorkQueue(csr))
+        else if (workQueue == null && isWorkQueue(csr))
         {
           workQueue = csr;
         }
-        else if ((jvmMemoryUsage == null) && isJvmMemoryUsage(csr))
+        else if (jvmMemoryUsage == null && isJvmMemoryUsage(csr))
         {
           jvmMemoryUsage = csr;
         }
-        else if ((systemInformation == null) && isSystemInformation(csr))
+        else if (systemInformation == null && isSystemInformation(csr))
         {
           systemInformation = csr;
         }
-        else if ((versionMonitor == null) && isVersionMonitor(csr))
+        else if (versionMonitor == null && isVersionMonitor(csr))
         {
           versionMonitor = csr;
         }
@@ -1132,41 +1132,38 @@ public class ConfigFromDirContext extends ConfigReader
 
   private boolean isConnectionHandler(CustomSearchResult csr) throws OpenDsException
   {
-    boolean isConnectionHandler = false;
     DN dn = DN.valueOf(csr.getDN());
     DN parent = dn.parent();
-    if ((parent != null) && parent.equals(monitorDN))
+    if (parent != null && parent.equals(monitorDN))
     {
       List<?> vs = csr.getAttributeValues("cn");
-      if ((vs != null) && !vs.isEmpty())
+      if (vs != null && !vs.isEmpty())
       {
         String cn = (String) vs.iterator().next();
         String statistics = " Statistics";
         if (cn.endsWith(statistics))
         {
-          isConnectionHandler = true;
+          return true;
         }
       }
     }
-    return isConnectionHandler;
+    return false;
   }
 
   private static boolean isTaskEntry(CustomSearchResult csr) throws OpenDsException
   {
-    boolean isTaskEntry = false;
     List<Object> vs = csr.getAttributeValues("objectclass");
-    if ((vs != null) && !vs.isEmpty())
+    if (vs != null && !vs.isEmpty())
     {
       for (Object oc : vs)
       {
         if (oc.toString().equalsIgnoreCase("ds-task"))
         {
-          isTaskEntry = true;
-          break;
+          return true;
         }
       }
     }
-    return isTaskEntry;
+    return false;
   }
 
   /**
@@ -1196,21 +1193,10 @@ public class ConfigFromDirContext extends ConfigReader
         // this connection handler is the right one.
         // See org.opends.server.protocols.ldap.LDAPConnectionHandler to see
         // how the DN of the monitoring entry is generated.
-        if (key.contains(getKey("port " + ch.getPort())))
+        if (key.contains(getKey("port " + ch.getPort()))
+            && hasAllAddresses(ch, key))
         {
-          boolean hasAllAddresses = true;
-          for (InetAddress a : ch.getAddresses())
-          {
-            if (!key.contains(getKey(a.getHostAddress())))
-            {
-              hasAllAddresses = false;
-              break;
-            }
-          }
-          if (hasAllAddresses)
-          {
-            monitorEntries.add(hmConnectionHandlersMonitor.get(key));
-          }
+          monitorEntries.add(hmConnectionHandlersMonitor.get(key));
         }
       }
     }
@@ -1218,4 +1204,15 @@ public class ConfigFromDirContext extends ConfigReader
     return monitorEntries;
   }
 
+  private boolean hasAllAddresses(ConnectionHandlerDescriptor ch, String key)
+  {
+    for (InetAddress a : ch.getAddresses())
+    {
+      if (!key.contains(getKey(a.getHostAddress())))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 }

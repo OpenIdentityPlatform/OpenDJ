@@ -203,7 +203,7 @@ public class AttributeTypeSyntax
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while (pos < length && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -1395,7 +1395,7 @@ public class AttributeTypeSyntax
     }
 
     // Skip over any trailing spaces.
-    while (startPos < length && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && valueStr.charAt(startPos) == ' ')
     {
       startPos++;
     }

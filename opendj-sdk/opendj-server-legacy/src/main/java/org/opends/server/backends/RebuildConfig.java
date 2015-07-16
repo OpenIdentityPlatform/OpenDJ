@@ -108,7 +108,7 @@ public class RebuildConfig
         }
         else if ((newIndexParts.length == 1 && existingIndexParts.length == 1)
             || (newIndexParts.length > 1 && existingIndexParts.length == 1)
-            || (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1])))
+            || newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
         {
           return;
         }
@@ -142,7 +142,7 @@ public class RebuildConfig
           {
             if ((newIndexParts.length == 1 && existingIndexParts.length >= 1)
                 || (newIndexParts.length > 1 && existingIndexParts.length == 1)
-                || (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1])))
+                || newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
             {
               return thatIndex;
             }

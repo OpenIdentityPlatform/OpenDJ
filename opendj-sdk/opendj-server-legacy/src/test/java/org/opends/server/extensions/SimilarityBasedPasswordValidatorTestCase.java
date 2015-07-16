@@ -366,11 +366,9 @@ public class SimilarityBasedPasswordValidatorTestCase
                                DN.valueOf("cn=uid=test.user,o=test"), mods);
 
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-      assertEquals((buffer.length() >= 6),
-                   validator.passwordIsAcceptable(password,
-                                                  currentPassword,
-                                                  op, userEntry,
-                                                  invalidReason));
+      boolean actual = validator.passwordIsAcceptable(
+          password, currentPassword, op, userEntry, invalidReason);
+      assertEquals(buffer.length() >= 6, actual);
     }
 
     validator.finalizePasswordValidator();

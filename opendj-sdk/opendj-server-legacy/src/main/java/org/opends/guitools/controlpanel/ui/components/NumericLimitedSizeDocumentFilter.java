@@ -100,11 +100,10 @@ public class NumericLimitedSizeDocumentFilter extends DocumentFilter
   throws BadLocationException
   {
     int totalLength = fb.getDocument().getLength();
-
     int caretPosition = tf.getCaretPosition();
 
-    if ((totalLength >= maxSize) &&
-        (caretPosition == fb.getDocument().getLength()))
+    if (totalLength >= maxSize &&
+        caretPosition == fb.getDocument().getLength())
     {
       tf.setCaretPosition(0);
     }

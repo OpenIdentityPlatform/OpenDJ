@@ -218,7 +218,7 @@ class MultifileTextWriter
 
     if(policy instanceof SizeBasedRotationPolicy)
     {
-      SizeBasedRotationPolicy sizePolicy = ((SizeBasedRotationPolicy)policy);
+      SizeBasedRotationPolicy sizePolicy = (SizeBasedRotationPolicy) policy;
       if(sizeLimit == 0 ||
           sizeLimit > sizePolicy.currentConfig.getFileSizeLimit())
       {
@@ -251,7 +251,7 @@ class MultifileTextWriter
         sizeLimit = 0;
 
         // Remove this as a change listener.
-        SizeBasedRotationPolicy sizePolicy = ((SizeBasedRotationPolicy)policy);
+        SizeBasedRotationPolicy sizePolicy = (SizeBasedRotationPolicy) policy;
         sizePolicy.currentConfig.removeSizeLimitChangeListener(this);
       }
     }
@@ -360,26 +360,17 @@ class MultifileTextWriter
   {
     long newSizeLimit = Integer.MAX_VALUE;
 
-    // Go through all current size rotation policies and get the
-    // lowest size setting.
+    // Go through all current size rotation policies and get the lowest size setting.
     for(RotationPolicy policy : rotationPolicies)
     {
       if(policy instanceof SizeBasedRotationPolicy)
       {
-        SizeBasedRotationPolicy sizePolicy = ((SizeBasedRotationPolicy)policy);
-        if(sizePolicy.currentConfig.dn().equals(config.dn()) )
+        SizeBasedRotationPolicy sizePolicy = (SizeBasedRotationPolicy) policy;
+        SizeLimitLogRotationPolicyCfg cfg =
+            sizePolicy.currentConfig.dn().equals(config.dn()) ? config : sizePolicy.currentConfig;
+        if(newSizeLimit > cfg.getFileSizeLimit())
         {
-          if(newSizeLimit > config.getFileSizeLimit())
-          {
-            newSizeLimit = config.getFileSizeLimit();
-          }
-        }
-        else
-        {
-          if(newSizeLimit > sizePolicy.currentConfig.getFileSizeLimit())
-          {
-            newSizeLimit = sizePolicy.currentConfig.getFileSizeLimit();
-          }
+          newSizeLimit = cfg.getFileSizeLimit();
         }
       }
     }

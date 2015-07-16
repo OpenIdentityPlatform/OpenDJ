@@ -176,7 +176,7 @@ public class CharacterSetPasswordValidator
           }
         }
       }
-      if ((! found) && (! config.isAllowUnclassifiedCharacters()))
+      if (!found && !config.isAllowUnclassifiedCharacters())
       {
         invalidReason.append(ERR_CHARSET_VALIDATOR_ILLEGAL_CHARACTER.get(c));
         return false;
@@ -194,7 +194,7 @@ public class CharacterSetPasswordValidator
       {
         // Mandatory character set.
         mandatoryCharacterSets++;
-        if ((passwordCount == null) || (passwordCount < minimumCount))
+        if (passwordCount == null || passwordCount < minimumCount)
         {
           invalidReason
               .append(ERR_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET
@@ -220,7 +220,7 @@ public class CharacterSetPasswordValidator
       {
         // Mandatory character set.
         mandatoryCharacterSets++;
-        if ((passwordCount == null) || (passwordCount < minimumCount))
+        if (passwordCount == null || passwordCount < minimumCount)
         {
           invalidReason
               .append(ERR_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_RANGE
@@ -464,7 +464,7 @@ public class CharacterSetPasswordValidator
         throw new ConfigException(message);
       }
 
-      if (minCharacterSets > (characterSets.size() + characterRanges.size()))
+      if (minCharacterSets > characterSets.size() + characterRanges.size())
       {
         LocalizableMessage message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_BIG
             .get(minCharacterSets);

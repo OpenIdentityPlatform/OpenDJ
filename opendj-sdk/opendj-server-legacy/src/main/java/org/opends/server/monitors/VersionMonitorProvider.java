@@ -178,7 +178,7 @@ public class VersionMonitorProvider
                               String.valueOf(DynamicConstants.POINT_VERSION)));
 
     String versionQualifier = DynamicConstants.VERSION_QUALIFIER;
-    if ((versionQualifier != null) && (versionQualifier.length() > 0))
+    if (versionQualifier != null && versionQualifier.length() > 0)
     {
       attrs.add(createAttribute(ATTR_VERSION_QUALIFIER, versionQualifier));
     }
@@ -191,7 +191,7 @@ public class VersionMonitorProvider
     }
 
     String fixIDs = DynamicConstants.FIX_IDS;
-    if ((fixIDs != null) && (fixIDs.length() > 0))
+    if (fixIDs != null && fixIDs.length() > 0)
     {
       attrs.add(createAttribute(ATTR_FIX_IDS, fixIDs));
     }

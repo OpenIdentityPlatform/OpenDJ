@@ -509,7 +509,7 @@ public class LDIFReader implements Closeable
         // This is a comment.  Ignore it.
         continue;
       }
-      else if ((line.charAt(0) == ' ') || (line.charAt(0) == '\t'))
+      else if (line.charAt(0) == ' ' || line.charAt(0) == '\t')
       {
         // This is a continuation of the previous line.  If there is no
         // previous line, then that's a problem.  Note that while RFC 2849
@@ -633,7 +633,7 @@ public class LDIFReader implements Closeable
   {
     final int length = line.length();
     int pos = startPos;
-    while ((pos < length) && (line.charAt(pos) == ' '))
+    while (pos < length && line.charAt(pos) == ' ')
     {
       pos++;
     }
@@ -862,16 +862,14 @@ public class LDIFReader implements Closeable
         throw new LDIFException(message, lastEntryLineNumber,true);
       }
       if (checkSchema &&
-          (DirectoryServer.getSyntaxEnforcementPolicy() !=
-               AcceptRejectWarn.ACCEPT))
+          DirectoryServer.getSyntaxEnforcementPolicy() != AcceptRejectWarn.ACCEPT)
       {
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
         {
           LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
               entryDN, lastEntryLineNumber, value, attrName, invalidReason);
-          if (DirectoryServer.getSyntaxEnforcementPolicy() ==
-                   AcceptRejectWarn.WARN)
+          if (DirectoryServer.getSyntaxEnforcementPolicy() == AcceptRejectWarn.WARN)
           {
             logger.error(message);
           }
@@ -916,7 +914,7 @@ public class LDIFReader implements Closeable
               logToRejectWriter(lines, message);
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
-          if (attrType.isSingleValue() && (a.size() > 1)  && checkSchema)
+          if (attrType.isSingleValue() && a.size() > 1 && checkSchema)
           {
             LocalizableMessage message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
                     .get(entryDN, lastEntryLineNumber, attrName);
@@ -1019,7 +1017,7 @@ public class LDIFReader implements Closeable
     {
       try
       {
-        if ((message != null) && (message.length() > 0))
+        if (message != null && message.length() > 0)
         {
           rejectWriter.write("# ");
           rejectWriter.write(message.toString());
@@ -1060,7 +1058,7 @@ public class LDIFReader implements Closeable
     entriesRejected.incrementAndGet();
     if (rejectWriter != null) {
       try {
-        if ((message != null) && (message.length() > 0)) {
+        if (message != null && message.length() > 0) {
           rejectWriter.write("# ");
           rejectWriter.write(message.toString());
           rejectWriter.newLine();

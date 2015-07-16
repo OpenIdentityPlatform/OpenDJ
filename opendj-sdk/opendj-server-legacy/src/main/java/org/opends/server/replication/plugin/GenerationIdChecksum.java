@@ -53,7 +53,7 @@ public class GenerationIdChecksum implements Checksum
      * the same checksum value on every platforms, we always exclude the CR and
      * LF characters from the computation.
      */
-    if ((b != 0x0D) && (b != 0x0A)) // CR=0D and LF=0A
+    if (b != 0x0D && b != 0x0A) // CR=0D and LF=0A
     {
       checksum += b;
     }
@@ -68,7 +68,7 @@ public class GenerationIdChecksum implements Checksum
   /** {@inheritDoc} */
   public void update(byte[] b, int off, int len)
   {
-    for (int i = off; i < (off + len); i++)
+    for (int i = off; i < off + len; i++)
     {
       updateWithOneByte(b[i]);
     }

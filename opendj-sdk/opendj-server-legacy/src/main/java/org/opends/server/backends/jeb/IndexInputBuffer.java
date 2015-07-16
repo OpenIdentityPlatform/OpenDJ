@@ -113,7 +113,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     }
     else
     {
-      bytesToRead = Math.min((end - offset), cache.remaining());
+      bytesToRead = Math.min(end - offset, cache.remaining());
     }
     int bytesRead = 0;
     while (bytesRead < bytesToRead)

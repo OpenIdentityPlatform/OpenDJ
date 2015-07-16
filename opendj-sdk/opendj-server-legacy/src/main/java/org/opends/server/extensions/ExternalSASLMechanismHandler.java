@@ -172,7 +172,7 @@ public class ExternalSASLMechanismHandler
     }
     LDAPClientConnection lc = (LDAPClientConnection) clientConnection;
     Certificate[] clientCertChain = lc.getClientCertificateChain();
-    if ((clientCertChain == null) || (clientCertChain.length == 0)) {
+    if (clientCertChain == null || clientCertChain.length == 0) {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
       LocalizableMessage message = ERR_SASLEXTERNAL_NO_CLIENT_CERT.get();
       bindOperation.setAuthFailureReason(message);

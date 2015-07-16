@@ -176,7 +176,7 @@ public class FileTag
 
 
     // There must be at least one argument, and possibly two.
-    if ((arguments.length < 1) || (arguments.length > 2))
+    if (arguments.length < 1 || arguments.length > 2)
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
           getName(), lineNumber, 1, 2, arguments.length);
@@ -186,7 +186,7 @@ public class FileTag
 
     // The first argument should be the path to the file.
     dataFile = templateFile.getFile(arguments[0]);
-    if ((dataFile == null) || (! dataFile.exists()))
+    if (dataFile == null || !dataFile.exists())
     {
       LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_FIND_FILE.get(
           arguments[0], getName(), lineNumber);

@@ -349,16 +349,10 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
     buffer.append(getOID());
 
     String description = getDescription();
-    if ((description == null) || (description.length() == 0))
+    if (description != null && description.length() != 0)
     {
-      buffer.append(" )");
+      buffer.append(" DESC '").append(description).append("'");
     }
-    else
-    {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("' )");
-    }
+    buffer.append(" )");
   }
 }
-

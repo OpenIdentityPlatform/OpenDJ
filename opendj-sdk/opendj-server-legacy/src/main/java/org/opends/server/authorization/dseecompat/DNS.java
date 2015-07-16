@@ -120,8 +120,8 @@ public class DNS implements KeywordBindRule {
                   String canonicalName = addr.getCanonicalHostName();
                   if (! hn.equalsIgnoreCase(canonicalName))
                   {
-                    if (hn.equalsIgnoreCase("localhost") &&
-                        (! dns.contains(canonicalName)))
+                    if (hn.equalsIgnoreCase("localhost")
+                        && !dns.contains(canonicalName))
                     {
                       dns.add(canonicalName);
 

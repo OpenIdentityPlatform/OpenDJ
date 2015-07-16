@@ -389,18 +389,14 @@ public abstract class Task
   private String getAttributeValue(String attributeName, boolean isRequired)
           throws InitializationException
   {
-    List<Attribute> attrList =
-         taskEntry.getAttribute(attributeName.toLowerCase());
-    if ((attrList == null) || attrList.isEmpty())
+    List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
+    if (attrList == null || attrList.isEmpty())
     {
       if (isRequired)
       {
         throw new InitializationException(ERR_TASK_MISSING_ATTR.get(taskEntry.getName(), attributeName));
       }
-      else
-      {
-        return null;
-      }
+      return null;
     }
 
     if (attrList.size() > 1)
@@ -415,10 +411,7 @@ public abstract class Task
       {
         throw new InitializationException(ERR_TASK_NO_VALUES_FOR_ATTR.get(attributeName, taskEntry.getName()));
       }
-      else
-      {
-        return null;
-      }
+      return null;
     }
 
     ByteString value = iterator.next();
@@ -569,7 +562,7 @@ public abstract class Task
    */
   public boolean isRecurring()
   {
-    return (recurringTaskID != null);
+    return recurringTaskID != null;
   }
 
   /**

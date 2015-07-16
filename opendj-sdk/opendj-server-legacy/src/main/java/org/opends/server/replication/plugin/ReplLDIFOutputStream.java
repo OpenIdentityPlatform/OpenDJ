@@ -100,11 +100,11 @@ public class ReplLDIFOutputStream
         entryBuffer = ebytes.substring(0, endOfEntryIndex);
 
         // Send the entry
-        if ((numEntries>0) && (getNumExportedEntries() > numEntries))
+        if (numEntries>0 && getNumExportedEntries() > numEntries)
         {
           // This outputstream has reached the total number
           // of entries to export.
-          throw(new IOException());
+          throw new IOException();
         }
 
         // Add the entry bytes to the checksum

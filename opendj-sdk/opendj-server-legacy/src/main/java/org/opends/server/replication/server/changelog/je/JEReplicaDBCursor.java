@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -127,7 +127,7 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
     }
 
     // For ON_MATCHING_KEY, do not call next() if the cursor has just been initialized.
-    if (positionStrategy == ON_MATCHING_KEY && previousCursor != null
+    if ((positionStrategy == ON_MATCHING_KEY && previousCursor != null)
         || positionStrategy == AFTER_MATCHING_KEY)
     {
       cursor.next();

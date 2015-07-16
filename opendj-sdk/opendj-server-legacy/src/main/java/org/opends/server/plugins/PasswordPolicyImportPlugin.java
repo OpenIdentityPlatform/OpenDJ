@@ -455,7 +455,7 @@ policyLoop:
     for (AttributeType t : authPasswordTypes)
     {
       attrList = entry.getAttribute(t);
-      if ((attrList == null) || attrList.isEmpty())
+      if (attrList == null || attrList.isEmpty())
       {
         continue;
       }
@@ -505,7 +505,7 @@ policyLoop:
     for (AttributeType t : userPasswordTypes)
     {
       attrList = entry.getAttribute(t);
-      if ((attrList == null) || attrList.isEmpty())
+      if (attrList == null || attrList.isEmpty())
       {
         continue;
       }

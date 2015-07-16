@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -86,17 +85,16 @@ public abstract class Launcher {
    * @return boolean where true indicates usage should be printed
    */
   protected boolean shouldPrintUsage() {
-    boolean printUsage = false;
-    if ((args != null) && (args.length > 0)) {
+    if (args != null && args.length > 0) {
       for (String arg : args) {
         if (arg.equals("-?") ||
           arg.equalsIgnoreCase("-H") ||
           arg.equalsIgnoreCase("--help")) {
-          printUsage = true;
+          return true;
         }
       }
     }
-    return printUsage;
+    return false;
   }
 
   /**
@@ -106,17 +104,16 @@ public abstract class Launcher {
    * @return boolean where true indicates usage should be printed
    */
   protected boolean isQuiet() {
-    boolean printUsage = false;
-    if ((args != null) && (args.length > 0)) {
+    if (args != null && args.length > 0) {
       for (String arg : args) {
         if (arg.equals("-?") ||
           arg.equalsIgnoreCase("-Q") ||
           arg.equalsIgnoreCase("--quiet")) {
-          printUsage = true;
+          return true;
         }
       }
     }
-    return printUsage;
+    return false;
   }
 
   /**
@@ -126,18 +123,17 @@ public abstract class Launcher {
    * @return boolean where true indicates version should be printed
    */
   protected boolean shouldPrintVersion() {
-    boolean printVersion = false;
-    if ((args != null) && (args.length > 0))
+    if (args != null && args.length > 0)
     {
       for (String arg : args)
       {
         if (arg.equalsIgnoreCase("--version"))
         {
-          printVersion = true;
+          return true;
         }
       }
     }
-    return printVersion;
+    return false;
   }
 
   /**
@@ -149,15 +145,13 @@ public abstract class Launcher {
    *         should be launched
    */
   protected boolean isCli() {
-    boolean isCli = false;
     for (String arg : args) {
       if (arg.equalsIgnoreCase("--"+OPTION_LONG_CLI) ||
           arg.equalsIgnoreCase("-"+OPTION_SHORT_CLI)) {
-        isCli = true;
-        break;
+        return true;
       }
     }
-    return isCli;
+    return false;
   }
 
   /**

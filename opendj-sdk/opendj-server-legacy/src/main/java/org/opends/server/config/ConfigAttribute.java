@@ -382,7 +382,7 @@ public abstract class ConfigAttribute
   {
     // If no values are provided, then check to see if this is a required
     // attribute.  If it is, then reject the change.
-    if ((values == null) || values.isEmpty())
+    if (values == null || values.isEmpty())
     {
       if (isRequired)
       {
@@ -420,7 +420,7 @@ public abstract class ConfigAttribute
 
     // If this is not a multivalued attribute but there were more values
     // provided, then reject it.
-    if ((! isMultiValued) && iterator.hasNext())
+    if (! isMultiValued && iterator.hasNext())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(name);
       throw new ConfigException(message);

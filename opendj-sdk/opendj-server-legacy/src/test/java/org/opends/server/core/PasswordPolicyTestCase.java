@@ -3319,7 +3319,7 @@ public class PasswordPolicyTestCase
       "--set", "min-password-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMinPasswordAge(), (24*60*60));
+    assertEquals(p.getMinPasswordAge(), 24*60*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3350,7 +3350,7 @@ public class PasswordPolicyTestCase
       "--set", "min-password-age:24 hours");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getMinPasswordAge(), (24*60*60));
+    assertEquals(p.getMinPasswordAge(), 24*60*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3379,7 +3379,7 @@ public class PasswordPolicyTestCase
       "--set", "max-password-age:90 days");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMaxPasswordAge(), (90*60*60*24));
+    assertEquals(p.getMaxPasswordAge(), 90*60*60*24);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3410,7 +3410,7 @@ public class PasswordPolicyTestCase
       "--set", "max-password-age:90 days");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getMaxPasswordAge(), (90*60*60*24));
+    assertEquals(p.getMaxPasswordAge(), 90*60*60*24);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3439,7 +3439,7 @@ public class PasswordPolicyTestCase
       "--set", "max-password-reset-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMaxPasswordResetAge(), (24*60*60));
+    assertEquals(p.getMaxPasswordResetAge(), 24*60*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3470,7 +3470,7 @@ public class PasswordPolicyTestCase
       "--set", "max-password-reset-age:24 hours");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getMaxPasswordResetAge(), (24*60*60));
+    assertEquals(p.getMaxPasswordResetAge(), 24*60*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3491,7 +3491,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getPasswordExpirationWarningInterval(), (5*60*60*24));
+    assertEquals(p.getPasswordExpirationWarningInterval(), 5*60*60*24);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3499,7 +3499,7 @@ public class PasswordPolicyTestCase
       "--set", "password-expiration-warning-interval:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getPasswordExpirationWarningInterval(), (24*60*60));
+    assertEquals(p.getPasswordExpirationWarningInterval(), 24*60*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3522,7 +3522,7 @@ public class PasswordPolicyTestCase
     DN dn = DN.valueOf("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getPasswordExpirationWarningInterval(), (5*60*60*24));
+    assertEquals(p.getPasswordExpirationWarningInterval(), 5*60*60*24);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3530,7 +3530,7 @@ public class PasswordPolicyTestCase
       "--set", "password-expiration-warning-interval:24 hours");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getPasswordExpirationWarningInterval(), (24*60*60));
+    assertEquals(p.getPasswordExpirationWarningInterval(), 24*60*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3799,7 +3799,7 @@ public class PasswordPolicyTestCase
       "--set", "lockout-duration:15 minutes");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getLockoutDuration(), (15*60));
+    assertEquals(p.getLockoutDuration(), 15*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3830,7 +3830,7 @@ public class PasswordPolicyTestCase
       "--set", "lockout-duration:15 minutes");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getLockoutDuration(), (15*60));
+    assertEquals(p.getLockoutDuration(), 15*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3859,7 +3859,7 @@ public class PasswordPolicyTestCase
       "--set", "lockout-failure-expiration-interval:10 minutes");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
+    assertEquals(p.getLockoutFailureExpirationInterval(), 10*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3890,7 +3890,7 @@ public class PasswordPolicyTestCase
       "--set", "lockout-failure-expiration-interval:10 minutes");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
+    assertEquals(p.getLockoutFailureExpirationInterval(), 10*60);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -4163,7 +4163,7 @@ public class PasswordPolicyTestCase
       "--set", "idle-lockout-interval:90 days");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
+    assertEquals(p.getIdleLockoutInterval(), 90*60*60*24);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -4194,7 +4194,7 @@ public class PasswordPolicyTestCase
       "--set", "idle-lockout-interval:90 days");
 
     p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-    assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
+    assertEquals(p.getIdleLockoutInterval(), 90*60*60*24);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",

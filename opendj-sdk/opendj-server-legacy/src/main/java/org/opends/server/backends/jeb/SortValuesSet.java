@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -388,7 +388,7 @@ public class SortValuesSet
     for (int i = offset; i < offset + 4; i++)
     {
       v <<= 8;
-      v |= (bytes[i] & 0xFF);
+      v |= bytes[i] & 0xFF;
     }
     return v;
   }

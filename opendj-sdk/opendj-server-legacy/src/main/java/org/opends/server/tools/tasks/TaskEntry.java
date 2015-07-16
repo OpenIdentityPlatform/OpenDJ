@@ -385,25 +385,23 @@ public class TaskEntry {
    * @return boolean where true means this task supports being canceled.
    */
   public boolean isCancelable() {
-    boolean cancelable = false;
     TaskState state = getTaskState();
     if (state != null) {
       Task task = getTask();
-      cancelable = (TaskState.isPending(state) ||
-        TaskState.isRecurring(state) ||
-              (TaskState.isRunning(state) &&
-                      task != null &&
-                      task.isInterruptable()));
+      return TaskState.isPending(state)
+          || TaskState.isRecurring(state)
+          || (TaskState.isRunning(state)
+              && task != null
+              && task.isInterruptable());
     }
-    return cancelable;
+    return false;
   }
 
   /**
    * Gets a mapping of attributes that are specific to the implementing
    * task as opposed to the superior, or base, task.
    *
-   * @return mapping of atribute field labels to lists of string values for
-   *         each field.
+   * @return mapping of attribute field labels to lists of string values for each field.
    */
   public Map<LocalizableMessage, List<String>> getTaskSpecificAttributeValuePairs() {
     return taskSpecificAttrValues;

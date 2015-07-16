@@ -336,7 +336,7 @@ public class ParallelWorkQueue
       }
     }
 
-    if ((shutdownRequested) || (numFailures > MAX_RETRY_COUNT))
+    if (shutdownRequested || numFailures > MAX_RETRY_COUNT)
     {
       if (numFailures > MAX_RETRY_COUNT)
       {

@@ -2283,7 +2283,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
         boolean replayDone = false;
         int retryCount = 10;
-        while (!dependency && !replayDone && (retryCount-- > 0))
+        while (!dependency && !replayDone && retryCount-- > 0)
         {
           if (shutdown.get())
           {

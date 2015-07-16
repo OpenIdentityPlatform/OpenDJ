@@ -190,7 +190,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
         for (String property : extraProperties.keySet())
         {
           List<String> values = extraProperties.get(property);
-          if ((values == null) || values.isEmpty())
+          if (values == null || values.isEmpty())
           {
             continue;
           }
@@ -231,10 +231,9 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
 
-    private void append(StringBuilder definition, String word,
-        Set<AttributeType> attrTypes)
+    private void append(StringBuilder definition, String word, Set<AttributeType> attrTypes)
     {
-      if ((attrTypes != null) && (!attrTypes.isEmpty()))
+      if (attrTypes != null && !attrTypes.isEmpty())
       {
         definition.append(" ");
         definition.append(word);

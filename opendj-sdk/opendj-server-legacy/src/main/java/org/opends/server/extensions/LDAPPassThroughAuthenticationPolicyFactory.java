@@ -1081,11 +1081,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               .getExtendedResponseProtocolOp();
           final String responseOID = extendedResponse.getOID();
 
-          if ((responseOID != null)
-              && responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
+          if (OID_NOTICE_OF_DISCONNECTION.equals(responseOID))
           {
-            ResultCode resultCode = ResultCode.valueOf(extendedResponse
-                .getResultCode());
+            ResultCode resultCode = ResultCode.valueOf(extendedResponse.getResultCode());
 
             /*
              * Since the connection has been disconnected we want to ensure that
@@ -1809,9 +1807,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   {
                     long cachedPasswordTime = GeneralizedTime.valueOf(value.toString()).getTimeInMillis();
                     long currentTime = provider.getCurrentTimeMS();
-                    long expiryTime = cachedPasswordTime
-                        + (cfg.getCachedPasswordTTL() * 1000);
-                    foundValidCachedPasswordTime = (expiryTime > currentTime);
+                    long expiryTime = cachedPasswordTime + (cfg.getCachedPasswordTTL() * 1000);
+                    foundValidCachedPasswordTime = expiryTime > currentTime;
                   }
                   catch (LocalizedIllegalArgumentException e)
                   {

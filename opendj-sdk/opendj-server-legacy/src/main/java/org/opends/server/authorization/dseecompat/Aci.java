@@ -587,7 +587,7 @@ public class Aci implements Comparable<Aci>
         return;
       }
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = oidStr.charAt(pos++)) != ' ')) {
+      while (pos < length && ((c = oidStr.charAt(pos++)) != ' ')) {
         if (c == '.') {
           if (lastWasPeriod) {
             LocalizableMessage message = WARN_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(

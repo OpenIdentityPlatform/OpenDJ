@@ -153,7 +153,7 @@ public class AttributeValuePasswordValidator
     // If we should check a specific set of attributes, then do that now.
     // Otherwise, check all user attributes.
     Set<AttributeType> matchAttributes = config.getMatchAttribute();
-    if ((matchAttributes == null) || matchAttributes.isEmpty())
+    if (matchAttributes == null || matchAttributes.isEmpty())
     {
       matchAttributes = userEntry.getUserAttributes().keySet();
     }
@@ -161,7 +161,7 @@ public class AttributeValuePasswordValidator
     for (AttributeType t : matchAttributes)
     {
       List<Attribute> attrList = userEntry.getAttribute(t);
-      if ((attrList == null) || attrList.isEmpty())
+      if (attrList == null || attrList.isEmpty())
       {
         continue;
       }

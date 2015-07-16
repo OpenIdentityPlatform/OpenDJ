@@ -256,7 +256,7 @@ public class BackupTask extends Task
 
     // If the signHash option was provided, then make sure that the hash option
     // was given.
-    if (signHash && (! hash))
+    if (signHash && !hash)
     {
       logger.error(ERR_BACKUPDB_SIGN_REQUIRES_HASH, ATTR_TASK_BACKUP_SIGN_HASH, ATTR_TASK_BACKUP_HASH);
       return false;
@@ -532,7 +532,7 @@ public class BackupTask extends Task
     else
     {
       // See if there are multiple backends to archive.
-      multiple = (backendsToArchive.size() > 1);
+      multiple = backendsToArchive.size() > 1;
     }
 
 

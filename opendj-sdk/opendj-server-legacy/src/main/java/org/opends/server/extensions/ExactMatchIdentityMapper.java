@@ -116,7 +116,7 @@ public class ExactMatchIdentityMapper
          currentConfig.getMatchAttribute().toArray(new AttributeType[0]);
 
     Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -126,7 +126,7 @@ public class ExactMatchIdentityMapper
       for (DN baseDN : cfgBaseDNs)
       {
         Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_EXACTMAP_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID()));
@@ -201,7 +201,7 @@ public class ExactMatchIdentityMapper
     // then use size and time limits to constrain costly searches resulting from
     // non-unique or inefficient criteria.
     Collection<DN> baseDNs = config.getMatchBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
+    if (baseDNs == null || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -246,9 +246,8 @@ public class ExactMatchIdentityMapper
           throw new DirectoryException(internalSearch.getResultCode(), message);
       }
 
-      LinkedList<SearchResultEntry> searchEntries =
-           internalSearch.getSearchEntries();
-      if ((searchEntries != null) && (! searchEntries.isEmpty()))
+      LinkedList<SearchResultEntry> searchEntries = internalSearch.getSearchEntries();
+      if (searchEntries != null && ! searchEntries.isEmpty())
       {
         if (matchingEntry == null)
         {
@@ -296,7 +295,7 @@ public class ExactMatchIdentityMapper
     // Make sure that all of the configured attributes are indexed for equality
     // in all appropriate backends.
     Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
@@ -306,7 +305,7 @@ public class ExactMatchIdentityMapper
       for (DN baseDN : cfgBaseDNs)
       {
         Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_EXACTMAP_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID()));

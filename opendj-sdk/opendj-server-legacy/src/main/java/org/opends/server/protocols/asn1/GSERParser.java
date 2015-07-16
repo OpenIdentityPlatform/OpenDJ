@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2013-2014 Manuel Gaupp
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
-
-
 
 import java.math.BigInteger;
 import java.util.regex.Matcher;
@@ -35,8 +33,6 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.forgerock.util.Reject.*;
-
-
 
 /**
  * This class implements a parser for strings which are encoded using the
@@ -50,9 +46,7 @@ public class GSERParser
 {
 
   private String gserValue;
-
   private int pos;
-
   private int length;
 
   /**
@@ -184,7 +178,7 @@ public class GSERParser
    */
   public boolean hasNext()
   {
-    return (pos < length);
+    return pos < length;
   }
 
 

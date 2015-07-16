@@ -212,7 +212,7 @@ public class TaskScheduler
           // If there is an existing task with the same id
           // and it is in completed state, take its place.
           Task t = tasks.get(task.getTaskID());
-          if ((t != null) && TaskState.isDone(t.getTaskState()))
+          if (t != null && TaskState.isDone(t.getTaskState()))
           {
             removeCompletedTask(t.getTaskID());
           }
@@ -256,8 +256,8 @@ public class TaskScheduler
       for (Task t : tasks.values())
       {
         // Find any existing task iterations and try to cancel them.
-        if ((t.getRecurringTaskID() != null) &&
-            (t.getRecurringTaskID().equals(recurringTaskID)))
+        if (t.getRecurringTaskID() != null &&
+            t.getRecurringTaskID().equals(recurringTaskID))
         {
           TaskState state = t.getTaskState();
           if (!TaskState.isDone(state) && !TaskState.isCancelled(state))
@@ -353,8 +353,7 @@ public class TaskScheduler
       }
       else if (TaskState.isDone(state))
       {
-        if ((state == TaskState.CANCELED_BEFORE_STARTING) &&
-          task.isRecurring())
+        if (state == TaskState.CANCELED_BEFORE_STARTING && task.isRecurring())
         {
           pendingTasks.add(task);
         }
@@ -600,7 +599,7 @@ public class TaskScheduler
             // If there is an existing task with the same id
             // and it is in completed state, take its place.
             Task t = tasks.get(newIteration.getTaskID());
-            if ((t != null) && TaskState.isDone(t.getTaskState()))
+            if (t != null && TaskState.isDone(t.getTaskState()))
             {
               removeCompletedTask(t.getTaskID());
             }
@@ -831,13 +830,11 @@ public class TaskScheduler
             }
             // Recurring task iteration has to spawn the next one
             // even if the current iteration has been canceled.
-            else if ((state == TaskState.CANCELED_BEFORE_STARTING) &&
-                     t.isRecurring())
+            else if (state == TaskState.CANCELED_BEFORE_STARTING && t.isRecurring())
             {
               if (t.getScheduledStartTime() > TimeThread.getTime()) {
                 // If we're waiting for the start time to arrive,
-                // then see if that will come before the next
-                // sleep time is up.
+                // then see if that will come before the next sleep time is up.
                 long waitTime =
                   t.getScheduledStartTime() - TimeThread.getTime();
                 sleepTime = Math.min(sleepTime, waitTime);
@@ -931,7 +928,7 @@ public class TaskScheduler
       state = null;
     }
 
-    if ((state != null) && TaskState.isDone(state))
+    if (state != null && TaskState.isDone(state))
     {
       return state;
     }
@@ -1806,7 +1803,7 @@ public class TaskScheduler
     // Get the name of the class that implements the task logic.
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_CLASS.toLowerCase(), ATTR_TASK_CLASS);
     List<Attribute> attrList = entry.getAttribute(attrType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);

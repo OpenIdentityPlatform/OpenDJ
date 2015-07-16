@@ -177,8 +177,7 @@ public final class LDIFConnectionHandler
       {
         try
         {
-          if ((connectionHandlerThread != null) &&
-              (connectionHandlerThread.isAlive()))
+          if (connectionHandlerThread != null && connectionHandlerThread.isAlive())
           {
             connectionHandlerThread.join(100);
             connectionHandlerThread.interrupt();
@@ -442,7 +441,7 @@ public final class LDIFConnectionHandler
           writer.writeComment(m, 78);
 
           LocalizableMessageBuilder errorMessage = operation.getErrorMessage();
-          if ((errorMessage != null) && (errorMessage.length() > 0))
+          if (errorMessage != null && errorMessage.length() > 0)
           {
             m = INFO_LDIF_CONNHANDLER_ERROR_MESSAGE.get(errorMessage);
             writer.writeComment(m, 78);
@@ -456,7 +455,7 @@ public final class LDIFConnectionHandler
           }
 
           List<String> referralURLs = operation.getReferralURLs();
-          if ((referralURLs != null) && (! referralURLs.isEmpty()))
+          if (referralURLs != null && !referralURLs.isEmpty())
           {
             for (String url : referralURLs)
             {
@@ -485,7 +484,7 @@ public final class LDIFConnectionHandler
       close(reader, writer);
     }
 
-    if (errorEncountered || (! fullyProcessed))
+    if (errorEncountered || !fullyProcessed)
     {
       String renamedPath = inputPath + ".errors-encountered." +
                            TimeThread.getGMTTime();

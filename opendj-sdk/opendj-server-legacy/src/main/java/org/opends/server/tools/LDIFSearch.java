@@ -333,7 +333,7 @@ public class LDIFSearch
     else
     {
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
-      if ((trailingArguments == null) || trailingArguments.isEmpty())
+      if (trailingArguments == null || trailingArguments.isEmpty())
       {
         LocalizableMessage message = ERR_LDIFSEARCH_NO_FILTER.get();
         err.println(message);
@@ -672,7 +672,7 @@ public class LDIFSearch
     while (true)
     {
       // If the time limit has been reached, then stop now.
-      if ((timeLimitMillis > 0) && (System.currentTimeMillis() > stopTime))
+      if (timeLimitMillis > 0 && System.currentTimeMillis() > stopTime)
       {
         resultCode = LDAPResultCode.TIME_LIMIT_EXCEEDED;
 
@@ -759,7 +759,7 @@ public class LDIFSearch
         writer.flush();
 
         matchCount++;
-        if ((sizeLimitValue > 0) && (matchCount >= sizeLimitValue))
+        if (sizeLimitValue > 0 && matchCount >= sizeLimitValue)
         {
           resultCode = LDAPResultCode.SIZE_LIMIT_EXCEEDED;
 

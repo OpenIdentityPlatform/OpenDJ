@@ -404,8 +404,7 @@ public class PlainSASLMechanismHandler
           }
         }
 
-        if ((authZEntry == null) ||
-            (! authZEntry.getName().equals(userEntry.getName())))
+        if (authZEntry == null || !authZEntry.getName().equals(userEntry.getName()))
         {
           AuthenticationInfo tempAuthInfo =
             new AuthenticationInfo(userEntry,

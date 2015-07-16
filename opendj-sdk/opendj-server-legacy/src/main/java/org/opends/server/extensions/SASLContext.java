@@ -89,7 +89,7 @@ public class SASLContext implements CallbackHandler,
       final String mechanism, final IdentityMapper<?> identityMapper)
       throws SaslException
   {
-    return (new SASLContext(saslProps, serverFQDN, mechanism, identityMapper));
+    return new SASLContext(saslProps, serverFQDN, mechanism, identityMapper);
   }
 
 
@@ -340,7 +340,7 @@ public class SASLContext implements CallbackHandler,
     this.bindOp = bindOp;
     final ByteString clientCredentials = bindOp.getSASLCredentials();
 
-    if ((clientCredentials == null) || (clientCredentials.length() == 0))
+    if (clientCredentials == null || clientCredentials.length() == 0)
     {
       final LocalizableMessage msg = ERR_SASL_NO_CREDENTIALS.get(mechanism, mechanism);
       handleError(msg);
@@ -799,8 +799,7 @@ public class SASLContext implements CallbackHandler,
       }
     }
 
-    if ((authzEntry == null) || (!authzEntry.getName().
-        equals(authEntry.getName())))
+    if (authzEntry == null || !authzEntry.getName().equals(authEntry.getName()))
     {
       // Create temporary authorization information and run it both
       // through the privilege and then the access control subsystems.
@@ -1122,7 +1121,7 @@ public class SASLContext implements CallbackHandler,
       final PasswordPolicyState pwPolicyState = (PasswordPolicyState) authState;
 
       clearPasswords = pwPolicyState.getClearPasswords();
-      if ((clearPasswords == null) || clearPasswords.isEmpty())
+      if (clearPasswords == null || clearPasswords.isEmpty())
       {
         setCallbackMsg(ERR_SASL_NO_REVERSIBLE_PASSWORDS.get(mechanism, authEntry.getName()));
         return;

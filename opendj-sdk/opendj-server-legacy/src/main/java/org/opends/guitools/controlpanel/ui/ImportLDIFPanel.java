@@ -199,8 +199,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
-        setEnabledOK((text != null) && (text.length() > 0) &&
-            !errorPane.isVisible());
+        setEnabledOK(text != null && text.length() > 0 && !errorPane.isVisible());
       }
       /** {@inheritDoc} */
       @Override

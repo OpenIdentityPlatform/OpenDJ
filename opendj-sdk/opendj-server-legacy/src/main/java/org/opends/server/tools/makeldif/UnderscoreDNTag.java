@@ -191,7 +191,7 @@ public class UnderscoreDNTag
                                  TemplateValue templateValue)
   {
     DN dn = templateEntry.getDN();
-    if ((dn == null) || dn.isRootDN())
+    if (dn == null || dn.isRootDN())
     {
       return TagResult.SUCCESS_RESULT;
     }

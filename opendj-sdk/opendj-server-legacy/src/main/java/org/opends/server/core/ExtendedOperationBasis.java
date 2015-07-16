@@ -374,8 +374,7 @@ public class ExtendedOperationBasis
       // and any other controls specified.
       try
       {
-        if (AccessControlConfigManager.getInstance()
-            .getAccessControlHandler().isAllowed(this) == false)
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler().isAllowed(this))
         {
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(requestOID));

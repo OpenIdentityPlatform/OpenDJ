@@ -187,31 +187,10 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     // simply to update the dn
     Entry entry = null;
     String dn = getDisplayedDN();
-    if ((dn != null) && !dn.equals(title.getText()))
+    if (dn != null && !dn.equals(title.getText()))
     {
       title.setText(dn);
     }
-    /*
-    Entry entry;
-    try
-    {
-      entry = getEntry();
-      String dn = entry.getDN().toString();
-      if (!dn.equals(title.getText()))
-      {
-        title.setText(dn);
-      }
-    }
-    catch (OpenDsException de)
-    {
-      entry = null;
-    }
-    catch (Throwable t)
-    {
-      entry = null;
-      logger.warn(LocalizableMessage.raw("Unexpected error: "+t, t));
-    }
-    */
     LDAPEntryChangedEvent ev = new LDAPEntryChangedEvent(this, entry);
     for (LDAPEntryChangedListener listener : listeners)
     {
@@ -228,7 +207,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void updateTitle(CustomSearchResult sr, TreePath path)
   {
     String dn = sr.getDN();
-    if ((dn != null) && (dn.length() > 0))
+    if (dn != null && dn.length() > 0)
     {
       title.setText(sr.getDN());
     }
@@ -251,7 +230,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     List<Object> ocs =
       sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    if (!ocs.isEmpty() && (schema != null))
+    if (!ocs.isEmpty() && schema != null)
     {
       ObjectClassValue ocDesc = getObjectClassDescriptor(ocs, schema);
       StringBuilder sb = new StringBuilder();

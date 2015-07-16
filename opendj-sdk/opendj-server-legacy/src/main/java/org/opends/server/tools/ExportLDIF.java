@@ -765,7 +765,7 @@ public class ExportLDIF extends TaskTool {
     exportConfig.setIncludeFilters(includeFilters);
     exportConfig.setSignHash(signHash.isPresent());
     exportConfig.setIncludeOperationalAttributes(
-                      (! excludeOperationalAttrs.isPresent()));
+                      !excludeOperationalAttrs.isPresent());
 
     // FIXME -- Should this be conditional?
     exportConfig.setInvokeExportPlugins(true);

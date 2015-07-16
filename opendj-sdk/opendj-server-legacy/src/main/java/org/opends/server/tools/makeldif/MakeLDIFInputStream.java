@@ -160,7 +160,7 @@ public class MakeLDIFInputStream
       return -1;
     }
 
-    return (0xFF & entryBytes.get());
+    return 0xFF & entryBytes.get();
   }
 
 

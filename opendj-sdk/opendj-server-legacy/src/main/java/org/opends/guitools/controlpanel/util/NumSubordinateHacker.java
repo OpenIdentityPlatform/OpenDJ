@@ -82,11 +82,10 @@ public class NumSubordinateHacker {
     * entry and <CODE>false</CODE> otherwise.
     */
   public boolean contains(LDAPURL url) {
-    boolean contains = false;
     if (!isUnreliableEntryListEmpty) {
       boolean isInServer =
         serverHost.equalsIgnoreCase(String.valueOf(url.getHost())) &&
-      (serverPort == url.getPort());
+      serverPort == url.getPort();
       if (isInServer) {
         for (DN dn : unreliableEntryList)
         {
@@ -94,8 +93,7 @@ public class NumSubordinateHacker {
           {
             if (dn.equals(DN.valueOf(url.getRawBaseDN())))
             {
-              contains = true;
-              break;
+              return true;
             }
           }
           catch (OpenDsException oe)
@@ -106,7 +104,7 @@ public class NumSubordinateHacker {
         }
       }
     }
-    return contains;
+    return false;
   }
 
   /**

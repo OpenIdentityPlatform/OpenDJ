@@ -1229,7 +1229,7 @@ public class Utilities
 
     if (multipleScreen)
     {
-      comp.setLocation((screenSize.width / 4) - (width / 2),
+      comp.setLocation(screenSize.width / 4 - width / 2,
           (screenSize.height - height) / 2);
     } else
     {
@@ -2770,7 +2770,7 @@ public class Utilities
         {
           if (v2 instanceof Number)
           {
-            if ((v1 instanceof Double) || (v2 instanceof Double))
+            if (v1 instanceof Double || v2 instanceof Double)
             {
               double n1 = ((Number) v1).doubleValue();
               double n2 = ((Number) v2).doubleValue();

@@ -348,12 +348,12 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
   {
     // First, test with the standard Boolean type.
     byte[] elementArray = new byte[] { 0x01, 0x01, b[0] };
-    assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
+    assertEquals(getReader(elementArray, 0).readBoolean(), b[0] != 0x00);
 
 
     // Next, test with a nonstandard Boolean type.
     elementArray[0] = 0x50;
-    assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
+    assertEquals(getReader(elementArray, 0).readBoolean(), b[0] != 0x00);
   }
 
 
@@ -372,12 +372,12 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
   {
     // First, test with the standard Boolean type.
     byte[] elementArray = new byte[] { 0x01, (byte) 0x81, 0x01, b[0] };
-    assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
+    assertEquals(getReader(elementArray, 0).readBoolean(), b[0] != 0x00);
 
 
     // Next, test with a nonstandard Boolean type.
     elementArray[0] = 0x50;
-    assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
+    assertEquals(getReader(elementArray, 0).readBoolean(), b[0] != 0x00);
   }
 
 

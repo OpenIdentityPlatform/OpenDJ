@@ -250,7 +250,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       AttributeType pwdAttrType =
           DirectoryServer.getAttributeTypeOrDefault(PWD_ATTR_VALIDATOR);
       List<Attribute> pwdAttrList = entry.getAttribute(pwdAttrType);
-      if ((pwdAttrList != null) && (!pwdAttrList.isEmpty()))
+      if (pwdAttrList != null && !pwdAttrList.isEmpty())
       {
         for (Attribute attr : pwdAttrList)
         {

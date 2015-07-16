@@ -111,7 +111,7 @@ public class LDAPControl extends Control
    */
   public final boolean hasValue()
   {
-    return (value != null);
+    return value != null;
   }
 
   /** {@inheritDoc} */

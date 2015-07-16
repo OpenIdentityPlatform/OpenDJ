@@ -123,7 +123,7 @@ public final class SubtreeSpecification
     {
       for (final Refinement refinement : refinementSet)
       {
-        if (refinement.matches(entry) == false)
+        if (!refinement.matches(entry))
         {
           return false;
         }
@@ -469,7 +469,7 @@ public final class SubtreeSpecification
     {
       for (final Refinement refinement : refinementSet)
       {
-        if (refinement.matches(entry) == true)
+        if (refinement.matches(entry))
         {
           return true;
         }
@@ -1569,8 +1569,8 @@ public final class SubtreeSpecification
     final Iterable<DN> chopBefore = getChopBefore();
     final Iterable<DN> chopAfter = getChopAfter();
 
-    if ((chopBefore.iterator().hasNext())
-        || (chopAfter.iterator().hasNext()))
+    if (chopBefore.iterator().hasNext()
+        || chopAfter.iterator().hasNext())
     {
       if (!isFirstElement)
       {

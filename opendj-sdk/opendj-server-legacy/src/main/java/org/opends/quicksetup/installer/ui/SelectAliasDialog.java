@@ -99,7 +99,7 @@ public class SelectAliasDialog extends JDialog
    */
   public void display(String[] aliases)
   {
-    if ((aliases == null) || (aliases.length ==0))
+    if (aliases == null || aliases.length ==0)
     {
       throw new IllegalArgumentException(
           "The provided aliases are null or empty.");

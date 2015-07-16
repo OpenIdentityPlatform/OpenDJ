@@ -129,8 +129,8 @@ public class PostConnectedDisconnectTest extends JmxTestCase
     long endTime = System.currentTimeMillis() + 5000;
     int postConnectAfter = postConnectBefore;
 
-    while ((System.currentTimeMillis() < endTime)
-        && (postConnectAfter == postConnectBefore))
+    while (System.currentTimeMillis() < endTime
+        && postConnectAfter == postConnectBefore)
     {
       Thread.sleep(10);
       postConnectAfter = InvocationCounterPlugin.getPostConnectCount();
@@ -148,8 +148,8 @@ public class PostConnectedDisconnectTest extends JmxTestCase
     // Don't wait more than 5 seconds
     endTime = System.currentTimeMillis() + 5000;
     postDisconnectAfter = postDisconnectBefore;
-    while ((System.currentTimeMillis() < endTime)
-        && (postDisconnectAfter == postDisconnectBefore))
+    while (System.currentTimeMillis() < endTime
+        && postDisconnectAfter == postDisconnectBefore)
     {
       Thread.sleep(10);
       postDisconnectAfter = InvocationCounterPlugin.getPostDisconnectCount();
