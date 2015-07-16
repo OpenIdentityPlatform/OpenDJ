@@ -62,111 +62,56 @@ public class MatchedValuesFilter
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
-  /**
-   * The BER type associated with the equalityMatch filter type.
-   */
+  /** The BER type associated with the equalityMatch filter type. */
   public static final byte EQUALITY_MATCH_TYPE = (byte) 0xA3;
-
-
-
-  /**
-   * The BER type associated with the substrings filter type.
-   */
+  /** The BER type associated with the substrings filter type. */
   public static final byte SUBSTRINGS_TYPE = (byte) 0xA4;
-
-
-
-  /**
-   * The BER type associated with the greaterOrEqual filter type.
-   */
+  /** The BER type associated with the greaterOrEqual filter type. */
   public static final byte GREATER_OR_EQUAL_TYPE = (byte) 0xA5;
-
-
-
-  /**
-   * The BER type associated with the lessOrEqual filter type.
-   */
+  /** The BER type associated with the lessOrEqual filter type. */
   public static final byte LESS_OR_EQUAL_TYPE = (byte) 0xA6;
-
-
-
-  /**
-   * The BER type associated with the present filter type.
-   */
+  /** The BER type associated with the present filter type. */
   public static final byte PRESENT_TYPE = (byte) 0x87;
-
-
-
-  /**
-   * The BER type associated with the approxMatch filter type.
-   */
+  /** The BER type associated with the approxMatch filter type. */
   public static final byte APPROXIMATE_MATCH_TYPE = (byte) 0xA8;
-
-
-
-  /**
-   * The BER type associated with the extensibleMatch filter type.
-   */
+  /** The BER type associated with the extensibleMatch filter type. */
   public static final byte EXTENSIBLE_MATCH_TYPE = (byte) 0xA9;
 
+  /** The matching rule ID for this matched values filter. */
+  private final String matchingRuleID;
+  /** Indicates whether the elements of this matched values filter have been fully decoded. */
+  private boolean decoded;
+  /** The match type for this matched values filter. */
+  private final byte matchType;
 
+  /** The raw, unprocessed attribute type for this matched values filter. */
+  private final String rawAttributeType;
+  /** The processed attribute type for this matched values filter. */
+  private AttributeType attributeType;
 
+  /** The matching rule for this matched values filter. */
+  private MatchingRule matchingRule;
+  /** The equality matching rule for this matched values filter. */
+  private MatchingRule equalityMatchingRule;
+  /** The ordering matching rule for this matched values filter. */
+  private MatchingRule orderingMatchingRule;
+  /** The substring matching rule for this matched values filter. */
+  private MatchingRule substringMatchingRule;
   /** The approximate matching rule for this matched values filter. */
   private MatchingRule approximateMatchingRule;
 
   /** The raw, unprocessed assertion value for this matched values filter. */
   private final ByteString rawAssertionValue;
-
-  /** The subFinal value for this matched values filter. */
-  private final ByteString subFinal;
-
-  /** The subInitial value for this matched values filter. */
-  private final ByteString subInitial;
-
-  /** The processed attribute type for this matched values filter. */
-  private AttributeType attributeType;
-
   /** The processed assertion value for this matched values filter. */
   private ByteString assertionValue;
-
-  /**
-   * Indicates whether the elements of this matched values filter have been
-   * fully decoded.
-   */
-  private boolean decoded;
-
-  /** The match type for this matched values filter. */
-  private final byte matchType;
-
-  /** The equality matching rule for this matched values filter. */
-  private MatchingRule equalityMatchingRule;
-
+  /** The assertion created from substring matching rule using values of this filter. */
+  private Assertion substringAssertion;
+  /** The subInitial value for this matched values filter. */
+  private final ByteString subInitial;
   /** The set of subAny values for this matched values filter. */
   private final List<ByteString> subAny;
-
-  /** The matching rule for this matched values filter. */
-  private MatchingRule matchingRule;
-
-  /** The ordering matching rule for this matched values filter. */
-  private MatchingRule orderingMatchingRule;
-
-  /** The matching rule ID for this matched values filter. */
-  private final String matchingRuleID;
-
-  /** The raw, unprocessed attribute type for this matched values filter. */
-  private final String rawAttributeType;
-
-  /** The substring matching rule for this matched values filter. */
-  private MatchingRule substringMatchingRule;
-
-  /**
-   * The assertion created from substring matching rule using values of this
-   * filter.
-   */
-  private Assertion substringAssertion;
+  /** The subFinal value for this matched values filter. */
+  private final ByteString subFinal;
 
   /**
    * Creates a new matched values filter with the provided information.
@@ -731,8 +676,7 @@ public class MatchedValuesFilter
 
           LocalizableMessage message =
               ERR_MVFILTER_CANNOT_DECODE_AVA.get(getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                                  e);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
         }
 
 
@@ -779,8 +723,7 @@ public class MatchedValuesFilter
           reader.readEndSequence();
 
           return new MatchedValuesFilter(type, rawAttributeType,
-                                         null, subInitial, subAny, subFinal,
-                                         null);
+                                         null, subInitial, subAny, subFinal, null);
         }
         catch (LDAPException le)
         {
@@ -792,8 +735,7 @@ public class MatchedValuesFilter
 
           LocalizableMessage message =
               ERR_MVFILTER_CANNOT_DECODE_SUBSTRINGS.get(getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                                  e);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
         }
 
 
@@ -812,8 +754,7 @@ public class MatchedValuesFilter
 
           LocalizableMessage message = ERR_MVFILTER_CANNOT_DECODE_PRESENT_TYPE.get(
               getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                                  e);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
         }
 
 
@@ -850,8 +791,7 @@ public class MatchedValuesFilter
 
           LocalizableMessage message = ERR_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH.get(
               getExceptionMessage(e));
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message,
-                                  e);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message, e);
         }
 
 
@@ -1161,16 +1101,7 @@ public class MatchedValuesFilter
             && value != null
             && equalityMatchingRule != null)
         {
-          try
-          {
-            final ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value);
-            final Assertion assertion = equalityMatchingRule.getAssertion(rawAssertionValue);
-            return assertion.matches(normValue).toBoolean();
-          }
-          catch (DecodeException e)
-          {
-            logger.traceException(e);
-          }
+          return matches(equalityMatchingRule, value, rawAssertionValue);
         }
         return false;
 
@@ -1245,63 +1176,21 @@ public class MatchedValuesFilter
             && value != null
             && approximateMatchingRule != null)
         {
-          try
-          {
-            ByteString normValue = approximateMatchingRule.normalizeAttributeValue(value);
-            Assertion assertion = approximateMatchingRule.getAssertion(assertionValue);
-            return assertion.matches(normValue).toBoolean();
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-          }
+          return matches(approximateMatchingRule, value, assertionValue);
         }
         return false;
 
 
       case EXTENSIBLE_MATCH_TYPE:
-        if (assertionValue == null || value == null)
+        if (attributeType == null)
+        {
+          return matches(matchingRule, value, assertionValue);
+        }
+        else if (!attributeType.equals(type))
         {
           return false;
         }
-
-        if (attributeType == null)
-        {
-          if (matchingRule == null)
-          {
-            return false;
-          }
-
-          try
-          {
-            ByteString normValue = matchingRule.normalizeAttributeValue(value);
-            Assertion assertion = matchingRule.getAssertion(assertionValue);
-            return assertion.matches(normValue).toBoolean();
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-            return false;
-          }
-        }
-        else
-        {
-          if ((! attributeType.equals(type)) || (equalityMatchingRule == null))
-          {
-            return false;
-          }
-
-          try
-          {
-            ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value);
-            return equalityMatchingRule.getAssertion(rawAssertionValue).matches(normValue).toBoolean();
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-            return false;
-          }
-        }
+        return matches(equalityMatchingRule, value, rawAssertionValue);
 
 
       default:
@@ -1309,7 +1198,25 @@ public class MatchedValuesFilter
     }
   }
 
+  private boolean matches(MatchingRule matchingRule, ByteString value, ByteString assertionValue)
+  {
+    if (matchingRule == null || value == null || assertionValue == null)
+    {
+      return false;
+    }
 
+    try
+    {
+      ByteString normValue = matchingRule.normalizeAttributeValue(value);
+      Assertion assertion = matchingRule.getAssertion(assertionValue);
+      return assertion.matches(normValue).toBoolean();
+    }
+    catch (DecodeException e)
+    {
+      logger.traceException(e);
+      return false;
+    }
+  }
 
   /**
    * Retrieves a string representation of this matched values filter, as an RFC
@@ -1338,11 +1245,7 @@ public class MatchedValuesFilter
     switch (matchType)
     {
       case EQUALITY_MATCH_TYPE:
-        buffer.append("(");
-        buffer.append(rawAttributeType);
-        buffer.append("=");
-        RawFilter.valueToFilterString(buffer, rawAssertionValue);
-        buffer.append(")");
+        appendAttributeTypeAndAssertion(buffer, "=");
         break;
 
 
@@ -1374,20 +1277,12 @@ public class MatchedValuesFilter
 
 
       case GREATER_OR_EQUAL_TYPE:
-        buffer.append("(");
-        buffer.append(rawAttributeType);
-        buffer.append(">=");
-        RawFilter.valueToFilterString(buffer, rawAssertionValue);
-        buffer.append(")");
+        appendAttributeTypeAndAssertion(buffer, ">=");
         break;
 
 
       case LESS_OR_EQUAL_TYPE:
-        buffer.append("(");
-        buffer.append(rawAttributeType);
-        buffer.append("<=");
-        RawFilter.valueToFilterString(buffer, rawAssertionValue);
-        buffer.append(")");
+        appendAttributeTypeAndAssertion(buffer, "<=");
         break;
 
 
@@ -1399,11 +1294,7 @@ public class MatchedValuesFilter
 
 
       case APPROXIMATE_MATCH_TYPE:
-        buffer.append("(");
-        buffer.append(rawAttributeType);
-        buffer.append("~=");
-        RawFilter.valueToFilterString(buffer, rawAssertionValue);
-        buffer.append(")");
+        appendAttributeTypeAndAssertion(buffer, "~=");
         break;
 
 
@@ -1426,6 +1317,15 @@ public class MatchedValuesFilter
         buffer.append(")");
         break;
     }
+  }
+
+  private void appendAttributeTypeAndAssertion(StringBuilder buffer, String operator)
+  {
+    buffer.append("(");
+    buffer.append(rawAttributeType);
+    buffer.append(operator);
+    RawFilter.valueToFilterString(buffer, rawAssertionValue);
+    buffer.append(")");
   }
 }
 
