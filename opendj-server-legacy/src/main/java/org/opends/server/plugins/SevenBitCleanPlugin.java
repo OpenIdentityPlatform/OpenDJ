@@ -130,24 +130,10 @@ public final class SevenBitCleanPlugin
     // processing an LDIF import, we don't have access to the set of public
     // naming contexts defined in the server, so if no explicit set of base DNs
     // is defined, then assume that the entry is in scope.
-    Set<DN> baseDNs = config.getBaseDN();
-    if ((baseDNs != null) && (! baseDNs.isEmpty()))
+    if (!isDescendantOfAny(entry.getName(), config.getBaseDN()))
     {
-      boolean found = true;
-      for (DN baseDN : baseDNs)
-      {
-        if (baseDN.isAncestorOf(entry.getName()))
-        {
-          found = true;
-          break;
-        }
-      }
-
-      if (! found)
-      {
-        // The entry is out of scope, so we won't process it.
-        return PluginResult.ImportLDIF.continueEntryProcessing();
-      }
+      // The entry is out of scope, so we won't process it.
+      return PluginResult.ImportLDIF.continueEntryProcessing();
     }
 
 
@@ -164,8 +150,7 @@ public final class SevenBitCleanPlugin
             if (!is7BitClean(v))
             {
               LocalizableMessage rejectMessage =
-                   ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(
-                        a.getNameWithOptions());
+                   ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(a.getNameWithOptions());
               return PluginResult.ImportLDIF.stopEntryProcessing(rejectMessage);
             }
           }
@@ -277,7 +262,7 @@ public final class SevenBitCleanPlugin
             // These are modification types that we will process.
             break;
           default:
-            // This is not a modifiation type that we will process.
+            // This is not a modification type that we will process.
             continue;
         }
 
@@ -394,22 +379,26 @@ public final class SevenBitCleanPlugin
   private final boolean isInScope(SevenBitCleanPluginCfg config, DN dn)
   {
     Set<DN> baseDNs = config.getBaseDN();
-    if ((baseDNs == null) || baseDNs.isEmpty())
+    if (baseDNs == null || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
+    return isDescendantOfAny(dn, baseDNs);
+  }
 
-    boolean found = false;
-    for (DN baseDN: baseDNs)
+  private boolean isDescendantOfAny(DN dn, Set<DN> baseDNs)
+  {
+    if (baseDNs != null)
     {
-      if (dn.isDescendantOf(baseDN))
+      for (DN baseDN: baseDNs)
       {
-        found = true;
-        break;
+        if (dn.isDescendantOf(baseDN))
+        {
+          return true;
+        }
       }
     }
-
-    return found;
+    return false;
   }
 
 
@@ -424,16 +413,14 @@ public final class SevenBitCleanPlugin
    */
   private final boolean is7BitClean(ByteSequence value)
   {
-    byte b;
     for (int i = 0; i < value.length(); i++)
     {
-      b = value.byteAt(i);
+      byte b = value.byteAt(i);
       if ((b & MASK) != b)
       {
         return false;
       }
     }
-
     return true;
   }
 
@@ -491,4 +478,3 @@ public final class SevenBitCleanPlugin
     return new ConfigChangeResult();
   }
 }
-
