@@ -42,6 +42,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.core.AuthenticatedUsers;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
@@ -175,26 +176,22 @@ public abstract class ClientConnection
     Entry authNEntry = authenticationInfo.getAuthenticationEntry();
     Entry authZEntry = authenticationInfo.getAuthorizationEntry();
 
+    AuthenticatedUsers authenticatedUsers = DirectoryServer.getAuthenticatedUsers();
     if (authNEntry != null)
     {
-      if ((authZEntry == null) ||
-          authZEntry.getName().equals(authNEntry.getName()))
+      if (authZEntry == null || authZEntry.getName().equals(authNEntry.getName()))
       {
-        DirectoryServer.getAuthenticatedUsers().remove(
-             authNEntry.getName(), this);
+        authenticatedUsers.remove(authNEntry.getName(), this);
       }
       else
       {
-        DirectoryServer.getAuthenticatedUsers().remove(
-             authNEntry.getName(), this);
-        DirectoryServer.getAuthenticatedUsers().remove(
-             authZEntry.getName(), this);
+        authenticatedUsers.remove(authNEntry.getName(), this);
+        authenticatedUsers.remove(authZEntry.getName(), this);
       }
     }
     else if (authZEntry != null)
     {
-      DirectoryServer.getAuthenticatedUsers().remove(
-           authZEntry.getName(), this);
+      authenticatedUsers.remove(authZEntry.getName(), this);
     }
   }
 
@@ -412,8 +409,7 @@ public abstract class ClientConnection
    */
   public Selector getWriteSelector()
   {
-    // There will not be a write selector in the default
-    // implementation.
+    // There will not be a write selector in the default implementation.
     return null;
   }
 
@@ -511,8 +507,7 @@ public abstract class ClientConnection
   public final boolean sendIntermediateResponse(
                             IntermediateResponse intermediateResponse)
   {
-    // Invoke the intermediate response plugins for the response
-    // message.
+    // Invoke the intermediate response plugins for the response message.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
     PluginResult.IntermediateResponse pluginResult =
@@ -526,7 +521,7 @@ public abstract class ClientConnection
            sendIntermediateResponseMessage(intermediateResponse);
     }
 
-    return (continueProcessing && pluginResult.continueProcessing());
+    return continueProcessing && pluginResult.continueProcessing();
   }
 
 
@@ -626,11 +621,9 @@ public abstract class ClientConnection
 
 
   /**
-   * Retrieves the operation in progress with the specified message
-   * ID.
+   * Retrieves the operation in progress with the specified message ID.
    *
    * @param  messageID  The message ID of the operation to retrieve.
-   *
    * @return  The operation in progress with the specified message ID,
    *          or {@code null} if no such operation could be found.
    */
@@ -646,21 +639,17 @@ public abstract class ClientConnection
    *
    * @param  messageID  The message ID of the operation to remove from
    *                    the set of operations in progress.
-   *
    * @return  {@code true} if the operation was found and removed from
-   *          the set of operations in progress, or {@code false} if
-   *          not.
+   *          the set of operations in progress, or {@code false} if not.
    */
   public abstract boolean removeOperationInProgress(int messageID);
 
 
 
   /**
-   * Retrieves the set of persistent searches registered for this
-   * client.
+   * Retrieves the set of persistent searches registered for this client.
    *
-   * @return  The set of persistent searches registered for this
-   *          client.
+   * @return  The set of persistent searches registered for this client.
    */
   public final List<PersistentSearch> getPersistentSearches()
   {
@@ -670,13 +659,11 @@ public abstract class ClientConnection
 
 
   /**
-   * Registers the provided persistent search for this client.  Note
-   * that this should only be called by
-   * {@code DirectoryServer.registerPersistentSearch} and not through
-   * any other means.
+   * Registers the provided persistent search for this client.
+   * Note that this should only be called by
+   * {@code DirectoryServer.registerPersistentSearch} and not through any other means.
    *
-   * @param  persistentSearch  The persistent search to register for
-   *                           this client.
+   * @param  persistentSearch  The persistent search to register for this client.
    */
  @org.opends.server.types.PublicAPI(
       stability=org.opends.server.types.StabilityLevel.PRIVATE,
@@ -780,33 +767,28 @@ public abstract class ClientConnection
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
+    AuthenticatedUsers authenticatedUsers = DirectoryServer.getAuthenticatedUsers();
     if (this.authenticationInfo != null)
     {
-      Entry authNEntry =
-                 this.authenticationInfo.getAuthenticationEntry();
-      Entry authZEntry =
-                 this.authenticationInfo.getAuthorizationEntry();
+      Entry authNEntry = this.authenticationInfo.getAuthenticationEntry();
+      Entry authZEntry = this.authenticationInfo.getAuthorizationEntry();
 
       if (authNEntry != null)
       {
-        if ((authZEntry == null) ||
+        if (authZEntry == null ||
             authZEntry.getName().equals(authNEntry.getName()))
         {
-          DirectoryServer.getAuthenticatedUsers().remove(
-               authNEntry.getName(), this);
+          authenticatedUsers.remove(authNEntry.getName(), this);
         }
         else
         {
-          DirectoryServer.getAuthenticatedUsers().remove(
-               authNEntry.getName(), this);
-          DirectoryServer.getAuthenticatedUsers().remove(
-               authZEntry.getName(), this);
+          authenticatedUsers.remove(authNEntry.getName(), this);
+          authenticatedUsers.remove(authZEntry.getName(), this);
         }
       }
       else if (authZEntry != null)
       {
-        DirectoryServer.getAuthenticatedUsers().remove(
-             authZEntry.getName(), this);
+        authenticatedUsers.remove(authZEntry.getName(), this);
       }
     }
 
@@ -824,26 +806,21 @@ public abstract class ClientConnection
 
       if (authNEntry != null)
       {
-        if ((authZEntry == null) ||
-            authZEntry.getName().equals(authNEntry.getName()))
+        if (authZEntry == null || authZEntry.getName().equals(authNEntry.getName()))
         {
-          DirectoryServer.getAuthenticatedUsers().put(
-               authNEntry.getName(), this);
+          authenticatedUsers.put(authNEntry.getName(), this);
         }
         else
         {
-          DirectoryServer.getAuthenticatedUsers().put(
-               authNEntry.getName(), this);
-          DirectoryServer.getAuthenticatedUsers().put(
-               authZEntry.getName(), this);
+          authenticatedUsers.put(authNEntry.getName(), this);
+          authenticatedUsers.put(authZEntry.getName(), this);
         }
       }
       else
       {
         if (authZEntry != null)
         {
-          DirectoryServer.getAuthenticatedUsers().put(
-               authZEntry.getName(), this);
+          authenticatedUsers.put(authZEntry.getName(), this);
         }
       }
 
@@ -870,11 +847,9 @@ public abstract class ClientConnection
     Entry authNEntry = authenticationInfo.getAuthenticationEntry();
     Entry authZEntry = authenticationInfo.getAuthorizationEntry();
 
-    if ((authNEntry != null) &&
-        authNEntry.getName().equals(oldEntry.getName()))
+    if (authNEntry != null && authNEntry.getName().equals(oldEntry.getName()))
     {
-      if ((authZEntry == null) ||
-          (! authZEntry.getName().equals(authNEntry.getName())))
+      if (authZEntry == null || !authZEntry.getName().equals(authNEntry.getName()))
       {
         setAuthenticationInfo(
              authenticationInfo.duplicate(newEntry, authZEntry));
@@ -887,8 +862,7 @@ public abstract class ClientConnection
         updatePrivileges(newEntry, authenticationInfo.isRoot());
       }
     }
-    else if ((authZEntry != null) &&
-             (authZEntry.getName().equals(oldEntry.getName())))
+    else if (authZEntry != null && authZEntry.getName().equals(oldEntry.getName()))
     {
       setAuthenticationInfo(
            authenticationInfo.duplicate(authNEntry, newEntry));
@@ -954,8 +928,7 @@ public abstract class ClientConnection
       // identity.
       Entry authEntry = authenticationInfo.getAuthenticationEntry();
       boolean isRoot  = authenticationInfo.isRoot();
-      return getPrivileges(authEntry,
-                           isRoot).contains(Privilege.PROXIED_AUTH) ||
+      return getPrivileges(authEntry, isRoot).contains(Privilege.PROXIED_AUTH) ||
              DirectoryServer.isDisabled(Privilege.PROXIED_AUTH);
     }
 
@@ -1017,74 +990,57 @@ public abstract class ClientConnection
    * @return  {@code true} if the authenticated client has all of the
    *          specified privileges, or {@code false} if not.
    */
-  public boolean hasAllPrivileges(Privilege[] privileges,
-                                  Operation operation)
+  public boolean hasAllPrivileges(Privilege[] privileges, Operation operation)
   {
-    HashSet<Privilege> privSet = this.privileges;
-
+    final boolean result = hasAllPrivileges0(this.privileges, privileges);
     if (logger.isTraceEnabled())
     {
-      for (Privilege p : privileges)
-      {
-        if (! privSet.contains(p))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-    else
-    {
-      boolean result = true;
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("{");
-
-      for (int i=0; i < privileges.length; i++)
-      {
-        if (i > 0)
-        {
-          buffer.append(",");
-        }
-
-        buffer.append(privileges[i].getName());
-
-        if (! privSet.contains(privileges[i]))
-        {
-          result = false;
-        }
-      }
-
-      buffer.append(" }");
-
+      long operationID = operation != null ? operation.getOperationID() : -1;
       final DN authDN = authenticationInfo.getAuthenticationDN();
-      if (operation == null)
-      {
-        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
-            getConnectionID(), -1L, authDN, buffer, result);
-      }
-      else
-      {
-        logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES,
-            getConnectionID(), operation.getOperationID(), authDN, buffer, result);
-      }
-
-      return result;
+      StringBuilder buffer = toStringBuilder(privileges);
+      logger.trace(INFO_CLIENTCONNECTION_AUDIT_HASPRIVILEGES, getConnectionID(), operationID, authDN, buffer, result);
     }
+    return result;
   }
 
+  private boolean hasAllPrivileges0(Set<Privilege> privSet, Privilege[] privileges)
+  {
+    for (Privilege p : privileges)
+    {
+      if (!privSet.contains(p))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
+  private StringBuilder toStringBuilder(Privilege[] privileges)
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("{");
+    for (int i = 0; i < privileges.length; i++)
+    {
+      Privilege privilege = privileges[i];
+      if (i > 0)
+      {
+        buffer.append(",");
+      }
+      buffer.append(privilege.getName());
+    }
+    buffer.append(" }");
+    return buffer;
+  }
 
   /**
    * Retrieves the set of privileges encoded in the provided entry.
    *
-   * @param  entry   The entry to use to obtain the privilege
-   *                 information.
-   * @param  isRoot  Indicates whether the set of root privileges
-   *                 should be automatically included in the
-   *                 privilege set.
-   *
-   * @return  A set of the privileges that should be assigned.
+   * @param entry
+   *          The entry to use to obtain the privilege information.
+   * @param isRoot
+   *          Indicates whether the set of root privileges should be automatically included in the
+   *          privilege set.
+   * @return A set of the privileges that should be assigned.
    */
   private static HashSet<Privilege> getPrivileges(Entry entry,
                                            boolean isRoot)
@@ -1437,8 +1393,7 @@ public abstract class ClientConnection
     DN authzDN;
     if (operation == null)
     {
-      if ((authenticationInfo == null) ||
-          (! authenticationInfo.isAuthenticated()))
+      if (authenticationInfo == null || !authenticationInfo.isAuthenticated())
       {
         authzDN = null;
       }
@@ -1452,7 +1407,7 @@ public abstract class ClientConnection
       authzDN = operation.getAuthorizationDN();
     }
 
-    if ((authzDN == null) || authzDN.isRootDN())
+    if (authzDN == null || authzDN.isRootDN())
     {
       return Collections.<Group<?>>emptySet();
     }
@@ -1501,7 +1456,7 @@ public abstract class ClientConnection
    * Retrieves the DN of the trust manager provider that should be
    * used for operations requiring access to a trust manager.  The
    * default implementation returns {@code null} to indicate that no
-   * trust manager provider is avaialble, but subclasses should
+   * trust manager provider is available, but subclasses should
    * override this method to return a valid DN if they perform
    * operations which may need access to a trust manager.
    *
@@ -1525,7 +1480,7 @@ public abstract class ClientConnection
    * acceptable.
    *
    * @return  The alias of the server certificate that should be used
-   *          for operations requring a server certificate, or
+   *          for operations requiring a server certificate, or
    *          {@code null} if any alias is acceptable.
    */
   public String getCertificateAlias()
@@ -1615,5 +1570,4 @@ public abstract class ClientConnection
   {
     return getConnectionID() < 0;
   }
-
 }
