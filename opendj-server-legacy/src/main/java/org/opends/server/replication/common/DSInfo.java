@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -38,7 +38,6 @@ import java.util.*;
  */
 public final class DSInfo
 {
-
   /** DS server id. */
   private final int dsId;
   /** DS server url. */
@@ -279,13 +278,8 @@ public final class DSInfo
         && groupId == dsInfo.getGroupId()
         && protocolVersion == dsInfo.getProtocolVersion()
         && refUrls.equals(dsInfo.getRefUrls())
-        && equals(eclIncludes, dsInfo.getEclIncludes())
-        && equals(eclIncludesForDeletes, dsInfo.getEclIncludesForDeletes());
-  }
-
-  private boolean equals(Object o1, Object o2)
-  {
-    return o1 == null ? o2 == null : o1.equals(o2);
+        && Objects.equals(eclIncludes, dsInfo.getEclIncludes())
+        && Objects.equals(eclIncludesForDeletes, dsInfo.getEclIncludesForDeletes());
   }
 
   /**

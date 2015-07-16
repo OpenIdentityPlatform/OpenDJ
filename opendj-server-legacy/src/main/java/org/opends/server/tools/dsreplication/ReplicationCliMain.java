@@ -46,6 +46,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -8018,21 +8019,12 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     for (ServerProperty prop : propertiesToCompare)
     {
-      if (!equals(server1.get(prop), server2.get(prop)))
+      if (!Objects.equals(server1.get(prop), server2.get(prop)))
       {
         return false;
       }
     }
     return true;
-  }
-
-  private boolean equals(Object o1, Object o2)
-  {
-    if (o1 != null)
-    {
-      return o1.equals(o2);
-    }
-    return o2 == null;
   }
 
   /**

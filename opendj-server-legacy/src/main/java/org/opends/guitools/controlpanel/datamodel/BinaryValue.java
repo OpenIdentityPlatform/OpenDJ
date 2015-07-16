@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.datamodel;
 
 import java.io.File;
 import java.text.ParseException;
+import java.util.Objects;
 
 import org.opends.server.util.Base64;
 
@@ -178,19 +179,10 @@ public class BinaryValue
     {
       BinaryValue candidate = (BinaryValue)o;
       return candidate.getType() == getType()
-          && equal(file, candidate.getFile())
+          && Objects.equals(file, candidate.getFile())
           && bytesEqual(candidate);
     }
     return false;
-  }
-
-  private boolean equal(File o1, File o2)
-  {
-    if (o1 == null)
-    {
-      return o2 == null;
-    }
-    return o1.equals(o2);
   }
 
   private boolean bytesEqual(BinaryValue candidate)

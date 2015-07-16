@@ -3116,15 +3116,10 @@ public class ReplicationBroker
       }
       final Topology other = (Topology) obj;
       return rsServerId == other.rsServerId
-          && equals(replicaInfos, other.replicaInfos)
-          && equals(rsInfos, other.rsInfos)
+          && Objects.equals(replicaInfos, other.replicaInfos)
+          && Objects.equals(rsInfos, other.rsInfos)
           && urlsEqual1(replicaInfos, other.replicaInfos)
           && urlsEqual2(rsInfos, other.rsInfos);
-    }
-
-    private boolean equals(Object o1, Object o2)
-    {
-      return o1 == null ? o2 == null : o1.equals(o2);
     }
 
     private boolean urlsEqual1(Map<Integer, DSInfo> replicaInfos1,
@@ -3133,7 +3128,7 @@ public class ReplicationBroker
       for (Entry<Integer, DSInfo> entry : replicaInfos1.entrySet())
       {
         DSInfo dsInfo = replicaInfos2.get(entry.getKey());
-        if (!equals(entry.getValue().getDsUrl(), dsInfo.getDsUrl()))
+        if (!Objects.equals(entry.getValue().getDsUrl(), dsInfo.getDsUrl()))
         {
           return false;
         }
@@ -3147,7 +3142,7 @@ public class ReplicationBroker
       for (Entry<Integer, ReplicationServerInfo> entry : rsInfos1.entrySet())
       {
         ReplicationServerInfo rsInfo = rsInfos2.get(entry.getKey());
-        if (!equals(entry.getValue().getServerURL(), rsInfo.getServerURL()))
+        if (!Objects.equals(entry.getValue().getServerURL(), rsInfo.getServerURL()))
         {
           return false;
         }

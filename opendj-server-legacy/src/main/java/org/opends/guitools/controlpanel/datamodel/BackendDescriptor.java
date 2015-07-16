@@ -26,6 +26,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -157,18 +158,9 @@ public class BackendDescriptor
           && desc.getBaseDns().equals(getBaseDns())
           && desc.getIndexes().equals(getIndexes())
           && desc.getVLVIndexes().equals(getVLVIndexes())
-          && equal(getMonitoringEntry(), desc.getMonitoringEntry());
+          && Objects.equals(getMonitoringEntry(), desc.getMonitoringEntry());
     }
     return false;
-  }
-
-  private boolean equal(CustomSearchResult m1, CustomSearchResult m2)
-  {
-    if (m1 == null)
-    {
-      return m2 == null;
-    }
-    return m1.equals(m2);
   }
 
   /**

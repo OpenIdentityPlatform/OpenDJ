@@ -46,7 +46,6 @@ import org.testng.annotations.Test;
 
 import static java.util.Arrays.*;
 
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -500,54 +499,22 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     private String matchingRuleId;
     private boolean dnAttributes;
 
-
     public void validateFilterFields() throws AssertionError {
-      if (!searchFilter.getFilterType().equals(filterType)) {
-        throwUnequalError("filterTypes");
-      }
-
-      if (!searchFilter.getFilterComponents().equals(filterComponents)) {
-        throwUnequalError("filterComponents");
-      }
-
-      if (!objectsAreEqual(searchFilter.getNotComponent(), notComponent)) {
-        throwUnequalError("notComponent");
-      }
-
-      if (!objectsAreEqual(searchFilter.getAssertionValue(), assertionValue)) {
-        throwUnequalError("assertionValue");
-      }
-
-      if (!objectsAreEqual(searchFilter.getAttributeType(), attributeType)) {
-        throwUnequalError("attributeType");
-      }
-
-      if (!objectsAreEqual(searchFilter.getSubInitialElement(), subInitialElement)) {
-        throwUnequalError("subInitial");
-      }
-
-      if (!objectsAreEqual(searchFilter.getSubAnyElements(), subAnyElements)) {
-        throwUnequalError("subAny");
-      }
-
-      if (!objectsAreEqual(searchFilter.getSubFinalElement(), subFinalElement)) {
-        throwUnequalError("subFinal");
-      }
-
-      if (!objectsAreEqual(searchFilter.getMatchingRuleID(), matchingRuleId)) {
-        throwUnequalError("matchingRuleId");
-      }
-
-      if (searchFilter.getDNAttributes() != dnAttributes) {
-        throwUnequalError("dnAttributes");
-      }
+      assertEquals(searchFilter.getFilterType(), filterType, errorMsg("filterTypes"));
+      assertEquals(searchFilter.getFilterComponents(), filterComponents, errorMsg("filterComponents"));
+      assertEquals(searchFilter.getNotComponent(), notComponent, "notComponent");
+      assertEquals(searchFilter.getAssertionValue(), assertionValue, "assertionValue");
+      assertEquals(searchFilter.getAttributeType(), attributeType, errorMsg("attributeType"));
+      assertEquals(searchFilter.getSubInitialElement(), subInitialElement, errorMsg("subInitial"));
+      assertEquals(searchFilter.getSubAnyElements(), subAnyElements, errorMsg("subAny"));
+      assertEquals(searchFilter.getSubFinalElement(), subFinalElement, errorMsg("subFinal"));
+      assertEquals(searchFilter.getMatchingRuleID(), matchingRuleId, errorMsg("matchingRuleId"));
+      assertEquals(searchFilter.getDNAttributes(), dnAttributes, errorMsg("dnAttributes"));
     }
 
-
-    private void throwUnequalError(String message) throws AssertionError {
-      throw new AssertionError("Filter differs from what is expected '" + message + "' differ.\n" + toString());
+    private String errorMsg(String message) {
+      return "Filter differs from what is expected '" + message + "' differ.\n" + toString();
     }
-
 
     @Override
     public String toString() {

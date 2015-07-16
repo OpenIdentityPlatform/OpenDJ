@@ -26,6 +26,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -95,18 +96,9 @@ public class ObjectClassValue
     if (o instanceof ObjectClassValue)
     {
       ObjectClassValue oc = (ObjectClassValue)o;
-      return equal(structural, oc.getStructural())
+      return Objects.equals(structural, oc.getStructural())
           && auxiliary.equals(oc.getAuxiliary());
     }
     return false;
-  }
-
-  private boolean equal(String s1, String s2)
-  {
-    if (s1 == null)
-    {
-      return s2 == null;
-    }
-    return s1.equals(s2);
   }
 }
