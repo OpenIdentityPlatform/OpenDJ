@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import java.util.Objects;
+
 /**
  * Represents a record, which is a pair of key-value.
  *
@@ -125,13 +127,8 @@ class Record<K, V>
       return false;
     }
     Record<?, ?> other = (Record<?, ?>) that;
-    return equals(key, other.key)
-        && equals(value, other.value);
-  }
-
-  private boolean equals(Object o1, Object o2)
-  {
-    return o1 == null ? o2 == null : o1.equals(o2);
+    return Objects.equals(key, other.key)
+        && Objects.equals(value, other.value);
   }
 
   /** {@inheritDoc} */

@@ -1540,21 +1540,6 @@ public final class StaticUtils
     return true;
   }
 
-
-  /**
-   * Return true if and only if o1 and o2 are both null or o1.equals(o2).
-   *
-   * @param o1 the first object to compare
-   * @param o2 the second object to compare
-   * @return true iff o1 and o2 are equal
-   */
-  public static boolean objectsAreEqual(Object o1, Object o2)
-  {
-    return Objects.equals(o1, o2);
-  }
-
-
-
   /**
    * Retrieves the best human-readable message for the provided exception.  For
    * exceptions defined in the OpenDJ project, it will attempt to use the

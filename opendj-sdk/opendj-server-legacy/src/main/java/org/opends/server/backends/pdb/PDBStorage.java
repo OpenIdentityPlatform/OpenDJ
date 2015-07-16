@@ -27,6 +27,7 @@ package org.opends.server.backends.pdb;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
+
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -509,7 +511,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ex.fetch();
         final ByteSequence oldValue = valueToBytes(ex.getValue());
         final ByteSequence newValue = f.computeNewValue(oldValue);
-        if (!equals(newValue, oldValue))
+        if (!Objects.equals(newValue, oldValue))
         {
           if (newValue == null)
           {
@@ -528,15 +530,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       {
         throw new StorageRuntimeException(e);
       }
-    }
-
-    private boolean equals(ByteSequence b1, ByteSequence b2)
-    {
-      if (b1 == null)
-      {
-        return b2 == null;
-      }
-      return b1.equals(b2);
     }
 
     private Exchange getExchangeFromCache(final TreeName treeName) throws PersistitException

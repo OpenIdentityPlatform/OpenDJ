@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.datamodel;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -105,31 +106,13 @@ AddressConnectionHandlerDescriptor>
   private int compareNames(AddressConnectionHandlerDescriptor ach1,
       AddressConnectionHandlerDescriptor ach2)
   {
-    if (equal(ach1.getAddress(), ach2.getAddress()))
+    if (Objects.equals(ach1.getAddress(), ach2.getAddress()))
     {
       Integer port1 = Integer.valueOf(ach1.getConnectionHandler().getPort());
       Integer port2 = Integer.valueOf(ach2.getConnectionHandler().getPort());
       return port1.compareTo(port2);
     }
     return getName(ach1).compareTo(getName(ach2));
-  }
-
-  /**
-   * Returns whether two addresses are equal.
-   *
-   * @param address1
-   *          the first address
-   * @param address2
-   *          the second address
-   * @return true if both are equal, false otherwise
-   */
-  static boolean equal(InetAddress address1, InetAddress address2)
-  {
-    if (address1 != null)
-    {
-      return address1.equals(address2);
-    }
-    return address2 == null;
   }
 
   /** {@inheritDoc} */
@@ -287,7 +270,7 @@ class AddressConnectionHandlerDescriptor
       return false;
     }
     AddressConnectionHandlerDescriptor ach = (AddressConnectionHandlerDescriptor) o;
-    return ConnectionHandlersMonitoringTableModel.equal(getAddress(), ach.getAddress())
+    return Objects.equals(getAddress(), ach.getAddress())
         && ach.getConnectionHandler().equals(getConnectionHandler());
   }
 }

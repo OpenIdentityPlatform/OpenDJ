@@ -255,39 +255,21 @@ public class HTTPConnectionHandler extends
   private boolean anyChangeRequiresRestart(HTTPConnectionHandlerCfg newCfg)
   {
     return !equals(newCfg.getListenPort(), initConfig.getListenPort())
-        || !equals(newCfg.getListenAddress(), initConfig.getListenAddress())
-        || !equals(newCfg.getMaxRequestSize(), currentConfig
-            .getMaxRequestSize())
-        || !equals(newCfg.isAllowTCPReuseAddress(), currentConfig
-            .isAllowTCPReuseAddress())
-        || !equals(newCfg.isUseTCPKeepAlive(), currentConfig
-            .isUseTCPKeepAlive())
+        || !Objects.equals(newCfg.getListenAddress(), initConfig.getListenAddress())
+        || !equals(newCfg.getMaxRequestSize(), currentConfig.getMaxRequestSize())
+        || !equals(newCfg.isAllowTCPReuseAddress(), currentConfig.isAllowTCPReuseAddress())
+        || !equals(newCfg.isUseTCPKeepAlive(), currentConfig.isUseTCPKeepAlive())
         || !equals(newCfg.isUseTCPNoDelay(), currentConfig.isUseTCPNoDelay())
-        || !equals(newCfg.getMaxBlockedWriteTimeLimit(), currentConfig
-            .getMaxBlockedWriteTimeLimit())
+        || !equals(newCfg.getMaxBlockedWriteTimeLimit(), currentConfig.getMaxBlockedWriteTimeLimit())
         || !equals(newCfg.getBufferSize(), currentConfig.getBufferSize())
         || !equals(newCfg.getAcceptBacklog(), currentConfig.getAcceptBacklog())
         || !equals(newCfg.isUseSSL(), currentConfig.isUseSSL())
-        || !equals(newCfg.getKeyManagerProviderDN(), currentConfig
-            .getKeyManagerProviderDN())
-        || !equals(newCfg.getSSLCertNickname(), currentConfig
-            .getSSLCertNickname())
-        || !equals(newCfg.getTrustManagerProviderDN(), currentConfig
-            .getTrustManagerProviderDN())
-        || !equals(newCfg.getSSLProtocol(), currentConfig.getSSLProtocol())
-        || !equals(newCfg.getSSLCipherSuite(), currentConfig
-            .getSSLCipherSuite())
-        || !equals(newCfg.getSSLClientAuthPolicy(), currentConfig
-            .getSSLClientAuthPolicy());
-  }
-
-  private boolean equals(Object o1, Object o2)
-  {
-    if (o1 == null)
-    {
-      return o2 == null;
-    }
-    return o1.equals(o2);
+        || !Objects.equals(newCfg.getKeyManagerProviderDN(), currentConfig.getKeyManagerProviderDN())
+        || !Objects.equals(newCfg.getSSLCertNickname(), currentConfig.getSSLCertNickname())
+        || !Objects.equals(newCfg.getTrustManagerProviderDN(), currentConfig.getTrustManagerProviderDN())
+        || !Objects.equals(newCfg.getSSLProtocol(), currentConfig.getSSLProtocol())
+        || !Objects.equals(newCfg.getSSLCipherSuite(), currentConfig.getSSLCipherSuite())
+        || !Objects.equals(newCfg.getSSLClientAuthPolicy(), currentConfig.getSSLClientAuthPolicy());
   }
 
   private boolean equals(long l1, long l2)
