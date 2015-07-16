@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg4;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg5;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -295,7 +297,7 @@ public class PluginConfigManager
       for (PluginCfgDefn.PluginType pluginType : pluginConfiguration.getPluginType())
       {
         PluginType t = getPluginType(pluginType);
-        if ((pluginTypes == null) || pluginTypes.contains(t))
+        if (pluginTypes == null || pluginTypes.contains(t))
         {
           initTypes.add(t);
         }
@@ -474,13 +476,11 @@ public class PluginConfigManager
 
     try
     {
-      Iterator<DirectoryServerPlugin<? extends PluginCfg>> iterator =
-           registeredPlugins.values().iterator();
-      while (iterator.hasNext())
+      for (DirectoryServerPlugin<? extends PluginCfg> plugin : registeredPlugins.values())
       {
         try
         {
-          iterator.next().finalizePlugin();
+          plugin.finalizePlugin();
         }
         catch (Exception e)
         {
@@ -903,9 +903,9 @@ public class PluginConfigManager
     // wildcard, then simply add the new plugin to the end of the list.
     // Otherwise, parse the order string and figure out where to put the
     // provided plugin.
-    if ((pluginOrder == null) ||
-        ((pluginOrder = pluginOrder.trim()).length() == 0) ||
-        pluginOrder.equals("*"))
+    if (pluginOrder == null
+        || (pluginOrder = pluginOrder.trim()).length() == 0
+        || pluginOrder.equals("*"))
     {
       DirectoryServerPlugin[] newPlugins =
            new DirectoryServerPlugin[pluginArray.length+1];
@@ -1392,9 +1392,9 @@ public class PluginConfigManager
       System.arraycopy(pluginArray, 0, newPlugins, 0, slot);
     }
 
-    if (slot < (length-1))
+    if (slot < length-1)
     {
-      System.arraycopy(pluginArray, slot+1, newPlugins, slot, (length-slot-1));
+      System.arraycopy(pluginArray, slot+1, newPlugins, slot, length-slot-1);
     }
 
     return newPlugins;
@@ -1773,8 +1773,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseAbandonPlugins)
     {
-      if (abandonOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(abandonOperation, p))
       {
         continue;
       }
@@ -1857,8 +1856,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseAddPlugins)
     {
-      if (addOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(addOperation, p))
       {
         continue;
       }
@@ -1914,8 +1912,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseBindPlugins)
     {
-      if (bindOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(bindOperation, p))
       {
         continue;
       }
@@ -1969,8 +1966,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseComparePlugins)
     {
-      if (compareOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(compareOperation, p))
       {
         continue;
       }
@@ -2028,8 +2024,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseDeletePlugins)
     {
-      if (deleteOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(deleteOperation, p))
       {
         continue;
       }
@@ -2087,8 +2082,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseExtendedPlugins)
     {
-      if (extendedOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(extendedOperation, p))
       {
         continue;
       }
@@ -2146,8 +2140,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseModifyPlugins)
     {
-      if (modifyOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyOperation, p))
       {
         continue;
       }
@@ -2205,8 +2198,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseModifyDNPlugins)
     {
-      if (modifyDNOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyDNOperation, p))
       {
         continue;
       }
@@ -2264,8 +2256,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseSearchPlugins)
     {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(searchOperation, p))
       {
         continue;
       }
@@ -2321,8 +2312,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseUnbindPlugins)
     {
-      if (unbindOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(unbindOperation, p))
       {
         continue;
       }
@@ -2377,8 +2367,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationAddPlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationAddPlugins[i];
-      if (addOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(addOperation, p))
       {
         continue;
       }
@@ -2439,8 +2428,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationBindPlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationBindPlugins[i];
-      if (bindOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(bindOperation, p))
       {
         continue;
       }
@@ -2500,8 +2488,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationComparePlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationComparePlugins[i];
-      if (compareOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(compareOperation, p))
       {
         continue;
       }
@@ -2562,8 +2549,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationDeletePlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationDeletePlugins[i];
-      if (deleteOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(deleteOperation, p))
       {
         continue;
       }
@@ -2663,8 +2649,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationExtendedPlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationExtendedPlugins[i];
-      if (extendedOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(extendedOperation, p))
       {
         registerSkippedPreOperationPlugin(p, extendedOperation);
         continue;
@@ -2729,8 +2714,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationModifyPlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationModifyPlugins[i];
-      if (modifyOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyOperation, p))
       {
         continue;
       }
@@ -2794,8 +2778,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationModifyDNPlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationModifyDNPlugins[i];
-      if (modifyDNOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyDNOperation, p))
       {
         continue;
       }
@@ -2859,8 +2842,7 @@ public class PluginConfigManager
     for (int i = 0; i < preOperationSearchPlugins.length; i++)
     {
       DirectoryServerPlugin p = preOperationSearchPlugins[i];
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(searchOperation, p))
       {
         continue;
       }
@@ -2922,8 +2904,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationAbandonPlugins)
     {
-      if (abandonOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(abandonOperation, p))
       {
         continue;
       }
@@ -2934,22 +2915,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                abandonOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                abandonOperation.getConnectionID(),
-                abandonOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(abandonOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                abandonOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                abandonOperation.getConnectionID(),
-                abandonOperation.getOperationID());
+        logNullResult(abandonOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -2999,13 +2970,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationAddPlugins)
     {
-      if (addOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(addOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3016,20 +2982,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                addOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                addOperation.getConnectionID(), addOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(addOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                addOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                addOperation.getConnectionID(), addOperation.getOperationID());
+        logNullResult(addOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3079,13 +3037,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationBindPlugins)
     {
-      if (bindOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(bindOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3096,21 +3049,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                bindOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                bindOperation.getConnectionID(), bindOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(bindOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                bindOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                bindOperation.getConnectionID(),
-                bindOperation.getOperationID());
+        logNullResult(bindOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3160,13 +3104,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationComparePlugins)
     {
-      if (compareOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(compareOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3177,22 +3116,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                compareOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(compareOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                compareOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID());
+        logNullResult(compareOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3220,7 +3149,15 @@ public class PluginConfigManager
     return finalResult;
   }
 
+  private boolean isInternalOperation(PluginOperation op, DirectoryServerPlugin p)
+  {
+    return op.isInternalOperation() && !p.invokeForInternalOperations();
+  }
 
+  private boolean isSkipped(ArrayList<DirectoryServerPlugin> skippedPlugins, DirectoryServerPlugin p)
+  {
+    return skippedPlugins != null && skippedPlugins.contains(p);
+  }
 
   /**
    * Invokes the set of post-operation delete plugins that have been configured
@@ -3242,13 +3179,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationDeletePlugins)
     {
-      if (deleteOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(deleteOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3259,22 +3191,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                deleteOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(deleteOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                deleteOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID());
+        logNullResult(deleteOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3324,13 +3246,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationExtendedPlugins)
     {
-      if (extendedOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(extendedOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3341,22 +3258,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                extendedOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(extendedOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                extendedOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID());
+        logNullResult(extendedOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3406,13 +3313,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationModifyPlugins)
     {
-      if (modifyOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(modifyOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3423,22 +3325,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                modifyOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(modifyOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                modifyOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID());
+        logNullResult(modifyOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3487,13 +3379,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationModifyDNPlugins)
     {
-      if (modifyDNOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(modifyDNOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3504,22 +3391,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                modifyDNOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(modifyDNOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                modifyDNOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID());
+        logNullResult(modifyDNOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3569,13 +3446,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationSearchPlugins)
     {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(searchOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3586,22 +3458,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                searchOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(searchOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                searchOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID());
+        logNullResult(searchOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3651,13 +3513,8 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationUnbindPlugins)
     {
-      if (unbindOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
-      {
-        continue;
-      }
-
-      if(skippedPlugins != null && skippedPlugins.contains(p))
+      if (isInternalOperation(unbindOperation, p)
+          || isSkipped(skippedPlugins, p))
       {
         continue;
       }
@@ -3668,22 +3525,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
-                unbindOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                unbindOperation.getConnectionID(),
-                unbindOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(unbindOperation, p, e, ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
-                unbindOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                unbindOperation.getConnectionID(),
-                unbindOperation.getOperationID());
+        logNullResult(unbindOperation, p, ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continueProcessing())
       {
@@ -3729,8 +3576,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseAddPlugins)
     {
-      if (addOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(addOperation, p))
       {
         continue;
       }
@@ -3741,20 +3587,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                addOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                addOperation.getConnectionID(), addOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(addOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                addOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                addOperation.getConnectionID(), addOperation.getOperationID());
+        logNullResult(addOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3790,8 +3628,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseBindPlugins)
     {
-      if (bindOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(bindOperation, p))
       {
         continue;
       }
@@ -3802,21 +3639,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                bindOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                bindOperation.getConnectionID(), bindOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(bindOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                bindOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                bindOperation.getConnectionID(),
-                bindOperation.getOperationID());
+        logNullResult(bindOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3852,8 +3680,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseComparePlugins)
     {
-      if (compareOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(compareOperation, p))
       {
         continue;
       }
@@ -3864,22 +3691,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                compareOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(compareOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                compareOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID());
+        logNullResult(compareOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3897,8 +3714,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of post-response delete plugins that have been configured
    * in the Directory Server.
@@ -3915,8 +3730,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseDeletePlugins)
     {
-      if (deleteOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(deleteOperation, p))
       {
         continue;
       }
@@ -3927,22 +3741,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                deleteOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(deleteOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                deleteOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID());
+        logNullResult(deleteOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3977,8 +3781,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseExtendedPlugins)
     {
-      if (extendedOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(extendedOperation, p))
       {
         continue;
       }
@@ -3989,22 +3792,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                extendedOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(extendedOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                extendedOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID());
+        logNullResult(extendedOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4040,8 +3833,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseModifyPlugins)
     {
-      if (modifyOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyOperation, p))
       {
         continue;
       }
@@ -4052,22 +3844,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                modifyOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(modifyOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                modifyOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID());
+        logNullResult(modifyOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4103,8 +3885,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseModifyDNPlugins)
     {
-      if (modifyDNOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyDNOperation, p))
       {
         continue;
       }
@@ -4115,22 +3896,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                modifyDNOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(modifyDNOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                modifyDNOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID());
+        logNullResult(modifyDNOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4166,8 +3937,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseSearchPlugins)
     {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(searchOperation, p))
       {
         continue;
       }
@@ -4178,22 +3948,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
-                searchOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(searchOperation, p, e, ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION);
       }
 
       if (result == null)
       {
-        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
-                searchOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID());
+        logNullResult(searchOperation, p, ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4211,7 +3971,25 @@ public class PluginConfigManager
     return result;
   }
 
+  private void logException(PluginOperation op, DirectoryServerPlugin p, Exception e,
+      Arg5<Object, Object, Number, Number, Object> errorMsg)
+  {
+    logger.traceException(e);
+    logger.error(errorMsg,
+            op.getOperationType().getOperationName(),
+            p.getPluginEntryDN(),
+            op.getConnectionID(), op.getOperationID(),
+            stackTraceToSingleLineString(e));
+  }
 
+  private void logNullResult(PluginOperation op, DirectoryServerPlugin p,
+      Arg4<Object, Object, Number, Number> nullResultMsg)
+  {
+    logger.error(nullResultMsg,
+            op.getOperationType().getOperationName(),
+            p.getPluginEntryDN(),
+            op.getConnectionID(), op.getOperationID());
+  }
 
   /**
    * Invokes the set of post-synchronization add plugins that have been
@@ -4231,12 +4009,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
-                addOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                addOperation.getConnectionID(), addOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(addOperation, p, e, ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION);
       }
     }
   }
@@ -4261,18 +4034,10 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
-                deleteOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(deleteOperation, p, e, ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION);
       }
     }
   }
-
-
 
   /**
    * Invokes the set of post-synchronization modify plugins that have been
@@ -4292,13 +4057,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
-                modifyOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(modifyOperation, p, e, ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION);
       }
     }
   }
@@ -4323,13 +4082,7 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
-                modifyDNOperation.getOperationType().getOperationName(),
-                p.getPluginEntryDN(),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
+        logException(modifyDNOperation, p, e, ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION);
       }
     }
   }
@@ -4354,8 +4107,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : searchResultEntryPlugins)
     {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(searchOperation, p))
       {
         continue;
       }
@@ -4429,8 +4181,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : searchResultReferencePlugins)
     {
-      if (searchOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(searchOperation, p))
       {
         continue;
       }
@@ -4509,8 +4260,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : subordinateModifyDNPlugins)
     {
-      if (modifyDNOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (isInternalOperation(modifyDNOperation, p))
       {
         continue;
       }
@@ -4583,8 +4333,7 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : subordinateDeletePlugins)
     {
-      if (deleteOperation.isInternalOperation() &&
-          (! p.invokeForInternalOperations()))
+      if (deleteOperation.isInternalOperation() && !p.invokeForInternalOperations())
       {
         continue;
       }
