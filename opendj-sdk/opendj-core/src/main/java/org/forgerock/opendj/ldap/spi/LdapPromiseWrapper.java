@@ -134,7 +134,7 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     @Override
     // @Checkstyle:ignore
     public <VOUT> LdapPromise<VOUT> then(Function<? super R, VOUT, LdapException> onSuccess) {
-        return LdapPromises.wrap(wrappedPromise.then(onSuccess), getRequestID());
+        return wrap(wrappedPromise.then(onSuccess), getRequestID());
     }
 
     @Override
