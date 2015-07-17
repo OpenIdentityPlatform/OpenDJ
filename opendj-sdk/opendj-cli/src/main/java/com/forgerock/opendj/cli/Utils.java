@@ -35,6 +35,7 @@ import static com.forgerock.opendj.util.StaticUtils.EOL;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
@@ -611,5 +612,31 @@ public final class Utils {
             }
         }
         return host;
+    }
+
+    /**
+     * Prints the provided string on the provided stream.
+     *
+     * @param stream
+     *            The stream to print the message.
+     * @param message
+     *            The message to print.
+     */
+    public static void printWrappedText(final PrintStream stream, final String message) {
+        if (stream != null && message != null) {
+            stream.println(wrapText(message, MAX_LINE_WIDTH));
+        }
+    }
+
+    /**
+     * Print the provided message on the provided stream.
+     *
+     * @param stream
+     *            The stream to print the message.
+     * @param message
+     *            The message to print.
+     */
+    public static void printWrappedText(final PrintStream stream, final LocalizableMessage message) {
+        printWrappedText(stream, message != null ? message.toString() : null);
     }
 }

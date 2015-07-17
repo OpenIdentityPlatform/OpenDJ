@@ -26,14 +26,16 @@
  */
 package org.opends.server.tools;
 
+import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.messages.ToolMessages.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+
 import java.io.PrintStream;
 
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
-import static org.forgerock.opendj.ldap.SearchScope.*;
 
 
 
@@ -131,7 +133,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
         searchScope = SUBORDINATES;
       } else
       {
-        err.println(ERR_SEARCH_INVALID_SEARCH_SCOPE.get(scope));
+        printWrappedText(err, ERR_SEARCH_INVALID_SEARCH_SCOPE.get(scope));
         return false;
       }
       return true;
@@ -177,7 +179,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
         dereferencePolicy = FINDING_BASE;
       } else
       {
-        err.println("Invalid deref alias specified:" + policy);
+        printWrappedText(err, ERR_SEARCH_INVALID_DEREFERENCE_POLICY.get(policy));
         return false;
       }
       return true;

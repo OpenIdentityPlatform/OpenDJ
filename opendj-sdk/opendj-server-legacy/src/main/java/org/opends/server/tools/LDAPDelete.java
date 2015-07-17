@@ -197,9 +197,8 @@ public class LDAPDelete
         }
         else
         {
-          LocalizableMessage msg = INFO_OPERATION_FAILED.get("DELETE");
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
-          err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+          printWrappedText(err, INFO_OPERATION_FAILED.get("DELETE"));
+          printWrappedText(err, ae.getMessage());
           return;
         }
       }
@@ -549,8 +548,7 @@ public class LDAPDelete
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -561,8 +559,7 @@ public class LDAPDelete
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -576,10 +573,8 @@ public class LDAPDelete
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              bindPassword.getLongIdentifier(),
-              bindPasswordFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(
+          err, ERR_TOOL_CONFLICTING_ARGS.get(bindPassword.getLongIdentifier(), bindPasswordFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -592,7 +587,7 @@ public class LDAPDelete
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ae.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -601,14 +596,14 @@ public class LDAPDelete
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ae.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -623,7 +618,7 @@ public class LDAPDelete
     catch (Exception ex)
     {
       logger.traceException(ex);
-      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ex.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -663,8 +658,7 @@ public class LDAPDelete
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -704,14 +698,12 @@ public class LDAPDelete
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -789,7 +781,7 @@ public class LDAPDelete
     } catch(Exception e)
     {
       logger.traceException(e);
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     } finally
     {

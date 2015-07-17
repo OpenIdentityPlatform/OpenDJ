@@ -199,9 +199,7 @@ public class LDAPModify
         }
         else
         {
-          LocalizableMessage message = ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(
-              le.getLineNumber(), fileNameValue, le);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_LDIF_FILE_INVALID_LDIF_ENTRY.get(le.getLineNumber(), fileNameValue, le));
           continue;
         }
       } catch (Exception e)
@@ -224,8 +222,7 @@ public class LDAPModify
         }
         else
         {
-          LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, e);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_LDIF_FILE_READ_ERROR.get(fileNameValue, e));
           continue;
         }
       }
@@ -313,9 +310,8 @@ public class LDAPModify
         } catch(DecodeException ae)
         {
           logger.traceException(ae);
-          LocalizableMessage message = INFO_OPERATION_FAILED.get(operationType);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+          printWrappedText(err, INFO_OPERATION_FAILED.get(operationType));
+          printWrappedText(err, ae.getMessage());
           if (!modifyOptions.continueOnError())
           {
             String msg = LDAPToolUtils.getMessageForConnectionException(ae);
@@ -412,7 +408,7 @@ public class LDAPModify
 
           if (errorMessage != null)
           {
-            out.println(wrapText(errorMessage, MAX_LINE_WIDTH));
+            printWrappedText(out, errorMessage);
           }
 
           if (referralURLs != null)
@@ -445,10 +441,7 @@ public class LDAPModify
             }
             catch (DirectoryException de)
             {
-              err.println(wrapText(
-                  ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(
-                              de.getMessage()),
-                      MAX_LINE_WIDTH));
+              printWrappedText(err, ERR_LDAPMODIFY_PREREAD_CANNOT_DECODE_VALUE.get(de.getMessage()));
               continue;
             }
 
@@ -477,10 +470,7 @@ public class LDAPModify
             }
             catch (DirectoryException de)
             {
-              err.println(wrapText(
-                      ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(
-                              de.getMessage()),
-                      MAX_LINE_WIDTH));
+              printWrappedText(err, ERR_LDAPMODIFY_POSTREAD_CANNOT_DECODE_VALUE.get(de.getMessage()));
               continue;
             }
 
@@ -878,9 +868,7 @@ public class LDAPModify
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -891,9 +879,7 @@ public class LDAPModify
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -907,10 +893,8 @@ public class LDAPModify
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              bindPassword.getLongIdentifier(),
-              bindPasswordFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(
+          err, ERR_TOOL_CONFLICTING_ARGS.get(bindPassword.getLongIdentifier(), bindPasswordFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -922,7 +906,7 @@ public class LDAPModify
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ae.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -931,14 +915,14 @@ public class LDAPModify
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ae.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -953,7 +937,7 @@ public class LDAPModify
     catch (Exception ex)
     {
       logger.traceException(ex);
-      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ex.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -993,8 +977,7 @@ public class LDAPModify
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -1024,9 +1007,7 @@ public class LDAPModify
       }
       catch (LDAPException le)
       {
-        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
-                le.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage()));
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -1085,14 +1066,12 @@ public class LDAPModify
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -1156,12 +1135,12 @@ public class LDAPModify
     } catch (FileNotFoundException fe)
     {
       logger.traceException(fe);
-      err.println(wrapText(fe.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, fe.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     } catch(Exception e)
     {
       logger.traceException(e);
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return OPERATIONS_ERROR;
     } finally
     {

@@ -26,11 +26,12 @@
  */
 package org.opends.server.tools;
 
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +50,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -483,8 +483,7 @@ public class LDIFModify
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      err.println(message);
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -496,11 +495,9 @@ public class LDIFModify
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(message);
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -518,7 +515,7 @@ public class LDIFModify
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
@@ -540,7 +537,7 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          err.println(ERR_LDIFMODIFY_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
+          printWrappedText(err, ERR_LDIFMODIFY_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
           return 1;
         }
 
@@ -551,7 +548,7 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          err.println(ERR_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
+          printWrappedText(err, ERR_LDIFMODIFY_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
           return 1;
         }
 
@@ -561,7 +558,7 @@ public class LDIFModify
         }
         catch (Exception e)
         {
-          err.println(ERR_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
+          printWrappedText(err, ERR_LDIFMODIFY_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
           return 1;
         }
       }
@@ -572,10 +569,8 @@ public class LDIFModify
     File source = new File(sourceFile.getValue());
     if (! source.exists())
     {
-      LocalizableMessage message = ERR_LDIFMODIFY_SOURCE_DOES_NOT_EXIST.get(
-              sourceFile.getValue());
-      err.println(message);
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      printWrappedText(err, ERR_LDIFMODIFY_SOURCE_DOES_NOT_EXIST.get(sourceFile.getValue()));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     LDIFImportConfig importConfig = new LDIFImportConfig(sourceFile.getValue());
@@ -586,16 +581,16 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      err.println(ERR_LDIFMODIFY_CANNOT_OPEN_SOURCE.get(sourceFile.getValue(), ioe));
-      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
+      printWrappedText(err, ERR_LDIFMODIFY_CANNOT_OPEN_SOURCE.get(sourceFile.getValue(), ioe));
+      return CLIENT_SIDE_LOCAL_ERROR;
     }
 
 
     File changes = new File(changesFile.getValue());
     if (! changes.exists())
     {
-      err.println(ERR_LDIFMODIFY_CHANGES_DOES_NOT_EXIST.get(changesFile.getValue()));
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      printWrappedText(err, ERR_LDIFMODIFY_CHANGES_DOES_NOT_EXIST.get(changesFile.getValue()));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     importConfig = new LDIFImportConfig(changesFile.getValue());
@@ -606,10 +601,8 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_LDIFMODIFY_CANNOT_OPEN_CHANGES.get(
-              sourceFile.getValue(), ioe.getMessage());
-      err.println(message);
-      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
+      printWrappedText(err, ERR_LDIFMODIFY_CANNOT_OPEN_CHANGES.get(sourceFile.getValue(), ioe.getMessage()));
+      return CLIENT_SIDE_LOCAL_ERROR;
     }
 
 
@@ -623,10 +616,8 @@ public class LDIFModify
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_LDIFMODIFY_CANNOT_OPEN_TARGET.get(
-              sourceFile.getValue(), ioe.getMessage());
-      err.println(message);
-      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
+      printWrappedText(err, ERR_LDIFMODIFY_CANNOT_OPEN_TARGET.get(sourceFile.getValue(), ioe.getMessage()));
+      return CLIENT_SIDE_LOCAL_ERROR;
     }
 
 

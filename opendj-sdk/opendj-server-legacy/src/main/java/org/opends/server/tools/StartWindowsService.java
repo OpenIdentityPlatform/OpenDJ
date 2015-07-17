@@ -25,17 +25,16 @@
  *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ToolMessages.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
-
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
   * This class is used to start the Windows service associated with this
@@ -85,8 +84,7 @@ public class StartWindowsService
     String serviceName = ConfigureWindowsService.getServiceName();
     if (serviceName == null)
     {
-      LocalizableMessage message = ERR_WINDOWS_SERVICE_NOT_FOUND.get();
-      err.println(message);
+      printWrappedText(err, ERR_WINDOWS_SERVICE_NOT_FOUND.get());
       return SERVICE_NOT_FOUND;
     }
 
@@ -118,9 +116,8 @@ public class StartWindowsService
     }
     catch (Throwable t)
     {
-      LocalizableMessage message = ERR_WINDOWS_SERVICE_START_ERROR.get();
-      err.println(message);
-      err.println("Exception:" + t);
+      printWrappedText(err, ERR_WINDOWS_SERVICE_START_ERROR.get());
+      printWrappedText(err, "Exception:" + t);
       return SERVICE_START_ERROR;
     }
   }

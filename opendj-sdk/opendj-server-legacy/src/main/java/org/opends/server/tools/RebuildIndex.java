@@ -153,9 +153,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (ArgumentException ae)
     {
-      final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -166,9 +164,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (ArgumentException ae)
     {
-      final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -192,53 +188,42 @@ public class RebuildIndex extends TaskTool
         && !rebuildAll.isPresent()
         && !rebuildDegraded.isPresent())
     {
-      final LocalizableMessage message =
-          ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get();
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get());
       err.println(argParser.getUsage());
       return 1;
     }
 
     if (rebuildAll.isPresent() && indexList.isPresent())
     {
-      final LocalizableMessage msg = ERR_REBUILDINDEX_REBUILD_ALL_ERROR.get();
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_ALL_ERROR.get());
       err.println(argParser.getUsage());
       return 1;
     }
 
     if (rebuildDegraded.isPresent() && indexList.isPresent())
     {
-      final LocalizableMessage msg = ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("index");
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("index"));
       err.println(argParser.getUsage());
       return 1;
     }
 
     if (rebuildDegraded.isPresent() && clearDegradedState.isPresent())
     {
-      final LocalizableMessage msg =
-          ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("clearDegradedState");
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("clearDegradedState"));
       err.println(argParser.getUsage());
       return 1;
     }
 
     if (rebuildAll.isPresent() && rebuildDegraded.isPresent())
     {
-      final LocalizableMessage msg =
-          ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildDegraded");
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildDegraded"));
       err.println(argParser.getUsage());
       return 1;
     }
 
     if (rebuildAll.isPresent() && clearDegradedState.isPresent())
     {
-      final LocalizableMessage msg =
-          ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("clearDegradedState");
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("clearDegradedState"));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -250,7 +235,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
     return process(argParser, initializeServer, out, err);
@@ -445,9 +430,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception e)
     {
-      final LocalizableMessage message =
-          ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
       return 1;
     }
 
@@ -458,7 +441,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception ex)
     {
-      err.println(toErrorMsg(ERR_CANNOT_LOAD_CONFIG, ex));
+      printWrappedText(err, toErrorMsg(ERR_CANNOT_LOAD_CONFIG, ex));
       return 1;
     }
 
@@ -469,7 +452,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception e)
     {
-      err.println(toErrorMsg(ERR_CANNOT_LOAD_SCHEMA, e));
+      printWrappedText(err, toErrorMsg(ERR_CANNOT_LOAD_SCHEMA, e));
       return 1;
     }
 
@@ -481,7 +464,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception ex)
     {
-      err.println(toErrorMsg(ERR_CANNOT_INITIALIZE_CORE_CONFIG, ex));
+      printWrappedText(err, toErrorMsg(ERR_CANNOT_INITIALIZE_CORE_CONFIG, ex));
       return 1;
     }
 
@@ -492,7 +475,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception ex)
     {
-      err.println(toErrorMsg(ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER, ex));
+      printWrappedText(err, toErrorMsg(ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER, ex));
       return 1;
     }
 
@@ -698,8 +681,7 @@ public class RebuildIndex extends TaskTool
       }
       catch (ArgumentException ae)
       {
-        final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-        out.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(out, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
         return 1;
       }
 
@@ -709,8 +691,7 @@ public class RebuildIndex extends TaskTool
       }
       catch (ArgumentException ae)
       {
-        final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-        out.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(out, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
         return 1;
       }
 
