@@ -356,10 +356,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   {
     LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     int returnValue = validateGlobalOptions(buf);
-    if (buf.length() > 0)
-    {
-      err.println(wrapText(buf.toString(), MAX_LINE_WIDTH));
-    }
+    printWrappedText(err, buf.toString());
     return returnValue;
   }
 

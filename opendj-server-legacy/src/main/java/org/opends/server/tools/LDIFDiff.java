@@ -71,11 +71,13 @@ import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
+
+import static com.forgerock.opendj.cli.Utils.*;
 
 /**
  * This class provides a program that may be used to determine the differences
@@ -252,8 +254,7 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      err.println(message);
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return OPERATIONS_ERROR;
     }
 
@@ -265,8 +266,7 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      err.println(message);
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -309,7 +309,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          err.println(ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
+          printWrappedText(err, ERR_LDIFDIFF_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
           return OPERATIONS_ERROR;
         }
 
@@ -320,7 +320,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          err.println(ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
+          printWrappedText(err, ERR_LDIFDIFF_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
           return OPERATIONS_ERROR;
         }
 
@@ -330,7 +330,7 @@ public class LDIFDiff
         }
         catch (Exception e)
         {
-          err.println(ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
+          printWrappedText(err, ERR_LDIFDIFF_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
           return OPERATIONS_ERROR;
         }
       }
@@ -356,7 +356,7 @@ public class LDIFDiff
       }
       catch (Exception e)
       {
-        err.println(ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(ignoreAttrsFile.getValue(), e));
+        printWrappedText(err, ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ATTRIBS.get(ignoreAttrsFile.getValue(), e));
         return OPERATIONS_ERROR;
       }
       finally
@@ -390,7 +390,7 @@ public class LDIFDiff
       }
       catch (Exception e)
       {
-        err.println(ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(ignoreEntriesFile.getValue(), e));
+        printWrappedText(err, ERR_LDIFDIFF_CANNOT_READ_FILE_IGNORE_ENTRIES.get(ignoreEntriesFile.getValue(), e));
         return OPERATIONS_ERROR;
       }
       finally
@@ -408,7 +408,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(sourceLDIF.getValue(), e));
+      printWrappedText(err, ERR_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF.get(sourceLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
 
@@ -431,7 +431,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(sourceLDIF.getValue(), e));
+      printWrappedText(err, ERR_LDIFDIFF_ERROR_READING_SOURCE_LDIF.get(sourceLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
     finally
@@ -448,7 +448,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(targetLDIF.getValue(), e));
+      printWrappedText(err, ERR_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF.get(targetLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
 
@@ -471,7 +471,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(targetLDIF.getValue(), e));
+      printWrappedText(err, ERR_LDIFDIFF_ERROR_READING_TARGET_LDIF.get(targetLDIF.getValue(), e));
       return OPERATIONS_ERROR;
     }
     finally
@@ -507,7 +507,7 @@ public class LDIFDiff
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(e));
+      printWrappedText(err, ERR_LDIFDIFF_CANNOT_OPEN_OUTPUT.get(e));
       return OPERATIONS_ERROR;
     }
 
@@ -683,7 +683,7 @@ public class LDIFDiff
     }
     catch (IOException e)
     {
-      err.println(ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(e));
+      printWrappedText(err, ERR_LDIFDIFF_ERROR_WRITING_OUTPUT.get(e));
       return OPERATIONS_ERROR;
     }
     finally

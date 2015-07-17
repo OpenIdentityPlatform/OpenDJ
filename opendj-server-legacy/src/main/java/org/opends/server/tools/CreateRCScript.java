@@ -32,6 +32,8 @@ import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -103,15 +105,15 @@ public class CreateRCScript
 
     if (! OperatingSystem.isUnixBased())
     {
-      err.println(ERR_CREATERC_ONLY_RUNS_ON_UNIX.get());
+      printWrappedText(err, ERR_CREATERC_ONLY_RUNS_ON_UNIX.get());
       return 1;
     }
 
     File serverRoot = DirectoryServer.getEnvironmentConfig().getServerRoot();
     if (serverRoot == null)
     {
-      err.println(ERR_CREATERC_UNABLE_TO_DETERMINE_SERVER_ROOT.get(
-                       PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT));
+      printWrappedText(
+          err, ERR_CREATERC_UNABLE_TO_DETERMINE_SERVER_ROOT.get(PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT));
       return 1;
     }
 
@@ -164,7 +166,7 @@ public class CreateRCScript
     }
     catch (ArgumentException ae)
     {
-      err.println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -174,7 +176,8 @@ public class CreateRCScript
     }
     catch (ArgumentException ae)
     {
-      err.println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -190,7 +193,7 @@ public class CreateRCScript
       File f = new File(javaHome.getValue());
       if (!f.exists() || !f.isDirectory())
       {
-        err.println(ERR_CREATERC_JAVA_HOME_DOESNT_EXIST.get(javaHome.getValue()));
+        printWrappedText(err, ERR_CREATERC_JAVA_HOME_DOESNT_EXIST.get(javaHome.getValue()));
         return 1;
       }
 
@@ -299,7 +302,7 @@ public class CreateRCScript
     }
     catch (Exception e)
     {
-      err.println(ERR_CREATERC_CANNOT_WRITE.get(getExceptionMessage(e)));
+      printWrappedText(err, ERR_CREATERC_CANNOT_WRITE.get(getExceptionMessage(e)));
       return 1;
     }
 

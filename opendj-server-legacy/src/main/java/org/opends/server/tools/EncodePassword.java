@@ -251,9 +251,7 @@ public class EncodePassword
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return OPERATIONS_ERROR;
     }
 
@@ -265,9 +263,7 @@ public class EncodePassword
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return OPERATIONS_ERROR;
     }
@@ -287,45 +283,36 @@ public class EncodePassword
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
     // Check for conflicting arguments.
     if (clearPassword.isPresent() && clearPasswordFile.isPresent())
     {
-      LocalizableMessage message =
-              ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(),
-                                  clearPasswordFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err,
+          ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(), clearPasswordFile.getLongIdentifier()));
       return OPERATIONS_ERROR;
     }
 
     if (clearPassword.isPresent() && interactivePassword.isPresent())
     {
-      LocalizableMessage message =
-              ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(),
-                  interactivePassword.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err,
+          ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(), interactivePassword.getLongIdentifier()));
       return OPERATIONS_ERROR;
     }
 
     if (clearPasswordFile.isPresent() && interactivePassword.isPresent())
     {
-      LocalizableMessage message =
-              ERR_TOOL_CONFLICTING_ARGS.get(
-                  clearPasswordFile.getLongIdentifier(),
-                  interactivePassword.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(clearPasswordFile.getLongIdentifier(),
+                                                          interactivePassword.getLongIdentifier()));
       return OPERATIONS_ERROR;
     }
 
     if (encodedPassword.isPresent() && encodedPasswordFile.isPresent())
     {
-      LocalizableMessage message =
-              ERR_TOOL_CONFLICTING_ARGS.get(encodedPassword.getLongIdentifier(),
-                                  encodedPasswordFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err,
+          ERR_TOOL_CONFLICTING_ARGS.get(encodedPassword.getLongIdentifier(), encodedPasswordFile.getLongIdentifier()));
       return OPERATIONS_ERROR;
     }
 
@@ -338,8 +325,7 @@ public class EncodePassword
         && !encodedPasswordFile.isPresent()
         && !schemeName.isPresent())
     {
-      LocalizableMessage message = ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier()));
       err.println(argParser.getUsage());
       return OPERATIONS_ERROR;
     }
@@ -378,9 +364,7 @@ public class EncodePassword
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-                ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
         return OPERATIONS_ERROR;
       }
 
@@ -391,14 +375,12 @@ public class EncodePassword
       }
       catch (InitializationException ie)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
         return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
         return OPERATIONS_ERROR;
       }
 
@@ -411,14 +393,12 @@ public class EncodePassword
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
         return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
         return OPERATIONS_ERROR;
       }
 
@@ -431,16 +411,12 @@ public class EncodePassword
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage()));
         return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e)));
         return OPERATIONS_ERROR;
       }
 
@@ -459,14 +435,12 @@ public class EncodePassword
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(e.getMessage()));
         return OPERATIONS_ERROR;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(getExceptionMessage(e)));
         return OPERATIONS_ERROR;
       }
     }
@@ -511,14 +485,12 @@ public class EncodePassword
         }
         catch (DirectoryException de)
         {
-          LocalizableMessage message = ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(
-                  de.getMessageObject());
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(de.getMessageObject()));
           return OPERATIONS_ERROR;
         }
         catch (Exception e)
         {
-          err.println(wrapText(ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(e), MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(e));
           return OPERATIONS_ERROR;
         }
 
@@ -526,9 +498,7 @@ public class EncodePassword
              DirectoryServer.getAuthPasswordStorageScheme(scheme);
         if (storageScheme == null)
         {
-          LocalizableMessage message = ERR_ENCPW_NO_SUCH_AUTH_SCHEME.get(
-                  scheme);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_NO_SUCH_AUTH_SCHEME.get(scheme));
           return OPERATIONS_ERROR;
         }
 
@@ -567,21 +537,18 @@ public class EncodePassword
                  DirectoryServer.getPasswordStorageScheme(userPWElements[0]);
             if (storageScheme == null)
             {
-              LocalizableMessage message = ERR_ENCPW_NO_SUCH_SCHEME.get(userPWElements[0]);
-              err.println(wrapText(message, MAX_LINE_WIDTH));
+              printWrappedText(err, ERR_ENCPW_NO_SUCH_SCHEME.get(userPWElements[0]));
               return OPERATIONS_ERROR;
             }
           }
           catch (DirectoryException de)
           {
-            LocalizableMessage message = ERR_ENCPW_INVALID_ENCODED_USERPW.get(
-                    de.getMessageObject());
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_ENCPW_INVALID_ENCODED_USERPW.get(de.getMessageObject()));
             return OPERATIONS_ERROR;
           }
           catch (Exception e)
           {
-            err.println(wrapText(ERR_ENCPW_INVALID_ENCODED_USERPW.get(e), MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_ENCPW_INVALID_ENCODED_USERPW.get(e));
             return OPERATIONS_ERROR;
           }
         }
@@ -589,9 +556,7 @@ public class EncodePassword
         {
           if (! schemeName.isPresent())
           {
-            LocalizableMessage message = ERR_ENCPW_NO_SCHEME.get(
-                    schemeName.getLongIdentifier());
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier()));
             return OPERATIONS_ERROR;
           }
 
@@ -601,8 +566,7 @@ public class EncodePassword
           storageScheme = DirectoryServer.getPasswordStorageScheme(scheme);
           if (storageScheme == null)
           {
-            LocalizableMessage message = ERR_ENCPW_NO_SUCH_SCHEME.get(scheme);
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_ENCPW_NO_SUCH_SCHEME.get(scheme));
             return OPERATIONS_ERROR;
           }
         }
@@ -637,8 +601,7 @@ public class EncodePassword
         storageScheme = DirectoryServer.getAuthPasswordStorageScheme(scheme);
         if (storageScheme == null)
         {
-          LocalizableMessage message = ERR_ENCPW_NO_SUCH_AUTH_SCHEME.get(scheme);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_NO_SUCH_AUTH_SCHEME.get(scheme));
           return OPERATIONS_ERROR;
         }
       }
@@ -648,8 +611,7 @@ public class EncodePassword
         storageScheme = DirectoryServer.getPasswordStorageScheme(scheme);
         if (storageScheme == null)
         {
-          LocalizableMessage message = ERR_ENCPW_NO_SUCH_SCHEME.get(scheme);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_NO_SUCH_SCHEME.get(scheme));
           return OPERATIONS_ERROR;
         }
       }
@@ -674,14 +636,12 @@ public class EncodePassword
         }
         catch (DirectoryException de)
         {
-          LocalizableMessage message = ERR_ENCPW_CANNOT_ENCODE.get(de.getMessageObject());
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_CANNOT_ENCODE.get(de.getMessageObject()));
           return OPERATIONS_ERROR;
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_ENCPW_CANNOT_ENCODE.get(getExceptionMessage(e));
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_CANNOT_ENCODE.get(getExceptionMessage(e)));
           return OPERATIONS_ERROR;
         }
       }
@@ -704,14 +664,12 @@ public class EncodePassword
         }
         catch (DirectoryException de)
         {
-          LocalizableMessage message = ERR_ENCPW_CANNOT_ENCODE.get(de.getMessageObject());
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_CANNOT_ENCODE.get(de.getMessageObject()));
           return OPERATIONS_ERROR;
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_ENCPW_CANNOT_ENCODE.get(getExceptionMessage(e));
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_CANNOT_ENCODE.get(getExceptionMessage(e)));
           return OPERATIONS_ERROR;
         }
       }
@@ -726,8 +684,7 @@ public class EncodePassword
   {
     if (storageSchemes.isEmpty())
     {
-      LocalizableMessage message = ERR_ENCPW_NO_STORAGE_SCHEMES.get();
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ENCPW_NO_STORAGE_SCHEMES.get());
     }
     else
     {
@@ -772,14 +729,12 @@ public class EncodePassword
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage()));
         return false;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e)));
         return false;
       }
       //Attempt to bring up enough of the server to process schemes requiring
@@ -794,8 +749,7 @@ public class EncodePassword
           directoryServer.initializeAuthenticatedUsers();
           new CryptoManagerSync();
     } catch (InitializationException | ConfigException e) {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(e)));
         return false;
     }
     return true;
@@ -833,9 +787,8 @@ public class EncodePassword
           backendClass = DirectoryServer.loadClass(className);
           backend = (Backend<BackendCfg>) backendClass.newInstance();
         } catch (Exception e) {
-          LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendCfg.dn(),
-              stackTraceToSingleLineString(e));
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
+          printWrappedText(err,
+              ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendCfg.dn(), stackTraceToSingleLineString(e)));
           continue;
         }
         backend.setBackendID(backendID);
@@ -844,17 +797,15 @@ public class EncodePassword
           backend.configureBackend(backendCfg, directoryServer.getServerContext());
           backend.openBackend();
         } catch (Exception e) {
-          LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(),
-              stackTraceToSingleLineString(e));
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
+          printWrappedText(err,
+              ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(), stackTraceToSingleLineString(e)));
         }
         try {
           DirectoryServer.registerBackend(backend);
         } catch (Exception e)
         {
-          LocalizableMessage msg = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(),
-              getExceptionMessage(e));
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
+          printWrappedText(
+              err, WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(), getExceptionMessage(e)));
         }
       }
     }
@@ -896,24 +847,20 @@ public class EncodePassword
         }
         else
         {
-          LocalizableMessage message = ERR_ENCPW_NOT_SAME_PW.get();
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_ENCPW_NOT_SAME_PW.get());
           return null;
         }
       }
       catch (IOException e)
       {
-        LocalizableMessage message = ERR_ENCPW_CANNOT_READ_PW.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_ENCPW_CANNOT_READ_PW.get(e.getMessage()));
         return null;
       }
     }
     else
     {
-      LocalizableMessage message = ERR_ENCPW_NO_CLEAR_PW.get(clearPassword
-          .getLongIdentifier(), clearPasswordFile.getLongIdentifier(),
-          interactivePassword.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ENCPW_NO_CLEAR_PW.get(clearPassword.getLongIdentifier(),
+                            clearPasswordFile.getLongIdentifier(), interactivePassword.getLongIdentifier()));
       err.println(argParser.getUsage());
       return null;
     }

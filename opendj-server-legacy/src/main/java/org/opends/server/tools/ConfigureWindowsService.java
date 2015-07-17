@@ -195,9 +195,7 @@ public class ConfigureWindowsService
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return ERROR;
     }
 
@@ -207,9 +205,7 @@ public class ConfigureWindowsService
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return ERROR;
     }
@@ -240,7 +236,7 @@ public class ConfigureWindowsService
       {
         LocalizableMessage message = nArgs == 0 ? ERR_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS.get()
                                                 : ERR_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, message);
         err.println(argParser.getUsage());
         return ERROR;
       }
@@ -356,9 +352,7 @@ public class ConfigureWindowsService
    */
   public static int enableService(PrintStream out, PrintStream err, String serviceName, String serviceDescription)
   {
-    LocalizableMessage msg;
     String serverRoot = getServerRoot();
-
     String[] cmd;
 
     if (hasUAC())
@@ -404,38 +398,31 @@ public class ConfigureWindowsService
           final int returnValue = StartWindowsService.startWindowsService(out, err);
           if (returnValue == 0)
           {
-            msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get();
-            out.println(wrapText(msg, MAX_LINE_WIDTH));
+            printWrappedText(out, INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get());
             return SERVICE_ENABLE_SUCCESS;
           }
           else
           {
-            msg = ERR_WINDOWS_SERVICE_ENABLING_ERROR_STARTING_SERVER.get(returnValue);
-            err.println(wrapText(msg, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_WINDOWS_SERVICE_ENABLING_ERROR_STARTING_SERVER.get(SERVICE_ENABLE_ERROR));
             return SERVICE_ENABLE_ERROR;
           }
         }
         else
         {
-          msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get();
-          out.println(wrapText(msg, MAX_LINE_WIDTH));
+          printWrappedText(out, INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get());
           return SERVICE_ENABLE_SUCCESS;
         }
       case 1:
-        msg = INFO_WINDOWS_SERVICE_ALREADY_ENABLED.get();
-        out.println(wrapText(msg, MAX_LINE_WIDTH));
+        printWrappedText(out, INFO_WINDOWS_SERVICE_ALREADY_ENABLED.get());
         return SERVICE_ALREADY_ENABLED;
       case 2:
-        msg = ERR_WINDOWS_SERVICE_NAME_ALREADY_IN_USE.get();
-        err.println(wrapText(msg, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_WINDOWS_SERVICE_NAME_ALREADY_IN_USE.get());
         return SERVICE_NAME_ALREADY_IN_USE;
       case 3:
-        msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
-        err.println(wrapText(msg, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_WINDOWS_SERVICE_ENABLE_ERROR.get());
         return SERVICE_ENABLE_ERROR;
       default:
-        msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
-        err.println(wrapText(msg, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_WINDOWS_SERVICE_ENABLE_ERROR.get());
         return SERVICE_ENABLE_ERROR;
       }
     }
@@ -443,8 +430,7 @@ public class ConfigureWindowsService
     {
       err.println("Unexpected throwable: "+t);
       t.printStackTrace();
-      msg = ERR_WINDOWS_SERVICE_ENABLE_ERROR.get();
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_WINDOWS_SERVICE_ENABLE_ERROR.get());
       return SERVICE_ENABLE_ERROR;
     }
   }
@@ -464,7 +450,6 @@ public class ConfigureWindowsService
    */
   public static int disableService(PrintStream out, PrintStream err)
   {
-    LocalizableMessage msg;
     String serverRoot = getServerRoot();
     String[] cmd;
     if (hasUAC())
@@ -495,32 +480,26 @@ public class ConfigureWindowsService
       switch (resultCode)
       {
       case 0:
-        msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_DISABLED.get();
-        out.println(msg);
+        printWrappedText(out, INFO_WINDOWS_SERVICE_SUCCESSULLY_DISABLED.get());
         return SERVICE_DISABLE_SUCCESS;
       case 1:
-        msg = INFO_WINDOWS_SERVICE_ALREADY_DISABLED.get();
-        out.println(msg);
+        printWrappedText(out, INFO_WINDOWS_SERVICE_ALREADY_DISABLED.get());
         return SERVICE_ALREADY_DISABLED;
       case 2:
-        msg = WARN_WINDOWS_SERVICE_MARKED_FOR_DELETION.get();
-        out.println(msg);
+        printWrappedText(out, WARN_WINDOWS_SERVICE_MARKED_FOR_DELETION.get());
         return SERVICE_MARKED_FOR_DELETION;
       case 3:
-        msg = ERR_WINDOWS_SERVICE_DISABLE_ERROR.get();
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_DISABLE_ERROR.get());
         return SERVICE_DISABLE_ERROR;
       default:
-        msg = ERR_WINDOWS_SERVICE_DISABLE_ERROR.get();
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_DISABLE_ERROR.get());
         return SERVICE_DISABLE_ERROR;
       }
     }
     catch (Throwable t)
     {
       t.printStackTrace();
-      msg = ERR_WINDOWS_SERVICE_DISABLE_ERROR.get();
-      err.println(msg);
+      printWrappedText(err, ERR_WINDOWS_SERVICE_DISABLE_ERROR.get());
       return SERVICE_DISABLE_ERROR;
     }
   }
@@ -543,7 +522,6 @@ public class ConfigureWindowsService
   public static int cleanupService(String serviceName, PrintStream out,
       PrintStream err)
   {
-    LocalizableMessage msg;
     String[] cmd;
     if (hasUAC())
     {
@@ -573,32 +551,26 @@ public class ConfigureWindowsService
       switch (resultCode)
       {
       case 0:
-        msg = INFO_WINDOWS_SERVICE_CLEANUP_SUCCESS.get(serviceName);
-        out.println(msg);
+        printWrappedText(out, INFO_WINDOWS_SERVICE_CLEANUP_SUCCESS.get(serviceName));
         return SERVICE_CLEANUP_SUCCESS;
       case 1:
-        msg = ERR_WINDOWS_SERVICE_CLEANUP_NOT_FOUND.get(serviceName);
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_CLEANUP_NOT_FOUND.get(serviceName));
         return SERVICE_NOT_FOUND;
       case 2:
-        msg = WARN_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION.get(serviceName);
-        out.println(msg);
+        printWrappedText(out, WARN_WINDOWS_SERVICE_CLEANUP_MARKED_FOR_DELETION.get(serviceName));
         return SERVICE_CLEANUP_MARKED_FOR_DELETION;
       case 3:
-        msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName));
         return SERVICE_CLEANUP_ERROR;
       default:
-        msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName));
         return SERVICE_CLEANUP_ERROR;
       }
     }
     catch (Throwable t)
     {
-      msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
-      err.println(msg);
-      err.println("Exception:" + t);
+      err.println(ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName));
+      printWrappedText(err, "Exception:" + t);
       return SERVICE_CLEANUP_ERROR;
     }
   }
@@ -631,7 +603,6 @@ public class ConfigureWindowsService
    */
   public static int serviceState(PrintStream out, PrintStream err)
   {
-    LocalizableMessage msg;
     String serviceName = null;
 
     String serverRoot = getServerRoot();
@@ -671,28 +642,23 @@ public class ConfigureWindowsService
       switch (resultCode)
       {
       case 0:
-        msg = INFO_WINDOWS_SERVICE_ENABLED.get(serviceName);
-        out.println(msg);
+        printWrappedText(out, INFO_WINDOWS_SERVICE_ENABLED.get(serviceName));
         return SERVICE_STATE_ENABLED;
       case 1:
-        msg = INFO_WINDOWS_SERVICE_DISABLED.get();
-        out.println(msg);
+        printWrappedText(out, INFO_WINDOWS_SERVICE_DISABLED.get());
         return SERVICE_STATE_DISABLED;
       case 2:
-        msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_STATE_ERROR.get());
         return SERVICE_STATE_ERROR;
       default:
-        msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
-        err.println(msg);
+        printWrappedText(err, ERR_WINDOWS_SERVICE_STATE_ERROR.get());
         return SERVICE_STATE_ERROR;
       }
     }
     catch (Throwable t)
     {
-      msg = ERR_WINDOWS_SERVICE_STATE_ERROR.get();
-      err.println(msg);
-      err.println(wrapText(t.toString(), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_WINDOWS_SERVICE_STATE_ERROR.get());
+      printWrappedText(err, t.toString());
       return SERVICE_STATE_ERROR;
     }
   }

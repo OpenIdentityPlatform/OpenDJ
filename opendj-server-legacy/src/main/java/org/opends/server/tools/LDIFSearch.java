@@ -31,6 +31,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
@@ -227,8 +228,7 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      err.println(message);
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -240,11 +240,9 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(message);
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -262,7 +260,7 @@ public class LDIFSearch
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
@@ -297,7 +295,7 @@ public class LDIFSearch
         }
       } catch(Exception e)
       {
-        err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        printWrappedText(err, e.getMessage());
         return 1;
       }
       finally
@@ -335,8 +333,8 @@ public class LDIFSearch
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
       if (trailingArguments == null || trailingArguments.isEmpty())
       {
-        LocalizableMessage message = ERR_LDIFSEARCH_NO_FILTER.get();
-        err.println(message);
+        printWrappedText(err, ERR_LDIFSEARCH_NO_FILTER.get());
+        err.println(argParser.getUsage());
         return 1;
       }
 
@@ -400,42 +398,42 @@ public class LDIFSearch
     // schema.
     boolean checkSchema = configFile.isPresent();
 
-    if(initializeServer) {
-     DirectoryServer.bootstrapClient();
-
-    if (checkSchema)
+    if (initializeServer)
     {
-      try
-      {
-        DirectoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        err.println(ERR_LDIFSEARCH_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
-        return 1;
-      }
+      DirectoryServer.bootstrapClient();
 
-      try
+      if (checkSchema)
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
-      }
-      catch (Exception e)
-      {
-        err.println(ERR_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
-        return 1;
-      }
+        try
+        {
+          DirectoryServer.initializeJMX();
+        }
+        catch (Exception e)
+        {
+          printWrappedText(err, ERR_LDIFSEARCH_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
+          return 1;
+        }
 
-      try
-      {
-        directoryServer.initializeSchema();
+        try
+        {
+          directoryServer.initializeConfiguration(configClass.getValue(), configFile.getValue());
+        }
+        catch (Exception e)
+        {
+          printWrappedText(err, ERR_LDIFSEARCH_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
+          return 1;
+        }
+
+        try
+        {
+          directoryServer.initializeSchema();
+        }
+        catch (Exception e)
+        {
+          printWrappedText(err, ERR_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
+          return 1;
+        }
       }
-      catch (Exception e)
-      {
-        err.println(ERR_LDIFSEARCH_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
-        return 1;
-      }
-    }
     }
 
     // Choose the desired search scope.
@@ -476,9 +474,7 @@ public class LDIFSearch
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_PARSE_FILTER.get(
-                filterString, e.getMessage());
-        err.println(message);
+        printWrappedText(err, ERR_LDIFSEARCH_CANNOT_PARSE_FILTER.get(filterString, e.getMessage()));
         return 1;
       }
     }
@@ -541,9 +537,7 @@ public class LDIFSearch
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LDIFSEARCH_CANNOT_PARSE_BASE_DN.get(
-                  dnString, e.getMessage());
-          err.println(message);
+          printWrappedText(err, ERR_LDIFSEARCH_CANNOT_PARSE_BASE_DN.get(dnString, e.getMessage()));
           return 1;
         }
       }
@@ -569,7 +563,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT.get(e));
+      printWrappedText(err, ERR_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT.get(e));
       return 1;
     }
 
@@ -589,7 +583,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT.get(e));
+      printWrappedText(err, ERR_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT.get(e));
       return 1;
     }
 
@@ -648,7 +642,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      err.println(ERR_LDIFSEARCH_CANNOT_CREATE_READER.get(e));
+      printWrappedText(err, ERR_LDIFSEARCH_CANNOT_CREATE_READER.get(e));
       return 1;
     }
 
@@ -659,7 +653,7 @@ public class LDIFSearch
     catch (Exception e)
     {
       close(reader);
-      err.println(ERR_LDIFSEARCH_CANNOT_CREATE_WRITER.get(e));
+      printWrappedText(err, ERR_LDIFSEARCH_CANNOT_CREATE_WRITER.get(e));
       return 1;
     }
 

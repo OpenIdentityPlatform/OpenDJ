@@ -345,7 +345,7 @@ public class ConfigureDS
      {
        err.println(argParser.getUsage());
      }
-     err.println(e.getErrorMessage());
+     printWrappedText(err, e.getErrorMessage());
      return e.getErrorCode();
     }
     finally
@@ -1114,7 +1114,7 @@ public class ConfigureDS
     try
     {
       configHandler.writeUpdatedConfig();
-      out.println(wrapText(INFO_CONFIGDS_WROTE_UPDATED_CONFIG.get(), MAX_LINE_WIDTH));
+      printWrappedText(out, INFO_CONFIGDS_WROTE_UPDATED_CONFIG.get());
     }
     catch (final DirectoryException de)
     {

@@ -186,9 +186,7 @@ public class ListBackends
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -200,9 +198,7 @@ public class ListBackends
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -220,10 +216,7 @@ public class ListBackends
     // arguments.
     if (backendID.isPresent() && baseDN.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              backendID.getLongIdentifier(),
-              baseDN.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(backendID.getLongIdentifier(), baseDN.getLongIdentifier()));
       return 1;
     }
 
@@ -234,7 +227,7 @@ public class ListBackends
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
@@ -251,9 +244,7 @@ public class ListBackends
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
-                getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -264,14 +255,12 @@ public class ListBackends
       }
       catch (InitializationException ie)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -284,14 +273,12 @@ public class ListBackends
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
         return 1;
       }
     }
@@ -305,16 +292,12 @@ public class ListBackends
     }
     catch (ConfigException ce)
     {
-      LocalizableMessage message = ERR_LISTBACKENDS_CANNOT_GET_BACKENDS.get(
-              ce.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LISTBACKENDS_CANNOT_GET_BACKENDS.get(ce.getMessage()));
       return 1;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LISTBACKENDS_CANNOT_GET_BACKENDS.get(
-              getExceptionMessage(e));
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LISTBACKENDS_CANNOT_GET_BACKENDS.get(getExceptionMessage(e)));
       return 1;
     }
 
@@ -350,16 +333,12 @@ public class ListBackends
         }
         catch (DirectoryException de)
         {
-          LocalizableMessage message = ERR_LISTBACKENDS_INVALID_DN.get(
-                  dnStr, de.getMessage());
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_LISTBACKENDS_INVALID_DN.get(dnStr, de.getMessage()));
           return 1;
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_LISTBACKENDS_INVALID_DN.get(
-                  dnStr, getExceptionMessage(e));
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_LISTBACKENDS_INVALID_DN.get(dnStr, getExceptionMessage(e)));
           return 1;
         }
 
@@ -423,8 +402,7 @@ public class ListBackends
         TreeSet<DN> baseDNs = backends.get(id);
         if (baseDNs == null)
         {
-          LocalizableMessage message = ERR_LISTBACKENDS_NO_SUCH_BACKEND.get(id);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_LISTBACKENDS_NO_SUCH_BACKEND.get(id));
           iterator.remove();
         }
         else
@@ -439,8 +417,7 @@ public class ListBackends
 
       if (backendIDs.isEmpty())
       {
-        LocalizableMessage message = ERR_LISTBACKENDS_NO_VALID_BACKENDS.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LISTBACKENDS_NO_VALID_BACKENDS.get());
         return 1;
       }
 

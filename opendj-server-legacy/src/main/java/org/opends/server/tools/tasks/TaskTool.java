@@ -267,9 +267,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         catch (Exception e)
         {
-          LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
-                  getExceptionMessage(e));
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
           return 1;
         }
       }
@@ -281,24 +279,12 @@ public abstract class TaskTool implements TaskScheduleInformation {
         TaskEntry taskEntry = tc.schedule(this);
         LocalizableMessage startTime = taskEntry.getScheduledStartTime();
         if (taskEntry.getTaskState() == TaskState.RECURRING) {
-          out.println(
-                  wrapText(INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(
-                          taskEntry.getType(),
-                          taskEntry.getId()),
-                  MAX_LINE_WIDTH));
+          printWrappedText(out, INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(taskEntry.getType(), taskEntry.getId()));
         } else if (startTime == null || startTime.length() == 0) {
-          out.println(
-                  wrapText(INFO_TASK_TOOL_TASK_SCHEDULED_NOW.get(
-                          taskEntry.getType(),
-                          taskEntry.getId()),
-                  MAX_LINE_WIDTH));
+          printWrappedText(out, INFO_TASK_TOOL_TASK_SCHEDULED_NOW.get(taskEntry.getType(), taskEntry.getId()));
         } else {
-          out.println(
-                  wrapText(INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
-                          taskEntry.getType(),
-                          taskEntry.getId(),
-                          taskEntry.getScheduledStartTime()),
-                  MAX_LINE_WIDTH));
+          printWrappedText(out, INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
+              taskEntry.getType(), taskEntry.getId(), taskEntry.getScheduledStartTime()));
         }
         if (!taskScheduleArgs.startArg.isPresent()) {
 
@@ -323,66 +309,36 @@ public abstract class TaskTool implements TaskScheduleInformation {
           } while (!taskEntry.isDone());
           if (TaskState.isSuccessful(taskEntry.getTaskState())) {
             if (taskEntry.getTaskState() != TaskState.RECURRING) {
-              out.println(
-                  wrapText(INFO_TASK_TOOL_TASK_SUCESSFULL.get(
-                          taskEntry.getType(),
-                          taskEntry.getId()),
-                  MAX_LINE_WIDTH));
+              printWrappedText(out, INFO_TASK_TOOL_TASK_SUCESSFULL.get(taskEntry.getType(), taskEntry.getId()));
             }
             return 0;
           } else {
-            out.println(
-                wrapText(INFO_TASK_TOOL_TASK_NOT_SUCESSFULL.get(
-                        taskEntry.getType(),
-                        taskEntry.getId()),
-                MAX_LINE_WIDTH));
+            printWrappedText(out, INFO_TASK_TOOL_TASK_NOT_SUCESSFULL.get(taskEntry.getType(), taskEntry.getId()));
             return 1;
           }
         }
         ret = 0;
       } catch (LDAPConnectionException e) {
-        LocalizableMessage message;
         if (isWrongPortException(e,
             Integer.valueOf(argParser.getArguments().getPort())))
         {
-          message = ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
-            argParser.getArguments().getHostName(),
-            argParser.getArguments().getPort());
+          printWrappedText(err, ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
+              argParser.getArguments().getHostName(), argParser.getArguments().getPort()));
         } else {
-          message = ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage());
-        }
-        if (err != null)
-        {
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage()));
         }
         ret = 1;
       } catch (DecodeException ae) {
-        LocalizableMessage message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
-        if (err != null)
-        {
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
+        printWrappedText(err, ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage()));
         ret = 1;
       } catch (IOException ioe) {
-        LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(ioe);
-        if (err != null)
-        {
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
+        printWrappedText(err, ERR_TASK_TOOL_IO_ERROR.get(ioe));
         ret = 1;
       } catch (LDAPException le) {
-        LocalizableMessage message = ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage());
-        if (err != null)
-        {
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
+        printWrappedText(err, ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage()));
         ret = 1;
       } catch (ArgumentException | OpenDsException e) {
-        LocalizableMessage message = e.getMessageObject();
-        if (err != null)
-        {
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
+        printWrappedText(err, e.getMessageObject());
         ret = 1;
       } finally
       {

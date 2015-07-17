@@ -205,8 +205,7 @@ public class MakeLDIF
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -218,8 +217,7 @@ public class MakeLDIF
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -239,7 +237,7 @@ public class MakeLDIF
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
@@ -256,8 +254,7 @@ public class MakeLDIF
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(configFile.getValue(), e.getMessage()));
         return 1;
       }
 
@@ -268,8 +265,7 @@ public class MakeLDIF
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(configFile.getValue(), e.getMessage()));
         return 1;
       }
     }
@@ -282,8 +278,7 @@ public class MakeLDIF
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage());
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(configFile.getValue(), e.getMessage()));
         return 1;
       }
     }
@@ -313,9 +308,7 @@ public class MakeLDIF
     File resourceDir = new File(resourcePath.getValue());
     if (! resourceDir.exists())
     {
-      LocalizableMessage message = ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(
-              resourcePath.getValue());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(resourcePath.getValue()));
       return 1;
     }
 
@@ -329,14 +322,12 @@ public class MakeLDIF
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(ioe.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(ioe.getMessage()));
       return 1;
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()));
       return 1;
     }
 
@@ -346,7 +337,7 @@ public class MakeLDIF
     {
       for (LocalizableMessage s : warnings)
       {
-        err.println(wrapText(s, MAX_LINE_WIDTH));
+        printWrappedText(err, s);
       }
     }
 
@@ -361,8 +352,7 @@ public class MakeLDIF
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), ioe);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), ioe));
       return 1;
     }
 
@@ -374,9 +364,7 @@ public class MakeLDIF
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_MAKELDIF_ERROR_WRITING_LDIF.get(
-              ldifFile.getValue(), stackTraceToSingleLineString(e));
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_MAKELDIF_ERROR_WRITING_LDIF.get(ldifFile.getValue(), stackTraceToSingleLineString(e)));
       return 1;
     }
     finally
@@ -431,9 +419,7 @@ public class MakeLDIF
 
         if ((++entriesWritten % 1000) == 0)
         {
-          LocalizableMessage message =
-            INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(entriesWritten);
-          out.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(out, INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(entriesWritten));
         }
       }
       else
@@ -448,9 +434,7 @@ public class MakeLDIF
             break ;
           }
         }
-        LocalizableMessage message =
-          ERR_MAKELDIF_CANNOT_WRITE_ENTRY_WITHOUT_DN.get(nullRdn);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_MAKELDIF_CANNOT_WRITE_ENTRY_WITHOUT_DN.get(nullRdn));
         return true;
       }
 
@@ -477,8 +461,7 @@ public class MakeLDIF
   @Override
   public void closeEntryWriter()
   {
-    LocalizableMessage message = INFO_MAKELDIF_PROCESSING_COMPLETE.get(entriesWritten);
-    out.println(wrapText(message, MAX_LINE_WIDTH));
+    printWrappedText(out, INFO_MAKELDIF_PROCESSING_COMPLETE.get(entriesWritten));
   }
 }
 

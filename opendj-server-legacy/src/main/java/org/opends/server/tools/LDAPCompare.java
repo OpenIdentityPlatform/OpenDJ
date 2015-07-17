@@ -255,9 +255,8 @@ public class LDAPCompare
         }
         else
         {
-          LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
-          err.println(wrapText(msg, MAX_LINE_WIDTH));
-          err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+          printWrappedText(err, INFO_OPERATION_FAILED.get("COMPARE"));
+          printWrappedText(err, ae.getMessage());
           return OPERATIONS_ERROR;
         }
       }
@@ -647,9 +646,7 @@ public class LDAPCompare
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -660,9 +657,7 @@ public class LDAPCompare
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -676,10 +671,8 @@ public class LDAPCompare
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              bindPassword.getLongIdentifier(),
-              bindPasswordFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(
+          err, ERR_TOOL_CONFLICTING_ARGS.get(bindPassword.getLongIdentifier(), bindPasswordFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -687,8 +680,7 @@ public class LDAPCompare
 
     if(attrAndDNStrings.isEmpty())
     {
-      LocalizableMessage message = ERR_LDAPCOMPARE_NO_ATTR.get();
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPCOMPARE_NO_ATTR.get());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -700,7 +692,7 @@ public class LDAPCompare
     // If no DNs were provided, then exit with an error.
     if (dnStrings.isEmpty() && !filename.isPresent())
     {
-      err.println(wrapText(ERR_LDAPCOMPARE_NO_DNS.get(), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPCOMPARE_NO_DNS.get());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -708,8 +700,7 @@ public class LDAPCompare
     // provided, exit with an error.
     if (!dnStrings.isEmpty() && filename.isPresent())
     {
-      err.println(wrapText(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get(),
-          MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -717,9 +708,7 @@ public class LDAPCompare
     int idx = attributeString.indexOf(":");
     if(idx == -1)
     {
-      LocalizableMessage message =
-              ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString));
       return CLIENT_SIDE_PARAM_ERROR;
     }
     attributeType = attributeString.substring(0, idx);
@@ -737,10 +726,8 @@ public class LDAPCompare
         }
         catch (ParseException e)
         {
-          err.println(wrapText(
-                  INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get(),
-                  MAX_LINE_WIDTH));
-          err.println(wrapText(e.getLocalizedMessage(), MAX_LINE_WIDTH));
+          printWrappedText(err, INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get());
+          printWrappedText(err, e.getLocalizedMessage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
       } else if(nextChar == '<')
@@ -752,9 +739,7 @@ public class LDAPCompare
         }
         catch (Exception e)
         {
-          err.println(wrapText(
-              INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(e),
-              MAX_LINE_WIDTH));
+          printWrappedText(err, INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(e));
           return CLIENT_SIDE_PARAM_ERROR;
         }
       } else
@@ -774,7 +759,7 @@ public class LDAPCompare
       portNumber = port.getIntValue();
     } catch (ArgumentException ae)
     {
-      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ae.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -783,13 +768,13 @@ public class LDAPCompare
       int versionNumber = version.getIntValue();
       if(versionNumber != 2 && versionNumber != 3)
       {
-        err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber), MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_DESCRIPTION_INVALID_VERSION.get(versionNumber));
         return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ae.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -804,7 +789,7 @@ public class LDAPCompare
     }
     catch (ClientException ex)
     {
-      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ex.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -843,8 +828,7 @@ public class LDAPCompare
         Control ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -866,9 +850,7 @@ public class LDAPCompare
       }
       catch (LDAPException le)
       {
-        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
-                le.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage()));
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -902,14 +884,12 @@ public class LDAPCompare
     {
       if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS())
       {
-        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
-        LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -971,8 +951,7 @@ public class LDAPCompare
           {
             details = t.toString();
           }
-          err.println(wrapText(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(
-              fileNameValue, details), MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_LDAPCOMPARE_ERROR_READING_FILE.get(fileNameValue, details));
           return CLIENT_SIDE_PARAM_ERROR;
         }
       }
@@ -1012,7 +991,7 @@ public class LDAPCompare
       return lce.getResultCode();
     } catch(Exception e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return OPERATIONS_ERROR;
     } finally
     {

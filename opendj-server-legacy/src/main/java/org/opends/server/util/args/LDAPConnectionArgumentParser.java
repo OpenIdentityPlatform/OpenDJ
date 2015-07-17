@@ -222,7 +222,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
       }
       catch (SSLConnectionException sce)
       {
-        err.println(wrapText(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(sce.getMessage()), MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(sce.getMessage()));
       }
     }
 
@@ -280,7 +280,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
 
   private void printAndThrowException(PrintStream err, LocalizableMessage message) throws ArgumentException
   {
-    err.println(wrapText(message, MAX_LINE_WIDTH));
+    printWrappedText(err, message);
     throw new ArgumentException(message);
   }
 
@@ -425,7 +425,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
     }
     catch (Exception ex)
     {
-      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, ex.getMessage());
       return null;
     }
   }
@@ -464,7 +464,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
       // an empty password to the server.
       while (pwChars.length == 0)
       {
-        err.println(wrapText(INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(), MAX_LINE_WIDTH));
+        printWrappedText(err, INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get());
         out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         pwChars = ConsoleApplication.readPassword();
       }

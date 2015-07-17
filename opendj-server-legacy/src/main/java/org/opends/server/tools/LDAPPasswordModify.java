@@ -26,14 +26,14 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -42,7 +42,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.io.*;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.controls.PasswordPolicyErrorType;
@@ -412,9 +414,7 @@ public class LDAPPasswordModify
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -426,9 +426,7 @@ public class LDAPPasswordModify
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -445,55 +443,43 @@ public class LDAPPasswordModify
     // Make sure that the user didn't specify any conflicting arguments.
     if (bindPW.isPresent() && bindPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
-              bindPW.getLongIdentifier(),
-              bindPWFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(
+          err, ERR_LDAPPWMOD_CONFLICTING_ARGS.get(bindPW.getLongIdentifier(), bindPWFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (newPW.isPresent() && newPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
-              newPW.getLongIdentifier(),
-              newPWFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(
+          err, ERR_LDAPPWMOD_CONFLICTING_ARGS.get(newPW.getLongIdentifier(), newPWFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (currentPW.isPresent() && currentPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
-              currentPW.getLongIdentifier(),
-              currentPWFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err,
+          ERR_LDAPPWMOD_CONFLICTING_ARGS.get(currentPW.getLongIdentifier(), currentPWFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (useSSL.isPresent() && useStartTLS.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
-              useSSL.getLongIdentifier(),
-              useStartTLS.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(
+          err, ERR_LDAPPWMOD_CONFLICTING_ARGS.get(useSSL.getLongIdentifier(), useStartTLS.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (sslKeyStorePIN.isPresent() && sslKeyStorePINFile.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              sslKeyStorePIN.getLongIdentifier(),
-              sslKeyStorePINFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err,
+          ERR_TOOL_CONFLICTING_ARGS.get(sslKeyStorePIN.getLongIdentifier(), sslKeyStorePINFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (sslTrustStorePIN.isPresent() && sslTrustStorePINFile.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              sslTrustStorePIN.getLongIdentifier(),
-              sslTrustStorePINFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(sslTrustStorePIN.getLongIdentifier(),
+                                                          sslTrustStorePINFile.getLongIdentifier()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -506,18 +492,14 @@ public class LDAPPasswordModify
     {
       if (!bindPW.isPresent() && !bindPWFile.isPresent())
       {
-        LocalizableMessage message = ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get();
-
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get());
         err.println(argParser.getUsage());
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
     else if (bindPW.isPresent() || bindPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get();
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get());
       err.println(argParser.getUsage());
       return CLIENT_SIDE_PARAM_ERROR;
     }
@@ -525,20 +507,15 @@ public class LDAPPasswordModify
     {
       if (provideDNForAuthzID.isPresent())
       {
-        LocalizableMessage message =
-                ERR_LDAPPWMOD_DEPENDENT_ARGS.get(
-                        provideDNForAuthzID.getLongIdentifier(),
-                        bindDN.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(
+            err, ERR_LDAPPWMOD_DEPENDENT_ARGS.get(provideDNForAuthzID.getLongIdentifier(), bindDN.getLongIdentifier()));
         err.println(argParser.getUsage());
         return CLIENT_SIDE_PARAM_ERROR;
       }
 
       if (!authzID.isPresent() || (!currentPW.isPresent() && !currentPWFile.isPresent()))
       {
-        LocalizableMessage message =
-                ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get());
         err.println(argParser.getUsage());
         return CLIENT_SIDE_PARAM_ERROR;
       }
@@ -555,7 +532,7 @@ public class LDAPPasswordModify
     catch (Exception e)
     {
       // This should never happen.
-      err.println(e);
+      printWrappedText(err, e.toString());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -569,8 +546,7 @@ public class LDAPPasswordModify
         LDAPControl ctrl = LDAPToolUtils.getControl(ctrlString, err);
         if(ctrl == null)
         {
-          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
           err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
@@ -633,8 +609,7 @@ public class LDAPPasswordModify
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDAPPWMOD_ERROR_INITIALIZING_SSL.get(e);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAPPWMOD_ERROR_INITIALIZING_SSL.get(e));
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -658,16 +633,14 @@ public class LDAPPasswordModify
           //an empty password to the server.
           while(pwChars.length==0)
           {
-            err.println(wrapText(
-                INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
-                MAX_LINE_WIDTH));
+            printWrappedText(err, INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get());
             out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn));
             pwChars = ConsoleApplication.readPassword();
           }
           pw = new String(pwChars);
         } catch(Exception ex)
         {
-          err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+          printWrappedText(err, ex.getMessage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
       }
@@ -690,8 +663,7 @@ public class LDAPPasswordModify
     }
     catch (LDAPConnectionException lce)
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_CONNECT.get(lce.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPPWMOD_CANNOT_CONNECT.get(lce.getMessage()));
       return lce.getResultCode();
     }
     catch (ArgumentException e)
@@ -771,9 +743,7 @@ public class LDAPPasswordModify
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST.get(e);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-
+      printWrappedText(err, ERR_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST.get(e));
       unbind(nextMessageID, writer);
       close(reader, writer);
       return 1;
@@ -788,9 +758,7 @@ public class LDAPPasswordModify
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE.get(e);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-
+      printWrappedText(err, ERR_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE.get(e));
       unbind(nextMessageID, writer);
       close(reader, writer);
       return 1;
@@ -803,21 +771,18 @@ public class LDAPPasswordModify
     int resultCode = extendedResponse.getResultCode();
     if (resultCode != LDAPResultCode.SUCCESS)
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_FAILED.get(resultCode);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAPPWMOD_FAILED.get(resultCode));
 
       LocalizableMessage errorMessage = extendedResponse.getErrorMessage();
       if (errorMessage != null && errorMessage.length() > 0)
       {
-        message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage));
       }
 
       DN matchedDN = extendedResponse.getMatchedDN();
       if (matchedDN != null)
       {
-        message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN));
       }
 
       unbind(nextMessageID, writer);
@@ -826,14 +791,11 @@ public class LDAPPasswordModify
     }
     else
     {
-      LocalizableMessage message = INFO_LDAPPWMOD_SUCCESSFUL.get();
-      out.println(wrapText(message, MAX_LINE_WIDTH));
-
+      printWrappedText(out, INFO_LDAPPWMOD_SUCCESSFUL.get());
       LocalizableMessage additionalInfo = extendedResponse.getErrorMessage();
       if (additionalInfo != null && additionalInfo.length() > 0)
       {
-        message = INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo);
-        out.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(out, INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo));
       }
     }
 
@@ -857,24 +819,20 @@ public class LDAPPasswordModify
                  pwPolicyControl.getWarningType();
             if (pwPolicyWarningType != null)
             {
-              LocalizableMessage message = INFO_LDAPPWMOD_PWPOLICY_WARNING.get(
-                      pwPolicyWarningType,
-                      pwPolicyControl.getWarningValue());
-              out.println(wrapText(message, MAX_LINE_WIDTH));
+              printWrappedText(
+                      out, INFO_LDAPPWMOD_PWPOLICY_WARNING.get(pwPolicyWarningType, pwPolicyControl.getWarningValue()));
             }
 
             PasswordPolicyErrorType pwPolicyErrorType =
                  pwPolicyControl.getErrorType();
             if (pwPolicyErrorType != null)
             {
-              LocalizableMessage message = INFO_LDAPPWMOD_PWPOLICY_ERROR.get(pwPolicyErrorType);
-              out.println(wrapText(message, MAX_LINE_WIDTH));
+              printWrappedText(out, INFO_LDAPPWMOD_PWPOLICY_ERROR.get(pwPolicyErrorType));
             }
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(e);
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(e));
           }
         }
       }
@@ -893,24 +851,18 @@ public class LDAPPasswordModify
         {
           if (asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD)
           {
-            LocalizableMessage message = INFO_LDAPPWMOD_GENERATED_PASSWORD.get(
-                    asn1Reader.readOctetStringAsString());
-            out.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(out, INFO_LDAPPWMOD_GENERATED_PASSWORD.get(asn1Reader.readOctetStringAsString()));
           }
           else
           {
-            LocalizableMessage message = ERR_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE.get(
-                    asn1Reader.readOctetStringAsString());
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_LDAPPWMOD_UNRECOGNIZED_VALUE_TYPE.get(asn1Reader.readOctetStringAsString()));
           }
         }
         asn1Reader.readEndSequence();
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE.get(e);
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-
+        printWrappedText(err, ERR_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE.get(e));
         unbind(nextMessageID, writer);
         close(reader, writer);
         return 1;

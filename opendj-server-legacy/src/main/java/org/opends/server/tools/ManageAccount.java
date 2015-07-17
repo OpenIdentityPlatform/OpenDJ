@@ -32,6 +32,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.extensions.PasswordPolicyStateExtendedOperation.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -596,10 +597,8 @@ public class ManageAccount
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP.get(
-                getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
+        printWrappedText(err, ERR_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP.get(getExceptionMessage(e)));
+        return CLIENT_SIDE_SERVER_DOWN;
       }
 
 
@@ -609,10 +608,8 @@ public class ManageAccount
         LDAPMessage responseMessage = ldapReader.readMessage();
         if (responseMessage == null)
         {
-          LocalizableMessage message =
-                  ERR_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE.get();
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
+          printWrappedText(err, ERR_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE.get());
+          return CLIENT_SIDE_SERVER_DOWN;
         }
 
         ExtendedResponseProtocolOp extendedResponse =
@@ -621,11 +618,8 @@ public class ManageAccount
         int resultCode = extendedResponse.getResultCode();
         if (resultCode != LDAPResultCode.SUCCESS)
         {
-          LocalizableMessage message =
-               ERR_PWPSTATE_REQUEST_FAILED.get(resultCode,
-                          LDAPResultCode.toString(resultCode),
-                          extendedResponse.getErrorMessage());
-          err.println(wrapText(message, MAX_LINE_WIDTH));
+          printWrappedText(err, ERR_PWPSTATE_REQUEST_FAILED.get(
+              resultCode, LDAPResultCode.toString(resultCode), extendedResponse.getErrorMessage()));
           return resultCode;
         }
 
@@ -660,9 +654,7 @@ public class ManageAccount
           }
           catch (Exception e)
           {
-            LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(
-                getExceptionMessage(e));
-            err.println(wrapText(message, MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_OP.get(getExceptionMessage(e)));
             continue;
           }
 
@@ -781,7 +773,7 @@ public class ManageAccount
 
             default:
               message = ERR_PWPSTATE_INVALID_RESPONSE_OP_TYPE.get(opType);
-              err.println(wrapText(message, MAX_LINE_WIDTH));
+              printWrappedText(err, message);
               break;
           }
         }
@@ -790,10 +782,8 @@ public class ManageAccount
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE.get(
-            getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
+        printWrappedText(err, ERR_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE.get(getExceptionMessage(e)));
+        return CLIENT_SIDE_SERVER_DOWN;
       }
 
       // If we've gotten here, then everything completed successfully.
@@ -1197,10 +1187,8 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+      return CLIENT_SIDE_LOCAL_ERROR;
     }
 
     try
@@ -1209,11 +1197,9 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -1244,22 +1230,18 @@ public class ManageAccount
     // return an error.
     if (bindPW.isPresent() && bindPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              bindPW.getLongIdentifier(),
-              bindPWFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      printWrappedText(err,
+          ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(bindPW.getLongIdentifier(), bindPWFile.getLongIdentifier()));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // If both a key store password and key store password file were provided,
     // then return an error.
     if (keyStorePW.isPresent() && keyStorePWFile.isPresent())
     {
-      LocalizableMessage message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              keyStorePW.getLongIdentifier(),
-              keyStorePWFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      printWrappedText(err, ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+          keyStorePW.getLongIdentifier(), keyStorePWFile.getLongIdentifier()));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -1267,11 +1249,9 @@ public class ManageAccount
     // provided, then return an error.
     if (trustStorePW.isPresent() && trustStorePWFile.isPresent())
     {
-      LocalizableMessage message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              trustStorePW.getLongIdentifier(),
-              trustStorePWFile.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      printWrappedText(err, ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+          trustStorePW.getLongIdentifier(), trustStorePWFile.getLongIdentifier()));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -1293,10 +1273,8 @@ public class ManageAccount
 
       connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
     } catch (SSLConnectionException sce) {
-      LocalizableMessage message = ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(
-        sce.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
+      printWrappedText(err, ERR_PWPSTATE_CANNOT_INITIALIZE_SSL.get(sce.getMessage()));
+      return CLIENT_SIDE_LOCAL_ERROR;
     }
 
 
@@ -1312,9 +1290,8 @@ public class ManageAccount
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
         {
-          LocalizableMessage message = ERR_PWPSTATE_CANNOT_PARSE_SASL_OPTION.get(s);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+          printWrappedText(err, ERR_PWPSTATE_CANNOT_PARSE_SASL_OPTION.get(s));
+          return CLIENT_SIDE_PARAM_ERROR;
         }
         else
         {
@@ -1333,9 +1310,8 @@ public class ManageAccount
 
       if (mechanism == null)
       {
-        LocalizableMessage message = ERR_PWPSTATE_NO_SASL_MECHANISM.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        printWrappedText(err, ERR_PWPSTATE_NO_SASL_MECHANISM.get());
+        return CLIENT_SIDE_PARAM_ERROR;
       }
 
       connectionOptions.setSASLMechanism(mechanism);
@@ -1360,11 +1336,8 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(
-              port.getLongIdentifier(),
-              ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      printWrappedText(err, ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(port.getLongIdentifier(), ae.getMessage()));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
     catch (LDAPConnectionException lce)
     {
@@ -1378,14 +1351,14 @@ public class ManageAccount
         message = ERR_PWPSTATE_CANNOT_CONNECT.get(hostPort,
           lce.getMessage());
       }
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
+      printWrappedText(err, message);
+      return CLIENT_SIDE_CONNECT_ERROR;
     }
 
     ldapReader = connection.getLDAPReader();
     ldapWriter = connection.getLDAPWriter();
 
-    return LDAPResultCode.SUCCESS;
+    return SUCCESS;
   }
 
 
@@ -1403,10 +1376,9 @@ public class ManageAccount
     SubCommand subCommand = argParser.getSubCommand();
     if (subCommand == null)
     {
-      LocalizableMessage message = ERR_PWPSTATE_NO_SUBCOMMAND.get();
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_PWPSTATE_NO_SUBCOMMAND.get());
       err.println(argParser.getUsage());
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     String subCommandName = subCommand.getName();
@@ -1438,16 +1410,14 @@ public class ManageAccount
         }
         else
         {
-          LocalizableMessage message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+          printWrappedText(err, ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr));
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        LocalizableMessage message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        printWrappedText(err, ERR_PWPSTATE_NO_BOOLEAN_VALUE.get());
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
     else if (subCommandName.equals(SC_CLEAR_ACCOUNT_DISABLED_STATE))
@@ -1625,16 +1595,14 @@ public class ManageAccount
         }
         else
         {
-          LocalizableMessage message = ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr);
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+          printWrappedText(err, ERR_PWPSTATE_INVALID_BOOLEAN_VALUE.get(valueStr));
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       else
       {
-        LocalizableMessage message = ERR_PWPSTATE_NO_BOOLEAN_VALUE.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        printWrappedText(err, ERR_PWPSTATE_NO_BOOLEAN_VALUE.get());
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
     else if(subCommandName.equals(SC_CLEAR_PASSWORD_RESET_STATE))
@@ -1725,13 +1693,12 @@ public class ManageAccount
     }
     else
     {
-      LocalizableMessage message = ERR_PWPSTATE_INVALID_SUBCOMMAND.get(subCommandName);
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_PWPSTATE_INVALID_SUBCOMMAND.get(subCommandName));
       err.println(argParser.getUsage());
-      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
-    return LDAPResultCode.SUCCESS;
+    return SUCCESS;
   }
 
 

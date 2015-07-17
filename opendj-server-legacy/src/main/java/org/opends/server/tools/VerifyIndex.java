@@ -178,9 +178,7 @@ public class VerifyIndex
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -192,9 +190,7 @@ public class VerifyIndex
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return 1;
     }
@@ -217,10 +213,7 @@ public class VerifyIndex
 
     if (cleanMode.isPresent() && indexList.getValues().size() != 1)
     {
-      LocalizableMessage message =
-              ERR_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX.get();
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX.get());
       err.println(argParser.getUsage());
       return 1;
     }
@@ -232,7 +225,7 @@ public class VerifyIndex
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
@@ -249,9 +242,7 @@ public class VerifyIndex
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-                ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -262,15 +253,12 @@ public class VerifyIndex
       }
       catch (InitializationException ie)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -283,14 +271,12 @@ public class VerifyIndex
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -303,16 +289,12 @@ public class VerifyIndex
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -324,17 +306,12 @@ public class VerifyIndex
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message =
-                ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(
-                        getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e)));
         return 1;
       }
     }
@@ -347,14 +324,12 @@ public class VerifyIndex
     }
     catch (DirectoryException de)
     {
-      err.println(wrapText(ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(),
-          de.getMessageObject()), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(), de.getMessageObject()));
       return 1;
     }
     catch (Exception e)
     {
-      err.println(wrapText(ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(),
-          getExceptionMessage(e)), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -384,7 +359,7 @@ public class VerifyIndex
           }
           else
           {
-            err.println(wrapText(ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()), MAX_LINE_WIDTH));
+            printWrappedText(err, ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
             return 1;
           }
           break;
@@ -394,13 +369,13 @@ public class VerifyIndex
 
     if (backend == null)
     {
-      err.println(wrapText(ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
       return 1;
     }
 
     if (!backend.supports(BackendOperation.INDEXING))
     {
-      err.println(wrapText(ERR_BACKEND_NO_INDEXING_SUPPORT.get(), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_BACKEND_NO_INDEXING_SUPPORT.get());
       return 1;
     }
 
@@ -430,15 +405,13 @@ public class VerifyIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        err.println(wrapText(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
-            failureReason), MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      err.println(wrapText(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
-          getExceptionMessage(e)), MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -462,14 +435,12 @@ public class VerifyIndex
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(e.getMessage()),
-          MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(e.getMessage()));
       returnCode = 1;
     }
     catch (Exception e)
     {
-      err.println(wrapText(ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(stackTraceToSingleLineString(e)),
-          MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(stackTraceToSingleLineString(e)));
       returnCode = 1;
     }
 
@@ -481,16 +452,13 @@ public class VerifyIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        err.println(wrapText(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
-            failureReason), MAX_LINE_WIDTH));
+        printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
       }
     }
     catch (Exception e)
     {
-      err.println(wrapText(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
-          getExceptionMessage(e)), MAX_LINE_WIDTH));
+      printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
     }
-
     return returnCode;
   }
 }

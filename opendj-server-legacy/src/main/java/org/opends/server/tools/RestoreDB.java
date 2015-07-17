@@ -219,9 +219,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -243,17 +241,14 @@ public class RestoreDB extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       err.println(argParser.getUsage());
       return 1;
     }
     catch (ClientException ce)
     {
-      // No need to display the usage since the problem comes with a provided
-      // value.
-      err.println(wrapText(ce.getMessageObject(), MAX_LINE_WIDTH));
+      // No need to display the usage since the problem comes with a provided value.
+      printWrappedText(err, ce.getMessageObject());
       return 1;
     }
 
@@ -267,9 +262,7 @@ public class RestoreDB extends TaskTool {
 
 
     if (listBackups.isPresent() && argParser.connectionArgumentsPresent()) {
-      LocalizableMessage message = ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(
-              listBackups.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printWrappedText(err, ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(listBackups.getLongIdentifier()));
       return 1;
     }
 
@@ -280,7 +273,7 @@ public class RestoreDB extends TaskTool {
     }
     catch (InitializationException e)
     {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printWrappedText(err, e.getMessage());
       return 1;
     }
 
@@ -336,9 +329,7 @@ public class RestoreDB extends TaskTool {
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_SERVER_BOOTSTRAP_ERROR.get(
-                getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -349,14 +340,12 @@ public class RestoreDB extends TaskTool {
       }
       catch (InitializationException ie)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -369,14 +358,12 @@ public class RestoreDB extends TaskTool {
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -389,14 +376,12 @@ public class RestoreDB extends TaskTool {
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e)));
         return 1;
       }
 
@@ -408,14 +393,12 @@ public class RestoreDB extends TaskTool {
       }
       catch (ConfigException | InitializationException e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage()));
         return 1;
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e)));
         return 1;
       }
 
