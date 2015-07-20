@@ -138,15 +138,10 @@ public final class AdministrationConnector implements
   {
     this.config = configuration;
 
-    // Create a fake LDAP connection handler configuration
-    LDAPConnectionHandlerCfg ldapConnectionHandlerCfg =
-      new FakeLDAPConnectionHandlerCfg(config);
-
     // Administration Connector uses the LDAP connection handler implementation
     adminConnectionHandler = new LDAPConnectionHandler(
         new SynchronousStrategy(), FRIENDLY_NAME);
-    adminConnectionHandler
-        .initializeConnectionHandler(ldapConnectionHandlerCfg);
+    adminConnectionHandler.initializeConnectionHandler(new LDAPConnectionCfgAdapter(config));
     adminConnectionHandler.setAdminConnectionHandler();
 
     // Register this as a change listener.
@@ -176,9 +171,7 @@ public final class AdministrationConnector implements
       AdministrationConnectorCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
-    LDAPConnectionHandlerCfg cfg = new FakeLDAPConnectionHandlerCfg(
-        configuration);
-    return adminConnectionHandler.isConfigurationAcceptable(cfg,
+    return adminConnectionHandler.isConfigurationAcceptable(new LDAPConnectionCfgAdapter(configuration),
         unacceptableReasons);
   }
 
@@ -187,7 +180,7 @@ public final class AdministrationConnector implements
   public ConfigChangeResult applyConfigurationChange(
       AdministrationConnectorCfg configuration)
   {
-    return new ConfigChangeResult();
+    return adminConnectionHandler.applyConfigurationChange(new LDAPConnectionCfgAdapter(configuration));
   }
 
 
@@ -196,12 +189,12 @@ public final class AdministrationConnector implements
    * This private class implements a fake LDAP connection Handler configuration.
    * This allows to re-use the LDAPConnectionHandler as it is.
    */
-  private static class FakeLDAPConnectionHandlerCfg implements
+  private static class LDAPConnectionCfgAdapter implements
       LDAPConnectionHandlerCfg
   {
     private final AdministrationConnectorCfg config;
 
-    public FakeLDAPConnectionHandlerCfg(AdministrationConnectorCfg config)
+    public LDAPConnectionCfgAdapter(AdministrationConnectorCfg config)
     {
       this.config = config;
     }
