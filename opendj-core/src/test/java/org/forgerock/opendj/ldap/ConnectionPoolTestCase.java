@@ -534,7 +534,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         final LdapException connectError = newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
         for (Promise<? extends Connection, LdapException> promise : promises) {
             // Simulate that an error happened with the created connections
-            ((PromiseImpl) promise).handleError(connectError);
+            ((PromiseImpl) promise).handleException(connectError);
 
             try {
                 // Before the fix for OPENDJ-1348 the third promise.get() would hang.

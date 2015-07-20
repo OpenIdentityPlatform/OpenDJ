@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 
 /**
@@ -62,19 +62,19 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult> im
     }
 
     @Override
-    public <R extends ExtendedResult> ResultHandler<S> adaptExtendedResultHandler(
-            final ExtendedRequest<R> request, final ResultHandler<? super R> resultHandler,
+    public <R extends ExtendedResult> LdapResultHandler<S> adaptExtendedResultHandler(
+            final ExtendedRequest<R> request, final LdapResultHandler<? super R> resultHandler,
             final DecodeOptions options) {
-        return new ResultHandler<S>() {
+        return new LdapResultHandler<S>() {
 
             @Override
-            public void handleError(final LdapException error) {
+            public void handleException(final LdapException error) {
                 final Result result = error.getResult();
                 final R adaptedResult =
                         request.getResultDecoder().newExtendedErrorResult(result.getResultCode(),
                                 result.getMatchedDN(), result.getDiagnosticMessage());
                 adaptedResult.setCause(result.getCause());
-                resultHandler.handleError(newLdapException(adaptedResult));
+                resultHandler.handleException(newLdapException(adaptedResult));
             }
 
             @Override
@@ -85,7 +85,7 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult> im
                     resultHandler.handleResult(adaptedResult);
                 } catch (final DecodeException e) {
                     final R adaptedResult = request.getResultDecoder().adaptDecodeException(e);
-                    resultHandler.handleError(newLdapException(adaptedResult));
+                    resultHandler.handleException(newLdapException(adaptedResult));
                 }
             }
 

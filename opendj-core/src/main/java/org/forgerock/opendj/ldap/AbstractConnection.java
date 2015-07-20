@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;

@@ -82,7 +82,7 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
             return newFailedLdapPromise(e);
         }
 
-        return newSuccessfulPromise((Connection) new InternalConnection(serverConnection));
+        return newResultPromise((Connection) new InternalConnection(serverConnection));
     }
 
     @Override

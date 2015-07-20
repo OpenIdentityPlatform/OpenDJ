@@ -64,11 +64,11 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.ConnectionState;
 import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import org.forgerock.util.time.TimeService;
@@ -146,7 +146,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * List of pending responses for all active operations. These will be
          * signaled if no heart beat is detected within the permitted timeout period.
          */
-        private final Queue<ResultHandler<?>> pendingResults = new ConcurrentLinkedQueue<>();
+        private final Queue<LdapResultHandler<?>> pendingResults = new ConcurrentLinkedQueue<>();
 
         /** Internal connection state. */
         private final ConnectionState state = new ConnectionState();
@@ -360,7 +360,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                 };
 
                 return timestampPromise(connection.searchAsync(request,
-                        intermediateResponseHandler, entryHandler).onSuccessOrFailure(new Runnable() {
+                        intermediateResponseHandler, entryHandler).thenOnResultOrException(new Runnable() {
                             @Override
                             public void run() {
                                 searchDone.getAndSet(true);
@@ -407,9 +407,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
              * Peek instead of pool because notification is responsible for
              * removing the element from the queue.
              */
-            ResultHandler<?> pendingResult;
+            LdapResultHandler<?> pendingResult;
             while ((pendingResult = pendingResults.peek()) != null) {
-                pendingResult.handleError(error);
+                pendingResult.handleException(error);
             }
         }
 
@@ -492,30 +492,30 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                             timestamp(reference);
                             return true;
                         }
-                    }).onSuccess(new SuccessHandler<Result>() {
+                    }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Result>() {
                         @Override
                         public void handleResult(Result result) {
                             timestamp(result);
                             releaseHeartBeatLock();
                         }
-                    }).onFailure(new FailureHandler<LdapException>() {
+                    }).thenOnException(new ExceptionHandler<LdapException>() {
                         @Override
-                        public void handleError(LdapException error) {
+                        public void handleException(LdapException exception) {
                             /*
                              * Connection failure will be handled by connection
                              * event listener. Ignore cancellation errors since
                              * these indicate that the heart beat was aborted by
                              * a client-side close.
                              */
-                            if (!(error instanceof CancelledResultException)) {
+                            if (!(exception instanceof CancelledResultException)) {
                                 /*
                                  * Log at debug level to avoid polluting the
                                  * logs with benign password policy related
                                  * errors. See OPENDJ-1168 and OPENDJ-1167.
                                  */
                                 logger.debug(LocalizableMessage.raw("Heartbeat failed for connection factory '%s'",
-                                        factory, error));
-                                timestamp(error);
+                                        factory, exception));
+                                timestamp(exception);
                             }
                             releaseHeartBeatLock();
                         }
@@ -577,33 +577,33 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         private <R extends Result> LdapPromise<R> timestampPromise(LdapPromise<R> wrappedPromise) {
             final LdapPromiseImpl<R> outerPromise = new LdapPromiseImplWrapper<>(wrappedPromise);
             pendingResults.add(outerPromise);
-            wrappedPromise.onSuccess(new SuccessHandler<R>() {
+            wrappedPromise.thenOnResult(new ResultHandler<R>() {
                 @Override
                 public void handleResult(R result) {
                     outerPromise.handleResult(result);
                     timestamp(result);
                 }
-            }).onFailure(new FailureHandler<LdapException>() {
+            }).thenOnException(new ExceptionHandler<LdapException>() {
                 @Override
-                public void handleError(LdapException error) {
-                    outerPromise.handleError(error);
-                    timestamp(error);
+                public void handleException(LdapException exception) {
+                    outerPromise.handleException(exception);
+                    timestamp(exception);
                 }
             });
-            outerPromise.onSuccessOrFailure(new Runnable() {
+            outerPromise.thenOnResultOrException(new Runnable() {
                 @Override
                 public void run() {
                     pendingResults.remove(outerPromise);
                 }
             });
             if (!checkState()) {
-                outerPromise.handleError(state.getConnectionError());
+                outerPromise.handleException(state.getConnectionError());
             }
             return outerPromise;
         }
 
         private <R extends Result> LdapPromise<R> timestampBindOrStartTLSPromise(LdapPromise<R> wrappedPromise) {
-            return timestampPromise(wrappedPromise).onSuccessOrFailure(new Runnable() {
+            return timestampPromise(wrappedPromise).thenOnResultOrException(new Runnable() {
                 @Override
                 public void run() {
                     releaseBindOrStartTLSLock();
@@ -916,7 +916,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                 scheduler.get().schedule(new Runnable() {
                     @Override
                     public void run() {
-                        if (promise.tryHandleError(newHeartBeatTimeoutError())) {
+                        if (promise.tryHandleException(newHeartBeatTimeoutError())) {
                             closeSilently(connectionHolder.get());
                             releaseScheduler();
                         }
@@ -924,7 +924,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                 }, timeoutMS, TimeUnit.MILLISECONDS);
                 return connection.searchAsync(heartBeatRequest, null);
             }
-        }).onSuccess(new SuccessHandler<Result>() {
+        }).thenOnResult(new ResultHandler<Result>() {
             @Override
             public void handleResult(Result result) {
                 final Connection connection = connectionHolder.get();
@@ -933,10 +933,10 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                     connectionImpl.close();
                 }
             }
-        }).onFailure(new FailureHandler<LdapException>() {
+        }).thenOnException(new ExceptionHandler<LdapException>() {
             @Override
-            public void handleError(LdapException error) {
-                if (promise.tryHandleError(adaptHeartBeatError(error))) {
+            public void handleException(LdapException exception) {
+                if (promise.tryHandleException(adaptHeartBeatError(exception))) {
                     closeSilently(connectionHolder.get());
                     releaseScheduler();
                 }

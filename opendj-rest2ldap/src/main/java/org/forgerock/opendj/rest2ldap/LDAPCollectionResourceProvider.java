@@ -72,13 +72,12 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.Promises;
-import org.forgerock.util.promise.SuccessHandler;
 
 import static java.util.Arrays.*;
 
@@ -102,7 +101,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
         @Override
         public void handleError(ResourceException error) {
-            promise.handleError(error);
+            promise.handleException(error);
 
         }
 
@@ -187,8 +186,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                 addRequest.addControl(PostReadRequestControl.newControl(false, attributes));
                             }
                             c.getConnection().applyChangeAsync(addRequest)
-                                        .onSuccess(postUpdateSuccessHandler(c, h))
-                                        .onFailure(postUpdateFailureHandler(h));
+                                        .thenOnResult(postUpdateResultHandler(c, h))
+                                        .thenOnException(postUpdateExceptionHandler(h));
                         }
                     });
             }
@@ -220,8 +219,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         deleteRequest.addControl(SubtreeDeleteRequestControl.newControl(true));
                     }
                     addAssertionControl(deleteRequest, request.getRevision());
-                    c.getConnection().applyChangeAsync(deleteRequest).onSuccess(postUpdateSuccessHandler(c, h))
-                            .onFailure(postUpdateFailureHandler(h));
+                    c.getConnection().applyChangeAsync(deleteRequest).thenOnResult(postUpdateResultHandler(c, h))
+                                                                     .thenOnException(postUpdateExceptionHandler(h));
                 } catch (final Exception e) {
                     h.handleError(asResourceException(e));
                 }
@@ -246,8 +245,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     final SearchRequest searchRequest = nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
                             .addAttribute(attributes);
                     c.getConnection().searchSingleEntryAsync(searchRequest)
-                            .onSuccess(postEmptyPatchSuccessHandler(c, request, h))
-                            .onFailure(postEmptyPatchFailureHandler(h));
+                            .thenOnResult(postEmptyPatchResultHandler(c, request, h))
+                            .thenOnException(postEmptyPatchExceptionHandler(h));
                 }
             });
         } else {
@@ -271,51 +270,53 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         promises.add(handler.promise);
                     }
 
-                    Promises.when(promises).onSuccess(new SuccessHandler<List<List<Modification>>>() {
-                        @Override
-                        public void handleResult(final List<List<Modification>> result) {
-                            // The patch operations have been converted successfully.
-                            try {
-                                final ModifyRequest modifyRequest = newModifyRequest(dn);
+                    Promises.when(promises).thenOnResult(
+                        new org.forgerock.util.promise.ResultHandler<List<List<Modification>>>() {
+                            @Override
+                            public void handleResult(final List<List<Modification>> result) {
+                                // The patch operations have been converted successfully.
+                                try {
+                                    final ModifyRequest modifyRequest = newModifyRequest(dn);
 
-                                // Add the modifications.
-                                for (final List<Modification> modifications : result) {
-                                    if (modifications != null) {
-                                        modifyRequest.getModifications().addAll(modifications);
+                                    // Add the modifications.
+                                    for (final List<Modification> modifications : result) {
+                                        if (modifications != null) {
+                                            modifyRequest.getModifications().addAll(modifications);
+                                        }
                                     }
-                                }
 
-                                final List<String> attributes = asList(getLDAPAttributes(c, request.getFields()));
-                                if (modifyRequest.getModifications().isEmpty()) {
-                                    /*
-                                     * This patch is a no-op so just read the entry and check its version.
-                                     */
-                                    c.getConnection().readEntryAsync(dn, attributes)
-                                            .onSuccess(postEmptyPatchSuccessHandler(c, request, h))
-                                            .onFailure(postEmptyPatchFailureHandler(h));
-                                } else {
-                                    // Add controls and perform the modify request.
-                                    if (config.readOnUpdatePolicy() == CONTROLS) {
-                                        modifyRequest.addControl(PostReadRequestControl.newControl(false, attributes));
+                                    final List<String> attributes = asList(getLDAPAttributes(c, request.getFields()));
+                                    if (modifyRequest.getModifications().isEmpty()) {
+                                        /*
+                                         * This patch is a no-op so just read the entry and check its version.
+                                         */
+                                        c.getConnection().readEntryAsync(dn, attributes)
+                                                .thenOnResult(postEmptyPatchResultHandler(c, request, h))
+                                                .thenOnException(postEmptyPatchExceptionHandler(h));
+                                    } else {
+                                        // Add controls and perform the modify request.
+                                        if (config.readOnUpdatePolicy() == CONTROLS) {
+                                            modifyRequest.addControl(
+                                                PostReadRequestControl.newControl(false, attributes));
+                                        }
+                                        if (config.usePermissiveModify()) {
+                                            modifyRequest.addControl(PermissiveModifyRequestControl.newControl(true));
+                                        }
+                                        addAssertionControl(modifyRequest, request.getRevision());
+                                        c.getConnection().applyChangeAsync(modifyRequest)
+                                                .thenOnResult(postUpdateResultHandler(c, h))
+                                                .thenOnException(postUpdateExceptionHandler(h));
                                     }
-                                    if (config.usePermissiveModify()) {
-                                        modifyRequest.addControl(PermissiveModifyRequestControl.newControl(true));
-                                    }
-                                    addAssertionControl(modifyRequest, request.getRevision());
-                                    c.getConnection().applyChangeAsync(modifyRequest)
-                                            .onSuccess(postUpdateSuccessHandler(c, h))
-                                            .onFailure(postUpdateFailureHandler(h));
+                                } catch (final Exception e) {
+                                    h.handleError(asResourceException(e));
                                 }
-                            } catch (final Exception e) {
-                                h.handleError(asResourceException(e));
                             }
-                        }
-                    }).onFailure(new FailureHandler<ResourceException>() {
-                        @Override
-                        public void handleError(ResourceException error) {
-                            h.handleError(asResourceException(error));
-                        }
-                    });
+                        }).thenOnException(new ExceptionHandler<ResourceException>() {
+                            @Override
+                            public void handleException(ResourceException exception) {
+                                h.handleError(asResourceException(exception));
+                            }
+                        });
                 }
             }));
         }
@@ -456,7 +457,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     return true;
                                 }
 
-                            }).onSuccess(new SuccessHandler<Result>() {
+                            }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Result>() {
                                 @Override
                                 public void handleResult(Result result) {
                                     synchronized (sequenceLock) {
@@ -475,11 +476,11 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                         completeIfNecessary(SUCCESS);
                                     }
                                 }
-                            }).onFailure(new FailureHandler<LdapException>() {
+                            }).thenOnException(new ExceptionHandler<LdapException>() {
                                 @Override
-                                public void handleError(LdapException error) {
+                                public void handleException(LdapException exception) {
                                     synchronized (sequenceLock) {
-                                        completeIfNecessary(asResourceException(error));
+                                        completeIfNecessary(asResourceException(exception));
                                     }
                                 }
                             });
@@ -531,18 +532,18 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 final SearchRequest request =
                     nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(attributes);
 
-                c.getConnection().searchSingleEntryAsync(request).onSuccess(new SuccessHandler<SearchResultEntry>() {
-                    @Override
-                    public void handleResult(final SearchResultEntry entry) {
-                        adaptEntry(c, entry, h);
-                    }
-                }).onFailure(new FailureHandler<LdapException>() {
-                    @Override
-                    public void handleError(final LdapException error) {
-                        h.handleError(asResourceException(error));
-                    }
-                });
-
+                c.getConnection().searchSingleEntryAsync(request).thenOnResult(
+                    new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
+                        @Override
+                        public void handleResult(final SearchResultEntry entry) {
+                            adaptEntry(c, entry, h);
+                        }
+                    }).thenOnException(new ExceptionHandler<LdapException>() {
+                        @Override
+                        public void handleException(final LdapException exception) {
+                            h.handleError(asResourceException(exception));
+                        }
+                    });
             };
         });
     }
@@ -571,7 +572,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         .addAttribute(attributes);
 
                 c.getConnection().searchSingleEntryAsync(searchRequest)
-                        .onSuccess(new SuccessHandler<SearchResultEntry>() {
+                        .thenOnResult(new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
                             @Override
                             public void handleResult(final SearchResultEntry entry) {
                                 try {
@@ -611,8 +612,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                     } else {
                                                         modifyRequest.getModifications().addAll(result);
                                                         c.getConnection().applyChangeAsync(modifyRequest)
-                                                                .onSuccess(postUpdateSuccessHandler(c, h))
-                                                                .onFailure(postUpdateFailureHandler(h));
+                                                                .thenOnResult(postUpdateResultHandler(c, h))
+                                                                .thenOnException(postUpdateExceptionHandler(h));
                                                     }
                                                 }
                                             });
@@ -620,10 +621,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     h.handleError(asResourceException(e));
                                 }
                             }
-                        }).onFailure(new FailureHandler<LdapException>() {
+                        }).thenOnException(new ExceptionHandler<LdapException>() {
                             @Override
-                            public void handleError(final LdapException error) {
-                                h.handleError(asResourceException(error));
+                            public void handleException(final LdapException exception) {
+                                h.handleError(asResourceException(exception));
                             }
                         });
             }
@@ -667,7 +668,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     updateHandler.handleResult(searchRequest.getName());
                 } else {
                     c.getConnection().searchSingleEntryAsync(searchRequest)
-                            .onSuccess(new SuccessHandler<SearchResultEntry>() {
+                            .thenOnResult(new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
                                 @Override
                                 public void handleResult(final SearchResultEntry entry) {
                                     try {
@@ -680,10 +681,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                         updateHandler.handleError(asResourceException(e));
                                     }
                                 }
-                            }).onFailure(new FailureHandler<LdapException>() {
+                            }).thenOnException(new ExceptionHandler<LdapException>() {
                                 @Override
-                                public void handleError(final LdapException error) {
-                                    updateHandler.handleError(asResourceException(error));
+                                public void handleException(final LdapException exception) {
+                                    updateHandler.handleError(asResourceException(exception));
                                 }
                             });
                 }
@@ -766,8 +767,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         }
 
                         Promises.when(promises)
-                                .then(new org.forgerock.util.promise.Function<List<Filter>, Filter,
-                                        ResourceException>() {
+                                .then(new org.forgerock.util.Function<List<Filter>, Filter, ResourceException>() {
                                     @Override
                                     public Filter apply(final List<Filter> value) {
                                         // Check for unmapped filter components and optimize.
@@ -789,15 +789,15 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                             return Filter.and(value);
                                         }
                                     }
-                                }).onSuccess(new SuccessHandler<Filter>() {
+                                }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Filter>() {
                                     @Override
                                     public void handleResult(Filter result) {
                                         p.handleResult(result);
                                     }
-                                }).onFailure(new FailureHandler<ResourceException>() {
+                                }).thenOnException(new ExceptionHandler<ResourceException>() {
                                     @Override
-                                    public void handleError(ResourceException error) {
-                                        p.handleError(error);
+                                    public void handleException(ResourceException exception) {
+                                        p.handleError(exception);
                                     }
                                 });
 
@@ -896,8 +896,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         }
 
                         Promises.when(promises)
-                                .then(new org.forgerock.util.promise.Function<List<Filter>, Filter,
-                                        ResourceException>() {
+                                .then(new org.forgerock.util.Function<List<Filter>, Filter, ResourceException>() {
                                     @Override
                                     public Filter apply(final List<Filter> value) {
                                         // Check for unmapped filter components and optimize.
@@ -919,15 +918,15 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                             return Filter.or(value);
                                         }
                                     }
-                                }).onSuccess(new SuccessHandler<Filter>() {
+                                }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Filter>() {
                                     @Override
                                     public void handleResult(Filter result) {
                                         p.handleResult(result);
                                     }
-                                }).onFailure(new FailureHandler<ResourceException>() {
+                                }).thenOnException(new ExceptionHandler<ResourceException>() {
                                     @Override
-                                    public void handleError(ResourceException error) {
-                                        p.handleError(error);
+                                    public void handleException(ResourceException exception) {
+                                        p.handleError(exception);
                                     }
                                 });
 
@@ -961,9 +960,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         return etagAttribute != null ? entry.parseAttribute(etagAttribute).asString() : null;
     }
 
-    private SuccessHandler<SearchResultEntry> postEmptyPatchSuccessHandler(final Context c,
-            final PatchRequest request, final ResultHandler<Resource> h) {
-        return new SuccessHandler<SearchResultEntry>() {
+    private org.forgerock.util.promise.ResultHandler<SearchResultEntry> postEmptyPatchResultHandler(
+            final Context c, final PatchRequest request, final ResultHandler<Resource> h) {
+        return new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
             @Override
             public void handleResult(final SearchResultEntry entry) {
                 try {
@@ -977,18 +976,19 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         };
     }
 
-    private FailureHandler<LdapException> postEmptyPatchFailureHandler(final ResultHandler<Resource> h) {
-        return new FailureHandler<LdapException>() {
+    private ExceptionHandler<LdapException> postEmptyPatchExceptionHandler(final ResultHandler<Resource> h) {
+        return new ExceptionHandler<LdapException>() {
             @Override
-            public void handleError(final LdapException error) {
-                h.handleError(asResourceException(error));
+            public void handleException(final LdapException exception) {
+                h.handleError(asResourceException(exception));
             }
         };
     }
 
-    private SuccessHandler<Result> postUpdateSuccessHandler(final Context c, final ResultHandler<Resource> handler) {
+    private org.forgerock.util.promise.ResultHandler<Result> postUpdateResultHandler(
+            final Context c, final ResultHandler<Resource> handler) {
         // The handler which will be invoked for the LDAP add result.
-        return new SuccessHandler<Result>() {
+        return new org.forgerock.util.promise.ResultHandler<Result>() {
             @Override
             public void handleResult(final Result result) {
                 // FIXME: handle USE_SEARCH policy.
@@ -1022,12 +1022,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         };
     }
 
-    private FailureHandler<LdapException> postUpdateFailureHandler(final ResultHandler<Resource> handler) {
+    private ExceptionHandler<LdapException> postUpdateExceptionHandler(final ResultHandler<Resource> handler) {
         // The handler which will be invoked for the LDAP add result.
-        return new FailureHandler<LdapException>() {
+        return new ExceptionHandler<LdapException>() {
             @Override
-            public void handleError(final LdapException error) {
-                handler.handleError(asResourceException(error));
+            public void handleException(final LdapException exception) {
+                handler.handleError(asResourceException(exception));
             }
         };
     }

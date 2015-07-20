@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import static java.util.Collections.*;

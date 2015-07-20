@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import static org.forgerock.json.resource.PatchOperation.*;

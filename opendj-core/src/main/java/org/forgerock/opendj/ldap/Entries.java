@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Iterables;

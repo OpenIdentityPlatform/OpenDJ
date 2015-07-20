@@ -99,7 +99,7 @@ import org.forgerock.util.Reject;
  * private static class MySearchResultHandler implements SearchResultHandler {
  *
  *     {@literal @}Override
- *     public void handleErrorResult(LdapException error) {
+ *     public void handleExceptionResult(LdapException error) {
  *         // Ignore.
  *     }
  *

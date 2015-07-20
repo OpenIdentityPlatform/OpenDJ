@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;

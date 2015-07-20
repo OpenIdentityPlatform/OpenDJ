@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 /**
  * A completion handler for consuming the result of an asynchronous operation or
@@ -39,7 +39,7 @@ import org.forgerock.util.promise.SuccessHandler;
  * asynchronously to a remote Directory Server using an
  * {@link ConnectionFactory}. The {@link #handleResult} method is invoked when
  * the operation or connection attempt completes successfully. The
- * {@link #handleError(LdapException)} method is invoked if the operation or connection
+ * {@link #handleException(LdapException)} method is invoked if the operation or connection
  * attempt fails.
  * <p>
  * Implementations of these methods should complete in a timely manner so as to
@@ -49,15 +49,16 @@ import org.forgerock.util.promise.SuccessHandler;
  * @param <S>
  *            The type of result handled by this result handler.
  */
-public interface ResultHandler<S> extends SuccessHandler<S>, FailureHandler<LdapException> {
+public interface LdapResultHandler<S> extends ResultHandler<S>, ExceptionHandler<LdapException> {
     /**
      * Invoked when the asynchronous operation has failed.
      *
-     * @param error
+     * @param exception
      *            The error result exception indicating why the asynchronous
      *            operation has failed.
      */
-    void handleError(LdapException error);
+    @Override
+    void handleException(LdapException exception);
 
     /**
      * Invoked when the asynchronous operation has completed successfully.
@@ -65,5 +66,6 @@ public interface ResultHandler<S> extends SuccessHandler<S>, FailureHandler<Ldap
      * @param result
      *            The result of the asynchronous operation.
      */
+    @Override
     void handleResult(S result);
 }

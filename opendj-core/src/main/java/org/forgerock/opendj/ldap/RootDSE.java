@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Collections2;
@@ -150,7 +150,7 @@ public final class RootDSE {
      *             If the {@code connection} was {@code null}.
      */
     public static LdapPromise<RootDSE> readRootDSEAsync(final Connection connection,
-            final ResultHandler<? super RootDSE> handler) {
+            final LdapResultHandler<? super RootDSE> handler) {
         return connection.searchSingleEntryAsync(SEARCH_REQUEST).then(
             new Function<SearchResultEntry, RootDSE, LdapException>() {
                 @Override

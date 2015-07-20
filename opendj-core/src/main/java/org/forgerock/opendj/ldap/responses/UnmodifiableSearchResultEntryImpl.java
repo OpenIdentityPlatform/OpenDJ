@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.AttributeParser;
 import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Iterables;

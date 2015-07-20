@@ -45,10 +45,10 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 /**
  * An example client application which searches a Directory Server using the
@@ -74,20 +74,20 @@ public final class SearchAsync {
                     CancelExtendedRequest request =
                             Requests.newCancelExtendedRequest(requestID);
                     connection.extendedRequestAsync(request)
-                            .onSuccess(new SuccessHandler<ExtendedResult>() {
+                            .thenOnResult(new ResultHandler<ExtendedResult>() {
                                 @Override
                                 public void handleResult(ExtendedResult result) {
                                     System.err.println("Cancel request succeeded");
                                     CANCEL_LATCH.countDown();
                                 }
                             })
-                            .onFailure(new FailureHandler<LdapException>() {
+                            .thenOnException(new ExceptionHandler<LdapException>() {
                                 @Override
-                                public void handleError(LdapException error) {
+                                public void handleException(LdapException exception) {
                                     System.err.println("Cancel request failed: "
-                                            + error.getResult().getResultCode().intValue()
+                                            + exception.getResult().getResultCode().intValue()
                                             + " "
-                                            + error.getResult().getDiagnosticMessage());
+                                            + exception.getResult().getDiagnosticMessage());
                                     CANCEL_LATCH.countDown();
                                 }
                             });
@@ -198,18 +198,18 @@ public final class SearchAsync {
                         return promise;
                     }
                 })
-                .onSuccess(new SuccessHandler<Result>() {
+                .thenOnResult(new ResultHandler<Result>() {
                     @Override
                     public void handleResult(Result result) {
                         resultCode = result.getResultCode().intValue();
                         COMPLETION_LATCH.countDown();
                     }
                 })
-                .onFailure(new FailureHandler<LdapException>() {
+                .thenOnException(new ExceptionHandler<LdapException>() {
                     @Override
-                    public void handleError(LdapException error) {
-                        System.err.println(error.getMessage());
-                        resultCode = error.getResult().getResultCode().intValue();
+                    public void handleException(LdapException exception) {
+                        System.err.println(exception.getMessage());
+                        resultCode = exception.getResult().getResultCode().intValue();
                         COMPLETION_LATCH.countDown();
                     }
                 });

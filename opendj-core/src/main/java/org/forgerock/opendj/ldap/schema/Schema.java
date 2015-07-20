@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Option;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 
 import com.forgerock.opendj.util.StaticUtils;
 

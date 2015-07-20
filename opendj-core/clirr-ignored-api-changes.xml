@@ -43,28 +43,28 @@ For a description of ant style path expressions see:
 Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to avoid the need to use \s* in the '<to>' tags.
 -->
   <difference>
-  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
-  	<differenceType>7002</differenceType>
-  	<method>LDAPConnectionFactory(java.net.SocketAddress)</method>
-  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7002</differenceType>
+    <method>LDAPConnectionFactory(java.net.SocketAddress)</method>
+    <justification>Moving from inetSocketAddress to host+port constructors</justification>
   </difference>
   <difference>
-  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
-  	<differenceType>7002</differenceType>
-  	<method>LDAPConnectionFactory(java.net.SocketAddress, org.forgerock.opendj.ldap.LDAPOptions)</method>
-  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7002</differenceType>
+    <method>LDAPConnectionFactory(java.net.SocketAddress, org.forgerock.opendj.ldap.LDAPOptions)</method>
+    <justification>Moving from inetSocketAddress to host+port constructors</justification>
   </difference>
   <difference>
-  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
-  	<differenceType>7002</differenceType>
-  	<method>java.net.InetAddress getAddress()</method>
-  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7002</differenceType>
+    <method>java.net.InetAddress getAddress()</method>
+    <justification>Moving from inetSocketAddress to host+port constructors</justification>
   </difference>
   <difference>
-  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
-  	<differenceType>7002</differenceType>
-  	<method>java.net.SocketAddress getSocketAddress()</method>
-  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7002</differenceType>
+    <method>java.net.SocketAddress getSocketAddress()</method>
+    <justification>Moving from inetSocketAddress to host+port constructors</justification>
   </difference>
 
   <difference>
@@ -366,15 +366,21 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <className>org/forgerock/opendj/ldap/AttributeParser</className>
     <differenceType>7005</differenceType>
     <method>*as*(org.forgerock.opendj.ldap.Function*)</method>
-    <to>*as*(org.forgerock.util.promise.Function*)</to>
-    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+    <to>*as*(org.forgerock.util.Function*)</to>
+    <justification>
+        OPENDJ-1550 Replace SDK Function with Function from forgerock-util
+        OPENDJ-1666 Update sdk to forgerock-util 2.0.0
+    </justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/Functions</className>
     <differenceType>7005</differenceType>
     <method>*compose(org.forgerock.opendj.ldap.Function, org.forgerock.opendj.ldap.Function)</method>
-    <to>*compose(org.forgerock.util.promise.Function, org.forgerock.util.promise.Function)</to>
-    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+    <to>*compose(org.forgerock.util.Function, org.forgerock.util.Function)</to>
+    <justification>
+        OPENDJ-1550 Replace SDK Function with Function from forgerock-util
+        OPENDJ-1666 Update sdk to forgerock-util 2.0.0
+    </justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/Functions</className>
@@ -433,11 +439,66 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <justification>Lack of startsWith() forced to re-implement it multiple times at different location</justification>
   </difference>
   <difference>
-  	<className>org/forgerock/opendj/ldap/ByteString</className>
-  	<differenceType>7005</differenceType>
-  	<method>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.String)</method>
-  	<from>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.String)</from>
-  	<to>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.CharSequence)</to>
-  	<justification>Using CharSequence instead of String allows to reduce memory copy.</justification>
+    <className>org/forgerock/opendj/ldap/ByteString</className>
+    <differenceType>7005</differenceType>
+    <method>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.String)</method>
+    <from>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.String)</from>
+    <to>org.forgerock.opendj.ldap.ByteString valueOf(java.lang.CharSequence)</to>
+    <justification>Using CharSequence instead of String allows to reduce memory copy.</justification>
   </difference>
+
+  <!-- OPENDJ-1666 Migration to forgerock-util 2.0.0  -->
+  <difference>
+    <className>org/forgerock/opendj/ldap/Functions</className>
+    <differenceType>7006</differenceType>
+    <method>*</method>
+    <to>org.forgerock.util.Function</to>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LdapResultHandler</className>
+    <differenceType>8000</differenceType>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/(RequestHandler|MemoryBackend)]</className>
+    <differenceType>7005</differenceType>
+    <method>%regex[(.)* handle*(.)*org\.forgerock\.opendj\.ldap\.ResultHandler(.)*]</method>
+    <to>%regex[(.)* handle*(.)*org\.forgerock\.opendj\.ldap\.LdapResultHandler(.)*]</to>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/responses/(Abstract)?ExtendedResultDecoder]</className>
+    <differenceType>7006</differenceType>
+    <method>org.forgerock.opendj.ldap.ResultHandler adaptExtendedResultHandler(org.forgerock.opendj.ldap.requests.ExtendedRequest, org.forgerock.opendj.ldap.ResultHandler, org.forgerock.opendj.ldap.DecodeOptions)</method>
+    <to>org.forgerock.opendj.ldap.LdapResultHandler</to>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/responses/(Abstract)?ExtendedResultDecoder]</className>
+    <differenceType>7005</differenceType>
+    <method>org.forgerock.opendj.ldap.ResultHandler adaptExtendedResultHandler(org.forgerock.opendj.ldap.requests.ExtendedRequest, org.forgerock.opendj.ldap.ResultHandler, org.forgerock.opendj.ldap.DecodeOptions)</method>
+    <to>org.forgerock.opendj.ldap.ResultHandler adaptExtendedResultHandler(org.forgerock.opendj.ldap.requests.ExtendedRequest, org.forgerock.opendj.ldap.LdapResultHandler, org.forgerock.opendj.ldap.DecodeOptions)</to>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/RootDSE</className>
+    <differenceType>7005</differenceType>
+    <method>*readRootDSEAsync(org.forgerock.opendj.ldap.Connection, org.forgerock.opendj.ldap.ResultHandler)</method>
+    <to>*readRootDSEAsync(org.forgerock.opendj.ldap.Connection, org.forgerock.opendj.ldap.LdapResultHandler)</to>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/AuthenticatedConnectionFactory$AuthenticatedConnection</className>
+    <differenceType>7005</differenceType>
+    <method>*bindAsync(org.forgerock.opendj.ldap.requests.BindRequest, org.forgerock.opendj.ldap.IntermediateResponseHandler, org.forgerock.opendj.ldap.ResultHandler)</method>
+    <to>*bindAsync(org.forgerock.opendj.ldap.requests.BindRequest*org.forgerock.opendj.ldap.IntermediateResponseHandler*org.forgerock.opendj.ldap.LdapResultHandler)</to>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ResultHandler</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
+  </difference>
+
 </differences>

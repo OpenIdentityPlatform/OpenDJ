@@ -232,7 +232,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     @Override
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+            final LdapResultHandler<Result> resultHandler) {
         try {
             synchronized (writeLock) {
                 final DN dn = request.getName();
@@ -247,7 +247,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getResult(request, null, request));
         } catch (final LdapException e) {
-            resultHandler.handleError(e);
+            resultHandler.handleException(e);
         }
     }
 
@@ -255,7 +255,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleBind(final RequestContext requestContext, final int version,
             final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<BindResult> resultHandler) {
+            final LdapResultHandler<BindResult> resultHandler) {
         try {
             final Entry entry;
             synchronized (writeLock) {
@@ -277,23 +277,23 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getBindResult(request, entry, entry));
         } catch (final LocalizedIllegalArgumentException e) {
-            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e));
+            resultHandler.handleException(newLdapException(ResultCode.PROTOCOL_ERROR, e));
         } catch (final EntryNotFoundException e) {
             /*
              * Usually you would not include a diagnostic message, but we'll add
              * one here because the memory back-end is not intended for
              * production use.
              */
-            resultHandler.handleError(newLdapException(ResultCode.INVALID_CREDENTIALS, "Unknown user"));
+            resultHandler.handleException(newLdapException(ResultCode.INVALID_CREDENTIALS, "Unknown user"));
         } catch (final LdapException e) {
-            resultHandler.handleError(e);
+            resultHandler.handleException(e);
         }
     }
 
     @Override
     public void handleCompare(final RequestContext requestContext, final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<CompareResult> resultHandler) {
+            final LdapResultHandler<CompareResult> resultHandler) {
         try {
             final Entry entry;
             final Attribute assertion;
@@ -307,14 +307,14 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             resultHandler.handleResult(getCompareResult(request, entry, entry.containsAttribute(
                     assertion, null)));
         } catch (final LdapException e) {
-            resultHandler.handleError(e);
+            resultHandler.handleException(e);
         }
     }
 
     @Override
     public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+            final LdapResultHandler<Result> resultHandler) {
         try {
             final Entry entry;
             synchronized (writeLock) {
@@ -335,9 +335,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getResult(request, entry, null));
         } catch (final DecodeException e) {
-            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e));
+            resultHandler.handleException(newLdapException(ResultCode.PROTOCOL_ERROR, e));
         } catch (final LdapException e) {
-            resultHandler.handleError(e);
+            resultHandler.handleException(e);
         }
     }
 
@@ -345,15 +345,15 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public <R extends ExtendedResult> void handleExtendedRequest(
             final RequestContext requestContext, final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<R> resultHandler) {
-        resultHandler.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
+            final LdapResultHandler<R> resultHandler) {
+        resultHandler.handleException(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                 "Extended request operation not supported"));
     }
 
     @Override
     public void handleModify(final RequestContext requestContext, final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+            final LdapResultHandler<Result> resultHandler) {
         try {
             final Entry entry;
             final Entry newEntry;
@@ -365,22 +365,22 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getResult(request, entry, newEntry));
         } catch (final LdapException e) {
-            resultHandler.handleError(e);
+            resultHandler.handleException(e);
         }
     }
 
     @Override
     public void handleModifyDN(final RequestContext requestContext, final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
-        resultHandler.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
+            final LdapResultHandler<Result> resultHandler) {
+        resultHandler.handleException(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                 "ModifyDN request operation not supported"));
     }
 
     @Override
     public void handleSearch(final RequestContext requestContext, final SearchRequest request,
         final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
-        ResultHandler<Result> resultHandler) {
+        LdapResultHandler<Result> resultHandler) {
         try {
             final DN dn = request.getName();
             final SearchScope scope = request.getScope();
@@ -404,9 +404,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                         "Search request contains an unsupported search scope");
             }
         } catch (DecodeException e) {
-            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
+            resultHandler.handleException(newLdapException(ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
         } catch (final LdapException e) {
-            resultHandler.handleError(e);
+            resultHandler.handleException(e);
         }
     }
 
@@ -485,7 +485,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      *           If the request is unsuccessful.
      */
     private void searchWithSubordinates(final RequestContext requestContext, final SearchResultHandler entryHandler,
-            final ResultHandler<Result> resultHandler, final DN dn, final Matcher matcher,
+            final LdapResultHandler<Result> resultHandler, final DN dn, final Matcher matcher,
             final AttributeFilter attributeFilter, final int sizeLimit, SearchScope scope,
             SimplePagedResultsControl pagedResults) throws CancelledResultException, LdapException {
         final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;

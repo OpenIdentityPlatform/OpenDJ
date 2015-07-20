@@ -46,8 +46,8 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.promise.ResultHandler;
 import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
@@ -374,10 +374,11 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
         final SearchRequest request =
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        SuccessHandler<SearchResultEntry> successHandler = mock(SuccessHandler.class);
-        SearchResultEntry resultEntry = mockConnection.searchSingleEntryAsync(request).onSuccess(successHandler).get();
+        ResultHandler<SearchResultEntry> resultHandler = mock(ResultHandler.class);
+        SearchResultEntry resultEntry = mockConnection.searchSingleEntryAsync(request)
+                                                      .thenOnResult(resultHandler).get();
         assertThat(resultEntry).isEqualTo(entry);
-        verify(successHandler).handleResult(any(SearchResultEntry.class));
+        verify(resultHandler).handleResult(any(SearchResultEntry.class));
     }
 
     @Test
@@ -429,14 +430,14 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 newSearchResultEntry("cn=test"));
         final SearchRequest request =
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
+        ExceptionHandler<LdapException> exceptionHandler = mock(ExceptionHandler.class);
 
         try {
-            mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
+            mockConnection.searchSingleEntryAsync(request).thenOnException(exceptionHandler).getOrThrow();
             failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
-            verify(failureHandler).handleError(any(LdapException.class));
+            verify(exceptionHandler).handleException(any(LdapException.class));
         }
     }
 
@@ -448,13 +449,13 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final SearchRequest request = newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT,
                 "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
+        ExceptionHandler<LdapException> exceptionHandler = mock(ExceptionHandler.class);
         try {
-            mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
+            mockConnection.searchSingleEntryAsync(request).thenOnException(exceptionHandler).getOrThrow();
             failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
-            verify(failureHandler).handleError(any(LdapException.class));
+            verify(exceptionHandler).handleException(any(LdapException.class));
         }
     }
 
@@ -477,13 +478,13 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final SearchRequest request =
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
+        ExceptionHandler<LdapException> exceptionHandler = mock(ExceptionHandler.class);
         try {
-            mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
+            mockConnection.searchSingleEntryAsync(request).thenOnException(exceptionHandler).getOrThrow();
             failWasExpected(LdapException.class);
         } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
-            verify(failureHandler).handleError(any(LdapException.class));
+            verify(exceptionHandler).handleException(any(LdapException.class));
         }
     }
 

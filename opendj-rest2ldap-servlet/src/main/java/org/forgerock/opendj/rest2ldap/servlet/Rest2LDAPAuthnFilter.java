@@ -57,10 +57,10 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 import static org.forgerock.json.resource.SecurityContext.*;
 import static org.forgerock.json.resource.servlet.SecurityContextFactory.*;
@@ -228,7 +228,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                                 // Do the search.
                                 return connection.searchSingleEntryAsync(searchRequest);
                             }
-                        }).onSuccess(new SuccessHandler<SearchResultEntry>() {
+                        }).thenOnResult(new ResultHandler<SearchResultEntry>() {
                             @Override
                             public void handleResult(final SearchResultEntry result) {
                                 savedConnection.get().close();
@@ -239,24 +239,25 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                                 doBind(req, res, newSimpleBindRequest(bindDN, password), chain, savedConnection, sync,
                                         username, authzid);
                             }
-                        }).onFailure(new FailureHandler<LdapException>() {
+                        }).thenOnException(new ExceptionHandler<LdapException>() {
                             @Override
-                            public void handleError(final LdapException error) {
-                                LdapException normalizedError = error;
+                            public void handleException(final LdapException exception) {
+                                LdapException normalizedError = exception;
                                 if (savedConnection.get() != null) {
                                     savedConnection.get().close();
                                     /*
                                      * The search error should not be passed
                                      * as-is back to the user.
                                      */
-                                    if (error instanceof EntryNotFoundException
-                                            || error instanceof MultipleEntriesFoundException) {
-                                        normalizedError = newLdapException(ResultCode.INVALID_CREDENTIALS, error);
-                                    } else if (error instanceof AuthenticationException
-                                            || error instanceof AuthorizationException) {
-                                        normalizedError = newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, error);
+                                    if (exception instanceof EntryNotFoundException
+                                            || exception instanceof MultipleEntriesFoundException) {
+                                        normalizedError = newLdapException(ResultCode.INVALID_CREDENTIALS, exception);
+                                    } else if (exception instanceof AuthenticationException
+                                            || exception instanceof AuthorizationException) {
+                                        normalizedError =
+                                            newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, exception);
                                     } else {
-                                        normalizedError = error;
+                                        normalizedError = exception;
                                     }
                                 }
                                 sync.signalAndComplete(asResourceException(normalizedError));
@@ -400,7 +401,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                         savedConnection.set(connection);
                         return connection.bindAsync(bindRequest);
                     }
-                }).onSuccess(new SuccessHandler<BindResult>() {
+                }).thenOnResult(new ResultHandler<BindResult>() {
                     @Override
                     public void handleResult(final BindResult result) {
                         /*
@@ -438,10 +439,10 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                             }
                         }
                     }
-                }).onFailure(new FailureHandler<LdapException>() {
+                }).thenOnException(new ExceptionHandler<LdapException>() {
                     @Override
-                    public void handleError(final LdapException error) {
-                        sync.signalAndComplete(asResourceException(error));
+                    public void handleException(final LdapException exception) {
+                        sync.signalAndComplete(asResourceException(exception));
                     }
                 });
     }

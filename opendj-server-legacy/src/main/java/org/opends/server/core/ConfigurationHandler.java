@@ -58,7 +58,7 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -250,7 +250,7 @@ public class ConfigurationHandler implements ConfigurationRepository
   }
 
   /** Handler for LDAP operations. */
-  private static final class ConfigResultHandler implements ResultHandler<Result> {
+  private static final class ConfigResultHandler implements LdapResultHandler<Result> {
 
     private LdapException resultError;
 
@@ -272,9 +272,9 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     /** {@inheritDoc} */
     @Override
-    public void handleError(LdapException error)
+    public void handleException(LdapException exception)
     {
-      resultError = error;
+      resultError = exception;
     }
   }
 

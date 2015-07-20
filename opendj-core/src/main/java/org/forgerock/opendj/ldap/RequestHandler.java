@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * A handler interface for processing client requests.
  * <p>
  * Implementations must always return results using the provided
- * {@link ResultHandler} unless explicitly permitted.
+ * {@link LdapResultHandler} unless explicitly permitted.
  * <p>
  * For example, an {@link LDAPListener} does not require {@code RequestHandler}
  * implementations to return results, which may be useful when implementing
@@ -77,7 +77,7 @@ public interface RequestHandler<C> {
      */
     void handleAdd(C requestContext, AddRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<Result> resultHandler);
+            LdapResultHandler<Result> resultHandler);
 
     /**
      * Invoked when a bind request is received from a client.
@@ -99,7 +99,7 @@ public interface RequestHandler<C> {
      */
     void handleBind(C requestContext, int version, BindRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<BindResult> resultHandler);
+            LdapResultHandler<BindResult> resultHandler);
 
     /**
      * Invoked when a compare request is received from a client.
@@ -119,7 +119,7 @@ public interface RequestHandler<C> {
      */
     void handleCompare(C requestContext, CompareRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<CompareResult> resultHandler);
+            LdapResultHandler<CompareResult> resultHandler);
 
     /**
      * Invoked when a delete request is received from a client.
@@ -139,7 +139,7 @@ public interface RequestHandler<C> {
      */
     void handleDelete(C requestContext, DeleteRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<Result> resultHandler);
+            LdapResultHandler<Result> resultHandler);
 
     /**
      * Invoked when an extended request is received from a client.
@@ -161,7 +161,7 @@ public interface RequestHandler<C> {
      */
     <R extends ExtendedResult> void handleExtendedRequest(C requestContext,
             ExtendedRequest<R> request, IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<R> resultHandler);
+            LdapResultHandler<R> resultHandler);
 
     /**
      * Invoked when a modify request is received from a client.
@@ -181,7 +181,7 @@ public interface RequestHandler<C> {
      */
     void handleModify(C requestContext, ModifyRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<Result> resultHandler);
+            LdapResultHandler<Result> resultHandler);
 
     /**
      * Invoked when a modify DN request is received from a client.
@@ -201,7 +201,7 @@ public interface RequestHandler<C> {
      */
     void handleModifyDN(C requestContext, ModifyDNRequest request,
             IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<Result> resultHandler);
+            LdapResultHandler<Result> resultHandler);
 
     /**
      * Invoked when a search request is received from a client.
@@ -224,5 +224,5 @@ public interface RequestHandler<C> {
      */
     void handleSearch(C requestContext, SearchRequest request,
         IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler,
-        ResultHandler<Result> resultHandler);
+        LdapResultHandler<Result> resultHandler);
 }

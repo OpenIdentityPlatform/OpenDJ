@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -104,7 +104,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleAdd(final Integer requestContext, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
+                final LdapResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -113,7 +113,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         public void handleBind(final Integer requestContext, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<BindResult> resultHandler) throws UnsupportedOperationException {
+                final LdapResultHandler<BindResult> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
         }
 
@@ -121,7 +121,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleCompare(final Integer requestContext, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<CompareResult> resultHandler)
+                final LdapResultHandler<CompareResult> resultHandler)
                 throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newCompareResult(ResultCode.SUCCESS));
         }
@@ -148,7 +148,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleDelete(final Integer requestContext, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
+                final LdapResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -157,8 +157,8 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer requestContext,
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<R> resultHandler) throws UnsupportedOperationException {
-            resultHandler.handleError(newLdapException(request
+                final LdapResultHandler<R> resultHandler) throws UnsupportedOperationException {
+            resultHandler.handleException(newLdapException(request
                     .getResultDecoder().newExtendedErrorResult(ResultCode.PROTOCOL_ERROR, "",
                             "Extended operation " + request.getOID() + " not supported")));
         }
@@ -167,7 +167,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleModify(final Integer requestContext, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
+                final LdapResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -175,7 +175,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleModifyDN(final Integer requestContext, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
+                final LdapResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -183,7 +183,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         @Override
         public void handleSearch(final Integer requestContext, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
-            final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
+            final LdapResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
@@ -417,7 +417,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 public void handleBind(final Integer requestContext, final int version,
                         final BindRequest request,
                         final IntermediateResponseHandler intermediateResponseHandler,
-                        final ResultHandler<BindResult> resultHandler)
+                        final LdapResultHandler<BindResult> resultHandler)
                         throws UnsupportedOperationException {
                     // Get connection from load balancer, this should fail over
                     // twice before getting connection to online server.
@@ -426,7 +426,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                     } catch (final Exception e) {
                         // Unexpected.
-                        resultHandler.handleError(newLdapException(ResultCode.OTHER,
+                        resultHandler.handleException(newLdapException(ResultCode.OTHER,
                                 "Unexpected exception when connecting to load balancer", e));
                     }
                 }
@@ -569,7 +569,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 public void handleBind(final Integer requestContext, final int version,
                         final BindRequest request,
                         final IntermediateResponseHandler intermediateResponseHandler,
-                        final ResultHandler<BindResult> resultHandler)
+                        final LdapResultHandler<BindResult> resultHandler)
                         throws UnsupportedOperationException {
                     // First attempt offline server.
                     InetSocketAddress offlineAddress = findFreeSocketAddress();
@@ -578,7 +578,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     try {
                         // This is expected to fail.
                         lcf.getConnection().close();
-                        resultHandler.handleError(newLdapException(
+                        resultHandler.handleException(newLdapException(
                                 ResultCode.OTHER,
                                 "Connection to offline server succeeded unexpectedly"));
                     } catch (final ConnectionException ce) {
@@ -590,13 +590,13 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                         } catch (final Exception e) {
                             // Unexpected.
-                            resultHandler.handleError(newLdapException(
+                            resultHandler.handleException(newLdapException(
                                     ResultCode.OTHER,
                                     "Unexpected exception when connecting to online server", e));
                         }
                     } catch (final Exception e) {
                         // Unexpected.
-                        resultHandler.handleError(newLdapException(
+                        resultHandler.handleException(newLdapException(
                                 ResultCode.OTHER,
                                 "Unexpected exception when connecting to offline server", e));
                     }

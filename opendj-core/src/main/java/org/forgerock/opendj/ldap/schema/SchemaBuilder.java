@@ -73,8 +73,8 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.DITContentRule.Builder;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.util.StaticUtils;

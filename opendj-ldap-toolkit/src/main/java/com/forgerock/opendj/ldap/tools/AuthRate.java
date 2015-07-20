@@ -59,7 +59,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -105,10 +105,10 @@ public final class AuthRate extends ConsoleApplication {
             }
 
             @Override
-            public void handleError(final LdapException error) {
-                super.handleError(error);
+            public void handleException(final LdapException exception) {
+                super.handleException(exception);
 
-                if (error.getResult().getResultCode() == ResultCode.INVALID_CREDENTIALS) {
+                if (exception.getResult().getResultCode() == ResultCode.INVALID_CREDENTIALS) {
                     invalidCredRecentCount.getAndIncrement();
                 }
             }
@@ -181,8 +181,8 @@ public final class AuthRate extends ConsoleApplication {
                 }
 
                 incrementIterationCount();
-                return returnedPromise.onSuccess(new UpdateStatsResultHandler<BindResult>(startTime)).onFailure(
-                        new BindUpdateStatsResultHandler(startTime));
+                return returnedPromise.thenOnResult(new UpdateStatsResultHandler<BindResult>(startTime))
+                                      .thenOnException(new BindUpdateStatsResultHandler(startTime));
             }
 
             private Promise<BindResult, LdapException> performBind(final Connection connection,

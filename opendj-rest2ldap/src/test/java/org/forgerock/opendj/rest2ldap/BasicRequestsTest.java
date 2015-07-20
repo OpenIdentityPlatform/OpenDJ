@@ -61,7 +61,7 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -716,7 +716,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleAdd(RequestContext requestContext, AddRequest request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<Result> resultHandler) {
+                    LdapResultHandler<Result> resultHandler) {
                 requests.add(request);
                 handler.handleAdd(requestContext, request, intermediateResponseHandler,
                         resultHandler);
@@ -725,7 +725,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleBind(RequestContext requestContext, int version, BindRequest request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<BindResult> resultHandler) {
+                    LdapResultHandler<BindResult> resultHandler) {
                 requests.add(request);
                 handler.handleBind(requestContext, version, request, intermediateResponseHandler,
                         resultHandler);
@@ -734,7 +734,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleCompare(RequestContext requestContext, CompareRequest request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<CompareResult> resultHandler) {
+                    LdapResultHandler<CompareResult> resultHandler) {
                 requests.add(request);
                 handler.handleCompare(requestContext, request, intermediateResponseHandler,
                         resultHandler);
@@ -743,7 +743,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleDelete(RequestContext requestContext, DeleteRequest request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<Result> resultHandler) {
+                    LdapResultHandler<Result> resultHandler) {
                 requests.add(request);
                 handler.handleDelete(requestContext, request, intermediateResponseHandler,
                         resultHandler);
@@ -753,7 +753,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             public <R extends ExtendedResult> void handleExtendedRequest(
                     RequestContext requestContext, ExtendedRequest<R> request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<R> resultHandler) {
+                    LdapResultHandler<R> resultHandler) {
                 requests.add(request);
                 handler.handleExtendedRequest(requestContext, request, intermediateResponseHandler,
                         resultHandler);
@@ -762,7 +762,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleModify(RequestContext requestContext, ModifyRequest request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<Result> resultHandler) {
+                    LdapResultHandler<Result> resultHandler) {
                 requests.add(request);
                 handler.handleModify(requestContext, request, intermediateResponseHandler,
                         resultHandler);
@@ -771,7 +771,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleModifyDN(RequestContext requestContext, ModifyDNRequest request,
                     IntermediateResponseHandler intermediateResponseHandler,
-                    ResultHandler<Result> resultHandler) {
+                    LdapResultHandler<Result> resultHandler) {
                 requests.add(request);
                 handler.handleModifyDN(requestContext, request, intermediateResponseHandler,
                         resultHandler);
@@ -780,7 +780,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
             @Override
             public void handleSearch(RequestContext requestContext, SearchRequest request,
                 IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler,
-                ResultHandler<Result> resultHandler) {
+                LdapResultHandler<Result> resultHandler) {
                 requests.add(request);
                 handler.handleSearch(requestContext, request, intermediateResponseHandler, entryHandler,
                     resultHandler);

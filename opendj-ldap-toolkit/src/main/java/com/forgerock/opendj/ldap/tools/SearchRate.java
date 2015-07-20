@@ -140,7 +140,7 @@ public final class SearchRate extends ConsoleApplication {
 
                 final SearchStatsHandler handler = new SearchStatsHandler(startTime);
                 incrementIterationCount();
-                return connection.searchAsync(sr, handler).onSuccess(handler).onFailure(handler);
+                return connection.searchAsync(sr, handler).thenOnResult(handler).thenOnException(handler);
             }
         }
 

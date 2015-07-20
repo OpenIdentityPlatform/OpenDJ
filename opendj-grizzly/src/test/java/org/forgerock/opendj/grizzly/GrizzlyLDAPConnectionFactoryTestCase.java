@@ -47,7 +47,7 @@ import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
@@ -59,7 +59,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -127,7 +127,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
             for (int i = 0; i < ITERATIONS; i++) {
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
                 final Promise<? extends Connection, LdapException> connectionPromise = factory.getConnectionAsync();
-                connectionPromise.onFailure(getFailureHandler(promise));
+                connectionPromise.thenOnException(getExceptionHandler(promise));
 
                 ConnectionException e = (ConnectionException) promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                 assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
@@ -164,7 +164,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
             connection.addConnectionEventListener(listener);
             final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
             final LdapPromise<BindResult> bindPromise = connection.bindAsync(newSimpleBindRequest());
-            bindPromise.onFailure(getFailureHandler(promise));
+            bindPromise.thenOnException(getExceptionHandler(promise));
             waitForBind();
 
             TimeoutResultException e = (TimeoutResultException) promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
@@ -214,7 +214,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 // Now bind with timeout.
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
                 final LdapPromise<BindResult> bindPromise = connection.bindAsync(newSimpleBindRequest());
-                bindPromise.onFailure(getFailureHandler(promise));
+                bindPromise.thenOnException(getExceptionHandler(promise));
                 waitForBind();
 
                 // Wait for the request to timeout and check the handler was invoked.
@@ -268,7 +268,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
                 final LdapPromise<SearchResultEntry> connectionPromise =
                         connection.readEntryAsync(DN.valueOf("cn=test"), null);
-                connectionPromise.onFailure(getFailureHandler(promise));
+                connectionPromise.thenOnException(getExceptionHandler(promise));
                 waitForSearch();
 
                 LdapException e = promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
@@ -367,12 +367,12 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         }
     }
 
-    private FailureHandler<LdapException> getFailureHandler(
+    private ExceptionHandler<LdapException> getExceptionHandler(
             final PromiseImpl<LdapException, NeverThrowsException> promise) {
-        return new FailureHandler<LdapException>() {
+        return new ExceptionHandler<LdapException>() {
             @Override
-            public void handleError(LdapException error) {
-                promise.handleResult(error);
+            public void handleException(LdapException exception) {
+                promise.handleResult(exception);
             }
         };
     }
@@ -395,7 +395,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     private void registerBindEvent() {
         notifyEvent(bindLatch).when(serverConnection).handleBind(any(Integer.class), anyInt(),
                 any(BindRequest.class), any(IntermediateResponseHandler.class),
-                any(ResultHandler.class));
+                any(LdapResultHandler.class));
     }
 
     private void registerCloseEvent() {
@@ -405,7 +405,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
     private void registerSearchEvent() {
         notifyEvent(searchLatch).when(serverConnection).handleSearch(any(Integer.class), any(SearchRequest.class),
-            any(IntermediateResponseHandler.class), any(SearchResultHandler.class), any(ResultHandler.class));
+            any(IntermediateResponseHandler.class), any(SearchResultHandler.class), any(LdapResultHandler.class));
     }
 
     private void resetState() {

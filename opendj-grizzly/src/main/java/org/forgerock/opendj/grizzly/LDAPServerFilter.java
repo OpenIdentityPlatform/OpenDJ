@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
@@ -115,7 +115,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             };
 
     private static abstract class AbstractHandler<R extends Result> implements
-            IntermediateResponseHandler, ResultHandler<R> {
+            IntermediateResponseHandler, LdapResultHandler<R> {
         protected final ClientContextImpl context;
         protected final int messageID;
 
@@ -178,7 +178,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
                 ldapWrite.perform(writer, messageID, message);
                 context.write(writer);
             } catch (final IOException ioe) {
-                context.handleError(ioe);
+                context.handleException(ioe);
             } finally {
                 GrizzlyUtils.recycleWriter(writer);
             }
@@ -209,7 +209,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             handleResult(error.getResult());
         }
 
@@ -226,7 +226,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             final Result result = error.getResult();
             if (result instanceof BindResult) {
                 handleResult((BindResult) result);
@@ -337,7 +337,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
                 writer.writeExtendedResult(0, notification);
                 connection.write(writer.getASN1Writer().getBuffer(), null);
             } catch (final IOException ioe) {
-                handleError(ioe);
+                handleException(ioe);
             } finally {
                 GrizzlyUtils.recycleWriter(writer);
             }
@@ -402,7 +402,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             }
         }
 
-        private void handleError(final Throwable error) {
+        private void handleException(final Throwable error) {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 try {
@@ -458,7 +458,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             final Result result = error.getResult();
             if (result instanceof CompareResult) {
                 handleResult((CompareResult) result);
@@ -483,7 +483,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             handleResult(error.getResult());
         }
 
@@ -500,7 +500,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             final Result result = error.getResult();
             if (result instanceof ExtendedResult) {
                 handleResult((ExtendedResult) result);
@@ -541,7 +541,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             handleResult(error.getResult());
         }
 
@@ -558,7 +558,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             handleResult(error.getResult());
         }
 
@@ -588,7 +588,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             handleResult(error.getResult());
         }
 
@@ -835,7 +835,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     private static void exceptionOccurred(final Connection<?> connection, final Throwable error) {
         final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(connection);
         if (clientContext != null) {
-            clientContext.handleError(error);
+            clientContext.handleException(error);
         }
     }
 

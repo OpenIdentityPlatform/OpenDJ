@@ -157,7 +157,7 @@ public abstract class ResultLdapPromiseImpl<R extends Request, S extends Result>
      */
     public final void setResultOrError(final S result) {
         if (result.getResultCode().isExceptional()) {
-            getWrappedPromise().handleError(newLdapException(result));
+            getWrappedPromise().handleException(newLdapException(result));
         } else {
             getWrappedPromise().handleResult(result);
         }

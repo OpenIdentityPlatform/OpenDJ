@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap.responses;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 
 /**
@@ -76,8 +76,8 @@ public interface ExtendedResultDecoder<S extends ExtendedResult> {
      * @return A result handler which is compatible with this extended result
      *         decoder.
      */
-    <R extends ExtendedResult> ResultHandler<S> adaptExtendedResultHandler(
-            ExtendedRequest<R> request, ResultHandler<? super R> resultHandler, DecodeOptions options);
+    <R extends ExtendedResult> LdapResultHandler<S> adaptExtendedResultHandler(
+            ExtendedRequest<R> request, LdapResultHandler<? super R> resultHandler, DecodeOptions options);
 
     /**
      * Decodes the provided extended operation result as a {@code Result} of

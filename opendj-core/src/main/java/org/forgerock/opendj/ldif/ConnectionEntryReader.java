@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -113,7 +113,7 @@ public class ConnectionEntryReader implements EntryReader {
     /**
      * Result handler that places all responses in a queue.
      */
-    private static final class BufferHandler implements SearchResultHandler, ResultHandler<Result> {
+    private static final class BufferHandler implements SearchResultHandler, LdapResultHandler<Result> {
         private final BlockingQueue<Response> responses;
         private volatile boolean isInterrupted;
 
@@ -136,7 +136,7 @@ public class ConnectionEntryReader implements EntryReader {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             try {
                 responses.put(error.getResult());
             } catch (final InterruptedException e) {
@@ -211,7 +211,7 @@ public class ConnectionEntryReader implements EntryReader {
         final BlockingQueue<Response> entries) {
         Reject.ifNull(connection);
         buffer = new BufferHandler(entries);
-        promise = connection.searchAsync(searchRequest, buffer).onSuccess(buffer).onFailure(buffer);
+        promise = connection.searchAsync(searchRequest, buffer).thenOnResult(buffer).thenOnException(buffer);
     }
 
     /**

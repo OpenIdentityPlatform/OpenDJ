@@ -32,11 +32,11 @@ import java.util.concurrent.TimeoutException;
 
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
@@ -45,7 +45,7 @@ import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
  *
  *
  * This wrapper allows client code to return {@link LdapPromise} instance when
- * using {@link Promise} chaining methods (e.g onSuccess(), then(), thenAsync()).
+ * using {@link Promise} chaining methods (e.g thenOnResult(), then(), thenAsync()).
  * Wrapping is specially needed with {@link Promise} method which are not returning the original promise.
  *
  * @param <R>
@@ -114,67 +114,81 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     }
 
     @Override
-    public LdapPromise<R> onFailure(FailureHandler<? super LdapException> onFailure) {
-        wrappedPromise.onFailure(onFailure);
+    public LdapPromise<R> thenOnException(ExceptionHandler<? super LdapException> onException) {
+        wrappedPromise.thenOnException(onException);
         return this;
     }
 
     @Override
-    public LdapPromise<R> onSuccess(SuccessHandler<? super R> onSuccess) {
-        wrappedPromise.onSuccess(onSuccess);
+    public LdapPromise<R> thenOnResult(ResultHandler<? super R> onResult) {
+        wrappedPromise.thenOnResult(onResult);
         return this;
     }
 
     @Override
-    public LdapPromise<R> onSuccessOrFailure(Runnable onSuccessOrFailure) {
-        wrappedPromise.onSuccessOrFailure(onSuccessOrFailure);
-        return this;
-    }
-
-    @Override
-    // @Checkstyle:ignore
-    public <VOUT> LdapPromise<VOUT> then(Function<? super R, VOUT, LdapException> onSuccess) {
-        return wrap(wrappedPromise.then(onSuccess), getRequestID());
-    }
-
-    @Override
-    // @Checkstyle:ignore
-    public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> then(Function<? super R, VOUT, EOUT> onSuccess,
-            Function<? super LdapException, VOUT, EOUT> onFailure) {
-        return wrappedPromise.then(onSuccess, onFailure);
-    }
-
-    @Override
-    public LdapPromise<R> then(SuccessHandler<? super R> onSuccess) {
-        wrappedPromise.then(onSuccess);
-        return this;
-    }
-
-    @Override
-    public LdapPromise<R> then(SuccessHandler<? super R> onSuccess,
-            FailureHandler<? super LdapException> onFailure) {
-        wrappedPromise.then(onSuccess, onFailure);
-        return this;
-    }
-
-    @Override
-    public LdapPromise<R> thenAlways(Runnable onSuccessOrFailure) {
-        wrappedPromise.thenAlways(onSuccessOrFailure);
+    public LdapPromise<R> thenOnResultOrException(Runnable onResultOrException) {
+        wrappedPromise.thenOnResultOrException(onResultOrException);
         return this;
     }
 
     @Override
     // @Checkstyle:ignore
-    public <VOUT> LdapPromise<VOUT> thenAsync(AsyncFunction<? super R, VOUT, LdapException> onSuccess) {
-        return wrap(wrappedPromise.thenAsync(onSuccess), getRequestID());
+    public <VOUT> LdapPromise<VOUT> then(Function<? super R, VOUT, LdapException> onResult) {
+        return wrap(wrappedPromise.then(onResult), getRequestID());
+    }
+
+    @Override
+    // @Checkstyle:ignore
+    public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> then(Function<? super R, VOUT, EOUT> onResult,
+            Function<? super LdapException, VOUT, EOUT> onException) {
+        return wrappedPromise.then(onResult, onException);
+    }
+
+    @Override
+    public LdapPromise<R> thenOnResultOrException(ResultHandler<? super R> onResult,
+                                                  ExceptionHandler<? super LdapException> onException) {
+        wrappedPromise.thenOnResultOrException(onResult, onException);
+        return this;
+    }
+
+    @Override
+    public LdapPromise<R> thenAlways(Runnable onResultOrException) {
+        wrappedPromise.thenAlways(onResultOrException);
+        return this;
+    }
+
+    @Override
+    // @Checkstyle:ignore
+    public <VOUT> LdapPromise<VOUT> thenAsync(AsyncFunction<? super R, VOUT, LdapException> onResult) {
+        return wrap(wrappedPromise.thenAsync(onResult), getRequestID());
     }
 
     @Override
     // @Checkstyle:ignore
     public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> thenAsync(
-            AsyncFunction<? super R, VOUT, EOUT> onSuccess,
-            AsyncFunction<? super LdapException, VOUT, EOUT> onFailure) {
-        return wrappedPromise.thenAsync(onSuccess, onFailure);
+            AsyncFunction<? super R, VOUT, EOUT> onResult,
+            AsyncFunction<? super LdapException, VOUT, EOUT> onException) {
+        return wrappedPromise.thenAsync(onResult, onException);
+    }
+
+    @Override
+    // @Checkstyle:ignore
+    public <EOUT extends Exception> Promise<R, EOUT> thenCatch(Function<? super LdapException, R, EOUT> onException) {
+        return wrappedPromise.thenCatch(onException);
+    }
+
+    @Override
+    // @Checkstyle:ignore
+    public LdapPromise<R> thenFinally(Runnable onResultOrException) {
+        wrappedPromise.thenFinally(onResultOrException);
+        return this;
+    }
+
+    @Override
+    // @Checkstyle:ignore
+    public <EOUT extends Exception> Promise<R, EOUT> thenCatchAsync(
+            AsyncFunction<? super LdapException, R, EOUT> onException) {
+        return null;
     }
 
     public P getWrappedPromise() {
