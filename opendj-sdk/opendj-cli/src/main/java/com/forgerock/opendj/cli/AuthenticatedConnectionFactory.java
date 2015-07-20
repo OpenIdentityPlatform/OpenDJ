@@ -26,24 +26,24 @@
  */
 package com.forgerock.opendj.cli;
 
+import static org.forgerock.util.Utils.*;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
-import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.Function;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.SuccessHandler;
-
-import static org.forgerock.util.Utils.*;
+import org.forgerock.util.promise.ResultHandler;
 /**
  * An authenticated connection factory can be used to create pre-authenticated
  * connections to a Directory Server.
@@ -133,21 +133,21 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
             }
 
             return connection.bindAsync(request)
-                    .onSuccess(new SuccessHandler<BindResult>() {
-                        @Override
-                        public void handleResult(final BindResult result) {
-                            // Save the result.
-                            AuthenticatedConnection.this.result = result;
-                        }
-                    }).onFailure(new FailureHandler<LdapException>() {
-                        @Override
-                        public void handleError(final LdapException error) {
-                            /*
-                             * This connection is now unauthenticated so prevent further use.
-                             */
-                            connection.close();
-                        }
-                    });
+                      .thenOnResult(new ResultHandler<BindResult>() {
+                          @Override
+                          public void handleResult(final BindResult result) {
+                              // Save the result.
+                              AuthenticatedConnection.this.result = result;
+                          }
+                      }).thenOnException(new ExceptionHandler<LdapException>() {
+                          @Override
+                          public void handleException(final LdapException exception) {
+                              /*
+                               * This connection is now unauthenticated so prevent further use.
+                               */
+                              connection.close();
+                          }
+                      });
         }
 
         /**

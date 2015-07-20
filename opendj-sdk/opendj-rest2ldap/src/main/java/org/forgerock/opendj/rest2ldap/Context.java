@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -54,8 +54,8 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
@@ -69,7 +69,7 @@ final class Context implements Closeable {
     /**
      * A cached read request - see cachedReads for more information.
      */
-    private static final class CachedRead implements SearchResultHandler, ResultHandler<Result> {
+    private static final class CachedRead implements SearchResultHandler, LdapResultHandler<Result> {
         private SearchResultEntry cachedEntry;
         private final String cachedFilterString;
         /**  Guarded by cachedPromiseLatch.*/
@@ -92,8 +92,8 @@ final class Context implements Closeable {
         }
 
         @Override
-        public void handleError(final LdapException error) {
-            handleResult(error.getResult());
+        public void handleException(final LdapException exception) {
+            handleResult(exception.getResult());
         }
 
         @Override
@@ -273,16 +273,16 @@ final class Context implements Closeable {
             // Invoke the handler immediately since a connection is available.
             runnable.run();
         } else if (config.connectionFactory() != null) {
-            config.connectionFactory().getConnectionAsync().onSuccess(new SuccessHandler<Connection>() {
+            config.connectionFactory().getConnectionAsync().thenOnResult(new ResultHandler<Connection>() {
                 @Override
                 public final void handleResult(final Connection result) {
                     connection = wrap(result);
                     runnable.run();
                 }
-            }).onFailure(new FailureHandler<LdapException>() {
+            }).thenOnException(new ExceptionHandler<LdapException>() {
                 @Override
-                public final void handleError(final LdapException error) {
-                    handler.handleError(asResourceException(error));
+                public final void handleException(final LdapException exception) {
+                    handler.handleError(asResourceException(exception));
                 }
             });
         } else {
@@ -422,7 +422,7 @@ final class Context implements Closeable {
                     }
                     final LdapPromise<Result> promise = connection
                             .searchAsync(withControls(request), intermediateResponseHandler, pendingCachedRead)
-                            .onSuccess(pendingCachedRead).onFailure(pendingCachedRead);
+                            .thenOnResult(pendingCachedRead).thenOnException(pendingCachedRead);
                     pendingCachedRead.setPromise(promise);
                     return promise;
                 }

@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LDAPServer;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SdkTestCase;
@@ -74,10 +74,10 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.AfterClass;
@@ -278,16 +278,16 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // Use the promise to get the result asynchronously.
         final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
 
-        factory.getConnectionAsync().onSuccess(new SuccessHandler<Connection>() {
+        factory.getConnectionAsync().thenOnResult(new ResultHandler<Connection>() {
             @Override
             public void handleResult(Connection con) {
                 con.close();
                 promise.handleResult(con);
             }
-        }).onFailure(new FailureHandler<LdapException>() {
+        }).thenOnException(new ExceptionHandler<LdapException>() {
             @Override
-            public void handleError(LdapException error) {
-                promise.handleError(error);
+            public void handleException(LdapException exception) {
+                promise.handleException(exception);
             }
 
         });
@@ -541,8 +541,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                             doAnswer(new Answer<Void>() {
                                 @Override
                                 public Void answer(InvocationOnMock invocation) throws Throwable {
-                                    ResultHandler<? super BindResult> resultHandler =
-                                            (ResultHandler<? super BindResult>) invocation
+                                    LdapResultHandler<? super BindResult> resultHandler =
+                                            (LdapResultHandler<? super BindResult>) invocation
                                                     .getArguments()[4];
                                     resultHandler.handleResult(Responses
                                             .newBindResult(ResultCode.SUCCESS));
@@ -550,7 +550,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                                 }
                             }).when(mockConnection).handleBind(anyInt(), anyInt(),
                                     any(BindRequest.class), any(IntermediateResponseHandler.class),
-                                    any(ResultHandler.class));
+                                    any(LdapResultHandler.class));
                             return mockConnection;
                         }
                     }

@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -72,10 +72,10 @@ public final class ModRate extends ConsoleApplication {
                     data = DataSource.generateData(dataSources, data);
                 }
                 mr = newModifyRequest(data);
-                ResultHandler<Result> modRes = new UpdateStatsResultHandler<>(startTime);
+                LdapResultHandler<Result> modRes = new UpdateStatsResultHandler<>(startTime);
 
                 incrementIterationCount();
-                return connection.modifyAsync(mr).onSuccess(modRes).onFailure(modRes);
+                return connection.modifyAsync(mr).thenOnResult(modRes).thenOnException(modRes);
             }
 
             private ModifyRequest newModifyRequest(final Object[] data) {

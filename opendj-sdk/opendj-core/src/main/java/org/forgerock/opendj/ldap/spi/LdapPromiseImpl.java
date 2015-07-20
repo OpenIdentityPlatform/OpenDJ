@@ -27,7 +27,7 @@ package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.Promises;
@@ -42,7 +42,7 @@ import org.forgerock.util.promise.Promises;
  * @see LdapPromise
  */
 public class LdapPromiseImpl<S> extends LdapPromiseWrapper<S, PromiseImpl<S, LdapException>> implements
-        LdapPromise<S>, ResultHandler<S> {
+        LdapPromise<S>, LdapResultHandler<S> {
 
     /**
      * Creates a new {@link LdapPromiseImpl} from a wrapped existing {@link PromiseImpl}.
@@ -81,8 +81,8 @@ public class LdapPromiseImpl<S> extends LdapPromiseWrapper<S, PromiseImpl<S, Lda
     }
 
     @Override
-    public void handleError(LdapException error) {
-        getWrappedPromise().handleError(error);
+    public void handleException(LdapException exception) {
+        getWrappedPromise().handleException(exception);
     }
 
     @Override

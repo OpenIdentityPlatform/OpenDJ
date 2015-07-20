@@ -33,7 +33,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import static com.forgerock.opendj.util.Collections2.*;

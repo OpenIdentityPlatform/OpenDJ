@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Collections2;

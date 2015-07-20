@@ -75,8 +75,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
     /**
      * Request context implementation.
      */
-    private static class RequestContextImpl<S extends Result, H extends ResultHandler<S>>
-            implements RequestContext, ResultHandler<S> {
+    private static class RequestContextImpl<S extends Result, H extends LdapResultHandler<S>>
+            implements RequestContext, LdapResultHandler<S> {
 
         /**
          * Adapter class which invokes cancel result handlers with correct
@@ -84,10 +84,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         private static final class ExtendedResultHandlerHolder<R extends ExtendedResult> {
             private final ExtendedRequest<R> request;
-            private final ResultHandler<R> resultHandler;
+            private final LdapResultHandler<R> resultHandler;
 
             private ExtendedResultHandlerHolder(final ExtendedRequest<R> request,
-                    final ResultHandler<R> resultHandler) {
+                    final LdapResultHandler<R> resultHandler) {
                 this.request = request;
                 this.resultHandler = resultHandler;
             }
@@ -103,7 +103,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 final R cancelResult =
                         request.getResultDecoder().newExtendedErrorResult(ResultCode.TOO_LATE, "",
                                 "");
-                resultHandler.handleError(newLdapException(cancelResult));
+                resultHandler.handleException(newLdapException(cancelResult));
             }
         }
 
@@ -221,7 +221,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
 
         /** {@inheritDoc} */
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException error) {
             if (clientConnection.removePendingRequest(this)) {
                 if (setResult(error.getResult())) {
                     /*
@@ -231,7 +231,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                      * not be sent to the client.
                      */
                 }
-                resultHandler.handleError(error);
+                resultHandler.handleException(error);
             }
         }
 
@@ -264,7 +264,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         }
 
         private <R extends ExtendedResult> void cancel(final LocalizableMessage reason,
-                final ExtendedRequest<R> cancelRequest, final ResultHandler<R> cancelResultHandler,
+                final ExtendedRequest<R> cancelRequest, final LdapResultHandler<R> cancelResultHandler,
                 final boolean sendResult) {
             Reject.ifNull(reason);
 
@@ -272,7 +272,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 if (cancelResultHandler != null) {
                     final Result result =
                             Responses.newGenericExtendedResult(ResultCode.CANNOT_CANCEL);
-                    cancelResultHandler.handleError(newLdapException(result));
+                    cancelResultHandler.handleException(newLdapException(result));
                 }
                 return;
             }
@@ -349,7 +349,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                     cancelResultHandler.handleResult(result);
                 } else {
                     final Result result = Responses.newGenericExtendedResult(ResultCode.TOO_LATE);
-                    cancelResultHandler.handleError(newLdapException(result));
+                    cancelResultHandler.handleException(newLdapException(result));
                 }
             }
         }
@@ -423,13 +423,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
     /**
      * Search request context implementation.
      */
-    private static final class SearchRequestContextImpl extends RequestContextImpl<Result, ResultHandler<Result>>
+    private static final class SearchRequestContextImpl extends RequestContextImpl<Result, LdapResultHandler<Result>>
         implements SearchResultHandler {
 
         private final SearchResultHandler entryHandler;
 
         private SearchRequestContextImpl(final ServerConnectionImpl clientConnection,
-            final SearchResultHandler entryHandler, final ResultHandler<Result> resultHandler, final int messageID,
+            final SearchResultHandler entryHandler, final LdapResultHandler<Result> resultHandler, final int messageID,
             final boolean isCancelSupported) {
             super(clientConnection, resultHandler, messageID, isCancelSupported);
             this.entryHandler = entryHandler;
@@ -473,8 +473,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleAdd(final Integer messageID, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                final LdapResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, LdapResultHandler<Result>> requestContext =
                     new RequestContextImpl<>(this, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleAdd(requestContext, request, intermediateResponseHandler,
@@ -487,8 +487,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         public void handleBind(final Integer messageID, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<BindResult> resultHandler) {
-            final RequestContextImpl<BindResult, ResultHandler<BindResult>> requestContext =
+                final LdapResultHandler<BindResult> resultHandler) {
+            final RequestContextImpl<BindResult, LdapResultHandler<BindResult>> requestContext =
                     new RequestContextImpl<>(this, resultHandler, messageID, false);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleBind(requestContext, version, request,
@@ -500,8 +500,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleCompare(final Integer messageID, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<CompareResult> resultHandler) {
-            final RequestContextImpl<CompareResult, ResultHandler<CompareResult>> requestContext =
+                final LdapResultHandler<CompareResult> resultHandler) {
+            final RequestContextImpl<CompareResult, LdapResultHandler<CompareResult>> requestContext =
                     new RequestContextImpl<>(this, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleCompare(requestContext, request, intermediateResponseHandler,
@@ -534,8 +534,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleDelete(final Integer messageID, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                final LdapResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, LdapResultHandler<Result>> requestContext =
                     new RequestContextImpl<>(this, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleDelete(requestContext, request, intermediateResponseHandler,
@@ -548,7 +548,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer messageID,
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<R> resultHandler) {
+                final LdapResultHandler<R> resultHandler) {
             if (request.getOID().equals(CancelExtendedRequest.OID)) {
                 // Decode the request as a cancel request.
                 CancelExtendedRequest cancelRequest;
@@ -558,7 +558,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                                     new DecodeOptions());
                 } catch (final DecodeException e) {
                     // Couldn't decode a cancel request.
-                    resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e
+                    resultHandler.handleException(newLdapException(ResultCode.PROTOCOL_ERROR, e
                             .getLocalizedMessage()));
                     return;
                 }
@@ -568,7 +568,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                  * though this request cannot be cancelled, it is important to
                  * do this in order to monitor the number of pending operations.
                  */
-                final RequestContextImpl<R, ResultHandler<R>> requestContext =
+                final RequestContextImpl<R, LdapResultHandler<R>> requestContext =
                         new RequestContextImpl<>(this, resultHandler, messageID, false);
                 if (addPendingRequest(requestContext)) {
                     // Find and cancel the request.
@@ -583,13 +583,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                          * Couldn't find the request. Invoke on context in order
                          * to remove pending request.
                          */
-                        requestContext.handleError(newLdapException(ResultCode.NO_SUCH_OPERATION));
+                        requestContext.handleException(newLdapException(ResultCode.NO_SUCH_OPERATION));
                     }
                 }
             } else {
                 // StartTLS requests cannot be cancelled.
                 boolean isCancelSupported = !request.getOID().equals(StartTLSExtendedRequest.OID);
-                final RequestContextImpl<R, ResultHandler<R>> requestContext =
+                final RequestContextImpl<R, LdapResultHandler<R>> requestContext =
                         new RequestContextImpl<>(this, resultHandler, messageID, isCancelSupported);
 
                 if (addPendingRequest(requestContext)) {
@@ -603,8 +603,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleModify(final Integer messageID, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                final LdapResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, LdapResultHandler<Result>> requestContext =
                     new RequestContextImpl<>(this, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleModify(requestContext, request, intermediateResponseHandler,
@@ -616,8 +616,8 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleModifyDN(final Integer messageID, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
-            final RequestContextImpl<Result, ResultHandler<Result>> requestContext =
+                final LdapResultHandler<Result> resultHandler) {
+            final RequestContextImpl<Result, LdapResultHandler<Result>> requestContext =
                     new RequestContextImpl<>(this, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
                 requestHandler.handleModifyDN(requestContext, request, intermediateResponseHandler,
@@ -629,7 +629,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         @Override
         public void handleSearch(final Integer messageID, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
-            final ResultHandler<Result> resultHandler) {
+            final LdapResultHandler<Result> resultHandler) {
             final SearchRequestContextImpl requestContext =
                 new SearchRequestContextImpl(this, entryHandler, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
@@ -643,13 +643,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
 
             if (isClosed.get()) {
                 final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
-                requestContext.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
+                requestContext.handleException(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                         message.toString()));
                 return false;
             } else if (pendingRequests.putIfAbsent(messageID, requestContext) != null) {
                 final LocalizableMessage message =
                         WARN_CLIENT_DUPLICATE_MESSAGE_ID.get(requestContext.getMessageID());
-                requestContext.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, message.toString()));
+                requestContext.handleException(newLdapException(ResultCode.PROTOCOL_ERROR, message.toString()));
                 return false;
             } else if (isClosed.get()) {
                 /*
@@ -659,7 +659,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 pendingRequests.remove(messageID);
 
                 final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
-                requestContext.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM, message.toString()));
+                requestContext.handleException(newLdapException(ResultCode.UNWILLING_TO_PERFORM, message.toString()));
                 return false;
             } else {
                 /*

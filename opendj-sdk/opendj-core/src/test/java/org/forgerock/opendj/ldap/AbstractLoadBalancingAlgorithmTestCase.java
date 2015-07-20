@@ -59,9 +59,9 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
             @Override
             public Promise<Connection, LdapException> getConnectionAsync() {
                 try {
-                    return newSuccessfulPromise(mock.getConnection());
+                    return newResultPromise(mock.getConnection());
                 } catch (final LdapException e) {
-                    return newFailedPromise(e);
+                    return newExceptionPromise(e);
                 }
             }
 

@@ -47,10 +47,10 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.SocketConnectorHandler;
@@ -101,7 +101,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
 
             // Plain connection.
             if (options.getSSLContext() == null) {
-                onSuccess(connection);
+                thenOnResult(connection);
                 return;
             }
 
@@ -123,15 +123,15 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                 startTLS.addEnabledProtocol(options.getEnabledProtocols().toArray(
                     new String[options.getEnabledProtocols().size()]));
 
-                connection.extendedRequestAsync(startTLS).onSuccess(new SuccessHandler<ExtendedResult>() {
+                connection.extendedRequestAsync(startTLS).thenOnResult(new ResultHandler<ExtendedResult>() {
                     @Override
                     public void handleResult(final ExtendedResult result) {
-                        onSuccess(connection);
+                        thenOnResult(connection);
                     }
-                }).onFailure(new FailureHandler<LdapException>() {
+                }).thenOnException(new ExceptionHandler<LdapException>() {
                     @Override
-                    public void handleError(final LdapException error) {
-                        onFailure(connection, error);
+                    public void handleException(final LdapException error) {
+                        onException(connection, error);
                     }
                 });
             } else {
@@ -141,16 +141,16 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                         options.getEnabledCipherSuites(), new EmptyCompletionHandler<SSLEngine>() {
                             @Override
                             public void completed(final SSLEngine result) {
-                                onSuccess(connection);
+                                thenOnResult(connection);
                             }
 
                             @Override
                             public void failed(final Throwable throwable) {
-                                onFailure(connection, throwable);
+                                onException(connection, throwable);
                             }
                         });
                 } catch (final IOException e) {
-                    onFailure(connection, e);
+                    onException(connection, e);
                 }
             }
         }
@@ -159,7 +159,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         public void failed(final Throwable throwable) {
             // Adapt and forward.
             timeoutChecker.get().removeListener(this);
-            promise.handleError(adaptConnectionException(throwable));
+            promise.handleException(adaptConnectionException(throwable));
             releaseTransportAndTimeoutChecker();
         }
 
@@ -192,14 +192,14 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             }
         }
 
-        private void onFailure(final GrizzlyLDAPConnection connection, final Throwable t) {
+        private void onException(final GrizzlyLDAPConnection connection, final Throwable t) {
             // Abort connection attempt due to error.
             timeoutChecker.get().removeListener(this);
-            promise.handleError(adaptConnectionException(t));
+            promise.handleException(adaptConnectionException(t));
             connection.close();
         }
 
-        private void onSuccess(final GrizzlyLDAPConnection connection) {
+        private void thenOnResult(final GrizzlyLDAPConnection connection) {
             timeoutChecker.get().removeListener(this);
             if (!promise.tryHandleResult(connection)) {
                 // The connection has been either cancelled or it has timed out.
@@ -214,7 +214,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             } else if (timeoutEndTime > currentTime) {
                 return timeoutEndTime - currentTime;
             } else {
-                promise.handleError(newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+                promise.handleException(newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
                         LDAP_CONNECTION_CONNECT_TIMEOUT.get(getSocketAddress(), getTimeout()).toString()));
                 return 0;
             }

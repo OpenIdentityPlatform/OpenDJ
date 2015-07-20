@@ -28,7 +28,7 @@ package org.opends.server.backends.pluggable;
 import static org.forgerock.util.Reject.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
 

@@ -79,7 +79,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
 
     @Override
     public Promise<Connection, LdapException> getConnectionAsync() {
-        return newSuccessfulPromise(mock(Connection.class));
+        return newResultPromise(mock(Connection.class));
     }
 
     /**

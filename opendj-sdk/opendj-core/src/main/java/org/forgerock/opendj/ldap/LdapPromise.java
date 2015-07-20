@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 
 /**
  * A handle which can be used to retrieve the Result of an asynchronous Request.
@@ -48,28 +48,26 @@ public interface LdapPromise<S> extends Promise<S, LdapException> {
     int getRequestID();
 
     @Override
-    LdapPromise<S> onSuccess(SuccessHandler<? super S> onSuccess);
+    LdapPromise<S> thenOnResult(ResultHandler<? super S> onResult);
 
     @Override
-    LdapPromise<S> onFailure(FailureHandler<? super LdapException> onFailure);
+    LdapPromise<S> thenOnException(ExceptionHandler<? super LdapException> onException);
 
     @Override
-    LdapPromise<S> onSuccessOrFailure(Runnable onSuccessOrFailure);
-
-    @Override
-    // @Checkstyle:ignore
-    <VOUT> LdapPromise<VOUT> then(Function<? super S, VOUT, LdapException> onSuccess);
-
-    @Override
-    LdapPromise<S> then(SuccessHandler<? super S> onSuccess);
-
-    @Override
-    LdapPromise<S> then(SuccessHandler<? super S> onSuccess, FailureHandler<? super LdapException> onFailure);
-
-    @Override
-    LdapPromise<S> thenAlways(Runnable onSuccessOrFailure);
+    LdapPromise<S> thenOnResultOrException(Runnable onResultOrException);
 
     @Override
     // @Checkstyle:ignore
-    <VOUT> LdapPromise<VOUT> thenAsync(AsyncFunction<? super S, VOUT, LdapException> onSuccess);
+    <VOUT> LdapPromise<VOUT> then(Function<? super S, VOUT, LdapException> onResult);
+
+    @Override
+    LdapPromise<S> thenOnResultOrException(ResultHandler<? super S> onResult,
+                                           ExceptionHandler<? super LdapException> onException);
+
+    @Override
+    LdapPromise<S> thenAlways(Runnable onResultOrException);
+
+    @Override
+    // @Checkstyle:ignore
+    <VOUT> LdapPromise<VOUT> thenAsync(AsyncFunction<? super S, VOUT, LdapException> onResult);
 }

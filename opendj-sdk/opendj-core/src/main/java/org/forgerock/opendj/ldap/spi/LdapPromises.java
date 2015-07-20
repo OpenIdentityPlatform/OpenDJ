@@ -63,7 +63,7 @@ public final class LdapPromises {
      *         already succeeded with the provided result.
      */
     public static <R> LdapPromise<R> newSuccessfulLdapPromise(final R result) {
-        return wrap(Promises.<R, LdapException> newSuccessfulPromise(result), -1);
+        return wrap(Promises.<R, LdapException> newResultPromise(result), -1);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class LdapPromises {
      *         already succeeded with the provided result.
      */
     public static <R> LdapPromise<R> newSuccessfulLdapPromise(final R result, int requestID) {
-        return wrap(Promises.<R, LdapException> newSuccessfulPromise(result), requestID);
+        return wrap(Promises.<R, LdapException> newResultPromise(result), requestID);
     }
 
     /**
@@ -101,7 +101,7 @@ public final class LdapPromises {
      *         already failed with the provided error.
      */
     public static <R, E extends LdapException> LdapPromise<R> newFailedLdapPromise(final E error) {
-        return wrap(Promises.<R, LdapException> newFailedPromise(error), -1);
+        return wrap(Promises.<R, LdapException> newExceptionPromise(error), -1);
     }
 
     /**
@@ -122,7 +122,7 @@ public final class LdapPromises {
      *         already failed with the provided error.
      */
     public static <R, E extends LdapException> LdapPromise<R> newFailedLdapPromise(final E error, int requestID) {
-        return wrap(Promises.<R, LdapException> newFailedPromise(error), requestID);
+        return wrap(Promises.<R, LdapException> newExceptionPromise(error), requestID);
     }
 
     /**

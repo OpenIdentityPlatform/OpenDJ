@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
@@ -57,7 +57,7 @@ import static com.forgerock.opendj.util.StaticUtils.*;
  */
 abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm {
     private final class MonitoredConnectionFactory implements ConnectionFactory,
-            ResultHandler<Connection> {
+            LdapResultHandler<Connection> {
 
         private final ConnectionFactory factory;
         private final AtomicBoolean isOperational = new AtomicBoolean(true);
@@ -99,7 +99,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                     @Override
                     public Promise<Connection, LdapException> apply(Connection value) throws LdapException {
                         notifyOnline();
-                        return newSuccessfulPromise(value);
+                        return newResultPromise(value);
                     }
                 },
                 new AsyncFunction<LdapException, Connection, LdapException>() {
@@ -119,8 +119,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          * Handle monitoring connection request failure.
          */
         @Override
-        public void handleError(final LdapException error) {
-            notifyOffline(error);
+        public void handleException(final LdapException exception) {
+            notifyOffline(exception);
         }
 
         /**
@@ -145,7 +145,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         private synchronized void checkIfAvailable() {
             if (!isOperational.get() && (pendingConnectPromise == null || pendingConnectPromise.isDone())) {
                 logger.debug(LocalizableMessage.raw("Attempting reconnect to offline factory '%s'", this));
-                pendingConnectPromise = factory.getConnectionAsync().onSuccess(this).onFailure(this);
+                pendingConnectPromise = factory.getConnectionAsync().thenOnResult(this).thenOnException(this);
             }
         }
 

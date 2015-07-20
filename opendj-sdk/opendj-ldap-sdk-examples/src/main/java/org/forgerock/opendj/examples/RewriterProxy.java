@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
 import org.forgerock.opendj.ldap.RequestHandlerFactory;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -132,7 +132,7 @@ public final class RewriterProxy {
         @Override
         public void handleAdd(final RequestContext requestContext, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
+                final LdapResultHandler<Result> resultHandler) {
             nextHandler.handleAdd(requestContext, rewrite(request), intermediateResponseHandler,
                     resultHandler);
         }
@@ -141,7 +141,7 @@ public final class RewriterProxy {
         public void handleBind(final RequestContext requestContext, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<BindResult> resultHandler) {
+                final LdapResultHandler<BindResult> resultHandler) {
             nextHandler.handleBind(requestContext, version, rewrite(request),
                     intermediateResponseHandler, resultHandler);
         }
@@ -150,7 +150,7 @@ public final class RewriterProxy {
         public void handleCompare(final RequestContext requestContext,
                 final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<CompareResult> resultHandler) {
+                final LdapResultHandler<CompareResult> resultHandler) {
             nextHandler.handleCompare(requestContext, rewrite(request),
                     intermediateResponseHandler, resultHandler);
         }
@@ -158,7 +158,7 @@ public final class RewriterProxy {
         @Override
         public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
+                final LdapResultHandler<Result> resultHandler) {
             nextHandler.handleDelete(requestContext, rewrite(request), intermediateResponseHandler,
                     resultHandler);
         }
@@ -167,7 +167,7 @@ public final class RewriterProxy {
         public <R extends ExtendedResult> void handleExtendedRequest(
                 final RequestContext requestContext, final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<R> resultHandler) {
+                final LdapResultHandler<R> resultHandler) {
             nextHandler.handleExtendedRequest(requestContext, rewrite(request),
                     intermediateResponseHandler, resultHandler);
         }
@@ -175,7 +175,7 @@ public final class RewriterProxy {
         @Override
         public void handleModify(final RequestContext requestContext, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
+                final LdapResultHandler<Result> resultHandler) {
             nextHandler.handleModify(requestContext, rewrite(request), intermediateResponseHandler,
                     resultHandler);
         }
@@ -184,7 +184,7 @@ public final class RewriterProxy {
         public void handleModifyDN(final RequestContext requestContext,
                 final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<Result> resultHandler) {
+                final LdapResultHandler<Result> resultHandler) {
             nextHandler.handleModifyDN(requestContext, rewrite(request),
                     intermediateResponseHandler, resultHandler);
         }
@@ -192,7 +192,7 @@ public final class RewriterProxy {
         @Override
         public void handleSearch(final RequestContext requestContext, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
-            final ResultHandler<Result> resultHandler) {
+            final LdapResultHandler<Result> resultHandler) {
             nextHandler.handleSearch(requestContext, rewrite(request), intermediateResponseHandler,
                 new SearchResultHandler() {
                     @Override

@@ -53,7 +53,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.util.promise.Promise;
@@ -483,7 +483,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
      * @param <S>
      *            The type of expected result.
      */
-    class UpdateStatsResultHandler<S extends Result> implements ResultHandler<S> {
+    class UpdateStatsResultHandler<S extends Result> implements LdapResultHandler<S> {
         protected final long currentTime;
 
         UpdateStatsResultHandler(final long currentTime) {
@@ -491,10 +491,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException exception) {
             failedRecentCount.getAndIncrement();
             updateStats();
-            app.errPrintVerboseMessage(LocalizableMessage.raw(error.getResult().toString()));
+            app.errPrintVerboseMessage(LocalizableMessage.raw(exception.getResult().toString()));
         }
 
         @Override

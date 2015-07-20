@@ -62,7 +62,7 @@ final class LoadBalancer implements ConnectionFactory {
         try {
             factory = algorithm.getConnectionFactory();
         } catch (final LdapException e) {
-            return newFailedPromise(e);
+            return newExceptionPromise(e);
         }
 
         return factory.getConnectionAsync();

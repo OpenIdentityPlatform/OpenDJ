@@ -53,7 +53,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.EntryGenerator;
@@ -176,9 +176,9 @@ public class AddRate extends ConsoleApplication {
 
                     return doAdd(connection, currentTime);
                 } catch (final AddRateExecutionEndedException a) {
-                    return newSuccessfulPromise(OTHER);
+                    return newResultPromise(OTHER);
                 } catch (final IOException e) {
-                    return newFailedPromise(newLdapException(OTHER, e));
+                    return newExceptionPromise(newLdapException(OTHER, e));
                 }
             }
 
@@ -236,18 +236,19 @@ public class AddRate extends ConsoleApplication {
                     entry = generator.readEntry();
                 }
 
-                final ResultHandler<Result> addHandler = new AddStatsHandler(currentTime, entry.getName().toString());
+                final LdapResultHandler<Result> addHandler = new AddStatsHandler(
+                    currentTime, entry.getName().toString());
                 return connection.addAsync(newAddRequest(entry))
-                                 .onSuccess(addHandler)
-                                 .onFailure(addHandler);
+                                 .thenOnResult(addHandler)
+                                 .thenOnException(addHandler);
             }
 
             private Promise<?, LdapException> doDelete(
                     final Connection connection, final long currentTime, final String entryToRemove) {
-                final ResultHandler<Result> deleteHandler = new DeleteStatsHandler(currentTime);
+                final LdapResultHandler<Result> deleteHandler = new DeleteStatsHandler(currentTime);
                 return connection.deleteAsync(newDeleteRequest(entryToRemove))
-                                 .onSuccess(deleteHandler)
-                                 .onFailure(deleteHandler);
+                                 .thenOnResult(deleteHandler)
+                                 .thenOnException(deleteHandler);
             }
         }
 

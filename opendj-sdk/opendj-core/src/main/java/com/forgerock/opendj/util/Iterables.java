@@ -29,7 +29,7 @@ package com.forgerock.opendj.util;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 /**

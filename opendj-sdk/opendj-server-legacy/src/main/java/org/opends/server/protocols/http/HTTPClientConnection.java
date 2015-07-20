@@ -419,7 +419,7 @@ final class HTTPClientConnection extends ClientConnection implements
       }
       catch (LdapException e)
       {
-        op.promise.handleError(e);
+        op.promise.handleException(e);
       }
     }
   }
@@ -709,7 +709,7 @@ final class HTTPClientConnection extends ClientConnection implements
     OperationWithPromise op = operationsInProgress.remove(messageID);
     if (op != null)
     {
-      op.promise.handleError(newLdapException(ResultCode.CANCELLED));
+      op.promise.handleException(newLdapException(ResultCode.CANCELLED));
       return op.operation.cancel(cancelRequest);
     }
     return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
@@ -748,7 +748,7 @@ final class HTTPClientConnection extends ClientConnection implements
         {
           try
           {
-            op.promise.handleError(newLdapException(ResultCode.CANCELLED));
+            op.promise.handleException(newLdapException(ResultCode.CANCELLED));
             op.operation.abort(cancelRequest);
 
             if (keepStats)

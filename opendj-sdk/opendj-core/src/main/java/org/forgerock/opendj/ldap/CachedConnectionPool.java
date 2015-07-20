@@ -26,6 +26,12 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.util.promise.Promises.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,19 +65,13 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.util.Reject;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
-import org.forgerock.util.promise.SuccessHandler;
-
-import com.forgerock.opendj.util.ReferenceCountedObject;
+import org.forgerock.util.promise.ResultHandler;
 import org.forgerock.util.time.TimeService;
 
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.util.promise.Promises.*;
-
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
+import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
  * A connection pool implementation which maintains a cache of pooled
@@ -84,7 +84,7 @@ final class CachedConnectionPool implements ConnectionPool {
      * This success handler is invoked when an attempt to add a new connection
      * to the pool completes.
      */
-    private final class ConnectionSuccessHandler implements SuccessHandler<Connection> {
+    private final class ConnectionResultHandler implements ResultHandler<Connection> {
         @Override
         public void handleResult(final Connection connection) {
             logger.debug(LocalizableMessage.raw(
@@ -99,16 +99,16 @@ final class CachedConnectionPool implements ConnectionPool {
      * This failure handler is invoked when an attempt to add a new connection
      * to the pool ended in error.
      */
-    private final class ConnectionFailureHandler implements FailureHandler<LdapException> {
+    private final class ConnectionFailureHandler implements ExceptionHandler<LdapException> {
         @Override
-        public void handleError(final LdapException error) {
+        public void handleException(final LdapException exception) {
             // Connection attempt failed, so decrease the pool size.
             pendingConnectionAttempts.decrementAndGet();
             availableConnections.release();
 
             logger.debug(LocalizableMessage.raw(
                     "Connection attempt failed: availableConnections=%d, maxPoolSize=%d",
-                    currentPoolSize(), maxPoolSize, error));
+                    currentPoolSize(), maxPoolSize, exception));
 
             /*
              * There may be many pending promises waiting for a connection
@@ -128,7 +128,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 }
             }
             for (QueueElement waitingPromise : waitingPromises) {
-                waitingPromise.getWaitingPromise().handleError(error);
+                waitingPromise.getWaitingPromise().handleException(exception);
             }
         }
     }
@@ -283,7 +283,8 @@ final class CachedConnectionPool implements ConnectionPool {
                  */
                 connection.close();
                 pendingConnectionAttempts.incrementAndGet();
-                factory.getConnectionAsync().onSuccess(connectionSuccessHandler).onFailure(connectionFailureHandler);
+                factory.getConnectionAsync().thenOnResult(connectionResultHandler)
+                                            .thenOnException(connectionFailureHandler);
 
                 logger.debug(LocalizableMessage.raw(
                         "Connection no longer valid: availableConnections=%d, maxPoolSize=%d",
@@ -696,8 +697,8 @@ final class CachedConnectionPool implements ConnectionPool {
     TimeService timeService = TimeService.SYSTEM;
 
     private final Semaphore availableConnections;
-    private final SuccessHandler<Connection> connectionSuccessHandler = new ConnectionSuccessHandler();
-    private final FailureHandler<LdapException> connectionFailureHandler = new ConnectionFailureHandler();
+    private final ResultHandler<Connection> connectionResultHandler = new ConnectionResultHandler();
+    private final ExceptionHandler<LdapException> connectionFailureHandler = new ConnectionFailureHandler();
     private final int corePoolSize;
     private final ConnectionFactory factory;
     private boolean isClosed;
@@ -812,8 +813,8 @@ final class CachedConnectionPool implements ConnectionPool {
                 final Promise<Connection, LdapException> promise = holder.getWaitingPromise();
                 if (!promise.isDone() && availableConnections.tryAcquire()) {
                     pendingConnectionAttempts.incrementAndGet();
-                    factory.getConnectionAsync().onSuccess(connectionSuccessHandler)
-                                                .onFailure(connectionFailureHandler);
+                    factory.getConnectionAsync().thenOnResult(connectionResultHandler)
+                                                .thenOnException(connectionFailureHandler);
                 }
                 return promise;
             }
@@ -822,7 +823,7 @@ final class CachedConnectionPool implements ConnectionPool {
             final Connection connection = holder.getWaitingConnection();
             if (connection.isValid()) {
                 final Connection pooledConnection = newPooledConnection(connection, getStackTraceIfDebugEnabled());
-                return newSuccessfulPromise(pooledConnection);
+                return newResultPromise(pooledConnection);
             } else {
                 // Close the stale connection and try again.
                 connection.close();
@@ -910,7 +911,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 final LdapException e =
                         newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED,
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
-                holder.getWaitingPromise().handleError(e);
+                holder.getWaitingPromise().handleException(e);
 
                 logger.debug(LocalizableMessage.raw(
                         "Connection attempt failed: availableConnections=%d, maxPoolSize=%d",

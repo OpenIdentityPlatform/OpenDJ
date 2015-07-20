@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 
 import static org.forgerock.util.Utils.*;
@@ -66,7 +66,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
          */
         public LdapPromise<BindResult> bindAsync(final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler) {
+                final LdapResultHandler<? super BindResult> resultHandler) {
             throw new UnsupportedOperationException();
         }
 

@@ -81,9 +81,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<Result> addAsync(final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(add(request));
+            return thenOnResult(add(request));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -91,9 +91,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<BindResult> bindAsync(final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(bind(request));
+            return thenOnResult(bind(request));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -101,9 +101,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<CompareResult> compareAsync(final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(compare(request));
+            return thenOnResult(compare(request));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -111,9 +111,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<Result> deleteAsync(final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(delete(request));
+            return thenOnResult(delete(request));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -121,9 +121,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(extendedRequest(request, intermediateResponseHandler));
+            return thenOnResult(extendedRequest(request, intermediateResponseHandler));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -131,9 +131,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<Result> modifyAsync(final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(modify(request));
+            return thenOnResult(modify(request));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -141,9 +141,9 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(modifyDN(request));
+            return thenOnResult(modifyDN(request));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
@@ -151,17 +151,17 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     public LdapPromise<Result> searchAsync(final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
         try {
-            return onSuccess(search(request, entryHandler));
+            return thenOnResult(search(request, entryHandler));
         } catch (final LdapException e) {
-            return onFailure(e);
+            return onException(e);
         }
     }
 
-    private <R extends Result> LdapPromise<R> onFailure(final LdapException e) {
+    private <R extends Result> LdapPromise<R> onException(final LdapException e) {
         return newFailedLdapPromise(e);
     }
 
-    private <R extends Result> LdapPromise<R> onSuccess(final R result) {
+    private <R extends Result> LdapPromise<R> thenOnResult(final R result) {
         return newSuccessfulLdapPromise(result);
     }
 

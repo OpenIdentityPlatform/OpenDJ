@@ -171,7 +171,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       logger.traceException(e);
       clientConnection.removeOperationInProgress(operation.getMessageID());
       // TODO JNR add error message??
-      promise.handleError(newLdapException(ResultCode.OPERATIONS_ERROR, e));
+      promise.handleException(newLdapException(ResultCode.OPERATIONS_ERROR, e));
     }
 
     return promise;

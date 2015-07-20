@@ -27,7 +27,7 @@
 package org.forgerock.opendj.server.core;
 
 import org.forgerock.opendj.ldap.LdapPromise;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldif.EntryWriter;
 
 /**
@@ -50,7 +50,7 @@ public interface ExportableDataProvider {
      *            A handler which will be notified when the export completes.
      * @return A promise representing the completion of the export.
      */
-    LdapPromise<Void> exportEntries(EntryWriter writer, ResultHandler<Void> handler);
+    LdapPromise<Void> exportEntries(EntryWriter writer, LdapResultHandler<Void> handler);
 
     /**
      * Returns the ID of this data provider.

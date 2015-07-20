@@ -36,11 +36,11 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -174,29 +174,29 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testGetConnectionAsync() throws Exception {
         @SuppressWarnings("unchecked")
-        final SuccessHandler<Connection> mockSuccessHandler = mock(SuccessHandler.class);
+        final ResultHandler<Connection> mockResultHandler = mock(ResultHandler.class);
 
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
-        hbc = hbcf.getConnectionAsync().onSuccess(mockSuccessHandler).getOrThrow();
+        hbc = hbcf.getConnectionAsync().thenOnResult(mockResultHandler).getOrThrow();
         assertThat(hbc).isNotNull();
         assertThat(hbc.isValid()).isTrue();
 
-        verify(mockSuccessHandler).handleResult(any(Connection.class));
-        verifyNoMoreInteractions(mockSuccessHandler);
+        verify(mockResultHandler).handleResult(any(Connection.class));
+        verifyNoMoreInteractions(mockResultHandler);
     }
 
     @Test
     public void testGetConnectionAsyncWithInitialHeartBeatError() throws Exception {
         @SuppressWarnings("unchecked")
-        final SuccessHandler<Connection> mockSuccessHandler = mock(SuccessHandler.class);
+        final ResultHandler<Connection> mockResultHandler = mock(ResultHandler.class);
         final PromiseImpl<LdapException, NeverThrowsException> promisedError = PromiseImpl.create();
 
         mockConnectionWithInitialHeartbeatResult(ResultCode.BUSY);
         Promise<? extends Connection, LdapException> promise = hbcf.getConnectionAsync();
-        promise.onSuccess(mockSuccessHandler).onFailure(new FailureHandler<LdapException>() {
+        promise.thenOnResult(mockResultHandler).thenOnException(new ExceptionHandler<LdapException>() {
             @Override
-            public void handleError(LdapException error) {
-                promisedError.handleResult(error);
+            public void handleException(LdapException exception) {
+                promisedError.handleResult(exception);
             }
         });
 
@@ -209,7 +209,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
             checkInitialHeartBeatFailure(e);
         }
 
-        verifyNoMoreInteractions(mockSuccessHandler);
+        verifyNoMoreInteractions(mockResultHandler);
     }
 
     @Test
@@ -258,10 +258,10 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Attempt to send a new request: it should fail immediately.
         @SuppressWarnings("unchecked")
-        final FailureHandler<LdapException> mockHandler = mock(FailureHandler.class);
-        hbc.modifyAsync(newModifyRequest(DN.rootDN())).onFailure(mockHandler);
+        final ExceptionHandler<LdapException> mockHandler = mock(ExceptionHandler.class);
+        hbc.modifyAsync(newModifyRequest(DN.rootDN())).thenOnException(mockHandler);
         final ArgumentCaptor<LdapException> arg = ArgumentCaptor.forClass(LdapException.class);
-        verify(mockHandler).handleError(arg.capture());
+        verify(mockHandler).handleException(arg.capture());
         assertThat(arg.getValue().getResult().getResultCode()).isEqualTo(
                 ResultCode.CLIENT_SIDE_SERVER_DOWN);
 

@@ -84,7 +84,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * {@link LdapPromise#get()} method throwing an {@link LdapException}.
  * <p>
  * In addition to returning a {@link LdapPromise}, all asynchronous methods
- * accept a {@link ResultHandler} which will be notified upon completion of the
+ * accept a {@link LdapResultHandler} which will be notified upon completion of the
  * operation.
  * <p>
  * Synchronous operations are easily simulated by immediately getting the
@@ -115,7 +115,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * </pre>
  *
  * More complex client applications can take advantage of a fully asynchronous
- * event driven design using {@link ResultHandler}s:
+ * event driven design using {@link LdapResultHandler}s:
  *
  * <pre>
  * Connection connection = ...;

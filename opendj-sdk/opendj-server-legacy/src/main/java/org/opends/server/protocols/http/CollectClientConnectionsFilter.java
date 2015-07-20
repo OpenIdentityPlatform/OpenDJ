@@ -49,10 +49,10 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
-import org.forgerock.util.promise.AsyncFunction;
-import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ResultHandler;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DisconnectReason;
@@ -206,7 +206,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
                 if (bindDN == null)
                 {
                   sendAuthenticationFailure(ctx);
-                  return newFailedPromise(newLdapException(ResultCode.CANCELLED));
+                  return newExceptionPromise(newLdapException(ResultCode.CANCELLED));
                 }
                 else
                 {
@@ -220,7 +220,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
               }
 
             }
-        ).onSuccess(new SuccessHandler<BindResult>() {
+        ).thenOnResult(new ResultHandler<BindResult>() {
           @Override
           public void handleResult(BindResult result)
           {
@@ -231,14 +231,14 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
             }
             catch (Exception e)
             {
-              onFailure(e, ctx);
+              onException(e, ctx);
             }
           }
-        }).onFailure(new FailureHandler<LdapException>(){
+        }).thenOnException(new ExceptionHandler<LdapException>(){
           @Override
-          public void handleError(LdapException error)
+          public void handleException(LdapException exception)
           {
-            final ResultCode rc = error.getResult().getResultCode();
+            final ResultCode rc = exception.getResult().getResultCode();
             if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
                 || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
             {
@@ -248,7 +248,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
             }
             else
             {
-              onFailure(error, ctx);
+              onException(exception, ctx);
             }
           }
         });
@@ -265,7 +265,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     }
     catch (Exception e)
     {
-      onFailure(e, ctx);
+      onException(e, ctx);
     }
   }
 
@@ -310,7 +310,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     }
   }
 
-  private void onFailure(Exception e, HTTPRequestContext ctx)
+  private void onException(Exception e, HTTPRequestContext ctx)
   {
     ResourceException ex = Rest2LDAP.asResourceException(e);
     try

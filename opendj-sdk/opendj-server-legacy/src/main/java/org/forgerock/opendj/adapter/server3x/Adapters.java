@@ -151,7 +151,7 @@ public final class Adapters {
             @Override
             public Promise<Connection, LdapException> getConnectionAsync() {
                 // TODO change the path...
-                return newSuccessfulPromise(newConnection(icc));
+                return newResultPromise(newConnection(icc));
             }
 
             @Override

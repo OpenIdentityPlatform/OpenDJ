@@ -45,10 +45,9 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
-import org.forgerock.util.promise.FailureHandler;
-import org.forgerock.util.promise.SuccessHandler;
+import org.forgerock.util.promise.ExceptionHandler;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -141,10 +140,10 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                 final SearchRequest request = createSearchRequest(result);
                 final List<Filter> subFilters = new LinkedList<>();
 
-                final FailureHandler<LdapException> failureHandler = new FailureHandler<LdapException>() {
+                final ExceptionHandler<LdapException> exceptionHandler = new ExceptionHandler<LdapException>() {
                     @Override
-                    public void handleError(LdapException error) {
-                        h.handleError(asResourceException(error)); // Propagate.
+                    public void handleException(LdapException exception) {
+                        h.handleError(asResourceException(exception)); // Propagate.
                     }
                 };
 
@@ -165,18 +164,18 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                         // Ignore references.
                         return true;
                     }
-                }).onSuccess(new SuccessHandler<Result>() {
+                }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Result>() {
                     @Override
                     public void handleResult(Result result) {
                         if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
-                            failureHandler.handleError(newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED));
+                            exceptionHandler.handleException(newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED));
                         } else if (subFilters.size() == 1) {
                             h.handleResult(subFilters.get(0));
                         } else {
                             h.handleResult(Filter.or(subFilters));
                         }
                     }
-                }).onFailure(failureHandler);
+                }).thenOnException(exceptionHandler);
             }
         });
     }
@@ -228,39 +227,38 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                     final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
                     final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
                     final SearchRequest search = createSearchRequest(filter);
-                    c.getConnection().searchSingleEntryAsync(search).onSuccess(new SuccessHandler<SearchResultEntry>() {
-                        @Override
-                        public void handleResult(final SearchResultEntry result) {
-                            synchronized (newLDAPAttribute) {
-                                newLDAPAttribute.add(result.getName());
+                    c.getConnection().searchSingleEntryAsync(search).thenOnResult(
+                            new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
+                            @Override
+                            public void handleResult(final SearchResultEntry result) {
+                                synchronized (newLDAPAttribute) {
+                                    newLDAPAttribute.add(result.getName());
+                                }
+                                completeIfNecessary();
                             }
-                            completeIfNecessary();
-                        }
-                    }).onFailure(new FailureHandler<LdapException>() {
-                        @Override
-                        public void handleError(final LdapException error) {
-                            ResourceException re;
-                            try {
-                                throw error;
-                            } catch (final EntryNotFoundException e) {
-                                re =
-                                    new BadRequestException(i18n("The request cannot be processed "
-                                        + "because the resource '%s' " + "referenced in field '%s' does "
-                                        + "not exist", primaryKeyValue.toString(), path));
-                            } catch (final MultipleEntriesFoundException e) {
-                                re =
-                                    new BadRequestException(i18n(
-                                        "The request cannot be processed " + "because the resource '%s' "
-                                            + "referenced in field '%s' is " + "ambiguous",
-                                        primaryKeyValue.toString(), path));
-                            } catch (final LdapException e) {
-                                re = asResourceException(e);
+                        }).thenOnException(new ExceptionHandler<LdapException>() {
+                            @Override
+                            public void handleException(final LdapException error) {
+                                ResourceException re;
+                                try {
+                                    throw error;
+                                } catch (final EntryNotFoundException e) {
+                                    re = new BadRequestException(i18n(
+                                            "The request cannot be processed " + "because the resource '%s' "
+                                                    + "referenced in field '%s' does " + "not exist",
+                                            primaryKeyValue.toString(), path));
+                                } catch (final MultipleEntriesFoundException e) {
+                                    re = new BadRequestException(i18n(
+                                            "The request cannot be processed " + "because the resource '%s' "
+                                                    + "referenced in field '%s' is " + "ambiguous",
+                                            primaryKeyValue.toString(), path));
+                                } catch (final LdapException e) {
+                                    re = asResourceException(e);
+                                }
+                                exception.compareAndSet(null, re);
+                                completeIfNecessary();
                             }
-                            exception.compareAndSet(null, re);
-                            completeIfNecessary();
-                        }
-
-                    });
+                        });
                 }
 
                 private void completeIfNecessary() {
@@ -337,14 +335,14 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
         final Set<String> requestedLDAPAttributes = new LinkedHashSet<>();
         mapper.getLDAPAttributes(c, path, new JsonPointer(), requestedLDAPAttributes);
         c.getConnection().readEntryAsync(dn, requestedLDAPAttributes)
-                .onSuccess(new SuccessHandler<SearchResultEntry>() {
+                .thenOnResult(new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
                     @Override
                     public void handleResult(final SearchResultEntry result) {
                         mapper.read(c, path, result, handler);
                     }
-                }).onFailure(new FailureHandler<LdapException>() {
+                }).thenOnException(new ExceptionHandler<LdapException>() {
                     @Override
-                    public void handleError(final LdapException error) {
+                    public void handleException(final LdapException error) {
                         if (!(error instanceof EntryNotFoundException)) {
                             handler.handleError(asResourceException(error));
                         } else {

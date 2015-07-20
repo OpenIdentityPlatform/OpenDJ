@@ -30,7 +30,7 @@ package com.forgerock.opendj.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.forgerock.util.promise.Function;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
 /**
