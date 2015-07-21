@@ -26,9 +26,11 @@
  */
 package org.opends.server.protocols.jmx;
 
-import static org.testng.Assert.assertNotNull;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.DirectoryServerTestCase;
@@ -36,18 +38,13 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * An abstract class that all JMX unit test should extend.
- */
+/** An abstract class that all JMX unit test should extend. */
 @Test(groups = { "precommit", "jmx" }, sequential = true)
 public abstract class JmxTestCase extends DirectoryServerTestCase
 {
@@ -64,15 +61,8 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
     TestCaseUtils.restartServer();
     TestCaseUtils.initializeTestBackend(true);
 
-    synchronized (this)
-    {
-      this.wait(500);
-    }
     JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
-    if (jmxCtx == null)
-    {
-      throw new Exception("Unable to get a JMX connector");
-    }
+    assertNotNull(jmxCtx, "Unable to get a JMX connector");
   }
 
   /**
@@ -82,61 +72,42 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
    */
   protected JmxConnectionHandler getJmxConnectionHandler() throws Exception
   {
-    List<ConnectionHandler> handlers = DirectoryServer
-        .getConnectionHandlers();
+    List<ConnectionHandler> handlers = DirectoryServer.getConnectionHandlers();
     assertNotNull(handlers);
-    JmxConnectionHandler jmxConnectionHandler = null;
-    for (ConnectionHandler handler : handlers)
-    {
-      if (handler instanceof JmxConnectionHandler)
-      {
-        jmxConnectionHandler = (JmxConnectionHandler) handler;
-        break;
-      }
-    }
+    JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler(handlers);
     if (jmxConnectionHandler == null)
     {
       enableJmx();
-      synchronized (this)
-      {
-        this.wait(2000);
-      }
-      for (ConnectionHandler handler : handlers)
-      {
-        if (handler instanceof JmxConnectionHandler)
-        {
-          jmxConnectionHandler = (JmxConnectionHandler) handler;
-          break;
-        }
-      }
+      jmxConnectionHandler = getJmxConnectionHandler(handlers);
     }
     assertNotNull(jmxConnectionHandler);
+    int cnt = 0;
+    while (cnt <= 30 && jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate == null)
+    {
+      Thread.sleep(100);
+      cnt++;
+    }
     return jmxConnectionHandler;
   }
 
-  /**
-   * Enable JMX with the port chosen in TestCaseUtils.
-   *
-   * @throws Exception
-   *           if the handler cannot be enabled.
-   */
+  private JmxConnectionHandler getJmxConnectionHandler(List<ConnectionHandler> handlers)
+  {
+    for (ConnectionHandler<?> handler : handlers)
+    {
+      if (handler instanceof JmxConnectionHandler)
+      {
+        return (JmxConnectionHandler) handler;
+      }
+    }
+    return null;
+  }
+
   private void enableJmx() throws Exception
   {
-    ArrayList<Modification> mods = new ArrayList<>();
-
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create(
-            "ds-cfg-enabled", "true")));
     ModifyOperationBasis op = new ModifyOperationBasis(
-        conn,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
-        new ArrayList<Control>(),
-        DN
-            .valueOf("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
-        mods);
+        getRootConnection(), nextOperationID(), nextMessageID(), null,
+        DN.valueOf("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
+        newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "true"))));
     op.run();
   }
 }
