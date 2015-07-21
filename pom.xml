@@ -120,7 +120,7 @@
     <docTargetVersion>2.6.3</docTargetVersion>
     <docPreviousVersion>2.6.2</docPreviousVersion>
     <stableServerVersion>2.6.0</stableServerVersion>
-    <sdkDocTargetVersion>2.6.9</sdkDocTargetVersion>
+    <sdkDocTargetVersion>2.6.10</sdkDocTargetVersion>
 
     <frDocPluginVersion>3.0.0</frDocPluginVersion>
     <gaId>UA-23412190-14</gaId>

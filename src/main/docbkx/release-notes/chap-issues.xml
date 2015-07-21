@@ -61,14 +61,18 @@
 
   <para>The following important bugs were fixed in this release.</para>
 
-  <!-- List generated at 10:47:41 20150619 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+fixVersion+%3D+%222.6.3%22+AND+component+not+in+%28Documentation%2C+QA%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 10:40:00 20150721 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+fixVersion+%3D+%222.6.3%22+AND+component+not+in+%28Documentation%2C+QA%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1952" xlink:show="new">OPENDJ-1952</link>: Backport OPENDJ-1056: secure listener should not be created if proper keying material is not available for some reason</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-2157" xlink:show="new">OPENDJ-2157</link>: Backport OPENDJ-2152: ldapsearch ignores ldapsearch.useSSL=true in a tools.properties</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1951" xlink:show="new">OPENDJ-1951</link>: Backport OPENDJ-1915 DSMLServlet is not thread-safe</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1947" xlink:show="new">OPENDJ-1947</link>: Backport OPENDJ-1605: Schema is incorrect for ds-base-dn-entry-count attribute used in monitor backend</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1892" xlink:show="new">OPENDJ-1892</link>: Backport OPENDJ-1842: Using SSL with JMX doesn't work</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1890" xlink:show="new">OPENDJ-1890</link>: Backport OPENDJ-1882: currentConnections from cn=monitor is not decremented when JMX connections close</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1764" xlink:show="new">OPENDJ-1764</link>: admin-backend.ldif can end up empty</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1665" xlink:show="new">OPENDJ-1665</link>: performBackendInitializationProcessing takes a very long time when backup.info contains lots of entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1375" xlink:show="new">OPENDJ-1375</link>: Subtree delete control can wait forever for an id2subtree lock</para></listitem>
   </itemizedlist>
-  <!-- Issue count: 4 -->
+  <!-- Issue count: 8 -->
  </section>
 
  <section xml:id="limitations">
@@ -156,11 +160,9 @@
   <itemizedlist>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1969" xlink:show="new">OPENDJ-1969</link>: IdleTimeLimitThread fails with null ConnectionHandlers or null ClientConnections</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1968" xlink:show="new">OPENDJ-1968</link>: NPE in GoverningStructureRuleVirtualAttributeProvider if entry has no structural object classes</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1882" xlink:show="new">OPENDJ-1882</link>: currentConnections from cn=monitor is not decremented when JMX connections close</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1829" xlink:show="new">OPENDJ-1829</link>: JMX connector listens on a random port number</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1586" xlink:show="new">OPENDJ-1586</link>: Nested Groups fail to return indirect members with db's larger than 10 entries</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1431" xlink:show="new">OPENDJ-1431</link>: Trimming of draftcndb gets stuck, changelog keeps growing in size</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1375" xlink:show="new">OPENDJ-1375</link>: Subtree delete control can wait forever for an id2subtree lock</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1366" xlink:show="new">OPENDJ-1366</link>: Arguments logged in wrong order for ERROR_REPLAYING_OPERATION</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1325" xlink:show="new">OPENDJ-1325</link>: An error occurred while attempting to perform index rebuild:  The database environment could not be opened: (JE 5.0.73)</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1309" xlink:show="new">OPENDJ-1309</link>: First dsreplication enable could warn before replicating schema</para></listitem>
@@ -199,6 +201,6 @@
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-270" xlink:show="new">OPENDJ-270</link>: dsreplication disable takes a long time</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-49" xlink:show="new">OPENDJ-49</link>: Replication replay does not take into consideration the server/backend's writability mode.</para></listitem>
   </itemizedlist>
-  <!-- Issue count: 44 -->
+  <!-- Issue count: 42 -->
  </section>
 </chapter>
