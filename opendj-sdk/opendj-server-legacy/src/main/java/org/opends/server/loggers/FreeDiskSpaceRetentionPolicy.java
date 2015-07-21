@@ -135,7 +135,7 @@ public class FreeDiskSpaceRetentionPolicy implements
 
     List<File> filesToDelete = new ArrayList<>();
     long freedSpace = 0;
-    for (int j = files.length - 1; j < 1; j--)
+    for (int j = files.length - 1; j > 1; j--)
     {
       freedSpace += files[j].length();
       filesToDelete.add(files[j]);
