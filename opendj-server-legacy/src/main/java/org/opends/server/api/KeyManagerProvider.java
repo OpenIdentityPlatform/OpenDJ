@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.api;
 import org.forgerock.i18n.LocalizableMessage;
@@ -76,6 +76,29 @@ public abstract class KeyManagerProvider
       throws ConfigException, InitializationException;
 
 
+  /**
+   *
+   * Verifies that an alias is defined in the scope of this Key Manager.
+   *
+   * @param alias
+   *          The alias to check.
+   * @return true if the alias exists, false otherwise
+   */
+  public boolean containsKeyWithAlias(String alias)
+  {
+    return true;
+  }
+
+  /**
+   *
+   * Verifies that the keystore has at least one usable key.
+   *
+   * @return true if the keystore has at least one usable key, false otherwise
+   */
+  public boolean containsAtLeastOneKey()
+  {
+    return true;
+  }
 
   /**
    * Indicates whether the provided configuration is acceptable for

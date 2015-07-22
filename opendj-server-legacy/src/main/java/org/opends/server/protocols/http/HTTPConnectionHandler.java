@@ -446,6 +446,8 @@ public class HTTPConnectionHandler extends
   public void initializeConnectionHandler(HTTPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
   {
+    this.enabled = config.isEnabled();
+
     if (friendlyName == null)
     {
       friendlyName = config.dn().rdn().getAttributeValue(0).toString();
@@ -462,6 +464,7 @@ public class HTTPConnectionHandler extends
     // Configure SSL if needed.
     try
     {
+      // This call may disable the connector if wrong SSL settings
       configureSSL(config);
     }
     catch (DirectoryException e)
@@ -482,7 +485,6 @@ public class HTTPConnectionHandler extends
 
     this.initConfig = config;
     this.currentConfig = config;
-    this.enabled = this.currentConfig.isEnabled();
   }
 
   private String getHandlerName(HTTPConnectionHandlerCfg config)
@@ -649,6 +651,8 @@ public class HTTPConnectionHandler extends
     setName(handlerName);
 
     boolean lastIterationFailed = false;
+    boolean starting = true;
+
     while (!shutdownRequested)
     {
       // If this connection handler is not enabled, then just sleep
@@ -658,6 +662,20 @@ public class HTTPConnectionHandler extends
         if (isListening())
         {
           stopHttpServer();
+        }
+
+        if (starting)
+        {
+          // This may happen if there was an initialisation error
+          // which led to disable the connector.
+          // The main thread is waiting for the connector to listen
+          // on its port, which will not occur yet,
+          // so notify here to allow the server startup to complete.
+          synchronized (waitListen)
+          {
+            starting = false;
+            waitListen.notify();
+          }
         }
 
         StaticUtils.sleep(1000);
@@ -992,9 +1010,17 @@ public class HTTPConnectionHandler extends
     DN keyMgrDN = config.getKeyManagerProviderDN();
     KeyManagerProvider<?> keyManagerProvider =
         DirectoryServer.getKeyManagerProvider(keyMgrDN);
-    if (keyManagerProvider == null)
-    {
+    if (keyManagerProvider == null) {
+      logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
+      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
       keyManagerProvider = new NullKeyManagerProvider();
+      enabled = false;
+    }
+    else if (! keyManagerProvider.containsAtLeastOneKey())
+    {
+      logger.error(ERR_INVALID_KEYSTORE, friendlyName);
+      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
+      enabled = false;
     }
 
     String alias = config.getSSLCertNickname();
@@ -1005,6 +1031,11 @@ public class HTTPConnectionHandler extends
     }
     else
     {
+      if (! keyManagerProvider.containsKeyWithAlias(alias)) {
+        logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, alias, friendlyName);
+        logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
+        enabled = false;
+      }
       keyManagers =
           SelectableCertificateKeyManager.wrap(keyManagerProvider
               .getKeyManagers(), alias);
