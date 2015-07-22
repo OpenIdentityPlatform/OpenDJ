@@ -674,6 +674,7 @@ public final class LDAPConnectionHandler extends
     // Configure SSL if needed.
     try
     {
+      // This call may disable the connector if wrong SSL settings
       configureSSL(config);
     }
     catch (DirectoryException e)
@@ -929,6 +930,7 @@ public final class LDAPConnectionHandler extends
   {
     setName(handlerName);
     boolean listening = false;
+    boolean starting = true;
 
     while (!shutdownRequested)
     {
@@ -942,6 +944,20 @@ public final class LDAPConnectionHandler extends
           listening = false;
 
           logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
+        }
+
+        if (starting)
+        {
+          // This may happen if there was an initialisation error
+          // which led to disable the connector.
+          // The main thread is waiting for the connector to listen
+          // on its port, which will not occur yet,
+          // so notify here to allow the server startup to complete.
+          synchronized (waitListen)
+          {
+            starting = false;
+            waitListen.notify();
+          }
         }
 
         StaticUtils.sleep(1000);
@@ -1376,6 +1392,15 @@ public final class LDAPConnectionHandler extends
 
 
 
+  private void disableAndWarnIfUseSSL(LDAPConnectionHandlerCfg config)
+  {
+    if (config.isUseSSL())
+    {
+      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
+      enabled = false;
+    }
+  }
+
   private SSLContext createSSLContext(LDAPConnectionHandlerCfg config)
       throws DirectoryException
   {
@@ -1386,10 +1411,15 @@ public final class LDAPConnectionHandler extends
           .getKeyManagerProvider(keyMgrDN);
       if (keyManagerProvider == null)
       {
-        if (config.isUseSSL()) {
-          logger.warn(INFO_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
-        }
+        logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
+        disableAndWarnIfUseSSL(config);
         keyManagerProvider = new NullKeyManagerProvider();
+        // The SSL connection is unusable without a key manager provider
+      }
+      else if (! keyManagerProvider.containsAtLeastOneKey())
+      {
+        logger.error(ERR_INVALID_KEYSTORE, friendlyName);
+        disableAndWarnIfUseSSL(config);
       }
 
       String alias = config.getSSLCertNickname();
@@ -1400,6 +1430,11 @@ public final class LDAPConnectionHandler extends
       }
       else
       {
+        if (!keyManagerProvider.containsKeyWithAlias(alias))
+        {
+          logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, alias, friendlyName);
+          disableAndWarnIfUseSSL(config);
+        }
         keyManagers = SelectableCertificateKeyManager.wrap(
             keyManagerProvider.getKeyManagers(), alias, friendlyName);
       }

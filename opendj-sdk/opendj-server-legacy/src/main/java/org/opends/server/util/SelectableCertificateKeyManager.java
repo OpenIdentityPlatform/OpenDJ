@@ -135,7 +135,7 @@ public final class SelectableCertificateKeyManager
         }
       }
     }
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
     return null;
   }
 
@@ -175,7 +175,7 @@ public final class SelectableCertificateKeyManager
       }
     }
 
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
     return null;
   }
 
@@ -210,7 +210,7 @@ public final class SelectableCertificateKeyManager
       }
     }
 
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
     return null;
   }
 
@@ -249,7 +249,7 @@ public final class SelectableCertificateKeyManager
       }
     }
 
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, keyType, alias, componentName);
+    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
     return null;
   }
 
