@@ -70,9 +70,10 @@
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1890" xlink:show="new">OPENDJ-1890</link>: Backport OPENDJ-1882: currentConnections from cn=monitor is not decremented when JMX connections close</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1764" xlink:show="new">OPENDJ-1764</link>: admin-backend.ldif can end up empty</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1665" xlink:show="new">OPENDJ-1665</link>: performBackendInitializationProcessing takes a very long time when backup.info contains lots of entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1610" xlink:show="new">OPENDJ-1610</link>: original password is not put into the password history when reset the password without specify the new password</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1375" xlink:show="new">OPENDJ-1375</link>: Subtree delete control can wait forever for an id2subtree lock</para></listitem>
   </itemizedlist>
-  <!-- Issue count: 8 -->
+  <!-- Issue count: 9 -->
  </section>
 
  <section xml:id="limitations">
