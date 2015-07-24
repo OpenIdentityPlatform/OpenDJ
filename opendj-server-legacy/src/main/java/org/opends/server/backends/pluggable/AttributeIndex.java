@@ -567,11 +567,11 @@ class AttributeIndex
       SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer, BackendMonitor monitor)
   {
     // TODO : this implementation is not optimal
-    // as it implies two separate evaluations instead of a single one,
-    // thus defeating the purpose of the optimization done
-    // in IndexFilter#evaluateLogicalAndFilter method.
-    // One solution could be to implement a boundedRangeAssertion that combine
-    // the two operations in one.
+    // as it implies two separate evaluations instead of a single one, thus defeating the purpose of
+    // the optimization done in IndexFilter#evaluateLogicalAndFilter method.
+    // One solution could be to implement a boundedRangeAssertion that combine the two operations in one.
+    // Such an optimization can only work for attributes declared as SINGLE-VALUE, though, since multiple
+    // values may match both filters with values outside the range. See OPENDJ-2194.
     StringBuilder tmpBuff1 = debugBuffer != null ? new StringBuilder() : null;
     StringBuilder tmpBuff2 = debugBuffer != null ? new StringBuilder() : null;
     EntryIDSet results1 = evaluate(indexQueryFactory, filter1, tmpBuff1, monitor);
