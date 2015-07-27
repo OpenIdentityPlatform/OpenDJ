@@ -337,10 +337,14 @@ public abstract class TaskTool implements TaskScheduleInformation {
       } catch (LDAPException le) {
         printWrappedText(err, ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage()));
         ret = 1;
-      } catch (ArgumentException | OpenDsException e) {
+      } catch (OpenDsException e) {
         printWrappedText(err, e.getMessageObject());
         ret = 1;
-      } finally
+      } catch (ArgumentException e) {
+        argParser.displayMessageAndUsageReference(err, e.getMessageObject());
+        ret = 1;
+      }
+      finally
       {
         if (conn != null)
         {

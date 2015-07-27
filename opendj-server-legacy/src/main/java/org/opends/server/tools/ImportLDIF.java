@@ -222,8 +222,7 @@ public class ImportLDIF extends TaskTool {
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
     catch (ClientException ce)
@@ -253,9 +252,8 @@ public class ImportLDIF extends TaskTool {
     }
     else if (! templateFile.isPresent())
     {
-      printWrappedText(err, ERR_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT.get(
+      argParser.displayMessageAndUsageReference(err, ERR_LDIFIMPORT_MISSING_REQUIRED_ARGUMENT.get(
           ldifFiles.getLongIdentifier(), templateFile.getLongIdentifier()));
-      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -263,9 +261,8 @@ public class ImportLDIF extends TaskTool {
     // "backendID" argument was provided.
     if(!includeBranchStrings.isPresent() && !backendID.isPresent())
     {
-      printWrappedText(err, ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
+      argParser.displayMessageAndUsageReference(err, ERR_LDIFIMPORT_MISSING_BACKEND_ARGUMENT.get(
           includeBranchStrings.getLongIdentifier(), backendID.getLongIdentifier()));
-      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -274,8 +271,8 @@ public class ImportLDIF extends TaskTool {
     // the task framework.
     if (countRejects.isPresent() && argParser.connectionArgumentsPresent())
     {
-      printWrappedText(err, ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE.get(countRejects.getLongIdentifier()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE.get(
+          countRejects.getLongIdentifier()));
       return 1;
     }
 

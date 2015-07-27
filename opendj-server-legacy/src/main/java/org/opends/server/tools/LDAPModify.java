@@ -879,8 +879,7 @@ public class LDAPModify
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -906,7 +905,7 @@ public class LDAPModify
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -922,7 +921,7 @@ public class LDAPModify
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -978,7 +977,6 @@ public class LDAPModify
         if(ctrl == null)
         {
           printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-          err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
         modifyOptions.getControls().add(ctrl);
@@ -1137,7 +1135,13 @@ public class LDAPModify
       logger.traceException(fe);
       printWrappedText(err, fe.getMessage());
       return CLIENT_SIDE_PARAM_ERROR;
-    } catch(Exception e)
+    }
+    catch(ArgumentException e)
+    {
+      argParser.displayMessageAndUsageReference(err, e.getMessageObject());
+      return 1;
+    }
+    catch(Exception e)
     {
       logger.traceException(e);
       printWrappedText(err, e.getMessage());

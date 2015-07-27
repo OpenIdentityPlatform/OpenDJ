@@ -25,6 +25,7 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_ARGS;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_TOOL_RESULT_CODE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT;
@@ -47,7 +48,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class LDAPSearchITCase extends ToolsITCase {
     private static final int NB_RAND_SIMPLE_SEARCH = 10;
-    private static final int NB_OTHER_SIMPLE_SEARCH = 2;
+    private static final int NB_OTHER_SIMPLE_SEARCH = 3;
 
     @DataProvider
     public Object[][] ldapSearchArgs() throws Exception {
@@ -59,6 +60,10 @@ public class LDAPSearchITCase extends ToolsITCase {
         // Check that there is a error message if no arguments were given to the
         // ldapsearch command
         data[1] = new Object[] { args(""), "", ERR_ERROR_PARSING_ARGS.get("") };
+
+        // Check if the help reference message is prompted if arguments failed to be parsed
+        data[2] = new Object[] {
+            args("-42"), "", INFO_GLOBAL_HELP_REFERENCE.get("java " + LDAPSearch.class.getCanonicalName()) };
 
         // Perform some basic ldapsearch for random user in the test server
         for (int i = 0; i < NB_RAND_SIMPLE_SEARCH; i++) {

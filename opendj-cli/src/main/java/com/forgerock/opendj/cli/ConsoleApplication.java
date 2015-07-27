@@ -668,7 +668,7 @@ public abstract class ConsoleApplication {
      *
      * @return The error stream that should be used with this application.
      */
-    private PrintStream getErrStream() {
+    protected PrintStream getErrStream() {
         if (isInteractive()) {
             return out;
         }

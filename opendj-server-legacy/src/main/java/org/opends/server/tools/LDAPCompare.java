@@ -657,8 +657,7 @@ public class LDAPCompare
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -759,7 +758,7 @@ public class LDAPCompare
       portNumber = port.getIntValue();
     } catch (ArgumentException ae)
     {
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -774,7 +773,7 @@ public class LDAPCompare
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
     {
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -829,7 +828,6 @@ public class LDAPCompare
         if(ctrl == null)
         {
           printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-          err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
         compareOptions.getControls().add(ctrl);

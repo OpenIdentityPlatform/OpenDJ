@@ -297,11 +297,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
    *          stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
    * @throws LDAPConnectionException
-   *           if there was a problem connecting to the server indicated by the
-   *           input arguments
+   *           if there was a problem connecting to the server
+   * @throws ArgumentException
+   *           if there was a problem indicated by the input arguments
    */
   public LDAPConnection connect(LDAPConnectionConsoleInteraction ui, PrintStream out, PrintStream err)
-      throws LDAPConnectionException
+      throws LDAPConnectionException, ArgumentException
   {
     try
     {
@@ -311,18 +312,19 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
       return connect(ui.getHostName(), ui.getPortNumber(), ui.getBindDN(),
           ui.getBindPassword(), ui.populateLDAPOptions(options), ui.getConnectTimeout(), out, err);
     }
-    catch (ArgumentException | OpenDsException e)
+    catch (OpenDsException e)
     {
-      if (e.getCause() != null && e.getCause().getCause() != null && e.getCause().getCause() instanceof SSLException)
-      {
-        err.println(ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()));
-      }
-      else
-      {
-        err.println(e.getMessageObject());
-      }
+      err.println(isSSLException(e) ?
+          ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()) : e.getMessageObject());
+      return null;
     }
-    return null;
+  }
+
+  private boolean isSSLException(Exception e)
+  {
+    return e.getCause() != null
+        && e.getCause().getCause() != null
+        && e.getCause().getCause() instanceof SSLException;
   }
 
   /**

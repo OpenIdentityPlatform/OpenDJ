@@ -266,8 +266,7 @@ public class LDIFDiff
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 

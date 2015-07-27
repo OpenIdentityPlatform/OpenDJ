@@ -377,8 +377,7 @@ public class DBTest
     try {
       parser.parseArguments(args);
     } catch (ArgumentException ae) {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(parser.getUsage());
+      parser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -490,8 +489,7 @@ public class DBTest
     // Make sure that we have a sub-command.
     if (parser.getSubCommand() == null)
     {
-      printWrappedText(err, ERR_DBTEST_MISSING_SUBCOMMAND.get());
-      err.println(parser.getUsage());
+      parser.displayMessageAndUsageReference(err, ERR_DBTEST_MISSING_SUBCOMMAND.get());
       return 1;
     }
 

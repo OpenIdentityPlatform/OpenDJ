@@ -1076,8 +1076,7 @@ public class LDAPSearch
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -1149,7 +1148,7 @@ public class LDAPSearch
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -1166,7 +1165,7 @@ public class LDAPSearch
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -1229,7 +1228,7 @@ public class LDAPSearch
       searchOptions.setSizeLimit(sizeLimit.getIntValue());
     } catch(ArgumentException ex1)
     {
-      printWrappedText(err, ex1.getMessage());
+      argParser.displayMessageAndUsageReference(err, ex1.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
     if (!searchOptions.setSearchScope(searchScope.getValue(), err)
@@ -1246,7 +1245,6 @@ public class LDAPSearch
         if(ctrl == null)
         {
           printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-          err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
         searchOptions.getControls().add(ctrl);
@@ -1257,7 +1255,6 @@ public class LDAPSearch
       String authzID=effectiveRightsUser.getValue();
       if (!authzID.startsWith("dn:")) {
         printWrappedText(err, ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID));
-        err.println(argParser.getUsage());
         return CLIENT_SIDE_PARAM_ERROR;
       }
       Control effectiveRightsControl =
@@ -1578,8 +1575,7 @@ public class LDAPSearch
 
     if(filters.isEmpty())
     {
-      printWrappedText(err, ERR_SEARCH_NO_FILTERS.get());
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_SEARCH_NO_FILTERS.get());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 

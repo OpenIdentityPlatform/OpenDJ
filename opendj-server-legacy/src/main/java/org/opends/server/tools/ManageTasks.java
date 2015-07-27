@@ -281,9 +281,7 @@ public class ManageTasks extends ConsoleApplication {
       StaticUtils.checkOnlyOneArgPresent(task, summary, cancel);
     }
     catch (ArgumentException ae) {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      println(message);
-      println(argParser.getUsageMessage());
+      argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 

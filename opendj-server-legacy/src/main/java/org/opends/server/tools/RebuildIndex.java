@@ -164,8 +164,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -176,55 +175,43 @@ public class RebuildIndex extends TaskTool
       return 0;
     }
 
-    // If no arguments were provided, then display usage information and exit.
-    final int numArgs = args.length;
-    if (numArgs == 0)
-    {
-      out.println(argParser.getUsage());
-      return 1;
-    }
-
     if (indexList.getValues().isEmpty()
         && !rebuildAll.isPresent()
         && !rebuildDegraded.isPresent())
     {
-      printWrappedText(err, ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get());
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get());
       return 1;
     }
 
     if (rebuildAll.isPresent() && indexList.isPresent())
     {
-      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_ALL_ERROR.get());
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_REBUILDINDEX_REBUILD_ALL_ERROR.get());
       return 1;
     }
 
     if (rebuildDegraded.isPresent() && indexList.isPresent())
     {
-      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("index"));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("index"));
       return 1;
     }
 
     if (rebuildDegraded.isPresent() && clearDegradedState.isPresent())
     {
-      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("clearDegradedState"));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get("clearDegradedState"));
       return 1;
     }
 
     if (rebuildAll.isPresent() && rebuildDegraded.isPresent())
     {
-      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildDegraded"));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err,
+          ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("rebuildDegraded"));
       return 1;
     }
 
     if (rebuildAll.isPresent() && clearDegradedState.isPresent())
     {
-      printWrappedText(err, ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("clearDegradedState"));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err,
+          ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("clearDegradedState"));
       return 1;
     }
 
@@ -691,7 +678,7 @@ public class RebuildIndex extends TaskTool
       }
       catch (ArgumentException ae)
       {
-        printWrappedText(out, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+        argParser.displayMessageAndUsageReference(out, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
         return 1;
       }
 

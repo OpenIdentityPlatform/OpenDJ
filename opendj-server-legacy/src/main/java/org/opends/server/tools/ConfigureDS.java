@@ -343,9 +343,12 @@ public class ConfigureDS
     {
      if (e.isWrongUsage())
      {
-       err.println(argParser.getUsage());
+       argParser.displayMessageAndUsageReference(err, e.getErrorMessage());
      }
-     printWrappedText(err, e.getErrorMessage());
+     else
+     {
+       printWrappedText(err, e.getErrorMessage());
+     }
      return e.getErrorCode();
     }
     finally

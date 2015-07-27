@@ -226,19 +226,20 @@ public final class LDAPCompare extends ConsoleApplication {
 
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         try {
             final int versionNumber = version.getIntValue();
             if (versionNumber != 2 && versionNumber != 3) {
-                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
+                argParser.displayMessageAndUsageReference(
+                    getErrStream(), ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            argParser.displayMessageAndUsageReference(
+                getErrStream(), ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -246,8 +247,7 @@ public final class LDAPCompare extends ConsoleApplication {
         final ArrayList<String> attrAndDNStrings = argParser.getTrailingArguments();
 
         if (attrAndDNStrings.isEmpty()) {
-            final LocalizableMessage message = ERR_LDAPCOMPARE_NO_ATTR.get();
-            errPrintln(message);
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_LDAPCOMPARE_NO_ATTR.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -258,23 +258,22 @@ public final class LDAPCompare extends ConsoleApplication {
 
         // If no DNs were provided, then exit with an error.
         if (dnStrings.isEmpty() && !filename.isPresent()) {
-            errPrintln(ERR_LDAPCOMPARE_NO_DNS.get());
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_LDAPCOMPARE_NO_DNS.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         /* If trailing DNs were provided and the filename argument was also
          provided, exit with an error.*/
         if (!dnStrings.isEmpty() && filename.isPresent()) {
-            errPrintln(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         // parse the attribute string
         final int idx = attributeString.indexOf(":");
         if (idx == -1) {
-            final LocalizableMessage message =
-                    ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
-            errPrintln(message);
+            argParser.displayMessageAndUsageReference(
+                getErrStream(), ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
         final String attributeType = attributeString.substring(0, idx);

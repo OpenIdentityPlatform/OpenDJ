@@ -128,8 +128,7 @@ public final class MakeLDIF extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
         } catch (ArgumentException ae) {
-            errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            errPrintln(argParser.getUsageMessage());
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return EXIT_CODE_FAILURE;
         }
 

@@ -263,8 +263,7 @@ public class EncodePassword
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return OPERATIONS_ERROR;
     }
 
@@ -325,8 +324,7 @@ public class EncodePassword
         && !encodedPasswordFile.isPresent()
         && !schemeName.isPresent())
     {
-      printWrappedText(err, ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier()));
       return OPERATIONS_ERROR;
     }
 
@@ -859,9 +857,8 @@ public class EncodePassword
     }
     else
     {
-      printWrappedText(err, ERR_ENCPW_NO_CLEAR_PW.get(clearPassword.getLongIdentifier(),
-                            clearPasswordFile.getLongIdentifier(), interactivePassword.getLongIdentifier()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ENCPW_NO_CLEAR_PW.get(clearPassword.getLongIdentifier(),
+                                      clearPasswordFile.getLongIdentifier(), interactivePassword.getLongIdentifier()));
       return null;
     }
   }

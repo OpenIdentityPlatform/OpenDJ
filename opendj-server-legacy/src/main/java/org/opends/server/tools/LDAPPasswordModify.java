@@ -426,8 +426,7 @@ public class LDAPPasswordModify
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -492,31 +491,27 @@ public class LDAPPasswordModify
     {
       if (!bindPW.isPresent() && !bindPWFile.isPresent())
       {
-        printWrappedText(err, ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get());
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err, ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
     else if (bindPW.isPresent() || bindPWFile.isPresent())
     {
-      printWrappedText(err, ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get());
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get());
       return CLIENT_SIDE_PARAM_ERROR;
     }
     else
     {
       if (provideDNForAuthzID.isPresent())
       {
-        printWrappedText(
-            err, ERR_LDAPPWMOD_DEPENDENT_ARGS.get(provideDNForAuthzID.getLongIdentifier(), bindDN.getLongIdentifier()));
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err,
+            ERR_LDAPPWMOD_DEPENDENT_ARGS.get(provideDNForAuthzID.getLongIdentifier(), bindDN.getLongIdentifier()));
         return CLIENT_SIDE_PARAM_ERROR;
       }
 
       if (!authzID.isPresent() || (!currentPW.isPresent() && !currentPWFile.isPresent()))
       {
-        printWrappedText(err, ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get());
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err, ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get());
         return CLIENT_SIDE_PARAM_ERROR;
       }
     }
@@ -547,7 +542,6 @@ public class LDAPPasswordModify
         if(ctrl == null)
         {
           printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-          err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
         controls.add(ctrl);

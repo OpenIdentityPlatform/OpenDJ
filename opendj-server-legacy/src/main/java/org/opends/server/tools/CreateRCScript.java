@@ -101,22 +101,11 @@ public class CreateRCScript
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.disableLogging();
 
-    EmbeddedUtils.initializeForClientUse();
-
     if (! OperatingSystem.isUnixBased())
     {
       printWrappedText(err, ERR_CREATERC_ONLY_RUNS_ON_UNIX.get());
       return 1;
     }
-
-    File serverRoot = DirectoryServer.getEnvironmentConfig().getServerRoot();
-    if (serverRoot == null)
-    {
-      printWrappedText(
-          err, ERR_CREATERC_UNABLE_TO_DETERMINE_SERVER_ROOT.get(PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT));
-      return 1;
-    }
-
 
     LocalizableMessage description = INFO_CREATERC_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
@@ -176,14 +165,22 @@ public class CreateRCScript
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
+    }
+
+    EmbeddedUtils.initializeForClientUse();
+    File serverRoot = DirectoryServer.getEnvironmentConfig().getServerRoot();
+    if (serverRoot == null)
+    {
+      printWrappedText(
+          err, ERR_CREATERC_UNABLE_TO_DETERMINE_SERVER_ROOT.get(PROPERTY_SERVER_ROOT, ENV_VAR_INSTALL_ROOT));
+      return 1;
     }
 
     // Determine the path to the Java installation that should be used.

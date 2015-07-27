@@ -25,6 +25,7 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_ARGS;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_TOOL_WARMING_UP;
 import static org.fest.assertions.Assertions.assertThat;
@@ -45,6 +46,7 @@ public class AuthRateITCase extends ToolsITCase {
     public Object[][] authRateArgs() throws Exception {
         return new Object[][] {
             { args(""), "", ERR_ERROR_PARSING_ARGS.get("") },
+            { args("-42"), "", INFO_GLOBAL_HELP_REFERENCE.get("java " + AuthRate.class.getCanonicalName()) },
             // Warm-up test case
             {
                 args("-h", TestCaseUtils.getServerSocketAddress().getHostName(),

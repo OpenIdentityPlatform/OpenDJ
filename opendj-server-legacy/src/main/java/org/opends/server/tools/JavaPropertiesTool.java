@@ -222,11 +222,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      println(message);
-      println();
-      println(LocalizableMessage.raw(argParser.getUsage()));
-
+      argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 

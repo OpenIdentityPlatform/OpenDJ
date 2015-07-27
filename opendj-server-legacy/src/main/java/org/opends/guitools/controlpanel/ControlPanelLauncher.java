@@ -92,10 +92,7 @@ public class ControlPanelLauncher
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      System.err.println(message);
-      System.out.println(LocalizableMessage.raw(argParser.getUsage()));
-
+      argParser.displayMessageAndUsageReference(System.err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode());
     }
 

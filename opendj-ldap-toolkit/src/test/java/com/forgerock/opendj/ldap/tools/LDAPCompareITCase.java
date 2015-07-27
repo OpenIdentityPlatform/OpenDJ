@@ -25,6 +25,7 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_COMPARE_OPERATION_RESULT_FALSE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_COMPARE_OPERATION_RESULT_TRUE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPCOMPARE_TOOL_DESCRIPTION;
@@ -42,7 +43,7 @@ import org.testng.annotations.Test;
 public class LDAPCompareITCase extends ToolsITCase {
 
     private static final int NB_RAND_SIMPLE_COMPARE = 10;
-    private static final int NB_OTHER_SIMPLE_SEARCH = 1;
+    private static final int NB_OTHER_SIMPLE_SEARCH = 2;
 
     @DataProvider
     public Object[][] ldapCompareArgs() throws Exception {
@@ -52,6 +53,10 @@ public class LDAPCompareITCase extends ToolsITCase {
 
         // Check if the help message is correctly prompted
         data[0] = new Object[] { args("--help"), INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get(), "" };
+
+        // Check if the help reference message is prompted if arguments failed to be parsed
+        data[1] = new Object[] {
+            args("-42"), "", INFO_GLOBAL_HELP_REFERENCE.get("java " + LDAPCompare.class.getCanonicalName()) };
 
         // Perform some basic comparison on random user from the test server
         for (int i = 0; i < NB_RAND_SIMPLE_COMPARE; i++) {

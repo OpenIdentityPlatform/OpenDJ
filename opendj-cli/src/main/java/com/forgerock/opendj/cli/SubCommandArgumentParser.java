@@ -860,20 +860,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Retrieves a string describing how the user can get more help.
-     *
-     * @return A string describing how the user can get more help.
-     */
-    public LocalizableMessage getHelpUsageReference() {
-        setUsageOrVersionDisplayed(true);
-
-        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-        buffer.append(INFO_GLOBAL_HELP_REFERENCE.get(getScriptNameOrJava()));
-        buffer.append(EOL);
-        return buffer.toMessage();
-    }
-
-    /**
      * Adds the provided subcommand to this argument parser. This is only intended for use by the
      * <CODE>SubCommand</CODE> constructor and does not do any validation of its own to ensure that there are no
      * conflicts with the subcommand or any of its arguments.

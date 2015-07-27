@@ -240,8 +240,7 @@ public class LDIFSearch
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -333,8 +332,7 @@ public class LDIFSearch
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
       if (trailingArguments == null || trailingArguments.isEmpty())
       {
-        printWrappedText(err, ERR_LDIFSEARCH_NO_FILTER.get());
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err, ERR_LDIFSEARCH_NO_FILTER.get());
         return 1;
       }
 

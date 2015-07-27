@@ -96,7 +96,24 @@ public class MakeLDIF
     }
   }
 
-
+  /**
+   * Provides the command-line arguments to the main application for
+   * processing and returns the exit code as an integer.
+   *
+   * @param args
+   *          The set of command-line arguments provided to this
+   *          program.
+   * @param outStream
+   *          The output stream for standard output.
+   * @param errStream
+   *          The output stream for standard error.
+   * @return Zero to indicate that the program completed successfully,
+   *         or non-zero to indicate that an error occurred.
+   */
+  public static int main(final String[] args, final OutputStream outStream, final OutputStream errStream)
+  {
+    return new MakeLDIF().makeLDIFMain(args, false, false, outStream, errStream);
+  }
 
   /**
    * Creates a new instance of this utility.  It should just be used for
@@ -217,8 +234,7 @@ public class MakeLDIF
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 

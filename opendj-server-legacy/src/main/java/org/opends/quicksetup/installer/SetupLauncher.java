@@ -159,11 +159,7 @@ public class SetupLauncher extends Launcher {
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      System.err.println(message);
-      System.err.println();
-      System.err.println(argParser.getUsage());
-
+      argParser.displayMessageAndUsageReference(System.err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
     }
     catch (IncompatibleVersionException ive)
