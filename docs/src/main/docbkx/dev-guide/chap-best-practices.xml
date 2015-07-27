@@ -348,19 +348,26 @@
   <para>
    When you start your application, read directory server schemas
    as a one-off initialization step, using a method such as
-   <literal>Schema.readSchema()</literal>. For sample code see the section,
-   <link xlink:href="dev-guide#get-schema-information" xlink:show="new"
-   xlink:role="http://docbook.org/xlink/role/olink"><citetitle
-   >Getting Schema Information</citetitle></link>.
+   <literal>Schema.readSchema()</literal>.
   </para>
 
   <para>
    Once you have the directory server schema definitions,
    you can validate entries with <literal>Schema.validateEntry()</literal>.
+   For sample code see the section on
+   <link
+    xlink:href="dev-guide#adding-entries"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Adding Directory Entries</citetitle></link>.
+  </para>
+
+  <para>
    You can also set the schema to use for decoding LDAP search results with
    <literal>DecodeOptions.setSchema()</literal>
-   or <literal>DecodeOptions.setSchemaResolver()</literal>,
-   and specify the <literal>DecodeOptions</literal>
+   or <literal>DecodeOptions.setSchemaResolver()</literal>.
+   If you use only the default schema from the LDAP SDK,
+   you can specify the <literal>DecodeOptions</literal>
    as part of <literal>LDAPOptions</literal> when creating
    an <literal>LDAPConnectionFactory</literal>.
   </para>
