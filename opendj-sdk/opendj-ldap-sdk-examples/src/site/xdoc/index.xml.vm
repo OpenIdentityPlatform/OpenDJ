@@ -85,6 +85,10 @@
           - illustrates how to create, update, rename, and delete an entry
         </li>
         <li>
+          <a href="xref/org/forgerock/opendj/examples/UseSchema.html">Use LDAP Schema</a>
+          - illustrates how to validate an entry using the directory server LDAP schema
+        </li>
+        <li>
           <a href="xref/org/forgerock/opendj/examples/Controls.html">Use LDAP Controls</a>
           - illustrates how to use supported LDAP controls
         </li>
@@ -106,8 +110,8 @@
           - illustrates how to use <code>GenericControl</code> to add a pre-read request control
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/GetADChangeNotifications.html">Use <code>GenericControl</code></a>
-          - illustrates how to use <code>GenericControl</code> to get change notifications from Active Directory
+          <a href="xref/org/forgerock/opendj/examples/GetADChangeNotifications.html">Get AD Change Notifications</a>
+          - illustrates how to use <code>GetADChangeNotifications</code> to get change notifications from Active Directory
         </li>
         <li>
           <a href="xref/org/forgerock/opendj/examples/PasswordResetForAD.html">Reset AD user password</a>
