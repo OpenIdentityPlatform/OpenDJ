@@ -38,15 +38,16 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 interface Tree
 {
   /**
-   * Opens a tree. If the provided configuration is transactional,
+   * Opens a tree, optionally creating it. If the provided configuration is transactional,
    * a transaction will be created and used to perform the open.
    *
    * @param txn
    *          a non null transaction
+   * @param createOnDemand true if the tree should be created if it does not exist
    * @throws StorageRuntimeException
    *           if an error occurs while opening the index.
    */
-  void open(WriteableTransaction txn) throws StorageRuntimeException;
+  void open(WriteableTransaction txn, boolean createOnDemand) throws StorageRuntimeException;
 
   /**
    * Deletes this tree and all of its contents.

@@ -46,10 +46,10 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
-import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
@@ -123,12 +123,14 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   /**
    * Opens the root container.
    *
+   * @param accessMode specifies how the container has to be opened (read-write or read-only)
+   *
    * @throws StorageRuntimeException
    *           If an error occurs when opening the storage.
    * @throws ConfigException
    *           If an configuration error occurs while opening the storage.
    */
-  void open(AccessMode accessMode) throws StorageRuntimeException, ConfigException
+  void open(final AccessMode accessMode) throws StorageRuntimeException, ConfigException
   {
     try
     {
@@ -138,8 +140,8 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          compressedSchema = new PersistentCompressedSchema(storage, txn);
-          openAndRegisterEntryContainers(txn, config.getBaseDN());
+          compressedSchema = new PersistentCompressedSchema(storage, txn, accessMode);
+          openAndRegisterEntryContainers(txn, config.getBaseDN(), accessMode);
         }
       });
     }
@@ -165,17 +167,18 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *          The base DN of the entry container to open.
    * @param txn
    *          The transaction
+   * @param accessMode specifies how the container has to be opened (read-write or read-only)
    * @return The opened entry container.
    * @throws StorageRuntimeException
    *           If an error occurs while opening the entry container.
    * @throws ConfigException
    *           If an configuration error occurs while opening the entry container.
    */
-  EntryContainer openEntryContainer(DN baseDN, WriteableTransaction txn)
+  EntryContainer openEntryContainer(DN baseDN, WriteableTransaction txn, AccessMode accessMode)
       throws StorageRuntimeException, ConfigException
   {
     EntryContainer ec = new EntryContainer(baseDN, backendId, config, storage, this);
-    ec.open(txn);
+    ec.open(txn, accessMode);
     return ec;
   }
 
@@ -204,6 +207,8 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *
    * @param baseDNs
    *          The base DNs of the entry containers to open.
+   * @param accessMode specifies how the containers have to be opened (read-write or read-only)
+   *
    * @throws StorageRuntimeException
    *           If an error occurs while opening the entry container.
    * @throws InitializationException
@@ -213,13 +218,13 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
    *           If a configuration error occurs while opening the entry
    *           container.
    */
-  private void openAndRegisterEntryContainers(WriteableTransaction txn, Set<DN> baseDNs) throws StorageRuntimeException,
-      InitializationException, ConfigException
+  private void openAndRegisterEntryContainers(WriteableTransaction txn, Set<DN> baseDNs, AccessMode accessMode)
+      throws StorageRuntimeException, InitializationException, ConfigException
   {
     EntryID highestID = null;
     for (DN baseDN : baseDNs)
     {
-      EntryContainer ec = openEntryContainer(baseDN, txn);
+      EntryContainer ec = openEntryContainer(baseDN, txn, accessMode);
       EntryID id = ec.getHighestEntryID(txn);
       registerEntryContainer(baseDN, ec);
       if (highestID == null || id.compareTo(highestID) > 0)

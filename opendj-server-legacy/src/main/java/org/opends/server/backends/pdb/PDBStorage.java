@@ -64,6 +64,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
@@ -365,12 +366,14 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   /** Common interface for internal WriteableTransaction implementations. */
   private interface StorageImpl extends WriteableTransaction, Closeable {
+
   }
 
   /** PersistIt implementation of the {@link WriteableTransaction} interface. */
   private final class WriteableStorageImpl implements StorageImpl
   {
     private final Map<TreeName, Exchange> exchanges = new HashMap<>();
+    private final String DUMMY_RECORD = "_DUMMY_RECORD_";
 
     @Override
     public void put(final TreeName treeName, final ByteSequence key, final ByteSequence value)
@@ -462,20 +465,22 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
 
     @Override
-    public void openTree(final TreeName treeName)
+    public void openTree(final TreeName treeName, boolean createOnDemand)
     {
-      Exchange ex = null;
-      try
+      if (createOnDemand)
       {
-        ex = getNewExchange(treeName, true);
+        openCreateTree(treeName);
       }
-      catch (final PersistitException e)
+      else
       {
-        throw new StorageRuntimeException(e);
-      }
-      finally
-      {
-        db.releaseExchange(ex);
+        try
+        {
+          getExchangeFromCache(treeName);
+        }
+        catch (final PersistitException e)
+        {
+          throw new StorageRuntimeException(e);
+        }
       }
     }
 
@@ -532,6 +537,28 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
     }
 
+    private void openCreateTree(final TreeName treeName)
+    {
+      Exchange ex = null;
+      try
+      {
+        ex = getNewExchange(treeName, true);
+        // Work around a problem with forced shutdown right after tree creation.
+        // Tree operations are not part of the journal, so force a couple operations to be able to recover.
+        ByteString dummyKey = ByteString.valueOf(DUMMY_RECORD);
+        put(treeName, dummyKey, ByteString.empty());
+        delete(treeName, dummyKey);
+      }
+      catch (final PersistitException e)
+      {
+        throw new StorageRuntimeException(e);
+      }
+      finally
+      {
+        db.releaseExchange(ex);
+      }
+    }
+
     private Exchange getExchangeFromCache(final TreeName treeName) throws PersistitException
     {
       Exchange exchange = exchanges.get(treeName);
@@ -583,8 +610,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
 
     @Override
-    public void openTree(TreeName treeName)
+    public void openTree(TreeName treeName, boolean createOnDemand)
     {
+      if (createOnDemand)
+      {
+        throw new ReadOnlyStorageException();
+      }
       Exchange ex = null;
       try
       {
@@ -592,7 +623,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
       catch (final TreeNotFoundException e)
       {
-        throw new ReadOnlyStorageException();
+        // ignore missing trees.
       }
       catch (final PersistitException e)
       {
@@ -648,7 +679,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private StorageImpl newStorageImpl() {
     final WriteableStorageImpl writeableStorage = new WriteableStorageImpl();
-    return accessMode.equals(AccessMode.READ_ONLY) ? new ReadOnlyStorageImpl(writeableStorage) : writeableStorage;
+    return accessMode.isWriteable() ? writeableStorage : new ReadOnlyStorageImpl(writeableStorage);
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -689,6 +720,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
     dbCfg.setJournalPath(new File(backendDirectory, JOURNAL_NAME).getPath());
     dbCfg.setCheckpointInterval(config.getDBCheckpointerWakeupInterval());
+    // Volume is opened read write because recovery will fail if opened read-only
     dbCfg.setVolumeList(asList(new VolumeSpecification(new File(backendDirectory, VOLUME_NAME).getPath(), null,
         BUFFER_SIZE, 4096, Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg(dbCfg);

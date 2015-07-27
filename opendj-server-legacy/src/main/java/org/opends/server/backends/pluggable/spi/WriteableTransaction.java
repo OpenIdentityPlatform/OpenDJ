@@ -33,12 +33,13 @@ import org.forgerock.opendj.ldap.ByteSequence;
 public interface WriteableTransaction extends ReadableTransaction
 {
   /**
-   * Opens the tree identified by the provided name. The tree is created if it does not already exist.
+   * Opens the tree identified by the provided name.
    *
    * @param name
    *          the tree name
+   * @param createOnDemand true if the tree should be created if it does not exist
    */
-  void openTree(TreeName name);
+  void openTree(TreeName name, boolean createOnDemand);
 
   /**
    * Renames the tree from the old to the new name.

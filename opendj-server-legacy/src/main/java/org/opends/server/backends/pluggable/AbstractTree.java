@@ -46,9 +46,9 @@ abstract class AbstractTree implements Tree, Comparable<Tree>
   }
 
   @Override
-  public final void open(WriteableTransaction txn) throws StorageRuntimeException
+  public final void open(WriteableTransaction txn, boolean createOnDemand) throws StorageRuntimeException
   {
-    txn.openTree(name);
+    txn.openTree(name, createOnDemand);
     open0(txn);
   }
 

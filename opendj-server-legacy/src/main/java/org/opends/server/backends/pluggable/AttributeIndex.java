@@ -334,13 +334,14 @@ class AttributeIndex
    * Open the attribute index.
    *
    * @param txn a non null transaction
+   * @param createOnDemand true if the tree should be created if it does not exist
    * @throws StorageRuntimeException if an error occurs while opening the index
    */
-  void open(WriteableTransaction txn) throws StorageRuntimeException
+  void open(WriteableTransaction txn, boolean createOnDemand) throws StorageRuntimeException
   {
     for (Index index : indexIdToIndexes.values())
     {
-      index.open(txn);
+      index.open(txn, createOnDemand);
     }
     config.addChangeListener(this);
   }
@@ -761,7 +762,7 @@ class AttributeIndex
         {
           for (MatchingRuleIndex addedIndex : addedIndexes.values())
           {
-            openIndex(txn, addedIndex, ccr);
+            createIndex(txn, addedIndex, ccr);
           }
         }
       });
@@ -805,9 +806,9 @@ class AttributeIndex
     return ccr;
   }
 
-  private static void openIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
+  private static void createIndex(WriteableTransaction txn, MatchingRuleIndex index, ConfigChangeResult ccr)
   {
-    index.open(txn);
+    index.open(txn, true);
     if (!index.isTrusted())
     {
       ccr.setAdminActionRequired(true);

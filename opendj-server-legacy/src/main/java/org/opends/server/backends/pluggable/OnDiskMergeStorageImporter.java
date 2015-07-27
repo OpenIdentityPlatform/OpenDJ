@@ -87,13 +87,13 @@ import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.OnDiskMergeBufferImporter.DNCache;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.Storage;
-import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -1427,7 +1427,7 @@ final class OnDiskMergeStorageImporter
       {
         tempDN = baseDN.parent().child(tempDN);
       }
-      entryContainer = rootContainer.openEntryContainer(tempDN, txn);
+      entryContainer = rootContainer.openEntryContainer(tempDN, txn, AccessMode.READ_WRITE);
       break;
     case INCLUDE_EXCLUDE_BRANCHES:
       break;
