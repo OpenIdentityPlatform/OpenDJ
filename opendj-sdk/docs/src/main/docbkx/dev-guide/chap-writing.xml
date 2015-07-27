@@ -138,6 +138,59 @@
 
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.ShortLife:--- JCite add ---]</programlisting>
+
+  <para>
+   Directory servers generally reject entries that violate the server's LDAP schema.
+   To make sure an entry conforms to the directory server LDAP schema
+   before attempting to add it to the directory,
+   use the schema's <literal>validateEntry()</literal> method
+   to check the entry for errors.
+   The following example reads an entry to add from <literal>System.in</literal>.
+   If the entry is valid according to the directory schema,
+   it tries to add the entry to the directory.
+  </para>
+
+  <programlisting language="java">
+[jcp:org.forgerock.opendj.examples.UseSchema:--- JCite ---]
+  </programlisting>
+
+  <para>
+   The following example shows a successful add operation
+   for an entry that conforms to the directory server LDAP schema.
+  </para>
+
+  <screen>
+<userinput>dn: cn=New User,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+ou: People
+cn: New User
+sn: User
+</userinput>
+<computeroutput>Processing ADD request for cn=New User,ou=People,dc=example,dc=com
+ADD operation successful for DN cn=New User,ou=People,dc=example,dc=com</computeroutput>
+  </screen>
+
+  <para>
+   The following example shows an error message
+   for an entry that violates the directory server LDAP schema.
+  </para>
+
+  <screen>
+<userinput>dn: cn=Broken,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+ou: People
+cn: Broken
+sn: User
+unknown: attribute
+</userinput>
+<computeroutput>Entry "cn=Broken,ou=People,dc=example,dc=com" violates the schema
+ because it contains attribute "unknown"
+ which is not allowed by any of the object classes in the entry</computeroutput>
+  </screen>
  </section>
 
  <section xml:id="modifying-attr-values">
