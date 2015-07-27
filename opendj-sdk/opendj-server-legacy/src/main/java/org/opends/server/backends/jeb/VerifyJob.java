@@ -138,7 +138,13 @@ public class VerifyJob
           verifyID2Children = true;
           verifyID2Subtree = true;
         }
-        attrIndexList.addAll(entryContainer.getAttributeIndexes());
+        for (AttributeIndex index : entryContainer.getAttributeIndexes())
+        {
+          if (index.isTrusted())
+          {
+            attrIndexList.add(index);
+          }
+        }
       }
       else
       {

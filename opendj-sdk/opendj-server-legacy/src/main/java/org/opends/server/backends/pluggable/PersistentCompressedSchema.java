@@ -38,6 +38,7 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -84,6 +85,8 @@ final class PersistentCompressedSchema extends CompressedSchema
    * @param storage
    *          A reference to the storage in which the trees will be held.
    * @param txn a non null transaction
+   * @param accessMode specifies how the storage has been opened (read only or read/write)
+   *
    * @throws StorageRuntimeException
    *           If a problem occurs while loading the compressed schema
    *           definitions from the tree.
@@ -91,11 +94,11 @@ final class PersistentCompressedSchema extends CompressedSchema
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
    */
-  PersistentCompressedSchema(final Storage storage, WriteableTransaction txn)
+  PersistentCompressedSchema(final Storage storage, WriteableTransaction txn, AccessMode accessMode)
       throws StorageRuntimeException, InitializationException
   {
     this.storage = storage;
-    load(txn);
+    load(txn, accessMode.isWriteable());
   }
 
   /** {@inheritDoc} */
@@ -147,19 +150,11 @@ final class PersistentCompressedSchema extends CompressedSchema
   }
 
 
-
-  /**
-   * Loads the compressed schema information from the tree.
-   *
-   * @throws StorageRuntimeException
-   *           If an error occurs while loading the definitions from the tree.
-   * @throws InitializationException
-   *           If an error occurs while loading and processing the definitions.
-   */
-  private void load(WriteableTransaction txn) throws StorageRuntimeException, InitializationException
+  private void load(WriteableTransaction txn, boolean shouldCreate)
+      throws StorageRuntimeException, InitializationException
   {
-    txn.openTree(adTreeName);
-    txn.openTree(ocTreeName);
+    txn.openTree(adTreeName, shouldCreate);
+    txn.openTree(ocTreeName, shouldCreate);
 
     // Cursor through the object class database and load the object class set
     // definitions. At the same time, figure out the highest token value and

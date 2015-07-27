@@ -54,8 +54,8 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.ImportSuffixCommand.SuffixImportStrategy;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Storage;
-import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
@@ -946,7 +946,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         try
         {
           // The base DN was added.
-          EntryContainer ec = rootContainer.openEntryContainer(baseDN, txn);
+          EntryContainer ec = rootContainer.openEntryContainer(baseDN, txn, AccessMode.READ_WRITE);
           rootContainer.registerEntryContainer(baseDN, ec);
           DirectoryServer.registerBaseDN(baseDN, this, false);
         }

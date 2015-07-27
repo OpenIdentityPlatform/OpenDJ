@@ -168,7 +168,13 @@ class VerifyJob
       {
         verifyDN2ID = true;
         verifyID2ChildrenCount = true;
-        attrIndexList.addAll(entryContainer.getAttributeIndexes());
+        for (AttributeIndex index : entryContainer.getAttributeIndexes())
+        {
+          if (index.isTrusted())
+          {
+            attrIndexList.add(index);
+          }
+        }
       }
       else
       {

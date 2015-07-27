@@ -31,6 +31,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -206,9 +207,9 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public void openTree(final TreeName name)
+    public void openTree(final TreeName name, boolean createOnDemand)
     {
-      txn.openTree(name);
+      txn.openTree(name, createOnDemand);
       logger.trace("Storage@%s.WriteableTransaction@%s.openTree(%s, %s)",
           storageId(), id(), backendId, name);
     }

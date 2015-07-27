@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.pluggable.State.IndexFlag;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -65,7 +66,7 @@ public class DefaultIndexTest extends DirectoryServerTestCase
   public void setUp() {
     txn = new DummyWriteableTransaction();
     index = newIndex("test", 5, EnumSet.of(TRUSTED, COMPACTED));;
-    index.open(txn);
+    index.open(txn, true);
   }
 
   @Test
@@ -253,7 +254,7 @@ public class DefaultIndexTest extends DirectoryServerTestCase
     }
 
     @Override
-    public void openTree(TreeName name)
+    public void openTree(TreeName name, boolean createOnDemand)
     {
       storage.put(name, new TreeMap<ByteString, ByteString>());
     }

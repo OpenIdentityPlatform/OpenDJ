@@ -100,12 +100,12 @@ import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
-import org.opends.server.backends.pluggable.spi.Storage.AccessMode;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
@@ -640,7 +640,7 @@ final class OnDiskMergeBufferImporter
       {
         tempDN = baseDN.parent().child(tempDN);
       }
-      entryContainer = rootContainer.openEntryContainer(tempDN, txn);
+      entryContainer = rootContainer.openEntryContainer(tempDN, txn, AccessMode.READ_WRITE);
       break;
     case INCLUDE_EXCLUDE_BRANCHES:
       break;
@@ -3353,7 +3353,7 @@ final class OnDiskMergeBufferImporter
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            txn.openTree(dnCache);
+            txn.openTree(dnCache, true);
           }
         });
       }

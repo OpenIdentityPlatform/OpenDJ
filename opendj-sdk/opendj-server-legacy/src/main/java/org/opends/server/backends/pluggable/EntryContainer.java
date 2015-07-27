@@ -73,6 +73,7 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
 import org.opends.server.api.plugin.PluginResult.SubordinateModifyDN;
+import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -217,7 +218,7 @@ public class EntryContainer
           @Override
           public void run(WriteableTransaction txn) throws Exception
           {
-            index.open(txn);
+            index.open(txn, true);
             if (!index.isTrusted())
             {
               ccr.setAdminActionRequired(true);
@@ -353,7 +354,7 @@ public class EntryContainer
           public void run(WriteableTransaction txn) throws Exception
           {
             VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
-            vlvIndex.open(txn);
+            vlvIndex.open(txn, true);
             if(!vlvIndex.isTrusted())
             {
               ccr.setAdminActionRequired(true);
@@ -461,11 +462,13 @@ public class EntryContainer
    * Opens the entryContainer for reading and writing.
    *
    * @param txn a non null transaction
+   * @param accessMode specifies how the container has to be opened (read-write or read-only)
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws ConfigException if a configuration related error occurs.
    */
-  void open(WriteableTransaction txn) throws StorageRuntimeException, ConfigException
+  void open(WriteableTransaction txn, AccessMode accessMode) throws StorageRuntimeException, ConfigException
   {
+    boolean shouldCreate = accessMode.isWriteable();
     try
     {
       DataConfig entryDataConfig =
@@ -474,18 +477,18 @@ public class EntryContainer
             rootContainer.getCompressedSchema());
 
       id2entry = new ID2Entry(getIndexName(ID2ENTRY_TREE_NAME), entryDataConfig);
-      id2entry.open(txn);
-      id2childrenCount.open(txn);
-      dn2id.open(txn);
-      state.open(txn);
-      dn2uri.open(txn);
+      id2entry.open(txn, shouldCreate);
+      id2childrenCount.open(txn, shouldCreate);
+      dn2id.open(txn, shouldCreate);
+      state.open(txn, shouldCreate);
+      dn2uri.open(txn, shouldCreate);
 
       for (String idx : config.listBackendIndexes())
       {
         BackendIndexCfg indexCfg = config.getBackendIndex(idx);
 
         final AttributeIndex index = new AttributeIndex(indexCfg, state, this);
-        index.open(txn);
+        index.open(txn, shouldCreate);
         if(!index.isTrusted())
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, index.getName());
@@ -498,8 +501,7 @@ public class EntryContainer
         BackendVLVIndexCfg vlvIndexCfg = config.getBackendVLVIndex(idx);
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this, txn);
-        vlvIndex.open(txn);
-
+        vlvIndex.open(txn, shouldCreate);
         if(!vlvIndex.isTrusted())
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
@@ -2664,7 +2666,7 @@ public class EntryContainer
     {
       for(Tree tree : allTrees)
       {
-        tree.open(txn);
+        tree.open(txn, false);
       }
     }
     catch (Exception e)
@@ -2784,7 +2786,7 @@ public class EntryContainer
     {
       for(Tree tree : allTrees)
       {
-        tree.open(txn);
+        tree.open(txn, true);
       }
 
       for (Tree tree : allTrees)
@@ -2830,7 +2832,7 @@ public class EntryContainer
     }
     finally
     {
-      tree.open(txn);
+      tree.open(txn, true);
     }
     if(logger.isTraceEnabled())
     {
