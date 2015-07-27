@@ -317,7 +317,7 @@ public final class LDAPCompare extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
                     errPrintln(message);
-                    ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
         }
