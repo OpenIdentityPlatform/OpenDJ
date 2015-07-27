@@ -503,8 +503,7 @@ public class AddRate extends ConsoleApplication {
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
             runner.validate(deleteMode, deleteSizeThreshold, deleteAgeThreshold, noPurgeArgument);
         } catch (final ArgumentException ae) {
-            errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            errPrintln(argParser.getUsageMessage());
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 

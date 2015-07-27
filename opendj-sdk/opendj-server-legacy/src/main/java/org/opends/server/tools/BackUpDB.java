@@ -292,8 +292,7 @@ public class BackUpDB extends TaskTool
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
     catch (ClientException ce)
@@ -317,17 +316,15 @@ public class BackUpDB extends TaskTool
     {
       if (backendID.isPresent())
       {
-        printWrappedText(err, ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
-                backUpAll.getLongIdentifier(), backendID.getLongIdentifier()));
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err, ERR_BACKUPDB_CANNOT_MIX_BACKUP_ALL_AND_BACKEND_ID.get(
+            backUpAll.getLongIdentifier(), backendID.getLongIdentifier()));
         return 1;
       }
     }
     else if (! backendID.isPresent())
     {
-      printWrappedText(err, ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
-              backUpAll.getLongIdentifier(), backendID.getLongIdentifier()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_BACKUPDB_NEED_BACKUP_ALL_OR_BACKEND_ID.get(
+          backUpAll.getLongIdentifier(), backendID.getLongIdentifier()));
       return 1;
     }
     else
@@ -345,8 +342,8 @@ public class BackUpDB extends TaskTool
       }
       if (!repeatedBackendIds.isEmpty())
       {
-        printWrappedText(err, ERR_BACKUPDB_REPEATED_BACKEND_ID.get(Utils.joinAsString(", ", repeatedBackendIds)));
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err,
+            ERR_BACKUPDB_REPEATED_BACKEND_ID.get(Utils.joinAsString(", ", repeatedBackendIds)));
         return 1;
       }
     }
@@ -355,9 +352,8 @@ public class BackUpDB extends TaskTool
     // incremental backup.
     if (incrementalBaseID.isPresent() && ! incremental.isPresent())
     {
-      printWrappedText(err, ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.get(
+      argParser.displayMessageAndUsageReference(err, ERR_BACKUPDB_INCREMENTAL_BASE_REQUIRES_INCREMENTAL.get(
               incrementalBaseID.getLongIdentifier(), incremental.getLongIdentifier()));
-      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -366,9 +362,8 @@ public class BackUpDB extends TaskTool
     //  are present, infer an offline backup.
     if ((encrypt.isPresent() || signHash.isPresent())
             && ! argParser.connectionArgumentsPresent()) {
-      printWrappedText(err, ERR_BACKUPDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get(
-              encrypt.getLongIdentifier(), signHash.getLongIdentifier()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_BACKUPDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get(
+          encrypt.getLongIdentifier(), signHash.getLongIdentifier()));
       return 1;
     }
 
@@ -376,9 +371,8 @@ public class BackUpDB extends TaskTool
     // was given.
     if (signHash.isPresent() && !hash.isPresent())
     {
-      printWrappedText(
-              err, ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(signHash.getLongIdentifier(), hash.getLongIdentifier()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err,
+          ERR_BACKUPDB_SIGN_REQUIRES_HASH.get(signHash.getLongIdentifier(), hash.getLongIdentifier()));
       return 1;
     }
 

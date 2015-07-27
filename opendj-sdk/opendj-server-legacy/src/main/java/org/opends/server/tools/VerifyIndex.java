@@ -190,8 +190,7 @@ public class VerifyIndex
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return 1;
     }
 
@@ -203,18 +202,9 @@ public class VerifyIndex
       return 0;
     }
 
-    // If no arguments were provided, then display usage information and exit.
-    int numArgs = args.length;
-    if (numArgs == 0)
-    {
-      out.println(argParser.getUsage());
-      return 1;
-    }
-
     if (cleanMode.isPresent() && indexList.getValues().size() != 1)
     {
-      printWrappedText(err, ERR_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX.get());
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX.get());
       return 1;
     }
 

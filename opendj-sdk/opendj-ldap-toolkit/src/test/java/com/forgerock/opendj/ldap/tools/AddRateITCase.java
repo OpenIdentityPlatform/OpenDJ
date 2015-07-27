@@ -28,6 +28,7 @@ package com.forgerock.opendj.ldap.tools;
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.util.Utils.*;
 
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.PrintStream;
@@ -88,7 +89,8 @@ public class AddRateITCase extends ToolsITCase {
             { args("-C", "off", "-s", "30000", TEMPLATE_NAME), ERR_ADDRATE_DELMODE_OFF_THRESHOLD_ON.get() },
             { args("-C", "fifo", "-a", "3", "-s", "20000", TEMPLATE_NAME), ERR_ADDRATE_THRESHOLD_SIZE_AND_AGE.get() },
             { args("-C", "random", "-a", "3", TEMPLATE_NAME), ERR_ADDRATE_DELMODE_RAND_THRESHOLD_AGE.get() },
-            { args("-s", "999", TEMPLATE_NAME), ERR_ADDRATE_SIZE_THRESHOLD_LOWER_THAN_ITERATIONS.get() }
+            { args("-s", "999", TEMPLATE_NAME), ERR_ADDRATE_SIZE_THRESHOLD_LOWER_THAN_ITERATIONS.get() },
+            { args("-42"), INFO_GLOBAL_HELP_REFERENCE.get("java " + AddRate.class.getCanonicalName()) }
         };
     }
 

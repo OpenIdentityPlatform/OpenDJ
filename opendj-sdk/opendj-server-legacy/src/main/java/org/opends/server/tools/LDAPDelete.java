@@ -559,8 +559,7 @@ public class LDAPDelete
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -587,7 +586,7 @@ public class LDAPDelete
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -603,7 +602,7 @@ public class LDAPDelete
     } catch(ArgumentException ae)
     {
       logger.traceException(ae);
-      printWrappedText(err, ae.getMessage());
+      argParser.displayMessageAndUsageReference(err, ae.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -659,7 +658,6 @@ public class LDAPDelete
         if(ctrl == null)
         {
           printWrappedText(err, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-          err.println(argParser.getUsage());
           return CLIENT_SIDE_PARAM_ERROR;
         }
         deleteOptions.getControls().add(ctrl);
@@ -778,7 +776,13 @@ public class LDAPDelete
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());
       return lce.getResultCode();
-    } catch(Exception e)
+    }
+    catch(ArgumentException e)
+    {
+      argParser.displayMessageAndUsageReference(err, e.getMessageObject());
+      return 1;
+    }
+    catch (Exception e)
     {
       logger.traceException(e);
       printWrappedText(err, e.getMessage());

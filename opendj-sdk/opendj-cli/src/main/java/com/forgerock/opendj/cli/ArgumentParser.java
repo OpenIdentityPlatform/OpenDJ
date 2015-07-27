@@ -35,6 +35,7 @@ import static com.forgerock.opendj.util.StaticUtils.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -1797,6 +1798,34 @@ public class ArgumentParser implements ToolRefDocContainer {
                 }
             }
         }
+    }
+
+    /**
+     * Displays the provided message on the provided stream followed by a help usage reference.
+     *
+     * @param printStream
+     *            The stream to print error message and help reference message.
+     * @param message
+     *            The error message to print.
+     */
+    public void displayMessageAndUsageReference(final PrintStream printStream, final LocalizableMessage message) {
+        printWrappedText(printStream, message);
+        printStream.println();
+        printWrappedText(printStream, getHelpUsageReference());
+    }
+
+    /**
+     * Retrieves a string describing how the user can get more help.
+     *
+     * @return A string describing how the user can get more help.
+     */
+    public LocalizableMessage getHelpUsageReference() {
+        setUsageOrVersionDisplayed(true);
+
+        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
+        buffer.append(INFO_GLOBAL_HELP_REFERENCE.get(getScriptNameOrJava()));
+        buffer.append(EOL);
+        return buffer.toMessage();
     }
 
     /**

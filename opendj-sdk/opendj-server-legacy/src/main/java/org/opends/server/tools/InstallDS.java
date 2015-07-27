@@ -339,10 +339,7 @@ public class InstallDS extends ConsoleApplication
     }
     catch (final ArgumentException ae)
     {
-      println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      println();
-      println(LocalizableMessage.raw(argParser.getUsage()));
-
+      argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return InstallReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 

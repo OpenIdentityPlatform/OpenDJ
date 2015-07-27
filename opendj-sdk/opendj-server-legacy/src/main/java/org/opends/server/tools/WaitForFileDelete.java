@@ -242,10 +242,7 @@ public class WaitForFileDelete extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      println(message);
-      println(LocalizableMessage.raw(argParser.getUsage()));
+      argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return EXIT_CODE_INTERNAL_ERROR;
     }
 

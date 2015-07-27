@@ -292,8 +292,7 @@ public final class SearchRate extends ConsoleApplication {
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
             runner.validate();
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 

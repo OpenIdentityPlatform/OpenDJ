@@ -1197,8 +1197,7 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -1336,7 +1335,8 @@ public class ManageAccount
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(port.getLongIdentifier(), ae.getMessage()));
+      argParser.displayMessageAndUsageReference(
+          err, ERR_PWPSTATE_CANNOT_DETERMINE_PORT.get(port.getLongIdentifier(), ae.getMessage()));
       return CLIENT_SIDE_PARAM_ERROR;
     }
     catch (LDAPConnectionException lce)

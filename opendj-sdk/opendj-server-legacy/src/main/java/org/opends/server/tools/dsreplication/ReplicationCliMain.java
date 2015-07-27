@@ -374,9 +374,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      errPrintln();
-      errPrintln(LocalizableMessage.raw(argParser.getUsage()));
+      argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
       return ERROR_USER_DATA;
     }
@@ -1843,9 +1841,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception " + ae));
-        errPrintln();
-        errPrintln(ae.getMessageObject());
-        errPrintln();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         return null;
       }
       firstTry = false;
@@ -1962,9 +1958,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        errPrintln();
-        errPrintln(ae.getMessageObject());
-        errPrintln();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         cancelled = true;
       }
     }
@@ -2226,9 +2220,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        errPrintln();
-        errPrintln(ae.getMessageObject());
-        errPrintln();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         cancelled = true;
       }
       finally
@@ -2535,9 +2527,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        errPrintln();
-        errPrintln(ae.getMessageObject());
-        errPrintln();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         cancelled = true;
       }
     }
@@ -2824,9 +2814,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception " + ae));
-        errPrintln();
-        errPrintln(ae.getMessageObject());
-        errPrintln();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         return null;
       }
     }
@@ -2944,9 +2932,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        errPrintln();
-        errPrintln(ae.getMessageObject());
-        errPrintln();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         cancelled = true;
       }
     }
@@ -3020,9 +3006,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ArgumentException ae)
       {
         logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
         cancelled = true;
       }
     }

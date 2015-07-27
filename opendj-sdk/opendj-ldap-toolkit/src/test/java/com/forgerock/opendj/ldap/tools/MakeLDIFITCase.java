@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -29,6 +29,7 @@ import static org.fest.assertions.Assertions.*;
 import static org.forgerock.util.Utils.*;
 
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_GLOBAL_HELP_REFERENCE;
 
 import java.io.PrintStream;
 
@@ -82,11 +83,11 @@ public class MakeLDIFITCase extends ToolsITCase {
         return new Object[][] {
             { // check that usage is written to output when arguments are invalid
               args(),
-              expectedOutput(INFO_MAKELDIF_TOOL_DESCRIPTION.get()) },
+              expectedOutput(INFO_GLOBAL_HELP_REFERENCE.get("java " + MakeLDIF.class.getCanonicalName())) },
 
-            { // check that there is an argument error when no arg provided
-              args(),
-              expectedOutput(ERR_ERROR_PARSING_ARGS.get("")) },
+            { // Check if the help reference message is prompted if arguments failed to be parsed
+              args("-42"),
+              expectedOutput(INFO_GLOBAL_HELP_REFERENCE.get("java " + MakeLDIF.class.getCanonicalName())) },
 
             { args("-r", "unknown/path" , "example.template"),
               expectedOutput(ERR_LDIF_GEN_TOOL_NO_SUCH_RESOURCE_DIRECTORY.get("unknown/path")) },

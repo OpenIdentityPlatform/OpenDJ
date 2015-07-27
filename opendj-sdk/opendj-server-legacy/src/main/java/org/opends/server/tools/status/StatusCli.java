@@ -104,7 +104,7 @@ import com.forgerock.opendj.cli.TextTablePrinter;
  * This class basically is in charge of parsing the data provided by the
  * user in the command line.
  */
-class StatusCli extends ConsoleApplication
+public class StatusCli extends ConsoleApplication
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -233,10 +233,7 @@ class StatusCli extends ConsoleApplication
     try {
       argParser.parseArguments(args);
     } catch (ArgumentException ae) {
-      println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      println();
-      println(LocalizableMessage.raw(argParser.getUsage()));
-
+      argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
     }
 
@@ -297,16 +294,23 @@ class StatusCli extends ConsoleApplication
       secureArgsList.portArg.setPresent(true);
       secureArgsList.hostNameArg.addValue(secureArgsList.hostNameArg.getDefaultValue());
       secureArgsList.portArg.addValue(Integer.toString(port));
+      // We already know if SSL or StartTLS can be used.  If we cannot
+      // use them we will not propose them in the connection parameters
+      // and if none of them can be used we will just not ask for the
+      // protocol to be used.
+      final LDAPConnectionConsoleInteraction ci =
+          new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
       try
       {
-        // We already know if SSL or StartTLS can be used.  If we cannot
-        // use them we will not propose them in the connection parameters
-        // and if none of them can be used we will just not ask for the
-        // protocol to be used.
-        final LDAPConnectionConsoleInteraction ci =
-            new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
-
         ci.run(false);
+      }
+      catch (ArgumentException e)
+      {
+        argParser.displayMessageAndUsageReference(getErrStream(), e.getMessageObject());
+        return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
+      }
+      try
+      {
         if (argParser.isInteractive())
         {
           bindDn = ci.getBindDN();
@@ -324,7 +328,7 @@ class StatusCli extends ConsoleApplication
           controlInfo.setTrustManager(interactiveTrustManager);
           useInteractiveTrustManager = true;
         }
-      } catch (ArgumentException | ClientException e) {
+      } catch (ClientException e) {
         println(e.getMessageObject());
         return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
       } finally {

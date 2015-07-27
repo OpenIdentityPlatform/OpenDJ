@@ -219,14 +219,6 @@ public final class UpgradeCli extends ConsoleApplication implements
     return acceptLicense.isPresent();
   }
 
-  /** Displays the provided message followed by a help usage reference. */
-  private void displayMessageAndUsageReference(final LocalizableMessage message)
-  {
-    println(message);
-    println();
-    println(parser.getHelpUsageReference());
-  }
-
   /** Initialize arguments provided by the command line. */
   private void initializeGlobalArguments() throws ArgumentException
   {
@@ -312,8 +304,7 @@ public final class UpgradeCli extends ConsoleApplication implements
     }
     catch (ArgumentException ae)
     {
-      final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      displayMessageAndUsageReference(message);
+      parser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return EXIT_CODE_ERROR;
     }
 

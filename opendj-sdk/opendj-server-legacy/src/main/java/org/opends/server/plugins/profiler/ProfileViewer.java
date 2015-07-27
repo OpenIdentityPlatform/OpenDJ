@@ -152,11 +152,7 @@ public class ProfileViewer
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message =
-              ERR_PROFILEVIEWER_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(System.err, ERR_PROFILEVIEWER_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(1);
     }
 

@@ -963,13 +963,6 @@ public final class DSConfig extends ConsoleApplication {
         return verboseArgument.isPresent();
     }
 
-    /** Displays the provided error message followed by a help usage reference. */
-    private void displayErrorMessageAndUsageReference(LocalizableMessage message) {
-        errPrintln(message);
-        errPrintln();
-        errPrintln(parser.getHelpUsageReference());
-    }
-
     /**
      * Registers the global arguments with the argument parser.
      *
@@ -1123,7 +1116,7 @@ public final class DSConfig extends ConsoleApplication {
             parser.parseArguments(args);
             checkForConflictingArguments();
         } catch (ArgumentException ae) {
-            displayErrorMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+            parser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ReturnCode.CONFLICTING_ARGS.get();
         }
 
@@ -1150,7 +1143,7 @@ public final class DSConfig extends ConsoleApplication {
         try {
             factory = new LDAPManagementContextFactory(cfp);
         } catch (ArgumentException e) {
-            displayErrorMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(e.getMessage()));
+            parser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(e.getMessage()));
             return ReturnCode.CONFLICTING_ARGS.get();
         }
 
@@ -1167,8 +1160,8 @@ public final class DSConfig extends ConsoleApplication {
                 // Top-level interactive mode.
                 retCode = runInteractiveMode();
             } else {
-                displayErrorMessageAndUsageReference(
-                    ERR_ERROR_PARSING_ARGS.get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get()));
+                parser.displayMessageAndUsageReference(
+                        getErrStream(), ERR_ERROR_PARSING_ARGS.get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get()));
                 retCode = ReturnCode.ERROR_USER_DATA.get();
             }
         } else {
@@ -1277,7 +1270,10 @@ public final class DSConfig extends ConsoleApplication {
         try {
             // Force retrieval of management context.
             factory.getManagementContext(app);
-        } catch (ArgumentException | ClientException e) {
+        } catch (ArgumentException e) {
+            parser.displayMessageAndUsageReference(getErrStream(), e.getMessageObject());
+            return ReturnCode.ERROR_USER_DATA.get();
+        } catch (ClientException e) {
             app.errPrintln(e.getMessageObject());
             return ReturnCode.ERROR_UNEXPECTED.get();
         }

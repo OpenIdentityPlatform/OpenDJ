@@ -7175,9 +7175,7 @@ public final class DirectoryServer
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_DSCORE_ERROR_PARSING_ARGS.get(ae.getMessage());
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(System.err, ERR_DSCORE_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(1);
     }
 
@@ -7248,9 +7246,7 @@ public final class DirectoryServer
       return;
     }
     else if (noDetach.isPresent() && timeout.isPresent()) {
-      LocalizableMessage message = ERR_DSCORE_ERROR_NODETACH_TIMEOUT.get();
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(System.err, ERR_DSCORE_ERROR_NODETACH_TIMEOUT.get());
       System.exit(1);
     }
 

@@ -168,8 +168,7 @@ public final class LDIFSearch extends ConsoleApplication {
                 return ResultCode.SUCCESS.intValue();
             }
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -224,8 +223,7 @@ public final class LDIFSearch extends ConsoleApplication {
         }
 
         if (filters.isEmpty()) {
-            errPrintln(ERR_SEARCH_NO_FILTERS.get());
-            errPrintln(argParser.getUsageMessage());
+            argParser.displayMessageAndUsageReference(getErrStream(), ERR_SEARCH_NO_FILTERS.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 

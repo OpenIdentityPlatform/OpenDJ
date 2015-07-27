@@ -26,6 +26,14 @@
  */
 package org.opends.guitools.uninstaller;
 
+import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -76,14 +84,6 @@ import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -888,7 +888,11 @@ public class UninstallCliHelper extends ConsoleApplication {
         userData.setLocalServerUrl(adminConnectorUrl);
         couldConnect = true;
       }
-      catch (ArgumentException | ClientException e) {
+      catch (ArgumentException e)
+      {
+        parser.displayMessageAndUsageReference(getErrStream(), e.getMessageObject());
+      }
+      catch (ClientException e) {
         printErrorMessage(e.getMessageObject());
         println();
       }

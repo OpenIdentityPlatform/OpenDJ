@@ -567,7 +567,7 @@ public final class EMailMessage
     }
     catch (ArgumentException ae)
     {
-      System.err.println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+      argParser.displayMessageAndUsageReference(System.err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       System.exit(1);
     }
 

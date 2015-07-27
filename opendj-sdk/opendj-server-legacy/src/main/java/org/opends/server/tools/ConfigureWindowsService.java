@@ -205,8 +205,7 @@ public class ConfigureWindowsService
     }
     catch (ArgumentException ae)
     {
-      printWrappedText(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      err.println(argParser.getUsage());
+      argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       return ERROR;
     }
 
@@ -234,10 +233,8 @@ public class ConfigureWindowsService
       }
       if (nArgs != 1)
       {
-        LocalizableMessage message = nArgs == 0 ? ERR_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS.get()
-                                                : ERR_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS.get();
-        printWrappedText(err, message);
-        err.println(argParser.getUsage());
+        argParser.displayMessageAndUsageReference(err, nArgs == 0 ? ERR_CONFIGURE_WINDOWS_SERVICE_TOO_FEW_ARGS.get()
+                                                                  : ERR_CONFIGURE_WINDOWS_SERVICE_TOO_MANY_ARGS.get());
         return ERROR;
       }
     }
