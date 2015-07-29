@@ -1846,6 +1846,57 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Format man pages -->
+          <plugin>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-doc-maven-plugin</artifactId>
+            <configuration>
+              <formats combine.self="override">
+                <format>man</format>
+              </formats>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-man-pages</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>process</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>man-pages-sources</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assembly/man-page-sources-assembly.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+              <execution>
+                <id>man-pages</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assembly/man-pages-assembly.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -1857,26 +1908,41 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-enforcer-plugin</artifactId>
+            <artifactId>maven-dependency-plugin</artifactId>
             <executions>
               <execution>
-                <id>enforce-man-pages-exist</id>
+                <id>unpack-source-dependencies</id>
                 <phase>prepare-package</phase>
                 <goals>
-                  <goal>enforce</goal>
+                  <goal>unpack</goal>
                 </goals>
                 <configuration>
-                  <rules>
-                    <requireFilesExist>
-                      <files>
-                        <file>${project.build.directory}/docbkx-sources/man-pages/man-dsconfig.xml</file>
-                      </files>
-                      <message>
-                        Man pages not found. You must build with -P man-pages.
-                      </message>
-                    </requireFilesExist>
-                  </rules>
-                  <fail>true</fail>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.forgerock.opendj</groupId>
+                      <artifactId>opendj-core</artifactId>
+                      <version>${project.version}</version>
+                      <classifier>sources</classifier>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+              <execution>
+                <id>unpack-doc-dependencies</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.forgerock.opendj</groupId>
+                      <artifactId>opendj-server-legacy</artifactId>
+                      <version>${project.version}</version>
+                      <classifier>server-man-page-sources</classifier>
+                      <outputDirectory>${project.build.directory}/docbkx-sources/man-pages</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
                 </configuration>
               </execution>
             </executions>
@@ -1931,7 +1997,7 @@
                 <phase>prepare-package</phase>
                 <configuration>
                   <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
-                  <outputDirectory>${project.build.directory}/docbkx-sources/reference</outputDirectory>
+                  <outputDirectory>${project.build.directory}/docbkx-sources/shared</outputDirectory>
                   <messageFileNames>
                     <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml file -->
                     <messageFileName>admin</messageFileName>
@@ -1961,13 +2027,43 @@
 
               <execution>
                 <id>generate-result-code-doc</id>
-                <phase>pre-site</phase>
+                <phase>prepare-package</phase>
                 <goals>
                   <goal>generate-result-code-doc</goal>
                 </goals>
                 <configuration>
-                  <resultCodeSource>../opendj-core/src/main/java/org/forgerock/opendj/ldap/ResultCode.java</resultCodeSource>
-                  <xmlFile>${project.build.directory}/docbkx-sources/reference/appendix-ldap-result-codes.xml</xmlFile>
+                  <resultCodeSource>${project.build.directory}/dependency/org/forgerock/opendj/ldap/ResultCode.java</resultCodeSource>
+                  <xmlFile>${project.build.directory}/docbkx-sources/shared/appendix-ldap-result-codes.xml</xmlFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>config-ref</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assembly/config-ref-assembly.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+              <execution>
+                <id>generated-doc-sources</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assembly/generated-doc-sources-assembly.xml</descriptor>
+                  </descriptors>
                 </configuration>
               </execution>
             </executions>
@@ -2017,56 +2113,33 @@
           <deb.docprefix>/usr/share/doc/${lowerCaseProductName}</deb.docprefix>
           <deb.release>1</deb.release>
           <deb.maintainer>opendj@forgerock.org</deb.maintainer>
-          <manpage.dir>${project.build.directory}/docbkx/manpages/reference</manpage.dir>
+          <manpage.dir>${project.build.directory}/dependency/man</manpage.dir>
         </properties>
 
         <build>
           <plugins>
             <plugin>
-              <artifactId>maven-enforcer-plugin</artifactId>
+              <artifactId>maven-dependency-plugin</artifactId>
               <executions>
                 <execution>
-                  <id>enforce-man-pages-exist</id>
+                  <id>unpack-man-pages</id>
                   <phase>prepare-package</phase>
                   <goals>
-                    <goal>enforce</goal>
+                    <goal>unpack</goal>
                   </goals>
                   <configuration>
-                    <rules>
-                      <requireFilesExist>
-                        <files>
-                          <file>${project.build.directory}/docbkx-sources/man-pages/man-dsconfig.xml</file>
-                        </files>
-                        <message>
-                          Man pages not found. You must build with -P man-pages.
-                        </message>
-                      </requireFilesExist>
-                    </rules>
-                    <fail>true</fail>
+                    <artifactItems>
+                      <artifactItem>
+                        <groupId>org.forgerock.opendj</groupId>
+                        <artifactId>opendj-server-legacy</artifactId>
+                        <version>${project.version}</version>
+                        <classifier>server-man-pages</classifier>
+                        <outputDirectory>${project.build.directory}/dependency/man</outputDirectory>
+                      </artifactItem>
+                    </artifactItems>
                   </configuration>
                 </execution>
               </executions>
-            </plugin>
-
-            <!-- Format man pages -->
-            <plugin>
-                <groupId>org.forgerock.commons</groupId>
-                <artifactId>forgerock-doc-maven-plugin</artifactId>
-                <configuration>
-                    <formats combine.self="override">
-                        <format>man</format>
-                    </formats>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>build-man-pages</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>process</goal>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <!-- Filter deb install and remove scripts -->
@@ -2249,48 +2322,25 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-enforcer-plugin</artifactId>
+            <artifactId>maven-dependency-plugin</artifactId>
             <executions>
               <execution>
-                <id>enforce-man-pages-exist</id>
+                <id>unpack-man-pages</id>
                 <phase>prepare-package</phase>
                 <goals>
-                  <goal>enforce</goal>
+                  <goal>unpack</goal>
                 </goals>
                 <configuration>
-                  <rules>
-                    <requireFilesExist>
-                      <files>
-                        <file>${project.build.directory}/docbkx-sources/man-pages/man-dsconfig.xml</file>
-                      </files>
-                      <message>
-                        Man pages not found. You must build with -P man-pages.
-                      </message>
-                    </requireFilesExist>
-                  </rules>
-                  <fail>true</fail>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.forgerock.opendj</groupId>
+                      <artifactId>opendj-server-legacy</artifactId>
+                      <version>${project.version}</version>
+                      <classifier>server-man-pages</classifier>
+                      <outputDirectory>${project.build.directory}/dependency/man</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <!-- Format man pages -->
-          <plugin>
-            <groupId>org.forgerock.commons</groupId>
-            <artifactId>forgerock-doc-maven-plugin</artifactId>
-            <configuration>
-              <formats combine.self="override">
-                <format>man</format>
-              </formats>
-            </configuration>
-            <executions>
-              <execution>
-                <id>build-man-pages</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>process</goal>
-                  <goal>build</goal>
-                </goals>
               </execution>
             </executions>
           </plugin>
@@ -2411,7 +2461,7 @@
                   <directory>${rpm.prefix}/share/man</directory>
                   <sources>
                     <source>
-                      <location>${project.build.directory}/docbkx/manpages/reference</location>
+                      <location>${project.build.directory}/dependency/man</location>
                       <includes>
                         <include>**/*.*</include>
                       </includes>
@@ -2486,48 +2536,25 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-enforcer-plugin</artifactId>
+            <artifactId>maven-dependency-plugin</artifactId>
             <executions>
               <execution>
-                <id>enforce-man-pages-exist</id>
+                <id>unpack-man-pages</id>
                 <phase>prepare-package</phase>
                 <goals>
-                  <goal>enforce</goal>
+                  <goal>unpack</goal>
                 </goals>
                 <configuration>
-                  <rules>
-                    <requireFilesExist>
-                      <files>
-                        <file>${project.build.directory}/docbkx-sources/man-pages/man-dsconfig.xml</file>
-                      </files>
-                      <message>
-                        Man pages not found. You must build with -P man-pages.
-                      </message>
-                    </requireFilesExist>
-                  </rules>
-                  <fail>true</fail>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.forgerock.opendj</groupId>
+                      <artifactId>opendj-server-legacy</artifactId>
+                      <version>${project.version}</version>
+                      <classifier>server-man-pages</classifier>
+                      <outputDirectory>${project.build.directory}/dependency/man</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <!-- Format man pages -->
-          <plugin>
-            <groupId>org.forgerock.commons</groupId>
-            <artifactId>forgerock-doc-maven-plugin</artifactId>
-            <configuration>
-              <formats combine.self="override">
-                <format>man</format>
-              </formats>
-            </configuration>
-            <executions>
-              <execution>
-                <id>build-man-pages</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>process</goal>
-                  <goal>build</goal>
-                </goals>
               </execution>
             </executions>
           </plugin>
