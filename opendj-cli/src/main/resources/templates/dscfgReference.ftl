@@ -41,6 +41,6 @@ ${marker}
  </partintro>
 
  <#list subcommands as subcommand>
- <xinclude:include href="../man-pages/man-${subcommand.id}.xml" />
+ <xinclude:include href="man-${subcommand.id}.xml" />
  </#list>
 </reference>
