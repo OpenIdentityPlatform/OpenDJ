@@ -32,7 +32,7 @@
   <parent>
     <groupId>org.forgerock</groupId>
     <artifactId>forgerock-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.2</version>
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-docs</artifactId>
@@ -74,7 +74,7 @@
   </scm>
   <ciManagement>
     <system>jenkins</system>
-    <url>https://builds.forgerock.org/view/Docs/job/OpenDJ%20Community%20Site%20(core%20docs)/</url>
+    <url>https://builds.forgerock.org/view/Docs/job/OpenDJ_site/</url>
     <notifiers>
       <notifier>
         <type>mail</type>
@@ -102,19 +102,18 @@
 
     <!-- START Documentation properties -->
     <shortProductName>OpenDJ</shortProductName>
-    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
+    <docTargetVersion>${project.version}</docTargetVersion>
     <docPreviousVersion>2.6.0</docPreviousVersion>
-    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+    <sdkDocTargetVersion>${project.version}</sdkDocTargetVersion>
 
     <frDocPluginVersion>3.0.0</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
-    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+    <siteDistributionURL>scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
 
     <!--
       Release date and publication date are set at release build time.
-        -D"releaseDate=Software release date: January 1, 1970"
-        -D"pubDate=Publication date: December 31, 1969"
+        -D"releaseDate=1970-01-01" -D"pubDate=1969-12-31"
       At all other times, the dates should be empty.
     -->
     <releaseDate />
@@ -124,7 +123,7 @@
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
     <coreDocBase>http://opendj.forgerock.org/doc/bootstrap/</coreDocBase>
-    <serverDocBase>http://opendj.forgerock.org/opendj-server/doc/bootstrap/</serverDocBase>
+    <serverDocBase>http://opendj.forgerock.org/doc/bootstrap/</serverDocBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-core/apidocs/</sdkJavadocBase>
     <!-- END Documentation properties -->
@@ -136,13 +135,14 @@
         <inherited>false</inherited>
         <executions>
           <execution>
-            <id>unpack-sdk-doc-prerequisites</id>
+            <id>unpack-doc-prerequisites</id>
             <phase>pre-site</phase>
             <goals>
               <goal>unpack</goal>
             </goals>
             <configuration>
               <artifactItems>
+                <!-- For SDK docs -->
                 <artifactItem>
                   <groupId>org.forgerock.opendj</groupId>
                   <artifactId>opendj-ldap-sdk-examples</artifactId>
@@ -164,24 +164,23 @@
                   <classifier>man-pages</classifier>
                   <outputDirectory>${project.build.directory}/docbkx-sources</outputDirectory>
                 </artifactItem>
+                <!-- For both -->
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-server-legacy</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>generated-doc-sources</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources/shared</outputDirectory>
+                </artifactItem>
+                <!-- For server docs -->
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-server-legacy</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>server-man-page-sources</classifier>
+                  <outputDirectory>${project.build.directory}/docbkx-sources/server-man-pages</outputDirectory>
+                </artifactItem>
               </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-doc-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-result-code-doc</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>generate-result-code-doc</goal>
-            </goals>
-            <configuration>
-              <resultCodeSource>${project.build.directory}/core-sources/org/forgerock/opendj/ldap/ResultCode.java</resultCodeSource>
-              <xmlFile>${project.build.directory}/docbkx-sources/dev-guide/appendix-ldap-result-codes.xml</xmlFile>
             </configuration>
           </execution>
         </executions>
@@ -195,6 +194,43 @@
            <jCiteSourcePath>${project.build.directory}/docbkx-sources/resources</jCiteSourcePath>
          </jCiteSourcePaths>
          <copyResourceFiles>true</copyResourceFiles>
+         <!-- Use conditional text to exclude local-db related elements in hand-written docs.
+           <exclusions>
+             <condition>local-db</condition>
+           </exclusions>
+         -->
+         <artifactItems>
+           <!-- For SDK docs -->
+<!-- Not built at present, see OPENDJ-2229
+           <artifactItem>
+             <groupId>org.forgerock.opendj</groupId>
+             <artifactId>opendj-core</artifactId>
+             <version>${project.version}</version>
+             <classifier>javadoc</classifier>
+             <outputDirectory>sdk-javadoc</outputDirectory>
+             <title>OpenDJ LDAP SDK Javadoc</title>
+           </artifactItem>
+-->
+           <!-- For server docs -->
+           <artifactItem>
+             <groupId>org.forgerock.opendj</groupId>
+             <artifactId>opendj-server-legacy</artifactId>
+             <version>${project.version}</version>
+             <classifier>config-ref</classifier>
+             <outputDirectory>configref</outputDirectory>
+             <title>OpenDJ Configuration Reference</title>
+           </artifactItem>
+<!-- Not built at present, see OPENDJ-2229
+           <artifactItem>
+             <groupId>org.forgerock.opendj</groupId>
+             <artifactId>opendj-server-legacy</artifactId>
+             <version>${project.version}</version>
+             <classifier>javadoc</classifier>
+             <outputDirectory>server-javadoc</outputDirectory>
+             <title>OpenDJ Directory Server Javadoc</title>
+           </artifactItem>
+-->
+         </artifactItems>
         </configuration>
         <executions>
           <execution>
@@ -222,7 +258,7 @@
             <id>layout-release</id>
             <phase>site</phase>
             <goals>
-              <goal>release</goal>
+              <goal>backstage</goal>
             </goals>
           </execution>
         </executions>

@@ -130,7 +130,7 @@
   </xinclude:include>
  </reference>
 
- <xinclude:include href="appendix-ldap-result-codes.xml">
+ <xinclude:include href="../shared/appendix-ldap-result-codes.xml">
   <xinclude:fallback>
    <appendix>
     <title>LDAP Result Codes Missing</title>
