@@ -87,107 +87,107 @@
    </para>
   </partintro>
 
-  <xinclude:include href='../man-pages/man-backup.xml'>
+  <xinclude:include href='../server-man-pages/man-backup.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-base64.xml'>
+  <xinclude:include href='../server-man-pages/man-base64.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-control-panel.xml'>
+  <xinclude:include href='../server-man-pages/man-control-panel.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-create-rc-script.xml'>
+  <xinclude:include href='../server-man-pages/man-create-rc-script.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-dbtest.xml'>
+  <xinclude:include href='../server-man-pages/man-dbtest.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-dsconfig.xml'>
+  <xinclude:include href='../server-man-pages/man-dsconfig.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-dsjavaproperties.xml'>
+  <xinclude:include href='../server-man-pages/man-dsjavaproperties.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-dsreplication.xml'>
+  <xinclude:include href='../server-man-pages/man-dsreplication.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-encode-password.xml'>
+  <xinclude:include href='../server-man-pages/man-encode-password.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-export-ldif.xml'>
+  <xinclude:include href='../server-man-pages/man-export-ldif.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-import-ldif.xml'>
+  <xinclude:include href='../server-man-pages/man-import-ldif.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldapcompare.xml'>
+  <xinclude:include href='../server-man-pages/man-ldapcompare.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldapdelete.xml'>
+  <xinclude:include href='../server-man-pages/man-ldapdelete.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldapmodify.xml'>
+  <xinclude:include href='../server-man-pages/man-ldapmodify.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldappasswordmodify.xml'>
+  <xinclude:include href='../server-man-pages/man-ldappasswordmodify.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldapsearch.xml'>
+  <xinclude:include href='../server-man-pages/man-ldapsearch.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldif-diff.xml'>
+  <xinclude:include href='../server-man-pages/man-ldif-diff.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldifmodify.xml'>
+  <xinclude:include href='../server-man-pages/man-ldifmodify.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-ldifsearch.xml'>
+  <xinclude:include href='../server-man-pages/man-ldifsearch.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-list-backends.xml'>
+  <xinclude:include href='../server-man-pages/man-list-backends.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-make-ldif.xml'>
+  <xinclude:include href='../server-man-pages/man-make-ldif.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-make-ldif-template.xml' />
-  <xinclude:include href='../man-pages/man-manage-account.xml'>
+  <xinclude:include href='../server-man-pages/man-make-ldif-template.xml' />
+  <xinclude:include href='../server-man-pages/man-manage-account.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-manage-tasks.xml'>
+  <xinclude:include href='../server-man-pages/man-manage-tasks.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-rebuild-index.xml'>
+  <xinclude:include href='../server-man-pages/man-rebuild-index.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-restore.xml'>
+  <xinclude:include href='../server-man-pages/man-restore.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-setup.xml'>
+  <xinclude:include href='../server-man-pages/man-setup.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-start-ds.xml'>
+  <xinclude:include href='../server-man-pages/man-start-ds.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-status.xml'>
+  <xinclude:include href='../server-man-pages/man-status.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-stop-ds.xml'>
+  <xinclude:include href='../server-man-pages/man-stop-ds.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-uninstall.xml'>
+  <xinclude:include href='../server-man-pages/man-uninstall.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-upgrade.xml'>
+  <xinclude:include href='../server-man-pages/man-upgrade.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-verify-index.xml'>
+  <xinclude:include href='../server-man-pages/man-verify-index.xml'>
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href='../man-pages/man-windows-service.xml' />
+  <xinclude:include href='../server-man-pages/man-windows-service.xml' />
  </reference>
 
- <xinclude:include href="../man-pages/man-dsconfig-subcommands-ref.xml">
+ <xinclude:include href="../server-man-pages/man-dsconfig-subcommands-ref.xml">
   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
  </xinclude:include>
 
@@ -220,8 +220,8 @@
 
  <reference>
     <title>OpenSolaris Support Reference</title>
-    <xinclude:include href='../man-pages/man-configure.xml' />
-    <xinclude:include href='../man-pages/man-opendj.xml' />
+    <xinclude:include href='../server-man-pages/man-configure.xml' />
+    <xinclude:include href='../server-man-pages/man-opendj.xml' />
  </reference>
 
  <index />

@@ -106,7 +106,8 @@ EOF
   to the new user's entry.
  </para>
 
- <screen>$ <userinput>cat newdesc.ldif</userinput>
+ <screen>
+$ <userinput>cat newdesc.ldif</userinput>
 <computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: description
@@ -140,7 +141,8 @@ MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</comp
   The following example demonstrates deleting the new user's entry.
  </para>
 
- <screen>$ <userinput>cat deluser.ldif</userinput>
+ <screen>
+$ <userinput>cat deluser.ldif</userinput>
 <computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: delete</computeroutput>
 

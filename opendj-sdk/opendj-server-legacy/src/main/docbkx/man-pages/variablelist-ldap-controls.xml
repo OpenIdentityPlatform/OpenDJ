@@ -44,7 +44,7 @@
    </para>
   </listitem>
  </varlistentry>
- 
+
  <varlistentry>
   <term><literal>authzid</literal></term>
   <term><literal>authorizationidentity</literal></term>
@@ -124,3 +124,4 @@
   </listitem>
  </varlistentry>
 </variablelist>
+

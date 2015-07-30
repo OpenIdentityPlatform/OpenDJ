@@ -64,16 +64,16 @@ $ <userinput>ldifmodify -s /path/to/newuser.ldif -m /path/to/newdiff.ldif -t new
 
 $ <userinput>cat neweruser.ldif</userinput>
 <computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
-objectClass: person
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: top
 uid: newuser
-description: A new description.
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
 cn: New User
 sn: User
-userPassword: secret12
+ou: People
 mail: newuser@example.com
-ou: People</computeroutput>
+userPassword: secret12
+description: A new description.</computeroutput>
  </screen>
 </refsect1>
