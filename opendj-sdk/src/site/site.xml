@@ -81,15 +81,19 @@
     <item name="OpenDJ 2.5.0-Xpress1" href="http://docs.forgerock.org/en/opendj/2.5.0-Xpress1/" />
   </menu>
 
-  <menu name="OpenDJ Documentation" inherit="top">
+  <menu name="OpenDJ Server Docs" inherit="top">
    <item name="All Formats" href="docs.html" />
-   <item name="Release Notes" href="./opendj-server-legacy/doc/bootstrap/release-notes/index.html" />
-   <item name="Installation Guide" href="./opendj-server-legacy/doc/bootstrap/install-guide/index.html" />
-   <item name="Administration Guide" href="./opendj-server-legacy/doc/bootstrap/admin-guide/index.html" />
-   <item name="Server Dev Guide" href="./opendj-server-legacy/doc/bootstrap/server-dev-guide/index.html" />
-   <item name="Reference" href="./opendj-server-legacy/doc/bootstrap/reference/index.html" />
+   <item name="Release Notes" href="./doc/bootstrap/release-notes/index.html" />
+   <item name="Installation Guide" href="./doc/bootstrap/install-guide/index.html" />
+   <item name="Administration Guide" href="./doc/bootstrap/admin-guide/index.html" />
+   <item name="Server Dev Guide" href="./doc/bootstrap/server-dev-guide/index.html" />
+   <item name="Reference" href="./doc/bootstrap/reference/index.html" />
    <item name="Config Reference" href="./opendj-server-legacy/configref/index.html" />
    <item name="Plugin Javadoc" href="./opendj-server-legacy/apidocs/index.html" />
+  </menu>
+
+  <menu name="OpenDJ LDAP SDK Docs" inherit="top">
+   <item name="All Formats" href="docs.html" />
    <item name="SDK Release Notes" href="./doc/bootstrap/sdk-release-notes/index.html" />
    <item name="SDK Developer Guide" href="./doc/bootstrap/dev-guide/index.html" />
    <item name="SDK Javadoc" href="./opendj-core/apidocs/index.html" />

@@ -70,13 +70,13 @@
             href="http://commons.forgerock.org/mobile/contact-manager/" />
     </menu>
 
-    <menu name="OpenDJ Documentation">
-      <item name="All Formats" href="./docs.html" />
-      <item name="Release Notes" href="./doc/bootstrap/release-notes/index.html" />
-      <item name="Installation Guide" href="./doc/bootstrap/install-guide/index.html" />
-      <item name="Administration Guide" href="./doc/bootstrap/admin-guide/index.html" />
-      <item name="Server Dev Guide" href="./doc/bootstrap/server-dev-guide/index.html" />
-      <item name="Reference" href="./doc/bootstrap/reference/index.html" />
+    <menu name="OpenDJ Server Docs">
+      <item name="All Formats" href="../docs.html" />
+      <item name="Release Notes" href="../doc/bootstrap/release-notes/index.html" />
+      <item name="Installation Guide" href="../doc/bootstrap/install-guide/index.html" />
+      <item name="Administration Guide" href="../doc/bootstrap/admin-guide/index.html" />
+      <item name="Server Dev Guide" href="../doc/bootstrap/server-dev-guide/index.html" />
+      <item name="Reference" href="../doc/bootstrap/reference/index.html" />
       <item name="Config Reference" href="./configref/index.html" />
       <item name="Plugin Javadoc" href="./apidocs/index.html" />
     </menu>

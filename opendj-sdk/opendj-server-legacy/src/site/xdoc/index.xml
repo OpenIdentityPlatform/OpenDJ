@@ -45,28 +45,24 @@
       </p>
       <subsection name="Download">
         <p>
-          By far the simplest method is to download a snapshot directly from the
-          ForgeRock Maven
-          <a
-            href="http://maven.forgerock.org/repo/snapshots/org/forgerock/opendj/opendj-server/">repository</a>
-          or a supported build from the ForgeRock
-          <a href="https://download.forgerock.com/#/opendj">download</a>
-          page.
+          By far the simplest method is to download a build from ForgeRock
+          <a href="https://backstage.forgerock.com/#!/">BackStage</a>,
+          or a nightly build from the ForgeRock
+          <a href="https://forgerock.org">community resource center</a>
         </p>
       </subsection>
       <subsection name="Build">
         <p>
           For the DIY enthusiasts you can build it yourself by checking out the
-          latest code using
-          <a href="source-repository.html">Subversion</a>
-          and building it with Ant or Maven 3.
+          <a href="source-repository.html">latest code</a>
+          and building it with Maven 3.
         </p>
       </subsection>
     </section>
     <section name="Getting started">
       <p>
         Once you have obtained a copy of the OpenDJ Directory Server, read the
-        <a href="./doc/bootstrap/install-guide/index.html">Installation Guide</a>
+        <a href="../doc/bootstrap/install-guide/index.html">Installation Guide</a>
         for further instructions.
       </p>
     </section>

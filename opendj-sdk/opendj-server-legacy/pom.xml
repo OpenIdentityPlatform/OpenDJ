@@ -1927,24 +1927,6 @@
                   </artifactItems>
                 </configuration>
               </execution>
-              <execution>
-                <id>unpack-doc-dependencies</id>
-                <phase>pre-site</phase>
-                <goals>
-                  <goal>unpack</goal>
-                </goals>
-                <configuration>
-                  <artifactItems>
-                    <artifactItem>
-                      <groupId>org.forgerock.opendj</groupId>
-                      <artifactId>opendj-server-legacy</artifactId>
-                      <version>${project.version}</version>
-                      <classifier>server-man-page-sources</classifier>
-                      <outputDirectory>${project.build.directory}/docbkx-sources/man-pages</outputDirectory>
-                    </artifactItem>
-                  </artifactItems>
-                </configuration>
-              </execution>
             </executions>
           </plugin>
 
@@ -2065,38 +2047,6 @@
                     <descriptor>src/main/assembly/generated-doc-sources-assembly.xml</descriptor>
                   </descriptors>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.forgerock.commons</groupId>
-            <artifactId>forgerock-doc-maven-plugin</artifactId>
-            <inherited>false</inherited>
-            <configuration>
-              <copyResourceFiles>true</copyResourceFiles>
-              <!-- Use conditional text to exclude local-db related elements in hand-written docs.
-              <exclusions>
-                <condition>local-db</condition>
-              </exclusions>
-              -->
-            </configuration>
-            <executions>
-              <execution>
-                <id>build-doc</id>
-                <phase>pre-site</phase>
-                <goals>
-                  <goal>process</goal>
-                  <goal>build</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>layout-doc</id>
-                <phase>site</phase>
-                <goals>
-                  <goal>site</goal>
-                  <goal>release</goal>
-                </goals>
               </execution>
             </executions>
           </plugin>

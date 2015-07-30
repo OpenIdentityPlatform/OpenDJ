@@ -116,6 +116,7 @@
     <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
     <slf4jVersion>1.7.5</slf4jVersion>
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
+    <frDocPluginVersion>3.0.0</frDocPluginVersion>
 
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
@@ -132,34 +133,7 @@
 
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
 
-    <!-- START Documentation properties -->
-    <shortProductName>OpenDJ</shortProductName>
-    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
-    <docPreviousVersion>2.6.0</docPreviousVersion>
-    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
-
-    <frDocPluginVersion>3.0.0</frDocPluginVersion>
-    <gaId>UA-23412190-8</gaId>
-
     <siteDistributionURL>scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
-
-    <!--
-      Release date and publication date are set at release build time.
-        -D"releaseDate=Software release date: January 1, 1970"
-        -D"pubDate=Publication date: December 31, 1969"
-      At all other times, the dates should be empty.
-    -->
-    <releaseDate />
-    <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
-    <pubDate />
-    <publicationDate>${pubDate}</publicationDate>
-
-    <!-- Permit doc build to override relative locations of non DocBook content -->
-    <coreDocBase>http://opendj.forgerock.org/doc/bootstrap/</coreDocBase>
-    <serverDocBase>http://opendj.forgerock.org/opendj-server/doc/bootstrap/</serverDocBase>
-    <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
-    <sdkJavadocBase>http://opendj.forgerock.org/opendj-core/apidocs/</sdkJavadocBase>
-    <!-- END Documentation properties -->
   </properties>
   <build>
     <plugins>
@@ -324,10 +298,10 @@
             <artifactId>forgerock-doc-maven-plugin</artifactId>
             <version>${frDocPluginVersion}</version>
             <configuration>
-                <projectName>${shortProductName}</projectName>
-                <projectVersion>${docTargetVersion}</projectVersion>
-                <releaseVersion>${docTargetVersion}</releaseVersion>
-                <googleAnalyticsId>${gaId}</googleAnalyticsId>
+                <projectName>OpenDJ</projectName>
+                <projectVersion>${project.version}</projectVersion>
+                <releaseVersion>${project.version}</releaseVersion>
+                <googleAnalyticsId>UA-23412190-8</googleAnalyticsId>
             </configuration>
         </plugin>
       </plugins>
@@ -446,14 +420,6 @@
     <comments>Common Development and Distribution License (CDDL) 1.0.
     This license applies to OpenDJ source code as indicated in the
     source files.</comments>
-    <distribution>repo</distribution>
-   </license>
-   <license>
-    <name>CC BY-NC-ND 3.0</name>
-    <url>http://creativecommons.org/licenses/by-nc-nd/3.0/</url>
-    <comments>Creative Commons Attribution-NonCommercial-NoDerivs 3.0
-    Unported. This license applies to the site content, and to the
-    documentation as indicated in the documentation source code.</comments>
     <distribution>repo</distribution>
    </license>
   </licenses>
