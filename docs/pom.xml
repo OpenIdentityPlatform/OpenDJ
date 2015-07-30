@@ -201,7 +201,6 @@
          -->
          <artifactItems>
            <!-- For SDK docs -->
-<!-- Not built at present, see OPENDJ-2229
            <artifactItem>
              <groupId>org.forgerock.opendj</groupId>
              <artifactId>opendj-core</artifactId>
@@ -210,7 +209,6 @@
              <outputDirectory>sdk-javadoc</outputDirectory>
              <title>OpenDJ LDAP SDK Javadoc</title>
            </artifactItem>
--->
            <!-- For server docs -->
            <artifactItem>
              <groupId>org.forgerock.opendj</groupId>
@@ -220,7 +218,6 @@
              <outputDirectory>configref</outputDirectory>
              <title>OpenDJ Configuration Reference</title>
            </artifactItem>
-<!-- Not built at present, see OPENDJ-2229
            <artifactItem>
              <groupId>org.forgerock.opendj</groupId>
              <artifactId>opendj-server-legacy</artifactId>
@@ -229,7 +226,6 @@
              <outputDirectory>server-javadoc</outputDirectory>
              <title>OpenDJ Directory Server Javadoc</title>
            </artifactItem>
--->
          </artifactItems>
         </configuration>
         <executions>
