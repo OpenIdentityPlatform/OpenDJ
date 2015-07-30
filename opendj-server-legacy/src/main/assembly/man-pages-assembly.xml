@@ -37,7 +37,7 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.directory}/docbkx/manpages/reference</directory>
+      <directory>${project.build.directory}/docbkx/manpages/man-pages</directory>
       <outputDirectory />
     </fileSet>
   </fileSets>
