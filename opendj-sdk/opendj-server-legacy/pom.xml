@@ -1902,7 +1902,11 @@
     </profile>
 
     <profile>
-      <!-- Build documentation -->
+      <!--
+        Build the configuration reference, reference documentation source files,
+        and assemble artifacts from the results.
+        The artifacts are used when preparing the product documentation.
+      -->
       <id>docs</id>
 
       <build>
