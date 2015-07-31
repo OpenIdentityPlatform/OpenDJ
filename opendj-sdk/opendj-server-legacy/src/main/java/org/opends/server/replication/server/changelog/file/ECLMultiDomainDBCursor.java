@@ -85,14 +85,18 @@ public final class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
   @Override
   public boolean next() throws ChangelogException
   {
-    // discard updates from non ECL enabled domains
-    boolean hasNext;
-    do
+    if (!cursor.next())
     {
-      hasNext = cursor.next();
+      return false;
     }
-    while (hasNext && !predicate.isECLEnabledDomain(cursor.getData()));
-    return hasNext;
+    // discard updates from non ECL enabled domains by removing the disabled domains from the cursor
+    DN domain = cursor.getData();
+    while (domain != null && !predicate.isECLEnabledDomain(domain))
+    {
+      cursor.removeDomain(domain);
+      domain = cursor.getData();
+    }
+    return domain != null;
   }
 
   @Override
