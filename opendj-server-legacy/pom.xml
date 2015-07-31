@@ -2077,7 +2077,7 @@
               <executions>
                 <execution>
                   <id>unpack-man-pages</id>
-                  <phase>prepare-package</phase>
+                  <phase>package</phase>
                   <goals>
                     <goal>unpack</goal>
                   </goals>
@@ -2280,7 +2280,7 @@
             <executions>
               <execution>
                 <id>unpack-man-pages</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>unpack</goal>
                 </goals>
@@ -2494,7 +2494,7 @@
             <executions>
               <execution>
                 <id>unpack-man-pages</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>unpack</goal>
                 </goals>
