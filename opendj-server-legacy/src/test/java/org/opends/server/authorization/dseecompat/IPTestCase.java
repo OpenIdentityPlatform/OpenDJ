@@ -120,16 +120,17 @@ public class IPTestCase extends AciTestCase {
     @DataProvider(name = "valid6Rules")
     public Object[][] valid6Data() {
         return new Object[][] {
-                {"2001:fecd:ba23:cd1f:dcb1:1010:9234:4088/124"},
-                {"2001:fecd:ba23:cd1f:dcb1:1010:9234:4088"},
-                {"[2001:fecd:ba23:cd1f:dcb1:1010:9234:4088]/45"},
-                {"::/128"},
-                {"::1/128"},
-                {"::"},
-                {"0:0:0:0:0:ffff:101.45.75.219"},
-                {"1080::8:800:200C:417A"},
-                {"0:0:0:0:0:0:101.45.75.219"},
-                {"::101.45.75.219"}
+            {"2001:fecd:ba23:cd1f:dcb1:1010:9234:4088/124"},
+            {"2001:fecd:ba23:cd1f:dcb1:1010:9234:4088"},
+            {"[2001:fecd:ba23:cd1f:dcb1:1010:9234:4088]/45"},
+            {"::/128"},
+            {"::1/128"},
+            {"[::1]"},
+            {"::"},
+            {"0:0:0:0:0:ffff:101.45.75.219"},
+            {"1080::8:800:200C:417A"},
+            {"0:0:0:0:0:0:101.45.75.219"},
+            {"::101.45.75.219"}
         };
     }
 
@@ -375,7 +376,7 @@ public class IPTestCase extends AciTestCase {
 
 
     /**
-     * Test deocding of invalid IPV6 rules.
+     * Test decoding of invalid IPV6 rules.
      *
      * @param mask The expression to decode.
      * @throws Exception If the valid rule failed decoding.
