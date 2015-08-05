@@ -100,8 +100,6 @@ public class AnonymousSASLMechanismHandler
       {
         bindOperation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
             getClass(), "trace", credString));
-        logger.error(INFO_SASLANONYMOUS_TRACE,
-            bindOperation.getConnectionID(), bindOperation.getOperationID(), credString);
       }
     }
 
