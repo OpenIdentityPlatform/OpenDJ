@@ -85,6 +85,7 @@ public class BackupPanel extends BackupListPanel
   private JTextField backupID;
   private JTextField parentBackupID;
   private JRadioButton fullBackup;
+  private JCheckBox incrementalParent;
   private JRadioButton incrementalBackup;
   private JCheckBox compressData;
   private JCheckBox encryptData;
@@ -194,6 +195,12 @@ public class BackupPanel extends BackupListPanel
         INFO_CTRL_PANEL_INCREMENTAL_BACKUP_LABEL.get());
     add(incrementalBackup, gbc);
 
+    gbc.gridy ++;
+    gbc.insets.left = 25;
+    incrementalParent = Utilities.createCheckBox(
+        INFO_CTRL_PANEL_INCREMENTAL_PARENT_LABEL.get());
+    add(incrementalParent, gbc);
+
     ButtonGroup group = new ButtonGroup();
     group.add(fullBackup);
     group.add(incrementalBackup);
@@ -291,7 +298,8 @@ public class BackupPanel extends BackupListPanel
       {
         backends.setEnabled(!allBackends.isSelected());
         signMessageDigest.setEnabled(generateMessageDigest.isSelected());
-        boolean enable = incrementalBackup.isSelected();
+        incrementalParent.setEnabled(incrementalBackup.isSelected());
+        boolean enable = isIncrementalWithParent();
         refreshList.setEnabled(enable);
         tableScroll.setEnabled(enable);
         backupList.setEnabled(enable);
@@ -303,11 +311,24 @@ public class BackupPanel extends BackupListPanel
       }
     };
     incrementalBackup.addChangeListener(changeListener);
+    incrementalParent.addChangeListener(changeListener);
     generateMessageDigest.addChangeListener(changeListener);
     allBackends.addChangeListener(changeListener);
     changeListener.stateChanged(null);
 
     addBottomGlue(gbc);
+  }
+
+  /**
+   * Check status of incremental backup radio/checkbox
+   *
+   * @return boolean true if both incremental and parent base ID
+   *                  are selected
+   */
+  private boolean isIncrementalWithParent()
+  {
+    return incrementalParent.isSelected() &&
+            incrementalBackup.isSelected();
   }
 
   /** {@inheritDoc} */
@@ -408,7 +429,7 @@ public class BackupPanel extends BackupListPanel
       }
     }
 
-    if (incrementalBackup.isSelected())
+    if (isIncrementalWithParent())
     {
       if (isLocal())
       {
@@ -437,7 +458,7 @@ public class BackupPanel extends BackupListPanel
     {
         backends, allBackends, fullBackup, incrementalBackup, parentDirectory,
         browse, backupList, refreshList, compressData, encryptData,
-        generateMessageDigest, signMessageDigest
+        generateMessageDigest, signMessageDigest, incrementalParent
     };
     setEnabledOK(false);
     setEnabledCancel(false);
@@ -645,7 +666,7 @@ public class BackupPanel extends BackupListPanel
           }
         }
       }
-      if (incrementalBackup.isSelected())
+      if (isIncrementalWithParent())
       {
         if (isLocal())
         {
@@ -769,16 +790,19 @@ public class BackupPanel extends BackupListPanel
       if (incrementalBackup.isSelected())
       {
         args.add("--incremental");
-        if (isLocal())
+        if(incrementalParent.isSelected())
         {
-          BackupDescriptor backup = getSelectedBackup();
-          args.add("--incrementalBaseID");
-          args.add(backup.getID());
-        }
-        else
-        {
-          args.add("--incrementalBaseID");
-          args.add(parentBackupID.getText());
+          if (isLocal())
+          {
+            BackupDescriptor backup = getSelectedBackup();
+            args.add("--incrementalBaseID");
+            args.add(backup.getID());
+          }
+          else
+          {
+            args.add("--incrementalBaseID");
+            args.add(parentBackupID.getText());
+          }
         }
       }
 
