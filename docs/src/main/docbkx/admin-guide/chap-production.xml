@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<chapter xml:id="chap-production"
+         xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>Securing and Hardening OpenDJ Directory Server</title>
+
+ <para>
+  By default OpenDJ directory server is set up
+  for ease of evaluation and deployment.
+  When you deploy OpenDJ in production,
+  there are specific precautions you should take to minimize risks.
+  This chapter recommends the key precautions to take.
+ </para>
+
+ <para>
+  After following the recommendations in this chapter,
+  make sure that you test your installation
+  to verify that it behaves as expected
+  before putting the server into production.
+ </para>
+
+ <section xml:id="production-system-account">
+  <title>Set Up a System Account for OpenDJ Directory Server</title>
+
+  <para>
+   Do not run OpenDJ directory server as the system superuser (root).
+   When applications run as superuser,
+   the system effectively does not control their actions.
+   When running the server as superuser,
+   a bug in the server could affect other applications or the system itself.
+  </para>
+
+  <para>
+   After setting up a system account for the server,
+   and using that account only to run OpenDJ directory server,
+   you can use system controls to limit what the user can do.
+  </para>
+
+  <para>
+   The user running OpenDJ directory server
+   must have access to use the configured ports.
+   Make sure you configure the system
+   to allow the user to use privileged ports such as 389 and 636 if necessary.
+   Make sure you configure the firewall to permit access to the server ports.
+  </para>
+
+  <para>
+   The user running OpenDJ directory server must have access to all server files,
+   including configuration files, data files, log files,
+   key stores, trust stores and their password files, and so forth.
+   By default OpenDJ lets users in the same group as the user running the server
+   read server files, though not directory data files.
+  </para>
+
+  <para>
+   The user running OpenDJ directory server does not however need access
+   to login from a remote system or to perform actions unrelated to OpenDJ.
+  </para>
+
+  <para>
+   Set up the user account to prevent other users
+   from having access to read configuration files.
+   On UNIX, set an appropriate umask such as <literal>027</literal>
+   to prevent users in other groups from accessing server files.
+   On Windows, use file access control to do the same.
+   You may nevertheless want to change permissions
+   to allow all users to run command-line tools.
+   What a user can do with tools depends on server access control mechanisms.
+  </para>
+
+  <para>
+   On UNIX and Linux the group for the user running OpenDJ directory server
+   has access by default to read files, including log files.
+   You can restrict this after installation
+   by setting the <literal>log-file-permissions</literal> property
+   on each active log publisher.
+  </para>
+
+  <para>
+   You can create a UNIX service script
+   to start the server at system startup and stop the server at system shutdown
+   by using the <command>create-rc-script</command> command.
+   For details see
+   <link
+    xlink:href="reference#create-rc-script-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new">
+    <citetitle>create-rc-script</citetitle>
+   </link>.
+  </para>
+
+  <para>
+   You can use the <command>windows-service</command> command
+   to register OpenDJ directory server as a Windows service.
+   For details see
+   <link
+    xlink:href="reference#windows-service"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new">
+    <citetitle>windows-service</citetitle>
+   </link>.
+  </para>
+ </section>
+
+ <section xml:id="production-java-updates">
+  <title>Install and Use Java Security Updates</title>
+
+  <para>
+   From time to time security updates are released
+   for the Java runtime environment.
+  </para>
+
+  <para>
+   Make sure that your operational plans
+   provide for deploying Java security updates
+   to systems where you run OpenDJ software.
+  </para>
+
+  <para>
+   After you update the Java runtime environment,
+   edit the <literal>default.java-home</literal> setting in the file
+   <filename>/path/to/opendj/config/java.properties</filename>
+   to use the path to the update release,
+   and then use the <command>dsjavaproperties</command> command
+   for the changes to be taken into account.
+   Then restart OpenDJ directory server.
+   For details see
+   <link
+    xlink:href="reference#dsjavaproperties-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new">
+    <citetitle>dsjavaproperties</citetitle>
+   </link>.
+  </para>
+ </section>
+
+ <section xml:id="production-services">
+  <title>Only Enable Necessary Services</title>
+
+  <para>
+   By default OpenDJ directory server enables an LDAP connection handler
+   and an administration connector.
+   If the LDAP connection handler is not used,
+   either because only LDAPS is used
+   or because applications access directory data only over HTTPS,
+   then set the LDAP connection handler property to <literal>enabled:false</literal>
+   by using the <command>dsconfig set-connection-handler-prop</command> command.
+  </para>
+
+  <para>
+   Likewise, if you have enabled other connection handlers that are not used,
+   you can also disable them by using the <command>dsconfig</command> command.
+   Use the <command>status</command> command
+   to check which connection handlers are enabled.
+  </para>
+ </section>
+
+ <section xml:id="production-logging">
+  <title>Configure Logging Appropriately</title>
+
+  <para>
+   By default, OpenDJ directory server writes log messages to files
+   when an error is encountered and when the server is accessed.
+   Access logs tend to be much more intensively updated than error logs.
+   You can also configure debug logging,
+   generally too verbose for continuous use in production,
+   and audit logging, which uses the access log mechanism to record changes.
+   Debug and audit logs are not enabled by default.
+   For details see
+   <link
+    xlink:href="admin-guide#repl-change-notification"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Server Logs</citetitle></link>.
+  </para>
+
+  <para>
+   The default OpenDJ directory server error log levels
+   and log rotation and retention policies
+   are set to prevent the logs from harming performance or filling up the disk
+   while still making it possible to perform basic troubleshooting.
+   If you must set a more verbose error log level
+   or if you must activate debug logging on a production system
+   for more advanced troubleshooting,
+   be aware that extra logging can negatively impact performance
+   and generate large files on heavily used servers.
+   When finished troubleshooting,
+   reset the log configuration for more conservative logging.
+  </para>
+
+  <para>
+   The audit log in OpenDJ directory server is not for security audits.
+   Instead it records changes in LDIF.
+   The audit log is intended to help you as server administrator
+   diagnose problems in the way applications change directory data.
+   For change notification as a service use the external change log instead.
+   For details about the external change log see
+   <link
+    xlink:href="admin-guide#repl-change-notification"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Change Notification For Your Applications</citetitle></link>.
+  </para>
+ </section>
+
+ <section xml:id="production-administrators">
+  <title>Limit Use of the cn=Directory Manager Account</title>
+
+  <para>
+   Directory root DN accounts are stored in the server configuration
+   under <literal>cn=Root DNs,cn=config</literal>.
+   In order to bootstrap the system,
+   the default root DN administrator, <literal>cn=Directory Manager</literal>,
+   is not subject to access control
+   and has privileges to perform almost every administrative operation,
+   including changing privileges.
+  </para>
+
+  <para>
+   Use this account like you use the superuser (root) account on UNIX
+   or the Administrator account on Windows: Only use it when you must.
+  </para>
+
+  <para>
+   Instead of allowing other applications to perform operations
+   as the root DN administrator <literal>cn=Directory Manager</literal>,
+   either create alternative root DN administrators with limited privileges,
+   or explicitly assign directory administrator rights to specific accounts.
+  </para>
+
+  <para>
+   When creating alternative root DN administrators,
+   you can limit their inherited privileges to prevent them from inheriting
+   <literal>bypass-acl</literal> and <literal>privilege-change</literal> privileges.
+   For an example of how to do this see the procedure,
+   <link
+    xlink:href="admin-guide#change-group-privileges"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>To Limit Inherited Privileges</citetitle></link>.
+  </para>
+
+  <para>
+   To explicitly assign rights to specific accounts,
+   create a directory administrator group and add administrators as members.
+   Use the group to assign privileges to the administrators.
+   For details see the procedure,
+   <link
+    xlink:href="admin-guide#change-group-privileges"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>To Add Privileges For a Group of Administrators</citetitle></link>.
+   Create multiple administrator groups if necessary for your deployment.
+  </para>
+
+  <para>
+   In both cases explicitly set up access control instructions (ACIs)
+   to allow administrators to perform administrative actions.
+   For details see the chapter on
+   <link
+    xlink:href="admin-guide#chap-privileges-acis"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Configuring Privileges and Access Control</citetitle></link>.
+   In this way you prevent administrators from accidentally or intentionally
+   overstepping their authority when managing directory servers and directory data,
+   and you make it easier to audit what administrators can do.
+  </para>
+ </section>
+
+ <section xml:id="production-access-control">
+  <title>Reconsider Default Global Access Control Instructions</title>
+
+  <para>
+   Global access control instructions (ACIs)
+   are defined in the directory server configuration.
+   Global ACIs apply whenever no other ACIs take precedence.
+   Global ACIs allow applications
+   to read the root DSE,
+   to read directory server schema,
+   to read directory data anonymously,
+   to modify one's own entry,
+   and to request extended operations and operations with certain controls.
+   For details see
+   <link
+    xlink:href="admin-guide#table-global-acis"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Default Global ACIs</citetitle></link>.
+  </para>
+
+  <para>
+   If the default global ACIs do not match your requirements,
+   make sure you change them on each server
+   as the server configuration data is not replicated.
+   Global ACIs have the same syntax as ACIs in the directory data.
+   For details about ACIs see the chapter on
+   <link
+    xlink:href="admin-guide#chap-privileges-acis"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Configuring Privileges and Access Control</citetitle></link>.
+  </para>
+
+  <para>
+   Generally it is fine to allow applications at least
+   to read the root DSE and schema operational attributes,
+   to request the StartTLS extended operation over a cleartext connection,
+   even if read access to most directory data requires authorization.
+   The operational attributes on the root DSE indicate the server capabilities,
+   allowing applications to discover interactively how to use the server.
+   The schema operational attributes describe the data stored in the directory.
+   The StartTLS extended operation lets an application
+   initiate a secure session starting on a port that does not require encryption.
+  </para>
+ </section>
+
+ <section xml:id="production-message-level-security">
+  <title>Protect Directory Server Network Connections</title>
+
+  <para>
+   Directory server protocols like LDAP, HTTP, JMX, and replication
+   rely on transport layer security to protect network connections.
+   For evaluation and initial testing you might find it useful
+   to be able to inspect the network traffic without decrypting messages.
+   For final testing and production environments secure the connections.
+  </para>
+
+  <para>
+   Transport layer security depends on public key infrastructure
+   when negotiating encryption.
+   OpenDJ directory server has multiple key stores and trust stores
+   for handling the key pairs and public key certificates
+   as described in the chapter on
+   <link
+    xlink:href="admin-guide#chap-change-certs"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Changing Server Certificates</citetitle></link>.
+  </para>
+
+  <para>
+   OpenDJ directory server can simplify installation
+   by self-signing certificates for server key pairs.
+   Self-signed certificates are not recognized by applications
+   until you add them to the application's trust store.
+   This is not a problem when you control both the service and the applications.
+   Self-signed certificates are generally fine even in production systems
+   for administrative and replication connections not used by other applications.
+   For connection handlers that primarily server applications you do not control,
+   have the server public key certificate signed by a well-known CA
+   so that the applications can recognize the certificate by default.
+   For details on setting up connection handlers for secure communications,
+   see the chapter on
+   <link
+    xlink:href="admin-guide#chap-connection-handlers"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>Configuring Connection Handlers</citetitle></link>.
+  </para>
+
+  <para>
+   You can use a ACIs to require secure communications for most operations.
+   Keep a global ACI that allows
+   anonymous access to request the StartTLS extended operation.
+   For all operations other than requesting StartTLS,
+   use ACIs whose subject sets <literal>authmethod = ssl</literal>,
+   and also sets <literal>ssf</literal> appropriately.
+  </para>
+
+  <para>
+   <literal>ssf</literal> stands for security strength factor.
+   A security strength factor is set
+   when the server negotiates connection security with a client application.
+   The <literal>ssf</literal> setting in an ACI subject
+   indicates acceptable security strength factors for the target operation.
+   The server can then check whether the security strength factor
+   for the connection is acceptable according to ACIs that apply.
+   The <literal>ssf</literal> setting in an ACI
+   takes an integer between 0 and 1024.
+   <literal>ssf = 0</literal> (or not set) means cleartext is acceptable.
+   <literal>ssf = 1</literal> calls for integrity protection,
+   meaning the connection should prevent messages
+   from being corrupted between the sender and the receiver.
+   <literal>ssf >= <replaceable>integer</replaceable></literal>
+   where <replaceable>integer</replaceable> is two or more
+   calls for integrity and confidentiality protection.
+   Confidential messages are encrypted.
+   Integers larger than one reflect
+   the effective key size of the cipher
+   negotiated between OpenDJ directory server and the LDAP client application.
+   With the <literal>ssf</literal> setting, the aim is to achieve a balance.
+   If not set, or set too low, the server and client can negotiate
+   a connection that is not secure.
+   If set too high, the server and some clients might not be able
+   to negotiate connection settings at all.
+  </para>
+
+  <para>
+   When OpenDJ directory server and a client application negotiate connection security,
+   they must agree on a security protocol and cipher suite.
+   By default OpenDJ directory server supports all the SSL and TLS protocols
+   and the cipher suites supported by the underlying Java virtual machine.
+   The list can include protocols and ciphers that are not secure enough
+   for the production environment.
+   You can limit the security protocols and ciphers to those that are secure enough.
+   For an example of how to change the settings for a connection handler, see
+   <link
+    xlink:href="admin-guide#tls-protocols-cipher-suites"
+    xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+   ><citetitle>TLS Protocols and Cipher Suites</citetitle></link>.
+   You can also change the settings on the administration connector with the
+   <command>dsconfig set-administration-connector-prop</command> command,
+   and change the settings for replication by changing the crypto manager settings
+   with the <command>dsconfig set-crypto-manager-prop</command> command.
+  </para>
+ </section>
+
+ <section xml:id="production-passwords">
+  <title>Use Appropriate Password Storage and Password Policies</title>
+
+  <para>
+   Make sure you keep passwords secret in production.
+   OpenDJ directory server configuration includes files that hold passwords.
+   Command-line tools allow users to provide password credentials.
+   Passwords are also stored in directory data.
+   This section looks at how to protect passwords in each situation.
+  </para>
+
+  <section xml:id="production-passwords-configuration">
+   <title>Passwords in Configuration Files</title>
+
+   <para>
+    OpenDJ directory server stores passwords in configuration files.
+   </para>
+
+   <para>
+    The <filename>config.ldif</filename> file stores hashes of the passwords
+    for root DN users, such as <literal>cn=Directory Manager</literal>.
+    Likewise for replicated servers
+    the <filename>admin-backend.ldif</filename> file stores a password hash
+    for the global administrator,
+    such as <literal>cn=admin,cn=Administrators,cn=admin data</literal>.
+    By default the password storage algorithm is Salted SHA512,
+    a salted form of the 512-bit SHA-2 message digest algorithm.
+    Permissions on the current copy of the file make it
+    readable and writable only by the user running the server.
+    A backup copy of the version used for the latest successful server startup,
+    <filename>config.ldif.startok</filename>, can be readable to other users
+    depending on the UNIX umask or Windows access control.
+    Use a storage scheme that protects the passwords in server configuration files.
+   </para>
+
+   <para>
+    By default OpenDJ directory server stores
+    passwords for key stores and trust stores
+    in configuration files with <filename>.pin</filename> extensions.
+    These files contain the clear-text, randomly-generated passwords.
+    Keep the PIN files readable and writable only by the user running the server.
+    Alternatively, you can use the <command>dsconfig</command> command
+    to configure the server to store key store and trust store passwords
+    in environment variables or Java properties
+    if your procedures make these methods more secure in production.
+    The settings to change are those of
+    the Key Manager Providers and Trust Manager Providers.
+   </para>
+  </section>
+
+  <section xml:id="production-passwords-commands">
+   <title>Passwords as Command-Line Arguments</title>
+
+   <para>
+    OpenDJ commands supply credentials for any operations that are not anonymous.
+    Password credentials can be supplied as arguments such as the
+    <option>--bindPassword <replaceable>password</replaceable></option> option
+    shown in many of the examples in the documentation.
+    The passwords for key stores and trust stores are handled in the same way.
+    Passwords can also be supplied interactively by using a <literal>-</literal>
+    in the commands, as in <option>--bindPassword -</option>.
+    The following example demonstrates a password supplied interactively.
+   </para>
+
+   <screen>
+$ <userinput>ldapsearch \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword - \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN cn=config \
+ "(cn=Directory Manager)" \
+ userPassword</userinput>
+<computeroutput>Password for user 'cn=Directory Manager':
+dn: cn=Directory Manager,cn=Root DNs,cn=config
+userPassword: {SSHA512}WiYWHyAa612EZwCMY7uGwN/WYp2Ne7EmV0QTPX5g6RrTKi8jZX3u5rBIW
+ OUY1DPK3TGYqDiF7d/BEhHnIjBmBtkotWkHIKMa</computeroutput>
+   </screen>
+
+   <para>
+    Notice that the password appears neither in the shell history,
+    nor in the terminal session.
+   </para>
+
+   <para>
+    When using scripts where the password cannot be supplied interactively,
+    passwords can be read from files.
+    For example,
+    the <option>--bindPasswordFile <replaceable>file</replaceable></option> option
+    takes a file that should be readable only by the user running the command.
+    It is also possible to set passwords
+    in the <filename>tools.properties</filename> file for the user.
+    This file is located in the user's home directory,
+    on UNIX <filename>~/.opendj/tools.properties</filename>,
+    and on Windows typically
+    <filename>C:\Documents and Settings\<replaceable
+     >username</replaceable>\.opendj\tools.properties</filename>,
+    though the location can depend on the Java runtime environment used.
+    Here as well, make sure that the file is readable only by the user.
+    Alternatively, use other approaches that work with scripts
+    such as Java properties or environment variables,
+    depending on what method is most secure in production.
+   </para>
+  </section>
+
+  <section xml:id="production-password-policy">
+   <title>Passwords in Directory Data</title>
+   <para>
+    OpenDJ directory server encodes users' passwords before storing them.
+    A variety of built-in password storage schemes are available,
+    using either one-way (hash) or reversible algorithms.
+    The default storage schemes use one-way algorithms
+    to make it computationally difficult to recover the cleartext password values
+    even when given full access to the files containing stored password values.
+   </para>
+
+   <para>
+    For details see
+    <link
+     xlink:href="admin-guide#chap-pwd-storage"
+     xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:show="new"
+    ><citetitle>Configuring Password Storage</citetitle></link>.
+   </para>
+
+   <para>
+    In OpenDJ directory server password policies govern password storage schemes,
+    what constitutes a valid password,
+    how long a password can be used before it must be changed,
+    when an account is locked due to failed attempts to authenticate,
+    and so forth.
+    For example you can configure password policies that prevent users
+    from setting weak passwords and from reusing passwords.
+    OpenDJ provides a wide range of alternatives.
+    For details see
+    <link
+     xlink:href="admin-guide#chap-pwd-policy"
+     xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:show="new"
+    ><citetitle>Configuring Password Policy</citetitle></link>.
+   </para>
+  </section>
+ </section>
+
+ <section xml:id="production-files">
+  <title>Protect OpenDJ Directory Server Files</title>
+
+  <para>
+   OpenDJ directory server does not encrypt directory server files.
+   Other than passwords, OpenDJ directory server does not encrypt attribute values.
+  </para>
+
+  <para>
+   If you set up an appropriate user account for the server as described in
+   <xref linkend="production-system-account" />,
+   and unpacked the server files as that user,
+   then the system should prevent other users from
+   having overly permissive access to directory server files.
+  </para>
+
+  <para>
+   Included in the files that directory server does not encrypt
+   are LDIF exports of directory data.
+   LDIF export files are readable and writable
+   depending on the UNIX umask or Windows file access control settings
+   for the user who runs the command to export the LDIF.
+   The <command>export-ldif</command> command can compress the LDIF,
+   but does not have an option for encrypting LDIF.
+  </para>
+
+  <para>
+   Directory backup archives can be encrypted, but are not encrypted by default.
+   Backup archive file permissions depend on
+   the UNIX umask or Windows file access control settings.
+   When using the <command>backup</command> command,
+   run an online backup and supply the <option>--encrypt</option> option
+   as shown in the following example:
+  </para>
+
+  <screen>
+$ <userinput>backup \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword - \
+ --backupAll \
+ --backupDirectory /path/to/opendj/bak \
+ --encrypt \
+ --start 0</userinput>
+<computeroutput>Password for user 'cn=Directory Manager':
+Backup task 20150810105606755 scheduled to start ...</computeroutput>
+  </screen>
+
+  <para>
+   The server uses its Crypto Manager configuration
+   to determine how to encrypt the backup archive data.
+   The <option>--encrypt</option> option is not available for offline back up.
+   If you back up server data offline, plan to protect the files separately.
+  </para>
+ </section>
+</chapter>
