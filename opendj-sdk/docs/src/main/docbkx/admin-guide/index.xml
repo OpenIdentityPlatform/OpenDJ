@@ -86,6 +86,7 @@
 <!--  <xinclude:include href='chap-chaining.xml' /> -->
  <xinclude:include href='chap-monitoring.xml' />
  <xinclude:include href='chap-tuning.xml' />
+ <xinclude:include href="chap-production.xml" />
  <xinclude:include href='chap-change-certs.xml' />
  <xinclude:include href='chap-mv-servers.xml' />
  <xinclude:include href='chap-troubleshooting.xml' />
