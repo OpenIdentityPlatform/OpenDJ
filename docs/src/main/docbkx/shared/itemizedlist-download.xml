@@ -31,10 +31,15 @@
  <para>Download OpenDJ software from one of the following locations.</para>
 
  <listitem>
-  <para>The ForgeRock <link xlink:href="http://forgerock.com/download-stack/"
-  xlink:show="new">Enterprise Downloads</link> page has the latest stable,
-  supported release of OpenDJ and the other products in the ForgeRock identity
-  stack.</para>
+  <para>
+   Enterprise software releases can be downloaded through the ForgeRock
+   <link
+    xlink:href="https://backstage.forgerock.com/"
+    xlink:show="new">BackStage</link> site.
+   Enterprise releases are thoroughly validated builds
+   for ForgeRock customers who run OpenDJ in production deployments,
+   and for those who want to try or test with release builds.
+  </para>
  </listitem>
 
  <listitem>
