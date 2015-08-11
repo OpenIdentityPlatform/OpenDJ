@@ -373,7 +373,7 @@
    This is not a problem when you control both the service and the applications.
    Self-signed certificates are generally fine even in production systems
    for administrative and replication connections not used by other applications.
-   For connection handlers that primarily server applications you do not control,
+   For connection handlers that primarily serve applications you do not control,
    have the server public key certificate signed by a well-known CA
    so that the applications can recognize the certificate by default.
    For details on setting up connection handlers for secure communications,
@@ -386,7 +386,7 @@
   </para>
 
   <para>
-   You can use a ACIs to require secure communications for most operations.
+   You can use an ACI to require secure communications for most operations.
    Keep a global ACI that allows
    anonymous access to request the StartTLS extended operation.
    For all operations other than requesting StartTLS,
@@ -502,6 +502,7 @@
     <option>--bindPassword <replaceable>password</replaceable></option> option
     shown in many of the examples in the documentation.
     The passwords for key stores and trust stores are handled in the same way.
+    This is not recommended in production as the password appears in the command.
     Passwords can also be supplied interactively by using a <literal>-</literal>
     in the commands, as in <option>--bindPassword -</option>.
     The following example demonstrates a password supplied interactively.
