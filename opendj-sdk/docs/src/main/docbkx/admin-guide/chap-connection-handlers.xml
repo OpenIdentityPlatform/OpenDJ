@@ -360,7 +360,7 @@ Locality Name (eg, city) []:Grenoble
 Organization Name (eg, company) [Internet Widgits Pty Ltd]:Example Corp
 Organizational Unit Name (eg, section) []:
 Common Name (eg, YOUR name) []:Example CA
-Email Address []:mark.craig@forgerock.com
+Email Address []:mickey.mouse@example.com
 
 $ openssl x509 -req -in server-cert.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out server-cert.crt
 Signature ok
