@@ -54,7 +54,7 @@
      ${aci.description}<!-- In English in config.ldif by default -->
     </entry>
     <entry>
-     <literal>${aci.definition}</literal>
+     <literallayout>${aci.definition}</literallayout>
     </entry>
    </row>
    </#list>
