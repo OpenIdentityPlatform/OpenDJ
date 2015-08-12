@@ -55,8 +55,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-
-
 /**
  * This class defines a key manager provider that will access keys stored in a
  * file located on the Directory Server filesystem.
@@ -67,24 +65,17 @@ public class FileBasedKeyManagerProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** The DN of the configuration entry for this key manager provider. */
   private DN configEntryDN;
-
-  /** The PIN needed to access the keystore. */
-  private char[] keyStorePIN;
-
   /** The configuration for this key manager provider. */
   private FileBasedKeyManagerProviderCfg currentConfig;
 
+  /** The PIN needed to access the keystore. */
+  private char[] keyStorePIN;
   /** The path to the key store backing file. */
   private String keyStoreFile;
-
   /** The key store type to use. */
   private String keyStoreType;
-
-
 
   /**
    * Creates a new instance of this file-based key manager provider.  The
@@ -96,9 +87,6 @@ public class FileBasedKeyManagerProvider
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeKeyManagerProvider(
       FileBasedKeyManagerProviderCfg configuration)
@@ -107,7 +95,6 @@ public class FileBasedKeyManagerProvider
     currentConfig = configuration;
     configEntryDN = configuration.dn();
     configuration.addFileBasedChangeListener(this);
-
 
     // Get the path to the key store file.
     keyStoreFile = configuration.getKeyStoreFile();
@@ -201,10 +188,8 @@ public class FileBasedKeyManagerProvider
 
   private String readPinFromFile(String fileName, File pinFile) throws InitializationException
   {
-    BufferedReader br = null;
-    try
+    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
     {
-      br = new BufferedReader(new FileReader(pinFile));
       return br.readLine();
     }
     catch (IOException ioe)
@@ -212,10 +197,6 @@ public class FileBasedKeyManagerProvider
       LocalizableMessage message =
           ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, configEntryDN, getExceptionMessage(ioe));
       throw new InitializationException(message, ioe);
-    }
-    finally
-    {
-      close(br);
     }
   }
 
@@ -226,22 +207,10 @@ public class FileBasedKeyManagerProvider
     currentConfig.removeFileBasedChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean containsKeyWithAlias(String alias) {
-    KeyStore keyStore;
-
     try {
-      keyStore = getKeystore();
-    } catch (DirectoryException e) {
-      return false;
-    }
-
-    try {
+      KeyStore keyStore = getKeystore();
       Enumeration<String> aliases = keyStore.aliases();
       while (aliases.hasMoreElements()) {
         String theAlias = aliases.nextElement();
@@ -249,29 +218,24 @@ public class FileBasedKeyManagerProvider
           return true;
         }
       }
-    } catch (KeyStoreException e) {
+    }
+    catch (DirectoryException | KeyStoreException e) {
     }
 
     return false;
   }
 
-  private KeyStore getKeystore()
-          throws DirectoryException {
-    KeyStore keyStore;
+  private KeyStore getKeystore() throws DirectoryException
+  {
     try
     {
-      keyStore = KeyStore.getInstance(keyStoreType);
+      KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 
-      FileInputStream inputStream =
-              new FileInputStream(getFileForPath(keyStoreFile));
-      try
+      try (FileInputStream inputStream = new FileInputStream(getFileForPath(keyStoreFile)))
       {
         keyStore.load(inputStream, keyStorePIN);
       }
-      finally
-      {
-        close(inputStream);
-      }
+      return keyStore;
     }
     catch (Exception e)
     {
@@ -279,22 +243,10 @@ public class FileBasedKeyManagerProvider
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_LOAD.get(
               keyStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message, e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
-    return keyStore;
   }
 
-    /**
-     * Retrieves a set of <CODE>KeyManager</CODE> objects that may be used for
-     * interactions requiring access to a key manager.
-     *
-     * @return  A set of <CODE>KeyManager</CODE> objects that may be used for
-     *          interactions requiring access to a key manager.
-     *
-     * @throws  DirectoryException  If a problem occurs while attempting to obtain
-     *                              the set of key managers.
-     */
   @Override
   public KeyManager[] getKeyManagers() throws DirectoryException
   {
@@ -320,23 +272,21 @@ public class FileBasedKeyManagerProvider
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY.get(
           keyStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean containsAtLeastOneKey()
   {
     try
     {
       return findOneKeyEntry(getKeystore());
-   }
+    }
     catch (Exception e) {
       logger.traceException(e);
+      return false;
     }
-    return false;
   }
 
   private boolean findOneKeyEntry(KeyStore keyStore) throws KeyStoreException
@@ -353,7 +303,6 @@ public class FileBasedKeyManagerProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                         FileBasedKeyManagerProviderCfg configuration,
@@ -362,9 +311,6 @@ public class FileBasedKeyManagerProvider
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       FileBasedKeyManagerProviderCfg configuration,
@@ -372,7 +318,6 @@ public class FileBasedKeyManagerProvider
   {
     int startSize = unacceptableReasons.size();
     DN cfgEntryDN = configuration.dn();
-
 
     // Get the path to the key store file.
     String newKeyStoreFile = configuration.getKeyStoreFile();
@@ -472,10 +417,8 @@ public class FileBasedKeyManagerProvider
   private String readPinFromFile(File pinFile, String fileName, DN cfgEntryDN,
       List<LocalizableMessage> unacceptableReasons)
   {
-    BufferedReader br = null;
-    try
+    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
     {
-      br = new BufferedReader(new FileReader(pinFile));
       return br.readLine();
     }
     catch (IOException ioe)
@@ -484,19 +427,13 @@ public class FileBasedKeyManagerProvider
           ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, cfgEntryDN, getExceptionMessage(ioe)));
       return null;
     }
-    finally
-    {
-      close(br);
-    }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedKeyManagerProviderCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
 
     // Get the path to the key store file.
     String newKeyStoreFile = configuration.getKeyStoreFile();
@@ -623,10 +560,8 @@ public class FileBasedKeyManagerProvider
 
   private String readPinFromFile(File pinFile, String fileName, ConfigChangeResult ccr)
   {
-    BufferedReader br = null;
-    try
+    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
     {
-      br = new BufferedReader(new FileReader(pinFile));
       return br.readLine();
     }
     catch (IOException ioe)
@@ -634,10 +569,6 @@ public class FileBasedKeyManagerProvider
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, configEntryDN, getExceptionMessage(ioe)));
       return null;
-    }
-    finally
-    {
-      close(br);
     }
   }
 }
