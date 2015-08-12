@@ -26,21 +26,19 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.opends.server.admin.std.server.AnonymousSASLMechanismHandlerCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.api.SASLMechanismHandler;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.admin.std.server.AnonymousSASLMechanismHandlerCfg;
+import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.ExtensionMessages.*;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.InitializationException;
+
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class provides an implementation of a SASL mechanism, as defined in RFC
@@ -53,7 +51,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class AnonymousSASLMechanismHandler
        extends SASLMechanismHandler<AnonymousSASLMechanismHandlerCfg>
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -66,26 +63,21 @@ public class AnonymousSASLMechanismHandler
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void initializeSASLMechanismHandler(AnonymousSASLMechanismHandlerCfg
-                                                  configuration)
+  public void initializeSASLMechanismHandler(AnonymousSASLMechanismHandlerCfg configuration)
          throws ConfigException, InitializationException
   {
     // No real implementation is required.  Simply register with the Directory
     // Server for the ANONYMOUS mechanism.
-    DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS,
-                                                 this);
+    DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS, this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -103,15 +95,12 @@ public class AnonymousSASLMechanismHandler
       }
     }
 
-
-    // Authenticate the client anonymously and indicate that the bind was
-    // successful.
+    // Authenticate the client anonymously and indicate that the bind was successful.
     AuthenticationInfo authInfo = new AuthenticationInfo();
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -119,7 +108,6 @@ public class AnonymousSASLMechanismHandler
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -127,4 +115,3 @@ public class AnonymousSASLMechanismHandler
     return false;
   }
 }
-
