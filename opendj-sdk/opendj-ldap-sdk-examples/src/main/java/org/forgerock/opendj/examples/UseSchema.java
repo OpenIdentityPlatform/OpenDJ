@@ -53,7 +53,7 @@ import java.util.List;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;host> &lt;port> &lt;bindDN> &lt;bindPassword>
+ *  {@code <host> <port> <bindDN> <bindPassword>}
  * </pre>
  *
  * Then it reads an entry to add from System.in.

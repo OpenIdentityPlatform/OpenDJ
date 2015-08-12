@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -55,7 +55,7 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  * <p>This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;host> &lt;port> &lt;username> &lt;password> &lt;baseDN>
+ *  {@code <host> <port> <username> <password> <baseDN>}
  * </pre>
  *
  * <p>The {@code baseDN} must be the root of a naming context in this example.

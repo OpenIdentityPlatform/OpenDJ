@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -57,8 +57,8 @@ import org.forgerock.opendj.ldap.requests.Requests;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;listenAddress> &lt;listenPort> &lt;proxyDN> &ltproxyPassword> &lt;remoteAddress1> &lt;remotePort1>
- *      [&lt;remoteAddress2> &lt;remotePort2> ...]
+ *     {@code <listenAddress> <listenPort> <proxyDN> <proxyPassword> <remoteAddress1> <remotePort1>
+ *      [<remoteAddress2> <remotePort2> ...]}
  * </pre>
  */
 public final class Proxy {

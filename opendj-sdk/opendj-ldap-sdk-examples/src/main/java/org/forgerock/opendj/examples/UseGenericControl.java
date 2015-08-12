@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -54,14 +54,14 @@ import java.io.IOException;
  * pre-read request control from <a href="http://tools.ietf.org/html/rfc4527"
  * >RFC 4527 - Lightweight Directory Access Protocol (LDAP) Read Entry Controls</a>.
  *
- * <p>This example takes the following command line parameters:
+ * <br>This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;host> &lt;port> &lt;username> &lt;password> &lt;userDN>
+ *  {@code <host> <port> <username> <password> <userDN>}
  * </pre>
  *
- * <p>This example modifies the description attribute of an entry that
- * you specify in the &lt;userDN> command line parameter.
+ * <br>This example modifies the description attribute of an entry that
+ * you specify in the {@code <userDN>} command line parameter.
  */
 public final class UseGenericControl {
     /**

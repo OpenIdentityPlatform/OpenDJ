@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS.
  *
  */
 
@@ -45,7 +45,7 @@ import java.security.GeneralSecurityException;
 /**
  * This command-line client demonstrates how to reset a user password in
  * Microsoft Active Directory.
- * <p>
+ * <br>
  * The client takes as arguments the host and port of the Active Directory
  * server, a flag indicating whether this is a self-reset (user changing own
  * password) or an administrative reset (administrator changing a password),
@@ -56,7 +56,7 @@ public final class PasswordResetForAD {
 
     /**
      * Reset a user password in Microsoft Active Directory.
-     * <p>
+     * <br>
      * The connection should be LDAPS, not LDAP, in order to perform the
      * modification.
      *

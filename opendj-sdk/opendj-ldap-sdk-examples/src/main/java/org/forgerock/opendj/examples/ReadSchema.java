@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;host> &lt;port> &lt;username> &lt;password>
+ *  {@code <host> <port> <username> <password>}
  * </pre>
  */
 public final class ReadSchema {

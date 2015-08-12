@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -57,7 +57,7 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;listenAddress> &lt;listenPort> &lt;ldifFile> [&lt;keyStoreFile> &lt;keyStorePassword> &lt;certNickname>]
+ *  {@code <listenAddress> <listenPort> <ldifFile> [<keyStoreFile> <keyStorePassword> <certNickname>]}
  * </pre>
  */
 public final class Server {
