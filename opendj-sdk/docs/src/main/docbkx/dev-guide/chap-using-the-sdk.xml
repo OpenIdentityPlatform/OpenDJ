@@ -30,80 +30,173 @@
          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Using the LDAP SDK</title>
 
- <para>As LDAP relies on a connection from the client to the directory server,
- the starting point for working with the LDAP SDK is a new
- <literal>LDAPConnectionFactory</literal>, from which you then get either
- a synchronous connection, or pass in a handler to an asynchronous
- connection. You then use the connection to make requests and get responses
- from the directory server.</para>
+ <para>
+  As LDAP relies on a connection
+  from the client application to the directory server,
+  the starting point for working with the LDAP SDK is
+  a new <literal>LDAPConnectionFactory</literal>.
+  The connection factory allows an application to get a connection
+  either synchronously or asynchronously.
+  The application then uses the connection
+  to make requests and to get responses from the directory server.
+ </para>
 
  <section xml:id="sync-vs-async">
-  <title>Synchronous &amp; Asynchronous Operations</title>
-  <indexterm>
-   <primary>Connections</primary>
-   <secondary>Asynchronous</secondary>
-  </indexterm>
-  <indexterm>
-   <primary>Connections</primary>
-   <secondary>Synchronous</secondary>
-  </indexterm>
+  <title>Synchronous vs. Asynchronous APIs</title>
 
-  <para>For synchronous operations your application gets a connection from
-  the <literal>LDAPConnectionFactory</literal> and requests operations on
-  the connection. When finished, your application closes the connection.</para>
+  <para>
+   The LDAP SDK offers synchronous and asynchronous APIs.
+   The difference is that synchronous APIs
+   wait for each task to complete before starting the next task,
+   whereas asynchronous APIs
+   allow another task to start before the current one finishes.
+  </para>
 
-  <programlisting language="java">
+  <section xml:id="sync-apis">
+   <title>Synchronous APIs</title>
+
+   <indexterm>
+    <primary>Connections</primary>
+    <secondary>Synchronous</secondary>
+   </indexterm>
+
+   <para>
+    For synchronous operations the application gets a connection
+    from a connection factory,
+    and then requests operations on the connection in sequence.
+    When finished, the application closes the connection
+    as shown in the following example:
+   </para>
+
+   <programlisting language="java">
 [jcp:org.forgerock.opendj.examples.Search:--- JCite ---]
-  </programlisting>
+   </programlisting>
 
-  <para>
-   For a complete example in context, see
-   <link
-    xlink:href="../resources/org/forgerock/opendj/examples/Search.java"
-    xlink:show="new"
-   >Search.java</link>.
-  </para>
+   <para>
+    For the complete example in context, see
+    <link
+     xlink:href="../resources/org/forgerock/opendj/examples/Search.java"
+     xlink:show="new"
+    >Search.java</link>.
+   </para>
+  </section>
 
-  <para>
-   For asynchronous operations,
-   your application obtains a connection with
-   <literal>LDAPConnectionFactory.getConnectionAsync()</literal>,
-   and then uses promises to handle the bind, the subsequent operations,
-   the results, and any errors in asynchronous fashion.
-  </para>
+  <section xml:id="async-apis">
+   <title>Asynchronous APIs</title>
 
-  <programlisting language="java">
+   <indexterm>
+    <primary>Connections</primary>
+    <secondary>Asynchronous</secondary>
+   </indexterm>
+
+   <para>
+    Asynchronous code can be tricky to read and to write.
+    To make coding easier,
+    the asynchronous APIs use <firstterm>promises</firstterm>.
+    Promises might be familiar to JavaScript developers.
+    A promise is the result of a task that might or might not be complete.
+    Fluent code style, which strings together chains of methods,
+    works well with promises.
+   </para>
+
+   <para>
+    The following code outline chains asynchronous calls together:
+   </para>
+
+   <programlisting language="java"><![CDATA[
+class AsyncApp {
+    private Connection connection;
+
+    public void myMethod(String host, int port) {
+        // Get a connection to the directory asynchronously,
+        // returning a promise (with the connection if all goes well).
+        new LDAPConnectionFactory(host, port)
+            .getConnectionAsync()
+
+            // Bind asynchronously, returning a promise with the bind result.
+            // Notice the connection is consumed, the bind result produced.
+            .thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
+                @Override
+                public Promise<BindResult, LdapException> apply(Connection connection)
+                        throws LdapException {
+                    SearchAsync.connection = connection;
+                    return AsyncApp.bindAsync(
+                        Requests.newSimpleBindRequest(bindDn, password));
+                }
+            })
+
+            // When the bind completes, perform an LDAP operation,
+            // returning a promise with the result of the operation.
+            // Here the bind result is consumed, and the next result produced.
+            .thenAsync(new AsyncFunction<BindResult, Result, LdapException>() {
+                @Override
+                public Promise<Result, LdapException> apply(BindResult bindResult)
+                        throws LdapException {
+                    // Return a promise from an asynchronous method.
+                    // return connection.***Async(...);
+                }
+            })
+            // An application might chain several more calls together.
+            // .thenAsync(new AsyncFunction<Result, Result, LdapException>() {...
+            // .thenAsync(new AsyncFunction<Result, Result, LdapException>() {...
+            // ...
+
+            // Handle the result, if any.
+            .thenOnResult(new ResultHandler<Result>() {
+                @Override
+                public void handleResult(Result result) {
+                    // Handle the result.
+                }
+            })
+
+            // Handle any exceptions that arise.
+            .thenOnException(new ExceptionHandler<LdapException>() {
+                @Override
+                public void handleException(LdapException e) {
+                    // Handle exceptions.
+                }
+            });
+
+        closeSilently(connection);
+        return;
+    }
+}
+   ]]></programlisting>
+
+   <para>
+    The following example demonstrates a search using the asynchronous APIs:
+   </para>
+
+   <programlisting language="java">
 [jcp:org.forgerock.opendj.examples.SearchAsync:--- Using Promises ---]
-  </programlisting>
+   </programlisting>
 
-  <para>
-   When the factory gets a connection,
-   your application passes an <literal>AsyncFunction</literal>
-   to apply to the connection to handle the bind
-   by using the <literal>thenAsync()</literal> method in the fluent style.
-   Your application uses <literal>thenAsync()</literal> again
-   to pass another <literal>AsyncFunction</literal> to perform the operation.
-   In the sample shown here, the second call to <literal>thenAsync()</literal>
-   passes a function that performs a search, passing in a handler
-   to deal with the search results returned by the directory server.
-   The call to <literal>onSuccess()</literal> handles the final result,
-   with the call to <literal>onFailure()</literal> dealing with exceptions.
-  </para>
+   <para>
+    When the factory gets a connection,
+    the application passes an <literal>AsyncFunction</literal>
+    to apply to the connection to handle the bind
+    by using the <literal>thenAsync()</literal> method in the fluent style.
+    The application uses <literal>thenAsync()</literal> again
+    to pass another <literal>AsyncFunction</literal> to perform the operation.
+    In the sample shown here, the second call to <literal>thenAsync()</literal>
+    passes a function that performs a search,
+    using a handler to deal with the search results returned by the server.
+    The call to <literal>thenOnResult()</literal> handles the final result,
+    with the call to <literal>thenOnException()</literal> dealing with exceptions.
+   </para>
 
-  <para>
-   Asynchronous methods are non-blocking, returning a <literal>Promise</literal>,
-   so that you can chain methods in the fluent style.
-   Your application must coordinate concurrency
-   when you use asynchronous operations.
-  </para>
+   <para>
+    The application must coordinate concurrency when using asynchronous APIs.
+   </para>
 
-  <para>
-   For a complete example in context, see
-   <link
-    xlink:href="../resources/org/forgerock/opendj/examples/SearchAsync.java"
-    xlink:show="new"
-   >SearchAsync.java</link>.
-  </para>
+   <para>
+    For the complete example in context, see
+    <link
+     xlink:href="../resources/org/forgerock/opendj/examples/SearchAsync.java"
+     xlink:show="new"
+    >SearchAsync.java</link>.
+   </para>
+  </section>
  </section>
 
  <section xml:id="error-handling">
