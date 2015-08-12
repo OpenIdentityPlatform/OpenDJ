@@ -96,107 +96,12 @@ public class FileBasedKeyManagerProvider
     configEntryDN = configuration.dn();
     configuration.addFileBasedChangeListener(this);
 
-    // Get the path to the key store file.
-    keyStoreFile = configuration.getKeyStoreFile();
-    try {
-      File f = getFileForPath(keyStoreFile);
-      if (!f.exists() || !f.isFile()) {
-        throw new InitializationException(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(keyStoreFile, configEntryDN));
-      }
-    } catch (SecurityException e) {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
-          configEntryDN, getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
-
-    // Get the keystore type. If none is specified, then use the
-    // default type.
-    if (configuration.getKeyStoreType() != null) {
-      try {
-        KeyStore.getInstance(configuration.getKeyStoreType());
-        keyStoreType = configuration.getKeyStoreType();
-      } catch (KeyStoreException kse) {
-        logger.traceException(kse);
-
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_INVALID_TYPE.
-            get(configuration.getKeyStoreType(), configEntryDN, getExceptionMessage(kse));
-        throw new InitializationException(message);
-      }
-    } else {
-      keyStoreType = KeyStore.getDefaultType();
-    }
-
-    // Get the PIN needed to access the contents of the keystore file.
-    //
-    // We will offer several places to look for the PIN, and we will
-    // do so in the following order:
-    //
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    //
-    // In any case, the PIN must be in the clear.
-    keyStorePIN = null;
-
-    if (configuration.getKeyStorePinProperty() != null) {
-      String propertyName = configuration.getKeyStorePinProperty();
-      String pinStr = System.getProperty(propertyName);
-
-      if (pinStr == null) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
-            propertyName, configEntryDN);
-        throw new InitializationException(message);
-      }
-
-      keyStorePIN = pinStr.toCharArray();
-    } else if (configuration.getKeyStorePinEnvironmentVariable() != null) {
-      String enVarName = configuration
-          .getKeyStorePinEnvironmentVariable();
-      String pinStr = System.getenv(enVarName);
-
-      if (pinStr == null) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
-            enVarName, configEntryDN);
-        throw new InitializationException(message);
-      }
-
-      keyStorePIN = pinStr.toCharArray();
-    } else if (configuration.getKeyStorePinFile() != null) {
-      String fileName = configuration.getKeyStorePinFile();
-      File pinFile = getFileForPath(fileName);
-
-      if (!pinFile.exists()) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(
-            fileName, configEntryDN);
-        throw new InitializationException(message);
-      }
-
-      String pinStr = readPinFromFile(fileName, pinFile);
-      if (pinStr == null) {
-        LocalizableMessage message = ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN);
-        throw new InitializationException(message);
-      }
-
-      keyStorePIN = pinStr.toCharArray();
-    } else if (configuration.getKeyStorePin() != null) {
-      keyStorePIN = configuration.getKeyStorePin().toCharArray();
-    }
-  }
-
-  private String readPinFromFile(String fileName, File pinFile) throws InitializationException
-  {
-    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
-    {
-      return br.readLine();
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message =
-          ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, configEntryDN, getExceptionMessage(ioe));
-      throw new InitializationException(message, ioe);
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    keyStoreFile = getKeyStoreFile(configuration, configEntryDN, ccr);
+    keyStoreType = getKeyStoreType(configuration, configEntryDN, ccr);
+    keyStorePIN = getKeyStorePIN(configuration, configEntryDN, ccr);
+    if (!ccr.getMessages().isEmpty()) {
+      throw new InitializationException(ccr.getMessages().get(0));
     }
   }
 
@@ -319,114 +224,13 @@ public class FileBasedKeyManagerProvider
     int startSize = unacceptableReasons.size();
     DN cfgEntryDN = configuration.dn();
 
-    // Get the path to the key store file.
-    String newKeyStoreFile = configuration.getKeyStoreFile();
-    try
-    {
-      File f = getFileForPath(newKeyStoreFile);
-      if (!f.exists() || !f.isFile())
-      {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, cfgEntryDN));
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
-    }
-
-    // Get the keystore type. If none is specified, then use the default type.
-    if (configuration.getKeyStoreType() != null)
-    {
-      try
-      {
-        KeyStore.getInstance(configuration.getKeyStoreType());
-      }
-      catch (KeyStoreException kse)
-      {
-        logger.traceException(kse);
-
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
-            configuration.getKeyStoreType(), cfgEntryDN, getExceptionMessage(kse)));
-      }
-    }
-
-    // Get the PIN needed to access the contents of the keystore file.
-    //
-    // We will offer several places to look for the PIN, and we will
-    // do so in the following order:
-    //
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    //
-    // In any case, the PIN must be in the clear.
-    // It is acceptable to have no PIN (OPENDJ-18)
-    if (configuration.getKeyStorePinProperty() != null)
-    {
-      String propertyName = configuration.getKeyStorePinProperty();
-      String pinStr = System.getProperty(propertyName);
-
-      if (pinStr == null)
-      {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(propertyName, cfgEntryDN));
-      }
-    }
-    else if (configuration.getKeyStorePinEnvironmentVariable() != null)
-    {
-      String enVarName = configuration.getKeyStorePinEnvironmentVariable();
-      String pinStr    = System.getenv(enVarName);
-
-      if (pinStr == null)
-      {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, cfgEntryDN));
-      }
-    }
-    else if (configuration.getKeyStorePinFile() != null)
-    {
-      String fileName = configuration.getKeyStorePinFile();
-      File   pinFile  = getFileForPath(fileName);
-
-      if (!pinFile.exists())
-      {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, cfgEntryDN));
-      }
-      else
-      {
-        String pinStr = readPinFromFile(pinFile, fileName, cfgEntryDN, unacceptableReasons);
-        if (pinStr == null)
-        {
-          unacceptableReasons.add(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, cfgEntryDN));
-        }
-      }
-    }
-    else if (configuration.getKeyStorePin() != null)
-    {
-      String pinStr = configuration.getKeyStorePin();
-      if (pinStr == null)
-      {
-        unacceptableReasons.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR.get(cfgEntryDN, null));
-      }
-    }
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    getKeyStoreFile(configuration, cfgEntryDN, ccr);
+    getKeyStoreType(configuration, cfgEntryDN, ccr);
+    getKeyStorePIN(configuration, cfgEntryDN, ccr);
+    unacceptableReasons.addAll(ccr.getMessages());
 
     return startSize == unacceptableReasons.size();
-  }
-
-  private String readPinFromFile(File pinFile, String fileName, DN cfgEntryDN,
-      List<LocalizableMessage> unacceptableReasons)
-  {
-    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
-    {
-      return br.readLine();
-    }
-    catch (IOException ioe)
-    {
-      unacceptableReasons.add(
-          ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(fileName, cfgEntryDN, getExceptionMessage(ioe)));
-      return null;
-    }
   }
 
   @Override
@@ -434,118 +238,9 @@ public class FileBasedKeyManagerProvider
                                  FileBasedKeyManagerProviderCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // Get the path to the key store file.
-    String newKeyStoreFile = configuration.getKeyStoreFile();
-    try
-    {
-      File f = getFileForPath(newKeyStoreFile);
-      if (!f.exists() || !f.isFile())
-      {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, configEntryDN));
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
-          configEntryDN, getExceptionMessage(e)));
-    }
-
-    // Get the keystore type. If none is specified, then use the default type.
-    String newKeyStoreType = KeyStore.getDefaultType();
-    if (configuration.getKeyStoreType() != null)
-    {
-      try
-      {
-        KeyStore.getInstance(configuration.getKeyStoreType());
-        newKeyStoreType = configuration.getKeyStoreType();
-      }
-      catch (KeyStoreException kse)
-      {
-        logger.traceException(kse);
-
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
-            configuration.getKeyStoreType(), configEntryDN, getExceptionMessage(kse)));
-      }
-    }
-
-    // Get the PIN needed to access the contents of the keystore file.
-    //
-    // We will offer several places to look for the PIN, and we will
-    // do so in the following order:
-    //
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    //
-    // In any case, the PIN must be in the clear.
-    char[] newPIN = null;
-
-    if (configuration.getKeyStorePinProperty() != null)
-    {
-      String propertyName = configuration.getKeyStorePinProperty();
-      String pinStr = System.getProperty(propertyName);
-
-      if (pinStr == null)
-      {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
-            propertyName, configEntryDN));
-      }
-      else
-      {
-        newPIN = pinStr.toCharArray();
-      }
-    }
-    else if (configuration.getKeyStorePinEnvironmentVariable() != null)
-    {
-      String enVarName = configuration.getKeyStorePinEnvironmentVariable();
-      String pinStr    = System.getenv(enVarName);
-
-      if (pinStr == null)
-      {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, configEntryDN));
-      }
-      else
-      {
-        newPIN = pinStr.toCharArray();
-      }
-    }
-    else if (configuration.getKeyStorePinFile() != null)
-    {
-      String fileName = configuration.getKeyStorePinFile();
-      File   pinFile  = getFileForPath(fileName);
-
-      if (!pinFile.exists())
-      {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, configEntryDN));
-      }
-      else
-      {
-        String pinStr = readPinFromFile(pinFile, fileName, ccr);
-        if (pinStr == null)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN));
-        }
-        else
-        {
-          newPIN = pinStr.toCharArray();
-        }
-      }
-    }
-    else if (configuration.getKeyStorePin() != null)
-    {
-      newPIN = configuration.getKeyStorePin().toCharArray();
-    }
+    String newKeyStoreFile = getKeyStoreFile(configuration, configEntryDN, ccr);
+    String newKeyStoreType = getKeyStoreType(configuration, configEntryDN, ccr);
+    char[] newPIN = getKeyStorePIN(configuration, configEntryDN, ccr);
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
@@ -556,6 +251,131 @@ public class FileBasedKeyManagerProvider
     }
 
     return ccr;
+  }
+
+  /** Get the path to the key store file. */
+  private String getKeyStoreFile(FileBasedKeyManagerProviderCfg configuration, DN cfgEntryDN,
+      final ConfigChangeResult ccr)
+  {
+    String keyStoreFile = configuration.getKeyStoreFile();
+    try
+    {
+      File f = getFileForPath(keyStoreFile);
+      if (!f.exists() || !f.isFile())
+      {
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(keyStoreFile, cfgEntryDN));
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
+    }
+    return keyStoreFile;
+  }
+
+  /** Get the keystore type. If none is specified, then use the default type. */
+  private String getKeyStoreType(FileBasedKeyManagerProviderCfg configuration, DN cfgEntryDN,
+      final ConfigChangeResult ccr)
+  {
+    if (configuration.getKeyStoreType() != null)
+    {
+      try
+      {
+        KeyStore.getInstance(configuration.getKeyStoreType());
+        return configuration.getKeyStoreType();
+      }
+      catch (KeyStoreException kse)
+      {
+        logger.traceException(kse);
+
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
+            configuration.getKeyStoreType(), cfgEntryDN, getExceptionMessage(kse)));
+      }
+    }
+    return KeyStore.getDefaultType();
+  }
+
+  /**
+   * Get the PIN needed to access the contents of the keystore file.
+   * <p>
+   * We will offer several places to look for the PIN, and we will do so in the following order:
+   * <ol>
+   * <li>In a specified Java property</li>
+   * <li>In a specified environment variable</li>
+   * <li>In a specified file on the server filesystem</li>
+   * <li>As the value of a configuration attribute.</li>
+   * <ol>
+   * In any case, the PIN must be in the clear.
+   * <p>
+   * It is acceptable to have no PIN (OPENDJ-18)
+   */
+  private char[] getKeyStorePIN(FileBasedKeyManagerProviderCfg configuration, DN cfgEntryDN,
+      final ConfigChangeResult ccr)
+  {
+    if (configuration.getKeyStorePinProperty() != null)
+    {
+      String propertyName = configuration.getKeyStorePinProperty();
+      String pinStr = System.getProperty(propertyName);
+
+      if (pinStr == null)
+      {
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(propertyName, cfgEntryDN));
+      }
+      else
+      {
+        return pinStr.toCharArray();
+      }
+    }
+    else if (configuration.getKeyStorePinEnvironmentVariable() != null)
+    {
+      String enVarName = configuration.getKeyStorePinEnvironmentVariable();
+      String pinStr    = System.getenv(enVarName);
+
+      if (pinStr == null)
+      {
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, cfgEntryDN));
+      }
+      else
+      {
+        return pinStr.toCharArray();
+      }
+    }
+    else if (configuration.getKeyStorePinFile() != null)
+    {
+      String fileName = configuration.getKeyStorePinFile();
+      File   pinFile  = getFileForPath(fileName);
+
+      if (!pinFile.exists())
+      {
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, cfgEntryDN));
+      }
+      else
+      {
+        String pinStr = readPinFromFile(pinFile, fileName, ccr);
+        if (pinStr == null)
+        {
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, cfgEntryDN));
+        }
+        else
+        {
+          return pinStr.toCharArray();
+        }
+      }
+    }
+    else if (configuration.getKeyStorePin() != null)
+    {
+      return configuration.getKeyStorePin().toCharArray();
+    }
+    return null;
   }
 
   private String readPinFromFile(File pinFile, String fileName, ConfigChangeResult ccr)
