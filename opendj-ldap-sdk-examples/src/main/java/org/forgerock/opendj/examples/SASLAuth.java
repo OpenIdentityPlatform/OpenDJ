@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2015 ForgeRock AS.
  */
 
 /**
@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
  * command line parameters:
  * <ul>
  * <li>host - host name of the directory server</li>
- * <li>port - port number of the directory server for StartTLS, e.g. 1389</li>
+ * <li>port - port number of the directory server for StartTLS</li>
  * <li>authzid - (Optional) Authorization identity</li>
  * <li>authcid - Authentication identity</li>
  * <li>passwd - Password of the user to authenticate</li>

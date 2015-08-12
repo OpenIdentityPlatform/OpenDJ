@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2014 ForgeRock AS
+ *      Copyright 2012-2015 ForgeRock AS.
  *
  */
 
@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  *
  * <ul>
  * <li>host - host name of the directory server</li>
- * <li>port - port number of the directory server, e.g. 1389, 1636</li>
+ * <li>port - port number of the directory server</li>
  * </ul>
  * All arguments are required.
  */

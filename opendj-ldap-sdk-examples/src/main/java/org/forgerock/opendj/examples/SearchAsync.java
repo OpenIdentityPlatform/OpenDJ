@@ -21,8 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.examples;
 
@@ -55,8 +54,8 @@ import org.forgerock.util.promise.ResultHandler;
  * asynchronous APIs. This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;host> &lt;port> &lt;username> &lt;password>
- *      &lt;baseDN> &lt;scope> &lt;filter> [&lt;attibute> &lt;attribute> ...]
+ *  {@code <host> <port> <username> <password>
+ *      <baseDN> <scope> <filter> [<attribute> <attribute> ...]}
  * </pre>
  */
 public final class SearchAsync {

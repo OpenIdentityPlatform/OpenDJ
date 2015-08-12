@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2014 ForgeRock AS
+ *      Copyright 2012-2015 ForgeRock AS.
  *
  */
 
@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
  * entry.
  * <ul>
  * <li>host - host name of the directory server</li>
- * <li>port - port number of the directory server, e.g. 1389, 1636</li>
+ * <li>port - port number of the directory server</li>
  * <li>base-dn - base DN for the search, e.g. dc=example,dc=com</li>
  * </ul>
  * All arguments are required.

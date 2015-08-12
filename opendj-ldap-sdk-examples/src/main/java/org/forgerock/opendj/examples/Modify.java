@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -47,7 +47,7 @@ import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
  * parameters (it will read from stdin if no LDIF file is provided):
  *
  * <pre>
- *  &lt;host> &lt;port> &lt;username> &lt;password> [&lt;ldifFile>]
+ *  {@code <host> <port> <username> <password> [<ldifFile>]}
  * </pre>
  */
 public final class Modify {

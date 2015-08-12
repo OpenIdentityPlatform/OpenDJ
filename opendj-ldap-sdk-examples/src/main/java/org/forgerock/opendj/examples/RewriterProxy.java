@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -98,7 +98,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * This example takes the following command line parameters:
  *
  * <pre>
- *  &lt;localAddress> &lt;localPort> &lt;proxyDN> &lt;proxyPassword> &lt;serverAddress> &lt;serverPort>
+ *  {@code <localAddress> <localPort> <proxyDN> <proxyPassword> <serverAddress> <serverPort>}
  * </pre>
  *
  * If you have imported the users from <a

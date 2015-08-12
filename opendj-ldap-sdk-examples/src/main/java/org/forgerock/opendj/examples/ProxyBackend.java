@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -78,15 +78,16 @@ import static org.forgerock.util.Utils.*;
  * client connection. The following code illustrates how this may be achieved:
  *
  * <pre>
- * final RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt; proxyFactory =
- *     new RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt;() {
- *         &#064;Override
+ *     {@code
+ * final RequestHandlerFactory<LDAPClientContext, RequestContext> proxyFactory =
+ *     new RequestHandlerFactory<LDAPClientContext, RequestContext>() {
+ *         @Override
  *         public ProxyBackend handleAccept(LDAPClientContext clientContext) throws LdapException {
  *             return new ProxyBackend(factory, bindFactory);
  *         }
  *     };
- * final ServerConnectionFactory&lt;LDAPClientContext, Integer&gt; connectionHandler = Connections
- *     .newServerConnectionFactory(proxyFactory);
+ * final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler = Connections
+ *     .newServerConnectionFactory(proxyFactory);}
  * </pre>
  */
 final class ProxyBackend implements RequestHandler<RequestContext> {
