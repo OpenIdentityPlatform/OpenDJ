@@ -38,9 +38,6 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskBackend;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AddOperationBasis;
@@ -61,6 +58,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -219,38 +217,23 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Build the array of connections we will use to perform the tests.
-    JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
     ArrayList<JmxClientConnection> connList = new ArrayList<>();
     ArrayList<Boolean> successList = new ArrayList<>();
-    String userDN ;
-    Entry userEntry ;
-    AuthenticationInfo authInfo;
+    JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
 
     connList.add(new JmxClientConnection(jmxCtx,new AuthenticationInfo()));
     successList.add(false);
 
-    userDN    = "cn=Unprivileged Root,cn=Root DNs,cn=config";
-    userEntry = DirectoryServer.getEntry(DN.valueOf(userDN));
-    authInfo  = new AuthenticationInfo(userEntry, true);
-    connList.add(new JmxClientConnection(jmxCtx,authInfo));
+    connList.add(newJmxClientConnection(jmxCtx, "cn=Unprivileged Root,cn=Root DNs,cn=config", true));
     successList.add(false);
 
-    userDN    = "cn=Proxy Root,cn=Root DNs,cn=config";
-    userEntry = DirectoryServer.getEntry(DN.valueOf(userDN));
-    authInfo  = new AuthenticationInfo(userEntry, true);
-    connList.add(new JmxClientConnection(jmxCtx,authInfo));
+    connList.add(newJmxClientConnection(jmxCtx, "cn=Proxy Root,cn=Root DNs,cn=config", true));
     successList.add(true);
 
-    userDN    = "cn=Unprivileged User,o=test";
-    userEntry = DirectoryServer.getEntry(DN.valueOf(userDN));
-    authInfo  = new AuthenticationInfo(userEntry, false);
-    connList.add(new JmxClientConnection(jmxCtx,authInfo));
+    connList.add(newJmxClientConnection(jmxCtx, "cn=Unprivileged User,o=test", false));
     successList.add(false);
 
-    userDN    = "cn=Privileged User,o=test";
-    userEntry = DirectoryServer.getEntry(DN.valueOf(userDN));
-    authInfo  = new AuthenticationInfo(userEntry, false);
-    connList.add(new JmxClientConnection(jmxCtx,authInfo));
+    connList.add(newJmxClientConnection(jmxCtx, "cn=Privileged User,o=test", false));
     successList.add(true);
 
 
@@ -287,7 +270,13 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     );
   }
 
-
+  private JmxClientConnection newJmxClientConnection(JmxConnectionHandler jmxCtx, String userDN, boolean isRoot)
+      throws DirectoryException
+  {
+    Entry userEntry = DirectoryServer.getEntry(DN.valueOf(userDN));
+    AuthenticationInfo authInfo = new AuthenticationInfo(userEntry, isRoot);
+    return new JmxClientConnection(jmxCtx, authInfo);
+  }
 
   /**
    * Cleans up anything that might be left around after running the tests in
@@ -299,43 +288,16 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   public void cleanUp()
          throws Exception
   {
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
-
-    DeleteOperation deleteOperation = conn.processDelete(DN
-        .valueOf("cn=Unprivileged Root,cn=Root DNs,cn=config"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=Unprivileged JMX Root,cn=Root DNs,cn=config"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=Proxy Root,cn=Root DNs,cn=config"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=Privileged User,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=UnPrivileged User,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=PWReset Target,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=test1 user,dc=unindexed,dc=jeb"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=test2 user,dc=unindexed,dc=jeb"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN.valueOf("dc=unindexed,dc=jeb"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    processDelete(
+        "cn=Unprivileged Root,cn=Root DNs,cn=config",
+        "cn=Unprivileged JMX Root,cn=Root DNs,cn=config",
+        "cn=Proxy Root,cn=Root DNs,cn=config",
+        "cn=Privileged User,o=test",
+        "cn=UnPrivileged User,o=test",
+        "cn=PWReset Target,o=test",
+        "cn=test1 user,dc=unindexed,dc=jeb",
+        "cn=test2 user,dc=unindexed,dc=jeb",
+        "dc=unindexed,dc=jeb");
 
     for (int i = 0; connections != null && i < connections.length; i++)
     {
@@ -345,7 +307,14 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     TestCaseUtils.disableBackend("unindexedRoot");
   }
 
-
+  private void processDelete(String... userDNs) throws DirectoryException
+  {
+    for (String userDN : userDNs)
+    {
+      DeleteOperation deleteOp = getRootConnection().processDelete(DN.valueOf(userDN));
+      assertEquals(deleteOp.getResultCode(), ResultCode.SUCCESS);
+    }
+  }
 
   /**
    * Retrieves a set of data that can be used for performing the tests.  The
@@ -382,7 +351,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     OpendsJmxConnector opendsConnector;
     int jmxPort = TestCaseUtils.getServerJmxPort() ;
     HashMap<String, Object> env = new HashMap<>();
-    String user = "cn=Unprivileged JMX Root,cn=Root DNs,cn=config";
+    final String user = "cn=Unprivileged JMX Root,cn=Root DNs,cn=config";
     String password  = "password";
     String[] credentials = new String[] { user, password };
     env.put("jmx.remote.credentials", credentials);
@@ -405,13 +374,12 @@ public class JmxPrivilegeTestCase extends JmxTestCase
       assertEquals(message.toString(), e.getMessage());
     }
 
+    final DN userDN = DN.valueOf(user);
+
     // Add JMX_READ privilege
     InternalClientConnection rootConnection = getRootConnection();
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.ADD, Attributes.create(
-        "ds-privilege-name", "jmx-read")));
-    ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.valueOf(user), mods);
+    ArrayList<Modification> mods = newModifications(ADD, "ds-privilege-name", "jmx-read");
+    ModifyOperation modifyOperation = rootConnection.processModify(userDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     //  Try connection withoutJMX_READ privilege
@@ -430,11 +398,8 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     }
 
     // remove JMX_READ privilege
-    mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-privilege-name", "jmx-read")));
-    modifyOperation =
-         rootConnection.processModify(DN.valueOf(user), mods);
+    mods = newModifications(DELETE, "ds-privilege-name", "jmx-read");
+    modifyOperation = rootConnection.processModify(userDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     // Try connection withoutJMX_READ privilege
@@ -605,8 +570,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Try to modify the entry to add a description.
-    ArrayList<Modification> mods =
-        newArrayList(new Modification(ModificationType.REPLACE, Attributes.create("description", "foo")));
+    ArrayList<Modification> mods = newModifications(REPLACE, "description", "foo");
 
     ModifyOperationBasis modifyOperation = new ModifyOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, e.getName(),
@@ -661,9 +625,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
       assertEquals(deleteOperation.getResultCode(),
                    ResultCode.AUTHORIZATION_DENIED);
 
-      InternalClientConnection rootConnection =
-           InternalClientConnection.getRootConnection();
-      DeleteOperation delOp = rootConnection.processDelete(newEntryDN);
+      DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
       assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -793,8 +755,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
 
     // Try to modify the entry to add a description.
-    ArrayList<Modification> mods =
-        newArrayList(new Modification(ModificationType.REPLACE, Attributes.create("description", "foo")));
+    ArrayList<Modification> mods = newModifications(REPLACE, "description", "foo");
 
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(conn,
@@ -856,14 +817,15 @@ public class JmxPrivilegeTestCase extends JmxTestCase
                    ResultCode.AUTHORIZATION_DENIED,
                    "Unexpected delete success for user " + authDN);
 
-      InternalClientConnection rootConnection =
-           InternalClientConnection.getRootConnection();
-      DeleteOperation delOp = rootConnection.processDelete(newEntryDN);
+      DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
       assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
 
-
+  private ArrayList<Modification> newModifications(ModificationType modType, String attrName, String attrValue)
+  {
+    return newArrayList(new Modification(modType, Attributes.create(attrName, attrValue)));
+  }
 
   /**
    * Tests to ensure that the use of the Directory Server will properly respect
@@ -967,9 +929,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Modify the user entry to add the JMX_READ privilege and verify that
     // the client connection reflects that.
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("ds-privilege-name", "jmx-read")));
+    ArrayList<Modification> mods = newModifications(ADD, "ds-privilege-name", "jmx-read");
     ModifyOperation modifyOperation = rootConnection.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(testConnection.hasPrivilege(Privilege.JMX_READ, null));
@@ -977,9 +937,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Take the privilege away from the user and verify that it is recognized
     // immediately.
-    mods.clear();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-privilege-name", "jmx-read")));
+    mods = newModifications(DELETE, "ds-privilege-name", "jmx-read");
     modifyOperation = rootConnection.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(testConnection.hasPrivilege(Privilege.JMX_READ, null));
@@ -1000,94 +958,42 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   public void testUpdateRootPrivileges()
          throws Exception
   {
-    // Make sure that a root connection doesn't  have the proxied auth
-    // privilege.
-    DN unprivRootDN = DN.valueOf("cn=Unprivileged Root,cn=Root DNs,cn=config");
-    Entry unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
-    AuthenticationInfo authInfo = new AuthenticationInfo(unprivRootEntry, true);
+    // Make sure that a root connection doesn't have the proxied auth privilege.
     JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
-    JmxClientConnection unprivRootConn =
-         new JmxClientConnection(jmxCtx,authInfo);
+    DN unprivRootDN = DN.valueOf("cn=Unprivileged Root,cn=Root DNs,cn=config");
+    JmxClientConnection unprivRootConn = newJmxClientConnection(jmxCtx, unprivRootDN);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
 
 
     // Update the set of root privileges to include proxied auth.
     InternalClientConnection conn = getRootConnection();
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("ds-cfg-default-root-privilege-name",
-                                    "proxied-auth")));
+    ArrayList<Modification> mods = newModifications(ADD, "ds-cfg-default-root-privilege-name", "proxied-auth");
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Get a new root connection and verify that it now has proxied auth.
-    unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
-    authInfo = new AuthenticationInfo(unprivRootEntry, true);
-    unprivRootConn = new JmxClientConnection(jmxCtx,authInfo);
+    unprivRootConn = newJmxClientConnection(jmxCtx, unprivRootDN);
     assertTrue(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
 
 
     // Update the set of root privileges to revoke proxied auth.
-    mods.clear();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-cfg-default-root-privilege-name",
-                                    "proxied-auth")));
+    mods = newModifications(DELETE, "ds-cfg-default-root-privilege-name", "proxied-auth");
     modifyOperation =
          conn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    // Get a new root connection and verify that it no longer has proxied auth.
-    unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
-    authInfo = new AuthenticationInfo(unprivRootEntry, true);
-    unprivRootConn = new JmxClientConnection(jmxCtx,authInfo);
+    unprivRootConn = newJmxClientConnection(jmxCtx, unprivRootDN);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
   }
 
-
-
-  /**
-   * Retrieves the specified task from the server, waiting for it to finish all
-   * the running its going to do before returning.
-   *
-   * @param  taskEntryDN  The DN of the entry for the task to retrieve.
-   *
-   * @return  The requested task entry.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  private Task getCompletedTask(DN taskEntryDN) throws Exception
+  private JmxClientConnection newJmxClientConnection(JmxConnectionHandler jmxCtx, DN entryDN) throws DirectoryException
   {
-    TaskBackend taskBackend =
-         (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
-    Task task = taskBackend.getScheduledTask(taskEntryDN);
-    if (task == null)
-    {
-      long stopWaitingTime = System.currentTimeMillis() + 10000L;
-      while (task == null && System.currentTimeMillis() < stopWaitingTime)
-      {
-        Thread.sleep(10);
-        task = taskBackend.getScheduledTask(taskEntryDN);
-      }
-    }
-
-    assertNotNull(task, "There is no such task " + taskEntryDN);
-    if (! TaskState.isDone(task.getTaskState()))
-    {
-      long stopWaitingTime = System.currentTimeMillis() + 20000L;
-      while (!TaskState.isDone(task.getTaskState())
-          && System.currentTimeMillis() < stopWaitingTime)
-      {
-        Thread.sleep(10);
-      }
-    }
-
-    assertTrue(TaskState.isDone(task.getTaskState()),
-        "Task " + taskEntryDN + " did not complete in a timely manner.");
-    return task;
+    Entry entry = DirectoryServer.getEntry(entryDN);
+    AuthenticationInfo authInfo = new AuthenticationInfo(entry, true);
+    return new JmxClientConnection(jmxCtx, authInfo);
   }
 }
-
