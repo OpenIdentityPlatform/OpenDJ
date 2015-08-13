@@ -50,6 +50,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -92,14 +93,14 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":000000000000000a000000000000:repl:init value");
 
     // simulate a modify-replace done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.REPLACE, "init value"));
+    testModify(entry, hist, 10, true, newModification(REPLACE, DESCRIPTION, "init value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
      */
-    testModify(entry, hist, 1, false, buildMod(DESCRIPTION, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 1, false, newModification(ADD, DESCRIPTION, "older value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     /*
@@ -107,14 +108,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      * conflict resolution should remove it. (a second time to make
      * sure...)
      */
-    testModify(entry, hist, 2, false, buildMod(DESCRIPTION, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DESCRIPTION, "older value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at a later date that the previous replace.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, 11, true, buildMod(DESCRIPTION, ModificationType.ADD, "new value"));
+    testModify(entry, hist, 11, true, newModification(ADD, DESCRIPTION, "new value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:repl:init value",
         ":000000000000000b000000000000:add:new value");
@@ -136,14 +137,14 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":000000000000000a000000000000:repl:init value");
 
     // simulate a modify-replace done at time t10
-    testModify(entry, hist, 10, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "init value"));
+    testModify(entry, hist, 10, true, newModification(REPLACE, DISPLAYNAME, "init value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at an earlier date that the previous replace
      * conflict resolution should remove it.
      */
-    testModify(entry, hist, 1, false, buildMod(DISPLAYNAME, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 1, false, newModification(ADD, DISPLAYNAME, "older value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     /*
@@ -151,14 +152,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      * conflict resolution should remove it. (a second time to make
      * sure...)
      */
-    testModify(entry, hist, 2, false, buildMod(DISPLAYNAME, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DISPLAYNAME, "older value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     /*
      * Now simulate an add at a later date that the previous replace.
      * conflict resolution should remove it
      */
-    testModify(entry, hist, 11, false, buildMod(DISPLAYNAME, ModificationType.ADD, "new value"));
+    testModify(entry, hist, 11, false, newModification(ADD, DISPLAYNAME, "new value"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     assertContainsOnlyValues(entry, DISPLAYNAME, "init value");
@@ -181,14 +182,14 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000003000000000000:attrDel");
 
     // simulate a replace with null done at time t3
-    testModify(entry, hist, 3, true, buildMod(DISPLAYNAME, ModificationType.REPLACE));
+    testModify(entry, hist, 3, true, newModification(REPLACE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous replace. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, false, buildMod(DISPLAYNAME, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 1, false, newModification(ADD, DISPLAYNAME, "older value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
@@ -196,14 +197,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      * conflict resolution should detect that this add must be ignored. (a
      * second time to make sure that historical information is kept...)
      */
-    testModify(entry, hist, 2, false, buildMod(DISPLAYNAME, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DISPLAYNAME, "older value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, 4, true, buildMod(DISPLAYNAME, ModificationType.ADD, "new value"));
+    testModify(entry, hist, 4, true, newModification(ADD, DISPLAYNAME, "new value"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000004000000000000:add:new value",
         ":0000000000000003000000000000:attrDel");
@@ -223,7 +224,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a modify-add done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 10, true, newModification(ADD, DESCRIPTION, "init value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -232,7 +233,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate a replace at an earlier date that the previous replace
      * conflict resolution should keep it.
      */
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.REPLACE, "older value"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DESCRIPTION, "older value"));
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value",
         ":0000000000000001000000000000:repl:older value");
@@ -243,7 +244,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * conflict resolution should remove it. (a second time to make
      * sure...)
      */
-    testModify(entry, hist, 2, true, buildMod(DESCRIPTION, ModificationType.REPLACE, "older value"));
+    testModify(entry, hist, 2, true, newModification(REPLACE, DESCRIPTION, "older value"));
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value",
         ":0000000000000002000000000000:repl:older value");
@@ -253,7 +254,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate a replace at a later date that the previous replace.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, 11, true, buildMod(DESCRIPTION, ModificationType.REPLACE, "new value"));
+    testModify(entry, hist, 11, true, newModification(REPLACE, DESCRIPTION, "new value"));
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000b000000000000:repl:new value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -272,7 +273,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a modify-add done at time 2
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 2, true, newModification(ADD, DISPLAYNAME, "init value"));
     Attribute syncHist = buildSyncHist(DISPLAYNAME,
         ":0000000000000002000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), syncHist);
@@ -281,7 +282,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate a replace at an earlier date that the previous replace
      * conflict resolution should keep it.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "older value"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "older value"));
     syncHist = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:repl:older value");
     assertEquals(hist.encodeAndPurge(), syncHist);
@@ -292,7 +293,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate a replace at a later date.
      * Conflict resolution should keep it.
      */
-    testModify(entry, hist, 3, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "newer value"));
+    testModify(entry, hist, 3, true, newModification(REPLACE, DISPLAYNAME, "newer value"));
     syncHist = buildSyncHist(DISPLAYNAME,
         ":0000000000000003000000000000:repl:newer value");
     assertEquals(hist.encodeAndPurge(), syncHist);
@@ -317,14 +318,14 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":000000000000000a000000000000:attrDel");
 
     // simulate a delete of the whole description attribute done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.DELETE));
+    testModify(entry, hist, 10, true, newModification(DELETE, DESCRIPTION));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, false, buildMod(DESCRIPTION, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 1, false, newModification(ADD, DESCRIPTION, "older value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
@@ -332,14 +333,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      * conflict resolution should detect that this add must be ignored. (a
      * second time to make sure that historical information is kept...)
      */
-    testModify(entry, hist, 2, false, buildMod(DESCRIPTION, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DESCRIPTION, "older value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, 11, true, buildMod(DESCRIPTION, ModificationType.ADD, "new value"));
+    testModify(entry, hist, 11, true, newModification(ADD, DESCRIPTION, "new value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
             ":000000000000000b000000000000:add:new value",
             ":000000000000000a000000000000:attrDel");
@@ -371,27 +372,27 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of the description attribute value "value1" done at time t1
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 1, true, newModification(DELETE, DESCRIPTION, "value1"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate an add of "value3" at time t2
-    testModify(entry, hist, 2, true, buildMod(DESCRIPTION, ModificationType.ADD, "value3"));
+    testModify(entry, hist, 2, true, newModification(ADD, DESCRIPTION, "value3"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1",
         ":0000000000000002000000000000:add:value3");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate a delete of value "value1" at time t3
-    testModify(entry, hist, 3, false, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 3, false, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000002000000000000:add:value3",
         ":0000000000000003000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate an add of "value4" at time t4
-    testModify(entry, hist, 4, true, buildMod(DESCRIPTION, ModificationType.ADD, "value4"));
+    testModify(entry, hist, 4, true, newModification(ADD, DESCRIPTION, "value4"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000002000000000000:add:value3",
         ":0000000000000003000000000000:del:value1",
@@ -430,7 +431,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      *  "value1" and "value2" done at time t1
      */
     testModify(entry, hist, 1, true,
-        buildMod(DESCRIPTION, ModificationType.DELETE, "value1", "value2"));
+        newModification(DELETE, DESCRIPTION, "value1", "value2"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1",
         ":0000000000000001000000000000:del:value2");
@@ -441,7 +442,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      *  "value2" and "value3" done at time t1
      */
     testModify(entry, hist, 2, true,
-        buildMod(DESCRIPTION, ModificationType.DELETE, "value2", "value3"));
+        newModification(DELETE, DESCRIPTION, "value2", "value3"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1",
         ":0000000000000002000000000000:del:value2",
@@ -472,13 +473,13 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of attribute employeenumber.
-    testModify(entry, hist, 1, true, buildMod(EMPLOYEENUMBER, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, EMPLOYEENUMBER));
     Attribute attr = buildSyncHist(EMPLOYEENUMBER,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // now simulate a delete of value "value1"
-    testModify(entry, hist, 2, false, buildMod(EMPLOYEENUMBER, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 2, false, newModification(DELETE, EMPLOYEENUMBER, "value1"));
     attr = buildSyncHist(EMPLOYEENUMBER,
         ":0000000000000002000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -505,13 +506,13 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // now simulate a delete of value "value1"
-    testModify(entry, hist, 1, true, buildMod(EMPLOYEENUMBER, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 1, true, newModification(DELETE, EMPLOYEENUMBER, "value1"));
     Attribute attr = buildSyncHist(EMPLOYEENUMBER,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of attribute employeenumber.
-    testModify(entry, hist, 2, false, buildMod(EMPLOYEENUMBER, ModificationType.DELETE));
+    testModify(entry, hist, 2, false, newModification(DELETE, EMPLOYEENUMBER));
     attr = buildSyncHist(EMPLOYEENUMBER,
         ":0000000000000002000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -545,27 +546,27 @@ public class ModifyConflictTest extends ReplicationTestCase
      * simulate a delete of the description attribute value "value1"
      * done at time t3
      */
-    testModify(entry, hist, 3, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 3, true, newModification(DELETE, DESCRIPTION, "value1"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":0000000000000003000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate an add of "value3" at time t4
-    testModify(entry, hist, 4, true, buildMod(DESCRIPTION, ModificationType.ADD, "value3"));
+    testModify(entry, hist, 4, true, newModification(ADD, DESCRIPTION, "value3"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000003000000000000:del:value1",
         ":0000000000000004000000000000:add:value3");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate a delete of value "value1" at time t1
-    testModify(entry, hist, 1, false, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 1, false, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000003000000000000:del:value1",
         ":0000000000000004000000000000:add:value3");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate an add of "value4" at time t2
-    testModify(entry, hist, 2, true, buildMod(DESCRIPTION, ModificationType.ADD, "value4"));
+    testModify(entry, hist, 2, true, newModification(ADD, DESCRIPTION, "value4"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000003000000000000:del:value1",
         ":0000000000000004000000000000:add:value3",
@@ -594,14 +595,14 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of the whole description attribute done at time t2
-    testModify(entry, hist, 3, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 3, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at an earlier date that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, false, buildMod(DISPLAYNAME, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 1, false, newModification(ADD, DISPLAYNAME, "older value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
@@ -609,14 +610,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      * conflict resolution should detect that this add must be ignored. (a
      * second time to make sure that historical information is kept...)
      */
-    testModify(entry, hist, 2, false, buildMod(DISPLAYNAME, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DISPLAYNAME, "older value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate an add at a later date that the previous delete.
      * conflict resolution should keep it
      */
-    testModify(entry, hist, 4, true, buildMod(DISPLAYNAME, ModificationType.ADD, "new value"));
+    testModify(entry, hist, 4, true, newModification(ADD, DISPLAYNAME, "new value"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000003000000000000:attrDel",
         ":0000000000000004000000000000:add:new value");
@@ -637,14 +638,14 @@ public class ModifyConflictTest extends ReplicationTestCase
     Attribute attrDel = buildSyncHist(DESCRIPTION,":0000000000000004000000000000:attrDel");
 
     // simulate a delete of the whole description attribute done at time t4
-    testModify(entry, hist, 4, true, buildMod(DESCRIPTION, ModificationType.DELETE));
+    testModify(entry, hist, 4, true, newModification(DELETE, DESCRIPTION));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate a replace at an earlier date that the previous delete. The
      * conflict resolution should detect that this replace must be ignored.
      */
-    testModify(entry, hist, 3, false, buildMod(DESCRIPTION, ModificationType.REPLACE, "new value"));
+    testModify(entry, hist, 3, false, newModification(REPLACE, DESCRIPTION, "new value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
   }
 
@@ -680,8 +681,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value2");
     builder.add("value3");
 
-    Modification mod =
-      new Modification(ModificationType.REPLACE, builder.toAttribute());
+    Modification mod = new Modification(REPLACE, builder.toAttribute());
     testModify(entry, hist, 1, true, mod);
 
     Attribute attr = buildSyncHist(DESCRIPTION,
@@ -695,14 +695,14 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder = new AttributeBuilder(DESCRIPTION);
     builder.add("value3");
     builder.add("value4");
-    mod = new Modification(ModificationType.DELETE, builder.toAttribute());
+    mod = new Modification(DELETE, builder.toAttribute());
 
     List<Modification> mods = replayModify(entry, hist, mod, 2);
     mod = mods.get(0);
     builder = new AttributeBuilder(DESCRIPTION);
     builder.add("value3");
     assertEquals(mod.getAttribute(), builder.toAttribute());
-    assertEquals(mod.getModificationType(), ModificationType.DELETE);
+    assertEquals(mod.getModificationType(), DELETE);
 
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:repl:value1",
@@ -752,13 +752,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a DELETE of the attribute values : value3 and value4 at time t2.
-    Modification mod =
-      new Modification(ModificationType.DELETE, values3and4);
+    Modification mod = new Modification(DELETE, values3and4);
     List<Modification> mods = replayModify(entry, hist, mod, 2);
     entry.applyModifications(mods);
     // check that the MOD is not altered by the replay mechanism.
     mod = mods.get(0);
-    assertEquals(mod.getModificationType(), ModificationType.DELETE);
+    assertEquals(mod.getModificationType(), DELETE);
     assertEquals(mod.getAttribute(), values3and4);
 
     // check that the entry now contains value1 and value2 and no other values.
@@ -777,13 +776,13 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value2");
     builder.add("value3");
 
-    mod = new Modification(ModificationType.REPLACE, builder.toAttribute());
+    mod = new Modification(REPLACE, builder.toAttribute());
     mods = replayModify(entry, hist, mod, 1);
     entry.applyModifications(mods);
     mod = mods.get(0);
     // check that value3 has been removed from the MOD-REPLACE because
     // a later operation contains a MOD-DELETE of this value.
-    assertEquals(mod.getModificationType(), ModificationType.REPLACE);
+    assertEquals(mod.getModificationType(), REPLACE);
     assertEquals(mod.getAttribute(), values1and2);
     // check that the entry now contains value1 and value2 and no other values.
     assertEquals(resultEntryAttr, values1and2);
@@ -817,14 +816,14 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000004000000000000:attrDel");
 
     // simulate a delete of the whole description attribute done at time t4
-    testModify(entry, hist, 4, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 4, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
      * Now simulate a replace at an earlier date that the previous delete. The
      * conflict resolution should detect that this replace must be ignored.
      */
-    testModify(entry, hist, 3, false, buildMod(DISPLAYNAME, ModificationType.REPLACE, "new value"));
+    testModify(entry, hist, 3, false, newModification(REPLACE, DISPLAYNAME, "new value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
   }
 
@@ -841,7 +840,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 10, true, newModification(ADD, DESCRIPTION, "init value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -850,7 +849,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate an add at an earlier date that the previous add. The
      * conflict resolution should detect that this add must be kept.
      */
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.ADD, "older value"));
+    testModify(entry, hist, 1, true, newModification(ADD, DESCRIPTION, "older value"));
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value",
         ":0000000000000001000000000000:add:older value");
@@ -860,7 +859,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate an add with a value already existing.
      * The conflict resolution should remove this add.
      */
-    testModify(entry, hist, 13, false, buildMod(DESCRIPTION, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 13, false, newModification(ADD, DESCRIPTION, "init value"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:older value",
         ":000000000000000d000000000000:add:init value");
@@ -870,7 +869,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Now simulate an add at a later date that the previous add. conflict
      * resolution should keep it
      */
-    testModify(entry, hist, 14, true, buildMod(DESCRIPTION, ModificationType.ADD, "new value"));
+    testModify(entry, hist, 14, true, newModification(ADD, DESCRIPTION, "new value"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:older value",
         ":000000000000000d000000000000:add:init value",
@@ -894,17 +893,17 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.ADD, "Init Value"));
+    testModify(entry, hist, 10, true, newModification(ADD, DESCRIPTION, "Init Value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:Init Value");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate a del and a add in the same operation
     attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod1 = new Modification(ModificationType.DELETE, attr);
+    Modification mod1 = new Modification(DELETE, attr);
 
     attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod2 = new Modification(ModificationType.ADD, attr);
+    Modification mod2 = new Modification(ADD, attr);
 
     List<Modification> mods = newLinkedList(mod1, mod2);
 
@@ -934,13 +933,13 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":000000000000000c000000000000:attrDel");
 
     // simulate a add of the description attribute done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 10, true, newModification(ADD, DESCRIPTION, "init value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a add of the description attribute done at time t10
-    testModify(entry, hist, 11, true, buildMod(DESCRIPTION, ModificationType.ADD, "second value"));
+    testModify(entry, hist, 11, true, newModification(ADD, DESCRIPTION, "second value"));
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:add:init value",
         ":000000000000000b000000000000:add:second value");
@@ -952,10 +951,10 @@ public class ModifyConflictTest extends ReplicationTestCase
      */
 
     attr = Attributes.create(DESCRIPTION, "init value");
-    Modification mod1 = new Modification(ModificationType.DELETE, attr);
+    Modification mod1 = new Modification(DELETE, attr);
 
     attr = Attributes.empty(DESCRIPTION);
-    Modification mod2 = new Modification(ModificationType.REPLACE, attr);
+    Modification mod2 = new Modification(REPLACE, attr);
 
     List<Modification> mods = newLinkedList(mod1, mod2);
 
@@ -988,10 +987,10 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Now simulate a del and a add in the same operation
     Attribute attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod1 = new Modification(ModificationType.ADD, attr);
+    Modification mod1 = new Modification(ADD, attr);
 
     attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod2 = new Modification(ModificationType.DELETE, attr);
+    Modification mod2 = new Modification(DELETE, attr);
 
     List<Modification> mods = newLinkedList(mod1, mod2);
 
@@ -1019,7 +1018,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time 1
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.ADD, "value1"));
+    testModify(entry, hist, 1, true, newModification(ADD, DESCRIPTION, "value1"));
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value1");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -1029,7 +1028,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      *  "value1" and "value2" done at time 2
      */
     testModify(entry, hist, 2, true,
-        buildMod(DESCRIPTION, ModificationType.ADD, "value1", "value2"));
+        newModification(ADD, DESCRIPTION, "value1", "value2"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000002000000000000:add:value1",
         ":0000000000000002000000000000:add:value2");
@@ -1049,14 +1048,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      *  "value1" and "value2" done at time 1
      */
     testModify(entry, hist, 1, true,
-        buildMod(DESCRIPTION, ModificationType.ADD, "value1", "value2"));
+        newModification(ADD, DESCRIPTION, "value1", "value2"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value1",
         ":0000000000000001000000000000:add:value2");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a add of the description attribute done at time 1
-    testModify(entry, hist, 2, false, buildMod(DESCRIPTION, ModificationType.ADD, "value1"));
+    testModify(entry, hist, 2, false, newModification(ADD, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value2",
         ":0000000000000002000000000000:add:value1");
@@ -1080,7 +1079,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:add:older value");
 
     // simulate a add of the displayName attribute done at time t10
-    testModify(entry, hist, 10, true, buildMod(DISPLAYNAME, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 10, true, newModification(ADD, DISPLAYNAME, "init value"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":000000000000000a000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -1091,7 +1090,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * and that the previous value must be discarded, and therefore
      * turn the add into a replace.
      */
-    Modification mod = buildMod(DISPLAYNAME, ModificationType.ADD, "older value");
+    Modification mod = newModification(ADD, DISPLAYNAME, "older value");
     List<Modification> mods = replayModify(entry, hist, mod, 1);
     assertEquals(hist.encodeAndPurge(), olderValue);
 
@@ -1099,14 +1098,14 @@ public class ModifyConflictTest extends ReplicationTestCase
      * After replay the mods should contain only one mod,
      * the mod should now be a replace with the older value.
      */
-    testMods(mods, 1, ModificationType.REPLACE, "older value");
+    testMods(mods, 1, REPLACE, "older value");
 
     /*
      * Now simulate a new value at a later date.
      * The conflict modify code should detect that there is already a value
      * and skip this change.
      */
-    mod = buildMod(DISPLAYNAME, ModificationType.ADD, "new value");
+    mod = newModification(ADD, DISPLAYNAME, "new value");
     mods = replayModify(entry, hist, mod, 2);
     assertEquals(hist.encodeAndPurge(), olderValue);
     assertTrue(mods.isEmpty());
@@ -1127,7 +1126,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000003000000000000:attrDel");
 
     // simulate a add of the displayName attribute done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "init value"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -1136,7 +1135,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * simulate a del of the displayName attribute done at time t3
      * this should be processed normally
      */
-    testModify(entry, hist, 3, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "init value"));
+    testModify(entry, hist, 3, true, newModification(DELETE, DISPLAYNAME, "init value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     /*
@@ -1144,7 +1143,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * and done at time t2 (between t1 and t2)
      * This add should not be processed.
      */
-    testModify(entry, hist, 2, false, buildMod(DISPLAYNAME, ModificationType.ADD, "second value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DISPLAYNAME, "second value"));
     assertEquals(hist.encodeAndPurge(), attrDel);
   }
 
@@ -1168,7 +1167,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:add:first value");
 
     // simulate a add of the displayName attribute done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "first value"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "first value"));
     assertEquals(hist.encodeAndPurge(), firstValue);
 
     /*
@@ -1176,7 +1175,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * with a second value. This should not work because there is already
      * a value
      */
-    testModify(entry, hist, 2, false, buildMod(DISPLAYNAME, ModificationType.ADD, "second value"));
+    testModify(entry, hist, 2, false, newModification(ADD, DISPLAYNAME, "second value"));
     assertEquals(hist.encodeAndPurge(), firstValue);
 
     /*
@@ -1184,7 +1183,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * The delete should not be accepted because it is done on a value
      * that did not get into the entry.
      */
-    testModify(entry, hist, 2, false, buildMod(DISPLAYNAME, ModificationType.DELETE, "second value"));
+    testModify(entry, hist, 2, false, newModification(DELETE, DISPLAYNAME, "second value"));
     assertEquals(hist.encodeAndPurge(), firstValue);
   }
 
@@ -1336,7 +1335,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
 
     hist.replayOperation(modOp, entry);
-    if (mod.getModificationType() == ModificationType.ADD)
+    if (mod.getModificationType() == ADD)
     {
       AddOperationBasis addOpBasis =
         new AddOperationBasis(aConnection, 1, 1, null, entry
@@ -1363,7 +1362,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     return mods;
   }
 
-  private Modification buildMod(String attrName, ModificationType modType, String... values)
+  private Modification newModification(ModificationType modType, String attrName, String... values)
   {
     return new Modification(modType, Attributes.create(attrName, values));
   }
@@ -1423,10 +1422,10 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "aValue"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "aValue"));
 
     // simulate a delete of same value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME, "aValue"));
 
     // The entry should have no value
     List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
@@ -1451,13 +1450,13 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "aValue"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "aValue"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:aValue");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -1486,24 +1485,24 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.ADD, "aValue"));
+    testModify(entry, hist, 2, true, newModification(ADD, DISPLAYNAME, "aValue"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000002000000000000:add:aValue");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 2, true, newModification(DELETE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // Redo the same operations. This time, we expect them not to be applied.
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.ADD, "aValue"));
+    testModify(entry, hist, 2, true, newModification(ADD, DISPLAYNAME, "aValue"));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000002000000000000:add:aValue",
         ":0000000000000002000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 2, true, newModification(DELETE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
@@ -1531,27 +1530,27 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of same value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 1, true, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate an add of new value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.ADD, "value3"));
+    testModify(entry, hist, 1, true, newModification(ADD, DESCRIPTION, "value3"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value3",
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of same value in the same operation done at time t2
-    testModify(entry, hist, 2, false, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 2, false, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value3",
         ":0000000000000002000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate an add of new value in the same operation done at time t2
-    testModify(entry, hist, 2, true, buildMod(DESCRIPTION, ModificationType.ADD, "value4"));
+    testModify(entry, hist, 2, true, newModification(ADD, DESCRIPTION, "value4"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value3",
         ":0000000000000002000000000000:del:value1",
@@ -1584,20 +1583,20 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of a value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value1"));
+    testModify(entry, hist, 1, true, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate an add of new value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DESCRIPTION, ModificationType.ADD, "value4"));
+    testModify(entry, hist, 1, true, newModification(ADD, DESCRIPTION, "value4"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value4",
         ":0000000000000001000000000000:del:value1");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of another value in the same operation done at time t2
-    testModify(entry, hist, 2, true, buildMod(DESCRIPTION, ModificationType.DELETE, "value2"));
+    testModify(entry, hist, 2, true, newModification(DELETE, DESCRIPTION, "value2"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1",
         ":0000000000000001000000000000:add:value4",
@@ -1606,7 +1605,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // simulate an add of already added value in the same operation done at time
     // t2
-    testModify(entry, hist, 2, false, buildMod(DESCRIPTION, ModificationType.ADD, "value4"));
+    testModify(entry, hist, 2, false, newModification(ADD, DESCRIPTION, "value4"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:del:value1",
         ":0000000000000002000000000000:del:value2",
@@ -1638,24 +1637,24 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "aValue"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "aValue"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:aValue");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // Redo the same operations. This time, we expect them not to be applied.
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "aValue"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "aValue"));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:aValue",
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
@@ -1681,13 +1680,13 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:repl:aValue");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of same value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME, "aValue"));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -1715,13 +1714,13 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:repl:aValue");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -1752,19 +1751,19 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 2, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 2, true, newModification(DELETE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // Redo the same operations. This time, we expect them not to be applied.
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 2, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 2, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 2, true, newModification(DELETE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
@@ -1793,19 +1792,19 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // Redo the same operations. This time, we expect them not to be applied.
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     assertEquals(hist.encodeAndPurge(), repl);
 
     // simulate a delete of the attribute in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
@@ -1831,19 +1830,19 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     Attribute syncHist = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:repl:aValue");
     assertEquals(hist.encodeAndPurge(), syncHist);
 
     // simulate a delete of same value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME, "aValue"));
     syncHist = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), syncHist);
 
     // simulate an add of new value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "NewValue"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "NewValue"));
     syncHist = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:NewValue",
         ":0000000000000001000000000000:attrDel");
@@ -1869,19 +1868,19 @@ public class ModifyConflictTest extends ReplicationTestCase
      * Add at time t1 that the previous delete. The
      * conflict resolution should detect that this add must be ignored.
      */
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.REPLACE, "aValue"));
+    testModify(entry, hist, 1, true, newModification(REPLACE, DISPLAYNAME, "aValue"));
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:repl:aValue");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a delete of same value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.DELETE));
+    testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:attrDel");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate an add of new value in the same operation done at time t1
-    testModify(entry, hist, 1, true, buildMod(DISPLAYNAME, ModificationType.ADD, "NewValue"));
+    testModify(entry, hist, 1, true, newModification(ADD, DISPLAYNAME, "NewValue"));
     attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:NewValue",
         ":0000000000000001000000000000:attrDel");
