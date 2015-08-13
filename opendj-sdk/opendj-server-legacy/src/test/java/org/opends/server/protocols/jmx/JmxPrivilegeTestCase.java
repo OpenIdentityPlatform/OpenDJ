@@ -49,7 +49,6 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.*;
@@ -311,8 +310,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   {
     for (String userDN : userDNs)
     {
-      DeleteOperation deleteOp = getRootConnection().processDelete(DN.valueOf(userDN));
-      assertEquals(deleteOp.getResultCode(), ResultCode.SUCCESS);
+      processDelete(DN.valueOf(userDN));
     }
   }
 
@@ -377,10 +375,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     final DN userDN = DN.valueOf(user);
 
     // Add JMX_READ privilege
-    InternalClientConnection rootConnection = getRootConnection();
-    ArrayList<Modification> mods = newModifications(ADD, "ds-privilege-name", "jmx-read");
-    ModifyOperation modifyOperation = rootConnection.processModify(userDN, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    processModify(userDN, ADD, "ds-privilege-name", "jmx-read");
 
     //  Try connection withoutJMX_READ privilege
     // Expected result: success
@@ -398,9 +393,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     }
 
     // remove JMX_READ privilege
-    mods = newModifications(DELETE, "ds-privilege-name", "jmx-read");
-    modifyOperation = rootConnection.processModify(userDN, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    processModify(userDN, DELETE, "ds-privilege-name", "jmx-read");
 
     // Try connection withoutJMX_READ privilege
     // Expected result: failed
@@ -625,8 +618,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
       assertEquals(deleteOperation.getResultCode(),
                    ResultCode.AUTHORIZATION_DENIED);
 
-      DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
-      assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
+      processDelete(newEntryDN);
     }
   }
 
@@ -817,14 +809,8 @@ public class JmxPrivilegeTestCase extends JmxTestCase
                    ResultCode.AUTHORIZATION_DENIED,
                    "Unexpected delete success for user " + authDN);
 
-      DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
-      assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
+      processDelete(newEntryDN);
     }
-  }
-
-  private ArrayList<Modification> newModifications(ModificationType modType, String attrName, String attrValue)
-  {
-    return newArrayList(new Modification(modType, Attributes.create(attrName, attrValue)));
   }
 
   /**
@@ -899,8 +885,6 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   @Test
   public void testUpdateUserPrivileges() throws Exception
   {
-    InternalClientConnection rootConnection = getRootConnection();
-
     final String dnStr = "cn=Test User,o=test";
     final DN dn = DN.valueOf(dnStr);
     Entry testEntry = TestCaseUtils.addEntry(
@@ -929,21 +913,15 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Modify the user entry to add the JMX_READ privilege and verify that
     // the client connection reflects that.
-    ArrayList<Modification> mods = newModifications(ADD, "ds-privilege-name", "jmx-read");
-    ModifyOperation modifyOperation = rootConnection.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    processModify(dn, ADD, "ds-privilege-name", "jmx-read");
     assertTrue(testConnection.hasPrivilege(Privilege.JMX_READ, null));
-
 
     // Take the privilege away from the user and verify that it is recognized
     // immediately.
-    mods = newModifications(DELETE, "ds-privilege-name", "jmx-read");
-    modifyOperation = rootConnection.processModify(dn, mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    processModify(dn, DELETE, "ds-privilege-name", "jmx-read");
     assertFalse(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
-    DeleteOperation deleteOperation = rootConnection.processDelete(dn);
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    processDelete(dn);
   }
 
 
@@ -964,30 +942,38 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     JmxClientConnection unprivRootConn = newJmxClientConnection(jmxCtx, unprivRootDN);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
 
+    DN rootDN = DN.valueOf("cn=Root DNs,cn=config");
 
     // Update the set of root privileges to include proxied auth.
-    InternalClientConnection conn = getRootConnection();
-
-    ArrayList<Modification> mods = newModifications(ADD, "ds-cfg-default-root-privilege-name", "proxied-auth");
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    processModify(rootDN, ADD, "ds-cfg-default-root-privilege-name", "proxied-auth");
 
     // Get a new root connection and verify that it now has proxied auth.
     unprivRootConn = newJmxClientConnection(jmxCtx, unprivRootDN);
     assertTrue(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
 
-
     // Update the set of root privileges to revoke proxied auth.
-    mods = newModifications(DELETE, "ds-cfg-default-root-privilege-name", "proxied-auth");
-    modifyOperation =
-         conn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    processModify(rootDN, DELETE, "ds-cfg-default-root-privilege-name", "proxied-auth");
 
     unprivRootConn = newJmxClientConnection(jmxCtx, unprivRootDN);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
+  }
+
+  private void processModify(DN dn, ModificationType modType, String attrName, String attrValue)
+  {
+    ArrayList<Modification> mods = newModifications(modType, attrName, attrValue);
+    ModifyOperation modifyOp = getRootConnection().processModify(dn, mods);
+    assertEquals(modifyOp.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private ArrayList<Modification> newModifications(ModificationType modType, String attrName, String attrValue)
+  {
+    return newArrayList(new Modification(modType, Attributes.create(attrName, attrValue)));
+  }
+
+  private void processDelete(DN entryDN)
+  {
+    DeleteOperation delOp = getRootConnection().processDelete(entryDN);
+    assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
   }
 
   private JmxClientConnection newJmxClientConnection(JmxConnectionHandler jmxCtx, DN entryDN) throws DirectoryException
