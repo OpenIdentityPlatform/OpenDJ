@@ -235,7 +235,11 @@ class ID2Entry extends AbstractTree
   void open0(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Make sure the tree is there and readable, even if the storage is READ_ONLY.
-    txn.getRecordCount(getName());
+    // Would be nice if there were a better way...
+    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
+    {
+      cursor.next();
+    }
   }
 
   /**
