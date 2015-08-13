@@ -45,6 +45,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /** An abstract class that all JMX unit test should extend. */
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "jmx" }, sequential = true)
 public abstract class JmxTestCase extends DirectoryServerTestCase
 {
@@ -84,9 +85,11 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
     int cnt = 0;
     while (cnt <= 30 && jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate == null)
     {
-      Thread.sleep(100);
+      Thread.sleep(200);
       cnt++;
     }
+    assertNotNull(jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate,
+        "jmxRmiConnectorNoClientCertificate should not be null");
     return jmxConnectionHandler;
   }
 
