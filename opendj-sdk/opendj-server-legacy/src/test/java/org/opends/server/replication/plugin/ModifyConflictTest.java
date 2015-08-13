@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +37,6 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -53,6 +51,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -71,7 +70,6 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ModifyConflictTest extends ReplicationTestCase
 {
-
   private static final String ORGANIZATION = "organization";
   private static final String DISPLAYNAME = "displayname";
   private static final String EMPLOYEENUMBER = "employeenumber";
@@ -86,9 +84,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceAndAdd() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute repl = buildSyncHist(DESCRIPTION,
         ":000000000000000a000000000000:repl:init value");
 
@@ -130,9 +127,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceAndAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute repl = buildSyncHist(DISPLAYNAME,
         ":000000000000000a000000000000:repl:init value");
 
@@ -174,8 +170,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceWithNull() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
@@ -219,8 +213,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAndReplace() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a modify-add done at time t10
@@ -268,8 +260,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAndReplaceSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a modify-add done at time 2
@@ -309,9 +299,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void deleteAndAdd() throws Exception
   {
     Entry entry = initializeEntry();
-
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     Attribute attrDel = buildSyncHist(DESCRIPTION,
@@ -355,20 +342,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void delValueAndAddValue() throws Exception
   {
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
-
-    // Create description with values value1 and value2 and add
-    // this attribute to the entry.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
-
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of the description attribute value "value1" done at time t1
@@ -408,22 +383,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void delValueAndDelValue() throws Exception
   {
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
-
-    // Create an attribute with values value1, value2, value3 and value4 and
-    // add this attribute to the entry.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    builder.add("value3");
-    builder.add("value4");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
-
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2", "value3", "value4"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -452,6 +413,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertContainsOnlyValues(entry, DESCRIPTION, "value1");
   }
 
+  private void addAttribute(Entry entry, Attribute builder)
+  {
+    List<ByteString> duplicateValues = new LinkedList<>();
+    entry.addAttribute(builder, duplicateValues);
+  }
+
   /**
    * Test that conflict between a delete attribute and a delete
    * value on a single valued attribute works correctly.
@@ -460,16 +427,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void delAttributeAndDelValueSingle() throws Exception
   {
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
-
-    // Create a single valued attribute with value : "value1"
-    // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<>();
-    Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
-    entry.addAttribute(attribute, duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(EMPLOYEENUMBER, "value1"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a delete of attribute employeenumber.
@@ -493,16 +452,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void delValueAndDelAttributeSingle() throws Exception
   {
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
-
-    // Create a single valued attribute with value : "value1"
-    // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<>();
-    Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
-    entry.addAttribute(attribute, duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(EMPLOYEENUMBER, "value1"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // now simulate a delete of value "value1"
@@ -527,19 +478,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void delValueAndAddValueDisordered() throws Exception
   {
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
-
-    // Create description with values value1 and value2 and add
-    // this attribute to the entry.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -582,18 +522,11 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void deleteAndAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // Create a single valued attribute with value : "value1"
-    // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<>();
-    Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
-    entry.addAttribute(attribute, duplicateValues);
-    Attribute attrDel = buildSyncHist(DISPLAYNAME,
-        ":0000000000000003000000000000:attrDel");
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DISPLAYNAME, "value1"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
+    Attribute attrDel = buildSyncHist(DISPLAYNAME,
+        ":0000000000000003000000000000:attrDel");
     // simulate a delete of the whole description attribute done at time t2
     testModify(entry, hist, 3, true, newModification(DELETE, DISPLAYNAME));
     assertEquals(hist.encodeAndPurge(), attrDel);
@@ -632,11 +565,10 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void deleteAndReplace() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
-    Attribute attrDel = buildSyncHist(DESCRIPTION,":0000000000000004000000000000:attrDel");
 
+    Attribute attrDel = buildSyncHist(DESCRIPTION,
+        ":0000000000000004000000000000:attrDel");
     // simulate a delete of the whole description attribute done at time t4
     testModify(entry, hist, 4, true, newModification(DELETE, DESCRIPTION));
     assertEquals(hist.encodeAndPurge(), attrDel);
@@ -657,31 +589,12 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void replaceAndDelete() throws Exception
   {
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
-
-    // Create description with values value1 and value2 and add
-    // this attribute to the entry.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    builder.add("value3");
-    builder.add("value4");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2", "value3", "value4"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
-    // simulate a REPLACE of the attribute with values : value1, value2, value3
-    // at time t1.
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    builder.add("value3");
-
-    Modification mod = new Modification(REPLACE, builder.toAttribute());
+    // simulate a REPLACE of the attribute with values : value1, value2, value3 at time t1.
+    Modification mod = new Modification(REPLACE, Attributes.create(DESCRIPTION, "value1", "value2", "value3"));
     testModify(entry, hist, 1, true, mod);
 
     Attribute attr = buildSyncHist(DESCRIPTION,
@@ -690,18 +603,12 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:add:value3");
     assertEquals(hist.encodeAndPurge(), attr);
 
-    // simulate a DELETE of the attribute values : value3 and value4
-    // at time t2.
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value3");
-    builder.add("value4");
-    mod = new Modification(DELETE, builder.toAttribute());
+    // simulate a DELETE of the attribute values : value3 and value4 at time t2.
+    mod = new Modification(DELETE, Attributes.create(DESCRIPTION, "value3", "value4"));
 
     List<Modification> mods = replayModify(entry, hist, mod, 2);
     mod = mods.get(0);
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value3");
-    assertEquals(mod.getAttribute(), builder.toAttribute());
+    assertEquals(mod.getAttribute(), Attributes.create(DESCRIPTION, "value3"));
     assertEquals(mod.getModificationType(), DELETE);
 
     attr = buildSyncHist(DESCRIPTION,
@@ -721,35 +628,13 @@ public class ModifyConflictTest extends ReplicationTestCase
   @Test
   public void replaceAndDeleteDisorder() throws Exception
   {
-    AttributeType descriptionAttrType =
-      DirectoryServer.getSchema().getAttributeType(DESCRIPTION);
-
-    // create an entry to use with conflicts tests.
     Entry entry = initializeEntry();
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2", "value3", "value4"));
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // We will reuse these attributes a couple of times.
-    AttributeBuilder builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value3");
-    builder.add("value4");
-    Attribute values3and4 = builder.toAttribute();
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    Attribute values1and2 = builder.toAttribute();
-
-    // Create description with values value1 and value2 and add
-    // this attribute to the entry.
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    builder.add("value3");
-    builder.add("value4");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(builder.toAttribute(), duplicateValues);
-
-    // load historical from the entry
-    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+    Attribute values3and4 = Attributes.create(DESCRIPTION, "value3", "value4");
+    Attribute values1and2 = Attributes.create(DESCRIPTION, "value1", "value2");
 
     // simulate a DELETE of the attribute values : value3 and value4 at time t2.
     Modification mod = new Modification(DELETE, values3and4);
@@ -761,6 +646,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(mod.getAttribute(), values3and4);
 
     // check that the entry now contains value1 and value2 and no other values.
+    AttributeType descriptionAttrType = getAttributeType(DESCRIPTION);
     Attribute resultEntryAttr = entry.getAttribute(descriptionAttrType).get(0);
     assertEquals(resultEntryAttr, values1and2);
 
@@ -771,12 +657,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3
     // at time t1.
-    builder = new AttributeBuilder(DESCRIPTION);
-    builder.add("value1");
-    builder.add("value2");
-    builder.add("value3");
-
-    mod = new Modification(REPLACE, builder.toAttribute());
+    mod = new Modification(REPLACE, Attributes.create(DESCRIPTION, "value1", "value2", "value3"));
     mods = replayModify(entry, hist, mod, 1);
     entry.applyModifications(mods);
     mod = mods.get(0);
@@ -803,15 +684,9 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void deleteAndReplaceSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // Create a single valued attribute with value : "value1"
-    // add this attribute to the entry.
-    List<ByteString> duplicateValues = new LinkedList<>();
-    Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
-    entry.addAttribute(attribute, duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DISPLAYNAME, "value1"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
         ":0000000000000004000000000000:attrDel");
 
@@ -835,8 +710,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAndAdd() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time t10
@@ -888,8 +761,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void delAndAddSameOp() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time t10
@@ -899,12 +770,8 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate a del and a add in the same operation
-    attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod1 = new Modification(DELETE, attr);
-
-    attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod2 = new Modification(ADD, attr);
-
+    Modification mod1 = newModification(DELETE, DESCRIPTION, "Init Value");
+    Modification mod2 = newModification(ADD, DESCRIPTION, "Init Value");
     List<Modification> mods = newLinkedList(mod1, mod2);
 
     replayModifies(entry, hist, mods, 11);
@@ -926,9 +793,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void delAndReplaceSameOp() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute attrDel = buildSyncHist(DESCRIPTION,
         ":000000000000000c000000000000:attrDel");
 
@@ -950,12 +816,8 @@ public class ModifyConflictTest extends ReplicationTestCase
      * in the same operation
      */
 
-    attr = Attributes.create(DESCRIPTION, "init value");
-    Modification mod1 = new Modification(DELETE, attr);
-
-    attr = Attributes.empty(DESCRIPTION);
-    Modification mod2 = new Modification(REPLACE, attr);
-
+    Modification mod1 = newModification(DELETE, DESCRIPTION, "init value");
+    Modification mod2 = newModification(REPLACE, DESCRIPTION);
     List<Modification> mods = newLinkedList(mod1, mod2);
 
     List<Modification> mods2 = new LinkedList<>(mods);
@@ -981,21 +843,15 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAndDelSameOp() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // Now simulate a del and a add in the same operation
-    Attribute attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod1 = new Modification(ADD, attr);
-
-    attr = Attributes.create(DESCRIPTION, "Init Value");
-    Modification mod2 = new Modification(DELETE, attr);
-
+    Modification mod1 = newModification(ADD, DESCRIPTION, "Init Value");
+    Modification mod2 = newModification(DELETE, DESCRIPTION, "Init Value");
     List<Modification> mods = newLinkedList(mod1, mod2);
 
     replayModifies(entry, hist, mods, 11);
-    attr = buildSyncHist(DESCRIPTION,
+    Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000b000000000000:del:Init Value");
     assertEquals(hist.encodeAndPurge(), attr);
     assertThat(mods).as("DEL and ADD of the same attribute same value was not correct").containsExactly(mod1, mod2);
@@ -1013,8 +869,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAndAddSameValues() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time 1
@@ -1039,8 +893,6 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // do the same as before but in reverse order
     entry = initializeEntry();
-
-    // load historical from the entry
     hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1072,9 +924,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAndAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute olderValue = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:older value");
 
@@ -1112,16 +963,15 @@ public class ModifyConflictTest extends ReplicationTestCase
   }
 
   /**
-   * Test that conflict between add, delete and add on aingle valued attribute
+   * Test that conflict between add, delete and add on single valued attribute
    * are handled correctly.
    */
   @Test
   public void addDelAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
         ":0000000000000003000000000000:attrDel");
 
@@ -1160,9 +1010,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addAddDelSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute firstValue = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:add:first value");
 
@@ -1206,16 +1055,9 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(val.toString(), value);
   }
 
-  /**
-   * Create an initialize an entry that can be used for modify conflict
-   * resolution tests.
-   */
+  /** Create an initialize an entry that can be used for modify conflict resolution tests. */
   private Entry initializeEntry() throws DirectoryException
   {
-    AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(
-          EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
-
     /*
      * Objectclass and DN do not have any impact on the modify conflict
      * resolution for the description attribute. Always use the same values
@@ -1233,6 +1075,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
+    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidList = Attributes.createAsList(entryuuidAttrType, uuid.toString());
 
     // Add the uuid in the entry
@@ -1241,19 +1084,15 @@ public class ModifyConflictTest extends ReplicationTestCase
     return entry;
   }
 
-  /**
-   * Helper function.
-   */
+  /** Helper function. */
   private void testHistoricalAndFake(Entry entry)
   {
-    AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
-
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
     String uuid = EntryHistorical.getEntryUUID(entry);
 
     // Get the Entry uuid in String format
+    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = entry.getOperationalAttribute(entryuuidAttrType);
     String retrievedUuid = uuidAttrs.get(0).iterator().next().toString();
     assertEquals(retrievedUuid, uuid);
@@ -1305,44 +1144,23 @@ public class ModifyConflictTest extends ReplicationTestCase
   {
     CSN t = new CSN(date, 0, 0);
 
-    ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(getRootConnection(), 1, 1, null, entry.getName(), mods);
-    LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
-    ModifyContext ctx = new ModifyContext(t, "uniqueId");
-    modOp.setAttachment(SYNCHROCONTEXT, ctx);
-
+    LocalBackendModifyOperation modOp = modifyOperation(entry, t, mods);
     hist.replayOperation(modOp, entry);
   }
 
   private List<Modification> replayModify(
       Entry entry, EntryHistorical hist, Modification mod, int date)
   {
-    AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(
-          EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
-
-    InternalClientConnection aConnection =
-      InternalClientConnection.getRootConnection();
     CSN t = new CSN(date, 0, 0);
 
-    List<Modification> mods = new ArrayList<>();
-    mods.add(mod);
+    List<Modification> mods = newArrayList(mod);
 
-    ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getName(), mods);
-    LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
-    ModifyContext ctx = new ModifyContext(t, "uniqueId");
-    modOp.setAttachment(SYNCHROCONTEXT, ctx);
-
+    LocalBackendModifyOperation modOp = modifyOperation(entry, t, mods);
     hist.replayOperation(modOp, entry);
+
     if (mod.getModificationType() == ADD)
     {
-      AddOperationBasis addOpBasis =
-        new AddOperationBasis(aConnection, 1, 1, null, entry
-          .getName(), entry.getObjectClasses(), entry.getUserAttributes(),
-          entry.getOperationalAttributes());
-      LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpBasis);
-      testHistorical(addOp);
+      testHistorical(addOperation(entry));
     }
     else
     {
@@ -1354,12 +1172,33 @@ public class ModifyConflictTest extends ReplicationTestCase
      * works  by encoding decoding and checking that the result is the same
      * as the initial value.
      */
-    entry.removeAttribute(historicalAttrType);
+    entry.removeAttribute(getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
 
     return mods;
+  }
+
+  private AttributeType getAttributeType(String attrName)
+  {
+    return DirectoryServer.getSchema().getAttributeType(attrName);
+  }
+
+  private LocalBackendAddOperation addOperation(Entry entry)
+  {
+    AddOperationBasis addOpBasis = new AddOperationBasis(getRootConnection(), 1, 1, null,
+        entry.getName(), entry.getObjectClasses(), entry.getUserAttributes(), entry.getOperationalAttributes());
+    return new LocalBackendAddOperation(addOpBasis);
+  }
+
+  private LocalBackendModifyOperation modifyOperation(Entry entry, CSN t, List<Modification> mods)
+  {
+    ModifyOperationBasis modOpBasis = new ModifyOperationBasis(getRootConnection(), 1, 1,
+        null, entry.getName(), mods);
+    LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
+    modOp.setAttachment(SYNCHROCONTEXT, new ModifyContext(t, "uniqueId"));
+    return modOp;
   }
 
   private Modification newModification(ModificationType modType, String attrName, String... values)
@@ -1391,15 +1230,12 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void testHistorical(LocalBackendAddOperation addOp)
   {
-    AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(
-          EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
-
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
     String uuid = EntryHistorical.getEntryUUID(addOp);
 
     // Get the op uuid in String format
+    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(entryuuidAttrType);
     String retrievedUuid = uuidAttrs.get(0).iterator().next().toString();
     assertEquals(retrievedUuid, uuid);
@@ -1414,8 +1250,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1432,7 +1266,6 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertNull(attrs);
   }
 
-
   /**
    * Test that a single replicated modify operation, that contains a
    * modify-add of a value followed by modify-delete of the attribute
@@ -1442,8 +1275,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void addDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1475,9 +1306,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replayAddDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
         ":0000000000000002000000000000:attrDel");
 
@@ -1518,17 +1348,10 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replayDelAddDifferent() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // Create description with values value1 and value2 and add
-    // this attribute to the entry.
-    Attribute attr = Attributes.create(DESCRIPTION, "value1", "value2");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(attr, duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
+    Attribute attr;
     // simulate a delete of same value in the same operation done at time t1
     testModify(entry, hist, 1, true, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
@@ -1571,17 +1394,10 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replayDelAddSame() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // Create description with values value1 and value2 and add
-    // this attribute to the entry.
-    Attribute attr = Attributes.create(DESCRIPTION, "value1", "value2", "value3");
-
-    List<ByteString> duplicateValues = new LinkedList<>();
-    entry.addAttribute(attr, duplicateValues);
-
-    // load historical from the entry
+    addAttribute(entry, Attributes.create(DESCRIPTION, "value1", "value2", "value3"));
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
+    Attribute attr;
     // simulate a delete of a value in the same operation done at time t1
     testModify(entry, hist, 1, true, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
@@ -1627,9 +1443,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replayAddDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:attrDel");
 
@@ -1662,8 +1477,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertNull(attrs);
   }
 
-
-    /**
+  /**
    * Test that a single replicated modify operation, that contains a
    * modify-replace of a value followed by modify-delete of that value
    * is handled properly.
@@ -1672,8 +1486,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1696,7 +1508,6 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertNull(attrs);
   }
 
-
   /**
    * Test that a single replicated modify operation, that contains a
    * modify-replace of a value followed by modify-delete of the attribute
@@ -1706,8 +1517,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1739,9 +1548,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replayReplaceDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute repl = buildSyncHist(DISPLAYNAME,
         ":0000000000000002000000000000:repl:aValue");
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
@@ -1780,9 +1588,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replayReplaceDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
     Attribute repl = buildSyncHist(DISPLAYNAME,
         ":0000000000000001000000000000:repl:aValue");
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
@@ -1812,7 +1619,6 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertNull(attrs);
   }
 
-
   /**
    * Test that a single replicated modify operation, that contains a
    * modify-replace of a value followed by modify-delete of that value,
@@ -1822,8 +1628,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceDeleteAddSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1860,8 +1664,6 @@ public class ModifyConflictTest extends ReplicationTestCase
   public void replaceDeleteAttrAddSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
-
-    // load historical from the entry
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
@@ -1888,5 +1690,4 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     assertContainsOnlyValues(entry, DISPLAYNAME, "NewValue");
   }
-
 }
