@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.pluggable.State.IndexFlag;
-import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -55,6 +54,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
 public class DefaultIndexTest extends DirectoryServerTestCase
 {
@@ -65,7 +65,7 @@ public class DefaultIndexTest extends DirectoryServerTestCase
   @BeforeTest
   public void setUp() {
     txn = new DummyWriteableTransaction();
-    index = newIndex("test", 5, EnumSet.of(TRUSTED, COMPACTED));;
+    index = newIndex("test", 5, EnumSet.of(TRUSTED, COMPACTED));
     index.open(txn, true);
   }
 
@@ -132,7 +132,7 @@ public class DefaultIndexTest extends DirectoryServerTestCase
     return new DefaultIndex(new TreeName("dc=example,dc=com", name), state, indexLimit, mock(EntryContainer.class));
   }
 
-  final static class DummyWriteableTransaction implements WriteableTransaction {
+  static final class DummyWriteableTransaction implements WriteableTransaction {
 
     private final Map<TreeName, TreeMap<ByteString, ByteString>> storage = new HashMap<>();
 
@@ -201,11 +201,7 @@ public class DefaultIndexTest extends DirectoryServerTestCase
           current = null;
 
           it = tree.tailMap(key.toByteString()).entrySet().iterator();
-          if (it.hasNext() && it.next().getKey().equals(key.toByteString()))
-          {
-            return true;
-          }
-          return false;
+          return it.hasNext() && it.next().getKey().equals(key.toByteString());
         }
 
         @Override
@@ -293,7 +289,5 @@ public class DefaultIndexTest extends DirectoryServerTestCase
     {
       return getTree(treeName).remove(key) != null;
     }
-
   }
-
 }
