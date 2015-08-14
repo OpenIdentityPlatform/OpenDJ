@@ -66,27 +66,21 @@ public abstract class AbstractOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The set of response controls that will always be returned for
-   * an abandon operation.
-   */
+  /** The set of response controls that will always be returned for an abandon operation. */
   protected static final List<Control> NO_RESPONSE_CONTROLS = new ArrayList<>(0);
 
   /** The client connection with which this operation is associated. */
   protected final ClientConnection clientConnection;
-
   /** The message ID for this operation. */
   protected final int messageID;
-
   /** The operation ID for this operation. */
   protected final long operationID;
 
   /** Whether nanotime was used for this operation. */
-  protected final boolean useNanoTime;
+  private final boolean useNanoTime;
 
   /** The cancel request for this operation. */
   protected CancelRequest cancelRequest;
-
   /** The cancel result for this operation. */
   protected CancelResult cancelResult;
 
@@ -97,14 +91,8 @@ public abstract class AbstractOperation
   private boolean isInternalOperation;
   private Boolean isInnerOperation;
 
-  /**
-   * Indicates whether this operation is involved in data synchronization
-   * processing.
-   */
+  /** Indicates whether this operation is involved in data synchronization processing. */
   private boolean isSynchronizationOperation;
-
-  /** The matched DN for this operation. */
-  private DN matchedDN;
 
   /** The entry for the authorization identify for this operation. */
   private Entry authorizationEntry;
@@ -113,56 +101,46 @@ public abstract class AbstractOperation
    * A set of attachments associated with this operation that might be used by
    * various components during its processing.
    */
-  private Map<String,Object> attachments;
+  private Map<String, Object> attachments = new HashMap<>();
 
   /** The set of controls included in the request from the client. */
-  private List<Control> requestControls;
-
-  /** The set of referral URLs for this operation. */
-  private List<String> referralURLs;
+  private final List<Control> requestControls;
 
   /** The result code for this operation. */
-  private ResultCode resultCode;
+  private ResultCode resultCode = ResultCode.UNDEFINED;
+  /**
+   * The error message for this operation that should be included in the log and in the response to
+   * the client.
+   */
+  private LocalizableMessageBuilder errorMessage = new LocalizableMessageBuilder();
+  /** The matched DN for this operation. */
+  private DN matchedDN;
+  /** The set of referral URLs for this operation. */
+  private List<String> referralURLs;
 
   /**
    * The real, masked result code  for this operation that will not be included
    * in the response to the client, but will be logged.
    */
   private ResultCode maskedResultCode;
-
-  /**
-   * Additional information that should be included in the log but not sent to
-   * the client.
-   */
-  private List<AdditionalLogItem> additionalLogItems;
-
-  /**
-   * The error message for this operation that should be included in the log and
-   * in the response to the client.
-   */
-  private LocalizableMessageBuilder errorMessage;
-
   /**
    * The real, masked error message for this operation that will not be included
    * in the response to the client, but will be logged.
    */
   private LocalizableMessageBuilder maskedErrorMessage;
 
-  /**
-   * Indicates whether this operation needs to be synchronized to other copies
-   * of the data.
-   */
+  /** Additional information that should be included in the log but not sent to the client. */
+  private List<AdditionalLogItem> additionalLogItems;
+
+  /** Indicates whether this operation needs to be synchronized to other copies of the data. */
   private boolean dontSynchronizeFlag;
 
   /** The time that processing started on this operation in milliseconds. */
   private long processingStartTime;
-
   /** The time that processing ended on this operation in milliseconds. */
   private long processingStopTime;
-
   /** The time that processing started on this operation in nanoseconds. */
   private long processingStartNanoTime;
-
   /** The time that processing ended on this operation in nanoseconds. */
   private long processingStopNanoTime;
 
@@ -199,22 +177,10 @@ public abstract class AbstractOperation
       this.requestControls  = requestControls;
     }
 
-    resultCode                 = ResultCode.UNDEFINED;
-    additionalLogItems         = null;
-    errorMessage               = new LocalizableMessageBuilder();
-    attachments                = new HashMap<>();
-    matchedDN                  = null;
-    referralURLs               = null;
-    cancelResult               = null;
-    isInternalOperation        = false;
-    isSynchronizationOperation = false;
-    authorizationEntry         =
-         clientConnection.getAuthenticationInfo().
-          getAuthorizationEntry();
+    authorizationEntry = clientConnection.getAuthenticationInfo().getAuthorizationEntry();
   }
 
 
-  /** {@inheritDoc} */
   @Override
   public void disconnectClient(DisconnectReason disconnectReason,
                                boolean sendNotification,
@@ -223,42 +189,36 @@ public abstract class AbstractOperation
     clientConnection.disconnect(disconnectReason, sendNotification, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ClientConnection getClientConnection()
   {
     return clientConnection;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final long getConnectionID()
   {
     return clientConnection.getConnectionID();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final long getOperationID()
   {
     return operationID;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final int getMessageID()
   {
     return messageID;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getRequestControls()
   {
     return requestControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   @SuppressWarnings("unchecked")
   public final <T extends Control> T getRequestControl(
@@ -286,56 +246,48 @@ public abstract class AbstractOperation
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addRequestControl(Control control)
   {
     requestControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ResultCode getResultCode()
   {
     return resultCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setResultCode(ResultCode resultCode)
   {
     this.resultCode = resultCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ResultCode getMaskedResultCode()
   {
     return maskedResultCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setMaskedResultCode(ResultCode maskedResultCode)
   {
     this.maskedResultCode = maskedResultCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final LocalizableMessageBuilder getErrorMessage()
   {
     return errorMessage;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setErrorMessage(LocalizableMessageBuilder errorMessage)
   {
     this.errorMessage = errorMessage;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void appendErrorMessage(LocalizableMessage message)
   {
@@ -353,21 +305,18 @@ public abstract class AbstractOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final LocalizableMessageBuilder getMaskedErrorMessage()
   {
     return maskedErrorMessage;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setMaskedErrorMessage(LocalizableMessageBuilder maskedErrorMessage)
   {
     this.maskedErrorMessage = maskedErrorMessage;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void appendMaskedErrorMessage(LocalizableMessage maskedMessage)
   {
@@ -383,7 +332,6 @@ public abstract class AbstractOperation
     maskedErrorMessage.append(maskedMessage);
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<AdditionalLogItem> getAdditionalLogItems()
   {
@@ -394,7 +342,6 @@ public abstract class AbstractOperation
     return Collections.emptyList();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addAdditionalLogItem(AdditionalLogItem item)
   {
@@ -406,35 +353,30 @@ public abstract class AbstractOperation
     additionalLogItems.add(item);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getMatchedDN()
   {
     return matchedDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setMatchedDN(DN matchedDN)
   {
     this.matchedDN = matchedDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<String> getReferralURLs()
   {
     return referralURLs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setReferralURLs(List<String> referralURLs)
   {
     this.referralURLs = referralURLs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setResponseData(
                          DirectoryException directoryException)
@@ -451,21 +393,18 @@ public abstract class AbstractOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final boolean isInternalOperation()
   {
     return isInternalOperation;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setInternalOperation(boolean isInternalOperation)
   {
     this.isInternalOperation = isInternalOperation;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInnerOperation()
   {
@@ -476,7 +415,6 @@ public abstract class AbstractOperation
     return isInternalOperation();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setInnerOperation(boolean isInnerOperation)
   {
@@ -484,14 +422,12 @@ public abstract class AbstractOperation
   }
 
 
-  /** {@inheritDoc} */
   @Override
   public final boolean isSynchronizationOperation()
   {
     return isSynchronizationOperation;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setSynchronizationOperation(
                          boolean isSynchronizationOperation)
@@ -499,35 +435,30 @@ public abstract class AbstractOperation
     this.isSynchronizationOperation = isSynchronizationOperation;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean dontSynchronize()
   {
     return dontSynchronizeFlag;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setDontSynchronize(boolean dontSynchronize)
   {
     this.dontSynchronizeFlag = dontSynchronize;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Entry getAuthorizationEntry()
   {
     return authorizationEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setAuthorizationEntry(Entry authorizationEntry)
   {
     this.authorizationEntry = authorizationEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getAuthorizationDN()
   {
@@ -538,21 +469,18 @@ public abstract class AbstractOperation
     return DN.rootDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Map<String,Object> getAttachments()
   {
     return attachments;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setAttachments(Map<String, Object> attachments)
   {
     this.attachments = attachments;
   }
 
-  /** {@inheritDoc} */
   @Override
   @SuppressWarnings("unchecked")
   public final <T> T getAttachment(String name)
@@ -560,7 +488,6 @@ public abstract class AbstractOperation
     return (T) attachments.get(name);
   }
 
-  /** {@inheritDoc} */
   @Override
   @SuppressWarnings("unchecked")
   public final <T> T removeAttachment(String name)
@@ -568,7 +495,6 @@ public abstract class AbstractOperation
     return (T) attachments.remove(name);
   }
 
-  /** {@inheritDoc} */
   @Override
   @SuppressWarnings("unchecked")
   public final <T> T setAttachment(String name, Object value)
@@ -576,7 +502,6 @@ public abstract class AbstractOperation
     return (T) attachments.put(name, value);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void operationCompleted()
   {
@@ -585,7 +510,6 @@ public abstract class AbstractOperation
     clientConnection.removeOperationInProgress(messageID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
@@ -616,7 +540,6 @@ public abstract class AbstractOperation
     return cancelResult;
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized void abort(CancelRequest cancelRequest)
   {
@@ -626,7 +549,6 @@ public abstract class AbstractOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized void checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException
@@ -642,21 +564,18 @@ public abstract class AbstractOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final CancelRequest getCancelRequest()
   {
     return cancelRequest;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final CancelResult getCancelResult()
   {
     return cancelResult;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final String toString()
   {
@@ -665,7 +584,6 @@ public abstract class AbstractOperation
     return buffer.toString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final long getProcessingStartTime()
   {
@@ -684,7 +602,6 @@ public abstract class AbstractOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final long getProcessingStopTime()
   {
@@ -705,14 +622,12 @@ public abstract class AbstractOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final long getProcessingTime()
   {
     return processingStopTime - processingStartTime;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final long getProcessingNanoTime()
   {
@@ -723,7 +638,6 @@ public abstract class AbstractOperation
     return -1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void registerPostResponseCallback(Runnable callback)
   {
@@ -734,14 +648,12 @@ public abstract class AbstractOperation
     postResponseCallbacks.add(callback);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final int hashCode()
   {
     return clientConnection.hashCode() * (int) operationID;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final boolean equals(Object obj)
   {
@@ -823,18 +735,5 @@ public abstract class AbstractOperation
       return false;
     }
     return true;
-  }
-
-  /**
-   * Sets the results from the provided directory exception on the current operation.
-   *
-   * @param de the directory exception
-   */
-  public void setResults(DirectoryException de)
-  {
-    setResultCode(de.getResultCode());
-    appendErrorMessage(de.getMessageObject());
-    setMatchedDN(de.getMatchedDN());
-    setReferralURLs(de.getReferralURLs());
   }
 }
