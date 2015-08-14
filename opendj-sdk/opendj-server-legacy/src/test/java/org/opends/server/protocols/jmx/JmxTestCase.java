@@ -82,15 +82,29 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
       jmxConnectionHandler = getJmxConnectionHandler(handlers);
     }
     assertNotNull(jmxConnectionHandler);
+
+
+    final RmiConnector rmiConnector = jmxConnectionHandler.getRMIConnector();
     int cnt = 0;
-    while (cnt <= 30 && jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate == null)
+    while (cnt <= 30 && !isReady(rmiConnector))
     {
       Thread.sleep(200);
       cnt++;
     }
-    assertNotNull(jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate,
-        "jmxRmiConnectorNoClientCertificate should not be null");
+    if (!isReady(rmiConnector))
+    {
+      assertNotNull(rmiConnector.jmxRmiConnectorNoClientCertificate,
+          "jmxRmiConnectorNoClientCertificate should not be null");
+      assertTrue(rmiConnector.jmxRmiConnectorNoClientCertificate.isActive(),
+          "jmxRmiConnectorNoClientCertificate should be active");
+    }
     return jmxConnectionHandler;
+  }
+
+  private boolean isReady(RmiConnector rmiConnector)
+  {
+    return rmiConnector.jmxRmiConnectorNoClientCertificate != null
+        && rmiConnector.jmxRmiConnectorNoClientCertificate.isActive();
   }
 
   private JmxConnectionHandler getJmxConnectionHandler(List<ConnectionHandler> handlers)
