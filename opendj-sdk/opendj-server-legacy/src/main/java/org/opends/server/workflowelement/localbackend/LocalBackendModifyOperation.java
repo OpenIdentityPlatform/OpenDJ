@@ -34,17 +34,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg4;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
@@ -75,13 +77,13 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
@@ -512,11 +514,9 @@ public class LocalBackendModifyOperation
         return;
       }
 
-      // If the server is configured to check the schema and the
-      // operation is not a synchronization operation,
-      // make sure that the new entry is valid per the server schema.
-      if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
+      if (mustCheckSchema())
       {
+        // make sure that the new entry is valid per the server schema.
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (!modifiedEntry.conformsToSchema(null, false, false, false, invalidReason))
         {
@@ -759,11 +759,6 @@ public class LocalBackendModifyOperation
     }
   }
 
-  private DN getName(Entry e)
-  {
-    return e != null ? e.getName() : DN.rootDN();
-  }
-
   /**
    * Handles schema processing for non-password modifications.
    *
@@ -780,10 +775,8 @@ public class LocalBackendModifyOperation
 
       // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
       // this is an internal operation or is related to synchronization in some way.
-      if (t.isNoUserModification()
-          && !isInternalOperation()
-          && !isSynchronizationOperation()
-          && !m.isInternal())
+      final boolean isInternalOrSynchro = isInternalOperation() || isSynchronizationOperation() || m.isInternal();
+      if (t.isNoUserModification() && !isInternalOrSynchro)
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -796,9 +789,7 @@ public class LocalBackendModifyOperation
       if (t.isObsolete()
           && !a.isEmpty()
           && m.getModificationType() != ModificationType.DELETE
-          && !isInternalOperation()
-          && !isSynchronizationOperation()
-          && !m.isInternal())
+          && !isInternalOrSynchro)
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -806,9 +797,8 @@ public class LocalBackendModifyOperation
       }
 
 
-      // See if the attribute is one which controls the privileges available for
-      // a user.  If it is, then the client must have the PRIVILEGE_CHANGE
-      // privilege.
+      // See if the attribute is one which controls the privileges available for a user.
+      // If it is, then the client must have the PRIVILEGE_CHANGE privilege.
       if (t.hasName(OP_ATTR_PRIVILEGE_NAME)
           && !clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
       {
@@ -822,24 +812,7 @@ public class LocalBackendModifyOperation
           && t.equals(pwPolicyState.getAuthenticationPolicy().getPasswordAttribute());
       if (!isPassword)
       {
-        switch (m.getModificationType().asEnum())
-        {
-          case ADD:
-            processInitialAddSchema(a);
-            break;
-
-          case DELETE:
-            processInitialDeleteSchema(a);
-            break;
-
-          case REPLACE:
-            processInitialReplaceSchema(a);
-            break;
-
-          case INCREMENT:
-            processInitialIncrementSchema(a);
-            break;
-        }
+        processInitialSchema(m.getModificationType(), a);
       }
     }
   }
@@ -881,6 +854,7 @@ public class LocalBackendModifyOperation
     // through the set of modifications to see if a password is included in the
     // changes.  If so, then add the appropriate state changes to the set of
     // modifications.
+    // FIXME, should this loop be merged with the next loop?
     if (!isInternalOperation() && !isSynchronizationOperation())
     {
       for (Modification m : modifications)
@@ -975,8 +949,7 @@ public class LocalBackendModifyOperation
 
           // Check to see whether this will adding, deleting, or replacing
           // password values (increment doesn't make any sense for passwords).
-          // Then perform the appropriate type of processing for that kind of
-          // modification.
+          // Then perform the appropriate type of processing for that kind of modification.
           switch (m.getModificationType().asEnum())
           {
           case ADD:
@@ -994,34 +967,46 @@ public class LocalBackendModifyOperation
                     m.getModificationType(), a.getName()));
           }
 
-          // Password processing may have changed the attribute in
-          // this modification.
+          // Password processing may have changed the attribute in this modification.
           a = m.getAttribute();
         }
 
-        switch (m.getModificationType().asEnum())
-        {
-        case ADD:
-          processInitialAddSchema(a);
-          break;
-
-        case DELETE:
-          processInitialDeleteSchema(a);
-          break;
-
-        case REPLACE:
-          processInitialReplaceSchema(a);
-          break;
-
-        case INCREMENT:
-          processInitialIncrementSchema(a);
-          break;
-        }
+        processInitialSchema(m.getModificationType(), a);
       }
     }
   }
 
+  /**
+   * Performs the initial schema processing and updates the entry appropriately.
+   *
+   * @param modType
+   *          The modification type to perform
+   * @param attr
+   *          The attribute being operated on.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the modify operation to fail.
+   */
+  private void processInitialSchema(ModificationType modType, Attribute attr) throws DirectoryException
+  {
+    switch (modType.asEnum())
+    {
+    case ADD:
+      processInitialAddSchema(attr);
+      break;
 
+    case DELETE:
+      processInitialDeleteSchema(attr);
+      break;
+
+    case REPLACE:
+      processInitialReplaceSchema(attr);
+      break;
+
+    case INCREMENT:
+      processInitialIncrementSchema(attr);
+      break;
+    }
+  }
 
   /**
    * Performs the initial password policy add or replace processing.
@@ -1074,10 +1059,8 @@ public class LocalBackendModifyOperation
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
               ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
         }
-        else
-        {
-          builder.add(v);
-        }
+
+        builder.add(v);
       }
       else
       {
@@ -1141,32 +1124,18 @@ public class LocalBackendModifyOperation
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
               ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
         }
-        else
+
+        // We still need to check if the pre-encoded password matches
+        // an existing value, to decrease the number of passwords.
+        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
+        if (attrList == null || attrList.isEmpty())
         {
-          // We still need to check if the pre-encoded password matches
-          // an existing value, to decrease the number of passwords.
-          List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
-          if (attrList == null || attrList.isEmpty())
-          {
-            throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                ERR_MODIFY_NO_EXISTING_VALUES.get());
-          }
-          boolean found = false;
-          for (Attribute attr : attrList)
-          {
-            for (ByteString av : attr)
-            {
-              if (av.equals(v))
-              {
-                builder.add(v);
-                found = true;
-              }
-            }
-          }
-          if (found)
-          {
-            numPasswords--;
-          }
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
+        }
+
+        if (addIfAttributeValueExistsPreEncodedPassword(builder, attrList, v))
+        {
+          numPasswords--;
         }
       }
       else
@@ -1177,54 +1146,8 @@ public class LocalBackendModifyOperation
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
               ERR_MODIFY_NO_EXISTING_VALUES.get());
         }
-        boolean found = false;
-        for (Attribute attr : attrList)
-        {
-          for (ByteString av : attr)
-          {
-            if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
-            {
-              if (AuthPasswordSyntax.isEncoded(av))
-              {
-                StringBuilder[] components = AuthPasswordSyntax
-                    .decodeAuthPassword(av.toString());
-                PasswordStorageScheme<?> scheme = DirectoryServer
-                    .getAuthPasswordStorageScheme(components[0].toString());
-                if (scheme != null
-                    && scheme.authPasswordMatches(v,
-                        components[1].toString(), components[2].toString()))
-                {
-                  builder.add(av);
-                  found = true;
-                }
-              }
-              else if (av.equals(v))
-              {
-                builder.add(v);
-                found = true;
-              }
-            }
-            else if (UserPasswordSyntax.isEncoded(av))
-            {
-              String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
-              PasswordStorageScheme<?> scheme = DirectoryServer
-                  .getPasswordStorageScheme(toLowerCase(components[0]));
-              if (scheme != null
-                  && scheme.passwordMatches(v, ByteString.valueOf(components[1])))
-              {
-                builder.add(av);
-                found = true;
-              }
-            }
-            else if (av.equals(v))
-            {
-              builder.add(v);
-              found = true;
-            }
-          }
-        }
 
-        if (found)
+        if (addIfAttributeValueExistsNoPreEncodedPassword(builder, attrList, v))
         {
           if (currentPasswords == null)
           {
@@ -1246,7 +1169,73 @@ public class LocalBackendModifyOperation
     m.setAttribute(builder.toAttribute());
   }
 
+  private boolean addIfAttributeValueExistsPreEncodedPassword(AttributeBuilder builder, List<Attribute> attrList,
+      ByteString val)
+  {
+    for (Attribute attr : attrList)
+    {
+      for (ByteString av : attr)
+      {
+        if (av.equals(val))
+        {
+          builder.add(val);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
+  private boolean addIfAttributeValueExistsNoPreEncodedPassword(AttributeBuilder builder, List<Attribute> attrList,
+      ByteString val) throws DirectoryException
+  {
+    boolean found = false;
+    for (Attribute attr : attrList)
+    {
+      for (ByteString av : attr)
+      {
+        if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
+        {
+          if (AuthPasswordSyntax.isEncoded(av))
+          {
+            StringBuilder[] components = AuthPasswordSyntax.decodeAuthPassword(av.toString());
+            PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(components[0].toString());
+            if (scheme != null
+                && scheme.authPasswordMatches(val, components[1].toString(), components[2].toString()))
+            {
+              builder.add(av);
+              found = true;
+            }
+          }
+          else if (av.equals(val))
+          {
+            builder.add(val);
+            found = true;
+          }
+        }
+        else
+        {
+          if (UserPasswordSyntax.isEncoded(av))
+          {
+            String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
+            PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(toLowerCase(components[0]));
+            if (scheme != null
+                && scheme.passwordMatches(val, ByteString.valueOf(components[1])))
+            {
+              builder.add(av);
+              found = true;
+            }
+          }
+          else if (av.equals(val))
+          {
+            builder.add(val);
+            found = true;
+          }
+        }
+      }
+    }
+    return found;
+  }
 
   /**
    * Performs the initial schema processing for an add modification
@@ -1261,75 +1250,21 @@ public class LocalBackendModifyOperation
   private void processInitialAddSchema(Attribute attr)
       throws DirectoryException
   {
-    // Make sure that one or more values have been provided for the
-    // attribute.
+    // Make sure that one or more values have been provided for the attribute.
     if (attr.isEmpty())
     {
       throw newDirectoryException(currentEntry, ResultCode.PROTOCOL_ERROR,
           ERR_MODIFY_ADD_NO_VALUES.get(entryDN, attr.getName()));
     }
 
-    // If the server is configured to check schema and the operation
-    // is not a synchronization operation, make sure that all the new
-    // values are valid according to the associated syntax.
-    if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
+    if (mustCheckSchema())
     {
-      AcceptRejectWarn syntaxPolicy = DirectoryServer.getSyntaxEnforcementPolicy();
-      Syntax syntax = attr.getAttributeType().getSyntax();
-
-      if (syntaxPolicy == AcceptRejectWarn.REJECT)
-      {
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (ByteString v : attr)
-        {
-          if (!syntax.valueIsAcceptable(v, invalidReason))
-          {
-            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
-            {
-              // Value is not human-readable
-              throw newDirectoryException(currentEntry,
-                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(entryDN, attr.getName(), invalidReason));
-            }
-            else
-            {
-              throw newDirectoryException(currentEntry,
-                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_ADD_INVALID_SYNTAX.get(
-                      entryDN, attr.getName(), v, invalidReason));
-            }
-          }
-        }
-      }
-      else if (syntaxPolicy == AcceptRejectWarn.WARN)
-      {
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (ByteString v : attr)
-        {
-          if (!syntax.valueIsAcceptable(v, invalidReason))
-          {
-            // FIXME remove next line of code. According to Matt, since this is
-            // just a warning, the code should not set the resultCode
-            setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
-            {
-              // Value is not human-readable
-              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE, entryDN, attr.getName(), invalidReason);
-            }
-            else
-            {
-              logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX,
-                  entryDN, attr.getName(), v, invalidReason);
-            }
-            invalidReason = new LocalizableMessageBuilder();
-          }
-        }
-      }
+      // make sure that all the new values are valid according to the associated syntax.
+      checkSchema(attr, ERR_MODIFY_ADD_INVALID_SYNTAX, ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE);
     }
 
-    // If the attribute to be added is the object class attribute then
-    // make sure that all the object classes are known and not
-    // obsoleted.
+    // If the attribute to be added is the object class attribute
+    // then make sure that all the object classes are known and not obsoleted.
     if (attr.getAttributeType().isObjectClass())
     {
       validateObjectClasses(attr);
@@ -1349,7 +1284,55 @@ public class LocalBackendModifyOperation
     }
   }
 
+  private boolean mustCheckSchema()
+  {
+    return DirectoryServer.checkSchema() && !isSynchronizationOperation();
+  }
 
+  /**
+   * Verifies that all the new values are valid according to the associated syntax.
+   *
+   * @throws DirectoryException
+   *           If any of the new values violate the server schema configuration and server is
+   *           configured to reject violations.
+   */
+  private void checkSchema(Attribute attr,
+      Arg4<Object, Object, Object, Object> invalidSyntaxErrorMsg,
+      Arg3<Object, Object, Object> invalidSyntaxNoValueErrorMsg) throws DirectoryException
+  {
+    AcceptRejectWarn syntaxPolicy = DirectoryServer.getSyntaxEnforcementPolicy();
+    Syntax syntax = attr.getAttributeType().getSyntax();
+
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+    for (ByteString v : attr)
+    {
+      if (!syntax.valueIsAcceptable(v, invalidReason))
+      {
+        LocalizableMessage msg = isHumanReadable(syntax)
+            ? invalidSyntaxErrorMsg.get(entryDN, attr.getName(), v, invalidReason)
+            : invalidSyntaxNoValueErrorMsg.get(entryDN, attr.getName(), invalidReason);
+
+        switch (syntaxPolicy)
+        {
+        case REJECT:
+          throw newDirectoryException(currentEntry, ResultCode.INVALID_ATTRIBUTE_SYNTAX, msg);
+
+        case WARN:
+          // FIXME remove next line of code. According to Matt, since this is
+          // just a warning, the code should not set the resultCode
+          setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+          logger.error(msg);
+          invalidReason = new LocalizableMessageBuilder();
+          break;
+        }
+      }
+    }
+  }
+
+  private boolean isHumanReadable(Syntax syntax)
+  {
+    return syntax.isHumanReadable() && !syntax.isBEREncodingRequired();
+  }
 
   /**
    * Ensures that the provided object class attribute contains known
@@ -1468,67 +1451,14 @@ public class LocalBackendModifyOperation
   private void processInitialReplaceSchema(Attribute attr)
       throws DirectoryException
   {
-    // If the server is configured to check schema and the operation
-    // is not a synchronization operation, make sure that all the
-    // new values are valid according to the associated syntax.
-    if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
+    if (mustCheckSchema())
     {
-      AcceptRejectWarn syntaxPolicy = DirectoryServer
-          .getSyntaxEnforcementPolicy();
-      Syntax syntax = attr.getAttributeType().getSyntax();
-
-      if (syntaxPolicy == AcceptRejectWarn.REJECT)
-      {
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (ByteString v : attr)
-        {
-          if (!syntax.valueIsAcceptable(v, invalidReason))
-          {
-            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
-            {
-              // Value is not human-readable
-              throw newDirectoryException(currentEntry,
-                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(entryDN, attr.getName(), invalidReason));
-            }
-            else
-            {
-              throw newDirectoryException(currentEntry,
-                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                  ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
-                      entryDN, attr.getName(), v, invalidReason));
-            }
-          }
-        }
-      }
-      else if (syntaxPolicy == AcceptRejectWarn.WARN)
-      {
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (ByteString v : attr)
-        {
-          if (!syntax.valueIsAcceptable(v, invalidReason))
-          {
-            setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
-            {
-              // Value is not human-readable
-              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE,
-                  entryDN, attr.getName(), invalidReason);
-            }
-            else
-            {
-              logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX,
-                  entryDN, attr.getName(), v, invalidReason);
-            }
-            invalidReason = new LocalizableMessageBuilder();
-          }
-        }
-      }
+      // make sure that all the new values are valid according to the associated syntax.
+      checkSchema(attr, ERR_MODIFY_REPLACE_INVALID_SYNTAX, ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE);
     }
 
     // If the attribute to be replaced is the object class attribute
-    // then make sure that all the object classes are known and not
-    // obsoleted.
+    // then make sure that all the object classes are known and not obsoleted.
     if (attr.getAttributeType().isObjectClass())
     {
       validateObjectClasses(attr);
@@ -1548,8 +1478,6 @@ public class LocalBackendModifyOperation
           ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getName()));
     }
   }
-
-
 
   /**
    * Performs the initial schema processing for an increment
@@ -1667,14 +1595,12 @@ public class LocalBackendModifyOperation
         && !currentPasswordProvided)
     {
       pwpErrorType = PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
-
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW.get());
     }
 
 
-    // If this change would result in multiple password values, then see if
-    // that's OK.
+    // If this change would result in multiple password values, then see if that's OK.
     if (numPasswords > 1 && !authPolicy.isAllowMultiplePasswordValues())
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
