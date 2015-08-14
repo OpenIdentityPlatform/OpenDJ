@@ -1650,10 +1650,7 @@ public class LocalBackendModifyOperation
     }
 
 
-    // See if the account was locked for any reason.
-    wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
-                pwPolicyState.lockedDueToMaximumResetAge() ||
-                pwPolicyState.lockedDueToFailures();
+    wasLocked = pwPolicyState.isLocked();
 
     // Update the password policy state attributes in the user's entry.  If the
     // modification fails, then these changes won't be applied.

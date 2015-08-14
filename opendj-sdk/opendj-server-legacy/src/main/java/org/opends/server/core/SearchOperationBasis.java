@@ -559,9 +559,7 @@ public class SearchOperationBasis
 
           boolean isInactive = pwpState.isDisabled()
               || pwpState.isAccountExpired();
-          boolean isLocked = pwpState.lockedDueToFailures()
-              || pwpState.lockedDueToMaximumResetAge()
-              || pwpState.lockedDueToIdleInterval();
+          boolean isLocked = pwpState.isLocked();
           boolean isReset = pwpState.mustChangePassword();
           boolean isExpired = pwpState.isPasswordExpired();
 
