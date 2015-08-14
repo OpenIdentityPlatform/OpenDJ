@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -46,19 +48,19 @@ import org.opends.server.types.Modification;
  *
  *
  * an historical attribute value looks like :
- *  description:00000108b3a6554100000001:add:added_value
+ *  description:00000108b3a65541000000000001:add:added_value
  *  or
- *  description:00000108b3a6cbb800000001:del:deleted_value
+ *  description:00000108b3a6cbb8000000000001:del:deleted_value
  *  or
- *  description:00000108b3a6cbb800000001:repl:new_value
+ *  description:00000108b3a6cbb8000000000001:repl:new_value
  *  or
- *  description:00000108b3a6cbb800000001:delAttr
+ *  description:00000108b3a6cbb8000000000001:attrDel
  *  or
- *  description:00000108b3a6554100000001:add
+ *  description:00000108b3a65541000000000001:add
  *  or
- *  dn:00000108b3a6554100000001:add (ADD operation)
+ *  dn:00000108b3a65541000000000001:add (ADD operation)
  *  or
- *  dn:00000108b3a6554100000001:moddn (MODIFYDN operation)
+ *  dn:00000108b3a65541000000000001:moddn (MODIFYDN operation)
  *
  *  so after split
  *  token[0] will contain the attribute name
@@ -68,23 +70,23 @@ import org.opends.server.types.Modification;
  *
  *  options are stored with the attribute names using; as a separator
  *  example :
- *  description;FR;France:00000108b3a6554100000001:add:added_value
+ *  description;FR;France:00000108b3a65541000000000001:add:added_value
  */
-public class HistoricalAttributeValue
+class HistoricalAttributeValue
 {
-  private AttributeType attrType;
-  private String attrString;
-  private ByteString attributeValue;
-  private CSN csn;
-  private Set<String> options;
-  private HistAttrModificationKey histKey;
-  private String stringValue;
+  private final AttributeType attrType;
+  private final String attrString;
+  private final ByteString attributeValue;
+  private final CSN csn;
+  private final Set<String> options = new LinkedHashSet<>();
+  private final HistAttrModificationKey histKey;
+  private final String stringValue;
 
   /**
    * This flag indicates that this value was generated to store the last date
    * when the entry was renamed.
    */
-  private boolean ismodDN;
+  private boolean isModDN;
 
   /**
    * Create a new object from the String encoded form.
@@ -92,11 +94,10 @@ public class HistoricalAttributeValue
    * @param strVal The String encoded form of historical attribute value.
    * @see EntryHistorical#encodeAndPurge() encoding in EntryHistorical
    */
-  public HistoricalAttributeValue(String strVal)
+  HistoricalAttributeValue(String strVal)
   {
     String[] token = strVal.split(":", 4);
 
-    options = new LinkedHashSet<>();
     if (token[0].contains(";"))
     {
       String[] optionsToken = token[0].split(";");
@@ -116,7 +117,7 @@ public class HistoricalAttributeValue
     if (attrString.compareTo("dn") != 0)
     {
       // This HistVal was used to store the date when some
-       // modifications were done to the entries.
+      // modifications were done to the entries.
       attrType = DirectoryServer.getAttributeTypeOrDefault(attrString);
     }
     else
@@ -126,14 +127,13 @@ public class HistoricalAttributeValue
       attrType = null;
       if (token.length >= 3 && token[2].compareTo("moddn") == 0)
       {
-        ismodDN = true;
+        isModDN = true;
       }
     }
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
-    stringValue = null;
-    if (histKey != HistAttrModificationKey.DELATTR)
+    if (histKey != DELATTR)
     {
       if (token.length == 4)
       {
@@ -142,6 +142,7 @@ public class HistoricalAttributeValue
       }
       else
       {
+        stringValue = null;
         attributeValue = null;
       }
     }
@@ -221,54 +222,76 @@ public class HistoricalAttributeValue
     AttributeBuilder builder = new AttributeBuilder(attrType, attrString);
     builder.setOptions(options);
 
-    if (histKey != HistAttrModificationKey.DELATTR)
+    if (histKey != DELATTR)
     {
       builder.add(attributeValue);
     }
     Attribute attr = builder.toAttribute();
 
-    Modification mod;
     switch (histKey)
     {
     case ADD:
-      mod = new Modification(ModificationType.ADD, attr);
-      break;
+      return new Modification(ModificationType.ADD, attr);
     case DEL:
-      mod = new Modification(ModificationType.DELETE, attr);
-      break;
+      return new Modification(ModificationType.DELETE, attr);
     case REPL:
-      mod = new Modification(ModificationType.REPLACE, attr);
-      break;
+      return new Modification(ModificationType.REPLACE, attr);
     case DELATTR:
-      mod = new Modification(ModificationType.DELETE, attr);
-      break;
+      return new Modification(ModificationType.DELETE, attr);
     default:
-      mod = null;
+      return null;
     }
-    return mod;
   }
 
   /**
    * Indicates if this value of the historical attribute was generated
    * for a ADD operation.
    *
-   * @return a boolean indicating if this was generated for a ADD
-   *         operation.
+   * @return a boolean indicating if this was generated for a ADD operation.
    */
   public boolean isADDOperation()
   {
-    return attrType == null && !ismodDN;
+    return attrType == null && !isModDN;
   }
 
   /**
    * Indicates if this value of the historical attribute was generated
    * for a MODDN operation.
    *
-   * @return a boolean indicating if this was generated for a ADDMODDN
-   *         operation.
+   * @return a boolean indicating if this was generated for a ADDMODDN operation.
    */
   public boolean isMODDNOperation()
   {
-    return attrType == null && ismodDN;
+    return attrType == null && isModDN;
+  }
+
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(attrString);
+    for (String option : this.options)
+    {
+      sb.append(";").append(option);
+    }
+    sb.append(":").append(csn).append(":").append(getModificationType());
+    if (stringValue != null)
+    {
+      sb.append(":").append(stringValue);
+    }
+    return sb.toString();
+  }
+
+  private String getModificationType()
+  {
+    if (isModDN)
+    {
+      return "moddn";
+    }
+    else if (histKey != null)
+    {
+      return histKey.toString();
+    }
+    return "TODO";
   }
 }

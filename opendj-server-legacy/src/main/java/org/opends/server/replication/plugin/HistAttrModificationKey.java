@@ -41,7 +41,7 @@ public enum HistAttrModificationKey
   /** The key for attribute value deletion. */
   DEL("del"),
   /** The key for attribute deletion. */
-  DELATTR("delAttr"),
+  DELATTR("attrDel"),
   /** The key for attribute replace. */
   REPL("repl"),
   /** The key for attribute value addition. */
@@ -68,16 +68,14 @@ public enum HistAttrModificationKey
    */
   public static HistAttrModificationKey decodeKey(String histkey)
   {
-     if ("repl".equals(histkey)) {
-       return HistAttrModificationKey.REPL;
-     } else if ("add".equals(histkey)) {
-       return HistAttrModificationKey.ADD;
-     } else if ("del".equals(histkey)) {
-       return HistAttrModificationKey.DEL;
-     } else if ("attrDel".equals(histkey)) {
-       return HistAttrModificationKey.DELATTR;
-     }
-     return null;
+    for (HistAttrModificationKey histKey : values())
+    {
+      if (histKey.toString().equals(histkey))
+      {
+        return histKey;
+      }
+    }
+    return null;
   }
 
   /**
