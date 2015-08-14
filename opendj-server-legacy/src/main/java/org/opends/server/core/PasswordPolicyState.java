@@ -89,7 +89,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-
   /** The string representation of the user's DN. */
   private final String userDNString;
 
@@ -104,25 +103,19 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   /** Indicates whether the user's account is expired. */
   private ConditionResult isAccountExpired = ConditionResult.UNDEFINED;
-
   /** Indicates whether the user's password is expired. */
   private ConditionResult isPasswordExpired = ConditionResult.UNDEFINED;
-
   /** Indicates whether the warning to send to the client would be the first warning for the user. */
   private ConditionResult isFirstWarning = ConditionResult.UNDEFINED;
-
   /** Indicates whether the user's account is locked by the idle lockout. */
   private ConditionResult isIdleLocked = ConditionResult.UNDEFINED;
-
   /**
    * Indicates whether the user may use a grace login if the password is expired and there are one
    * or more grace logins remaining.
    */
   private ConditionResult mayUseGraceLogin = ConditionResult.UNDEFINED;
-
   /** Indicates whether the user's password must be changed. */
   private ConditionResult mustChangePassword = ConditionResult.UNDEFINED;
-
   /** Indicates whether the user should be warned of an upcoming expiration. */
   private ConditionResult shouldWarn = ConditionResult.UNDEFINED;
 
@@ -131,25 +124,19 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   /** The set of authentication failure times for this user. */
   private List<Long> authFailureTimes;
-
   /** The set of grace login times for this user. */
   private List<Long> graceLoginTimes;
 
   /** The time that the user's account should expire (or did expire). */
   private long accountExpirationTime = Long.MIN_VALUE;
-
   /** The time that the user's entry was locked due to too many authentication failures. */
   private long failureLockedTime = Long.MIN_VALUE;
-
   /** The time that the user last authenticated to the Directory Server. */
   private long lastLoginTime = Long.MIN_VALUE;
-
   /** The time that the user's password should expire (or did expire). */
   private long passwordExpirationTime = Long.MIN_VALUE;
-
   /** The last required change time with which the user complied. */
   private long requiredChangeTime = Long.MIN_VALUE;
-
   /** The time that the user was first warned about an upcoming expiration. */
   private long warnedTime = Long.MIN_VALUE;
 
@@ -298,7 +285,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   }
 
 
-  /** {@inheritDoc} */
   @Override
   public PasswordPolicy getAuthenticationPolicy()
   {
@@ -711,9 +697,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
       if (valuesToRemove != null)
       {
-        AttributeBuilder builder = new AttributeBuilder(type);
-        builder.addAll(valuesToRemove);
-        Attribute a = builder.toAttribute();
+        Attribute a = newAttribute(type, valuesToRemove);
         modifications.add(new Modification(ModificationType.DELETE, a, true));
       }
     }
@@ -746,21 +730,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
     List<Long> failureTimes = getAuthFailureTimes();
-    // Note: failureTimes == this.authFailureTimes
-    long highestFailureTime = -1;
-    for (Long l : failureTimes)
-    {
-      highestFailureTime = Math.max(l, highestFailureTime);
-    }
-
-    if (highestFailureTime >= currentTime)
-    {
-      highestFailureTime++;
-    }
-    else
-    {
-      highestFailureTime = currentTime;
-    }
+    long highestFailureTime = computeHighestTime(failureTimes);
     // Update the current policy state
     failureTimes.add(highestFailureTime);
 
@@ -806,7 +776,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     AttributeBuilder builder = new AttributeBuilder(type);
     long highestFailureTime = -1;
 
-    for (Long l : authFailureTimes)
+    for (long l : authFailureTimes)
     {
       highestFailureTime = Math.max(l, highestFailureTime);
       builder.add(GeneralizedTimeSyntax.format(l));
@@ -1471,7 +1441,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return locked;
   }
 
-
+  /**
+   * Returns whether the account was locked for any reason.
+   *
+   * @return true if the account is locked, false otherwise
+   */
+  public boolean isLocked()
+  {
+    return lockedDueToIdleInterval() || lockedDueToMaximumResetAge() || lockedDueToFailures();
+  }
 
   /**
    * Retrieves the time that the user's password should expire (if the expiration is in the future) or
@@ -2062,26 +2040,32 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     List<Long> graceTimes = getGraceLoginTimes();
-    long highestGraceTime = -1;
-    for (Long l : graceTimes)
-    {
-      highestGraceTime = Math.max(l, highestGraceTime);
-    }
-
-    if (highestGraceTime >= currentTime)
-    {
-      highestGraceTime++;
-    }
-    else
-    {
-      highestGraceTime = currentTime;
-    }
+    long highestGraceTime = computeHighestTime(graceTimes);
     graceTimes.add(highestGraceTime); // graceTimes == this.graceLoginTimes
 
     AttributeType type = DirectoryServer.getAttributeTypeOrDefault(
         OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestGraceTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
+  }
+
+  private long computeHighestTime(List<Long> graceTimes)
+  {
+    long highestTime = -1;
+    for (long l : graceTimes)
+    {
+      highestTime = Math.max(l, highestTime);
+    }
+
+    if (highestTime >= currentTime)
+    {
+      highestTime++;
+    }
+    else
+    {
+      highestTime = currentTime;
+    }
+    return highestTime;
   }
 
 
@@ -2109,7 +2093,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC);
     AttributeBuilder builder = new AttributeBuilder(type);
-    for (Long l : graceLoginTimes)
+    for (long l : graceLoginTimes)
     {
       builder.add(GeneralizedTimeSyntax.format(l));
     }
@@ -2210,7 +2194,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteString password)
   {
@@ -2516,16 +2499,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return;
     }
 
-    AttributeBuilder builder = new AttributeBuilder(type);
-    builder.addAll(removedValues);
-    Attribute a = builder.toAttribute();
+    Attribute a = newAttribute(type, removedValues);
     modifications.add(new Modification(ModificationType.DELETE, a, true));
 
     if (! addedValues.isEmpty())
     {
-      builder = new AttributeBuilder(type);
-      builder.addAll(addedValues);
-      Attribute a2 = builder.toAttribute();
+      Attribute a2 = newAttribute(type, addedValues);
       modifications.add(new Modification(ModificationType.ADD, a2, true));
     }
 
@@ -2607,14 +2586,11 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       while (iterator.hasNext())
       {
         long historyDate = iterator.next();
-        if (historyDate < retainDate)
-        {
-          iterator.remove();
-        }
-        else
+        if (historyDate >= retainDate)
         {
           break;
         }
+        iterator.remove();
       }
     }
 
@@ -2686,7 +2662,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
               if (logger.isTraceEnabled())
               {
                 logger.traceException(e);
-
                 logger.trace("Could not decode the timestamp in history value " + histStr + " -- " + e +
                     ".  Marking it for removal.");
               }
@@ -2767,11 +2742,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       if (logger.isTraceEnabled())
       {
         logger.traceException(e);
-
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Returning false because of an exception:  " + stackTraceToSingleLineString(e));
-        }
+        logger.trace("Returning false because of an exception:  " + stackTraceToSingleLineString(e));
       }
 
       return false;
@@ -2906,9 +2877,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
       if (! removeValues.isEmpty())
       {
-        AttributeBuilder builder = new AttributeBuilder(historyType);
-        builder.addAll(removeValues);
-        removeAttrs.add(builder.toAttribute());
+        removeAttrs.add(newAttribute(historyType, removeValues));
       }
     }
 
@@ -2923,28 +2892,24 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       while (iterator.hasNext())
       {
         long timestamp = iterator.next();
-        if (timestamp < minAgeToKeep)
-        {
-          ByteString v = historyMap.get(timestamp);
-          removeValues.add(v);
-          iterator.remove();
-
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Removing history value %s to preserve the history duration.", v);
-          }
-        }
-        else
+        if (timestamp >= minAgeToKeep)
         {
           break;
+        }
+
+        ByteString v = historyMap.get(timestamp);
+        removeValues.add(v);
+        iterator.remove();
+
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("Removing history value %s to preserve the history duration.", v);
         }
       }
 
       if (! removeValues.isEmpty())
       {
-        AttributeBuilder builder = new AttributeBuilder(historyType);
-        builder.addAll(removeValues);
-        removeAttrs.add(builder.toAttribute());
+        removeAttrs.add(newAttribute(historyType, removeValues));
       }
     }
 
@@ -2976,7 +2941,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     modifications.add(new Modification(ModificationType.ADD, newHistAttr, true));
   }
 
-
+  private Attribute newAttribute(AttributeType type, LinkedHashSet<ByteString> values)
+  {
+    AttributeBuilder builder = new AttributeBuilder(type);
+    builder.addAll(values);
+    return builder.toAttribute();
+  }
 
   /**
    * Retrieves the password history state values for the user.  This is only intended for testing purposes.
@@ -3095,7 +3065,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeStateAfterBind()
          throws DirectoryException

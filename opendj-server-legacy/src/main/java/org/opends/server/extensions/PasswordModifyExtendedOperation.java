@@ -448,10 +448,7 @@ public class PasswordModifyExtendedOperation
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_DISABLED.get());
         return;
       }
-      else if (selfChange
-          && (pwPolicyState.lockedDueToFailures()
-              || pwPolicyState.lockedDueToIdleInterval()
-              || pwPolicyState.lockedDueToMaximumResetAge()))
+      else if (selfChange && pwPolicyState.isLocked())
       {
         if (pwPolicyRequested)
         {

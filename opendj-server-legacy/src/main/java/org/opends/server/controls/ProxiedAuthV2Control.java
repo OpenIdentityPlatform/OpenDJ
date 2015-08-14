@@ -308,11 +308,7 @@ public class ProxiedAuthV2Control
     if (state.isPasswordPolicy())
     {
       PasswordPolicyState pwpState = (PasswordPolicyState) state;
-      if (pwpState.isAccountExpired() ||
-          pwpState.lockedDueToFailures() ||
-          pwpState.lockedDueToIdleInterval() ||
-          pwpState.lockedDueToMaximumResetAge() ||
-          pwpState.isPasswordExpired())
+      if (pwpState.isAccountExpired() || pwpState.isLocked() || pwpState.isPasswordExpired())
       {
         LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(userEntry.getName());
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
