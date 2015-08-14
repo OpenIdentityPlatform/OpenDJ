@@ -409,19 +409,7 @@ public class PasswordModifyExtendedOperation
 
       // Determine whether the user is changing his own password or if it's an administrative reset.
       // If it's an administrative reset, then the requester must have the PASSWORD_RESET privilege.
-      boolean selfChange;
-      if (userIdentity == null)
-      {
-        selfChange = true;
-      }
-      else if (requestorEntry != null)
-      {
-        selfChange = userDN.equals(requestorEntry.getName());
-      }
-      else
-      {
-        selfChange = oldPassword != null;
-      }
+      boolean selfChange = isSelfChange(userIdentity, requestorEntry, userDN, oldPassword);
 
       if (! selfChange)
       {
@@ -804,6 +792,7 @@ public class PasswordModifyExtendedOperation
       {
         operation.setResultCode(resultCode);
         operation.setErrorMessage(modifyOperation.getErrorMessage());
+        // FIXME should it also call setMatchedDN()
         operation.setReferralURLs(modifyOperation.getReferralURLs());
         return;
       }
@@ -905,6 +894,22 @@ public class PasswordModifyExtendedOperation
       {
         userLock.unlock();
       }
+    }
+  }
+
+  private boolean isSelfChange(ByteString userIdentity, Entry requestorEntry, DN userDN, ByteString oldPassword)
+  {
+    if (userIdentity == null)
+    {
+      return true;
+    }
+    else if (requestorEntry != null)
+    {
+      return userDN.equals(requestorEntry.getName());
+    }
+    else
+    {
+      return oldPassword != null;
     }
   }
 

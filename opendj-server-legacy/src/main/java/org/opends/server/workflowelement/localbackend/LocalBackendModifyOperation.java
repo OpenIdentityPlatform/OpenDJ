@@ -44,12 +44,12 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
@@ -62,7 +62,6 @@ import org.opends.server.core.ModifyOperationWrapper;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.AcceptRejectWarn;
@@ -91,6 +90,8 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -310,31 +311,22 @@ public class LocalBackendModifyOperation
       // send the corresponding response control.
       if (pwPolicyControlRequested)
       {
-        addResponseControl(new PasswordPolicyResponseControl(null, 0,
-            pwpErrorType));
+        addResponseControl(new PasswordPolicyResponseControl(null, 0, pwpErrorType));
       }
 
       // Invoke the post-operation or post-synchronization modify plugins.
-      PluginConfigManager pluginConfigManager =
-          DirectoryServer.getPluginConfigManager();
       if (isSynchronizationOperation())
       {
         if (getResultCode() == ResultCode.SUCCESS)
         {
-          pluginConfigManager.invokePostSynchronizationModifyPlugins(this);
+          getPluginConfigManager().invokePostSynchronizationModifyPlugins(this);
         }
       }
       else if (executePostOpPlugins.get())
       {
         // FIXME -- Should this also be done while holding the locks?
-        PluginResult.PostOperation postOpResult =
-            pluginConfigManager.invokePostOperationModifyPlugins(this);
-        if (!postOpResult.continueProcessing())
+        if (!processOperationResult(this, getPluginConfigManager().invokePostOperationModifyPlugins(this)))
         {
-          setResultCode(postOpResult.getResultCode());
-          appendErrorMessage(postOpResult.getErrorMessage());
-          setMatchedDN(postOpResult.getMatchedDN());
-          setReferralURLs(postOpResult.getReferralURLs());
           return;
         }
       }
@@ -484,8 +476,7 @@ public class LocalBackendModifyOperation
       // already exposed sensitive information to the client.
       try
       {
-        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-            .isAllowed(this))
+        if (!getAccessControlHandler().isAllowed(this))
         {
           setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -534,15 +525,8 @@ public class LocalBackendModifyOperation
       if (!isSynchronizationOperation())
       {
         executePostOpPlugins.set(true);
-        PluginResult.PreOperation preOpResult =
-            DirectoryServer.getPluginConfigManager()
-                .invokePreOperationModifyPlugins(this);
-        if (!preOpResult.continueProcessing())
+        if (!processOperationResult(this, getPluginConfigManager().invokePreOperationModifyPlugins(this)))
         {
-          setResultCode(preOpResult.getResultCode());
-          appendErrorMessage(preOpResult.getErrorMessage());
-          setMatchedDN(preOpResult.getMatchedDN());
-          setReferralURLs(preOpResult.getReferralURLs());
           return;
         }
       }
@@ -604,6 +588,11 @@ public class LocalBackendModifyOperation
       }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private AccessControlHandler<?> getAccessControlHandler()
+  {
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
   }
 
   private DirectoryException newDirectoryException(Entry entry,
@@ -682,10 +671,8 @@ public class LocalBackendModifyOperation
                     entryDN, de.getMessageObject()));
           }
 
-          // Check if the current user has permission to make
-          // this determination.
-          if (!AccessControlConfigManager.getInstance().
-            getAccessControlHandler().isAllowed(this, currentEntry, filter))
+          // Check if the current user has permission to make this determination.
+          if (!getAccessControlHandler().isAllowed(this, currentEntry, filter))
           {
             throw new DirectoryException(
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -1774,8 +1761,7 @@ public class LocalBackendModifyOperation
    *          {@code false} if not.
    */
   private boolean handleConflictResolution() {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
               SynchronizationProviderResult result =
                   provider.handleConflictResolution(this);
@@ -1803,16 +1789,9 @@ public class LocalBackendModifyOperation
    *          {@code false} if not.
    */
   private boolean processPreOperation() {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
-              SynchronizationProviderResult result =
-                  provider.doPreOperation(this);
-              if (! result.continueProcessing()) {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if (!processOperationResult(this, provider.doPreOperation(this))) {
                   return false;
               }
           } catch (DirectoryException de) {
@@ -1826,12 +1805,9 @@ public class LocalBackendModifyOperation
       return true;
   }
 
-  /**
-   * Invoke post operation synchronization providers.
-   */
+  /** Invoke post operation synchronization providers. */
   private void processSynchPostOperationPlugins() {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
               provider.doPostOperation(this);
           } catch (DirectoryException de) {

@@ -32,10 +32,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.core.AccessControlConfigManager;
@@ -43,21 +43,22 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationWrapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -145,25 +146,17 @@ public class LocalBackendDeleteOperation
       processDelete(executePostOpPlugins);
 
       // Invoke the post-operation or post-synchronization delete plugins.
-      PluginConfigManager pluginConfigManager =
-          DirectoryServer.getPluginConfigManager();
       if (isSynchronizationOperation())
       {
         if (getResultCode() == ResultCode.SUCCESS)
         {
-          pluginConfigManager.invokePostSynchronizationDeletePlugins(this);
+          getPluginConfigManager().invokePostSynchronizationDeletePlugins(this);
         }
       }
       else if (executePostOpPlugins.get())
       {
-        PluginResult.PostOperation postOpResult =
-            pluginConfigManager.invokePostOperationDeletePlugins(this);
-        if (!postOpResult.continueProcessing())
+        if (!processOperationResult(this, getPluginConfigManager().invokePostOperationDeletePlugins(this)))
         {
-          setResultCode(postOpResult.getResultCode());
-          appendErrorMessage(postOpResult.getErrorMessage());
-          setMatchedDN(postOpResult.getMatchedDN());
-          setReferralURLs(postOpResult.getReferralURLs());
           return;
         }
       }
@@ -232,8 +225,7 @@ public class LocalBackendDeleteOperation
         return;
       }
 
-      // Check to see if the client has permission to perform the
-      // delete.
+      // Check to see if the client has permission to perform the delete.
 
       // Check to see if there are any controls in the request. If so, then
       // see if there is any special processing required.
@@ -247,8 +239,7 @@ public class LocalBackendDeleteOperation
       // have already exposed sensitive information to the client.
       try
       {
-        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-            .isAllowed(this))
+        if (!getAccessControlHandler().isAllowed(this))
         {
           setResultCodeAndMessageNoInfoDisclosure(entry,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -271,15 +262,8 @@ public class LocalBackendDeleteOperation
       if (!isSynchronizationOperation())
       {
         executePostOpPlugins.set(true);
-        PluginResult.PreOperation preOpResult =
-            DirectoryServer.getPluginConfigManager()
-                .invokePreOperationDeletePlugins(this);
-        if (!preOpResult.continueProcessing())
+        if (!processOperationResult(this, getPluginConfigManager().invokePreOperationDeletePlugins(this)))
         {
-          setResultCode(preOpResult.getResultCode());
-          appendErrorMessage(preOpResult.getErrorMessage());
-          setMatchedDN(preOpResult.getMatchedDN());
-          setReferralURLs(preOpResult.getReferralURLs());
           return;
         }
       }
@@ -351,6 +335,11 @@ public class LocalBackendDeleteOperation
       }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private AccessControlHandler<?> getAccessControlHandler()
+  {
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
   }
 
   private DirectoryException newDirectoryException(Entry entry,
@@ -427,10 +416,8 @@ public class LocalBackendDeleteOperation
                 ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
 
-          // Check if the current user has permission to make
-          // this determination.
-          if (!AccessControlConfigManager.getInstance().
-            getAccessControlHandler().isAllowed(this, entry, filter))
+          // Check if the current user has permission to make this determination.
+          if (!getAccessControlHandler().isAllowed(this, entry, filter))
           {
             throw new DirectoryException(
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -494,8 +481,7 @@ public class LocalBackendDeleteOperation
    *          {@code false} if not.
    */
   private boolean handleConflictResolution() {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
               SynchronizationProviderResult result =
                   provider.handleConflictResolution(this);
@@ -521,8 +507,7 @@ public class LocalBackendDeleteOperation
    * Invoke post operation synchronization providers.
    */
   private void processSynchPostOperationPlugins() {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
               provider.doPostOperation(this);
           } catch (DirectoryException de) {
@@ -541,16 +526,9 @@ public class LocalBackendDeleteOperation
    *          {@code false} if not.
    */
   private boolean processPreOperation() {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
-              SynchronizationProviderResult result =
-                  provider.doPreOperation(this);
-              if (! result.continueProcessing()) {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if (!processOperationResult(this, provider.doPreOperation(this))) {
                   return false;
               }
           } catch (DirectoryException de) {

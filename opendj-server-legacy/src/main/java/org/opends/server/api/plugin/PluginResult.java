@@ -44,6 +44,50 @@ import java.util.List;
     mayInvoke=true)
 public final class PluginResult
 {
+  /** Contract for operation results. */
+  public static interface OperationResult
+  {
+    /**
+     * Indicates whether processing on the associated operation should continue.
+     *
+     * @return {@code true} if processing on the associated operation should continue, or
+     *         {@code false} if it should stop.
+     */
+    boolean continueProcessing();
+
+    /**
+     * Retrieves the error message if {@link #continueProcessing()} returned {@code false}.
+     *
+     * @return An error message explaining why processing should stop or {@code null} if none is
+     *         provided.
+     */
+    LocalizableMessage getErrorMessage();
+
+    /**
+     * Retrieves the result code for the operation if {@link #continueProcessing()} returned
+     * {@code false}.
+     *
+     * @return the result code for the operation or {@code null} if none is provided.
+     */
+    ResultCode getResultCode();
+
+    /**
+     * Retrieves the matched DN for the operation if {@link #continueProcessing()} returned
+     * {@code false}.
+     *
+     * @return the matched DN for the operation or {@code null} if none is provided.
+     */
+    DN getMatchedDN();
+
+    /**
+     * Retrieves the referral URLs for the operation if {@link #continueProcessing()} returned
+     * {@code false}.
+     *
+     * @return the referral URLs for the operation or {@code null} if none is provided.
+     */
+    List<String> getReferralURLs();
+  }
+
   /**
    * Defines a startup plugin result consisting of either continue
    * skip further plugins, or stop startup with an error message.
@@ -63,13 +107,12 @@ public final class PluginResult
         new Startup(true, true, null);
 
     /**
-     * Construct a new startup plugin result.
+     * Constructs a new startup plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
-     * @param errorMessage An message explaining why startup should
-     * stop.
+     * @param errorMessage An message explaining why startup should stop.
      */
     private Startup(boolean continueProcessing,
                     boolean continuePluginProcessing,
@@ -93,8 +136,7 @@ public final class PluginResult
     /**
      * Defines a skip further plugin processing startup plugin result.
      *
-     * @return  a skip further plugin processing startup plugin
-     * result.
+     * @return  a skip further plugin processing startup plugin result.
      */
     public static Startup skipFurtherPluginProcesssing()
     {
@@ -117,8 +159,8 @@ public final class PluginResult
     /**
      * Whether to continue startup.
      *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
+     * @return {@code true} if processing should continue
+     * or {@code false} otherwise.
      */
     public boolean continueProcessing()
     {
@@ -128,9 +170,8 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
@@ -138,11 +179,11 @@ public final class PluginResult
     }
 
     /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
+     * Retrieves the error message if {@link #continueProcessing()}
+     * returned {@code false}.
      *
      * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
+     * stop or {@code null} if none is provided.
      */
     public LocalizableMessage getErrorMessage()
     {
@@ -156,7 +197,7 @@ public final class PluginResult
    * plugins, or stop operation processing with a result code,
    * matched DN, referral URLs, and error message.
    */
-  public static final class PreParse
+  public static final class PreParse implements OperationResult
   {
     /** Whether to continue operation processing. */
     private final boolean continueProcessing;
@@ -180,17 +221,15 @@ public final class PluginResult
         new PreParse(true, true, null, null, null, null);
 
     /**
-     * Construct a new pre parse plugin result.
+     * Constructs a new pre parse plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param resultCode The result code for this result.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
-     * stop.
      */
     private PreParse (boolean continueProcessing,
                       boolean continuePluginProcessing,
@@ -217,11 +256,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a skip further plugin processing pre parse plugin
-     * result.
+     * Defines a skip further plugin processing pre parse plugin result.
      *
-     * @return  a skip further plugin processing pre parse plugin
-     * result.
+     * @return  a skip further plugin processing pre parse plugin result.
      */
     public static PreParse skipFurtherPluginProcesssing()
     {
@@ -232,8 +269,7 @@ public final class PluginResult
      * Defines a new stop processing pre parse plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      *
@@ -249,11 +285,10 @@ public final class PluginResult
     }
 
     /**
-     * Contrust a new stop processing pre parse plugin result.
+     * Constructs a new stop processing pre parse plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      *
      * @return a new stop processing pre parse plugin result.
      */
@@ -264,12 +299,7 @@ public final class PluginResult
           null, null);
     }
 
-    /**
-     * Whether to continue operation processing.
-     *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
-     */
+    @Override
     public boolean continueProcessing()
     {
       return continueProcessing;
@@ -278,58 +308,33 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
       return continuePluginProcessing;
     }
 
-    /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
-     *
-     * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
-     */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
 
-    /**
-     * Retrieves the result code for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the result code for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * Retrieves the matched DN for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the matched DN for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * Retrieves the referral URLs for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the refferal URLs for the operation or
-     * <code>null</code> if none is provided.
-     */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -342,7 +347,7 @@ public final class PluginResult
    * plugins, or stop operation processing with a result code,
    * matched DN, referral URLs, and error message.
    */
-  public static final class PreOperation
+  public static final class PreOperation implements OperationResult
   {
     /** Whether to continue operation processing. */
     private final boolean continueProcessing;
@@ -366,17 +371,15 @@ public final class PluginResult
         new PreOperation(true, true, null, null, null, null);
 
     /**
-     * Construct a new pre operation plugin result.
+     * Constructs a new pre operation plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param resultCode The result code for this result.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
-     * stop.
      */
     private PreOperation (boolean continueProcessing,
                           boolean continuePluginProcessing,
@@ -403,11 +406,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a skip further plugin processing pre operation plugin
-     * result.
+     * Defines a skip further plugin processing pre operation plugin result.
      *
-     * @return  a skip further plugin processing pre operation plugin
-     * result.
+     * @return  a skip further plugin processing pre operation plugin result.
      */
     public static PreOperation skipFurtherPluginProcesssing()
     {
@@ -418,8 +419,7 @@ public final class PluginResult
      * Defines a new stop processing pre operation plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      *
@@ -434,11 +434,10 @@ public final class PluginResult
     }
 
     /**
-     * Contrust a new stop processing pre operation plugin result.
+     * Constructs a new stop processing pre operation plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      *
      * @return a new stop processing pre operation plugin result.
      */
@@ -449,12 +448,7 @@ public final class PluginResult
           null, null);
     }
 
-    /**
-     * Whether to continue operation processing.
-     *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
-     */
+    @Override
     public boolean continueProcessing()
     {
       return continueProcessing;
@@ -463,58 +457,33 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
       return continuePluginProcessing;
     }
 
-    /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
-     *
-     * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
-     */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
 
-    /**
-     * Retrieves the result code for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the result code for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * Retrieves the matched DN for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the matched DN for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * Retrieves the referral URLs for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the refferal URLs for the operation or
-     * <code>null</code> if none is provided.
-     */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -527,7 +496,7 @@ public final class PluginResult
    * plugins, or stop operation processing with a result code,
    * matched DN, referral URLs, and error message.
    */
-  public static final class PostOperation
+  public static final class PostOperation implements OperationResult
   {
     /** Whether to continue operation processing. */
     private final boolean continueProcessing;
@@ -551,8 +520,7 @@ public final class PluginResult
      * Constructs a new post operation plugin result.
      *
      * @param continueProcessing Whether to continue startup.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param resultCode The result code for this result.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
@@ -583,8 +551,7 @@ public final class PluginResult
      * Defines a new stop processing post operation plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      *
@@ -599,11 +566,10 @@ public final class PluginResult
     }
 
     /**
-     * Contrust a new stop processing post operation plugin result.
+     * Constructs a new stop processing post operation plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      *
      * @return a new stop processing post operation plugin result.
      */
@@ -614,60 +580,31 @@ public final class PluginResult
           null);
     }
 
-    /**
-     * Whether to continue operation processing.
-     *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
-     */
+    @Override
     public boolean continueProcessing()
     {
       return continueProcessing;
     }
 
-    /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
-     *
-     * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
-     */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
 
-    /**
-     * Retrieves the result code for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the result code for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * Retrieves the matched DN for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the matched DN for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * Retrieves the referral URLs for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the refferal URLs for the operation or
-     * <code>null</code> if none is provided.
-     */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -677,8 +614,7 @@ public final class PluginResult
 
   /**
    * Defines a post response plugin result for core server operation
-   * processing consisting of either continue or skip further
-   * plugins.
+   * processing consisting of either continue or skip further plugins.
    */
   public static final class PostResponse
   {
@@ -710,11 +646,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a skip further plugin processing post response plugin
-     *  result.
+     * Defines a skip further plugin processing post response plugin result.
      *
-     * @return  a skip further plugin processing post response plugin
-     *  result.
+     * @return  a skip further plugin processing post response plugin result.
      */
     public static PostResponse skipFurtherPluginProcesssing()
     {
@@ -724,9 +658,8 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
@@ -754,13 +687,12 @@ public final class PluginResult
         new ImportLDIF(true, true, null);
 
     /**
-     * Construct a new import LDIF plugin result.
+     * Constructs a new import LDIF plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
-     * @param errorMessage An message explaining why startup should
-     * stop.
+     * @param errorMessage An message explaining why startup should stop.
      */
     private ImportLDIF(boolean continueProcessing,
                        boolean continuePluginProcessing,
@@ -782,11 +714,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a skip further plugin processing LDIF import plugin
-     *  result.
+     * Defines a skip further plugin processing LDIF import plugin result.
      *
-     * @return  a skip further plugin processing LDIF import plugin
-     *  result.
+     * @return  a skip further plugin processing LDIF import plugin result.
      */
     public static ImportLDIF skipFurtherPluginProcesssing()
     {
@@ -809,8 +739,8 @@ public final class PluginResult
     /**
      * Whether to continue operation processing.
      *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
+     * @return {@code true} if processing should continue
+     * or {@code false} otherwise.
      */
     public boolean continueProcessing()
     {
@@ -820,9 +750,8 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
@@ -830,11 +759,11 @@ public final class PluginResult
     }
 
     /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
+     * Retrieves the error message if {@link #continueProcessing()}
+     * returned {@code false}.
      *
      * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
+     * stop or {@code null} if none is provided.
      */
     public LocalizableMessage getErrorMessage()
     {
@@ -848,7 +777,7 @@ public final class PluginResult
    * plugins, or stop operation processing with a result code,
    * matched DN, referral URLs, and error message.
    */
-  public static final class SubordinateModifyDN
+  public static final class SubordinateModifyDN implements OperationResult
   {
     /** Whether to continue operation processing. */
     private final boolean continueProcessing;
@@ -872,17 +801,15 @@ public final class PluginResult
         new SubordinateModifyDN(true, true, null, null, null, null);
 
     /**
-     * Construct a new subordinate modify DN plugin result.
+     * Constructs a new subordinate modify DN plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param resultCode The result code for this result.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
-     * stop.
      */
     private SubordinateModifyDN(boolean continueProcessing,
                                 boolean continuePluginProcessing,
@@ -899,11 +826,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a continue processing subordinate modify DN plugin
-     *  result.
+     * Defines a continue processing subordinate modify DN plugin result.
      *
-     * @return a continue processing subordinate modify DN plugin
-     *  result.
+     * @return a continue processing subordinate modify DN plugin result.
      */
     public static SubordinateModifyDN continueOperationProcessing()
     {
@@ -924,17 +849,14 @@ public final class PluginResult
     }
 
     /**
-     * Defines a new stop processing subordinate modify DN plugin
-     * result.
+     * Defines a new stop processing subordinate modify DN plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      *
-     * @return a new stop processing subordinate modify DN plugin
-     * result.
+     * @return a new stop processing subordinate modify DN plugin result.
      */
     public static SubordinateModifyDN stopProcessing(
         ResultCode resultCode, LocalizableMessage errorMessage, DN matchedDN,
@@ -945,15 +867,11 @@ public final class PluginResult
     }
 
     /**
-     * Contrust a new stop processing subordinate modify DN plugin
-     * result.
+     * Constructs a new stop processing subordinate modify DN plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
-     *
-     * @return a new stop processing subordinate modify DN plugin
-     * result.
+     * @param errorMessage An message explaining why processing should stop.
+     * @return a new stop processing subordinate modify DN plugin result.
      */
     public static SubordinateModifyDN stopProcessing(
         ResultCode resultCode, LocalizableMessage errorMessage)
@@ -962,12 +880,7 @@ public final class PluginResult
           resultCode, null, null);
     }
 
-    /**
-     * Whether to continue operation processing.
-     *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
-     */
+    @Override
     public boolean continueProcessing()
     {
       return continueProcessing;
@@ -976,58 +889,33 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
       return continuePluginProcessing;
     }
 
-    /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
-     *
-     * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
-     */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
 
-    /**
-     * Retrieves the result code for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the result code for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * Retrieves the matched DN for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the matched DN for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * Retrieves the referral URLs for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the refferal URLs for the operation or
-     * <code>null</code> if none is provided.
-     */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -1040,7 +928,7 @@ public final class PluginResult
    * further plugins, or stop operation processing with a result
    * code, matched DN, referral URLs, and error message.
    */
-  public static final class SubordinateDelete
+  public static final class SubordinateDelete implements OperationResult
   {
     /** Whether to continue operation processing. */
     private final boolean continueProcessing;
@@ -1064,17 +952,14 @@ public final class PluginResult
         new SubordinateDelete(true, true, null, null, null, null);
 
     /**
-     * Construct a new subordinate delete plugin result.
+     * Constructs a new subordinate delete plugin result.
      *
      * @param continueProcessing Whether to continue startup.
-     * @param continuePluginProcessing Whether to invoke the rest
-     * of the plugins.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param continuePluginProcessing Whether to invoke the rest of the plugins.
+     * @param errorMessage An message explaining why processing should stop.
      * @param resultCode The result code for this result.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
-     * stop.
      */
     private SubordinateDelete(boolean continueProcessing,
                               boolean continuePluginProcessing,
@@ -1091,11 +976,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a continue processing subordinate delete plugin
-     *  result.
+     * Defines a continue processing subordinate delete plugin result.
      *
-     * @return a continue processing subordinate delete plugin
-     *  result.
+     * @return a continue processing subordinate delete plugin result.
      */
     public static SubordinateDelete continueOperationProcessing()
     {
@@ -1116,17 +999,14 @@ public final class PluginResult
     }
 
     /**
-     * Defines a new stop processing subordinate delete plugin
-     * result.
+     * Defines a new stop processing subordinate delete plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      *
-     * @return a new stop processing subordinate delete plugin
-     * result.
+     * @return a new stop processing subordinate delete plugin result.
      */
     public static SubordinateDelete stopProcessing(
         ResultCode resultCode, LocalizableMessage errorMessage, DN matchedDN,
@@ -1137,15 +1017,11 @@ public final class PluginResult
     }
 
     /**
-     * Contrust a new stop processing subordinate delete plugin
-     * result.
+     * Constructs a new stop processing subordinate delete plugin result.
      *
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
-     *
-     * @return a new stop processing subordinate delete plugin
-     * result.
+     * @param errorMessage An message explaining why processing should stop.
+     * @return a new stop processing subordinate delete plugin result.
      */
     public static SubordinateDelete stopProcessing(
         ResultCode resultCode, LocalizableMessage errorMessage)
@@ -1154,12 +1030,7 @@ public final class PluginResult
           resultCode, null, null);
     }
 
-    /**
-     * Whether to continue operation processing.
-     *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
-     */
+    @Override
     public boolean continueProcessing()
     {
       return continueProcessing;
@@ -1168,58 +1039,33 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
       return continuePluginProcessing;
     }
 
-    /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
-     *
-     * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
-     */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
 
-    /**
-     * Retrieves the result code for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the result code for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * Retrieves the matched DN for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the matched DN for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * Retrieves the referral URLs for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the refferal URLs for the operation or
-     * <code>null</code> if none is provided.
-     */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -1232,7 +1078,7 @@ public final class PluginResult
    * plugins, or stop operation processing with a result code,
    * matched DN, referral URLs, and error message.
    */
-  public static final class IntermediateResponse
+  public static final class IntermediateResponse implements OperationResult
   {
     /** Whether to continue operation processing. */
     private final boolean continueProcessing;
@@ -1260,19 +1106,17 @@ public final class PluginResult
             null);
 
     /**
-     * Construct a new intermediate response plugin result.
+     * Constructs a new intermediate response plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
      * @param sendResponse Whether to send the intermediate response
      * to the client.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param resultCode The result code for this result.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
-     * stop.
      */
     private IntermediateResponse(boolean continueProcessing,
                                  boolean continuePluginProcessing,
@@ -1291,13 +1135,11 @@ public final class PluginResult
     }
 
     /**
-     * Defines a continue processing intermediate response plugin
-     * result.
+     * Defines a continue processing intermediate response plugin result.
      *
      * @param sendResponse Whether to send the intermediate response
      * to the client.
-     * @return a continue processing intermediate response plugin
-     * result.
+     * @return a continue processing intermediate response plugin result.
      */
     public static IntermediateResponse
     continueOperationProcessing(boolean sendResponse)
@@ -1331,19 +1173,16 @@ public final class PluginResult
     }
 
     /**
-     * Defines a new stop processing intermediate response plugin
-     * result.
+     * Defines a new stop processing intermediate response plugin result.
      *
      * @param sendResponse Whether to send the intermediate response
      * to the client.
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param matchedDN The matched DN for this result.
      * @param referralURLs The set of referral URLs for this result.
      *
-     * @return a new stop processing intermediate response plugin
-     * result.
+     * @return a new stop processing intermediate response plugin result.
      */
     public static IntermediateResponse stopProcessing(
         boolean sendResponse, ResultCode resultCode,
@@ -1354,17 +1193,14 @@ public final class PluginResult
     }
 
     /**
-     * Contrust a new stop processing intermediate response plugin
-     * result.
+     * Constructs a new stop processing intermediate response plugin result.
      *
      * @param sendResponse Whether to send the intermediate response
      * to the client.
      * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      *
-     * @return a new stop processing intermediate response plugin
-     * result.
+     * @return a new stop processing intermediate response plugin result.
      */
     public static IntermediateResponse stopProcessing(
         boolean sendResponse, ResultCode resultCode,
@@ -1374,12 +1210,7 @@ public final class PluginResult
           errorMessage, resultCode, null, null);
     }
 
-    /**
-     * Whether to continue operation processing.
-     *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
-     */
+    @Override
     public boolean continueProcessing()
     {
       return continueProcessing;
@@ -1388,9 +1219,8 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
@@ -1400,57 +1230,33 @@ public final class PluginResult
     /**
      * Whether to send the intermediate response to the client.
      *
-     * @return <code>true</code> if the intermediate response should
-     * be sent to the client or <code>false</code> otherwise.
+     * @return {@code true} if the intermediate response should
+     * be sent to the client or {@code false} otherwise.
      */
     public boolean sendResponse()
     {
       return sendResponse;
     }
 
-    /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
-     *
-     * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
-     */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
 
-    /**
-     * Retrieves the result code for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the result code for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /**
-     * Retrieves the matched DN for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the matched DN for the operation or <code>null</code>
-     * if none is provided.
-     */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /**
-     * Retrieves the referral URLs for the operation
-     * if <code>continueProcessing</code> returned <code>false</code>.
-     *
-     * @return the refferal URLs for the operation or
-     * <code>null</code> if none is provided.
-     */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -1483,13 +1289,12 @@ public final class PluginResult
         new PostConnect(true, true, null, null, false);
 
     /**
-     * Construct a new post connect plugin result.
+     * Constructs a new post connect plugin result.
      *
      * @param continueProcessing Whether to continue startup.
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param errorMessage An message explaining why processing should stop.
      * @param disconnectReason The generic cause for the disconnect.
      * @param sendDisconnectNotification Whether to send a disconnect
      * notification to the client.
@@ -1518,11 +1323,9 @@ public final class PluginResult
     }
 
     /**
-     * Defines a skip further plugin processing post connect plugin
-     * result.
+     * Defines a skip further plugin processing post connect plugin result.
      *
-     * @return  a skip further plugin processing post connect plugin
-     * result.
+     * @return  a skip further plugin processing post connect plugin result.
      */
     public static PostConnect skipFurtherPluginProcesssing()
     {
@@ -1551,8 +1354,8 @@ public final class PluginResult
     /**
      * Whether to continue operation processing.
      *
-     * @return <code>true</code> if processing should continue
-     * or <code>false</code> otherwise.
+     * @return {@code true} if processing should continue
+     * or {@code false} otherwise.
      */
     public boolean continueProcessing()
     {
@@ -1562,9 +1365,8 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {
@@ -1572,11 +1374,11 @@ public final class PluginResult
     }
 
     /**
-     * Retrieves the error message if <code>continueProcessing</code>
-     * returned <code>false</code>.
+     * Retrieves the error message if {@link #continueProcessing()}
+     * returned {@code false}.
      *
      * @return An error message explaining why processing should
-     * stop or <code>null</code> if none is provided.
+     * stop or {@code null} if none is provided.
      */
     public LocalizableMessage getErrorMessage()
     {
@@ -1598,8 +1400,8 @@ public final class PluginResult
      * Indicates whether to try to provide notification to the client
      * that the connection will be closed.
      *
-     * @return <code>true</code> if notification should be provided or
-     * <code>false</code> otherwise.
+     * @return {@code true} if notification should be provided or
+     * {@code false} otherwise.
      */
     public boolean sendDisconnectNotification()
     {
@@ -1609,8 +1411,7 @@ public final class PluginResult
 
   /**
    * Defines a post disconnect plugin result for client connection
-   * processing consisting of either continue or skip further
-   * plugins.
+   * processing consisting of either continue or skip further plugins.
    */
   public static final class PostDisconnect
   {
@@ -1621,7 +1422,7 @@ public final class PluginResult
         new PostDisconnect(true);
 
     /**
-     * Construct a new post disconnect plugin result.
+     * Constructs a new post disconnect plugin result.
      *
      * @param continuePluginProcessing Whether to invoke the rest
      * of the plugins.
@@ -1656,9 +1457,8 @@ public final class PluginResult
     /**
      * Whether to invoke the rest of the plugins.
      *
-     * @return <code>true</code> if the rest of the plugins should
-     * be invoked for <code>false</code> to skip the rest of the
-     * plugins.
+     * @return {@code true} if the rest of the plugins should
+     * be invoked for {@code false} to skip the rest of the plugins.
      */
     public boolean continuePluginProcessing()
     {

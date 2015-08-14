@@ -27,6 +27,7 @@
 package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -34,13 +35,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.plugin.PluginResult;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PreOperationExtendedOperation;
@@ -273,12 +273,7 @@ public class ExtendedOperationBasis
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Log the extended request message.
     logExtendedRequest(this);
-
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
 
     try
     {
@@ -286,15 +281,8 @@ public class ExtendedOperationBasis
       checkIfCanceled(false);
 
       // Invoke the pre-parse extended plugins.
-      PluginResult.PreParse preParseResult =
-           pluginConfigManager.invokePreParseExtendedPlugins(this);
-
-      if(!preParseResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePreParseExtendedPlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
 
@@ -391,14 +379,8 @@ public class ExtendedOperationBasis
       try
       {
         // Invoke the pre-operation extended plugins.
-        PluginResult.PreOperation preOpResult =
-            pluginConfigManager.invokePreOperationExtendedPlugins(this);
-        if(!preOpResult.continueProcessing())
+        if (!processOperationResult(getPluginConfigManager().invokePreOperationExtendedPlugins(this)))
         {
-          setResultCode(preOpResult.getResultCode());
-          appendErrorMessage(preOpResult.getErrorMessage());
-          setMatchedDN(preOpResult.getMatchedDN());
-          setReferralURLs(preOpResult.getReferralURLs());
           return;
         }
 
@@ -410,7 +392,7 @@ public class ExtendedOperationBasis
       }
       finally
       {
-        pluginConfigManager.invokePostOperationExtendedPlugins(this);
+        getPluginConfigManager().invokePostOperationExtendedPlugins(this);
       }
 
     }
@@ -446,7 +428,7 @@ public class ExtendedOperationBasis
       }
 
       // Invoke the post-response extended plugins.
-      pluginConfigManager.invokePostResponseExtendedPlugins(this);
+      getPluginConfigManager().invokePostResponseExtendedPlugins(this);
 
       // If no cancel result, set it
       if(cancelResult == null)

@@ -40,7 +40,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
@@ -49,7 +48,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationWrapper;
 import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
@@ -58,17 +56,18 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -184,25 +183,17 @@ public class LocalBackendModifyDNOperation
       processModifyDN(executePostOpPlugins);
 
       // Invoke the post-operation or post-synchronization modify DN plugins.
-      PluginConfigManager pluginConfigManager =
-          DirectoryServer.getPluginConfigManager();
       if (isSynchronizationOperation())
       {
         if (getResultCode() == ResultCode.SUCCESS)
         {
-          pluginConfigManager.invokePostSynchronizationModifyDNPlugins(this);
+          getPluginConfigManager().invokePostSynchronizationModifyDNPlugins(this);
         }
       }
       else if (executePostOpPlugins.get())
       {
-        PluginResult.PostOperation postOpResult =
-            pluginConfigManager.invokePostOperationModifyDNPlugins(this);
-        if (!postOpResult.continueProcessing())
+        if (!processOperationResult(this, getPluginConfigManager().invokePostOperationModifyDNPlugins(this)))
         {
-          setResultCode(postOpResult.getResultCode());
-          appendErrorMessage(postOpResult.getErrorMessage());
-          setMatchedDN(postOpResult.getMatchedDN());
-          setReferralURLs(postOpResult.getReferralURLs());
           return;
         }
       }
@@ -420,15 +411,8 @@ public class LocalBackendModifyDNOperation
         int modCount = modifications.size();
 
         executePostOpPlugins.set(true);
-        PluginResult.PreOperation preOpResult =
-            DirectoryServer.getPluginConfigManager()
-                .invokePreOperationModifyDNPlugins(this);
-        if (!preOpResult.continueProcessing())
+        if (!processOperationResult(this, getPluginConfigManager().invokePreOperationModifyDNPlugins(this)))
         {
-          setResultCode(preOpResult.getResultCode());
-          appendErrorMessage(preOpResult.getErrorMessage());
-          setMatchedDN(preOpResult.getMatchedDN());
-          setReferralURLs(preOpResult.getReferralURLs());
           return;
         }
 
@@ -814,16 +798,9 @@ public class LocalBackendModifyDNOperation
    */
   private boolean handleConflictResolution()
   {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
-              SynchronizationProviderResult result =
-                  provider.handleConflictResolution(this);
-              if (!result.continueProcessing()) {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if (!processOperationResult(this, provider.handleConflictResolution(this))) {
                   return false;
               }
           } catch (DirectoryException de) {
@@ -845,16 +822,9 @@ public class LocalBackendModifyDNOperation
    */
   private boolean processPreOperation()
   {
-      for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders()) {
+      for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
-              SynchronizationProviderResult result =
-                  provider.doPreOperation(this);
-              if (! result.continueProcessing()) {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
+              if (!processOperationResult(this, provider.doPreOperation(this))) {
                   return false;
               }
           } catch (DirectoryException de) {

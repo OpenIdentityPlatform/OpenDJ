@@ -39,6 +39,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.plugin.PluginResult.OperationResult;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -791,5 +792,49 @@ public abstract class AbstractOperation
   public void updateOperationErrMsgAndResCode()
   {
     // do nothing by default
+  }
+
+  /**
+   * Processes the provided operation result for the current operation.
+   *
+   * @param operationResult the operation result
+   * @return {@code true} if processing can continue, {@code false} otherwise
+   */
+  public boolean processOperationResult(OperationResult operationResult)
+  {
+    return processOperationResult(this, operationResult);
+  }
+
+  /**
+   * Processes the provided operation result for the provided operation.
+   *
+   * @param op the operation
+   * @param opResult the operation result
+   * @return {@code true} if processing can continue, {@code false} otherwise
+   */
+  public static boolean processOperationResult(Operation op, OperationResult opResult)
+  {
+    if (!opResult.continueProcessing())
+    {
+      op.setResultCode(opResult.getResultCode());
+      op.appendErrorMessage(opResult.getErrorMessage());
+      op.setMatchedDN(opResult.getMatchedDN());
+      op.setReferralURLs(opResult.getReferralURLs());
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Sets the results from the provided directory exception on the current operation.
+   *
+   * @param de the directory exception
+   */
+  public void setResults(DirectoryException de)
+  {
+    setResultCode(de.getResultCode());
+    appendErrorMessage(de.getMessageObject());
+    setMatchedDN(de.getMatchedDN());
+    setReferralURLs(de.getReferralURLs());
   }
 }

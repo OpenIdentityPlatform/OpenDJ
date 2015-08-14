@@ -30,19 +30,21 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -114,16 +116,7 @@ public class LocalBackendSearchOperation
       // Invoke the post-operation search plugins.
       if (executePostOpPlugins.get())
       {
-        PluginResult.PostOperation postOpResult =
-            DirectoryServer.getPluginConfigManager()
-                .invokePostOperationSearchPlugins(this);
-        if (!postOpResult.continueProcessing())
-        {
-          setResultCode(postOpResult.getResultCode());
-          appendErrorMessage(postOpResult.getErrorMessage());
-          setMatchedDN(postOpResult.getMatchedDN());
-          setReferralURLs(postOpResult.getReferralURLs());
-        }
+        processOperationResult(this, getPluginConfigManager().invokePostOperationSearchPlugins(this));
       }
     }
     finally
@@ -160,16 +153,14 @@ public class LocalBackendSearchOperation
     }
 
 
-    // Check to see if the client has permission to perform the
-    // search.
+    // Check to see if the client has permission to perform the search.
 
     // FIXME: for now assume that this will check all permission
     // pertinent to the operation. This includes proxy authorization
     // and any other controls specified.
     try
     {
-      if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .isAllowed(this))
+      if (!getAccessControlHandler().isAllowed(this))
       {
         setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
         appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(baseDN));
@@ -189,15 +180,8 @@ public class LocalBackendSearchOperation
 
     // Invoke the pre-operation search plugins.
     executePostOpPlugins.set(true);
-    PluginResult.PreOperation preOpResult =
-        DirectoryServer.getPluginConfigManager()
-            .invokePreOperationSearchPlugins(this);
-    if (!preOpResult.continueProcessing())
+    if (!processOperationResult(this, getPluginConfigManager().invokePreOperationSearchPlugins(this)))
     {
-      setResultCode(preOpResult.getResultCode());
-      appendErrorMessage(preOpResult.getErrorMessage());
-      setMatchedDN(preOpResult.getMatchedDN());
-      setReferralURLs(preOpResult.getReferralURLs());
       return;
     }
 
@@ -347,10 +331,8 @@ public class LocalBackendSearchOperation
                            ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
           }
 
-          // Check if the current user has permission to make
-          // this determination.
-          if (!AccessControlConfigManager.getInstance().
-            getAccessControlHandler().isAllowed(this, entry, assertionFilter))
+          // Check if the current user has permission to make this determination.
+          if (!getAccessControlHandler().isAllowed(this, entry, assertionFilter))
           {
             throw new DirectoryException(
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -439,9 +421,9 @@ public class LocalBackendSearchOperation
     }
   }
 
-  private DN getName(Entry e)
+  private AccessControlHandler<?> getAccessControlHandler()
   {
-    return e != null ? e.getName() : DN.rootDN();
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
   }
 
   /** Indicates if the backend supports the control corresponding to provided oid. */

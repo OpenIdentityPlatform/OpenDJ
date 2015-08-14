@@ -27,15 +27,15 @@
 package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PreParseAbandonOperation;
 
@@ -168,26 +168,14 @@ public class AbandonOperationBasis extends AbstractOperation
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Log the abandon request message.
     logAbandonRequest(this);
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
+    // Create a labeled block of code that we can break out of if a problem is detected.
 abandonProcessing:
     {
       // Invoke the pre-parse abandon plugins.
-      PluginResult.PreParse preParseResult =
-           pluginConfigManager.invokePreParseAbandonPlugins(this);
-      if (!preParseResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePreParseAbandonPlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         break abandonProcessing;
       }
 
@@ -213,14 +201,8 @@ abandonProcessing:
       setResultCode(result.getResultCode());
       appendErrorMessage(result.getResponseMessage());
 
-      PluginResult.PostOperation postOpResult =
-          pluginConfigManager.invokePostOperationAbandonPlugins(this);
-      if (!postOpResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePostOperationAbandonPlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         break abandonProcessing;
       }
     }

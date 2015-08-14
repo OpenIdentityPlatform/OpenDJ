@@ -69,6 +69,7 @@ import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -323,11 +324,7 @@ public class SearchOperationBasis
     catch (DirectoryException de)
     {
       logger.traceException(de);
-
-      setResultCode(de.getResultCode());
-      appendErrorMessage(de.getMessageObject());
-      setMatchedDN(de.getMatchedDN());
-      setReferralURLs(de.getReferralURLs());
+      setResults(de);
     }
     return baseDN;
   }
@@ -439,11 +436,7 @@ public class SearchOperationBasis
     catch (DirectoryException de)
     {
       logger.traceException(de);
-
-      setResultCode(de.getResultCode());
-      appendErrorMessage(de.getMessageObject());
-      setMatchedDN(de.getMatchedDN());
-      setReferralURLs(de.getReferralURLs());
+      setResults(de);
     }
     return filter;
   }
@@ -1034,14 +1027,9 @@ public class SearchOperationBasis
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Log the search request message.
     logSearchRequest(this);
 
     setSendResponse(true);
-
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
 
     int timeLimit = getTimeLimit();
     long timeLimitExpiration;
@@ -1061,15 +1049,8 @@ public class SearchOperationBasis
       // Check for and handle a request to cancel this operation.
       checkIfCanceled(false);
 
-      PluginResult.PreParse preParseResult =
-          pluginConfigManager.invokePreParseSearchPlugins(this);
-
-      if(!preParseResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePreParseSearchPlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
 
@@ -1133,18 +1114,12 @@ public class SearchOperationBasis
   }
 
 
-  /**
-   * Invokes the post response plugins.
-   */
+  /** Invokes the post response plugins. */
   private void invokePostResponsePlugins()
   {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
     // Invoke the post response plugins that have been registered with
     // the current operation
-    pluginConfigManager.invokePostResponseSearchPlugins(this);
+    getPluginConfigManager().invokePostResponseSearchPlugins(this);
   }
 
   /** {@inheritDoc} */
