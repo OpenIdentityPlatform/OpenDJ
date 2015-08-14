@@ -34,7 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
@@ -537,14 +536,8 @@ public class BindOperationBasis
     try
     {
       // Invoke the pre-parse bind plugins.
-      PluginResult.PreParse preParseResult =
-          getPluginConfigManager().invokePreParseBindPlugins(this);
-      if (!preParseResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePreParseBindPlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
 
@@ -611,25 +604,18 @@ public class BindOperationBasis
    */
   private void invokePostResponsePlugins(boolean workflowExecuted)
   {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
     // Invoke the post response plugins
     if (workflowExecuted)
     {
-      // The post responses are provided by the workflow elements of the
-      // workflow.
-      List localOperations =
-        (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+      // The post responses are provided by the workflow elements of the workflow.
+      List localOperations = (List) getAttachment(Operation.LOCALBACKENDOPERATIONS);
       if (localOperations != null)
       {
         for (Object localOp : localOperations)
         {
-          LocalBackendBindOperation localOperation =
-            (LocalBackendBindOperation)localOp;
+          LocalBackendBindOperation localOperation = (LocalBackendBindOperation) localOp;
           // Invoke the post-response bind plugins.
-          pluginConfigManager.invokePostResponseBindPlugins(localOperation);
+          getPluginConfigManager().invokePostResponseBindPlugins(localOperation);
         }
       }
       else

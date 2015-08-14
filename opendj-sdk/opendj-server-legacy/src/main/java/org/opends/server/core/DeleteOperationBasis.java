@@ -33,13 +33,13 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
@@ -152,11 +152,7 @@ public class DeleteOperationBasis
     catch (DirectoryException de)
     {
       logger.traceException(de);
-
-      setResultCode(de.getResultCode());
-      appendErrorMessage(de.getMessageObject());
-      setMatchedDN(de.getMatchedDN());
-      setReferralURLs(de.getReferralURLs());
+      setResults(de);
     }
 
     return entryDN;
@@ -228,27 +224,15 @@ public class DeleteOperationBasis
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Log the delete request message.
     logDeleteRequest(this);
-
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
-
     try
     {
       // Invoke the pre-parse delete plugins.
-      PluginResult.PreParse preParseResult =
-          pluginConfigManager.invokePreParseDeletePlugins(this);
-      if(!preParseResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePreParseDeletePlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
 
@@ -319,10 +303,6 @@ public class DeleteOperationBasis
    */
   private void invokePostResponsePlugins(boolean workflowExecuted)
   {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
     // Invoke the post response plugins
     if (workflowExecuted)
     {
@@ -335,7 +315,7 @@ public class DeleteOperationBasis
       {
         for (LocalBackendDeleteOperation localOperation : localOperations)
         {
-          pluginConfigManager.invokePostResponseDeletePlugins(localOperation);
+          getPluginConfigManager().invokePostResponseDeletePlugins(localOperation);
         }
       }
     }
@@ -343,7 +323,7 @@ public class DeleteOperationBasis
     {
       // Invoke the post response plugins that have been registered with
       // the current operation
-      pluginConfigManager.invokePostResponseDeletePlugins(this);
+      getPluginConfigManager().invokePostResponseDeletePlugins(this);
     }
   }
 

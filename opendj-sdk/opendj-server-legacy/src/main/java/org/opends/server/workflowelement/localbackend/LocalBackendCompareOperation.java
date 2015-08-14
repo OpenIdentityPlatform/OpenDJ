@@ -25,32 +25,33 @@
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
-
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.core.*;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.AccessControlHandler;
+import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.core.*;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines an operation that may be used to determine whether a
- * specified entry in the Directory Server contains a given attribute-value
- * pair.
+ * specified entry in the Directory Server contains a given attribute-value pair.
  */
 public class LocalBackendCompareOperation
        extends CompareOperationWrapper
@@ -59,26 +60,13 @@ public class LocalBackendCompareOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /**
-   * The backend in which the comparison is to be performed.
-   */
+  /** The backend in which the comparison is to be performed. */
   private Backend<?> backend;
-
-  /**
-   * The client connection for this operation.
-   */
+  /** The client connection for this operation. */
   private ClientConnection clientConnection;
-
-  /**
-   * The DN of the entry to compare.
-   */
+  /** The DN of the entry to compare. */
   private DN entryDN;
-
-  /**
-   * The entry to be compared.
-   */
+  /** The entry to be compared. */
   private Entry entry;
 
 
@@ -139,16 +127,7 @@ public class LocalBackendCompareOperation
       // Invoke the post-operation compare plugins.
       if (executePostOpPlugins.get())
       {
-        PluginResult.PostOperation postOpResult =
-            DirectoryServer.getPluginConfigManager()
-                .invokePostOperationComparePlugins(this);
-        if (!postOpResult.continueProcessing())
-        {
-          setResultCode(postOpResult.getResultCode());
-          appendErrorMessage(postOpResult.getErrorMessage());
-          setMatchedDN(postOpResult.getMatchedDN());
-          setReferralURLs(postOpResult.getReferralURLs());
-        }
+        processOperationResult(this, getPluginConfigManager().invokePostOperationComparePlugins(this));
       }
     }
     finally
@@ -223,8 +202,7 @@ public class LocalBackendCompareOperation
       // have already exposed sensitive information to the client.
       try
       {
-        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-            .isAllowed(this))
+        if (!getAccessControlHandler().isAllowed(this))
         {
           setResultCodeAndMessageNoInfoDisclosure(entry, entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -245,60 +223,30 @@ public class LocalBackendCompareOperation
 
       // Invoke the pre-operation compare plugins.
       executePostOpPlugins.set(true);
-      PluginResult.PreOperation preOpResult =
-          DirectoryServer.getPluginConfigManager()
-              .invokePreOperationComparePlugins(this);
-      if (!preOpResult.continueProcessing())
+      if (!processOperationResult(this, getPluginConfigManager().invokePreOperationComparePlugins(this)))
       {
-        setResultCode(preOpResult.getResultCode());
-        appendErrorMessage(preOpResult.getErrorMessage());
-        setMatchedDN(preOpResult.getMatchedDN());
-        setReferralURLs(preOpResult.getReferralURLs());
         return;
       }
 
 
       // Get the base attribute type and set of options.
       Set<String> options = getAttributeOptions();
-
-      // Actually perform the compare operation.
       AttributeType attrType = getAttributeType();
 
+      // Actually perform the compare operation.
       List<Attribute> attrList = entry.getAttribute(attrType, options);
       if (attrList == null || attrList.isEmpty())
       {
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
-        if (options == null)
-        {
-          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(entryDN, getRawAttributeType()));
-        }
-        else
-        {
-          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(entryDN, getRawAttributeType()));
-        }
+        Arg2<Object, Object> errorMsg = options == null
+            ? WARN_COMPARE_OP_NO_SUCH_ATTR
+            : WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS;
+        appendErrorMessage(errorMsg.get(entryDN, getRawAttributeType()));
       }
       else
       {
         ByteString value = getAssertionValue();
-
-        boolean matchFound = false;
-        for (Attribute a : attrList)
-        {
-          if (a.contains(value))
-          {
-            matchFound = true;
-            break;
-          }
-        }
-
-        if (matchFound)
-        {
-          setResultCode(ResultCode.COMPARE_TRUE);
-        }
-        else
-        {
-          setResultCode(ResultCode.COMPARE_FALSE);
-        }
+        setResultCode(matchExists(attrList, value));
       }
     }
     catch (DirectoryException de)
@@ -306,6 +254,18 @@ public class LocalBackendCompareOperation
       logger.traceException(de);
       setResponseData(de);
     }
+  }
+
+  private ResultCode matchExists(List<Attribute> attrList, ByteString value)
+  {
+    for (Attribute a : attrList)
+    {
+      if (a.contains(value))
+      {
+        return ResultCode.COMPARE_TRUE;
+      }
+    }
+    return ResultCode.COMPARE_FALSE;
   }
 
   private DirectoryException newDirectoryException(Entry entry,
@@ -382,10 +342,8 @@ public class LocalBackendCompareOperation
                 ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
 
-          // Check if the current user has permission to make
-          // this determination.
-          if (!AccessControlConfigManager.getInstance().
-            getAccessControlHandler().isAllowed(this, entry, filter))
+          // Check if the current user has permission to make this determination.
+          if (!getAccessControlHandler().isAllowed(this, entry, filter))
           {
             throw new DirectoryException(
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -428,5 +386,10 @@ public class LocalBackendCompareOperation
         }
       }
     }
+  }
+
+  private AccessControlHandler<?> getAccessControlHandler()
+  {
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
   }
 }

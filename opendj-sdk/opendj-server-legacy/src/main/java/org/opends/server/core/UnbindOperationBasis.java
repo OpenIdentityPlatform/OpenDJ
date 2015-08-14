@@ -27,14 +27,15 @@
 package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 
 import java.util.List;
 
-import org.opends.server.api.ClientConnection;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 
@@ -125,19 +126,12 @@ public class UnbindOperationBasis
   @Override
   public final void run()
   {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
     setProcessingStartTime();
-
 
     // Invoke the pre-parse unbind plugins.  We don't care about the result
     // since we're going to close the connection anyway.
-    pluginConfigManager.invokePreParseUnbindPlugins(this);
+    getPluginConfigManager().invokePreParseUnbindPlugins(this);
 
-
-    // Log the unbind request.
     logUnbind(this);
 
 
@@ -151,7 +145,7 @@ public class UnbindOperationBasis
 
 
     // Invoke the post-operation unbind plugins.
-    pluginConfigManager.invokePostOperationUnbindPlugins(this);
+    getPluginConfigManager().invokePostOperationUnbindPlugins(this);
 
     setProcessingStopTime();
   }

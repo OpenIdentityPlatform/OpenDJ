@@ -33,7 +33,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -43,6 +42,7 @@ import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
@@ -325,32 +325,18 @@ public class ModifyOperationBasis
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Log the modify request message.
     logModifyRequest(this);
-
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
-
-
     try
     {
       // Check for and handle a request to cancel this operation.
       checkIfCanceled(false);
 
       // Invoke the pre-parse modify plugins.
-      PluginResult.PreParse preParseResult =
-          pluginConfigManager.invokePreParseModifyPlugins(this);
-
-      if(!preParseResult.continueProcessing())
+      if (!processOperationResult(getPluginConfigManager().invokePreParseModifyPlugins(this)))
       {
-        setResultCode(preParseResult.getResultCode());
-        appendErrorMessage(preParseResult.getErrorMessage());
-        setMatchedDN(preParseResult.getMatchedDN());
-        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
 
@@ -419,10 +405,6 @@ public class ModifyOperationBasis
    */
   private void invokePostResponsePlugins(boolean workflowExecuted)
   {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
     // Invoke the post response plugins
     if (workflowExecuted)
     {
@@ -436,7 +418,7 @@ public class ModifyOperationBasis
       {
         for (LocalBackendModifyOperation localOperation : localOperations)
         {
-          pluginConfigManager.invokePostResponseModifyPlugins(localOperation);
+          getPluginConfigManager().invokePostResponseModifyPlugins(localOperation);
         }
       }
     }
@@ -444,7 +426,7 @@ public class ModifyOperationBasis
     {
       // Invoke the post response plugins that have been registered with
       // the current operation
-      pluginConfigManager.invokePostResponseModifyPlugins(this);
+      getPluginConfigManager().invokePostResponseModifyPlugins(this);
     }
   }
 

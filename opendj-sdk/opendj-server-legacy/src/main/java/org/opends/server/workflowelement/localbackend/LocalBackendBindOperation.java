@@ -39,7 +39,6 @@ import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
@@ -49,6 +48,7 @@ import org.opends.server.types.operation.PreOperationBindOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.types.Privilege.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -184,15 +184,7 @@ public class LocalBackendBindOperation
     // Invoke the post-operation bind plugins.
     if (executePostOpPlugins)
     {
-      PluginResult.PostOperation postOpResult =
-           pluginConfigManager.invokePostOperationBindPlugins(this);
-      if (!postOpResult.continueProcessing())
-      {
-        setResultCode(postOpResult.getResultCode());
-        appendErrorMessage(postOpResult.getErrorMessage());
-        setMatchedDN(postOpResult.getMatchedDN());
-        setReferralURLs(postOpResult.getReferralURLs());
-      }
+      processOperationResult(this, pluginConfigManager.invokePostOperationBindPlugins(this));
     }
 
     // Update the authentication information for the user.
@@ -753,17 +745,7 @@ public class LocalBackendBindOperation
   private boolean invokePreOpPlugins()
   {
     executePostOpPlugins = true;
-    PluginResult.PreOperation preOpResult = pluginConfigManager
-        .invokePreOperationBindPlugins(this);
-    if (!preOpResult.continueProcessing())
-    {
-      setResultCode(preOpResult.getResultCode());
-      appendErrorMessage(preOpResult.getErrorMessage());
-      setMatchedDN(preOpResult.getMatchedDN());
-      setReferralURLs(preOpResult.getReferralURLs());
-      return false;
-    }
-    return true;
+    return processOperationResult(this, pluginConfigManager.invokePreOperationBindPlugins(this));
   }
 
   /**

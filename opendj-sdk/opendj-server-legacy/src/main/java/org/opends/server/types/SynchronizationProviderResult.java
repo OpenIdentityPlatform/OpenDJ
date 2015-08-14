@@ -30,7 +30,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
-
+import org.opends.server.api.plugin.PluginResult.OperationResult;
 
 /**
  * This class defines a data structure that holds information about
@@ -41,112 +41,58 @@ import org.forgerock.opendj.ldap.ResultCode;
     mayInstantiate=false,
     mayExtend=false,
     mayInvoke=true)
-public interface SynchronizationProviderResult
+public interface SynchronizationProviderResult extends OperationResult
 {
-  /**
-   * Indicates whether processing on the associated operation should
-   * continue.
-   *
-   * @return  <CODE>true</CODE> if processing on the associated
-   *          operation should continue, or <CODE>false</CODE> if it
-   *          should stop.
-   */
-  boolean continueProcessing();
-
-  /**
-   * Retrieves the error message if <code>continueProcessing</code>
-   * returned <code>false</code>.
-   *
-   * @return An error message explaining why processing should
-   * stop or <code>null</code> if none is provided.
-   */
-  LocalizableMessage getErrorMessage();
-
-  /**
-   * Retrieves the result code for the operation
-   * if <code>continueProcessing</code> returned <code>false</code>.
-   *
-   * @return the result code for the operation or <code>null</code>
-   * if none is provided.
-   */
-  ResultCode getResultCode();
-
-  /**
-   * Retrieves the matched DN for the operation
-   * if <code>continueProcessing</code> returned <code>false</code>.
-   *
-   * @return the matched DN for the operation or <code>null</code>
-   * if none is provided.
-   */
-  DN getMatchedDN();
-
-  /**
-   * Retrieves the referral URLs for the operation
-   * if <code>continueProcessing</code> returned <code>false</code>.
-   *
-   * @return the referral URLs for the operation or
-   * <code>null</code> if none is provided.
-   */
-  List<String> getReferralURLs();
-
-  /**
-   * Defines a continue processing synchronization provider result.
-   */
-  public class ContinueProcessing
-      implements SynchronizationProviderResult
+  /** Defines a continue processing synchronization provider result. */
+  public class ContinueProcessing implements SynchronizationProviderResult
   {
-    /** {@inheritDoc} */
     @Override
     public ResultCode getResultCode()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getMatchedDN()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<String> getReferralURLs()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean continueProcessing()
     {
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getErrorMessage()
     {
       return null;
     }
+
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName();
+    }
   }
 
-  /**
-   * Defines a stop processing synchronization provider result.
-   */
-  public class StopProcessing
-      implements SynchronizationProviderResult
+  /** Defines a stop processing synchronization provider result. */
+  public class StopProcessing implements SynchronizationProviderResult
   {
-    /** The matched DN for this result. */
-    private final DN matchedDN;
-
-    /** The set of referral URLs for this result. */
-    private final List<String> referralURLs;
-
     /** The result code for this result. */
     private final ResultCode resultCode;
-
     private final LocalizableMessage errorMessage;
+    /** The matched DN for this result. */
+    private final DN matchedDN;
+    /** The set of referral URLs for this result. */
+    private final List<String> referralURLs;
 
     /**
      * Construct a new stop processing synchronization provider result.
@@ -185,40 +131,52 @@ public interface SynchronizationProviderResult
       this.referralURLs = null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ResultCode getResultCode()
     {
       return resultCode;
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getMatchedDN()
     {
       return matchedDN;
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean continueProcessing()
     {
       return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;
     }
+
+    @Override
+    public String toString()
+    {
+      StringBuilder sb = new StringBuilder(getClass().getSimpleName())
+        .append("(resultCode=").append(resultCode)
+        .append(", errorMessage=").append(errorMessage);
+      if (matchedDN != null)
+      {
+        sb.append(", matchedDN=").append(matchedDN);
+      }
+      if (referralURLs != null && !referralURLs.isEmpty())
+      {
+        sb.append(", referralURLs=").append(referralURLs);
+      }
+      sb.append(")");
+      return sb.toString();
+    }
   }
 }
-
