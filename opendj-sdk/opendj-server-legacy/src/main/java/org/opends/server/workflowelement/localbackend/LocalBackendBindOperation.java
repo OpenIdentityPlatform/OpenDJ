@@ -27,9 +27,13 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.Backend;
@@ -38,10 +42,7 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationBindOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;
 import org.opends.server.types.operation.PreOperationBindOperation;
@@ -63,26 +64,18 @@ public class LocalBackendBindOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The backend in which the bind operation should be processed.
-   */
-  protected Backend<?> backend;
+  /** The backend in which the bind operation should be processed. */
+  private Backend<?> backend;
 
   /**
    * Indicates whether the bind response should include the first warning
    * for an upcoming password expiration.
    */
-  protected boolean isFirstWarning;
+  private boolean isFirstWarning;
+  /** Indicates whether this bind is using a grace login for the user. */
+  private boolean isGraceLogin;
 
-  /**
-   * Indicates whether this bind is using a grace login for the user.
-   */
-  protected boolean isGraceLogin;
-
-  /**
-   * Indicates whether the user must change his/her password before doing
-   * anything else.
-   */
+  /** Indicates whether the user must change his/her password before doing anything else. */
   private boolean mustChangePassword;
 
   /** Indicates whether the user requested the password policy control. */
@@ -94,31 +87,23 @@ public class LocalBackendBindOperation
    */
   private boolean returnAuthzID;
 
-  /**
-   * Indicates whether to execute post-operation plugins.
-   */
-  protected boolean executePostOpPlugins;
+  /** Indicates whether to execute post-operation plugins. */
+  private boolean executePostOpPlugins;
 
   /** The client connection associated with this bind operation. */
   private ClientConnection clientConnection;
 
-  /**
-   * The bind DN provided by the client.
-   */
-  protected DN bindDN;
-
-  /** The lookthrough limit that should be enforced for the user. */
-  private int lookthroughLimit;
+  /** The bind DN provided by the client. */
+  private DN bindDN;
 
   /** The value to use for the password policy warning. */
   private int pwPolicyWarningValue;
-
+  /** The lookthrough limit that should be enforced for the user. */
+  private int lookthroughLimit;
   /** The size limit that should be enforced for the user. */
   private int sizeLimit;
-
   /** The time limit that should be enforced for the user. */
   private int timeLimit;
-
   /** The idle time limit that should be enforced for the user. */
   private long idleTimeLimit;
 
@@ -127,19 +112,14 @@ public class LocalBackendBindOperation
 
   /** The password policy error type for this bind operation. */
   private PasswordPolicyErrorType pwPolicyErrorType;
-
   /** The password policy warning type for this bind operation. */
   private PasswordPolicyWarningType pwPolicyWarningType;
 
-  /**
-   * The plugin config manager for the Directory Server.
-   */
-  protected PluginConfigManager pluginConfigManager;
+  /** The plugin config manager for the Directory Server. */
+  private PluginConfigManager pluginConfigManager;
 
   /** The SASL mechanism used for this bind operation. */
   private String saslMechanism;
-
-
 
   /**
    * Creates a new operation that may be used to bind where
@@ -147,20 +127,17 @@ public class LocalBackendBindOperation
    *
    * @param bind The operation to enhance.
    */
-  public LocalBackendBindOperation(BindOperation bind)
+  LocalBackendBindOperation(BindOperation bind)
   {
     super(bind);
     LocalBackendWorkflowElement.attachLocalOperation (bind, this);
   }
-
-
 
   /**
    * Process this bind operation in a local backend.
    *
    * @param wfe
    *          The local backend work-flow element.
-   *
    */
   public void processLocalBind(LocalBackendWorkflowElement wfe)
   {
@@ -204,7 +181,6 @@ public class LocalBackendBindOperation
       setResponseData(de);
     }
 
-
     // Invoke the post-operation bind plugins.
     if (executePostOpPlugins)
     {
@@ -218,7 +194,6 @@ public class LocalBackendBindOperation
         setReferralURLs(postOpResult.getReferralURLs());
       }
     }
-
 
     // Update the authentication information for the user.
     AuthenticationInfo authInfo = getAuthenticationInfo();
@@ -238,27 +213,22 @@ public class LocalBackendBindOperation
       }
     }
 
-
     // See if we need to send a password policy control to the client.  If so,
     // then add it to the response.
-    if (getResultCode() == ResultCode.SUCCESS)
+    if (pwPolicyControlRequested)
     {
-      if (pwPolicyControlRequested)
-      {
-        PasswordPolicyResponseControl pwpControl =
-             new PasswordPolicyResponseControl(pwPolicyWarningType,
-                                               pwPolicyWarningValue,
-                                               pwPolicyErrorType);
-        addResponseControl(pwpControl);
-      }
-      else
+      addResponseControl(new PasswordPolicyResponseControl(
+          pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
+    }
+    else
+    {
+      if (getResultCode() == ResultCode.SUCCESS)
       {
         if (pwPolicyErrorType == PasswordPolicyErrorType.PASSWORD_EXPIRED)
         {
           addResponseControl(new PasswordExpiredControl());
         }
-        else if (pwPolicyWarningType ==
-                 PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION)
+        else if (pwPolicyWarningType == PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION)
         {
           addResponseControl(new PasswordExpiringControl(pwPolicyWarningValue));
         }
@@ -266,17 +236,6 @@ public class LocalBackendBindOperation
         {
           addResponseControl(new PasswordExpiredControl());
         }
-      }
-    }
-    else
-    {
-      if (pwPolicyControlRequested)
-      {
-        PasswordPolicyResponseControl pwpControl =
-             new PasswordPolicyResponseControl(pwPolicyWarningType,
-                                               pwPolicyWarningValue,
-                                               pwPolicyErrorType);
-        addResponseControl(pwpControl);
       }
       else
       {
@@ -288,23 +247,19 @@ public class LocalBackendBindOperation
     }
   }
 
-
   /**
    * Performs the checks and processing necessary for the current bind operation
    * (simple or SASL).
    */
   private void processBind()
   {
-    // Check to see if the client has permission to perform the
-    // bind.
+    // Check to see if the client has permission to perform the bind.
 
     // FIXME: for now assume that this will check all permission
-    // pertinent to the operation. This includes any controls
-    // specified.
+    // pertinent to the operation. This includes any controls specified.
     try
     {
-      if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .isAllowed(this))
+      if (!AccessControlConfigManager.getInstance().getAccessControlHandler().isAllowed(this))
       {
         setResultCode(ResultCode.INVALID_CREDENTIALS);
         setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get());
@@ -405,8 +360,6 @@ public class LocalBackendBindOperation
     }
   }
 
-
-
   /**
    * Performs the processing necessary for a simple bind operation.
    *
@@ -416,8 +369,7 @@ public class LocalBackendBindOperation
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              operation to fail.
    */
-  protected boolean processSimpleBind()
-          throws DirectoryException
+  private boolean processSimpleBind() throws DirectoryException
   {
     // See if this is an anonymous bind.  If so, then determine whether
     // to allow it.
@@ -449,16 +401,13 @@ public class LocalBackendBindOperation
 
       if (de.getResultCode() == ResultCode.REFERRAL)
       {
-        // Re-throw referral exceptions - these should be passed back
-        // to the client.
+        // Re-throw referral exceptions - these should be passed back to the client.
         throw de;
       }
       else
       {
-        // Replace other exceptions in case they expose any sensitive
-        // information.
-        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-            de.getMessageObject());
+        // Replace other exceptions in case they expose any sensitive information.
+        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, de.getMessageObject());
       }
     }
 
@@ -467,11 +416,7 @@ public class LocalBackendBindOperation
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                                    ERR_BIND_OPERATION_UNKNOWN_USER.get());
     }
-    else
-    {
-      setUserEntryDN(userEntry.getName());
-    }
-
+    setUserEntryDN(userEntry.getName());
 
     // Check to see if the user has a password. If not, then fail.
     // FIXME -- We need to have a way to enable/disable debugging.
@@ -479,8 +424,7 @@ public class LocalBackendBindOperation
     if (authPolicyState.isPasswordPolicy())
     {
       // Account is managed locally.
-      PasswordPolicyState pwPolicyState =
-        (PasswordPolicyState) authPolicyState;
+      PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
       PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
       AttributeType pwType = policy.getPasswordAttribute();
@@ -600,8 +544,6 @@ public class LocalBackendBindOperation
     return true;
   }
 
-
-
   /**
    * Performs the processing necessary for an anonymous simple bind.
    *
@@ -610,7 +552,7 @@ public class LocalBackendBindOperation
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              operation to fail.
    */
-  protected boolean processAnonymousSimpleBind() throws DirectoryException
+  private boolean processAnonymousSimpleBind() throws DirectoryException
   {
     // If the server is in lockdown mode, then fail.
     if (DirectoryServer.lockdownMode())
@@ -627,7 +569,6 @@ public class LocalBackendBindOperation
                                    ERR_BIND_DN_BUT_NO_PASSWORD.get());
     }
 
-
     // Invoke pre-operation plugins.
     if (!invokePreOpPlugins())
     {
@@ -638,8 +579,6 @@ public class LocalBackendBindOperation
     setAuthenticationInfo(new AuthenticationInfo());
     return true;
   }
-
-
 
   /**
    * Performs the processing necessary for a SASL bind operation.
@@ -663,10 +602,8 @@ public class LocalBackendBindOperation
                           saslMechanism));
     }
 
-
     // Check to see if the client has sufficient permission to perform the bind.
     // NYI
-
 
     // Invoke pre-operation plugins.
     if (!invokePreOpPlugins())
@@ -676,7 +613,6 @@ public class LocalBackendBindOperation
 
     // Actually process the SASL bind.
     saslHandler.processSASLBind(this);
-
 
     // If the server is operating in lockdown mode, then we will need to
     // ensure that the authentication was successful and performed as a
@@ -710,7 +646,6 @@ public class LocalBackendBindOperation
         checkUnverifiedPasswordPolicyState(saslAuthUserEntry, saslHandler);
       }
     }
-
 
     // Determine whether the authentication was successful and perform
     // any remaining password policy processing accordingly.
@@ -769,8 +704,7 @@ public class LocalBackendBindOperation
     {
       if (authPolicyState != null && authPolicyState.isPasswordPolicy())
       {
-        PasswordPolicyState pwPolicyState =
-          (PasswordPolicyState) authPolicyState;
+        PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
 
         if (saslHandler.isPasswordBased(saslMechanism)
             && pwPolicyState.getAuthenticationPolicy().getLockoutFailureCount() > 0)
@@ -783,8 +717,6 @@ public class LocalBackendBindOperation
 
     return true;
   }
-
-
 
   private void generateAccountStatusNotificationForLockedBindAccount(
       Entry userEntry, PasswordPolicyState pwPolicyState)
@@ -799,8 +731,7 @@ public class LocalBackendBindOperation
       int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
       if (lockoutDuration > -1)
       {
-        notificationType =
-            AccountStatusNotificationType.ACCOUNT_TEMPORARILY_LOCKED;
+        notificationType = AccountStatusNotificationType.ACCOUNT_TEMPORARILY_LOCKED;
         tempLocked = true;
         m =
             ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED
@@ -808,8 +739,7 @@ public class LocalBackendBindOperation
       }
       else
       {
-        notificationType =
-            AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
+        notificationType = AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
         tempLocked = false;
         m = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
       }
@@ -819,7 +749,6 @@ public class LocalBackendBindOperation
               pwPolicyState, tempLocked, -1, null, null));
     }
   }
-
 
   private boolean invokePreOpPlugins()
   {
@@ -834,13 +763,8 @@ public class LocalBackendBindOperation
       setReferralURLs(preOpResult.getReferralURLs());
       return false;
     }
-    else
-    {
-      return true;
-    }
+    return true;
   }
-
-
 
   /**
    * Validates a number of password policy state constraints for the user. This
@@ -854,14 +778,13 @@ public class LocalBackendBindOperation
    * @throws DirectoryException
    *           If a problem occurs that should cause the bind to fail.
    */
-  protected void checkUnverifiedPasswordPolicyState(
+  private void checkUnverifiedPasswordPolicyState(
       Entry userEntry, SASLMechanismHandler<?> saslHandler)
       throws DirectoryException
   {
     PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
     PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
-    boolean isSASLBind = saslHandler != null;
 
     // If the password policy is configured to track authentication failures or
     // keep the last login time and the associated backend is disabled, then we
@@ -883,12 +806,12 @@ public class LocalBackendBindOperation
       }
     }
 
-
     // Check to see if the authentication must be done in a secure
     // manner.  If so, then the client connection must be secure.
     if (policy.isRequireSecureAuthentication()
         && !clientConnection.isSecure())
     {
+      boolean isSASLBind = saslHandler != null;
       if (isSASLBind)
       {
         if (! saslHandler.isSecure(saslMechanism))
@@ -916,14 +839,12 @@ public class LocalBackendBindOperation
    * @throws DirectoryException
    *           If a problem occurs that should cause the bind to fail.
    */
-  protected void checkVerifiedPasswordPolicyState(
+  private void checkVerifiedPasswordPolicyState(
       Entry userEntry, SASLMechanismHandler<?> saslHandler)
       throws DirectoryException
   {
     PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
     PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
-
-    boolean isSASLBind = saslHandler != null;
 
     // Check to see if the user is administratively disabled or locked.
     if (pwPolicyState.isDisabled())
@@ -967,9 +888,9 @@ public class LocalBackendBindOperation
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, m);
     }
 
-
     // If it's a simple bind, or if it's a password-based SASL bind, then
     // perform a number of password-based checks.
+    boolean isSASLBind = saslHandler != null;
     if (!isSASLBind || saslHandler.isPasswordBased(saslMechanism))
     {
       // Check to see if the account is locked due to the maximum reset age.
@@ -988,7 +909,6 @@ public class LocalBackendBindOperation
 
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, m);
       }
-
 
       // Determine whether the password is expired, or whether the user
       // should be warned about an upcoming expiration.
@@ -1048,14 +968,12 @@ public class LocalBackendBindOperation
 
         if (pwPolicyWarningType == null)
         {
-          pwPolicyWarningType =
-               PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION;
+          pwPolicyWarningType = PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION;
           pwPolicyWarningValue = numSeconds;
         }
 
         isFirstWarning = pwPolicyState.isFirstWarning();
       }
-
 
       // Check to see if the user's password has been reset.
       if (pwPolicyState.mustChangePassword())
@@ -1070,14 +988,12 @@ public class LocalBackendBindOperation
     }
   }
 
-
-
   /**
    * Sets resource limits for the authenticated user.
    *
    * @param  userEntry  The entry for the authenticated user.
    */
-  protected void setResourceLimits(Entry userEntry)
+  private void setResourceLimits(Entry userEntry)
   {
     // See if the user's entry contains a custom size limit.
     Integer customSizeLimit =
