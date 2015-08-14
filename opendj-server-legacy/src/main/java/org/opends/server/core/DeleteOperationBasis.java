@@ -57,15 +57,12 @@ public class DeleteOperationBasis
 
   /** The raw, unprocessed entry DN as included in the client request. */
   private ByteString rawEntryDN;
-
   /** The DN of the entry for the delete operation. */
   private DN entryDN;
-
   /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
-
   /** The set of response controls for this delete operation. */
-  private List<Control> responseControls;
+  private final List<Control> responseControls = new ArrayList<>();
 
   /**
    * Creates a new delete operation with the provided information.
@@ -86,12 +83,7 @@ public class DeleteOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.rawEntryDN = rawEntryDN;
-
-    entryDN          = null;
-    responseControls = new ArrayList<>();
-    cancelRequest    = null;
   }
 
 
@@ -114,22 +106,16 @@ public class DeleteOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.entryDN = entryDN;
-
-    rawEntryDN       = ByteString.valueOf(entryDN.toString());
-    responseControls = new ArrayList<>();
-    cancelRequest    = null;
+    rawEntryDN = ByteString.valueOf(entryDN.toString());
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -138,7 +124,6 @@ public class DeleteOperationBasis
     entryDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -152,13 +137,11 @@ public class DeleteOperationBasis
     catch (DirectoryException de)
     {
       logger.traceException(de);
-      setResults(de);
+      setResponseData(de);
     }
-
     return entryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -167,35 +150,30 @@ public class DeleteOperationBasis
     return OperationType.DELETE;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -208,14 +186,12 @@ public class DeleteOperationBasis
     buffer.append(")");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void run()
   {
@@ -327,14 +303,12 @@ public class DeleteOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
     appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(getEntryDN()));
   }
-
 
   /**
    * {@inheritDoc}
@@ -345,5 +319,4 @@ public class DeleteOperationBasis
   public Entry getEntryToDelete() {
     return null;
   }
-
 }

@@ -61,17 +61,12 @@ public class AddOperationBasis
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The set of response controls to send to the client. */
-  private ArrayList<Control> responseControls;
+  private final ArrayList<Control> responseControls = new ArrayList<>();
 
-  /**
-   * The raw, unprocessed entry DN as provided in the request. This may or may
-   * not be a valid DN.
-   */
+  /** The raw, unprocessed entry DN as provided in the request. This may or may not be a valid DN. */
   private ByteString rawEntryDN;
-
   /** The processed DN of the entry to add. */
   private DN entryDN;
-
   /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
@@ -81,13 +76,10 @@ public class AddOperationBasis
    * attributes may be invalid.
    */
   private List<RawAttribute> rawAttributes;
-
   /** The set of operational attributes for the entry to add. */
   private Map<AttributeType,List<Attribute>> operationalAttributes;
-
   /** The set of user attributes for the entry to add. */
   private Map<AttributeType,List<Attribute>> userAttributes;
-
   /** The set of objectclasses for the entry to add. */
   private Map<ObjectClass,String> objectClasses;
 
@@ -119,13 +111,10 @@ public class AddOperationBasis
     this.rawEntryDN    = rawEntryDN;
     this.rawAttributes = rawAttributes;
 
-    responseControls      = new ArrayList<>();
-    cancelRequest         = null;
     entryDN               = null;
     userAttributes        = null;
     operationalAttributes = null;
     objectClasses         = null;
-    proxiedAuthorizationDN = null;
   }
 
 
@@ -166,10 +155,6 @@ public class AddOperationBasis
     rawAttributes.add(new LDAPAttribute(ATTR_OBJECTCLASS, values));
     addAll(rawAttributes, userAttributes);
     addAll(rawAttributes, operationalAttributes);
-
-    responseControls = new ArrayList<>();
-    proxiedAuthorizationDN = null;
-    cancelRequest    = null;
   }
 
   private void addAll(List<RawAttribute> rawAttributes, Map<AttributeType, List<Attribute>> attributesToAdd)
@@ -183,14 +168,12 @@ public class AddOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -199,7 +182,6 @@ public class AddOperationBasis
     entryDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -213,19 +195,17 @@ public class AddOperationBasis
     catch (DirectoryException de)
     {
       logger.traceException(de);
-      setResults(de);
+      setResponseData(de);
     }
     return entryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<RawAttribute> getRawAttributes()
   {
     return rawAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addRawAttribute(RawAttribute rawAttribute)
   {
@@ -236,7 +216,6 @@ public class AddOperationBasis
     operationalAttributes = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawAttributes(List<RawAttribute> rawAttributes)
   {
@@ -247,7 +226,6 @@ public class AddOperationBasis
     operationalAttributes = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Map<ObjectClass,String> getObjectClasses()
   {
@@ -257,21 +235,18 @@ public class AddOperationBasis
     return objectClasses;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addObjectClass(ObjectClass objectClass, String name)
   {
     objectClasses.put(objectClass, name);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeObjectClass(ObjectClass objectClass)
   {
     objectClasses.remove(objectClass);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Map<AttributeType,List<Attribute>> getUserAttributes()
   {
@@ -281,7 +256,6 @@ public class AddOperationBasis
     return userAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
@@ -413,7 +387,6 @@ public class AddOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setAttribute(AttributeType attributeType,
                                  List<Attribute> attributeList)
@@ -430,7 +403,6 @@ public class AddOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeAttribute(AttributeType attributeType)
   {
@@ -446,7 +418,6 @@ public class AddOperationBasis
     return userAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -456,35 +427,30 @@ public class AddOperationBasis
     return OperationType.ADD;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ArrayList<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -497,14 +463,12 @@ public class AddOperationBasis
     buffer.append(")");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void run()
   {
@@ -619,7 +583,6 @@ public class AddOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateOperationErrMsgAndResCode()
   {
@@ -640,8 +603,7 @@ public class AddOperationBasis
         appendErrorMessage(ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
         return;
       }
-      // The entry doesn't have a parent but isn't a suffix.  This is not
-      // allowed.
+      // The entry doesn't have a parent but isn't a suffix. This is not allowed.
       setResultCode(ResultCode.NO_SUCH_OBJECT);
       appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(entryDN));
       return;
@@ -662,5 +624,4 @@ public class AddOperationBasis
   {
     return null;
   }
-
 }
