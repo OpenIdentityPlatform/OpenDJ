@@ -25,8 +25,7 @@
  */
 package org.forgerock.opendj.adapter.server3x;
 
-import static org.fest.assertions.Assertions.*;
-import static org.fest.assertions.Fail.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.security.GeneralSecurityException;
 import java.util.NoSuchElementException;
@@ -628,7 +627,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         try {
             connection.searchSingleEntry(Requests.newSearchRequest("uid=user.3, o=test",
                     SearchScope.BASE_OBJECT, "(uid=user.3)"));
-            fail();
+            fail("Expected EntryNotFoundException to be thrown");
         } catch (EntryNotFoundException ex) {
             // Expected - no result.
         } finally {
