@@ -351,7 +351,7 @@ public final class SchemaBuilder {
                     reader.skipWhitespaces();
                     reader.mark();
 
-                    while (reader.read() != ' ') {
+                    while (" )".indexOf(reader.read()) == -1) {
                         length++;
                     }
                     reader.reset();

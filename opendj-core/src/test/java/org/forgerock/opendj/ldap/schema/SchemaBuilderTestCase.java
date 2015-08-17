@@ -469,6 +469,82 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     /**
+     * Adds an attribute to the schema, without a space between the usage and the
+     * right paren.
+     *
+     * @throws Exception
+     */
+    @Test
+    public final void testSchemaBuilderAttributeWithoutSpace() throws Exception {
+        // @formatter:off
+        final String[] strEntry = {
+            "dn: cn=schema",
+            "objectClass: top",
+            "objectClass: ldapSubentry",
+            "objectClass: subschema",
+            "cn: schema",
+            "attributeTypes: ( foo-oid NAME 'foo' SUP name DESC 'No trailing space' USAGE userApplications)"
+        };
+        // @formatter:on
+        final Entry e = new LinkedHashMapEntry(strEntry);
+        final SchemaBuilder builder = new SchemaBuilder();
+        builder.addSchema(Schema.getCoreSchema(), false);
+        builder.addSchema(e, true);
+
+        assertThat(e.getAttribute(Schema.ATTR_LDAP_SYNTAXES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES)).isNotNull();
+        assertThat(e.getAttribute(Schema.ATTR_OBJECT_CLASSES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_MATCHING_RULE_USE)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_MATCHING_RULES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_DIT_CONTENT_RULES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_DIT_STRUCTURE_RULES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_NAME_FORMS)).isNull();
+
+        Schema schema = builder.toSchema();
+        // No warnings
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getAttributeType("foo").getDescription()).isEqualTo("No trailing space");
+    }
+
+    /**
+     * Adds an attribute to the schema, without a space between an extension and the
+     * right paren.
+     *
+     * @throws Exception
+     */
+    @Test
+    public final void testSchemaBuilderAttributeExtensionWithoutSpace() throws Exception {
+        // @formatter:off
+        final String[] strEntry = {
+            "dn: cn=schema",
+            "objectClass: top",
+            "objectClass: ldapSubentry",
+            "objectClass: subschema",
+            "cn: schema",
+            "attributeTypes: ( foo-oid NAME 'foo' SUP name DESC 'No trailing space' X-SCHEMA-FILE '99-test.ldif')"
+        };
+        // @formatter:on
+        final Entry e = new LinkedHashMapEntry(strEntry);
+        final SchemaBuilder builder = new SchemaBuilder();
+        builder.addSchema(Schema.getCoreSchema(), false);
+        builder.addSchema(e, true);
+
+        assertThat(e.getAttribute(Schema.ATTR_LDAP_SYNTAXES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES)).isNotNull();
+        assertThat(e.getAttribute(Schema.ATTR_OBJECT_CLASSES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_MATCHING_RULE_USE)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_MATCHING_RULES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_DIT_CONTENT_RULES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_DIT_STRUCTURE_RULES)).isNull();
+        assertThat(e.getAttribute(Schema.ATTR_NAME_FORMS)).isNull();
+
+        Schema schema = builder.toSchema();
+        // No warnings
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getAttributeType("foo").getDescription()).isEqualTo("No trailing space");
+    }
+
+    /**
      * Adds a ldapsyntax to the schema. Ldapsyntaxes define allowable values can
      * be used for an attribute.
      *

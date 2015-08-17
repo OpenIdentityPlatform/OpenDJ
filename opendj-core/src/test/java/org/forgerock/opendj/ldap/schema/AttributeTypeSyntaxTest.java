@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -69,6 +69,10 @@ public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
                         + " X-SCHEMA-FILE '33-test.ldif' )", true},
             {
                 "(1.2.8.5 USAGE directoryOperation )", true },
+            {
+                "(1.2.8.5 USAGE directoryOperation)", true },
+            {
+                "(1.2.8.5 USAGE directoryOperation X-SCHEMA-FILE '99-test.ldif')", true },
 
             // Collective can inherit from non-collective
             {   "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
