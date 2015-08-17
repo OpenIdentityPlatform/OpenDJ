@@ -40,6 +40,7 @@ import java.util.UUID;
 import javax.mail.MessagingException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -62,23 +63,16 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines a task that may be executed by the task backend within the
  * Directory Server.
  */
-public abstract class Task
-       implements Comparable<Task>
+public abstract class Task implements Comparable<Task>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** The DN for the task entry. */
   private DN taskEntryDN;
-
   /** The entry that actually defines this task. */
   private Entry taskEntry;
 
-  /**
-   * The action to take if one of the dependencies for this task does not
-   * complete successfully.
-   */
+  /** The action to take if one of the dependencies for this task does not complete successfully. */
   private FailedDependencyAction failedDependencyAction;
 
   /** The counter used for log messages associated with this task. */
@@ -95,7 +89,7 @@ public abstract class Task
    * a way that the information could be reparsed from its
    * string value.
    */
-  private LinkedList<String> logMessages;
+  private List<String> logMessages;
 
   /**
    * The set of e-mail addresses of the users to notify when the task is done
@@ -111,10 +105,8 @@ public abstract class Task
 
   /** The time that processing actually started for this task. */
   private long actualStartTime;
-
   /** The time that actual processing ended for this task. */
   private long completionTime;
-
   /** The time that this task was scheduled to start processing. */
   private long scheduledStartTime;
 
@@ -126,16 +118,12 @@ public abstract class Task
 
   /** The unique ID assigned to this task. */
   private String taskID;
-
   /** The task backend with which this task is associated. */
   private TaskBackend taskBackend;
-
   /** The current state of this task. */
   private TaskState taskState;
-
   /** The task state that may be set when the task is interrupted. */
   private TaskState taskInterruptState;
-
   /** The scheduler with which this task is associated. */
   private TaskScheduler taskScheduler;
 
@@ -204,7 +192,6 @@ public abstract class Task
 
     taskBackend       = taskScheduler.getTaskBackend();
 
-
     // Get the task ID and recurring task ID values.  At least one of them must
     // be provided.  If it's a recurring task and there is no task ID, then
     // generate one on the fly.
@@ -216,12 +203,8 @@ public abstract class Task
       {
         throw new InitializationException(ERR_TASK_MISSING_ATTR.get(taskEntry.getName(), ATTR_TASK_ID));
       }
-      else
-      {
-        taskID = UUID.randomUUID().toString();
-      }
+      taskID = UUID.randomUUID().toString();
     }
-
 
     // Get the current state from the task.  If there is none, then assume it's
     // a new task.
@@ -240,102 +223,16 @@ public abstract class Task
       }
     }
 
-
     // Get the scheduled start time for the task, if there is one.  It may be
     // in either UTC time (a date followed by a 'Z') or in the local time zone
     // (not followed by a 'Z').
-    scheduledStartTime = -1;
-    String timeString = getAttributeValue(ATTR_TASK_SCHEDULED_START_TIME,
-                                          false);
-    if (timeString != null)
-    {
-      SimpleDateFormat dateFormat;
-      if (timeString.endsWith("Z"))
-      {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      }
-      else
-      {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_COMPACT_LOCAL_TIME);
-      }
-
-      try
-      {
-        scheduledStartTime = dateFormat.parse(timeString).getTime();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message =
-            ERR_TASK_CANNOT_PARSE_SCHEDULED_START_TIME.get(timeString, taskDN);
-        throw new InitializationException(message, e);
-      }
-    }
-
+    scheduledStartTime = getTime(taskDN, ATTR_TASK_SCHEDULED_START_TIME, ERR_TASK_CANNOT_PARSE_SCHEDULED_START_TIME);
 
     // Get the actual start time for the task, if there is one.
-    actualStartTime = -1;
-    timeString = getAttributeValue(ATTR_TASK_ACTUAL_START_TIME, false);
-    if (timeString != null)
-    {
-      SimpleDateFormat dateFormat;
-      if (timeString.endsWith("Z"))
-      {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      }
-      else
-      {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_COMPACT_LOCAL_TIME);
-      }
-
-      try
-      {
-        actualStartTime = dateFormat.parse(timeString).getTime();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message =
-            ERR_TASK_CANNOT_PARSE_ACTUAL_START_TIME.get(timeString, taskDN);
-        throw new InitializationException(message, e);
-      }
-    }
-
+    actualStartTime = getTime(taskDN, ATTR_TASK_ACTUAL_START_TIME, ERR_TASK_CANNOT_PARSE_ACTUAL_START_TIME);
 
     // Get the completion time for the task, if there is one.
-    completionTime = -1;
-    timeString = getAttributeValue(ATTR_TASK_COMPLETION_TIME, false);
-    if (timeString != null)
-    {
-      SimpleDateFormat dateFormat;
-      if (timeString.endsWith("Z"))
-      {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      }
-      else
-      {
-        dateFormat = new SimpleDateFormat(DATE_FORMAT_COMPACT_LOCAL_TIME);
-      }
-
-      try
-      {
-        completionTime = dateFormat.parse(timeString).getTime();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message =
-            ERR_TASK_CANNOT_PARSE_COMPLETION_TIME.get(timeString, taskDN);
-        throw new InitializationException(message, e);
-      }
-    }
-
+    completionTime = getTime(taskDN, ATTR_TASK_COMPLETION_TIME, ERR_TASK_CANNOT_PARSE_COMPLETION_TIME);
 
     // Get information about any dependencies that the task might have.
     dependencyIDs = getAttributeValues(ATTR_TASK_DEPENDENCY_IDS);
@@ -352,12 +249,9 @@ public abstract class Task
       }
     }
 
-
-    // Get the information about the e-mail addresses to use for notification
-    // purposes.
+    // Get the information about the e-mail addresses to use for notification purposes
     notifyOnCompletion = getAttributeValues(ATTR_TASK_NOTIFY_ON_COMPLETION);
     notifyOnError      = getAttributeValues(ATTR_TASK_NOTIFY_ON_ERROR);
-
 
     // Get the log messages for the task.
     logMessages  = getAttributeValues(ATTR_TASK_LOG_MESSAGES);
@@ -366,7 +260,35 @@ public abstract class Task
     }
   }
 
+  private long getTime(String taskDN, String attrName, Arg2<Object, Object> errorMsg) throws InitializationException
+  {
+    String timeString = getAttributeValue(attrName, false);
+    if (timeString != null)
+    {
+      SimpleDateFormat dateFormat;
+      if (timeString.endsWith("Z"))
+      {
+        dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      }
+      else
+      {
+        dateFormat = new SimpleDateFormat(DATE_FORMAT_COMPACT_LOCAL_TIME);
+      }
 
+      try
+      {
+        return dateFormat.parse(timeString).getTime();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        throw new InitializationException(errorMsg.get(timeString, taskDN), e);
+      }
+    }
+    return -1;
+  }
 
   /**
    * Retrieves the single value for the requested attribute as a string.
@@ -422,8 +344,6 @@ public abstract class Task
     return value.toString();
   }
 
-
-
   /**
    * Retrieves the values for the requested attribute as a list of strings.
    *
@@ -437,11 +357,9 @@ public abstract class Task
    *                                   requested attribute in the entry with
    *                                   different sets of options.
    */
-  private LinkedList<String> getAttributeValues(String attributeName)
-          throws InitializationException
+  private LinkedList<String> getAttributeValues(String attributeName) throws InitializationException
   {
     LinkedList<String> valueStrings = new LinkedList<>();
-
     List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
     if (attrList == null || attrList.isEmpty())
     {
@@ -460,8 +378,6 @@ public abstract class Task
     return valueStrings;
   }
 
-
-
   /**
    * Retrieves the DN of the entry containing the definition for this task.
    *
@@ -472,8 +388,6 @@ public abstract class Task
     return taskEntryDN;
   }
 
-
-
   /**
    * Retrieves the entry containing the definition for this task.
    *
@@ -483,8 +397,6 @@ public abstract class Task
   {
     return taskEntry;
   }
-
-
 
   /**
    * Retrieves the operation used to create this task in the server.  Note that
@@ -502,8 +414,6 @@ public abstract class Task
     return operation;
   }
 
-
-
   /**
    * Specifies the operation used to create this task in the server.
    *
@@ -514,8 +424,6 @@ public abstract class Task
     this.operation = operation;
   }
 
-
-
   /**
    * Retrieves the unique identifier assigned to this task.
    *
@@ -525,8 +433,6 @@ public abstract class Task
   {
     return taskID;
   }
-
-
 
   /**
    * Retrieves the unique identifier assigned to the recurring task that is
@@ -540,8 +446,6 @@ public abstract class Task
   {
     return recurringTaskID;
   }
-
-
 
   /**
    * Retrieves the current state for this task.
@@ -577,8 +481,6 @@ public abstract class Task
       TaskState.isCancelled(taskInterruptState);
   }
 
-
-
   /**
    * Sets the state for this task and updates the associated task entry as
    * necessary.  It does not automatically persist the updated task information
@@ -610,7 +512,6 @@ public abstract class Task
     }
   }
 
-
   /**
    * Sets a state for this task that is the result of a call to
    * {@link #interruptTask(TaskState, LocalizableMessage)}.
@@ -624,7 +525,6 @@ public abstract class Task
     this.taskInterruptState = state;
   }
 
-
   /**
    * Gets the interrupt state for this task that was set as a
    * result of a call to {@link #interruptTask(TaskState, LocalizableMessage)}.
@@ -635,7 +535,6 @@ public abstract class Task
   {
     return this.taskInterruptState;
   }
-
 
   /**
    * Returns a state for this task after processing has completed.
@@ -650,16 +549,12 @@ public abstract class Task
    */
   protected TaskState getFinalTaskState()
   {
-    if (this.taskInterruptState == null)
-    {
-      return TaskState.COMPLETED_SUCCESSFULLY;
-    }
-    else
+    if (this.taskInterruptState != null)
     {
       return this.taskInterruptState;
     }
+    return TaskState.COMPLETED_SUCCESSFULLY;
   }
-
 
   /**
    * Replaces an attribute values of the task entry.
@@ -699,7 +594,6 @@ public abstract class Task
     }
   }
 
-
   /**
    * Retrieves the scheduled start time for this task, if there is one.  The
    * value returned will be in the same format as the return value for
@@ -714,8 +608,6 @@ public abstract class Task
     return scheduledStartTime;
   }
 
-
-
   /**
    * Retrieves the time that this task actually started running, if it has
    * started.  The value returned will be in the same format as the return value
@@ -728,8 +620,6 @@ public abstract class Task
   {
     return actualStartTime;
   }
-
-
 
   /**
    * Sets the actual start time for this task and updates the associated task
@@ -764,8 +654,6 @@ public abstract class Task
     }
   }
 
-
-
   /**
    * Retrieves the time that this task completed all of its associated
    * processing (regardless of whether it was successful), if it has completed.
@@ -779,8 +667,6 @@ public abstract class Task
   {
     return completionTime;
   }
-
-
 
   /**
    * Sets the completion time for this task and updates the associated task
@@ -817,8 +703,6 @@ public abstract class Task
     }
   }
 
-
-
   /**
    * Retrieves the set of task IDs for any tasks on which this task is
    * dependent.  This list must not be directly modified by the caller.
@@ -829,8 +713,6 @@ public abstract class Task
   {
     return dependencyIDs;
   }
-
-
 
   /**
    * Retrieves the action that should be taken if any of the dependencies for
@@ -843,8 +725,6 @@ public abstract class Task
   {
     return failedDependencyAction;
   }
-
-
 
   /**
    * Retrieves the set of e-mail addresses for the users that should receive a
@@ -861,8 +741,6 @@ public abstract class Task
   {
     return notifyOnCompletion;
   }
-
-
 
   /**
    * Retrieves the set of e-mail addresses for the users that should receive a
@@ -994,8 +872,6 @@ public abstract class Task
     }
   }
 
-
-
   /**
    * Compares this task with the provided task for the purposes of ordering in a
    * sorted list.  Any completed task will always be ordered before an
@@ -1018,29 +894,7 @@ public abstract class Task
   {
     if (completionTime > 0)
     {
-      if (task.completionTime > 0)
-      {
-        // They have both completed, so order by completion time.
-        if (completionTime < task.completionTime)
-        {
-          return -1;
-        }
-        else if (completionTime > task.completionTime)
-        {
-          return 1;
-        }
-        else
-        {
-          // They have the same completion time, so order by task ID.
-          return taskID.compareTo(task.taskID);
-        }
-      }
-      else
-      {
-        // Completed tasks are always ordered before those that haven't
-        // completed.
-        return -1;
-      }
+      return compareTimes(task, completionTime, task.completionTime);
     }
     else if (task.completionTime > 0)
     {
@@ -1050,35 +904,13 @@ public abstract class Task
 
     if (actualStartTime > 0)
     {
-      if (task.actualStartTime > 0)
-      {
-        // They are both running, so order by actual start time.
-        if (actualStartTime < task.actualStartTime)
-        {
-          return -1;
-        }
-        else if (actualStartTime > task.actualStartTime)
-        {
-          return 1;
-        }
-        else
-        {
-          // They have the same actual start time, so order by task ID.
-          return taskID.compareTo(task.taskID);
-        }
-      }
-      else
-      {
-        // Running tasks are always ordered before those that haven't started.
-        return -1;
-      }
+      return compareTimes(task, actualStartTime, task.actualStartTime);
     }
     else if (task.actualStartTime > 0)
     {
       // Running tasks are always ordered before those that haven't started.
       return 1;
     }
-
 
     // Neither task has started, so order by scheduled start time, or if nothing
     // else by task ID.
@@ -1096,7 +928,33 @@ public abstract class Task
     }
   }
 
-
+  private int compareTimes(Task task, long time1, long time2)
+  {
+    if (time2 > 0)
+    {
+      // They are both running, so order by actual start time.
+      // OR they have both completed, so order by completion time.
+      if (time1 < time2)
+      {
+        return -1;
+      }
+      else if (time1 > time2)
+      {
+        return 1;
+      }
+      else
+      {
+        // They have the same actual start/completion time, so order by task ID.
+        return taskID.compareTo(task.taskID);
+      }
+    }
+    else
+    {
+      // Running tasks are always ordered before those that haven't started.
+      // OR completed tasks are always ordered before those that haven't completed.
+      return -1;
+    }
+  }
 
   /**
    * Begins execution for this task.  This is a wrapper around the
@@ -1111,25 +969,17 @@ public abstract class Task
     setTaskState(TaskState.RUNNING);
     taskScheduler.writeState();
 
-    TaskState taskState = this.taskState;
-
     try
     {
-      taskState = runTask();
+      return runTask();
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      taskState = TaskState.STOPPED_BY_ERROR;
-
       logger.error(ERR_TASK_EXECUTE_FAILED, taskEntry.getName(), stackTraceToSingleLineString(e));
+      return TaskState.STOPPED_BY_ERROR;
     }
-
-    return taskState;
   }
-
-
 
   /**
    * If appropriate, send an e-mail message with information about the
@@ -1183,8 +1033,6 @@ public abstract class Task
     }
   }
 
-
-
   /**
    * Performs any task-specific initialization that may be required before
    * processing can start.  This default implementation does not do anything,
@@ -1201,8 +1049,6 @@ public abstract class Task
     // No action is performed by default.
   }
 
-
-
   /**
    * Performs the actual core processing for this task.  This method should not
    * return until all processing associated with this task has completed.
@@ -1211,15 +1057,13 @@ public abstract class Task
    */
   protected abstract TaskState runTask();
 
-
-
   /**
    * Performs any necessary processing to prematurely interrupt the execution of
    * this task.  By default no action is performed, but if it is feasible to
    * gracefully interrupt a task, then subclasses should override this method to
    * do so.
    *
-   * Implementations of this method are exprected to call
+   * Implementations of this method are expected to call
    * {@link #setTaskInterruptState(TaskState)} if the interruption is accepted
    * by this task.
    *
@@ -1231,20 +1075,15 @@ public abstract class Task
   {
     // No action is performed by default.
 
-    // NOTE:  if you implement this make sure to override isInterruptable
-    //        to return 'true'
+    // NOTE:  if you implement this make sure to override isInterruptable() to return 'true'
   }
 
-
-
   /**
-   * Indicates whether or not this task is interruptable or not.
+   * Indicates whether or not this task is interruptible or not.
    *
    * @return boolean where true indicates that this task can be interrupted.
    */
   public boolean isInterruptable() {
     return false;
   }
-
 }
-

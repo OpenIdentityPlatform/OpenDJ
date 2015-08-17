@@ -36,16 +36,12 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
 
-/**
- * This class defines the Monitor Data that are consolidated across a
- * replication domain.
- */
+/** This class defines the Monitor Data that are consolidated across a replication domain. */
 class ReplicationDomainMonitorData
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   *
    * - For each server, the max (most recent) CSN produced
    *
    * - For each server, its state i.e. the last processed from of each
@@ -121,9 +117,7 @@ class ReplicationDomainMonitorData
     return res != null ? res : 0;
   }
 
-  /**
-   * Build the monitor data that are computed from the collected ones.
-   */
+  /** Build the monitor data that are computed from the collected ones. */
   public void completeComputing()
   {
     StringBuilder mds = new StringBuilder();
@@ -139,7 +133,7 @@ class ReplicationDomainMonitorData
       final ServerState lsiState = entry.getValue();
       long lsiMissingChanges = computeMissingChanges(mds, lsiServerId, lsiState);
       if (logger.isTraceEnabled()) {
-        mds.append("=" + lsiMissingChanges);
+        mds.append("=").append(lsiMissingChanges);
       }
 
       this.missingChanges.put(lsiServerId, lsiMissingChanges);
@@ -152,9 +146,9 @@ class ReplicationDomainMonitorData
     {
       final Integer lsiServerId = entry.getKey();
       final ServerState lsiState = entry.getValue();
-      long lsiMissingChanges = computeMissingChanges(mds, Integer.MIN_VALUE, lsiState);
+      long lsiMissingChanges = computeMissingChanges(mds, null, lsiState);
       if (logger.isTraceEnabled()) {
-        mds.append("=" + lsiMissingChanges);
+        mds.append("=").append(lsiMissingChanges);
       }
 
       this.missingChangesRS.put(lsiServerId, lsiMissingChanges);
@@ -179,7 +173,8 @@ class ReplicationDomainMonitorData
         int missingChangesLsiLsj = CSN.diffSeqNum(lsjMaxCSN, lsiLastCSN);
 
         if (logger.isTraceEnabled()) {
-          mds.append("+ diff(" + lsjMaxCSN + "-" + lsiLastCSN + ")=" + missingChangesLsiLsj);
+          mds.append("+ diff(")
+             .append(lsjMaxCSN).append("-").append(lsiLastCSN).append(")=").append(missingChangesLsiLsj);
         }
         /*
         THIS BIT OF CODE IS IRRELEVANT TO RSs.
@@ -198,7 +193,7 @@ class ReplicationDomainMonitorData
         {
           missingChangesLsiLsj = 0;
           if (logger.isTraceEnabled()) {
-            mds.append(" (diff replaced by 0 as for server id " + lsiServerId + ")");
+            mds.append(" (diff replaced by 0 as for server id ").append(lsiServerId).append(")");
           }
         }
 
@@ -223,7 +218,7 @@ class ReplicationDomainMonitorData
     {
       final Integer serverId = entry.getKey();
       final CSN csn = entry.getValue();
-      mds.append("\nmaxCSNs(" + serverId + ")= " + csn.toStringUI());
+      mds.append("\nmaxCSNs(").append(serverId).append(")= ").append(csn.toStringUI());
     }
 
     // LDAP data
@@ -231,10 +226,11 @@ class ReplicationDomainMonitorData
     {
       final Integer serverId = entry.getKey();
       final ServerState ss = entry.getValue();
-      mds.append("\nLSData(" + serverId + ")=\t"
-          + "state=[" + ss + "] afmd=" + getApproxFirstMissingDate(serverId)
-          + " missingDelay=" + getApproxDelay(serverId)
-          + " missingCount=" + missingChanges.get(serverId));
+      mds.append("\nLSData(").append(serverId).append(")=\t")
+         .append("state=[").append(ss)
+         .append("] afmd=").append(getApproxFirstMissingDate(serverId))
+         .append(" missingDelay=").append(getApproxDelay(serverId))
+         .append(" missingCount=").append(missingChanges.get(serverId));
     }
 
     // RS data
@@ -242,8 +238,9 @@ class ReplicationDomainMonitorData
     {
       final Integer serverId = entry.getKey();
       final ServerState ss = entry.getValue();
-      mds.append("\nRSData(" + serverId + ")=\t" + "state=[" + ss
-          + "] missingCount=" + missingChangesRS.get(serverId));
+      mds.append("\nRSData(").append(serverId).append(")=\t")
+         .append("state=[").append(ss)
+         .append("] missingCount=").append(missingChangesRS.get(serverId));
     }
 
     mds.append("\n--");

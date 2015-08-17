@@ -94,40 +94,32 @@ public class RootDSEBackend
    * The set of standard "static" attributes that we will always include in the
    * root DSE entry and won't change while the server is running.
    */
-  private ArrayList<Attribute> staticDSEAttributes;
-
-  /**
-   * The set of user-defined attributes that will be included in the root DSE
-   * entry.
-   */
-  private ArrayList<Attribute> userDefinedAttributes;
-
+  private List<Attribute> staticDSEAttributes;
+  /** The set of user-defined attributes that will be included in the root DSE entry. */
+  private List<Attribute> userDefinedAttributes;
   /**
    * Indicates whether the attributes of the root DSE should always be treated
    * as user attributes even if they are defined as operational in the schema.
    */
   private boolean showAllAttributes;
 
-  /**
-   * The set of subordinate base DNs and their associated backends that will be
-   * used for non-base searches.
-   */
-  private ConcurrentHashMap<DN, Backend<?>> subordinateBaseDNs;
-
   /** The set of objectclasses that will be used in the root DSE entry. */
-  private HashMap<ObjectClass,String> dseObjectClasses;
+  private Map<ObjectClass, String> dseObjectClasses;
 
   /** The current configuration state. */
   private RootDSEBackendCfg currentConfig;
-
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
 
   /** The DN for the root DSE. */
   private DN rootDSEDN;
-
   /** The set of base DNs for this backend. */
   private DN[] baseDNs;
+  /**
+   * The set of subordinate base DNs and their associated backends that will be
+   * used for non-base searches.
+   */
+  private ConcurrentHashMap<DN, Backend<?>> subordinateBaseDNs;
 
 
 
@@ -143,7 +135,6 @@ public class RootDSEBackend
     // Perform all initialization in initializeBackend.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(RootDSEBackendCfg config, ServerContext serverContext) throws ConfigException
   {
@@ -152,12 +143,10 @@ public class RootDSEBackend
     configEntryDN = config.dn();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void openBackend() throws ConfigException, InitializationException
   {
-    ConfigEntry configEntry =
-         DirectoryServer.getConfigEntry(configEntryDN);
+    ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
 
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
@@ -257,10 +246,9 @@ public class RootDSEBackend
 
   /**
    * Get the set of user-defined attributes for the configuration entry. Any
-   * attributes that we do not recognize will be included directly in the root
-   * DSE.
+   * attributes that we do not recognize will be included directly in the root DSE.
    */
-  private void addAllUserDefinedAttrs(ArrayList<Attribute> userDefinedAttrs, Entry configEntry)
+  private void addAllUserDefinedAttrs(List<Attribute> userDefinedAttrs, Entry configEntry)
   {
     for (List<Attribute> attrs : configEntry.getUserAttributes().values())
     {
@@ -284,7 +272,6 @@ public class RootDSEBackend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void closeBackend()
   {
@@ -310,14 +297,12 @@ public class RootDSEBackend
         || attrType.hasName(ATTR_COMMON_NAME);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized long getEntryCount()
   {
@@ -325,7 +310,6 @@ public class RootDSEBackend
     return 1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -333,10 +317,8 @@ public class RootDSEBackend
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConditionResult hasSubordinates(DN entryDN)
-         throws DirectoryException
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
     final long ret = getNumberOfChildren(entryDN);
     if(ret < 0)
@@ -346,7 +328,6 @@ public class RootDSEBackend
     return ConditionResult.valueOf(ret != 0);
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
@@ -372,7 +353,6 @@ public class RootDSEBackend
     return count;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException
   {
@@ -397,10 +377,8 @@ public class RootDSEBackend
     return count;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public Entry getEntry(DN entryDN)
-         throws DirectoryException
+  public Entry getEntry(DN entryDN) throws DirectoryException
   {
     // If the requested entry was the root DSE, then create and return it.
     if (entryDN == null || entryDN.isRootDN())
@@ -458,9 +436,8 @@ public class RootDSEBackend
    */
   private Entry getRootDSE(ClientConnection connection)
   {
-    HashMap<AttributeType,List<Attribute>> dseUserAttrs = new HashMap<>();
-    HashMap<AttributeType,List<Attribute>> dseOperationalAttrs = new HashMap<>();
-
+    Map<AttributeType, List<Attribute>> dseUserAttrs = new HashMap<>();
+    Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
     Attribute publicNamingContextAttr = createAttribute(
         ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC,
@@ -506,26 +483,10 @@ public class RootDSEBackend
     addAttribute(supportedLDAPVersionAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedAuthPasswordSchemes" attribute.
-    Set<String> authPWSchemes =
-         DirectoryServer.getAuthPasswordStorageSchemes().keySet();
-    if (!authPWSchemes.isEmpty())
-    {
-      Attribute supportedAuthPWSchemesAttr =
-           createAttribute(ATTR_SUPPORTED_AUTH_PW_SCHEMES,
-                           ATTR_SUPPORTED_AUTH_PW_SCHEMES_LC, authPWSchemes);
-      ArrayList<Attribute> supportedAuthPWSchemesAttrs = newArrayList(supportedAuthPWSchemesAttr);
-      if (showAllAttributes
-          || !supportedSASLMechAttr.getAttributeType().isOperational())
-      {
-        dseUserAttrs.put(supportedAuthPWSchemesAttr.getAttributeType(),
-                         supportedAuthPWSchemesAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedAuthPWSchemesAttr.getAttributeType(),
-                                supportedAuthPWSchemesAttrs);
-      }
-    }
+    Attribute supportedAuthPWSchemesAttr = createAttribute(
+        ATTR_SUPPORTED_AUTH_PW_SCHEMES, ATTR_SUPPORTED_AUTH_PW_SCHEMES_LC,
+        DirectoryServer.getAuthPasswordStorageSchemes().keySet());
+    addAttribute(supportedAuthPWSchemesAttr, dseUserAttrs, dseOperationalAttrs);
 
 
     // Obtain TLS protocol and cipher support.
@@ -535,10 +496,8 @@ public class RootDSEBackend
     {
       // Only return the list of enabled protocols / ciphers for the connection
       // handler to which the client is connected.
-      supportedTlsProtocols = connection.getConnectionHandler()
-          .getEnabledSSLProtocols();
-      supportedTlsCiphers = connection.getConnectionHandler()
-          .getEnabledSSLCipherSuites();
+      supportedTlsProtocols = connection.getConnectionHandler().getEnabledSSLProtocols();
+      supportedTlsCiphers = connection.getConnectionHandler().getEnabledSSLCipherSuites();
     }
     else
     {
@@ -579,7 +538,7 @@ public class RootDSEBackend
     return e;
   }
 
-  private void addAll(ArrayList<Attribute> attributes,
+  private void addAll(Collection<Attribute> attributes,
       Map<AttributeType, List<Attribute>> userAttrs, Map<AttributeType, List<Attribute>> operationalAttrs)
   {
     for (Attribute a : attributes)
@@ -599,23 +558,21 @@ public class RootDSEBackend
     }
   }
 
-
-
-  private void addAttribute(Attribute publicNamingContextAttr,
-      HashMap<AttributeType, List<Attribute>> userAttrs,
-      HashMap<AttributeType, List<Attribute>> operationalAttrs)
+  private void addAttribute(Attribute attribute,
+      Map<AttributeType, List<Attribute>> userAttrs,
+      Map<AttributeType, List<Attribute>> operationalAttrs)
   {
-    if (!publicNamingContextAttr.isEmpty())
+    if (!attribute.isEmpty())
     {
-      List<Attribute> privateNamingContextAttrs = newArrayList(publicNamingContextAttr);
-      final AttributeType attrType = publicNamingContextAttr.getAttributeType();
+      List<Attribute> attrs = newArrayList(attribute);
+      final AttributeType attrType = attribute.getAttributeType();
       if (showAllAttributes || !attrType.isOperational())
       {
-        userAttrs.put(attrType, privateNamingContextAttrs);
+        userAttrs.put(attrType, attrs);
       }
       else
       {
-        operationalAttrs.put(attrType, privateNamingContextAttrs);
+        operationalAttrs.put(attrType, attrs);
       }
     }
   }
@@ -643,10 +600,8 @@ public class RootDSEBackend
     return builder.toAttribute();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean entryExists(DN entryDN)
-         throws DirectoryException
+  public boolean entryExists(DN entryDN) throws DirectoryException
   {
     // If the specified DN was the null DN, then it exists.
     if (entryDN.isRootDN())
@@ -673,25 +628,20 @@ public class RootDSEBackend
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void addEntry(Entry entry, AddOperation addOperation)
-         throws DirectoryException
+  public void addEntry(Entry entry, AddOperation addOperation) throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_ADD_NOT_SUPPORTED.get(entry.getName(), getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
-         throws DirectoryException
+  public void deleteEntry(DN entryDN, DeleteOperation deleteOperation) throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_DELETE_NOT_SUPPORTED.get(entryDN, getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
@@ -700,17 +650,14 @@ public class RootDSEBackend
         ERR_ROOTDSE_MODIFY_NOT_SUPPORTED.get(newEntry.getName(), configEntryDN));
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void renameEntry(DN currentDN, Entry entry,
-                                   ModifyDNOperation modifyDNOperation)
+  public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException {
@@ -827,21 +774,18 @@ public class RootDSEBackend
     return (Map) DirectoryServer.getPublicNamingContexts();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
@@ -849,7 +793,6 @@ public class RootDSEBackend
     return backendOperation.equals(BackendOperation.LDIF_EXPORT);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
@@ -892,7 +835,6 @@ public class RootDSEBackend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
@@ -901,35 +843,27 @@ public class RootDSEBackend
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void createBackup(BackupConfig backupConfig)
-         throws DirectoryException
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
     LocalizableMessage message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void removeBackup(BackupDirectory backupDirectory,
-                           String backupID)
-         throws DirectoryException
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
     LocalizableMessage message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig restoreConfig)
-         throws DirectoryException
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
     LocalizableMessage message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(RootDSEBackendCfg config,
                                            List<LocalizableMessage> unacceptableReasons,
@@ -938,11 +872,8 @@ public class RootDSEBackend
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationChangeAcceptable(
-       RootDSEBackendCfg cfg,
-       List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(RootDSEBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     boolean configIsAcceptable = true;
 
@@ -980,7 +911,6 @@ public class RootDSEBackend
     return configIsAcceptable;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
