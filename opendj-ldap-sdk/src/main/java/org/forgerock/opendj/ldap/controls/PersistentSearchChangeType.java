@@ -94,11 +94,16 @@ public enum PersistentSearchChangeType {
      */
     public static PersistentSearchChangeType valueOf(int value) {
         switch (value) {
-            case 1 : return ADD;
-            case 2 : return DELETE;
-            case 4 : return MODIFY;
-            case 8 : return MODIFY_DN;
-            default: throw new IllegalArgumentException("Unknown int value: " + value);
+        case 1:
+            return ADD;
+        case 2:
+            return DELETE;
+        case 4:
+            return MODIFY;
+        case 8:
+            return MODIFY_DN;
+        default:
+            throw new IllegalArgumentException("Unknown int value: " + value);
         }
     }
 }
