@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -390,7 +390,7 @@ public final class SchemaBuilder {
                     reader.skipWhitespaces();
                     reader.mark();
 
-                    while (reader.read() != ' ') {
+                    while (" )".indexOf(reader.read()) == -1) {
                         length++;
                     }
 
