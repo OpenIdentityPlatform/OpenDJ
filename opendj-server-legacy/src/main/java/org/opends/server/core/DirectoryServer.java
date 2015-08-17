@@ -282,19 +282,6 @@ public final class DirectoryServer
   /** The account status notification handler config manager for the server. */
   private AccountStatusNotificationHandlerConfigManager accountStatusNotificationHandlerConfigManager;
 
-  /** The default syntax to use for binary attributes. */
-  private Syntax defaultBinarySyntax;
-  /** The default syntax to use for Boolean attributes. */
-  private Syntax defaultBooleanSyntax;
-  /** The default syntax to use for DN attributes. */
-  private Syntax defaultDNSyntax;
-  /** The default syntax to use for integer attributes. */
-  private Syntax defaultIntegerSyntax;
-  /** The default syntax to use for string attributes. */
-  private Syntax defaultStringSyntax;
-
-  /** The default attribute syntax to use for attributes with no defined syntax. */
-  private Syntax defaultSyntax;
   /** The attribute type used to reference the "objectclass" attribute. */
   private AttributeType objectClassAttributeType;
   /** The authenticated users manager for the server. */
@@ -963,7 +950,6 @@ public final class DirectoryServer
   {
     synchronized (directoryServer)
     {
-
       // Set default values for variables that may be needed during schema
       // processing.
       directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
@@ -1590,16 +1576,14 @@ public final class DirectoryServer
    */
   private void bootstrapAttributeSyntaxes()
   {
-    defaultBinarySyntax = CoreSchema.getBinarySyntax();
-    defaultBooleanSyntax = CoreSchema.getBooleanSyntax();
-    defaultStringSyntax = CoreSchema.getDirectoryStringSyntax();
-    defaultDNSyntax = CoreSchema.getDNSyntax();
-    defaultIntegerSyntax = CoreSchema.getIntegerSyntax();
-    defaultSyntax = defaultStringSyntax;
-    schema.registerDefaultSyntax(defaultSyntax);
+    schema.registerDefaultSyntax(getDefaultSyntax());
 
     Syntax[] syntaxes = {
-      defaultBinarySyntax, defaultBooleanSyntax, defaultStringSyntax, defaultDNSyntax, defaultIntegerSyntax,
+      getDefaultBinarySyntax(),
+      getDefaultBooleanSyntax(),
+      getDefaultStringSyntax(),
+      getDefaultDNSyntax(),
+      getDefaultIntegerSyntax(),
       CoreSchema.getAttributeTypeDescriptionSyntax(),
       CoreSchema.getIA5StringSyntax(),
       CoreSchema.getGeneralizedTimeSyntax(),
@@ -2759,8 +2743,7 @@ public final class DirectoryServer
         {
           try
           {
-            Syntax newOIDSyntax = CoreSchema.getOIDSyntax();
-            oidSyntax = newOIDSyntax;
+            oidSyntax = CoreSchema.getOIDSyntax();
             directoryServer.schema.registerSyntax(oidSyntax, true);
           }
           catch (Exception e)
@@ -2853,7 +2836,7 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultAttributeSyntax()
   {
-    return directoryServer.defaultSyntax;
+    return directoryServer.getDefaultSyntax();
   }
 
   /**
@@ -2867,7 +2850,7 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultBinarySyntax()
   {
-    return directoryServer.defaultBinarySyntax;
+    return CoreSchema.getBinarySyntax();
   }
 
   /**
@@ -2881,7 +2864,7 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultBooleanSyntax()
   {
-    return directoryServer.defaultBooleanSyntax;
+    return CoreSchema.getBooleanSyntax();
   }
 
   /**
@@ -2894,7 +2877,7 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultDNSyntax()
   {
-    return directoryServer.defaultDNSyntax;
+    return CoreSchema.getDNSyntax();
   }
 
   /**
@@ -2908,7 +2891,7 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultIntegerSyntax()
   {
-    return directoryServer.defaultIntegerSyntax;
+    return CoreSchema.getIntegerSyntax();
   }
 
   /**
@@ -2922,7 +2905,12 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultStringSyntax()
   {
-    return directoryServer.defaultStringSyntax;
+    return CoreSchema.getDirectoryStringSyntax();
+  }
+
+  private Syntax getDefaultSyntax()
+  {
+    return CoreSchema.getDirectoryStringSyntax();
   }
 
   /**
@@ -6439,12 +6427,6 @@ public final class DirectoryServer
     coreConfigManager        = null;
     compressedSchema         = null;
     cryptoManager            = null;
-    defaultBinarySyntax      = null;
-    defaultBooleanSyntax     = null;
-    defaultDNSyntax          = null;
-    defaultIntegerSyntax     = null;
-    defaultStringSyntax      = null;
-    defaultSyntax            = null;
     entryCache               = null;
     environmentConfig        = null;
     objectClassAttributeType = null;
@@ -7742,6 +7724,4 @@ public final class DirectoryServer
   {
     return directoryServer.lockManager;
   }
-
 }
-
