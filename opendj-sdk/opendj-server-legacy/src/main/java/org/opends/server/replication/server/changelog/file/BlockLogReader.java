@@ -295,8 +295,12 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
   {
     try
     {
-      // read length of record
+      // read length of record if not already at EOF
       final long filePosition = reader.getFilePointer();
+      if (reader.length() == filePosition)
+      {
+        return null;
+      }
       int distanceToBlockStart = getDistanceToNextBlockStart(filePosition, blockSize);
       final int recordLength = readRecordLength(distanceToBlockStart);
 
