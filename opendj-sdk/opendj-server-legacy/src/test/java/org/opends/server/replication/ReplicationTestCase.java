@@ -82,9 +82,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * An abstract class that all Replication unit test should extend.
- */
+/** An abstract class that all Replication unit test should extend. */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "replication" }, sequential = true)
 public abstract class ReplicationTestCase extends DirectoryServerTestCase
@@ -101,14 +99,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected static final long TEST_DN_WITH_ROOT_ENTRY_GENID = 5055L;
 
-  /**
-   * Generation id for a fully empty domain.
-   */
+  /** Generation id for a fully empty domain. */
   public static final long EMPTY_DN_GENID = GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID;
 
-  /**
-   * The internal connection used for operation.
-   */
+  /** The internal connection used for operation. */
   protected InternalClientConnection connection;
 
   /** Created entries that will be deleted on class cleanup. */
@@ -125,9 +119,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   public static ReplicationDBImplementation replicationDbImplementation = ReplicationDBImplementation.valueOf(
       System.getProperty(REPLICATION_DB_IMPL_PROPERTY, ReplicationDBImplementation.LOG.name()));
 
-  /**
-   * Replication monitor stats.
-   */
+  /** Replication monitor stats. */
   private DN monitorDN;
   private String monitorAttr;
   private long lastCount;
@@ -157,15 +149,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected boolean callParanoiaCheck = true;
 
-  /**
-   * The replication plugin entry.
-   */
+  /** The replication plugin entry. */
   protected static final String SYNCHRO_PLUGIN_DN =
     "cn=Multimaster Synchronization, cn=Synchronization Providers,cn=config";
 
-  /**
-   * Set up the environment for performing the tests in this suite.
-   */
+  /** Set up the environment for performing the tests in this suite. */
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -200,10 +188,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
     catch(Exception e) {
       logger.traceException(e);
+
+      // This is the value of the generationId computed by the server when the
+      // test suffix (o=test) has only the root entry created.
+      return TEST_DN_WITH_ROOT_ENTRY_GENID;
     }
-    // This is the value of the generationId computed by the server when the
-    // test suffix (o=test) has only the root entry created.
-    return TEST_DN_WITH_ROOT_ENTRY_GENID;
   }
 
   /**
@@ -218,10 +207,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         port, timeout, getGenerationId(baseDN));
   }
 
-  /**
-   * Open a replicationServer session to the local ReplicationServer
-   * providing the generationId.
-   */
+  /** Open a replicationServer session to the local ReplicationServer providing the generationId. */
   protected ReplicationBroker openReplicationSession(final DN baseDN,
       int serverId, int windowSize, int port, int timeout,
       long generationId) throws Exception
@@ -293,7 +279,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected void deleteEntry(DN dn) throws Exception
   {
-    if (dn.parent().rdn().toString().equalsIgnoreCase("cn=domains"))
+    if ("cn=domains".equalsIgnoreCase(dn.parent().rdn().toString()))
     {
       deleteEntry(DN.valueOf("cn=external changelog," + dn));
     }
@@ -303,9 +289,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         "Delete entry " + dn + " failed: " + op.getResultCode());
   }
 
-  /**
-   * Suppress all the config entries created by the tests in this class.
-   */
+  /** Suppress all the config entries created by the tests in this class. */
   protected void cleanConfigEntries() throws Exception
   {
     logger.error(LocalizableMessage.raw("ReplicationTestCase/Cleaning config entries"));
@@ -320,9 +304,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     replServerEntry = null;
   }
 
-  /**
-   * Suppress all the real entries created by the tests in this class.
-   */
+  /** Suppress all the real entries created by the tests in this class. */
   protected void cleanRealEntries() throws Exception
   {
     logger.error(LocalizableMessage.raw("ReplicationTestCase/Cleaning entries"));
@@ -400,10 +382,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
-  /**
-   * Cleanup databases of the currently instantiated replication servers in the
-   * VM.
-   */
+  /** Cleanup databases of the currently instantiated replication servers in the VM. */
   protected void cleanUpReplicationServersDB() throws Exception
   {
     for (ReplicationServer rs : ReplicationServer.getAllInstances())
@@ -412,10 +391,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
-  /**
-   * Remove trailing directories and databases of the currently instantiated
-   * replication servers.
-   */
+  /** Remove trailing directories and databases of the currently instantiated replication servers. */
   protected void removeReplicationServerDB() throws Exception
   {
     // avoid ConcurrentModificationException
@@ -476,9 +452,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertEquals(entries.size(), 0, errorMsg + ":\n" + sb);
   }
 
-  /**
-   * Configure the replication for this test.
-   */
+  /** Configure the replication for this test. */
   protected void configureReplication(String replServerEntryLdif,
       String synchroServerEntryLdif) throws Exception
   {
@@ -595,9 +569,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return null;
   }
 
-  /**
-   * Update the monitor count for the specified monitor attribute.
-   */
+  /** Update the monitor count for the specified monitor attribute. */
   protected void updateMonitorCount(DN baseDN, String attr) throws Exception
   {
     monitorDN = baseDN;
@@ -634,9 +606,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return mods;
   }
 
-  /**
-   * Utility method to create, run a task and check its result.
-   */
+  /** Utility method to create, run a task and check its result. */
   protected void task(String task) throws Exception
   {
     Entry taskEntry = TestCaseUtils.addEntry(task);
@@ -794,9 +764,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
-  /**
-   * Add to the current DB the entries necessary to the test.
-   */
+  /** Add to the current DB the entries necessary to the test. */
   protected void addTestEntriesToDB(String... ldifEntries) throws Exception
   {
     for (String ldifEntry : ldifEntries)
@@ -845,9 +813,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return found;
   }
 
-  /**
-   * Utility method : removes a domain deleting the passed config entry
-   */
+  /** Utility method : removes a domain deleting the passed config entry */
   protected void removeDomain(Entry... domainCfgEntries) throws Exception
   {
     for (Entry entry : domainCfgEntries)
