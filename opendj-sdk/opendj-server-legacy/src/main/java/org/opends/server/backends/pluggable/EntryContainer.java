@@ -189,7 +189,6 @@ public class EntryContainer
   ConfigurationAddListener<BackendIndexCfg>,
   ConfigurationDeleteListener<BackendIndexCfg>
   {
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(final BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
@@ -205,7 +204,6 @@ public class EntryContainer
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(final BackendIndexCfg cfg)
     {
@@ -236,7 +234,6 @@ public class EntryContainer
       return ccr;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(
         BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -245,7 +242,6 @@ public class EntryContainer
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(final BackendIndexCfg cfg)
     {
@@ -285,7 +281,6 @@ public class EntryContainer
   ConfigurationAddListener<BackendVLVIndexCfg>,
   ConfigurationDeleteListener<BackendVLVIndexCfg>
   {
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(
         BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -341,7 +336,6 @@ public class EntryContainer
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(final BackendVLVIndexCfg cfg)
     {
@@ -372,7 +366,6 @@ public class EntryContainer
       return ccr;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
@@ -380,7 +373,6 @@ public class EntryContainer
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(final BackendVLVIndexCfg cfg)
     {
@@ -605,7 +597,7 @@ public class EntryContainer
   }
 
   /**
-   * Look for an VLV index for the given index name.
+   * Look for a VLV index for the given index name.
    *
    * @param vlvIndexName The vlv index name for which an vlv index is needed.
    * @return The VLV index or null if there is none with that name.
@@ -2539,8 +2531,7 @@ public class EntryContainer
         @Override
         public Long run(ReadableTransaction txn) throws Exception
         {
-          final int baseDnIfExists = dn2id.get(txn, baseDN) != null ? 1 : 0;
-          return id2childrenCount.getTotalCount(txn) + baseDnIfExists;
+          return getNumberOfEntriesInBaseDN0(txn);
         }
       });
     }
@@ -2548,6 +2539,12 @@ public class EntryContainer
     {
       throw new StorageRuntimeException(e);
     }
+  }
+
+  long getNumberOfEntriesInBaseDN0(ReadableTransaction txn)
+  {
+    final int baseDnIfExists = dn2id.get(txn, baseDN) != null ? 1 : 0;
+    return id2childrenCount.getTotalCount(txn) + baseDnIfExists;
   }
 
   /**
@@ -2680,7 +2677,6 @@ public class EntryContainer
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getBaseDN()
   {
@@ -2702,7 +2698,6 @@ public class EntryContainer
     return dn.parent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       PluggableBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -2712,7 +2707,6 @@ public class EntryContainer
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(final PluggableBackendCfg cfg)
   {
@@ -3127,10 +3121,8 @@ public class EntryContainer
     exclusiveLock.unlock();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString() {
     return treePrefix;
   }
-
 }

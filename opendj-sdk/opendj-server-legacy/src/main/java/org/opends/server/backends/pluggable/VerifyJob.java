@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.backends.pluggable.VLVIndex.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -192,11 +193,11 @@ class VerifyJob
         for (String index : list)
         {
           String lowerName = index.toLowerCase();
-          if ("dn2id".equals(lowerName))
+          if (DN2ID_INDEX_NAME.equals(lowerName))
           {
             verifyDN2ID = true;
           }
-          else if ("id2childrencount".equals(lowerName))
+          else if (ID2CHILDREN_COUNT_NAME.equals(lowerName))
           {
             verifyID2ChildrenCount = true;
           }
@@ -207,10 +208,11 @@ class VerifyJob
               throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName).toString());
             }
 
-            VLVIndex vlvIndex = entryContainer.getVLVIndex(lowerName.substring(4));
+            String vlvIndexName = lowerName.substring(4);
+            VLVIndex vlvIndex = entryContainer.getVLVIndex(vlvIndexName);
             if(vlvIndex == null)
             {
-              throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4)).toString());
+              throw new StorageRuntimeException(ERR_VLV_INDEX_NOT_CONFIGURED.get(vlvIndexName).toString());
             }
 
             vlvIndexList.add(vlvIndex);

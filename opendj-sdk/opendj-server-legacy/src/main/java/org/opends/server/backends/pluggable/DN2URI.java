@@ -30,9 +30,11 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -43,7 +45,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.util.Pair;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -74,7 +75,6 @@ import org.opends.server.util.StaticUtils;
  * as in dn2id so that all referrals in a subtree can be retrieved by cursoring
  * through a range of the records.
  */
-@SuppressWarnings("javadoc")
 class DN2URI extends AbstractTree
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -135,31 +135,57 @@ class DN2URI extends AbstractTree
   }
 
   /** Decodes the value as a pair where the first element is the DN key and the second is the actual value. */
-  private Pair<DN, List<String>> decode(ByteSequence bs) throws StorageRuntimeException
+  private Map.Entry<DN, List<String>> decode(ByteSequence bs) throws StorageRuntimeException
+  {
+    return decode0(bs, true);
+  }
+
+  private Collection<String> decodeUrisOnly(ByteSequence oldValue)
+  {
+    return decode0(oldValue, false).getValue();
+  }
+
+  private Map.Entry<DN, List<String>> decode0(ByteSequence bs, boolean decodeDN)
   {
     if (!bs.isEmpty())
     {
       ByteSequenceReader r = bs.asReader();
-      final int dnLength = r.getInt();
-      DN dn = null;
+      DN dn = decodeDN(r, decodeDN);
+      List<String> uris = decodeUris(r);
+      return new SimpleImmutableEntry<>(dn, uris);
+    }
+    return new SimpleImmutableEntry<>(null, null);
+  }
+
+  private DN decodeDN(ByteSequenceReader r, boolean decodeDN)
+  {
+    final int dnLength = r.getInt();
+    if (decodeDN)
+    {
       try
       {
-        dn = DN.valueOf(r.getString(dnLength));
+        return DN.valueOf(r.getString(dnLength));
       }
       catch (DirectoryException e)
       {
         throw new StorageRuntimeException("Unable to decode DN from binary value", e);
       }
-      final int nbElems = r.getInt();
-      List<String> results = new ArrayList<>(nbElems);
-      for (int i = 0; i < nbElems; i++)
-      {
-        final int stringLength = r.getInt();
-        results.add(r.getString(stringLength));
-      }
-      return Pair.of(dn, results);
     }
-    return Pair.empty();
+
+    r.skip(dnLength);
+    return null;
+  }
+
+  private List<String> decodeUris(ByteSequenceReader r)
+  {
+    final int nbElems = r.getInt();
+    List<String> results = new ArrayList<>(nbElems);
+    for (int i = 0; i < nbElems; i++)
+    {
+      final int stringLength = r.getInt();
+      results.add(r.getString(stringLength));
+    }
+    return results;
   }
 
   /**
@@ -181,8 +207,7 @@ class DN2URI extends AbstractTree
       {
         if (oldValue != null)
         {
-          final Pair<DN, List<String>> dnAndUris = decode(oldValue);
-          final Collection<String> newUris = dnAndUris.getSecond();
+          final Collection<String> newUris = decodeUrisOnly(oldValue);
           if (newUris.addAll(labeledURIs))
           {
             return encode(dn, newUris);
@@ -237,8 +262,7 @@ class DN2URI extends AbstractTree
       {
         if (oldValue != null)
         {
-          final Pair<DN, List<String>> dnAndUris = decode(oldValue);
-          final Collection<String> oldUris = dnAndUris.getSecond();
+          final Collection<String> oldUris = decodeUrisOnly(oldValue);
           if (oldUris.removeAll(labeledURIs))
           {
             return encode(dn, oldUris);
@@ -524,8 +548,7 @@ class DN2URI extends AbstractTree
         if (cursor.positionToKey(toKey(dn)))
         {
           // Construct a set of all the labeled URIs in the referral.
-          final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
-          Collection<String> labeledURIs = dnAndUris.getSecond();
+          Collection<String> labeledURIs = decodeUrisOnly(cursor.getValue());
           throwReferralException(targetDN, dn, labeledURIs, searchScope);
         }
       }
@@ -589,9 +612,9 @@ class DN2URI extends AbstractTree
         }
 
         // Construct a list of all the URIs in the referral.
-        final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
-        final DN dn = dnAndUris.getFirst();
-        final Collection<String> labeledURIs = dnAndUris.getSecond();
+        final Map.Entry<DN, List<String>> dnAndUris = decode(cursor.getValue());
+        final DN dn = dnAndUris.getKey();
+        final Collection<String> labeledURIs = dnAndUris.getValue();
         SearchResultReference reference = toSearchResultReference(dn, labeledURIs, searchOp.getScope());
         if (!searchOp.returnReference(dn, reference))
         {
