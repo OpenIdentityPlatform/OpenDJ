@@ -141,8 +141,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** The port of the replicationServer. */
   private int replicationServerPort;
-  private List<LDAPReplicationDomain> domains = new ArrayList<>();
-  private Map<ReplicaId, ReplicationBroker> brokers = new HashMap<>();
+  private final List<LDAPReplicationDomain> domains = new ArrayList<>();
+  private final Map<ReplicaId, ReplicationBroker> brokers = new HashMap<>();
 
   @BeforeClass
   @Override
@@ -276,7 +276,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         csns[3], cookies[3]);
     assertResultsContainCookieControl(searchOp, cookies);
 
-    assertChangelogAttributesInRootDSE(true, 1, 4);
+    assertChangelogAttributesInRootDSE(1, 4);
 
     debugInfo(test, "Ending search with success");
   }
@@ -573,7 +573,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
     searchChangesForEachOperationTypeUsingChangeNumberMode(firstChangeNumber, csns, testName);
 
-    assertChangelogAttributesInRootDSE(true, 1, 4);
+    assertChangelogAttributesInRootDSE(1, 4);
 
     debugInfo(testName, "Ending search with success");
   }
@@ -600,8 +600,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // search from a provided change number interval: 5-7
     searchChangelogFromToChangeNumber(5,7);
 
-    // check first and last change number
-    assertChangelogAttributesInRootDSE(true, 1, 8);
+    assertChangelogAttributesInRootDSE(1, 8);
 
     // add a new change, then check again first and last change number without previous search
     testName = "Multiple/9";
@@ -609,7 +608,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     CSN csn = new CSN(lastCsn.getTime() + 1, 9, SERVER_ID_1);
     publishUpdateMessagesInOTest(testName, false, generateDeleteMsg(DN_OTEST, csn, testName, 1));
 
-    assertChangelogAttributesInRootDSE(true, 1, 9);
+    assertChangelogAttributesInRootDSE(1, 9);
   }
 
   /** Verifies that is not possible to read the changelog without the changelog-read privilege. */
@@ -846,7 +845,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     assertChangeNumberRange(range, -1, -1);
   }
 
-  private List<SearchResultEntry> assertChangelogAttributesInRootDSE(boolean isECLEnabled,
+  private List<SearchResultEntry> assertChangelogAttributesInRootDSE(
       int expectedFirstChangeNumber, int expectedLastChangeNumber) throws Exception
   {
     AssertionError error = null;
@@ -868,25 +867,13 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         assertThat(entries).hasSize(1);
 
         final SearchResultEntry entry = entries.get(0);
-        if (isECLEnabled)
+        if (expectedFirstChangeNumber > 0)
         {
-          if (expectedFirstChangeNumber > 0)
-          {
-            assertAttributeValue(entry, "firstchangenumber", expectedFirstChangeNumber);
-          }
-          assertAttributeValue(entry, "lastchangenumber", expectedLastChangeNumber);
-          assertAttributeValue(entry, "changelog", "cn=changelog");
-          assertNotNull(getAttributeValue(entry, "lastExternalChangelogCookie"));
+          assertAttributeValue(entry, "firstchangenumber", expectedFirstChangeNumber);
         }
-        else
-        {
-          if (expectedFirstChangeNumber > 0) {
-            assertNull(getAttributeValue(entry, "firstchangenumber"));
-          }
-          assertNull(getAttributeValue(entry, "lastchangenumber"));
-          assertNull(getAttributeValue(entry, "changelog"));
-          assertNull(getAttributeValue(entry, "lastExternalChangelogCookie"));
-        }
+        assertAttributeValue(entry, "lastchangenumber", expectedLastChangeNumber);
+        assertAttributeValue(entry, "changelog", "cn=changelog");
+        assertNotNull(getAttributeValue(entry, "lastExternalChangelogCookie"));
         return entries;
       }
       catch (AssertionError ae)
