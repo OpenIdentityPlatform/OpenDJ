@@ -26,9 +26,9 @@
  */
 package org.opends.server.replication.server;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.TreeMap;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 
@@ -41,7 +41,6 @@ import static org.opends.messages.ReplicationMessages.*;
  */
 public class MsgQueue
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private TreeMap<CSN, UpdateMsg> map = new TreeMap<>();
@@ -109,7 +108,6 @@ public class MsgQueue
     }
   }
 
-
   /**
    * Add an UpdateMsg to this MessageQueue.
    *
@@ -128,10 +126,9 @@ public class MsgQueue
               || msgSameCSN.isAssured() != update.isAssured()
               || msgSameCSN.getVersion() != update.getVersion())
           {
-            // Adding 2 msgs with the same CSN is ok only when
-            // the 2 msgs are the same
+            // Adding 2 msgs with the same CSN is ok only when the 2 msgs are the same
             bytesCount += update.size() - msgSameCSN.size();
-            logger.error(ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN, msgSameCSN.getCSN(), msgSameCSN, update);
+            logger.error(ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CSN, msgSameCSN.getCSN(), msgSameCSN, update);
           }
         }
         catch (Exception e)
@@ -179,7 +176,6 @@ public class MsgQueue
    *
    * @return <tt>true</tt> if this map contains an UpdateMsg
    *         with the same CSN as the given UpdateMsg.
-   *
    */
   public boolean contains(UpdateMsg msg)
   {
@@ -189,9 +185,7 @@ public class MsgQueue
     }
   }
 
-  /**
-   * Removes all UpdateMsg form this queue.
-   */
+  /** Removes all UpdateMsg form this queue. */
   public void clear()
   {
     synchronized (lock)
@@ -228,11 +222,9 @@ public class MsgQueue
     while (!finalCSN.equals(msg.getCSN()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + " bytesCount=" + bytesCount + " queue="
-        + map.values();
+    return getClass().getSimpleName() + " bytesCount=" + bytesCount + " queue=" + map.values();
   }
 }
