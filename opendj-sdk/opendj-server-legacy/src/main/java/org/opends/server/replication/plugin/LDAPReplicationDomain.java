@@ -111,7 +111,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        implements ConfigurationChangeListener<ReplicationDomainCfg>,
                   AlertGenerator
 {
-
   /**
    * Set of attributes that will return all the user attributes and the
    * replication related operational attributes when used in a search operation.
@@ -169,11 +168,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
   }
 
-  /**
-   * The fully-qualified name of this class.
-   */
-  private static final String CLASS_NAME = LDAPReplicationDomain.class
-      .getName();
+  /** The fully-qualified name of this class. */
+  private static final String CLASS_NAME = LDAPReplicationDomain.class.getName();
 
   /**
    * The attribute used to mark conflicting entries.
@@ -236,31 +232,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private ExternalChangelogDomain eclDomain;
 
-  /**
-   * A boolean indicating if the thread used to save the persistentServerState
-   * is terminated.
-   */
+  /** A boolean indicating if the thread used to save the persistentServerState is terminated. */
   private volatile boolean done = true;
 
   private final ServerStateFlush flushThread;
 
-  /**
-   * The attribute name used to store the generation id in the backend.
-   */
-  private static final String REPLICATION_GENERATION_ID =
-    "ds-sync-generation-id";
-  /**
-   * The attribute name used to store the fractional include configuration in
-   * the backend.
-   */
-  static final String REPLICATION_FRACTIONAL_INCLUDE =
-    "ds-sync-fractional-include";
-  /**
-   * The attribute name used to store the fractional exclude configuration in
-   * the backend.
-   */
-  static final String REPLICATION_FRACTIONAL_EXCLUDE =
-    "ds-sync-fractional-exclude";
+  /** The attribute name used to store the generation id in the backend. */
+  private static final String REPLICATION_GENERATION_ID = "ds-sync-generation-id";
+  /** The attribute name used to store the fractional include configuration in the backend. */
+  static final String REPLICATION_FRACTIONAL_INCLUDE = "ds-sync-fractional-include";
+  /** The attribute name used to store the fractional exclude configuration in the backend. */
+  static final String REPLICATION_FRACTIONAL_EXCLUDE = "ds-sync-fractional-exclude";
 
   /**
    * Fractional replication variables.
@@ -269,10 +251,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /** Holds the fractional configuration for this domain, if any. */
   private final FractionalConfig fractionalConfig;
 
-  /**
-   * The list of attributes that cannot be used in fractional replication
-   * configuration.
-   */
+  /** The list of attributes that cannot be used in fractional replication configuration. */
   private static final String[] FRACTIONAL_PROHIBITED_ATTRIBUTES = new String[]
   {
     "objectClass",
@@ -298,13 +277,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * the fractional replication ldif import plugin.
    */
   private int importErrorMessageId = -1;
-  /**
-   * LocalizableMessage type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.
-   */
+  /** LocalizableMessage type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE. */
   static final int IMPORT_ERROR_MESSAGE_BAD_REMOTE = 1;
-  /**
-   * LocalizableMessage type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.
-   */
+  /** LocalizableMessage type for ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL. */
   static final int IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL = 2;
 
   /*
@@ -343,7 +318,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       super("Replica DS(" + getServerId() + ") state checkpointer for domain \"" + getBaseDN() + "\"");
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -389,7 +363,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       this.startCSN = replServerMaxCSN;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -804,21 +777,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       this.attrValIt = attrValIt;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasNext()
     {
       return attrValIt.hasNext();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String next()
     {
       return attrValIt.next().toString();
     }
 
-    /** {@inheritDoc} */
     // Should not be needed anyway
     @Override
     public void remove()
@@ -977,7 +947,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
       }
     }
-
 
     // Check consistency of all classes attributes
     for (String attrName : newFractionalAllClassesAttributes)
@@ -1262,7 +1231,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return hasSomeAttributesToFilter;
   }
 
-  private static boolean isMandatoryAttribute(Set<ObjectClass> entryClasses, AttributeType attributeType)
+   private static boolean isMandatoryAttribute(Set<ObjectClass> entryClasses, AttributeType attributeType)
    {
      for (ObjectClass objectClass : entryClasses)
      {
@@ -1503,9 +1472,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
-    // FIXME should the next call use the initWindow parameter rather than the
-    // instance variable?
-    super.initializeRemote(target, requestorID, initTask, getInitWindow());
+    super.initializeRemote(target, requestorID, initTask, initWindow);
   }
 
   /**
@@ -1706,7 +1673,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // ACCEPT_ALL_UPDATES and REJECT_ALL_UPDATES
     return true;
   }
-
 
   /**
    * Implement the  handleConflictResolution phase of the ModifyDNOperation.
@@ -1957,7 +1923,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void publishReplicaOfflineMsg()
   {
@@ -2043,10 +2008,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
       }
 
-      // If the operation is a DELETE on the base entry of the suffix
-      // that is replicated, the generation is now lost because the
-      // DB is empty. We need to save it again the next time we add an entry.
-      if (op.getOperationType().equals(OperationType.DELETE)
+      /*
+       * If the operation is a DELETE on the base entry of the suffix
+       * that is replicated, the generation is now lost because the
+       * DB is empty. We need to save it again the next time we add an entry.
+       */
+      if (OperationType.DELETE.equals(op.getOperationType())
           && ((PostOperationDeleteOperation) op)
                 .getEntryDN().equals(getBaseDN()))
       {
@@ -2202,18 +2169,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     op.run();
   }
 
-  /**
-   * Delete this ReplicationDomain.
-   */
+  /** Delete this ReplicationDomain. */
   void delete()
   {
     shutdown();
     removeECLDomainCfg();
   }
 
-  /**
-   * Shutdown this ReplicationDomain.
-   */
+  /** Shutdown this ReplicationDomain. */
   public void shutdown()
   {
     if (shutdown.compareAndSet(false, true))
@@ -2484,7 +2447,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return pendingChanges.putLocalOperation(operation);
   }
 
-
   /**
    * Find the Unique Id of the entry with the provided DN by doing a
    * search of the entry and extracting its entryUUID from its attributes.
@@ -2652,9 +2614,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
    if (result == ResultCode.NO_SUCH_OBJECT)
    {
-     /*
-      * Find if the entry is still in the database.
-      */
+     /* Find if the entry is still in the database. */
      DN currentDN = findEntryDN(entryUUID);
      if (currentDN == null)
      {
@@ -2823,7 +2783,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   }
 }
 
-
   /**
    * Solve a conflict detected when replaying a ADD operation.
    *
@@ -2963,7 +2922,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return conflict;
   }
 
-
   /**
    * Rename an entry that was conflicting so that it stays below the
    * baseDN of the replicationDomain.
@@ -2989,7 +2947,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
           dn, conflictOp, newOp.getResultCode());
     }
   }
-
 
   /**
    * Generate a modification to add the conflict attribute to an entry
@@ -3226,7 +3183,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return result;
   }
 
-
   /**
    * Load the GenerationId from the root entry of the domain
    * from the REPLICATION_GENERATION_ID attribute in database
@@ -3242,10 +3198,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       logger.trace("Attempt to read generation ID from DB " + getBaseDN());
     }
 
-    /*
-     * Search the database entry that is used to periodically
-     * save the generation id
-     */
+    // Search the database entry that is used to periodically save the generation id
     final SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT)
         .addAttribute(REPLICATION_GENERATION_ID);
     InternalSearchOperation search = conn.processSearch(request);
@@ -3690,7 +3643,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * <<Total Update
    */
 
-
   /**
    * Push the schema modifications contained in the given parameter as a
    * modification that would happen on a local server. The modifications are not
@@ -3770,7 +3722,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
          ReplicationDomainCfg configuration)
@@ -3796,7 +3747,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
          ReplicationDomainCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -3822,7 +3772,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
@@ -3833,24 +3782,19 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return alerts;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return CLASS_NAME;
-
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
     return config.dn();
   }
 
-  /**
-   * Starts the Replication Domain.
-   */
+  /** Starts the Replication Domain. */
   public void start()
   {
     // Create the ServerStateFlush thread
@@ -3859,11 +3803,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     startListenService();
   }
 
-
-  /**
-   * Remove from this domain configuration, the configuration of the
-   * external change log.
-   */
+  /** Remove the configuration of the external changelog from this domain configuration. */
   private void removeECLDomainCfg()
   {
     try
@@ -3957,7 +3897,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return buffer.toString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void sessionInitiated(ServerStatus initStatus, ServerState rsState)
   {
@@ -4205,7 +4144,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return searchForChangedEntries(baseDN, fromCSN, null, resultListener);
   }
 
-
   /**
    * This method should return the total number of objects in the
    * replicated domain.
@@ -4229,7 +4167,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return backend.getNumberOfEntriesInBaseDN(getBaseDN());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean processUpdate(UpdateMsg updateMsg)
   {
@@ -4761,8 +4698,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
           }
           else
           {
-            Set<String> attrList =
-                fractionalSpecificClassesAttributes.get(classNameLower);
+            Set<String> attrList = fractionalSpecificClassesAttributes.get(classNameLower);
             if (attrList == null)
             {
               attrList = new LinkedHashSet<>();
