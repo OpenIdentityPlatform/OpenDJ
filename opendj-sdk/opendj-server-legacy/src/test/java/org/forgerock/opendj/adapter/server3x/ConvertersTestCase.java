@@ -25,7 +25,7 @@
  */
 package org.forgerock.opendj.adapter.server3x;
 
-import static org.fest.assertions.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.mockito.Mockito.*;
 
