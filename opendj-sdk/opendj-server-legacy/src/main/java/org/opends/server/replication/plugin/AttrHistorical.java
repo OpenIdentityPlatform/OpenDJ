@@ -28,17 +28,15 @@
 package org.opends.server.replication.plugin;
 
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
-/**
- * This class store historical information for a provided attribute.
- */
+/** This class store historical information for a provided attribute. */
 public abstract class AttrHistorical
 {
   /**
@@ -55,23 +53,21 @@ public abstract class AttrHistorical
    * @return a boolean indicating if a conflict was detected.
    */
   public abstract boolean replayOperation(
-      Iterator<Modification> modsIterator, CSN csn,
-      Entry modifiedEntry, Modification mod);
+      Iterator<Modification> modsIterator, CSN csn, Entry modifiedEntry, Modification mod);
 
   /**
-   * This method calculate the historical information and update the hist
+   * This method calculates the historical information and update the hist
    * attribute to store the historical information for modify operation that
    * does not conflict with previous operation.
    * This is the usual path and should therefore be optimized.
-   *
+   * <p>
    * It does not check if the operation to process is conflicting or not with
    * previous operations. The caller is responsible for this.
    *
    * @param csn The CSN of the operation to process
    * @param mod The modify operation to process.
    */
-  public abstract void processLocalOrNonConflictModification(
-      CSN csn, Modification mod);
+  public abstract void processLocalOrNonConflictModification(CSN csn, Modification mod);
 
   /**
    * Create a new object from a provided attribute type. Historical is empty.
@@ -79,19 +75,17 @@ public abstract class AttrHistorical
    * @param type the provided attribute type.
    * @return a new AttributeInfo object.
    */
-  public static AttrHistorical createAttributeHistorical(
-      AttributeType type)
+  public static AttrHistorical createAttributeHistorical(AttributeType type)
   {
     return type.isSingleValue() ? new AttrHistoricalSingle() : new AttrHistoricalMultiple();
   }
 
   /**
-   * Get the List of ValueInfo for this attribute Info.
+   * Get the historical informations for this attribute Info.
    *
-   * @return the List of ValueInfo
+   * @return the historical informations
    */
-  public abstract Map<AttrValueHistorical, AttrValueHistorical> getValuesHistorical();
-
+  public abstract Set<AttrValueHistorical> getValuesHistorical();
 
   /**
    * Returns the last time when this attribute was deleted.
@@ -107,8 +101,5 @@ public abstract class AttrHistorical
    * @param value   the associated value or null if there is no value;
    * @param csn     the associated CSN.
    */
-  public abstract void assign(
-      HistAttrModificationKey histKey, ByteString value, CSN csn);
-
+  public abstract void assign(HistAttrModificationKey histKey, ByteString value, CSN csn);
 }
-
