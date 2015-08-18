@@ -26,6 +26,8 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.util.Reject.*;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -37,8 +39,6 @@ import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
-
-import static org.forgerock.util.Reject.*;
 
 /**
  * This class defines a virtual attribute rule, which associates a
@@ -60,43 +60,21 @@ public final class VirtualAttributeRule
 
   /** The attribute type for which the values should be generated. */
   private final AttributeType attributeType;
-
-  /**
-   * The set of base DNs for branches that are eligible to have this virtual
-   * attribute.
-   */
+  /** The set of base DNs for branches that are eligible to have this virtual attribute. */
   private final Set<DN> baseDNs;
-
-  /**
-   * The scope of entries eligible to have this virtual attribute, under the
-   * base DNs.
-   */
+  /** The scope of entries eligible to have this virtual attribute, under the base DNs. */
   private final SearchScope scope;
-
-  /**
-   * The set of DNs for groups whose members are eligible to have this virtual
-   * attribute.
-   */
+  /** The set of DNs for groups whose members are eligible to have this virtual attribute. */
   private final Set<DN> groupDNs;
-
-  /**
-   * The set of search filters for entries that are eligible to have this
-   * virtual attribute.
-   */
+  /** The set of search filters for entries that are eligible to have this virtual attribute. */
   private final Set<SearchFilter> filters;
-
   /** The virtual attribute provider used to generate the values. */
-  private final VirtualAttributeProvider<
-                     ? extends VirtualAttributeCfg> provider;
-
+  private final VirtualAttributeProvider<? extends VirtualAttributeCfg> provider;
   /**
    * The behavior that should be exhibited for entries that already have real
    * values for the target attribute.
    */
-  private final VirtualAttributeCfgDefn.ConflictBehavior
-                     conflictBehavior;
-
-
+  private final VirtualAttributeCfgDefn.ConflictBehavior conflictBehavior;
 
   /**
    * Creates a new virtual attribute rule with the provided information.
@@ -139,8 +117,6 @@ public final class VirtualAttributeRule
     this.conflictBehavior = conflictBehavior;
   }
 
-
-
   /**
    * Retrieves the attribute type for which the values should be generated.
    *
@@ -151,10 +127,7 @@ public final class VirtualAttributeRule
     return attributeType;
   }
 
-
-
   /**
-   *
    * Retrieves the virtual attribute provider used to generate the values.
    *
    * @return  The virtual attribute provider to use to generate the values.
@@ -164,8 +137,6 @@ public final class VirtualAttributeRule
   {
     return provider;
   }
-
-
 
   /**
    * Retrieves the set of base DNs for branches that are eligible to
@@ -179,7 +150,6 @@ public final class VirtualAttributeRule
     return baseDNs;
   }
 
-
   /**
    * Retrieves the scope of entries in the base DNs that are eligible
    * to have this virtual attribute.
@@ -191,8 +161,6 @@ public final class VirtualAttributeRule
   {
     return scope;
   }
-
-
 
   /**
    * Retrieves the set of DNs for groups whose members are eligible to
@@ -206,8 +174,6 @@ public final class VirtualAttributeRule
     return groupDNs;
   }
 
-
-
   /**
    * Retrieves the set of search filters for entries that are eligible
    * to have this virtual attribute.
@@ -219,8 +185,6 @@ public final class VirtualAttributeRule
   {
     return filters;
   }
-
-
 
   /**
    * Retrieves the behavior that the server should exhibit for entries
@@ -235,8 +199,6 @@ public final class VirtualAttributeRule
   {
     return conflictBehavior;
   }
-
-
 
   /**
    * Indicates whether this virtual attribute rule applies to the
@@ -261,94 +223,80 @@ public final class VirtualAttributeRule
       return false;
     }
 
-    // If there are any base DNs defined, then the entry must be below
-    // one of them.
-    DN entryDN = entry.getName();
-    if (! baseDNs.isEmpty())
+    // If there are any base DNs defined, then the entry must be below one of them.
+    if (!baseDNs.isEmpty() && !matchesAnyBaseDN(entry.getName()))
     {
-      boolean found = false;
-      for (DN dn : baseDNs)
-      {
-        if (entryDN.matchesBaseAndScope(dn , scope))
-        {
-          found = true;
-          break;
-        }
-      }
-
-      if (! found)
-      {
-        return false;
-      }
+      return false;
     }
 
-    // If there are any search filters defined, then the entry must
-    // match one of them.
-    if (! filters.isEmpty())
+    // If there are any search filters defined, then the entry must match one of them.
+    if (!filters.isEmpty() && !matchesAnyFilter(entry))
     {
-      boolean found = false;
-      for (SearchFilter filter : filters)
-      {
-        try
-        {
-          if (filter.matchesEntry(entry))
-          {
-            found = true;
-            break;
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
-      }
-
-      if (! found)
-      {
-        return false;
-      }
+      return false;
     }
 
     // If there are any group memberships defined, then the entry must
     // be a member of one of them.
-    if (! groupDNs.isEmpty())
+    if (!groupDNs.isEmpty() && !isMemberOfAnyGroup(entry))
     {
-      boolean found = false;
-      for (DN dn : groupDNs)
-      {
-        try
-        {
-          Group group =
-               DirectoryServer.getGroupManager().getGroupInstance(dn);
-          if (group != null && group.isMember(entry))
-          {
-            found = true;
-            break;
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
-      }
-
-      if (! found)
-      {
-        return false;
-      }
+      return false;
     }
 
     // If we've gotten here, then the rule is applicable.
     return true;
   }
 
+  private boolean matchesAnyBaseDN(DN entryDN)
+  {
+    for (DN dn : baseDNs)
+    {
+      if (entryDN.matchesBaseAndScope(dn, scope))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
+  private boolean matchesAnyFilter(Entry entry)
+  {
+    for (SearchFilter filter : filters)
+    {
+      try
+      {
+        if (filter.matchesEntry(entry))
+        {
+          return true;
+        }
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
+    }
+    return false;
+  }
 
-  /**
-   * Retrieves a string representation of this virtual attribute rule.
-   *
-   * @return  A string representation of this virtual attribute rule.
-   */
+  private boolean isMemberOfAnyGroup(Entry entry)
+  {
+    for (DN dn : groupDNs)
+    {
+      try
+      {
+        Group<?> group = DirectoryServer.getGroupManager().getGroupInstance(dn);
+        if (group != null && group.isMember(entry))
+        {
+          return true;
+        }
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
+    }
+    return false;
+  }
+
   @Override
   public String toString()
   {
@@ -356,8 +304,6 @@ public final class VirtualAttributeRule
     toString(buffer);
     return buffer.toString();
   }
-
-
 
   /**
    * Appends a string representation of this virtual attribute rule to
@@ -390,9 +336,8 @@ public final class VirtualAttributeRule
     if (!col.isEmpty())
     {
       buffer.append("\"");
-      buffer.append(Utils.joinAsString("\", \"", col));
+      Utils.joinAsString(buffer, "\", \"", col);
       buffer.append("\"");
     }
   }
 }
-
