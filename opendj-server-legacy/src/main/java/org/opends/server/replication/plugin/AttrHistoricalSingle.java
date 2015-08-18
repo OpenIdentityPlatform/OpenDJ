@@ -110,10 +110,11 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       else
       {
-        this.deleteTime = addTime = csn;
+        this.addTime = csn;
+        this.deleteTime = csn;
+        this.value = newValue;
         lastMod = REPL;
       }
-      this.value = newValue;
       break;
 
     case INCREMENT:
@@ -301,5 +302,30 @@ public class AttrHistoricalSingle extends AttrHistorical
       this.deleteTime = csn;
       break;
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    if (deleteTime != null)
+    {
+      sb.append("deleteTime=").append(deleteTime);
+    }
+    if (addTime != null)
+    {
+      if (sb.length() > 0)
+      {
+        sb.append(", ");
+      }
+      sb.append("addTime=").append(addTime);
+    }
+    if (sb.length() > 0)
+    {
+      sb.append(", ");
+    }
+    sb.append("value=").append(value)
+      .append(", lastMod=").append(lastMod);
+    return getClass().getSimpleName() + "(" + sb + ")";
   }
 }
