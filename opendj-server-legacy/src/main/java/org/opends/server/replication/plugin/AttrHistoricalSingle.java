@@ -26,9 +26,11 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
+
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -54,45 +56,33 @@ public class AttrHistoricalSingle extends AttrHistorical
   private CSN addTime;
   /** Last added value. */
   private ByteString value;
-
   /**
    * Last operation applied. This is only used for multiple mods on the same
    * single valued attribute in the same modification.
    */
   private HistAttrModificationKey lastMod;
 
-  /** {@inheritDoc} */
   @Override
   public CSN getDeleteTime()
   {
     return this.deleteTime;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public Map<AttrValueHistorical,AttrValueHistorical> getValuesHistorical()
+  public Set<AttrValueHistorical> getValuesHistorical()
   {
-    if (addTime == null)
+    if (addTime != null)
     {
-      return Collections.emptyMap();
+      return Collections.singleton(new AttrValueHistorical(value, addTime, null));
     }
-    else
-    {
-      AttrValueHistorical val = new AttrValueHistorical(value, addTime, null);
-      return Collections.singletonMap(val, val);
-    }
+    return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processLocalOrNonConflictModification(CSN csn, Modification mod)
   {
-    ByteString newValue = null;
     Attribute modAttr = mod.getAttribute();
-    if (modAttr != null && !modAttr.isEmpty())
-    {
-      newValue = modAttr.iterator().next();
-    }
+    ByteString newValue = getSingleValue(modAttr);
 
     switch (mod.getModificationType().asEnum())
     {
@@ -100,13 +90,13 @@ public class AttrHistoricalSingle extends AttrHistorical
       this.addTime = null;
       this.deleteTime = csn;
       this.value = newValue;
-      lastMod = HistAttrModificationKey.DEL;
+      lastMod = DEL;
       break;
 
     case ADD:
       this.addTime = csn;
       this.value = newValue;
-      lastMod = HistAttrModificationKey.ADD;
+      lastMod = ADD;
       break;
 
     case REPLACE:
@@ -116,12 +106,12 @@ public class AttrHistoricalSingle extends AttrHistorical
         this.addTime = null;
         this.deleteTime = csn;
         this.value = null;
-        lastMod = HistAttrModificationKey.DEL;
+        lastMod = DEL;
       }
       else
       {
         this.deleteTime = addTime = csn;
-        lastMod = HistAttrModificationKey.REPL;
+        lastMod = REPL;
       }
       this.value = newValue;
       break;
@@ -132,20 +122,14 @@ public class AttrHistoricalSingle extends AttrHistorical
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean replayOperation(Iterator<Modification> modsIterator, CSN csn,
       Entry modifiedEntry, Modification mod)
   {
-    boolean conflict = false;
-
-    ByteString newValue = null;
     Attribute modAttr = mod.getAttribute();
-    if (modAttr != null && !modAttr.isEmpty())
-    {
-      newValue = modAttr.iterator().next();
-    }
+    ByteString newValue = getSingleValue(modAttr);
 
+    boolean conflict = false;
     switch (mod.getModificationType().asEnum())
     {
     case DELETE:
@@ -172,7 +156,7 @@ public class AttrHistoricalSingle extends AttrHistorical
           else
           {
             addTime = null;
-            lastMod = HistAttrModificationKey.DEL;
+            lastMod = DEL;
             value = null;
           }
         }
@@ -184,15 +168,14 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       else if (csn.equals(addTime))
       {
-        if (lastMod == HistAttrModificationKey.ADD
-            || lastMod == HistAttrModificationKey.REPL)
+        if (lastMod == ADD || lastMod == REPL)
         {
           if (csn.isNewerThan(deleteTime))
           {
             deleteTime = csn;
           }
           addTime = null;
-          lastMod = HistAttrModificationKey.DEL;
+          lastMod = DEL;
           value = null;
         }
         else
@@ -215,7 +198,7 @@ public class AttrHistoricalSingle extends AttrHistorical
         mod.setModificationType(ModificationType.REPLACE);
         addTime = csn;
         value = newValue;
-        lastMod = HistAttrModificationKey.REPL;
+        lastMod = REPL;
       }
       else
       {
@@ -225,17 +208,17 @@ public class AttrHistoricalSingle extends AttrHistorical
           // no conflict : don't do anything beside setting the addTime
           addTime = csn;
           value = newValue;
-          lastMod = HistAttrModificationKey.ADD;
+          lastMod = ADD;
         }
         else
         {
           // Case where CSN = addTime = deleteTime
           if (csn.equals(deleteTime) && csn.equals(addTime)
-              && lastMod == HistAttrModificationKey.DEL)
+              && lastMod == DEL)
           {
             // No conflict, record the new value.
             value = newValue;
-            lastMod = HistAttrModificationKey.ADD;
+            lastMod = ADD;
           }
           else
           {
@@ -260,14 +243,14 @@ public class AttrHistoricalSingle extends AttrHistorical
           addTime = null;
           value = newValue;
           deleteTime = csn;
-          lastMod = HistAttrModificationKey.DEL;
+          lastMod = DEL;
         }
         else
         {
           addTime = csn;
           value = newValue;
           deleteTime = csn;
-          lastMod = HistAttrModificationKey.REPL;
+          lastMod = REPL;
         }
       }
       break;
@@ -279,7 +262,15 @@ public class AttrHistoricalSingle extends AttrHistorical
     return conflict;
   }
 
-  /** {@inheritDoc} */
+  private ByteString getSingleValue(Attribute modAttr)
+  {
+    if (modAttr != null && !modAttr.isEmpty())
+    {
+      return modAttr.iterator().next();
+    }
+    return null;
+  }
+
   @Override
   public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
   {
@@ -312,4 +303,3 @@ public class AttrHistoricalSingle extends AttrHistorical
     }
   }
 }
-

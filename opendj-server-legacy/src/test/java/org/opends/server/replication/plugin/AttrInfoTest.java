@@ -27,13 +27,13 @@
 package org.opends.server.replication.plugin;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
@@ -41,16 +41,11 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/**
- * Test AttrInfo and AttrInfoWithOptions.
- */
+/** Test AttrInfo and AttrInfoWithOptions. */
 @SuppressWarnings("javadoc")
 public class AttrInfoTest extends ReplicationTestCase
 {
-
-  /**
-   * Build some data for the AttrInfo test below.
-   */
+  /** Build some data for the AttrInfo test below. */
   @DataProvider(name = "attrInfo")
   public Object[][] createData()
   {
@@ -74,9 +69,7 @@ public class AttrInfoTest extends ReplicationTestCase
     { att3, upd3, upd3 } };
   }
 
-  /**
-   * Create a AttrInfo and check the methods.
-   */
+  /** Create a AttrInfo and check the methods. */
   @Test(dataProvider = "attrInfo")
   public void attrInfo(ByteString att, CSN deleteTime, CSN updateTime) throws Exception
   {
@@ -85,10 +78,10 @@ public class AttrInfoTest extends ReplicationTestCase
 
     // Check
     attrInfo1.add(att, updateTime);
-    Map<AttrValueHistorical,AttrValueHistorical> values1 = attrInfo1.getValuesHistorical();
+    Set<AttrValueHistorical> values1 = attrInfo1.getValuesHistorical();
     assertEquals(values1.size(), 1);
     AttrValueHistorical valueInfo1 = new AttrValueHistorical(att, updateTime, null);
-    assertTrue(values1.containsKey(valueInfo1));
+    assertTrue(values1.contains(valueInfo1));
 
     // Check constructor with parameter
     AttrValueHistorical valueInfo2 = new AttrValueHistorical(att, updateTime, deleteTime);
@@ -101,14 +94,14 @@ public class AttrInfoTest extends ReplicationTestCase
     //  Check constructor with time parameter and not Value
     AttrHistoricalMultiple attrInfo3 = new AttrHistoricalMultiple(deleteTime, updateTime, null);
     attrInfo3.add(att, updateTime);
-    Map<AttrValueHistorical,AttrValueHistorical> values3 = attrInfo3.getValuesHistorical();
+    Set<AttrValueHistorical> values3 = attrInfo3.getValuesHistorical();
     assertEquals(values3.size(), 1);
     valueInfo1 = new AttrValueHistorical(att, updateTime, null);
-    assertTrue(values3.containsKey(valueInfo1));
+    assertTrue(values3.contains(valueInfo1));
 
     // Check duplicate
     AttrHistoricalMultiple attrInfo4 = attrInfo3.duplicate();
-    Map<AttrValueHistorical,AttrValueHistorical> values4 = attrInfo4.getValuesHistorical();
+    Set<AttrValueHistorical> values4 = attrInfo4.getValuesHistorical();
     assertEquals(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime()), 0);
     assertEquals(values4.size(), values3.size());
 
@@ -122,7 +115,7 @@ public class AttrInfoTest extends ReplicationTestCase
     assertEquals(attrInfo3.getValuesHistorical().size(), 1);
 
     // Check
-    attrInfo2.delete(updateTime) ;
+    attrInfo2.delete(updateTime);
     assertEquals(attrInfo2.getValuesHistorical().size(), 0);
   }
 }

@@ -433,30 +433,17 @@ public class EntryHistorical
       Map<Set<String>, AttrHistorical> attrWithOptions =
                                 entryWithOptions.getValue().getAttributesInfo();
 
-      for (Map.Entry<Set<String>, AttrHistorical> entry : attrWithOptions
-          .entrySet())
+      for (Map.Entry<Set<String>, AttrHistorical> entry : attrWithOptions.entrySet())
       {
         // Encode an (attribute type/option)
-        Set<String> options = entry.getKey();
+        String optionsString = toOptionsString(entry.getKey());
         AttrHistorical attrHist = entry.getValue();
-
-        String optionsString = "";
-        if (options != null)
-        {
-          StringBuilder optionsBuilder = new StringBuilder();
-          for (String s : options)
-          {
-            optionsBuilder.append(';').append(s);
-          }
-          optionsString = optionsBuilder.toString();
-        }
 
         CSN deleteTime = attrHist.getDeleteTime();
         /* generate the historical information for deleted attributes */
         boolean delAttr = deleteTime != null;
 
-        for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical()
-            .keySet())
+        for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical())
         {
           final ByteString value = attrValHist.getAttributeValue();
 
@@ -532,6 +519,20 @@ public class EntryHistorical
     }
 
     return builder.toAttribute();
+  }
+
+  private String toOptionsString(Set<String> options)
+  {
+    if (options != null)
+    {
+      StringBuilder optionsBuilder = new StringBuilder();
+      for (String s : options)
+      {
+        optionsBuilder.append(';').append(s);
+      }
+      return optionsBuilder.toString();
+    }
+    return "";
   }
 
   private boolean needsPurge(CSN csn, long purgeDate)
@@ -623,17 +624,11 @@ public class EntryHistorical
    */
   public static EntryHistorical newInstanceFromEntry(Entry entry)
   {
-    AttributeType lastAttrType = null;
-    Set<String> lastOptions = new HashSet<>();
-    AttrHistorical attrInfo = null;
-    AttrHistoricalWithOptions attrInfoWithOptions = null;
-
     // Read the DB historical attribute from the entry
     List<Attribute> histAttrWithOptionsFromEntry = getHistoricalAttr(entry);
 
     // Now we'll build the Historical object we want to construct
-    EntryHistorical newHistorical = new EntryHistorical();
-
+    final EntryHistorical newHistorical = new EntryHistorical();
     if (histAttrWithOptionsFromEntry == null)
     {
       // No historical attribute in the entry, return empty object
@@ -642,6 +637,11 @@ public class EntryHistorical
 
     try
     {
+      AttributeType lastAttrType = null;
+      Set<String> lastOptions = new HashSet<>();
+      AttrHistorical attrInfo = null;
+      AttrHistoricalWithOptions attrInfoWithOptions = null;
+
       // For each value of the historical attr read (mod. on a user attribute)
       //   build an AttrInfo sub-object
 
@@ -653,14 +653,8 @@ public class EntryHistorical
         for (ByteString histAttrValueFromEntry : histAttrFromEntry)
         {
           // From each value of the hist attr, create an object
-          HistoricalAttributeValue histVal = new HistoricalAttributeValue(
-              histAttrValueFromEntry.toString());
-
-          AttributeType attrType = histVal.getAttrType();
-          Set<String> options = histVal.getOptions();
-          CSN csn = histVal.getCSN();
-          ByteString value = histVal.getAttributeValue();
-          HistAttrModificationKey histKey = histVal.getHistKey();
+          final HistoricalAttributeValue histVal = new HistoricalAttributeValue(histAttrValueFromEntry.toString());
+          final CSN csn = histVal.getCSN();
 
           // update the oldest CSN stored in the new entry historical
           newHistorical.updateOldestCSN(csn);
@@ -675,6 +669,7 @@ public class EntryHistorical
           }
           else
           {
+            AttributeType attrType = histVal.getAttrType();
             if (attrType == null)
             {
               /*
@@ -694,6 +689,7 @@ public class EntryHistorical
              *   AttrInfo that we add to AttrInfoWithOptions
              * if both match we keep everything
              */
+            Set<String> options = histVal.getOptions();
             if (attrType != lastAttrType)
             {
               attrInfo = AttrHistorical.createAttributeHistorical(attrType);
@@ -703,8 +699,7 @@ public class EntryHistorical
               attrInfoWithOptions.put(options, attrInfo);
 
               // Store this attrInfoWithOptions in the newHistorical object
-              newHistorical.attributesHistorical.
-                put(attrType, attrInfoWithOptions);
+              newHistorical.attributesHistorical.put(attrType, attrInfoWithOptions);
 
               lastAttrType = attrType;
               lastOptions = options;
@@ -716,7 +711,7 @@ public class EntryHistorical
               lastOptions = options;
             }
 
-            attrInfo.assign(histKey, value, csn);
+            attrInfo.assign(histVal.getHistKey(), histVal.getAttributeValue(), csn);
           }
         }
       }
