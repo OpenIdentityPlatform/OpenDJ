@@ -402,17 +402,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
            */
           builder.add(valInfo.getAttributeValue());
         }
-        else
+        else if (csn.isNewerThanOrEqualTo(valInfo.getValueDeleteTime()))
         {
           /*
            * this value is going to be deleted, remove it from historical
            * information unless it is a Deleted attribute value that is
            * more recent than this DELETE
            */
-          if (csn.isNewerThanOrEqualTo(valInfo.getValueDeleteTime()))
-          {
-            it.remove();
-          }
+          it.remove();
         }
       }
 
@@ -529,8 +526,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
     for (ByteString addVal : m.getAttribute())
     {
-      AttrValueHistorical valInfo =
-        new AttrValueHistorical(addVal, csn, null);
+      AttrValueHistorical valInfo = new AttrValueHistorical(addVal, csn, null);
       AttrValueHistorical oldValInfo = valuesHist.get(valInfo);
       if (oldValInfo == null)
       {
@@ -629,5 +625,28 @@ public class AttrHistoricalMultiple extends AttrHistorical
       delete(csn);
       break;
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getClass().getSimpleName()).append("(");
+    boolean deleteAppended = false;
+    if (deleteTime != null)
+    {
+      deleteAppended = true;
+      sb.append("deleteTime=").append(deleteTime);
+    }
+    if (lastUpdateTime != null)
+    {
+      if (deleteAppended)
+      {
+        sb.append(", ");
+      }
+      sb.append("lastUpdateTime=").append(lastUpdateTime);
+    }
+    sb.append(", valuesHist=").append(valuesHist);
+    return sb.toString();
   }
 }
