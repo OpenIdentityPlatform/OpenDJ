@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
-import org.forgerock.util.Utils;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -155,7 +155,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
         else
         {
           definition.append("( '");
-          definition.append(Utils.joinAsString("' '", nameSet));
+          Utils.joinAsString(definition, "' '", nameSet);
           definition.append("' )");
         }
       }

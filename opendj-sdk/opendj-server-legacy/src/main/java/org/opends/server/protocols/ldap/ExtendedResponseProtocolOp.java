@@ -26,17 +26,16 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.forgerock.i18n.LocalizableMessage;
-
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
-import org.forgerock.opendj.io.*;
-import org.opends.server.types.DN;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;
+import org.opends.server.types.DN;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -55,13 +54,10 @@ public class ExtendedResponseProtocolOp
 
   /** The matched DN for this response. */
   private DN matchedDN;
-
   /** The result code for this response. */
   private int resultCode;
-
   /** The set of referral URLs for this response. */
   private List<String> referralURLs;
-
   /** The error message for this response. */
   private LocalizableMessage errorMessage;
 
@@ -78,12 +74,6 @@ public class ExtendedResponseProtocolOp
   public ExtendedResponseProtocolOp(int resultCode)
   {
     this.resultCode = resultCode;
-
-    errorMessage = null;
-    matchedDN    = null;
-    referralURLs = null;
-    oid          = null;
-    value        = null;
   }
 
 
@@ -99,11 +89,6 @@ public class ExtendedResponseProtocolOp
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
-
-    matchedDN    = null;
-    referralURLs = null;
-    oid          = null;
-    value        = null;
   }
 
 
@@ -123,9 +108,6 @@ public class ExtendedResponseProtocolOp
     this.errorMessage = errorMessage;
     this.matchedDN    = matchedDN;
     this.referralURLs = referralURLs;
-
-    oid   = null;
-    value = null;
   }
 
 
@@ -228,36 +210,19 @@ public class ExtendedResponseProtocolOp
     return value;
   }
 
-
-
-  /**
-   * Retrieves the BER type for this protocol op.
-   *
-   * @return  The BER type for this protocol op.
-   */
+  @Override
   public byte getType()
   {
     return OP_TYPE_EXTENDED_RESPONSE;
   }
 
-
-
-  /**
-   * Retrieves the name for this protocol op type.
-   *
-   * @return  The name for this protocol op type.
-   */
+  @Override
   public String getProtocolOpName()
   {
     return "Extended Response";
   }
 
-  /**
-   * Writes this protocol op to an ASN.1 output stream.
-   *
-   * @param stream The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeStartSequence(OP_TYPE_EXTENDED_RESPONSE);
@@ -304,14 +269,7 @@ public class ExtendedResponseProtocolOp
     stream.writeEndSequence();
   }
 
-
-
-  /**
-   * Appends a string representation of this LDAP protocol op to the provided
-   * buffer.
-   *
-   * @param  buffer  The buffer to which the string should be appended.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ExtendedResponse(resultCode=");
@@ -330,7 +288,7 @@ public class ExtendedResponseProtocolOp
     if (referralURLs != null && !referralURLs.isEmpty())
     {
       buffer.append(", referralURLs={");
-      buffer.append(Utils.joinAsString(", ", referralURLs));
+      Utils.joinAsString(buffer, ", ", referralURLs);
       buffer.append("}");
     }
     if (oid != null && oid.length() > 0)
@@ -347,16 +305,7 @@ public class ExtendedResponseProtocolOp
     buffer.append(")");
   }
 
-
-
-  /**
-   * Appends a multi-line string representation of this LDAP protocol op to the
-   * provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   * @param  indent  The number of spaces from the margin that the lines should
-   *                 be indented.
-   */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);
@@ -422,4 +371,3 @@ public class ExtendedResponseProtocolOp
     }
   }
 }
-

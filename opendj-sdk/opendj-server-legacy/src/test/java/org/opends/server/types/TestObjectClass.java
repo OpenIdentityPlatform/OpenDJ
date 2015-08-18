@@ -134,7 +134,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
         else
         {
           definition.append("( '");
-          definition.append(Utils.joinAsString("' '", nameSet));
+          Utils.joinAsString(definition, "' '", nameSet);
           definition.append("' )");
         }
       }

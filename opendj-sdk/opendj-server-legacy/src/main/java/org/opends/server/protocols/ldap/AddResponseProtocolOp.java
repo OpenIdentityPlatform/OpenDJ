@@ -26,16 +26,15 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.forgerock.i18n.LocalizableMessage;
-
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
-import org.forgerock.opendj.io.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.util.Utils;
 import org.opends.server.types.DN;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -51,13 +50,10 @@ public class AddResponseProtocolOp
 
   /** The matched DN for this response. */
   private DN matchedDN;
-
   /** The result code for this response. */
   private int resultCode;
-
   /** The set of referral URLs for this response. */
   private List<String> referralURLs;
-
   /** The error message for this response. */
   private LocalizableMessage errorMessage;
 
@@ -71,10 +67,6 @@ public class AddResponseProtocolOp
   public AddResponseProtocolOp(int resultCode)
   {
     this.resultCode = resultCode;
-
-    errorMessage = null;
-    matchedDN = null;
-    referralURLs = null;
   }
 
 
@@ -90,9 +82,6 @@ public class AddResponseProtocolOp
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
-
-    matchedDN    = null;
-    referralURLs = null;
   }
 
 
@@ -164,36 +153,19 @@ public class AddResponseProtocolOp
     return referralURLs;
   }
 
-
-
-  /**
-   * Retrieves the BER type for this protocol op.
-   *
-   * @return  The BER type for this protocol op.
-   */
+  @Override
   public byte getType()
   {
     return OP_TYPE_ADD_RESPONSE;
   }
 
-
-
-  /**
-   * Retrieves the name for this protocol op type.
-   *
-   * @return  The name for this protocol op type.
-   */
+  @Override
   public String getProtocolOpName()
   {
     return "Add Response";
   }
 
-  /**
-   * Writes this protocol op to an ASN.1 output stream.
-   *
-   * @param stream The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeStartSequence(OP_TYPE_ADD_RESPONSE);
@@ -230,14 +202,7 @@ public class AddResponseProtocolOp
     stream.writeEndSequence();
   }
 
-
-
-  /**
-   * Appends a string representation of this LDAP protocol op to the provided
-   * buffer.
-   *
-   * @param  buffer  The buffer to which the string should be appended.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("AddResponse(resultCode=");
@@ -255,23 +220,14 @@ public class AddResponseProtocolOp
     if (referralURLs != null && !referralURLs.isEmpty())
     {
       buffer.append(", referralURLs={");
-      buffer.append(Utils.joinAsString(", ", referralURLs));
+      Utils.joinAsString(buffer, ", ", referralURLs);
       buffer.append("}");
     }
 
     buffer.append(")");
   }
 
-
-
-  /**
-   * Appends a multi-line string representation of this LDAP protocol op to the
-   * provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   * @param  indent  The number of spaces from the margin that the lines should
-   *                 be indented.
-   */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);
@@ -321,4 +277,3 @@ public class AddResponseProtocolOp
     }
   }
 }
-

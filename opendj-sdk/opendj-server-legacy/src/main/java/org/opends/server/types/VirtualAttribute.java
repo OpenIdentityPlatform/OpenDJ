@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -55,13 +55,10 @@ public final class VirtualAttribute
 
   /** The attribute type. */
   private final AttributeType attributeType;
-
   /** The entry with which this virtual attribute is associated. */
   private final Entry entry;
-
   /** The virtual attribute provider for this virtual attribute. */
   private final VirtualAttributeProvider<?> provider;
-
   /** The virtual attribute rule for this virtual attribute. */
   private final VirtualAttributeRule rule;
 
@@ -87,60 +84,42 @@ public final class VirtualAttribute
     this.provider = rule.getProvider();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(ByteString assertionValue)
   {
     return provider.approximatelyEqualTo(entry, rule, assertionValue);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean contains(ByteString value)
   {
     return provider.hasValue(entry, rule, value);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean containsAll(Collection<ByteString> values)
   {
     return provider.hasAllValues(entry, rule, values);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesEqualityAssertion(ByteString assertionValue)
   {
     return provider.matchesEqualityAssertion(entry, rule, assertionValue);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public AttributeType getAttributeType()
   {
     return attributeType;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getNameWithOptions()
   {
     return getName();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Set<String> getOptions()
   {
@@ -161,81 +140,54 @@ public final class VirtualAttribute
     return rule;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
   {
     return provider.greaterThanOrEqualTo(entry, rule, assertionValue);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean hasAllOptions(Collection<String> options)
   {
     return options == null || options.isEmpty();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean hasOption(String option)
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean hasOptions()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isEmpty()
   {
     return !provider.hasValue(entry, rule);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isVirtual()
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Iterator<ByteString> iterator()
   {
     return provider.getValues(entry, rule).iterator();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(ByteString assertionValue)
   {
     return provider.lessThanOrEqualTo(entry, rule, assertionValue);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(ByteString subInitial,
       List<ByteString> subAny, ByteString subFinal)
@@ -243,18 +195,12 @@ public final class VirtualAttribute
     return provider.matchesSubstring(entry, rule, subInitial, subAny, subFinal);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean optionsEqual(Set<String> options)
   {
     return options == null || options.isEmpty();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public int size()
   {
@@ -265,15 +211,13 @@ public final class VirtualAttribute
     return provider.hasValue(entry, rule) ? 1 : 0;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("VirtualAttribute(");
     buffer.append(getAttributeType().getNameOrOID());
     buffer.append(", {");
-    buffer.append(Utils.joinAsString(", ", this));
+    Utils.joinAsString(buffer, ", ", this);
     buffer.append("})");
   }
-
 }

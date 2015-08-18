@@ -407,10 +407,9 @@ public final class AttributeBuilder implements Iterable<ByteString>
       buffer.append("Attribute(");
       buffer.append(getNameWithOptions());
       buffer.append(", {");
-      buffer.append(Utils.joinAsString(", ", values));
+      Utils.joinAsString(buffer, ", ", values);
       buffer.append("})");
     }
-
   }
 
 
@@ -453,18 +452,12 @@ public final class AttributeBuilder implements Iterable<ByteString>
       this.normalizedOptions = normalizedOptions;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public Set<String> getOptions()
     {
       return options;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasOption(String option)
     {
@@ -472,9 +465,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
       return normalizedOptions.contains(s);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasOptions()
     {
@@ -504,54 +494,36 @@ public final class AttributeBuilder implements Iterable<ByteString>
       super(attributeType, name, values);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public String getNameWithOptions()
     {
       return getName();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public Set<String> getOptions()
     {
       return Collections.emptySet();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasAllOptions(Collection<String> options)
     {
       return options == null || options.isEmpty();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasOption(String option)
     {
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasOptions()
     {
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean optionsEqual(Set<String> options)
     {
@@ -598,18 +570,12 @@ public final class AttributeBuilder implements Iterable<ByteString>
       this.normalizedOption = toLowerCase(option);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public Set<String> getOptions()
     {
       return option;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasOption(String option)
     {
@@ -617,9 +583,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
       return normalizedOption.equals(s);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasOptions()
     {
@@ -1770,13 +1733,10 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return CollectionUtils.newArrayList(toAttribute());
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public final String toString()
   {
     StringBuilder builder = new StringBuilder();
-
     builder.append("AttributeBuilder(");
     builder.append(name);
 
@@ -1787,7 +1747,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     }
 
     builder.append(", {");
-    builder.append(Utils.joinAsString(", ", values));
+    Utils.joinAsString(builder, ", ", values);
     builder.append("})");
 
     return builder.toString();
