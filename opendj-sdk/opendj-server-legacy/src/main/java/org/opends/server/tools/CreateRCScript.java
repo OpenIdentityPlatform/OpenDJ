@@ -201,6 +201,7 @@ public class CreateRCScript
       javaHomeDir = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
     }
 
+    boolean isFreeBSD = OperatingSystem.getOperatingSystem() == OperatingSystem.FREEBSD;
 
     String suString = "";
     String EscQuote1 = "\"";
@@ -220,7 +221,8 @@ public class CreateRCScript
           suCmd = "/bin/su";
         }
       }
-      suString = suCmd + " " + userName.getValue() + " -c ";
+      String asMeFlag = isFreeBSD ? " -m " : " ";
+      suString = suCmd + asMeFlag + userName.getValue() + " -c ";
       EscQuote1 = "";
       EscQuote2 = "\"";
     }
@@ -240,10 +242,27 @@ public class CreateRCScript
         w.println("# " + headerLine);
       }
 
-      w.println("# chkconfig: 345 95 5");
-      w.println("# description: Control the " +
-          SHORT_NAME + " Directory Server");
-      w.println();
+      if (isFreeBSD) {
+        w.println("# PROVIDE: opendj");
+        w.println("# REQUIRE: LOGIN");
+        w.println("# KEYWORD: shutdown");
+        w.println();
+        w.println(". /etc/rc.subr");
+        w.println("name=\"opendj\"");
+        w.println("rcvar=opendj_enable");
+        w.println();
+        w.println("start_cmd=\"${name}_start\"");
+        w.println("stop_cmd=\"${name}_stop\"");
+        w.println("restart_cmd=\"${name}_restart\"");
+        w.println("status_cmd=\"${name}_status\"");
+        w.println();
+        w.println("load_rc_config ${name}");
+        w.println(": ${opendj_enable:=no}");
+        w.println(": ${opendj_msg=\"OpenDJ not started.\"}");
+      } else {
+        w.println("# chkconfig: 345 95 5");
+        w.println("# description: Control the " + SHORT_NAME + " Directory Server");
+      }
       w.println();
 
       w.println("# Set the path to the " + SHORT_NAME + " instance to manage");
@@ -269,30 +288,77 @@ public class CreateRCScript
         w.println();
       }
 
-      w.println("# Determine what action should be performed on the server");
-      w.println("case \"${1}\" in");
-      w.println("start)");
-      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/start-ds"+
-          EscQuote1 + " --quiet" + EscQuote2);
-      w.println("  exit ${?}");
-      w.println("  ;;");
-      w.println("stop)");
-      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds"+
-          EscQuote1 + " --quiet" + EscQuote2);
-      w.println("  exit ${?}");
-      w.println("  ;;");
-      w.println("restart)");
-      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds"+
-          EscQuote1 + " --restart --quiet" + EscQuote2);
-      w.println("  exit ${?}");
-      w.println("  ;;");
-      w.println("*)");
-      w.println("  echo \"Usage:  $0 { start | stop | restart }\"");
-      w.println("  exit 1");
-      w.println("  ;;");
-      w.println("esac");
-      w.println();
-
+      if (isFreeBSD) {
+        w.println("if [ \"x${opendj_java_home}\" != \"x\" ]; then");
+        w.println("  OPENDJ_JAVA_HOME=\"${opendj_java_home}\"");
+        w.println("  export OPENDJ_JAVA_HOME");
+        w.println("fi");
+        w.println("if [ \"x${opendj_java_args}\" != \"x\" ]; then");
+        w.println("  OPENDJ_JAVA_ARGS=\"${opendj_java_args}\"");
+        w.println("  export OPENDJ_JAVA_ARGS");
+        w.println("fi");
+        w.println("if [ \"x${opendj_install_root}\" != \"x\" ]; then");
+        w.println("  INSTALL_ROOT=\"${opendj_install_root}\"");
+        w.println("  export INSTALL_ROOT");
+        w.println("fi");
+        w.println();
+        w.println("opendj_chdir=\"${INSTALL_ROOT}\"");
+        w.println("extra_commands=\"status\"");
+        w.println();
+        w.println("opendj_start()");
+        w.println("{");
+        w.println("  if [ -n \"$rc_quiet\" ]; then");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/start-ds" + EscQuote2);
+        w.println("  else");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/start-ds" + EscQuote1 + " --quiet" + EscQuote2);
+        w.println("  fi");
+        w.println("}");
+        w.println("opendj_stop()");
+        w.println("{");
+        w.println("  if [ -n \"$rc_quiet\" ]; then");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/stop-ds" + EscQuote2);
+        w.println("  else");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/stop-ds" + EscQuote1 + " --quiet" + EscQuote2);
+        w.println("  fi");
+        w.println("}");
+        w.println("opendj_restart()");
+        w.println("{");
+        w.println("  if [ -n \"$rc_quiet\" ]; then");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/stop-ds" + EscQuote1 + " --restart" + EscQuote2);
+        w.println("  else");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/stop-ds" + EscQuote1 + " --restart --quiet" + EscQuote2);
+        w.println("  fi");
+        w.println("}");
+        w.println("opendj_status()");
+        w.println("{");
+        w.println("    " + suString + "\"${INSTALL_ROOT}/bin/status" + EscQuote2);
+        w.println("}");
+        w.println();
+        w.println("pidfile=\"${INSTALL_ROOT}/logs/server.pid\"");
+        w.println();
+        w.println("run_rc_command \"$1\"");
+      } else {
+        w.println("# Determine what action should be performed on the server");
+        w.println("case \"${1}\" in");
+        w.println("start)");
+        w.println("  " + suString + "\"${INSTALL_ROOT}/bin/start-ds" + EscQuote1 + " --quiet" + EscQuote2);
+        w.println("  exit ${?}");
+        w.println("  ;;");
+        w.println("stop)");
+        w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds" + EscQuote1 + " --quiet" + EscQuote2);
+        w.println("  exit ${?}");
+        w.println("  ;;");
+        w.println("restart)");
+        w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds" + EscQuote1 + " --restart --quiet" + EscQuote2);
+        w.println("  exit ${?}");
+        w.println("  ;;");
+        w.println("*)");
+        w.println("  echo \"Usage:  $0 { start | stop | restart }\"");
+        w.println("  exit 1");
+        w.println("  ;;");
+        w.println("esac");
+        w.println();
+      }
       w.close();
 
       FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
