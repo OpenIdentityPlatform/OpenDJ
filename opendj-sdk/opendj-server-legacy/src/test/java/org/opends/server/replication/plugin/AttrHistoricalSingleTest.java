@@ -76,10 +76,10 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   public void replay_addDeleteSameTime() throws Exception
   {
     mod = newModification(ADD, "X");
-    replayOperationSuccess(csn, entry, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, NO_CONFLICT);
 
     mod = newModification(DELETE, "X");
-    replayOperationSuccess(csn, entry, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, NO_CONFLICT);
   }
 
   @Test
@@ -88,13 +88,13 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, NO_CONFLICT);
 
     mod = newModification(DELETE, "X");
-    replayOperationSuccess(t[2], entry, mod, NO_CONFLICT);
+    replayOperation(t[2], entry, mod, NO_CONFLICT);
 
     mod = newModification(ADD, "X");
-    replayOperationFailure(t[1], entry, mod, CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
   }
 
   @Test
@@ -103,16 +103,16 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(4);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, NO_CONFLICT);
 
     mod = newModification(DELETE, "X");
-    replayOperationSuccess(t[1], entry, mod, NO_CONFLICT);
+    replayOperation(t[1], entry, mod, NO_CONFLICT);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[3], entry, mod, NO_CONFLICT);
+    replayOperation(t[3], entry, mod, NO_CONFLICT);
 
     mod = newModification(ADD, "Y");
-    replayOperationSuccess(t[2], entry, mod, CONFLICT);
+    replayOperation(t[2], entry, mod, CONFLICT);
   }
 
   @Test
@@ -121,13 +121,13 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, NO_CONFLICT);
 
     mod = newModification(DELETE, "X");
-    replayOperationSuccess(t[1], entry, mod, NO_CONFLICT);
+    replayOperation(t[1], entry, mod, NO_CONFLICT);
 
     mod = newModification(DELETE, "X");
-    replayOperationFailure(t[2], entry, mod, CONFLICT);
+    replayOperationSuppressMod(t[2], entry, mod, CONFLICT);
   }
 
   @Test
@@ -136,17 +136,17 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[1], null, mod, NO_CONFLICT);
+    replayOperation(t[1], null, mod, NO_CONFLICT);
 
     mod = newModification(DELETE, "X");
-    replayOperationFailure(t[0], entry, mod, CONFLICT);
+    replayOperationSuppressMod(t[0], entry, mod, CONFLICT);
   }
 
   @Test
   public void replay_deleteMissingAttribute() throws Exception
   {
     mod = newModification(DELETE, "X");
-    replayOperationFailure(csn, entry, mod, CONFLICT);
+    replayOperationSuppressMod(csn, entry, mod, CONFLICT);
   }
 
   @Test
@@ -155,13 +155,10 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, NO_CONFLICT);
 
-    Iterator<Modification> it = mock(Iterator.class);
     mod = newModification(DELETE, "Y");
-    replayOperationFailure(t[1], entry, mod, CONFLICT);
-
-    verifyModNotReplayed(it);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
   }
 
   /**
@@ -180,7 +177,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     entry.applyModification(mod);
 
     mod = newModification(DELETE, "Y");
-    replayOperationFailure(t[1], entry, mod, CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
   }
 
   /**
@@ -199,21 +196,21 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     entry.applyModification(mod);
 
     mod = newModification(DELETE, "Y");
-    replayOperationFailure(csn, entry, mod, CONFLICT);
+    replayOperationSuppressMod(csn, entry, mod, CONFLICT);
   }
 
   @Test
   public void replay_replaceWithValue() throws Exception
   {
     mod = newModification(REPLACE, "X");
-    replayOperationSuccess(csn, null, mod, NO_CONFLICT);
+    replayOperation(csn, null, mod, NO_CONFLICT);
   }
 
   @Test
   public void replay_replaceNoValue() throws Exception
   {
     mod = newModification(REPLACE);
-    replayOperationSuccess(csn, null, mod, NO_CONFLICT);
+    replayOperation(csn, null, mod, NO_CONFLICT);
   }
 
   @Test
@@ -222,20 +219,20 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperationSuccess(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, NO_CONFLICT);
 
     mod = newModification(DELETE);
-    replayOperationSuccess(t[2], entry, mod, NO_CONFLICT);
+    replayOperation(t[2], entry, mod, NO_CONFLICT);
 
     mod = newModification(REPLACE);
-    replayOperationFailure(t[1], entry, mod, CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
   }
 
   @Test
   public void replay_increment() throws Exception
   {
     mod = newModification(INCREMENT, "X");
-    replayOperationSuccess(csn, null, mod, NO_CONFLICT);
+    replayOperation(csn, null, mod, NO_CONFLICT);
   }
 
 
@@ -259,12 +256,13 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     return new Modification(modType, Attributes.empty("display"));
   }
 
-  private void replayOperationSuccess(CSN csn, Entry entry, Modification mod, boolean shouldConflict) throws Exception
+  private void replayOperation(CSN csn, Entry entry, Modification mod, boolean shouldConflict) throws Exception
   {
     replayOperation(null, csn, entry, mod, shouldConflict);
   }
 
-  private void replayOperationFailure(CSN csn, Entry entry, Modification mod, boolean shouldConflict) throws Exception
+  private void replayOperationSuppressMod(CSN csn, Entry entry, Modification mod, boolean shouldConflict)
+      throws Exception
   {
     Iterator<Modification> itMod = mock(Iterator.class);
     replayOperation(itMod, csn, entry, mod, shouldConflict);
