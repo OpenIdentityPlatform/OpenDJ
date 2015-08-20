@@ -37,6 +37,7 @@ import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.ResultHandler;
+import org.forgerock.util.promise.RuntimeExceptionHandler;
 
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
@@ -117,6 +118,11 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     public LdapPromise<R> thenOnException(ExceptionHandler<? super LdapException> onException) {
         wrappedPromise.thenOnException(onException);
         return this;
+    }
+
+    @Override
+    public void thenOnRuntimeException(RuntimeExceptionHandler onRuntimeException) {
+        wrappedPromise.thenOnRuntimeException(onRuntimeException);
     }
 
     @Override
