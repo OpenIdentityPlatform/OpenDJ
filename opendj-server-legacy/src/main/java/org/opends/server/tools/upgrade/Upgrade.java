@@ -403,6 +403,10 @@ public final class Upgrade
         deleteFile(new File(binDirectory, "dsframework")),
         deleteFile(new File(batDirectory, "dsframework.bat")));
 
+    /** See OPENDJ-1322 and OPENDJ-1067 */
+    register("2.7.0.9206",
+        rerunJavaPropertiesTool(INFO_UPGRADE_TASK_9206_SUMMARY.get()));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.

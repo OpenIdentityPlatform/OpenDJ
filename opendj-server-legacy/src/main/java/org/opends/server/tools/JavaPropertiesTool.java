@@ -156,7 +156,7 @@ public class JavaPropertiesTool extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainCLI(String[] args)
+  public static int mainCLI(String... args)
   {
     return mainCLI(args, System.out, System.err, System.in);
   }
