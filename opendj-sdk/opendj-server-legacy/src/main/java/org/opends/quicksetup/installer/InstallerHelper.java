@@ -1147,14 +1147,8 @@ public class InstallerHelper {
     final String destinationFile = Utils.getPath(libDir, isWindows() ? Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS
                                                                      : Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
     // Launch the script
-    String[] args =
-    {
-        "--propertiesFile", propertiesFile,
-        "--destinationFile", destinationFile,
-        "--quiet"
-    };
-
-    int returnValue = JavaPropertiesTool.mainCLI(args);
+    int returnValue = JavaPropertiesTool.mainCLI(
+        "--propertiesFile", propertiesFile, "--destinationFile", destinationFile, "--quiet");
     if (JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode() != returnValue &&
         JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode() != returnValue)
     {

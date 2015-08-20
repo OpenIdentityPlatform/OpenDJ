@@ -38,6 +38,7 @@ import javax.security.auth.callback.TextOutputCallback;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Filter;
+import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
@@ -329,6 +330,36 @@ public final class UpgradeTasks
         {
           manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
               schemaFileTemplate.getName(), e.getMessage()), pnc);
+        }
+      }
+    };
+  }
+
+  /**
+   * Re-run the dsjavaproperties tool to rewrite the set-java-home script/batch file.
+   *
+   * @param summary
+   *          The summary of the task.
+   * @return An upgrade task which runs dsjavaproperties.
+   */
+  public static UpgradeTask rerunJavaPropertiesTool(final LocalizableMessage summary)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(UpgradeContext context) throws ClientException
+      {
+        logger.debug(summary);
+
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, summary, 50);
+        context.notifyProgress(pnc);
+
+        int returnValue = JavaPropertiesTool.mainCLI("--quiet");
+        context.notifyProgress(pnc.setProgress(100));
+
+        if (JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode() != returnValue &&
+                JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode() != returnValue) {
+          throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_DSJAVAPROPERTIES_FAILED.get());
         }
       }
     };
