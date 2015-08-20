@@ -254,25 +254,13 @@ public class RebuildIndexTask extends IndexTask
       allIndexes.addAll(backend.getVLVIndexes());
       for (AbstractIndexDescriptor index : allIndexes)
       {
-        if (!ignoreIndex(index) && !indexExists(index))
+        if (!ignoreIndex(index) && !indexes.contains(index))
         {
           return false;
         }
       }
     }
     return true;
-  }
-
-  private boolean indexExists(AbstractIndexDescriptor index)
-  {
-    for (AbstractIndexDescriptor indexToRebuild : indexes)
-    {
-      if (indexToRebuild.equals(index))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   private boolean ignoreIndex(AbstractIndexDescriptor index)
