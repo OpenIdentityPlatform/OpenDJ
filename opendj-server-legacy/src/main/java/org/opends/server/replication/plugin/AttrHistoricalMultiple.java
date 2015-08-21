@@ -41,13 +41,10 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
 /**
- * This class is used to store historical information for multiple valued
- * attributes.
- * One object of this type is created for each attribute that was changed in
- * the entry.
- * It allows to record the last time a given value was added, the last
- * time a given value was deleted and the last time the whole attribute was
- * deleted.
+ * This class is used to store historical information for multiple valued attributes.
+ * One object of this type is created for each attribute that was changed in the entry.
+ * It allows to record the last time a given value was added,the last
+ * time a given value was deleted and the last time the whole attribute was deleted.
  */
 public class AttrHistoricalMultiple extends AttrHistorical
 {
@@ -56,13 +53,12 @@ public class AttrHistoricalMultiple extends AttrHistorical
   /** Last time the attribute was modified. */
   private CSN lastUpdateTime;
   /**
-   * Change history for the values of this attribute. We are using a
-   * LinkedHashMap here because we want:
+   * Change history for the values of this attribute.
+   * <p>
+   * We are using a LinkedHashMap here because we want:
    * <ol>
-   * <li>Fast access for removing/adding a AttrValueHistorical keyed by the
-   * attribute value => Use a Map</li>
-   * <li>Ordering changes according to the CSN of each changes => Use a
-   * LinkedHashMap</li>
+   * <li>Fast access for removing/adding a AttrValueHistorical keyed by the attribute value => Use a Map</li>
+   * <li>Ordering changes according to the CSN of each changes => Use a LinkedHashMap</li>
    * </ol>
    */
   private final Map<AttrValueHistorical, AttrValueHistorical> valuesHist = new LinkedHashMap<>();
@@ -85,9 +81,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      }
    }
 
-   /**
-    * Create a new object.
-    */
+   /** Creates a new object. */
    public AttrHistoricalMultiple()
    {
      this.deleteTime = null;
@@ -383,9 +377,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     Attribute modAttr = m.getAttribute();
     if (modAttr.isEmpty())
     {
-      /*
-       * We are processing a DELETE attribute modification
-       */
+      // We are processing a DELETE attribute modification
       m.setModificationType(ModificationType.REPLACE);
       AttributeBuilder builder = new AttributeBuilder(modAttr, true);
 
@@ -396,10 +388,8 @@ public class AttrHistoricalMultiple extends AttrHistorical
 
         if (csn.isOlderThan(valInfo.getValueUpdateTime()))
         {
-          /*
-           * this value has been updated after this delete, therefore
-           * this value must be kept
-           */
+          // this value has been updated after this delete,
+          // therefore this value must be kept
           builder.add(valInfo.getAttributeValue());
         }
         else if (csn.isNewerThanOrEqualTo(valInfo.getValueDeleteTime()))
@@ -434,12 +424,12 @@ public class AttrHistoricalMultiple extends AttrHistorical
         boolean deleteIt = true;  // true if the delete must be done
         boolean addedInCurrentOp = false;
 
-        /* update historical information */
+        // update historical information
         AttrValueHistorical valInfo = new AttrValueHistorical(val, null, csn);
         AttrValueHistorical oldValInfo = valuesHist.get(valInfo);
         if (oldValInfo != null)
         {
-          /* this value already exist in the historical information */
+          // this value already exist in the historical information
           if (csn.equals(oldValInfo.getValueUpdateTime()))
           {
             // This value was added earlier in the same operation
@@ -646,7 +636,8 @@ public class AttrHistoricalMultiple extends AttrHistorical
       }
       sb.append("lastUpdateTime=").append(lastUpdateTime);
     }
-    sb.append(", valuesHist=").append(valuesHist);
+    sb.append(", valuesHist=").append(valuesHist.keySet());
+    sb.append(")");
     return sb.toString();
   }
 }

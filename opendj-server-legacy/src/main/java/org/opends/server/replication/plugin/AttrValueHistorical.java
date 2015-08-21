@@ -26,12 +26,10 @@
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.CSN;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.replication.common.CSN;
 
-/**
- * Store historical information for an attribute value.
- */
+/** Store historical information for an attribute value. */
 public class AttrValueHistorical
 {
   private ByteString value;
@@ -114,5 +112,23 @@ public class AttrValueHistorical
   public boolean isUpdate()
   {
     return valueUpdateTime != null;
+  }
+
+  @Override
+  public String toString()
+  {
+    if (valueUpdateTime != null)
+    {
+      return valueDeleteTime != null
+          // valueUpdateTime and valueDeleteTime should have the same value
+          ? valueUpdateTime + ":replace:" + value
+          : valueUpdateTime + ":add:" + value;
+    }
+    else
+    {
+      return valueDeleteTime != null
+          ? valueDeleteTime + ":delete:" + value
+          : "????:" + value;
+    }
   }
 }
