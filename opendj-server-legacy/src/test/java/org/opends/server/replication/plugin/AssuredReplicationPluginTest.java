@@ -443,7 +443,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       {
         // Receive server start
-        ServerStartMsg serverStartMsg = waitForSpecificMsg(session, ServerStartMsg.class);
+        ServerStartMsg serverStartMsg = (ServerStartMsg) session.receive();
 
         baseDN = serverStartMsg.getBaseDN();
         serverState = serverStartMsg.getServerState();
@@ -464,7 +464,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         }
 
         // Read start session or stop
-        ReplicationMsg msg = waitForSpecificMsgs(session, StopMsg.class, ServerStartMsg.class);
+        ReplicationMsg msg = session.receive();
         if (msg instanceof StopMsg){
           // Disconnection of DS looking for best server
           return false;
@@ -584,7 +584,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         session.publish(addMsg);
 
         // Read and return matching ack
-        return waitForSpecificMsg(session, AckMsg.class);
+        return (AckMsg)session.receive();
       }
     }
 
