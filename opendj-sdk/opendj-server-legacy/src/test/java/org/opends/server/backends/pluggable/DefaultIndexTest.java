@@ -51,18 +51,17 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
 public class DefaultIndexTest extends DirectoryServerTestCase
 {
-
   private DefaultIndex index;
   private WriteableTransaction txn;
 
-  @BeforeTest
+  @BeforeMethod
   public void setUp() {
     txn = new DummyWriteableTransaction();
     index = newIndex("test", 5, EnumSet.of(TRUSTED, COMPACTED));
