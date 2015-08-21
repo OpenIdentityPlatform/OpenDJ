@@ -833,7 +833,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @return The expected message if it comes in time or fails (assertion).
    */
   protected static <T extends ReplicationMsg> T waitForSpecificMsg(Session session, Class<T> msgType) {
-    return waitForSpecificMsg(session, null, msgType);
+    return (T) waitForSpecificMsgs(session, (ReplicationBroker) null, msgType);
   }
 
   /**
@@ -844,13 +844,23 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @return The expected message if it comes in time or fails (assertion).
    */
   protected static <T extends ReplicationMsg> T waitForSpecificMsg(ReplicationBroker broker, Class<T> msgType) {
-    return waitForSpecificMsg(null, broker, msgType);
+    return (T) waitForSpecificMsgs(null, broker, msgType);
   }
 
-  protected static <T extends ReplicationMsg> T waitForSpecificMsg(Session session, ReplicationBroker broker, Class<T> msgType)
+  protected static ReplicationMsg waitForSpecificMsgs(Session session, Class<?>... msgTypes) {
+    return waitForSpecificMsgs(session, null, msgTypes);
+  }
+
+  protected static ReplicationMsg waitForSpecificMsgs(ReplicationBroker broker, Class<?>... msgTypes) {
+    return waitForSpecificMsgs(null, broker, msgTypes);
+  }
+
+  private static ReplicationMsg waitForSpecificMsgs(Session session, ReplicationBroker broker, Class<?>... msgTypes)
   {
     assertTrue(session != null || broker != null, "One of Session or ReplicationBroker parameter must not be null");
     assertTrue(session == null || broker == null, "Only one of Session or ReplicationBroker parameter must not be null");
+
+    List<Class<?>> msgTypes2 = Arrays.asList(msgTypes);
 
     final int timeOut = 5000; // 5 seconds max to wait for the desired message
     final long startTime = System.currentTimeMillis();
@@ -872,21 +882,22 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
       catch (Exception ex)
       {
-        fail("Exception waiting for " + msgType + " message : "
+        ex.printStackTrace();
+        fail("Exception waiting for " + msgTypes2 + " message : "
             + ex.getClass().getName() + " : " + ex.getMessage());
       }
 
-      if (replMsg.getClass().equals(msgType))
+      if (msgTypes2.contains(replMsg.getClass()))
       {
         // Ok, got it, let's return the expected message
-        return (T) replMsg;
+        return replMsg;
       }
       logger.trace("waitForSpecificMsg received : " + replMsg);
       msgs.add(replMsg);
       timedOut = System.currentTimeMillis() - startTime > timeOut;
     }
     // Timeout
-    fail("Failed to receive an expected " + msgType + " message after 5 seconds."
+    fail("Failed to receive an expected " + msgTypes2 + " message after 5 seconds."
         + " Also received the following messages during wait time: " + msgs);
     return null;
   }
