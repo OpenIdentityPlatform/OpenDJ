@@ -594,7 +594,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3 at time t1.
-    Modification mod = new Modification(REPLACE, Attributes.create(DESCRIPTION, "value1", "value2", "value3"));
+    Modification mod = newModification(REPLACE, DESCRIPTION, "value1", "value2", "value3");
     testModify(entry, hist, 1, true, mod);
 
     Attribute attr = buildSyncHist(DESCRIPTION,
@@ -604,9 +604,8 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // simulate a DELETE of the attribute values : value3 and value4 at time t2.
-    mod = new Modification(DELETE, Attributes.create(DESCRIPTION, "value3", "value4"));
-
-    List<Modification> mods = replayModify(entry, hist, mod, 2);
+    mod = newModification(DELETE, DESCRIPTION, "value3", "value4");
+    List<Modification> mods = replayModify(entry, hist, 2, mod);
     mod = mods.get(0);
     assertEquals(mod.getAttribute(), Attributes.create(DESCRIPTION, "value3"));
     assertEquals(mod.getModificationType(), DELETE);
@@ -636,9 +635,11 @@ public class ModifyConflictTest extends ReplicationTestCase
     Attribute values3and4 = Attributes.create(DESCRIPTION, "value3", "value4");
     Attribute values1and2 = Attributes.create(DESCRIPTION, "value1", "value2");
 
+    Modification mod;
+    List<Modification> mods;
     // simulate a DELETE of the attribute values : value3 and value4 at time t2.
-    Modification mod = new Modification(DELETE, values3and4);
-    List<Modification> mods = replayModify(entry, hist, mod, 2);
+    mod = new Modification(DELETE, values3and4);
+    mods = replayModify(entry, hist, 2, mod);
     entry.applyModifications(mods);
     // check that the MOD is not altered by the replay mechanism.
     mod = mods.get(0);
@@ -646,8 +647,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(mod.getAttribute(), values3and4);
 
     // check that the entry now contains value1 and value2 and no other values.
-    AttributeType descriptionAttrType = getAttributeType(DESCRIPTION);
-    Attribute resultEntryAttr = entry.getAttribute(descriptionAttrType).get(0);
+    Attribute resultEntryAttr = entry.getAttribute(DESCRIPTION).get(0);
     assertEquals(resultEntryAttr, values1and2);
 
     Attribute attr = buildSyncHist(DESCRIPTION,
@@ -657,8 +657,8 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3
     // at time t1.
-    mod = new Modification(REPLACE, Attributes.create(DESCRIPTION, "value1", "value2", "value3"));
-    mods = replayModify(entry, hist, mod, 1);
+    mod = newModification(REPLACE, DESCRIPTION, "value1", "value2", "value3");
+    mods = replayModify(entry, hist, 1, mod);
     entry.applyModifications(mods);
     mod = mods.get(0);
     // check that value3 has been removed from the MOD-REPLACE because
@@ -774,7 +774,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     Modification mod2 = newModification(ADD, DESCRIPTION, "Init Value");
     List<Modification> mods = newLinkedList(mod1, mod2);
 
-    replayModifies(entry, hist, mods, 11);
+    replayModifies(entry, hist, 11, mods);
     assertThat(mods).as("DEL and ADD of the same attribute same value was not correct").containsExactly(mod1, mod2);
     attr = buildSyncHist(DESCRIPTION,
         ":000000000000000b000000000000:add:Init Value");
@@ -821,12 +821,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     List<Modification> mods = newLinkedList(mod1, mod2);
 
     List<Modification> mods2 = new LinkedList<>(mods);
-    replayModifies(entry, hist, mods, 12);
+    replayModifies(entry, hist, 12, mods);
     assertEquals(hist.encodeAndPurge(), attrDel);
     assertThat(mods).as("DEL one value, del by Replace of the same attribute was not correct").containsExactly(mod1, mod2);
 
     // Replay the same modifs again
-    replayModifies(entry, hist, mods2, 12);
+    replayModifies(entry, hist, 12, mods2);
     assertEquals(hist.encodeAndPurge(), attrDel);
     assertEquals(mods2.size(), 2,
       "DEL one value, del by Replace of the same attribute was not correct");
@@ -850,7 +850,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     Modification mod2 = newModification(DELETE, DESCRIPTION, "Init Value");
     List<Modification> mods = newLinkedList(mod1, mod2);
 
-    replayModifies(entry, hist, mods, 11);
+    replayModifies(entry, hist, 11, mods);
     Attribute attr = buildSyncHist(DESCRIPTION,
         ":000000000000000b000000000000:del:Init Value");
     assertEquals(hist.encodeAndPurge(), attr);
@@ -935,21 +935,23 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":000000000000000a000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
 
+    Modification mod;
+    List<Modification> mods;
     /*
      * Now simulate an add at an earlier date that the previous add. The
      * conflict resolution should detect that this add must be kept.
      * and that the previous value must be discarded, and therefore
      * turn the add into a replace.
      */
-    Modification mod = newModification(ADD, DISPLAYNAME, "older value");
-    List<Modification> mods = replayModify(entry, hist, mod, 1);
+    mod = newModification(ADD, DISPLAYNAME, "older value");
+    mods = replayModify(entry, hist, 1, mod);
     assertEquals(hist.encodeAndPurge(), olderValue);
 
     /*
      * After replay the mods should contain only one mod,
      * the mod should now be a replace with the older value.
      */
-    testMods(mods, 1, REPLACE, "older value");
+    assertUniqueMod(mods, REPLACE, "older value");
 
     /*
      * Now simulate a new value at a later date.
@@ -957,7 +959,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      * and skip this change.
      */
     mod = newModification(ADD, DISPLAYNAME, "new value");
-    mods = replayModify(entry, hist, mod, 2);
+    mods = replayModify(entry, hist, 2, mod);
     assertEquals(hist.encodeAndPurge(), olderValue);
     assertTrue(mods.isEmpty());
   }
@@ -1020,9 +1022,8 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), firstValue);
 
     /*
-     * simulate a add of the displayName attribute done at time t2
-     * with a second value. This should not work because there is already
-     * a value
+     * simulate a add of the displayName attribute done at time t2 with a second value.
+     * This should not work because there is already a value
      */
     testModify(entry, hist, 2, false, newModification(ADD, DISPLAYNAME, "second value"));
     assertEquals(hist.encodeAndPurge(), firstValue);
@@ -1040,19 +1041,17 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Check that the mods given as first parameter match the next parameters.
    *
    * @param mods The mods that must be tested.
-   * @param size the size that the mods must have.
    * @param modType the type of Modification that the first mod of the
    *                mods should have.
    * @param value the value that the first mod of the mods should have.
    */
-  private void testMods(
-      List<Modification> mods, int size, ModificationType modType, String value)
+  private void assertUniqueMod(List<Modification> mods, ModificationType modType, String value)
   {
-    assertEquals(size, mods.size());
-    Modification newMod = mods.get(0);
-    assertEquals(newMod.getModificationType(), modType);
-    ByteString val = newMod.getAttribute().iterator().next();
-    assertEquals(val.toString(), value);
+    assertThat(mods).hasSize(1);
+    Modification mod = mods.get(0);
+    assertEquals(mod.getModificationType(), modType);
+    String firstVal = mod.getAttribute().iterator().next().toString();
+    assertEquals(firstVal, value);
   }
 
   /** Create an initialize an entry that can be used for modify conflict resolution tests. */
@@ -1117,7 +1116,7 @@ public class ModifyConflictTest extends ReplicationTestCase
   private void testModify(Entry entry, EntryHistorical hist, int date,
       boolean keepChangeResult, Modification mod) throws DirectoryException
   {
-    List<Modification> mods = replayModify(entry, hist, mod, date);
+    List<Modification> mods = replayModify(entry, hist, date, mod);
 
     if (keepChangeResult)
     {
@@ -1140,22 +1139,16 @@ public class ModifyConflictTest extends ReplicationTestCase
     entry.applyModifications(mods);
   }
 
-  private void replayModifies(Entry entry, EntryHistorical hist, List<Modification> mods, int date)
+  private void replayModifies(Entry entry, EntryHistorical hist, int date, List<Modification> mods)
   {
-    CSN t = new CSN(date, 0, 0);
-
-    LocalBackendModifyOperation modOp = modifyOperation(entry, t, mods);
+    LocalBackendModifyOperation modOp = modifyOperation(entry, date, mods);
     hist.replayOperation(modOp, entry);
   }
 
-  private List<Modification> replayModify(
-      Entry entry, EntryHistorical hist, Modification mod, int date)
+  private List<Modification> replayModify(Entry entry, EntryHistorical hist, int date, Modification mod)
   {
-    CSN t = new CSN(date, 0, 0);
-
     List<Modification> mods = newArrayList(mod);
-
-    LocalBackendModifyOperation modOp = modifyOperation(entry, t, mods);
+    LocalBackendModifyOperation modOp = modifyOperation(entry, date, mods);
     hist.replayOperation(modOp, entry);
 
     if (mod.getModificationType() == ADD)
@@ -1192,12 +1185,12 @@ public class ModifyConflictTest extends ReplicationTestCase
     return new LocalBackendAddOperation(addOpBasis);
   }
 
-  private LocalBackendModifyOperation modifyOperation(Entry entry, CSN t, List<Modification> mods)
+  private LocalBackendModifyOperation modifyOperation(Entry entry, int date, List<Modification> mods)
   {
     ModifyOperationBasis modOpBasis = new ModifyOperationBasis(getRootConnection(), 1, 1,
         null, entry.getName(), mods);
     LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
-    modOp.setAttachment(SYNCHROCONTEXT, new ModifyContext(t, "uniqueId"));
+    modOp.setAttachment(SYNCHROCONTEXT, new ModifyContext(new CSN(date, 0, 0), "uniqueId"));
     return modOp;
   }
 
@@ -1216,8 +1209,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     return builder.toAttribute();
   }
 
-  private void assertContainsOnlyValues(Entry entry, String attrName,
-      String... expectedValues)
+  private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
     List<Attribute> attrs = entry.getAttribute(attrName);
     Attribute attr = attrs.get(0);

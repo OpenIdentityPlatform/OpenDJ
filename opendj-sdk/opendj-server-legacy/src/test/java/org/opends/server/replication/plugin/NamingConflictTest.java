@@ -35,30 +35,60 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.RDN;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
-/**
- * Test the naming conflict resolution code.
- */
+/** Test the naming conflict resolution code. */
 @SuppressWarnings("javadoc")
 public class NamingConflictTest extends ReplicationTestCase
 {
-
   private static final AtomicBoolean SHUTDOWN = new AtomicBoolean(false);
+
+  private DN baseDN;
+  private LDAPReplicationDomain domain;
+  private CSNGenerator gen;
+
+  private TestSynchronousReplayQueue queue;
+
+  @BeforeMethod
+  public void setUpLocal() throws Exception
+  {
+    baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+
+    TestCaseUtils.initializeTestBackend(true);
+
+    queue = new TestSynchronousReplayQueue();
+
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
+    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    domain = MultimasterReplication.createNewDomain(conf, queue);
+    domain.start();
+
+    gen = new CSNGenerator(201, 0);
+  }
+
+  @AfterMethod
+  public void tearDown() throws Exception
+  {
+    MultimasterReplication.deleteDomain(baseDN);
+  }
 
   /**
    * Test for issue 3402 : test, that a modrdn that is older than an other
@@ -72,258 +102,131 @@ public class NamingConflictTest extends ReplicationTestCase
    * It then uses this session to simulate conflicts and therefore
    * test the naming conflict resolution code.
    */
-  @Test(enabled=true)
+  @Test
   public void simultaneousModrdnConflict() throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    String parentUUID = getEntryUUID(baseDN);
 
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    Entry entry = createAndAddEntry("simultaneousModrdnConflict");
+    String entryUUID = getEntryUUID(entry.getName());
 
-    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    // generate two consecutive CSN that will be used in backward order
+    CSN csn1 = gen.newCSN();
+    CSN csn2 = gen.newCSN();
 
-    LDAPReplicationDomain domain =
-      MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    replayMsg(modDnMsg(entry, entryUUID, parentUUID, csn2, "uid=simultaneous2"));
 
-    try
-    {
-      /*
-       * Create a CSN generator to generate new CSNs
-       * when we need to send operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(201, 0);
+    // This MODIFY DN uses an older DN and should therefore be cancelled at replay time.
+    replayMsg(modDnMsg(entry, entryUUID, parentUUID, csn1, "uid=simulatneouswrong"));
 
-      String parentUUID = getEntryUUID(DN.valueOf(TEST_ROOT_DN_STRING));
+    // Expect the conflict resolution
+    assertFalse(entryExists(entry.getName()), "The modDN conflict was not resolved as expected.");
+  }
 
-      Entry entry = TestCaseUtils.entryFromLdifString(
-          "dn: cn=simultaneousModrdnConflict, "+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n" + "objectClass: person\n"
-          + "objectClass: organizationalPerson\n"
-          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-          + "cn: Aaccf Amar\n" + "l: Rockford\n"
-          + "street: 17984 Thirteenth Street\n"
-          + "employeeNumber: 1\n"
-          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-          + "userPassword: password\n" + "initials: AA\n");
-
-      TestCaseUtils.addEntry(entry);
-      String entryUUID = getEntryUUID(entry.getName());
-
-      // generate two consecutive CSN that will be used in backward order
-      CSN csn1 = gen.newCSN();
-      CSN csn2 = gen.newCSN();
-
-      ModifyDNMsg  modDnMsg = new ModifyDNMsg(
-          entry.getName(), csn2,
-          entryUUID, parentUUID, false,
-          TEST_ROOT_DN_STRING,
-      "uid=simultaneous2");
-
-      // Put the message in the replay queue
-      domain.processUpdate(modDnMsg);
-
-      // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // This MODIFY DN uses an older DN and should therefore be cancelled
-      // at replay time.
-      modDnMsg = new ModifyDNMsg(
-          entry.getName(), csn1,
-          entryUUID, parentUUID, false,
-          TEST_ROOT_DN_STRING,
-      "uid=simulatneouswrong");
-
-      // Put the message in the replay queue
-      domain.processUpdate(modDnMsg);
-
-      // Make the domain replay the change from the replay queue
-      // and resolve conflict
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // Expect the conflict resolution
-      assertFalse(DirectoryServer.entryExists(entry.getName()),
-      "The modDN conflict was not resolved as expected.");
-    }
-    finally
-    {
-      MultimasterReplication.deleteDomain(baseDN);
-    }
+  private ModifyDNMsg modDnMsg(Entry entry, String entryUUID, String parentUUID, CSN csn, String newRDN)
+      throws Exception
+  {
+    return new ModifyDNMsg(entry.getName(), csn, entryUUID, parentUUID, false, TEST_ROOT_DN_STRING, newRDN);
   }
 
   /**
    * Test that when a previous conflict is resolved because
    * a delete operation has removed one of the conflicting entries
-   * the other conflicting entry is correctly renamed to its
-   * original name.
+   * the other conflicting entry is correctly renamed to its original name.
    */
-  @Test(enabled=true)
+  @Test
   public void conflictCleaningDelete() throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    Entry entry = createAndAddEntry("conflictCleaningDelete");
 
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    // Add the first entry
+    String parentUUID = getEntryUUID(baseDN);
 
-    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    CSN csn1 = gen.newCSN();
 
-    LDAPReplicationDomain domain =
-      MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    // Now try to add the same entry with same DN but a different
+    // unique ID though the replication
+    replayMsg(addMsg(entry, csn1, parentUUID, "c9cb8c3c-615a-4122-865d-50323aaaed48"));
 
-    try
-    {
-      /*
-       * Create a CSN generator to generate new CSNs
-       * when we need to send operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(201, 0);
+    // Now delete the first entry that was added at the beginning
+    TestCaseUtils.deleteEntry(entry.getName());
 
-      String entryldif =
-        "dn: cn=conflictCleaningDelete, "+ TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n" + "objectClass: person\n"
-        + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-        + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n" + "l: Rockford\n"
-        + "street: 17984 Thirteenth Street\n"
-        + "employeeNumber: 1\n"
-        + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n";
-      Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
+    // Expect the conflict resolution : the second entry should now
+    // have been renamed with the original DN.
+    Entry resultEntry = DirectoryServer.getEntry(entry.getName());
+    assertNotNull(resultEntry, "The conflict was not cleared");
+    assertEquals(getEntryUUID(resultEntry.getName()),
+        "c9cb8c3c-615a-4122-865d-50323aaaed48",
+        "The wrong entry has been renamed");
+    assertNull(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT));
+  }
 
-      // Add the first entry
-      TestCaseUtils.addEntry(entry);
-      String parentUUID = getEntryUUID(DN.valueOf(TEST_ROOT_DN_STRING));
-
-      CSN csn1 = gen.newCSN();
-
-      // Now try to add the same entry with same DN but a different
-      // unique ID though the replication
-      AddMsg addMsg = new AddMsg(csn1,
-            entry.getName(),
-            "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
-            entry.getObjectClasses(), entry.getUserAttributes(),
-            null);
-
-      // Put the message in the replay queue
-      domain.processUpdate(addMsg);
-
-      // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // Now delete the first entry that was added at the beginning
-      TestCaseUtils.deleteEntry(entry.getName());
-
-      // Expect the conflict resolution : the second entry should now
-      // have been renamed with the original DN.
-      Entry resultEntry = DirectoryServer.getEntry(entry.getName());
-      assertNotNull(resultEntry, "The conflict was not cleared");
-      assertEquals(getEntryUUID(resultEntry.getName()),
-          "c9cb8c3c-615a-4122-865d-50323aaaed48",
-          "The wrong entry has been renamed");
-      assertNull(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT));
-    }
-    finally
-    {
-      MultimasterReplication.deleteDomain(baseDN);
-    }
+  private AddMsg addMsg(Entry entry, CSN csn, String parentUUID, String childUUID)
+  {
+    return new AddMsg(csn,
+          entry.getName(),
+          childUUID, parentUUID,
+          entry.getObjectClasses(), entry.getUserAttributes(),
+          null);
   }
 
   /**
    * Test that when a previous conflict is resolved because
    * a MODDN operation has removed one of the conflicting entries
-   * the other conflicting entry is correctly renamed to its
-   * original name.
-   *
-   * @throws Exception if the test fails.
+   * the other conflicting entry is correctly renamed to its original name.
    */
-  @Test(enabled=true)
+  @Test
   public void conflictCleaningMODDN() throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    Entry entry = createAndAddEntry("conflictCleaningDelete");
+    String parentUUID = getEntryUUID(baseDN);
 
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    CSN csn1 = gen.newCSN();
 
-    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    // Now try to add the same entry with same DN but a different
+    // unique ID though the replication
+    replayMsg(addMsg(entry, csn1, parentUUID, "c9cb8c3c-615a-4122-865d-50323aaaed48"));
 
-    LDAPReplicationDomain domain =
-      MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    // Now delete the first entry that was added at the beginning
+    ModifyDNOperation modDNOperation =
+        getRootConnection().processModifyDN(entry.getName(), RDN.decode("cn=foo"), false);
+    assertEquals(modDNOperation.getResultCode(), ResultCode.SUCCESS);
 
-    try
-    {
-      /*
-       * Create a CSN generator to generate new CSNs when we need to send
-       * operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(201, 0);
+    // Expect the conflict resolution : the second entry should now
+    // have been renamed with the original DN.
+    Entry resultEntry = DirectoryServer.getEntry(entry.getName());
+    assertNotNull(resultEntry, "The conflict was not cleared");
+    assertEquals(getEntryUUID(resultEntry.getName()),
+        "c9cb8c3c-615a-4122-865d-50323aaaed48",
+        "The wrong entry has been renamed");
+    assertNull(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT));
+  }
 
-      String entryldif =
-        "dn: cn=conflictCleaningDelete, "+ TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n" + "objectClass: person\n"
+  private Entry createAndAddEntry(String commonName) throws Exception
+  {
+    Entry entry = TestCaseUtils.entryFromLdifString(
+        "dn: cn=" + commonName + ", " + TEST_ROOT_DN_STRING + "\n"
+        + "objectClass: top\n"
+        + "objectClass: person\n"
         + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-        + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+        + "objectClass: inetOrgPerson\n"
+        + "uid: user.1\n"
+        + "description: This is the description for Aaccf Amar.\n"
+        + "st: NC\n"
         + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n" + "l: Rockford\n"
+        + "$Rockford, NC  85762\n"
+        + "mail: user.1@example.com\n"
+        + "cn: Aaccf Amar\n"
+        + "l: Rockford\n"
         + "street: 17984 Thirteenth Street\n"
         + "employeeNumber: 1\n"
-        + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n";
-      Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
-
-      // Add the first entry
-      TestCaseUtils.addEntry(entry);
-      String parentUUID = getEntryUUID(DN.valueOf(TEST_ROOT_DN_STRING));
-
-      CSN csn1 = gen.newCSN();
-
-      // Now try to add the same entry with same DN but a different
-      // unique ID though the replication
-      AddMsg addMsg = new AddMsg(csn1,
-            entry.getName(),
-            "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
-            entry.getObjectClasses(), entry.getUserAttributes(),
-            null);
-
-      // Put the message in the replay queue
-      domain.processUpdate(addMsg);
-
-      // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // Now delete the first entry that was added at the beginning
-      InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-      ModifyDNOperation modDNOperation =
-        conn.processModifyDN(entry.getName(), RDN.decode("cn=foo"), false);
-      assertEquals(modDNOperation.getResultCode(), ResultCode.SUCCESS);
-
-      // Expect the conflict resolution : the second entry should now
-      // have been renamed with the original DN.
-      Entry resultEntry = DirectoryServer.getEntry(entry.getName());
-      assertNotNull(resultEntry, "The conflict was not cleared");
-      assertEquals(getEntryUUID(resultEntry.getName()),
-          "c9cb8c3c-615a-4122-865d-50323aaaed48",
-          "The wrong entry has been renamed");
-      assertNull(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT));
-    }
-    finally
-    {
-      MultimasterReplication.deleteDomain(baseDN);
-    }
+        + "sn: Amar\n"
+        + "givenName: Aaccf\n"
+        + "postalCode: 85762\n"
+        + "userPassword: password\n"
+        + "initials: AA\n");
+    TestCaseUtils.addEntry(entry);
+    return entry;
   }
 
   /**
@@ -350,229 +253,126 @@ public class NamingConflictTest extends ReplicationTestCase
    *                           - the child entry to be renamed under root entry
    *
    */
-  @Test(enabled=true)
+  @Test
   public void removeParentConflict1() throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    Entry parentEntry = createParentEntry();
+    Entry childEntry = createChildEntry();
 
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.addEntry(parentEntry);
+    TestCaseUtils.addEntry(childEntry);
 
-    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    String parentUUID = getEntryUUID(parentEntry.getName());
 
-    LDAPReplicationDomain domain =
-      MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    CSN csn2 = gen.newCSN();
+    DeleteMsg  delMsg = new DeleteMsg(parentEntry.getName(), csn2, parentUUID);
+    delMsg.setSubtreeDelete(true);
 
-    try
-    {
-      /*
-       * Create a CSN generator to generate new CSNs
-       * when we need to send operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(201, 0);
+    replayMsg(delMsg);
 
-      Entry parentEntry = TestCaseUtils.entryFromLdifString(
-          "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organizationalUnit\n");
-
-      Entry childEntry = TestCaseUtils.entryFromLdifString(
-          "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: person\n"
-          + "objectClass: organizationalPerson\n"
-          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-          + "cn: Aaccf Amar\n" + "l: Rockford\n"
-          + "street: 17984 Thirteenth Street\n"
-          + "employeeNumber: 1\n"
-          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-          + "userPassword: password\n" + "initials: AA\n");
-
-      TestCaseUtils.addEntry(parentEntry);
-      TestCaseUtils.addEntry(childEntry);
-
-      String parentUUID = getEntryUUID(parentEntry.getName());
-
-      CSN csn2 = gen.newCSN();
-      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getName(), csn2, parentUUID);
-      delMsg.setSubtreeDelete(true);
-
-      // Put the message in the replay queue
-      domain.processUpdate(delMsg);
-      // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // Expect the subtree to be deleted and no conflict entry created
-      assertFalse(DirectoryServer.entryExists(parentEntry.getName()),
-      "DEL subtree on parent was not processed as expected.");
-      assertFalse(DirectoryServer.entryExists(parentEntry.getName()),
-      "DEL subtree on parent was not processed as expected.");
-    }
-    finally
-    {
-      MultimasterReplication.deleteDomain(baseDN);
-    }
+    // Expect the subtree to be deleted and no conflict entry created
+    assertFalse(entryExists(parentEntry.getName()), "DEL subtree on parent was not processed as expected.");
+    assertFalse(entryExists(parentEntry.getName()), "DEL subtree on parent was not processed as expected.");
   }
 
-  @Test(enabled=true)
+  @Test
   public void removeParentConflict2() throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    Entry parentEntry = createParentEntry();
+    Entry childEntry = createChildEntry();
 
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.addEntry(parentEntry);
+    TestCaseUtils.addEntry(childEntry);
 
-    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    String parentUUID = getEntryUUID(parentEntry.getName());
+    String childUUID = getEntryUUID(childEntry.getName());
 
-    LDAPReplicationDomain domain =
-      MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    CSN csn2 = gen.newCSN();
+    DeleteMsg  delMsg = new DeleteMsg(parentEntry.getName(), csn2, parentUUID);
+    // NOT SUBTREE
 
-    try
-    {
-      /*
-       * Create a CSN generator to generate new CSNs
-       * when we need to send operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(201, 0);
+    replayMsg(delMsg);
 
-      Entry parentEntry = TestCaseUtils.entryFromLdifString(
-          "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organizationalUnit\n");
+    // Expect the parent entry to be deleted
+    assertFalse(entryExists(parentEntry.getName()), "Parent entry expected to be deleted : " + parentEntry.getName());
 
-      Entry childEntry = TestCaseUtils.entryFromLdifString(
-          "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: person\n"
-          + "objectClass: organizationalPerson\n"
-          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-          + "cn: Aaccf Amar\n" + "l: Rockford\n"
-          + "street: 17984 Thirteenth Street\n"
-          + "employeeNumber: 1\n"
-          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-          + "userPassword: password\n" + "initials: AA\n");
-
-      TestCaseUtils.addEntry(parentEntry);
-      TestCaseUtils.addEntry(childEntry);
-
-      String parentUUID = getEntryUUID(parentEntry.getName());
-      String childUUID = getEntryUUID(childEntry.getName());
-
-      CSN csn2 = gen.newCSN();
-      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getName(), csn2, parentUUID);
-      // NOT SUBTREE
-
-      // Put the message in the replay queue
-      domain.processUpdate(delMsg);
-      // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // Expect the parent entry to be deleted
-      assertFalse(DirectoryServer.entryExists(parentEntry.getName()), "Parent entry expected to be deleted : " + parentEntry.getName());
-
-      // Expect the child entry to be moved as conflict entry under the root
-      // entry of the suffix
-      DN childDN = DN.valueOf("entryuuid="+childUUID+
-          "+cn=child,o=test");
-      assertTrue(DirectoryServer.entryExists(childDN),
-          "Child entry conflict exist with DN="+childDN);
-    }
-    finally
-    {
-      MultimasterReplication.deleteDomain(baseDN);
-    }
+    // Expect the child entry to be moved as conflict entry under the root
+    // entry of the suffix
+    DN childDN = DN.valueOf("entryuuid=" + childUUID + "+cn=child,o=test");
+    assertTrue(entryExists(childDN), "Child entry conflict exist with DN=" + childDN);
   }
 
-  @Test(enabled=true)
+  @Test
   public void removeParentConflict3() throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    Entry parentEntry = createParentEntry();
+    Entry childEntry = createChildEntry();
 
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.addEntry(parentEntry);
+    String parentUUID = getEntryUUID(parentEntry.getName());
+    TestCaseUtils.deleteEntry(parentEntry);
 
-    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
-    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+    CSN csn1 = gen.newCSN();
 
-    LDAPReplicationDomain domain =
-      MultimasterReplication.createNewDomain(conf, queue);
-    domain.start();
+    // Create and publish an update message to add the child entry.
+    String childUUID = "44444444-4444-4444-4444-444444444444";
+    AddMsg addMsg = new AddMsg(
+        csn1,
+        childEntry.getName(),
+        childUUID,
+        parentUUID,
+        childEntry.getObjectClassAttribute(),
+        childEntry.getAttributes(),
+        new ArrayList<Attribute>());
 
-    try
-    {
-      /*
-       * Create a CSN generator to generate new CSNs
-       * when we need to send operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(201, 0);
+    // Put the message in the replay queue
+    replayMsg(addMsg);
 
-      Entry parentEntry = TestCaseUtils.entryFromLdifString(
-          "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organizationalUnit\n");
+    // Expect the parent entry to be deleted
+    assertFalse(entryExists(parentEntry.getName()), "Parent entry exists ");
 
-      Entry childEntry = TestCaseUtils.entryFromLdifString(
-          "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: person\n"
-          + "objectClass: organizationalPerson\n"
-          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-          + "cn: Aaccf Amar\n" + "l: Rockford\n"
-          + "street: 17984 Thirteenth Street\n"
-          + "employeeNumber: 1\n"
-          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-          + "userPassword: password\n" + "initials: AA\n");
+    // Expect the child entry to be moved as conflict entry under the root
+    // entry of the suffix
+    DN childDN = DN.valueOf("entryuuid=" + childUUID + "+cn=child,o=test");
+    assertTrue(entryExists(childDN), "Child entry conflict exist with DN=" + childDN);
+  }
 
+  private Entry createParentEntry() throws Exception
+  {
+    return TestCaseUtils.entryFromLdifString(
+        "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
+        + "objectClass: top\n"
+        + "objectClass: organizationalUnit\n");
+  }
 
-      TestCaseUtils.addEntry(parentEntry);
-      String parentUUID = getEntryUUID(parentEntry.getName());
-      TestCaseUtils.deleteEntry(parentEntry);
+  private Entry createChildEntry() throws Exception
+  {
+    return TestCaseUtils.entryFromLdifString(
+        "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
+        + "objectClass: top\n"
+        + "objectClass: person\n"
+        + "objectClass: organizationalPerson\n"
+        + "objectClass: inetOrgPerson\n"
+        + "uid: user.1\n"
+        + "description: This is the description for Aaccf Amar.\n"
+        + "st: NC\n"
+        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+        + "$Rockford, NC  85762\n"
+        + "mail: user.1@example.com\n"
+        + "cn: Aaccf Amar\n"
+        + "l: Rockford\n"
+        + "street: 17984 Thirteenth Street\n"
+        + "employeeNumber: 1\n"
+        + "sn: Amar\n"
+        + "givenName: Aaccf\n"
+        + "postalCode: 85762\n"
+        + "userPassword: password\n"
+        + "initials: AA\n");
+  }
 
-      CSN csn1 = gen.newCSN();
-
-      // Create and publish an update message to add the child entry.
-      String childUUID = "44444444-4444-4444-4444-444444444444";
-      AddMsg addMsg = new AddMsg(
-          csn1,
-          childEntry.getName(),
-          childUUID,
-          parentUUID,
-          childEntry.getObjectClassAttribute(),
-          childEntry.getAttributes(),
-          new ArrayList<Attribute>());
-
-      // Put the message in the replay queue
-      domain.processUpdate(addMsg);
-      // Make the domain replay the change from the replay queue
-      domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
-
-      // Expect the parent entry to be deleted
-      assertFalse(DirectoryServer.entryExists(parentEntry.getName()),
-          "Parent entry exists ");
-
-      // Expect the child entry to be moved as conflict entry under the root
-      // entry of the suffix
-      DN childDN = DN.valueOf("entryuuid="+childUUID+
-          "+cn=child,o=test");
-      assertTrue(DirectoryServer.entryExists(childDN),
-          "Child entry conflict exist with DN="+childDN);
-    }
-    finally
-    {
-      MultimasterReplication.deleteDomain(baseDN);
-    }
+  private void replayMsg(UpdateMsg updateMsg) throws InterruptedException
+  {
+    domain.processUpdate(updateMsg);
+    domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
   }
 }
