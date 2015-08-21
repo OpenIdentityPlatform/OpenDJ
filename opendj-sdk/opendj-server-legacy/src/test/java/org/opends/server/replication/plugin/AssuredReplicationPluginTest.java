@@ -38,6 +38,7 @@ import org.assertj.core.data.MapEntry;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -45,12 +46,10 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -58,6 +57,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.data.MapEntry.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -443,7 +443,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       {
         // Receive server start
-        ServerStartMsg serverStartMsg = (ServerStartMsg) session.receive();
+        ServerStartMsg serverStartMsg = waitForSpecificMsg(session, ServerStartMsg.class);
 
         baseDN = serverStartMsg.getBaseDN();
         serverState = serverStartMsg.getServerState();
@@ -464,7 +464,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         }
 
         // Read start session or stop
-        ReplicationMsg msg = session.receive();
+        ReplicationMsg msg = waitForSpecificMsgs(session, StopMsg.class, ServerStartMsg.class);
         if (msg instanceof StopMsg){
           // Disconnection of DS looking for best server
           return false;
@@ -584,7 +584,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         session.publish(addMsg);
 
         // Read and return matching ack
-        return (AckMsg)session.receive();
+        return waitForSpecificMsg(session, AckMsg.class);
       }
     }
 
