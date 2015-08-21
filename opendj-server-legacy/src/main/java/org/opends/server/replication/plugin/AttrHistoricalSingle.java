@@ -41,10 +41,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
 /**
- * This class is used to store historical information for single valued
- * attributes.
- * One object of this type is created for each attribute that was changed in
- * the entry.
+ * This class is used to store historical information for single valued attributes.
+ * One object of this type is created for each attribute that was changed in the entry.
  * It allows to record the last time a given value was added,
  * and the last time the whole attribute was deleted.
  */
@@ -87,40 +85,63 @@ public class AttrHistoricalSingle extends AttrHistorical
     switch (mod.getModificationType().asEnum())
     {
     case DELETE:
-      this.addTime = null;
-      this.deleteTime = csn;
-      this.value = newValue;
-      lastMod = DEL;
+      delete(csn, newValue);
       break;
 
     case ADD:
-      this.addTime = csn;
-      this.value = newValue;
-      lastMod = ADD;
+      add(csn, newValue);
       break;
 
     case REPLACE:
-      if (newValue == null)
-      {
-        // REPLACE with null value is actually a DELETE
-        this.addTime = null;
-        this.deleteTime = csn;
-        this.value = null;
-        lastMod = DEL;
-      }
-      else
-      {
-        this.addTime = csn;
-        this.deleteTime = csn;
-        this.value = newValue;
-        lastMod = REPL;
-      }
+      replaceOrDelete(csn, newValue);
       break;
 
     case INCREMENT:
       /* FIXME : we should update CSN */
       break;
     }
+  }
+
+  private void replaceOrDelete(CSN csn, ByteString newValue)
+  {
+    if (newValue != null)
+    {
+      replace(csn, newValue);
+    }
+    else
+    {
+      delete(csn, null);
+    }
+  }
+
+  private void add(CSN csn, ByteString newValue)
+  {
+    addTime = csn;
+    value = newValue;
+    lastMod = ADD;
+  }
+
+  private void replace(CSN csn, ByteString newValue)
+  {
+    addTime = csn;
+    deleteTime = csn;
+    value = newValue;
+    lastMod = REPL;
+  }
+
+  private void delete(CSN csn, ByteString newValue)
+  {
+    addTime = null;
+    deleteTime = csn;
+    value = newValue;
+    lastMod = DEL;
+  }
+
+  private void deleteWithoutDeleteTime()
+  {
+    addTime = null;
+    value = null;
+    lastMod = DEL;
   }
 
   @Override
@@ -156,9 +177,7 @@ public class AttrHistoricalSingle extends AttrHistorical
           }
           else
           {
-            addTime = null;
-            lastMod = DEL;
-            value = null;
+            deleteWithoutDeleteTime();
           }
         }
         else
@@ -175,9 +194,7 @@ public class AttrHistoricalSingle extends AttrHistorical
           {
             deleteTime = csn;
           }
-          addTime = null;
-          lastMod = DEL;
-          value = null;
+          deleteWithoutDeleteTime();
         }
         else
         {
@@ -206,10 +223,7 @@ public class AttrHistoricalSingle extends AttrHistorical
         if (csn.isNewerThanOrEqualTo(deleteTime)
             && (addTime == null || addTime.isOlderThan(deleteTime)))
         {
-          // no conflict : don't do anything beside setting the addTime
-          addTime = csn;
-          value = newValue;
-          lastMod = ADD;
+          add(csn, newValue);
         }
         else
         {
@@ -217,9 +231,7 @@ public class AttrHistoricalSingle extends AttrHistorical
           if (csn.equals(deleteTime) && csn.equals(addTime)
               && lastMod == DEL)
           {
-            // No conflict, record the new value.
-            value = newValue;
-            lastMod = ADD;
+            add(csn, newValue);
           }
           else
           {
@@ -239,20 +251,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       else
       {
-        if (newValue == null)
-        {
-          addTime = null;
-          value = newValue;
-          deleteTime = csn;
-          lastMod = DEL;
-        }
-        else
-        {
-          addTime = csn;
-          value = newValue;
-          deleteTime = csn;
-          lastMod = REPL;
-        }
+        replaceOrDelete(csn, newValue);
       }
       break;
 
