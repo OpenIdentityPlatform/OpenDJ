@@ -38,10 +38,12 @@ public class HistoricalAttributeValueTestCase extends ReplicationTestCase
   {
     return new Object[][] {
       { "description:0000014f2d0c9f53000100000001:add:added_value" },
-      { "description:0000014f2d0c9f53000100000001:del:deleted_value" },
-      { "description:0000014f2d0c9f53000100000001:repl:new_value" },
-      { "description:0000014f2d0c9f53000100000001:attrDel" },
       { "description:0000014f2d0c9f53000100000001:add" },
+      { "description:0000014f2d0c9f53000100000001:del:deleted_value" },
+      { "description:0000014f2d0c9f53000100000001:del" },
+      { "description:0000014f2d0c9f53000100000001:repl:new_value" },
+      { "description:0000014f2d0c9f53000100000001:repl" },
+      { "description:0000014f2d0c9f53000100000001:attrDel" },
       { "dn:0000014f2d0c9f53000100000001:add" },
       { "dn:0000014f2d0c9f53000100000001:moddn" },
       { "description;FR;France:0000014f2d0c9f53000100000001:add:added_value" },
