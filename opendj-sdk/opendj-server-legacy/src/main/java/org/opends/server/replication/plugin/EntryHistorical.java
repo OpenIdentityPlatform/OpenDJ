@@ -27,7 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
 
 import java.util.*;
 
@@ -44,39 +44,34 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.TimeThread;
 
 /**
- * This class is used to store historical information that is
- * used to resolve modify conflicts
- *
- * It is assumed that the common case is not to have conflict and
- * therefore is optimized (in order of importance) for :
- *  1- detecting potential conflict
- *  2- fast update of historical information for non-conflicting change
- *  3- fast and efficient purge
- *  4- compact
- *  5- solve conflict. This should also be as fast as possible but
- *     not at the cost of any of the other previous objectives
- *
- * One Historical object is created for each entry in the entry cache
- * each Historical Object contains a list of attribute historical information
+ * This class is used to store historical information that is used to resolve modify conflicts
+ * <p>
+ * It is assumed that the common case is not to have conflict and therefore is optimized (in order
+ * of importance) for:
+ * <ol>
+ * <li>detecting potential conflict</li>
+ * <li>fast update of historical information for non-conflicting change</li>
+ * <li>fast and efficient purge</li>
+ * <li>compact</li>
+ * <li>solve conflict. This should also be as fast as possible but not at the cost of any of the
+ * other previous objectives</li>
+ * </ol>
+ * One Historical object is created for each entry in the entry cache each Historical Object
+ * contains a list of attribute historical information
  */
 public class EntryHistorical
 {
-  /**
-   * Name of the attribute used to store historical information.
-   */
+  /** Name of the attribute used to store historical information. */
   public static final String HISTORICAL_ATTRIBUTE_NAME = "ds-sync-hist";
-
   /**
    * Name used to store attachment of historical information in the
    * operation. This attachment allows to use in several different places
    * the historical while reading/writing ONCE it from/to the entry.
    */
   public static final String HISTORICAL = "ds-synch-historical";
-
-  /**
-   * Name of the entryuuid attribute.
-   */
+  /** Name of the entryuuid attribute. */
   public static final String ENTRYUUID_ATTRIBUTE_NAME = "entryuuid";
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -105,7 +100,6 @@ public class EntryHistorical
    */
   private int lastPurgedValuesCount;
 
-
   /**
    * The in-memory historical information is made of.
    *
@@ -129,10 +123,8 @@ public class EntryHistorical
    *                         AttrValueHistorical is the historical of the
    *                         the modification of one value
    *
-   * AddTime             ::= CSN // last time the attribute was added
-   *                                      // to the entry
-   * DeleteTime          ::= CSN // last time the attribute was deleted
-   *                                      // from the entry
+   * AddTime             ::= CSN // last time the attribute was added to the entry
+   * DeleteTime          ::= CSN // last time the attribute was deleted from the entry
    *
    * AttrValueHistorical ::= AttributeValue valueDeleteTime valueUpdateTime
    * valueDeleteTime     ::= CSN
@@ -142,7 +134,6 @@ public class EntryHistorical
    *     each value is the historical for this attribute
    *     an AttrInfoWithOptions is a set indexed on the optionValue(string) of
    *     AttributeInfo
-   *
    */
 
   /** The date when the entry was added. */
@@ -175,8 +166,7 @@ public class EntryHistorical
    * @param modifiedEntry the entry that is being modified (before modification)
    * @return true if the replayed operation was in conflict
    */
-  public boolean replayOperation(PreOperationModifyOperation modifyOperation,
-                                 Entry modifiedEntry)
+  public boolean replayOperation(PreOperationModifyOperation modifyOperation, Entry modifiedEntry)
   {
     boolean bConflict = false;
     List<Modification> mods = modifyOperation.getModifications();
@@ -215,8 +205,7 @@ public class EntryHistorical
    * @param modifyOperation
    *          the modification.
    */
-  public void setHistoricalAttrToOperation(
-      PreOperationModifyOperation modifyOperation)
+  public void setHistoricalAttrToOperation(PreOperationModifyOperation modifyOperation)
   {
     List<Modification> mods = modifyOperation.getModifications();
     Entry modifiedEntry = modifyOperation.getModifiedEntry();
@@ -255,16 +244,15 @@ public class EntryHistorical
   }
 
   /**
-     * For a MODDN operation, add new or update existing historical information.
-     *
-     * This method is NOT static because it relies on this Historical object
-     * created in the HandleConflictResolution phase.
-     *
-     * @param modifyDNOperation the modification for which the historical
-     *                          information should be created.
-     */
-  public void setHistoricalAttrToOperation(
-      PreOperationModifyDNOperation modifyDNOperation)
+   * For a MODDN operation, add new or update existing historical information.
+   * <p>
+   * This method is NOT static because it relies on this Historical object created in the
+   * HandleConflictResolution phase.
+   *
+   * @param modifyDNOperation
+   *          the modification for which the historical information should be created.
+   */
+  public void setHistoricalAttrToOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     // Update this historical information with the operation CSN.
     this.entryMODDNDate = OperationContext.getCSN(modifyDNOperation);
@@ -305,23 +293,14 @@ public class EntryHistorical
    *   This method is static because there is no Historical object creation
    *   required here or before(in the HandleConflictResolution phase)
    *
-   * @param addOperation The Operation to which the historical attribute will
-   *                     be added.
+   * @param addOperation The Operation to which the historical attribute will be added.
    */
-  public static void setHistoricalAttrToOperation(
-      PreOperationAddOperation addOperation)
+  public static void setHistoricalAttrToOperation(PreOperationAddOperation addOperation)
   {
-    AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
-
-    // Get the CSN from the attached synchronization context
-    // Create the attribute (encoded)
-    CSN addCSN = OperationContext.getCSN(addOperation);
-    String attrValue = encodeHistorical(addCSN, "add");
-    Attribute attr = Attributes.create(historicalAttrType, attrValue);
-
-    // Set the created attribute to the operation
-    addOperation.setAttribute(historicalAttrType, newLinkedList(attr));
+    AttributeType attrType = DirectoryServer.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
+    String attrValue = encodeHistorical(OperationContext.getCSN(addOperation), "add");
+    List<Attribute> attrs = Attributes.createAsList(attrType, attrValue);
+    addOperation.setAttribute(attrType, attrs);
   }
 
   /**
@@ -333,8 +312,7 @@ public class EntryHistorical
    *          The date when the ADD Operation happened.
    * @param operationType
    *          the operation type to encode
-   * @return The attribute value containing the historical information for the
-   *         Operation type.
+   * @return The attribute value containing the historical information for the Operation type.
    */
   private static String encodeHistorical(CSN csn, String operationType)
   {
@@ -368,8 +346,7 @@ public class EntryHistorical
 
     // Read from this entryHistorical,
     // Create one empty if none was existing in this entryHistorical.
-    AttrHistoricalWithOptions attrHistWithOptions =
-      attributesHistorical.get(modAttrType);
+    AttrHistoricalWithOptions attrHistWithOptions = attributesHistorical.get(modAttrType);
     AttrHistorical attrHist;
     if (attrHistWithOptions != null)
     {
@@ -421,8 +398,7 @@ public class EntryHistorical
       purgeDate = TimeThread.getTime() - purgeDelayInMillisec;
     }
 
-    AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
+    AttributeType historicalAttrType = DirectoryServer.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     AttributeBuilder builder = new AttributeBuilder(historicalAttrType);
 
     for (Map.Entry<AttributeType, AttrHistoricalWithOptions> entryWithOptions :
@@ -441,14 +417,13 @@ public class EntryHistorical
 
         CSN deleteTime = attrHist.getDeleteTime();
         /* generate the historical information for deleted attributes */
-        boolean delAttr = deleteTime != null;
+        boolean attrDel = deleteTime != null;
 
         for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical())
         {
           final ByteString value = attrValHist.getAttributeValue();
 
           // Encode an attribute value
-          final String strValue;
           if (attrValHist.getValueDeleteTime() != null)
           {
             if (needsPurge(attrValHist.getValueDeleteTime(), purgeDate))
@@ -456,8 +431,7 @@ public class EntryHistorical
               // this hist must be purged now, so skip its encoding
               continue;
             }
-            strValue = encode("del", type, optionsString, attrValHist
-                    .getValueDeleteTime(), value);
+            String strValue = encode(DEL, type, optionsString, attrValHist.getValueDeleteTime(), value);
             builder.add(strValue);
           }
           else if (attrValHist.getValueUpdateTime() != null)
@@ -468,37 +442,38 @@ public class EntryHistorical
               continue;
             }
 
+            String strValue;
             final CSN updateTime = attrValHist.getValueUpdateTime();
             // FIXME very suspicious use of == in the next if statement,
             // unit tests do not like changing it
-            if (delAttr && updateTime == deleteTime && value != null)
+            if (attrDel && updateTime == deleteTime && value != null)
             {
-              strValue = encode("repl", type, optionsString, updateTime, value);
-              delAttr = false;
+              strValue = encode(REPL, type, optionsString, updateTime, value);
+              attrDel = false;
             }
             else if (value != null)
             {
-              strValue = encode("add", type, optionsString, updateTime, value);
+              strValue = encode(ADD, type, optionsString, updateTime, value);
             }
             else
             {
               // "add" without any value is suspicious. Tests never go there.
               // Is this used to encode "add" with an empty string?
-              strValue = encode("add", type, optionsString, updateTime);
+              strValue = encode(ADD, type, optionsString, updateTime);
             }
 
             builder.add(strValue);
           }
         }
 
-        if (delAttr)
+        if (attrDel)
         {
           if (needsPurge(deleteTime, purgeDate))
           {
             // this hist must be purged now, so skip its encoding
             continue;
           }
-          String strValue = encode("attrDel", type, optionsString, deleteTime);
+          String strValue = encode(ATTRDEL, type, optionsString, deleteTime);
           builder.add(strValue);
         }
       }
@@ -546,18 +521,16 @@ public class EntryHistorical
     return needsPurge;
   }
 
-  private String encode(String operation, AttributeType type,
+  private String encode(HistAttrModificationKey modKey, AttributeType type,
       String optionsString, CSN changeTime)
   {
-    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
-        + ":" + operation;
+    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime + ":" + modKey;
   }
 
-  private String encode(String operation, AttributeType type,
+  private String encode(HistAttrModificationKey modKey, AttributeType type,
       String optionsString, CSN changeTime, ByteString value)
   {
-    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
-        + ":" + operation + ":" + value;
+    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime + ":" + modKey + ":" + value;
   }
 
   /**
@@ -584,7 +557,6 @@ public class EntryHistorical
   {
     return csn.isOlderThan(entryADDDate) || csn.isOlderThan(entryMODDNDate);
   }
-
 
   /**
    * Returns the lastCSN when the entry DN was modified.
@@ -613,14 +585,11 @@ public class EntryHistorical
   }
 
   /**
-   * Construct an Historical object from the provided entry by reading the
-   * historical attribute.
-   * Return an empty object when the entry does not contain any
-   * historical attribute.
+   * Construct an Historical object from the provided entry by reading the historical attribute.
+   * Return an empty object when the entry does not contain any historical attribute.
    *
    * @param entry The entry which historical information must be loaded
    * @return The constructed Historical information object
-   *
    */
   public static EntryHistorical newInstanceFromEntry(Entry entry)
   {
@@ -727,16 +696,14 @@ public class EntryHistorical
     return newHistorical;
   }
 
-
   /**
    * Use this historical information to generate fake operations that would
    * result in this historical information.
-   * TODO : This is only implemented for MODIFY, MODRDN and  ADD
+   * TODO : This is only implemented for MODIFY, MODRDN and ADD
    *        need to complete with DELETE.
    * @param entry The Entry to use to generate the FakeOperation Iterable.
    *
-   * @return an Iterable of FakeOperation that would result in this historical
-   *         information.
+   * @return an Iterable of FakeOperation that would result in this historical information.
    */
   public static Iterable<FakeOperation> generateFakeOperations(Entry entry)
   {
@@ -748,23 +715,18 @@ public class EntryHistorical
       {
         for (ByteString val : attr)
         {
-          HistoricalAttributeValue histVal =
-            new HistoricalAttributeValue(val.toString());
+          HistoricalAttributeValue histVal = new HistoricalAttributeValue(val.toString());
           if (histVal.isADDOperation())
           {
-            // Found some historical information indicating that this
-            // entry was just added.
+            // Found some historical information indicating that this entry was just added.
             // Create the corresponding ADD operation.
-            operations.put(histVal.getCSN(),
-                new FakeAddOperation(histVal.getCSN(), entry));
+            operations.put(histVal.getCSN(), new FakeAddOperation(histVal.getCSN(), entry));
           }
           else if (histVal.isMODDNOperation())
           {
-            // Found some historical information indicating that this
-            // entry was just renamed.
+            // Found some historical information indicating that this entry was just renamed.
             // Create the corresponding ADD operation.
-            operations.put(histVal.getCSN(),
-                new FakeModdnOperation(histVal.getCSN(), entry));
+            operations.put(histVal.getCSN(), new FakeModdnOperation(histVal.getCSN(), entry));
           }
           else
           {
@@ -777,8 +739,7 @@ public class EntryHistorical
 
             if (fakeOperation instanceof FakeModifyOperation)
             {
-              FakeModifyOperation modifyFakeOperation =
-                  (FakeModifyOperation) fakeOperation;
+              FakeModifyOperation modifyFakeOperation = (FakeModifyOperation) fakeOperation;
               modifyFakeOperation.addModification(mod);
             }
             else
@@ -797,11 +758,9 @@ public class EntryHistorical
   }
 
   /**
-   * Get the attribute used to store the historical information from
-   * the provided Entry.
+   * Get the attribute used to store the historical information from the provided Entry.
    *
    * @param   entry  The entry containing the historical information.
-   *
    * @return  The Attribute used to store the historical information.
    *          Several values on the list if several options for this attribute.
    *          Null if not present.
@@ -815,15 +774,12 @@ public class EntryHistorical
    * Get the entry unique Id in String form.
    *
    * @param entry The entry for which the unique id should be returned.
-   *
    * @return The Unique Id of the entry, or a fake one if none is found.
    */
   public static String getEntryUUID(Entry entry)
   {
-    AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs =
-             entry.getOperationalAttribute(entryuuidAttrType);
+    AttributeType attrType = DirectoryServer.getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
+    List<Attribute> uuidAttrs = entry.getOperationalAttribute(attrType);
     return extractEntryUUID(uuidAttrs, entry.getName());
   }
 
@@ -837,10 +793,8 @@ public class EntryHistorical
    */
   public static String getEntryUUID(PreOperationAddOperation op)
   {
-    Map<AttributeType, List<Attribute>> attrs = op.getOperationalAttributes();
-    AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs = attrs.get(entryuuidAttrType);
+    AttributeType attrType = DirectoryServer.getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
+    List<Attribute> uuidAttrs = op.getOperationalAttributes().get(attrType);
     return extractEntryUUID(uuidAttrs, op.getEntryDN());
   }
 
@@ -856,7 +810,7 @@ public class EntryHistorical
   public static boolean isHistoricalAttribute(Attribute attr)
   {
     AttributeType attrType = attr.getAttributeType();
-    return EntryHistorical.HISTORICAL_ATTRIBUTE_NAME.equals(attrType.getNameOrOID());
+    return HISTORICAL_ATTRIBUTE_NAME.equals(attrType.getNameOrOID());
   }
 
   /**
@@ -892,8 +846,7 @@ public class EntryHistorical
    * attributes. If the attribute is not present one is generated from the DN
    * using the same algorithm as the entryUUID virtual attribute provider.
    */
-  private static String extractEntryUUID(List<Attribute> entryUUIDAttributes,
-      DN entryDN)
+  private static String extractEntryUUID(List<Attribute> entryUUIDAttributes, DN entryDN)
   {
     if (entryUUIDAttributes != null)
     {
@@ -905,9 +858,8 @@ public class EntryHistorical
     }
 
     // Generate a fake entryUUID: see OPENDJ-181. In rare pathological cases
-    // an entryUUID attribute may not be present and this causes severe side
-    // effects for replication which requires the attribute to always be
-    // present.
+    // an entryUUID attribute may not be present and this causes severe side effects
+    // for replication which requires the attribute to always be present
     if (logger.isTraceEnabled())
     {
       logger.trace(
@@ -920,4 +872,3 @@ public class EntryHistorical
     return UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
   }
 }
-
