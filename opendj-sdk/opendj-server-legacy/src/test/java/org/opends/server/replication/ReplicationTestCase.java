@@ -832,7 +832,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @param msgType Class of the message we are waiting for.
    * @return The expected message if it comes in time or fails (assertion).
    */
-  protected static <T extends ReplicationMsg> T waitForSpecificMsg(Session session, Class<T> msgType) {
+  protected static <T extends ReplicationMsg> T waitForSpecificMsg(Session session, Class<T> msgType) throws Exception
+  {
     return (T) waitForSpecificMsgs(session, (ReplicationBroker) null, msgType);
   }
 
@@ -843,19 +844,24 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @param msgType Class of the message we are waiting for.
    * @return The expected message if it comes in time or fails (assertion).
    */
-  protected static <T extends ReplicationMsg> T waitForSpecificMsg(ReplicationBroker broker, Class<T> msgType) {
+  protected static <T extends ReplicationMsg> T waitForSpecificMsg(ReplicationBroker broker, Class<T> msgType)
+      throws Exception
+  {
     return (T) waitForSpecificMsgs(null, broker, msgType);
   }
 
-  protected static ReplicationMsg waitForSpecificMsgs(Session session, Class<?>... msgTypes) {
+  protected static ReplicationMsg waitForSpecificMsgs(Session session, Class<?>... msgTypes) throws Exception
+  {
     return waitForSpecificMsgs(session, null, msgTypes);
   }
 
-  protected static ReplicationMsg waitForSpecificMsgs(ReplicationBroker broker, Class<?>... msgTypes) {
+  protected static ReplicationMsg waitForSpecificMsgs(ReplicationBroker broker, Class<?>... msgTypes) throws Exception
+  {
     return waitForSpecificMsgs(null, broker, msgTypes);
   }
 
   private static ReplicationMsg waitForSpecificMsgs(Session session, ReplicationBroker broker, Class<?>... msgTypes)
+      throws Exception
   {
     assertTrue(session != null || broker != null, "One of Session or ReplicationBroker parameter must not be null");
     assertTrue(session == null || broker == null, "Only one of Session or ReplicationBroker parameter must not be null");
@@ -869,22 +875,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     while (!timedOut)
     {
       ReplicationMsg replMsg = null;
-      try
+      if (session != null)
       {
-        if (session != null)
-        {
-          replMsg = session.receive();
-        }
-        else if (broker != null)
-        {
-          replMsg = broker.receive();
-        }
+        replMsg = session.receive();
       }
-      catch (Exception ex)
+      else if (broker != null)
       {
-        ex.printStackTrace();
-        fail("Exception waiting for " + msgTypes2 + " message : "
-            + ex.getClass().getName() + " : " + ex.getMessage());
+        replMsg = broker.receive();
       }
 
       if (msgTypes2.contains(replMsg.getClass()))
