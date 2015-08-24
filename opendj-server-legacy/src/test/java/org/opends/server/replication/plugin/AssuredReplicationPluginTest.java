@@ -69,10 +69,8 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class AssuredReplicationPluginTest extends ReplicationTestCase
 {
-
   public class MonitorAssertions
   {
-
     private Map<String, Long> attributeValues = new HashMap<>();
 
     public MonitorAssertions(DN baseDN) throws Exception
@@ -147,9 +145,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
   }
 
-  /**
-   * Before starting the tests configure some stuff.
-   */
+  /** Before starting the tests configure some stuff. */
   @BeforeClass
   @Override
   public void setUp() throws Exception
@@ -170,9 +166,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     addEntry(TestCaseUtils.entryFromLdifString(topEntry));
   }
 
-  /**
-   * Add an entry in the database.
-   */
+  /** Add an entry in the database. */
   private void addEntry(Entry entry) throws Exception
   {
     debugInfo("AddEntry " + entry.getName());
@@ -276,7 +270,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    */
   private class FakeReplicationServer extends Thread
   {
-
     private ServerSocket listenSocket;
     private boolean shutdown;
     private Session session;
@@ -352,9 +345,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       this.isAssured = assured;
     }
 
-    /**
-     * Starts the fake RS, expecting and testing the passed scenario.
-     */
+    /** Starts the fake RS, expecting and testing the passed scenario. */
     public void start(int scenario)
     {
       gen = new CSNGenerator(3, 0L);
@@ -366,9 +357,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       start();
     }
 
-    /**
-     * Wait for DS connections.
-     */
+    /** Wait for DS connections. */
     @Override
     public void run()
     {
@@ -411,9 +400,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
     }
 
-    /**
-     * Shutdown the Replication Server service and all its connections.
-     */
+    /** Shutdown the Replication Server service and all its connections. */
     public void shutdown()
     {
       if (shutdown)
@@ -443,7 +430,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       {
         // Receive server start
-        ServerStartMsg serverStartMsg = (ServerStartMsg) session.receive();
+        ServerStartMsg serverStartMsg = waitForSpecificMsg(session, ServerStartMsg.class);
 
         baseDN = serverStartMsg.getBaseDN();
         serverState = serverStartMsg.getServerState();
@@ -463,7 +450,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           session.stopEncryption();
         }
 
-        // Read start session or stop
         ReplicationMsg msg = session.receive();
         if (msg instanceof StopMsg){
           // Disconnection of DS looking for best server
@@ -509,9 +495,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       return scenarioExecuted;
     }
 
-    /**
-     * Handle client connection then call code specific to configured test.
-     */
+    /** Handle client connection then call code specific to configured test. */
     private void handleClientConnection() throws Exception
     {
       debugInfo("handleClientConnection " + testcase + " " + scenario);
@@ -570,27 +554,20 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws Exception
     {
-      {
-        AddMsg addMsg =
-          new AddMsg(gen.newCSN(), entry.getName(), UUID.randomUUID().toString(),
-                     parentUid,
-                     entry.getObjectClassAttribute(),
-                     entry.getAttributes(), null );
+      AddMsg addMsg = new AddMsg(
+          gen.newCSN(), entry.getName(), UUID.randomUUID().toString(),
+          parentUid, entry.getObjectClassAttribute(), entry.getAttributes(), null);
 
-        // Send add message in assured mode
-        addMsg.setAssured(isAssured);
-        addMsg.setAssuredMode(assuredMode);
-        addMsg.setSafeDataLevel(safeDataLevel);
-        session.publish(addMsg);
+      // Send add message in assured mode
+      addMsg.setAssured(isAssured);
+      addMsg.setAssuredMode(assuredMode);
+      addMsg.setSafeDataLevel(safeDataLevel);
+      session.publish(addMsg);
 
-        // Read and return matching ack
-        return (AckMsg)session.receive();
-      }
+      return waitForSpecificMsg(session, AckMsg.class);
     }
 
-    /**
-     * Read the coming update and check parameters are not assured.
-     */
+    /** Read the coming update and check parameters are not assured. */
     private void executeNotAssuredScenario() throws Exception
     {
       checkAssuredParametersOnReceivedUpdateMsg();
@@ -598,10 +575,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       scenarioExecuted = true;
     }
 
-    /**
-     * Read the coming update and make the client time out by not sending back
-     * the ack.
-     */
+    /** Read the coming update and make the client time out by not sending back the ack. */
     private void executeTimeoutScenario() throws Exception
     {
       checkAssuredParametersOnReceivedUpdateMsg();
@@ -612,9 +586,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // blocked at least for the programmed timeout time.
     }
 
-    /**
-     * Read the coming update, sleep some time then send back an ack.
-     */
+    /** Read the coming update, sleep some time then send back an ack. */
     private void executeNoTimeoutScenario() throws Exception
     {
       UpdateMsg updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
@@ -650,9 +622,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       return updateMsg;
     }
 
-    /**
-     * Read the coming safe read mode updates and send back acks with errors.
-     */
+    /** Read the coming safe read mode updates and send back acks with errors. */
     private void executeSafeReadManyErrorsScenario() throws Exception
     {
       // Read first update
@@ -688,9 +658,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       scenarioExecuted = true;
     }
 
-    /**
-     * Read the coming safe data mode updates and send back acks with errors.
-     */
+    /** Read the coming safe data mode updates and send back acks with errors. */
     private void executeSafeDataManyErrorsScenario() throws Exception
     {
       // Read first update
@@ -723,12 +691,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // let timeout occur
       scenarioExecuted = true;
     }
-
   }
 
-  /**
-   * Return various group id values.
-   */
+  /** Return various group id values. */
   @DataProvider(name = "rsGroupIdProvider")
   private Object[][] rsGroupIdProvider()
   {
@@ -940,14 +905,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
   }
 
-  /**
-   * Tests parameters sent in session handshake and updates, when not using
-   * assured replication.
-   */
+  /** Tests parameters sent in session handshake and updates, when not using assured replication. */
   @Test
   public void testNotAssuredSession() throws Exception
   {
-
     String testcase = "testNotAssuredSession";
     try
     {
@@ -1136,9 +1097,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
-      /*
-       *  Send an update from the RS and get the ack
-       */
+      /* Send an update from the RS and get the ack */
 
       // Make the RS send an assured add message
       String entryStr = "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN + "\n" +
@@ -1183,9 +1142,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         return;
       }
 
-      /*
-       * Send un update with error from the RS and get the ack with error
-       */
+      /* Send an update with error from the RS and get the ack with error */
 
       // Make the RS send a not possible assured add message
 
@@ -1449,9 +1406,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
   }
 
-  /**
-   * Delete an entry from the database.
-   */
+  /** Delete an entry from the database. */
   private void deleteEntry(String dn) throws Exception
   {
     DN realDN = DN.valueOf(dn);
@@ -1493,9 +1448,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     SearchResultEntry entry = op.getSearchEntries().getFirst();
     assertNotNull(entry);
 
-    /*
-     * Find the multi valued attribute matching the requested assured mode
-     */
+    /* Find the multi valued attribute matching the requested assured mode */
     String assuredAttr;
     switch(assuredMode)
     {
