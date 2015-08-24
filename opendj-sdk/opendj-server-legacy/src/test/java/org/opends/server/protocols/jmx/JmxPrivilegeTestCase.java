@@ -64,23 +64,16 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * This class provides a set of test cases for the Directory Server JMX
- * privilege subsystem.
- */
+/** This class provides a set of test cases for the Directory Server JMX privilege subsystem. */
 public class JmxPrivilegeTestCase extends JmxTestCase
 {
   /**
    * An array of boolean values that indicates whether config read operations
-   * should be successful for users in the corresponding slots of the
-   * connections array.
+   * should be successful for users in the corresponding slots of the connections array.
    */
   private boolean[] successful;
 
-  /**
-   * The set of client connections that should be used when performing
-   * operations.
-   */
+  /** The set of client connections that should be used when performing operations. */
   private JmxClientConnection[] connections;
 
   /**
@@ -278,14 +271,12 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   }
 
   /**
-   * Cleans up anything that might be left around after running the tests in
-   * this class.
+   * Cleans up anything that might be left around after running the tests in this class.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @AfterClass
-  public void cleanUp()
-         throws Exception
+  public void cleanUp() throws Exception
   {
     processDelete(
         "cn=Unprivileged Root,cn=Root DNs,cn=config",
@@ -336,7 +327,6 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     return returnArray;
   }
-
 
   /**
    * Check that simple connection to the JMX service are
@@ -413,7 +403,6 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     }
   }
 
-
   /**
    * Tests to ensure that search operations in the server configuration properly
    * respect the JMX_READ privilege.
@@ -427,25 +416,21 @@ public class JmxPrivilegeTestCase extends JmxTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testConfigReadSearch(JmxClientConnection conn,
-                                   boolean hasPrivilege)
-         throws Exception
+  public void testConfigReadSearch(JmxClientConnection conn, boolean hasPrivilege) throws Exception
   {
     assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
     SearchRequest request = newSearchRequest(DN.valueOf("cn=config"), SearchScope.BASE_OBJECT);
-    InternalSearchOperation searchOperation = conn.processSearch(request);
+    InternalSearchOperation searchOp = conn.processSearch(request);
     if (hasPrivilege)
     {
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
     }
     else
     {
-      assertEquals(searchOperation.getResultCode(),
-                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+      assertEquals(searchOp.getResultCode(), ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
     }
   }
-
 
   /**
    * Tests to ensure that attempts to update the schema with an add schema file
@@ -460,13 +445,9 @@ public class JmxPrivilegeTestCase extends JmxTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testUpdateSchemaAddSchemaFile(JmxClientConnection conn,
-                                            boolean hasPrivilege)
-         throws Exception
+  public void testUpdateSchemaAddSchemaFile(JmxClientConnection conn, boolean hasPrivilege) throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null),
-                 hasPrivilege);
-
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
     String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
@@ -478,10 +459,10 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     }
     else
     {
-      identifier = authNEntry.getName().toString();
-      identifier = identifier.replace(',', '-');
-      identifier = identifier.replace(' ', '-');
-      identifier = identifier.replace('=', '-');
+      identifier = authNEntry.getName().toString()
+          .replace(',', '-')
+          .replace(' ', '-')
+          .replace('=', '-');
     }
 
     String[] fileLines =
@@ -495,14 +476,14 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     };
 
     File validFile = new File(schemaDirectory, "05-" + identifier + ".ldif");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(validFile));
-    for (String line : fileLines)
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(validFile)))
     {
-      writer.write(line);
-      writer.newLine();
+      for (String line : fileLines)
+      {
+        writer.write(line);
+        writer.newLine();
+      }
     }
-    writer.close();
-
   }
 
   /**
@@ -540,89 +521,42 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     controls.add(new ProxiedAuthV1Control(
                           DN.valueOf("cn=PWReset Target,o=test")));
 
-
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn
-        .nextOperationID(), conn.nextMessageID(), controls, e.getName(), e
-        .getObjectClasses(), e.getUserAttributes(), e
-        .getOperationalAttributes());
-    addOperation.run();
-
-    if (hasProxyPrivilege)
+    AddOperationBasis addOp = new AddOperationBasis(
+        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
+        e.getName(), e.getObjectClasses(), e.getUserAttributes(), e.getOperationalAttributes());
+    assertSuccess(hasProxyPrivilege, addOp);
+    if (!hasProxyPrivilege)
     {
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(addOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
       TestCaseUtils.addEntry(e);
     }
-
 
     // Try to modify the entry to add a description.
     ArrayList<Modification> mods = newModifications(REPLACE, "description", "foo");
 
-    ModifyOperationBasis modifyOperation = new ModifyOperationBasis(conn,
+    ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, e.getName(),
         mods);
-    modifyOperation.run();
-
-    if (hasProxyPrivilege)
-    {
-      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(modifyOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
-    }
-
+    assertSuccess(hasProxyPrivilege, modifyOp);
 
     // Try to rename the entry.
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), controls, e.getName(),
-                               RDN.decode("cn=Proxy V1 Test"), true, null);
-    modifyDNOperation.run();
-
-    DN newEntryDN;
-    if (hasProxyPrivilege)
-    {
-      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
-      newEntryDN = modifyDNOperation.getNewDN();
-    }
-    else
-    {
-      assertEquals(modifyDNOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
-      newEntryDN = e.getName();
-    }
-
+    ModifyDNOperationBasis modifyDNOp = new ModifyDNOperationBasis(
+        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
+        e.getName(), RDN.decode("cn=Proxy V1 Test"), true, null);
+    assertSuccess(hasProxyPrivilege, modifyDNOp);
+    DN newEntryDN = hasProxyPrivilege ? modifyDNOp.getNewDN() : e.getName();
 
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn,
+    DeleteOperationBasis deleteOp = new DeleteOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, newEntryDN);
-    deleteOperation.run();
-
-    if (hasProxyPrivilege)
+    assertSuccess(hasProxyPrivilege, deleteOp);
+    if (!hasProxyPrivilege)
     {
-      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(deleteOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
-
       processDelete(newEntryDN);
     }
   }
-
-
 
   /**
    * Tests to ensure that the use of the Directory Server will properly respect
@@ -649,41 +583,18 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV1Control(targetDN));
 
-
     // Test a compare operation against the PWReset Target user.
-    CompareOperationBasis compareOperation =
-         new CompareOperationBasis(conn, conn.nextOperationID(),
-                              conn.nextMessageID(), controls, targetDN,
-                              DirectoryServer.getAttributeTypeOrDefault("cn"),
-                              ByteString.valueOf("PWReset Target"));
-    compareOperation.run();
-
-    if (hasProxyPrivilege)
-    {
-      assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
-    }
-    else
-    {
-      assertEquals(compareOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
-    }
-
+    CompareOperationBasis compareOp = new CompareOperationBasis(
+        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
+        targetDN, DirectoryServer.getAttributeTypeOrDefault("cn"),
+        ByteString.valueOf("PWReset Target"));
+    assertSuccess(hasProxyPrivilege, compareOp);
 
     // Test a search operation against the PWReset Target user.
     SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT).addControl(controls);
-    InternalSearchOperation searchOperation = new InternalSearchOperation(
+    InternalSearchOperation searchOp = new InternalSearchOperation(
         conn, conn.nextOperationID(), conn.nextMessageID(), request, null);
-    searchOperation.run();
-
-    if (hasProxyPrivilege)
-    {
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(searchOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
-    }
+    assertSuccess(hasProxyPrivilege, searchOp);
   }
 
   /**
@@ -721,94 +632,41 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     controls.add(new ProxiedAuthV2Control(
                           ByteString.valueOf("dn:cn=PWReset Target,o=test")));
 
-
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
     DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
-    AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn
-        .nextOperationID(), conn.nextMessageID(), controls, e.getName(), e
-        .getObjectClasses(), e.getUserAttributes(), e
-        .getOperationalAttributes());
-    addOperation.run();
-
-    if (hasProxyPrivilege)
+    AddOperationBasis addOp = new AddOperationBasis(
+        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
+        e.getName(), e.getObjectClasses(), e.getUserAttributes(), e.getOperationalAttributes());
+    assertSuccess(hasProxyPrivilege, authDN, addOp);
+    if (!hasProxyPrivilege)
     {
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
-                   "Unexpected add failure for user " + authDN);
-    }
-    else
-    {
-      assertEquals(addOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED,
-                   "Unexpected add success for user " + authDN);
       TestCaseUtils.addEntry(e);
     }
-
 
     // Try to modify the entry to add a description.
     ArrayList<Modification> mods = newModifications(REPLACE, "description", "foo");
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn,
+    ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, e.getName(),
         mods);
-    modifyOperation.run();
-
-    if (hasProxyPrivilege)
-    {
-      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS,
-                   "Unexpected mod failure for user " + authDN);
-    }
-    else
-    {
-      assertEquals(modifyOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED,
-                   "Unexpected mod success for user " + authDN);
-    }
-
+    assertSuccess(hasProxyPrivilege, authDN, modifyOp);
 
     // Try to rename the entry.
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
-                               conn.nextMessageID(), controls, e.getName(),
-                               RDN.decode("cn=Proxy V2 Test"), true, null);
-    modifyDNOperation.run();
+    ModifyDNOperationBasis modifyDNOp = new ModifyDNOperationBasis(
+        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
+        e.getName(), RDN.decode("cn=Proxy V2 Test"), true, null);
+    assertSuccess(hasProxyPrivilege, authDN, modifyDNOp);
 
-    DN newEntryDN;
-    if (hasProxyPrivilege)
-    {
-      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS,
-                   "Unexpected moddn failure for user " + authDN);
-      newEntryDN = modifyDNOperation.getNewDN();
-    }
-    else
-    {
-      assertEquals(modifyDNOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED,
-                   "Unexpected moddn success for user " + authDN);
-      newEntryDN = e.getName();
-    }
-
+    DN newEntryDN = hasProxyPrivilege ? modifyDNOp.getNewDN() : e.getName();
 
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn,
+    DeleteOperationBasis deleteOp = new DeleteOperationBasis(conn,
         conn.nextOperationID(), conn.nextMessageID(), controls, newEntryDN);
-    deleteOperation.run();
-
-    if (hasProxyPrivilege)
+    assertSuccess(hasProxyPrivilege, authDN, deleteOp);
+    if (!hasProxyPrivilege)
     {
-      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS,
-                   "Unexpected delete failure for user " + authDN);
-    }
-    else
-    {
-      assertEquals(deleteOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED,
-                   "Unexpected delete success for user " + authDN);
-
       processDelete(newEntryDN);
     }
   }
@@ -838,43 +696,60 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
 
-
     // Test a compare operation against the PWReset Target user.
-    CompareOperationBasis compareOperation =
-         new CompareOperationBasis(conn, conn.nextOperationID(),
-                              conn.nextMessageID(), controls, targetDN,
-                              DirectoryServer.getAttributeTypeOrDefault("cn"),
-                              ByteString.valueOf("PWReset Target"));
-    compareOperation.run();
-
-    if (hasProxyPrivilege)
-    {
-      assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
-    }
-    else
-    {
-      assertEquals(compareOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
-    }
-
+    CompareOperationBasis compareOp = new CompareOperationBasis(
+        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
+        targetDN, DirectoryServer.getAttributeTypeOrDefault("cn"),
+        ByteString.valueOf("PWReset Target"));
+    assertSuccess(hasProxyPrivilege, compareOp);
 
     // Test a search operation against the PWReset Target user.
     SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT).addControl(controls);
-    InternalSearchOperation searchOperation = new InternalSearchOperation(
+    InternalSearchOperation searchOp = new InternalSearchOperation(
         conn, conn.nextOperationID(), conn.nextMessageID(), request, null);
-    searchOperation.run();
+    assertSuccess(hasProxyPrivilege, searchOp);
+  }
 
+  private void assertSuccess(boolean hasProxyPrivilege, CompareOperationBasis op)
+  {
+    op.run();
     if (hasProxyPrivilege)
     {
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(op.getResultCode(), ResultCode.COMPARE_TRUE);
     }
     else
     {
-      assertEquals(searchOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+      assertEquals(op.getResultCode(), ResultCode.AUTHORIZATION_DENIED);
     }
   }
 
+  private void assertSuccess(boolean hasProxyPrivilege, Operation op)
+  {
+    op.run();
+    if (hasProxyPrivilege)
+    {
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    }
+    else
+    {
+      assertEquals(op.getResultCode(), ResultCode.AUTHORIZATION_DENIED);
+    }
+  }
+
+  private void assertSuccess(boolean hasProxyPrivilege, DN userDN, Operation op)
+  {
+    op.run();
+    if (hasProxyPrivilege)
+    {
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS,
+          "Unexpected failure for user " + userDN + " and operation " + op);
+    }
+    else
+    {
+      assertEquals(op.getResultCode(), ResultCode.AUTHORIZATION_DENIED,
+          "Unexpected success for user " + userDN + " and operation " + op);
+    }
+  }
 
   /**
    * Tests the ability to update the set of privileges for a user on the fly
@@ -903,28 +778,23 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     JmxClientConnection testConnection =
          new JmxClientConnection(jmxCtx,authInfo);
 
-
     // Make sure the user starts out without any privileges.
     for (Privilege p : Privilege.values())
     {
       assertFalse(testConnection.hasPrivilege(p, null));
     }
 
-
     // Modify the user entry to add the JMX_READ privilege and verify that
     // the client connection reflects that.
     processModify(dn, ADD, "ds-privilege-name", "jmx-read");
     assertTrue(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
-    // Take the privilege away from the user and verify that it is recognized
-    // immediately.
+    // Take the privilege away from the user and verify that it is recognized immediately.
     processModify(dn, DELETE, "ds-privilege-name", "jmx-read");
     assertFalse(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
     processDelete(dn);
   }
-
-
 
   /**
    * Tests the ability to update the set of root privileges and have them take
@@ -933,8 +803,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testUpdateRootPrivileges()
-         throws Exception
+  public void testUpdateRootPrivileges() throws Exception
   {
     // Make sure that a root connection doesn't have the proxied auth privilege.
     JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
