@@ -133,7 +133,7 @@ class HistoricalAttributeValue
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
-    if (histKey != DELATTR)
+    if (histKey != ATTRDEL)
     {
       if (token.length == 4)
       {
@@ -222,7 +222,7 @@ class HistoricalAttributeValue
     AttributeBuilder builder = new AttributeBuilder(attrType, attrString);
     builder.setOptions(options);
 
-    if (histKey != DELATTR)
+    if (histKey != ATTRDEL)
     {
       builder.add(attributeValue);
     }
@@ -233,11 +233,10 @@ class HistoricalAttributeValue
     case ADD:
       return new Modification(ModificationType.ADD, attr);
     case DEL:
+    case ATTRDEL:
       return new Modification(ModificationType.DELETE, attr);
     case REPL:
       return new Modification(ModificationType.REPLACE, attr);
-    case DELATTR:
-      return new Modification(ModificationType.DELETE, attr);
     default:
       return null;
     }

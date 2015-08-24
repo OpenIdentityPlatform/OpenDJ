@@ -297,7 +297,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       break;
 
-    case DELATTR:
+    case ATTRDEL:
       this.deleteTime = csn;
       break;
     }

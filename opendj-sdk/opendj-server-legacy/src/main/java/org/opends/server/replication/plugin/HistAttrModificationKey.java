@@ -41,7 +41,7 @@ public enum HistAttrModificationKey
   /** The key for attribute value deletion. */
   DEL("del"),
   /** The key for attribute deletion. */
-  DELATTR("attrDel"),
+  ATTRDEL("attrDel"),
   /** The key for attribute replace. */
   REPL("repl"),
   /** The key for attribute value addition. */

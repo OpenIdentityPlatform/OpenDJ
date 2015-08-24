@@ -611,7 +611,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       }
       break;
 
-    case DELATTR:
+    case ATTRDEL:
       delete(csn);
       break;
     }
