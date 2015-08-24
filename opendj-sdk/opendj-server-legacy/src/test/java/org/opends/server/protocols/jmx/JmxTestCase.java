@@ -86,7 +86,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
 
     final RmiConnector rmiConnector = jmxConnectionHandler.getRMIConnector();
     int cnt = 0;
-    while (cnt <= 30 && !isReady(rmiConnector))
+    while (cnt <= 50 && !isReady(rmiConnector))
     {
       Thread.sleep(200);
       cnt++;
