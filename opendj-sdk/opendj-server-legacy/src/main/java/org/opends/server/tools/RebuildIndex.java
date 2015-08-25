@@ -603,30 +603,24 @@ public class RebuildIndex extends TaskTool
    */
   private Backend<?> retrieveBackend(final DN selectedDN) throws ConfigException, Exception
   {
-    Backend<?> backend = null;
-
     final ArrayList<Backend> backendList = new ArrayList<>();
     final ArrayList<BackendCfg> entryList = new ArrayList<>();
     final ArrayList<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
+    Backend<?> backend = null;
     final int numBackends = backendList.size();
     for (int i = 0; i < numBackends; i++)
     {
       final Backend<?> b = backendList.get(i);
       final List<DN> baseDNs = dnList.get(i);
-
-      for (final DN baseDN : baseDNs)
+      if (baseDNs.contains(selectedDN))
       {
-        if (baseDN.equals(selectedDN))
+        if (backend != null)
         {
-          if (backend != null)
-          {
-            throw new ConfigException(ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
-          }
-          backend = b;
-          break;
+          throw new ConfigException(ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
         }
+        backend = b;
       }
     }
 

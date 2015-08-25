@@ -26,7 +26,6 @@
  */
 package org.opends.server.tools;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -47,12 +46,9 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * This class provides utility functions for all JE related client tools.
- */
+/** This class provides utility functions for all JE related client tools. */
 public class BackendToolUtils
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int ERROR = 1;
@@ -74,8 +70,8 @@ public class BackendToolUtils
    * @return 0 if everything went fine. 1 if an error occurred.
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public static int getBackends(final ArrayList<Backend> backendList, final ArrayList<BackendCfg> entryList,
-      final ArrayList<List<DN>> dnList)
+  public static int getBackends(final List<? super Backend<?>> backendList, final List<BackendCfg> entryList,
+      final List<List<DN>> dnList)
   {
     try
     {
@@ -98,7 +94,7 @@ public class BackendToolUtils
         final BackendCfg cfg;
         try
         {
-          backend = (Backend) backendClass.newInstance();
+          backend = (Backend<?>) backendClass.newInstance();
           backend.setBackendID(backendID);
           cfg = root.getBackend(backendID);
           backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());
@@ -235,5 +231,4 @@ public class BackendToolUtils
       throw e;
     }
   }
-
 }
