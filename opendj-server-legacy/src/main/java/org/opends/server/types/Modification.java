@@ -30,8 +30,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 
 /**
  * This class defines a data structure for storing and interacting
- * with a modification that may be requested of an entry in the
- * Directory Server.
+ * with a modification that may be requested of an entry in the Directory Server.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -52,13 +51,10 @@ public final class Modification
   /** The modification type for this modification. */
   private ModificationType modificationType;
 
-
-
   /**
    * Creates a new modification with the provided information.
    *
-   * @param  modificationType  The modification type for this
-   *                           modification.
+   * @param  modificationType  The modification type for this modification.
    * @param  attribute         The attribute for this modification.
    */
   public Modification(ModificationType modificationType,
@@ -70,18 +66,14 @@ public final class Modification
     isInternal = false;
   }
 
-
-
   /**
    * Creates a new modification with the provided information.
    *
-   * @param  modificationType  The modification type for this
-   *                           modification.
+   * @param  modificationType  The modification type for this modification.
    * @param  attribute         The attribute for this modification.
-   * @param  isInternal        Indicates whether this is an internal
-   *                           modification and therefore should not
-   *                           be subject to no-user-modification and
-   *                           related checks.
+   * @param  isInternal        Indicates whether this is an internal modification
+   *                           and therefore should not be subject to
+   *                           no-user-modification and related checks.
    */
   public Modification(ModificationType modificationType,
                       Attribute attribute, boolean isInternal)
@@ -90,8 +82,6 @@ public final class Modification
     this.attribute        = attribute;
     this.isInternal       = isInternal;
   }
-
-
 
   /**
    * Retrieves the modification type for this modification.
@@ -103,13 +93,10 @@ public final class Modification
     return modificationType;
   }
 
-
-
   /**
    * Specifies the modification type for this modification.
    *
-   * @param  modificationType  The modification type for this
-   *                           modification.
+   * @param  modificationType  The modification type for this modification.
    */
   @org.opends.server.types.PublicAPI(
        stability=org.opends.server.types.StabilityLevel.PRIVATE,
@@ -121,8 +108,6 @@ public final class Modification
     this.modificationType = modificationType;
   }
 
-
-
   /**
    * Retrieves the attribute for this modification.
    *
@@ -132,8 +117,6 @@ public final class Modification
   {
     return attribute;
   }
-
-
 
   /**
    * Specifies the attribute for this modification.
@@ -150,51 +133,39 @@ public final class Modification
     this.attribute = attribute;
   }
 
-
-
   /**
-   * Indicates whether this is modification was created by internal
-   * processing and should not be subject to no-user-modification and
-   * related checks.
+   * Indicates whether this is modification was created by internal processing
+   * and should not be subject to no-user-modification and related checks.
    *
-   * @return  <CODE>true</CODE> if this is an internal modification,
-   *          or <CODE>false</CODE> if not.
+   * @return  {@code true} if this is an internal modification, or {@code false} if not.
    */
   public boolean isInternal()
   {
     return isInternal;
   }
 
-
-
   /**
-   * Specifies whether this modification was created by internal
-   * processing and should not be subject to no-user-modification and
-   * related checks.
+   * Specifies whether this modification was created by internal processing
+   * and should not be subject to no-user-modification and related checks.
    *
-   * @param  isInternal  Specifies whether this modification was
-   *                     created by internal processing and should
-   *                     not be subject to no-user-modification and
-   *                     related checks.
+   * @param  isInternal  Specifies whether this modification was created
+   *                     by internal processing and should not be subject to
+   *                     no-user-modification and related checks.
    */
   public void setInternal(boolean isInternal)
   {
     this.isInternal = isInternal;
   }
 
-
-
   /**
-   * Indicates whether the provided object is equal to this
-   * modification.  It will only be considered equal if the object is
-   * a modification with the same modification type and an attribute
-   * that is equal to this modification.
+   * Indicates whether the provided object is equal to this modification.
+   * It will only be considered equal if the object is a modification
+   * with the same modification type and an attribute that is equal to this modification.
    *
    * @param  o  The object for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the provided object is a
-   *          modification that is equal to this modification, or
-   *          <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided object is a
+   *          modification that is equal to this modification,
+   *          or {@code false} if not.
    */
   @Override
   public boolean equals(Object o)
@@ -213,12 +184,9 @@ public final class Modification
         && attribute.equals(m.attribute);
   }
 
-
-
   /**
    * Retrieves the hash code for this modification.  The hash code
-   * returned will be the hash code for the attribute included in this
-   * modification.
+   * returned will be the hash code for the attribute included in this modification.
    *
    * @return  The hash code for this modification.
    */
@@ -227,8 +195,6 @@ public final class Modification
   {
     return attribute.hashCode();
   }
-
-
 
   /**
    * Retrieves a one-line string representation of this modification.
@@ -243,14 +209,10 @@ public final class Modification
     return buffer.toString();
   }
 
-
-
   /**
-   * Appends a one-line representation of this modification to the
-   * provided buffer.
+   * Appends a one-line representation of this modification to the provided buffer.
    *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
+   * @param  buffer  The buffer to which the information should be appended.
    */
   public void toString(StringBuilder buffer)
   {
@@ -260,4 +222,3 @@ public final class Modification
     buffer.append(attribute);
   }
 }
-
