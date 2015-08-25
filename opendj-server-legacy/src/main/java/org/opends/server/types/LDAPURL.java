@@ -29,6 +29,9 @@ package org.opends.server.types;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -57,70 +60,41 @@ public final class LDAPURL
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The default scheme that will be used if none is provided.
-   */
+  /** The default scheme that will be used if none is provided. */
   public static final String DEFAULT_SCHEME = "ldap";
-
-
-
-  /**
-   * The default port value that will be used if none is provided.
-   */
+  /** The default port value that will be used if none is provided. */
   public static final int DEFAULT_PORT = 389;
-
-
-
-  /**
-   * The default base DN that will be used if none is provided.
-   */
+  /** The default base DN that will be used if none is provided. */
   public static final DN DEFAULT_BASE_DN = DN.rootDN();
-
-
-
-  /**
-   * The default search scope that will be used if none is provided.
-   */
+  /** The default search scope that will be used if none is provided. */
   public static final SearchScope DEFAULT_SEARCH_SCOPE =
        SearchScope.BASE_OBJECT;
-
-
-
-  /**
-   * The default search filter that will be used if none is provided.
-   */
+  /** The default search filter that will be used if none is provided. */
   public static final SearchFilter DEFAULT_SEARCH_FILTER =
        SearchFilter.createPresenceFilter(
             DirectoryServer.getObjectClassAttributeType());
 
 
-
-  /** The base DN for this LDAP URL. */
-  private DN baseDN;
-
+  /** The host for this LDAP URL. */
+  private String host;
   /** The port number for this LDAP URL. */
   private int port;
+  /** The base DN for this LDAP URL. */
+  private DN baseDN;
+  /** The raw base DN for this LDAP URL. */
+  private String rawBaseDN;
+  /** The search scope for this LDAP URL. */
+  private SearchScope scope;
+  /** The search filter for this LDAP URL. */
+  private SearchFilter filter;
+  /** The raw filter for this LDAP URL. */
+  private String rawFilter;
 
   /** The set of attributes for this LDAP URL. */
   private LinkedHashSet<String> attributes;
-
   /** The set of extensions for this LDAP URL. */
   private LinkedList<String> extensions;
 
-  /** The search scope for this LDAP URL. */
-  private SearchScope scope;
-
-  /** The search filter for this LDAP URL. */
-  private SearchFilter filter;
-
-  /** The host for this LDAP URL. */
-  private String host;
-
-  /** The raw base DN for this LDAP URL. */
-  private String rawBaseDN;
-
-  /** The raw filter for this LDAP URL. */
-  private String rawFilter;
 
   /** The scheme (i.e., protocol) for this LDAP URL. */
   private String scheme;
@@ -1261,160 +1235,104 @@ public final class LDAPURL
   @Override
   public boolean equals(Object o)
   {
-    if (o == null)
-    {
-      return false;
-    }
-
     if (o == this)
     {
       return true;
     }
-
-    if (! (o instanceof LDAPURL))
+    if (!(o instanceof LDAPURL))
     {
       return false;
     }
 
     LDAPURL url = (LDAPURL) o;
+    return scheme.equals(url.getScheme())
+        && hostEquals(url)
+        && port == url.getPort()
+        && baseDnsEqual(url)
+        && scope.equals(url.getScope())
+        && filtersEqual(url)
+        && attributesEqual(url.getAttributes())
+        && extensionsEqual(url.getExtensions());
+  }
 
-    if (! scheme.equals(url.getScheme()))
+  private boolean hostEquals(LDAPURL url)
+  {
+    if (host != null)
     {
-      return false;
+      return host.equalsIgnoreCase(url.getHost());
     }
+    return url.getHost() == null;
+  }
 
-    if (host == null)
-    {
-      if (url.getHost() != null)
-      {
-        return false;
-      }
-    }
-    else
-    {
-      if (! host.equalsIgnoreCase(url.getHost()))
-      {
-        return false;
-      }
-    }
-
-    if (port != url.getPort())
-    {
-      return false;
-    }
-
-
+  private boolean baseDnsEqual(LDAPURL url)
+  {
     try
     {
-      DN dn = getBaseDN();
-      if (! dn.equals(url.getBaseDN()))
-      {
-        return false;
-      }
+      return getBaseDN().equals(url.getBaseDN());
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      if (rawBaseDN == null)
-      {
-        if (url.getRawBaseDN() != null)
-        {
-          return false;
-        }
-      }
-      else
-      {
-        if (! rawBaseDN.equals(url.getRawBaseDN()))
-        {
-          return false;
-        }
-      }
+      return Objects.equals(rawBaseDN, url.getRawBaseDN());
     }
+  }
 
-
-    if (scope != url.getScope())
-    {
-      return false;
-    }
-
-
+  private boolean filtersEqual(LDAPURL url)
+  {
     try
     {
-      SearchFilter f = getFilter();
-      if (! f.equals(url.getFilter()))
-      {
-        return false;
-      }
+      return getFilter().equals(url.getFilter());
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      if (rawFilter == null)
-      {
-        if (url.getRawFilter() != null)
-        {
-          return false;
-        }
-      }
-      else
-      {
-        if (! rawFilter.equals(url.getRawFilter()))
-        {
-          return false;
-        }
-      }
+      return Objects.equals(rawFilter, url.getRawFilter());
     }
+  }
 
-
-    if (attributes.size() != url.getAttributes().size())
+  private boolean attributesEqual(Set<String> urlAttrs)
+  {
+    if (attributes.size() != urlAttrs.size())
     {
       return false;
     }
 
-    LinkedHashSet<String> urlAttrs = url.getAttributes();
-outerAttrLoop:
     for (String attr : attributes)
     {
-      if (urlAttrs.contains(attr))
+      if (!urlAttrs.contains(attr) && !containsIgnoreCase(urlAttrs, attr))
       {
-        continue;
+        return false;
       }
-
-      for (String attr2 : urlAttrs)
-      {
-        if (attr.equalsIgnoreCase(attr2))
-        {
-          continue outerAttrLoop;
-        }
-      }
-
-      return false;
     }
+    return true;
+  }
 
+  private boolean containsIgnoreCase(Set<String> urlAttrs, String attr)
+  {
+    for (String attr2 : urlAttrs)
+    {
+      if (attr.equalsIgnoreCase(attr2))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
-    if (extensions.size() != url.getExtensions().size())
+  private boolean extensionsEqual(List<String> extensions)
+  {
+    if (this.extensions.size() != extensions.size())
     {
       return false;
     }
 
-outerExtLoop:
-    for (String ext : extensions)
+    for (String ext : this.extensions)
     {
-      for (String urlExt : url.getExtensions())
+      if (!extensions.contains(ext))
       {
-        if (ext.equals(urlExt))
-        {
-          continue outerExtLoop;
-        }
+        return false;
       }
-
-      return false;
     }
-
-
-    // If we've gotten here, then we'll consider them equal.
     return true;
   }
 
@@ -1593,4 +1511,3 @@ outerExtLoop:
     }
   }
 }
-
