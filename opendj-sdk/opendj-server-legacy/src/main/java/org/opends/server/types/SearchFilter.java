@@ -3560,17 +3560,12 @@ public final class SearchFilter
       return false;
     }
 
-outerComponentLoop:
     for (SearchFilter outerFilter : filterComponents)
     {
-      for (SearchFilter innerFilter : f.filterComponents)
+      if (!f.filterComponents.contains(outerFilter))
       {
-        if (outerFilter.equals(innerFilter))
-        {
-          continue outerComponentLoop;
-        }
+        return false;
       }
-      return false;
     }
     return true;
   }
