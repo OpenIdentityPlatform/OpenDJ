@@ -429,9 +429,7 @@ public class Entry
    * @return <CODE>true</CODE> if this entry contains the specified
    *         attribute, or <CODE>false</CODE> if not.
    */
-  public boolean hasAttribute(
-      AttributeType attributeType,
-      Set<String> options)
+  public boolean hasAttribute(AttributeType attributeType, Set<String> options)
   {
     return hasAttribute(attributeType, options, true);
   }
@@ -498,9 +496,8 @@ public class Entry
         {
           for (Attribute attribute : attributes)
           {
-            // It's possible that there could be an attribute without
-            // any values, which we should treat as not having the
-            // requested attribute.
+            // It's possible that there could be an attribute without any values,
+            // which we should treat as not having the requested attribute.
             if (!attribute.isEmpty() && attribute.hasAllOptions(options))
             {
               return true;
@@ -881,23 +878,7 @@ public class Entry
    */
   public boolean hasUserAttribute(AttributeType attributeType)
   {
-    if (userAttributes.containsKey(attributeType))
-    {
-      return true;
-    }
-
-    if (attributeType.mayHaveSubordinateTypes())
-    {
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        if (userAttributes.containsKey(at))
-        {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return hasAttribute(userAttributes, attributeType);
   }
 
 
@@ -1040,7 +1021,12 @@ public class Entry
    */
   public boolean hasOperationalAttribute(AttributeType attributeType)
   {
-    if (operationalAttributes.containsKey(attributeType))
+    return hasAttribute(operationalAttributes, attributeType);
+  }
+
+  private boolean hasAttribute(Map<AttributeType, List<Attribute>> attributes, AttributeType attributeType)
+  {
+    if (attributes.containsKey(attributeType))
     {
       return true;
     }
@@ -1049,7 +1035,7 @@ public class Entry
     {
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        if (operationalAttributes.containsKey(at))
+        if (attributes.containsKey(at))
         {
           return true;
         }
@@ -1498,103 +1484,113 @@ public class Entry
     Attribute     a = mod.getAttribute();
     AttributeType t = a.getAttributeType();
 
-    // We'll need to handle changes to the objectclass attribute in a
-    // special way.
     if (t.isObjectClass())
     {
-      Map<ObjectClass, String> ocs = new LinkedHashMap<>();
-      for (ByteString v : a)
-      {
-        String ocName    = v.toString();
-        String lowerName = toLowerCase(ocName);
-        ObjectClass oc   =
-             DirectoryServer.getObjectClass(lowerName, true);
-        ocs.put(oc, ocName);
-      }
+      applyModificationToObjectclass(mod, relaxConstraints);
+    }
+    else
+    {
+      applyModificationToNonObjectclass(mod, relaxConstraints);
+    }
+  }
 
-      switch (mod.getModificationType().asEnum())
-      {
-        case ADD:
-          for (ObjectClass oc : ocs.keySet())
-          {
-            if (objectClasses.containsKey(oc))
-            {
-              if (!relaxConstraints)
-              {
-                LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
-                throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS,message);
-              }
-            }
-            else
-            {
-              objectClasses.put(oc, ocs.get(oc));
-            }
-          }
-          objectClassAttribute = null;
-          break;
+  private void applyModificationToObjectclass(Modification mod, boolean relaxConstraints) throws DirectoryException
+  {
+    Attribute a = mod.getAttribute();
 
-        case DELETE:
-          for (ObjectClass oc : ocs.keySet())
-          {
-            if (objectClasses.remove(oc) == null && !relaxConstraints)
-            {
-              LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
-              throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
-            }
-          }
-          objectClassAttribute = null;
-          break;
-
-        case REPLACE:
-          objectClasses = ocs;
-          objectClassAttribute = null;
-          break;
-
-        case INCREMENT:
-          LocalizableMessage message = ERR_ENTRY_OC_INCREMENT_NOT_SUPPORTED.get();
-          throw new DirectoryException(CONSTRAINT_VIOLATION, message);
-
-        default:
-          message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
-          throw new DirectoryException(UNWILLING_TO_PERFORM, message);
-      }
-
-      return;
+    Map<ObjectClass, String> ocs = new LinkedHashMap<>();
+    for (ByteString v : a)
+    {
+      String ocName = v.toString();
+      String lowerName = toLowerCase(ocName);
+      ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
+      ocs.put(oc, ocName);
     }
 
     switch (mod.getModificationType().asEnum())
     {
-      case ADD:
-        List<ByteString> duplicateValues = new LinkedList<>();
-        addAttribute(a, duplicateValues);
-        if (!duplicateValues.isEmpty() && !relaxConstraints)
+    case ADD:
+      for (ObjectClass oc : ocs.keySet())
+      {
+        if (objectClasses.containsKey(oc))
         {
-          LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
-          throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
+          if (!relaxConstraints)
+          {
+            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
+            throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
+          }
         }
-        break;
+        else
+        {
+          objectClasses.put(oc, ocs.get(oc));
+        }
+      }
+      objectClassAttribute = null;
+      break;
 
-      case DELETE:
-        List<ByteString> missingValues = new LinkedList<>();
-        removeAttribute(a, missingValues);
-        if (!missingValues.isEmpty() && !relaxConstraints)
+    case DELETE:
+      for (ObjectClass oc : ocs.keySet())
+      {
+        if (objectClasses.remove(oc) == null && !relaxConstraints)
         {
           LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
           throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
         }
-        break;
+      }
+      objectClassAttribute = null;
+      break;
 
-      case REPLACE:
-        replaceAttribute(a);
-        break;
+    case REPLACE:
+      objectClasses = ocs;
+      objectClassAttribute = null;
+      break;
 
-      case INCREMENT:
-        incrementAttribute(a);
-        break;
+    case INCREMENT:
+      LocalizableMessage message = ERR_ENTRY_OC_INCREMENT_NOT_SUPPORTED.get();
+      throw new DirectoryException(CONSTRAINT_VIOLATION, message);
 
-      default:
-        LocalizableMessage message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
-        throw new DirectoryException(UNWILLING_TO_PERFORM, message);
+    default:
+      message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
+      throw new DirectoryException(UNWILLING_TO_PERFORM, message);
+    }
+  }
+
+  private void applyModificationToNonObjectclass(Modification mod, boolean relaxConstraints) throws DirectoryException
+  {
+    Attribute a = mod.getAttribute();
+    switch (mod.getModificationType().asEnum())
+    {
+    case ADD:
+      List<ByteString> duplicateValues = new LinkedList<>();
+      addAttribute(a, duplicateValues);
+      if (!duplicateValues.isEmpty() && !relaxConstraints)
+      {
+        LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
+        throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
+      }
+      break;
+
+    case DELETE:
+      List<ByteString> missingValues = new LinkedList<>();
+      removeAttribute(a, missingValues);
+      if (!missingValues.isEmpty() && !relaxConstraints)
+      {
+        LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
+        throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
+      }
+      break;
+
+    case REPLACE:
+      replaceAttribute(a);
+      break;
+
+    case INCREMENT:
+      incrementAttribute(a);
+      break;
+
+    default:
+      LocalizableMessage message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
+      throw new DirectoryException(UNWILLING_TO_PERFORM, message);
     }
   }
 
@@ -2553,15 +2549,9 @@ public class Entry
 
       for (Attribute a : sourceList)
       {
-        if (omitReal && !a.isVirtual())
-        {
-          continue;
-        }
-        else if (omitVirtual && a.isVirtual())
-        {
-          continue;
-        }
-        else if (omitEmpty && a.isEmpty())
+        if ((omitReal && a.isReal())
+            || (omitVirtual && a.isVirtual())
+            || (omitEmpty && a.isEmpty()))
         {
           continue;
         }
@@ -2573,9 +2563,8 @@ public class Entry
 
         if (!targetList.isEmpty() && mergeDuplicates)
         {
-          // Ensure that there is only one attribute with the same
-          // type and options. This is not very efficient but will
-          // occur very rarely.
+          // Ensure that there is only one attribute with the same type and options.
+          // This is not very efficient but will occur very rarely.
           boolean found = false;
           for (int i = 0; i < targetList.size(); i++)
           {
@@ -2608,9 +2597,8 @@ public class Entry
 
 
   /**
-   * Indicates whether this entry meets the criteria to consider it a
-   * referral (e.g., it contains the "referral" objectclass and a
-   * "ref" attribute).
+   * Indicates whether this entry meets the criteria to consider it a referral
+   * (e.g., it contains the "referral" objectclass and a "ref" attribute).
    *
    * @return  <CODE>true</CODE> if this entry meets the criteria to
    *          consider it a referral, or <CODE>false</CODE> if not.
@@ -4813,19 +4801,10 @@ public class Entry
 
     for (Attribute attribute : sourceList)
     {
-      if (attribute.isEmpty())
-      {
-        continue;
-      }
-      else if (omitReal && !attribute.isVirtual())
-      {
-        continue;
-      }
-      else if (omitVirtual && attribute.isVirtual())
-      {
-        continue;
-      }
-      else if (!attribute.hasAllOptions(options))
+      if (attribute.isEmpty()
+          || (omitReal && attribute.isReal())
+          || (omitVirtual && attribute.isVirtual())
+          || !attribute.hasAllOptions(options))
       {
         continue;
       }
@@ -4847,12 +4826,11 @@ public class Entry
           // want to rename "name" to "cn".
           if (attrName == null || !subAttrType.equals(attrType))
           {
-            builder.setAttributeType(attribute.getAttributeType(),
-                attribute.getName());
+            builder.setAttributeType(subAttrType, attribute.getName());
           }
           else
           {
-            builder.setAttributeType(attribute.getAttributeType(), attrName);
+            builder.setAttributeType(subAttrType, attrName);
           }
 
           if (options != null)
@@ -4895,8 +4873,7 @@ public class Entry
           // This may occur in two cases:
           //
           // 1) The attribute is identified by more than one attribute
-          //    type description in the attribute list (e.g. in a
-          //    wildcard).
+          //    type description in the attribute list (e.g. in a wildcard).
           //
           // 2) The attribute has both a real and virtual component.
           //
@@ -4924,4 +4901,3 @@ public class Entry
     }
   }
 }
-
