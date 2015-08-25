@@ -102,7 +102,6 @@ public class VerifyIndex
                                     OutputStream outStream,
                                     OutputStream errStream)
   {
-    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
 
@@ -326,34 +325,26 @@ public class VerifyIndex
 
     // Get information about the backends defined in the server.  Iterate
     // through them, finding the one backend to be verified.
-    Backend<?> backend = null;
-
     ArrayList<Backend>     backendList = new ArrayList<>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<>();
     ArrayList<List<DN>>    dnList      = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
+    Backend<?> backend = null;
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
       Backend<?> b = backendList.get(i);
       List<DN>    baseDNs = dnList.get(i);
 
-      for (DN baseDN : baseDNs)
+      if (baseDNs.contains(verifyBaseDN))
       {
-        if (baseDN.equals(verifyBaseDN))
+        if (backend != null)
         {
-          if (backend == null)
-          {
-            backend = b;
-          }
-          else
-          {
-            printWrappedText(err, ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
-            return 1;
-          }
-          break;
+          printWrappedText(err, ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
+          return 1;
         }
+        backend = b;
       }
     }
 
@@ -406,49 +397,46 @@ public class VerifyIndex
     }
 
 
-    // Launch the verify process.
-    int returnCode = 0 ;
     try
     {
+      // Launch the verify process.
       final long errorCount = backend.verifyBackend(verifyConfig);
       if (countErrors.isPresent())
       {
         if (errorCount > Integer.MAX_VALUE)
         {
-          returnCode = Integer.MAX_VALUE;
+          return Integer.MAX_VALUE;
         }
-        else
-        {
-          returnCode = (int) errorCount;
-        }
+        return (int) errorCount;
       }
+      return 0;
     }
     catch (InitializationException e)
     {
       printWrappedText(err, ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(e.getMessage()));
-      returnCode = 1;
+      return 1;
     }
     catch (Exception e)
     {
       printWrappedText(err, ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(stackTraceToSingleLineString(e)));
-      returnCode = 1;
+      return 1;
     }
-
-
-    // Release the shared lock on the backend.
-    try
+    finally
     {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      // Release the shared lock on the backend.
+      try
       {
-        printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        String lockFile = LockFileManager.getBackendLockFileName(backend);
+        StringBuilder failureReason = new StringBuilder();
+        if (! LockFileManager.releaseLock(lockFile, failureReason))
+        {
+          printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        }
+      }
+      catch (Exception e)
+      {
+        printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       }
     }
-    catch (Exception e)
-    {
-      printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
-    }
-    return returnCode;
   }
 }
