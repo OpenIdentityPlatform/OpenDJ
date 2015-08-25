@@ -435,7 +435,8 @@ public class VerifyIndex
       }
       catch (Exception e)
       {
-        printWrappedText(err, WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+        printWrappedText(err,
+            WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       }
     }
   }
