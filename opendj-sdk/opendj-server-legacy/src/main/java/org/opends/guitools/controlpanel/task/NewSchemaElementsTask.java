@@ -364,12 +364,7 @@ public class NewSchemaElementsTask extends Task
 
   private String getElementDefinition(CommonSchemaElements element)
   {
-    final List<String> names = new ArrayList<>();
-    for (final String name : element.getNormalizedNames())
-    {
-      names.add(name);
-    }
-
+    final List<String> names = new ArrayList<>(element.getNormalizedNames());
     if (element instanceof AttributeType)
     {
       return getAttributeTypeDefinition((AttributeType) element, names);

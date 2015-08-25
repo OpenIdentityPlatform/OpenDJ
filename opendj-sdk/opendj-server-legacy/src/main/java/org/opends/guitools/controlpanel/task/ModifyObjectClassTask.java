@@ -52,7 +52,6 @@ import org.opends.server.types.Schema;
 /**
  * The task that is in charge of modifying an object class definition (and all
  * the references to this object class).
- *
  */
 public class ModifyObjectClassTask extends Task
 {
@@ -147,22 +146,16 @@ public class ModifyObjectClassTask extends Task
     }
   }
 
-
   private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
   {
-    ObjectClass ocToAdd;
     Set<ObjectClass> currentSups = ocToDelete.getSuperiorClasses();
     if (ocToDelete.equals(oldObjectClass))
     {
-      ocToAdd = newObjectClass;
+      return newObjectClass;
     }
     else if (currentSups.contains(oldObjectClass))
     {
-      ArrayList<String> allNames = new ArrayList<>();
-      for (String str : ocToDelete.getNormalizedNames())
-      {
-        allNames.add(str);
-      }
+      ArrayList<String> allNames = new ArrayList<>(ocToDelete.getNormalizedNames());
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
       Set<ObjectClass> newSups = new LinkedHashSet<>();
@@ -177,7 +170,7 @@ public class ModifyObjectClassTask extends Task
           newSups.add(oc);
         }
       }
-      ocToAdd = new ObjectClass("",
+      return new ObjectClass("",
           ocToDelete.getPrimaryName(),
           allNames,
           ocToDelete.getOID(),
@@ -192,9 +185,8 @@ public class ModifyObjectClassTask extends Task
     else
     {
       // Nothing to be changed in the definition of the object class itself.
-      ocToAdd = ocToDelete;
+      return ocToDelete;
     }
-    return ocToAdd;
   }
 
   /**

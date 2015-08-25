@@ -70,9 +70,7 @@ import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
 
-/**
- * The task that is launched when a schema element must be deleted.
- */
+/** The task that is launched when a schema element must be deleted. */
 public class DeleteSchemaElementsTask extends Task
 {
   /** The list of object classes that the user asked to delete. */
@@ -116,17 +114,15 @@ public class DeleteSchemaElementsTask extends Task
     }
     if (!ocsToDelete.isEmpty())
     {
+      LinkedHashSet<ObjectClass> orderedOCs =
+          DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(ocsToDelete, schema);
       if (allOcsToDelete == null)
       {
-      allOcsToDelete =
-        DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(
-            ocsToDelete, schema);
+        allOcsToDelete = orderedOCs;
       }
       else
       {
-        allOcsToDelete.addAll(
-            DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(
-                ocsToDelete, schema));
+        allOcsToDelete.addAll(orderedOCs);
       }
     }
     ArrayList<AttributeType> lAttrsToDelete = new ArrayList<>(allAttrsToDelete);
@@ -541,7 +537,6 @@ public class DeleteSchemaElementsTask extends Task
 
   private AttributeType getAttributeToAdd(AttributeType attrToDelete)
   {
-    AttributeType attrToAdd;
     boolean isSuperior = false;
     for (AttributeType attr : providedAttrsToDelete)
     {
@@ -559,14 +554,10 @@ public class DeleteSchemaElementsTask extends Task
     }
     if (isSuperior)
     {
-      ArrayList<String> allNames = new ArrayList<>();
-      for (String str : attrToDelete.getNormalizedNames())
-      {
-        allNames.add(str);
-      }
+      ArrayList<String> allNames = new ArrayList<>(attrToDelete.getNormalizedNames());
       Map<String, List<String>> extraProperties =
         cloneExtraProperties(attrToDelete);
-      attrToAdd = new AttributeType(
+      return new AttributeType(
           "",
           attrToDelete.getPrimaryName(),
           allNames,
@@ -588,14 +579,12 @@ public class DeleteSchemaElementsTask extends Task
     else
     {
       // Nothing to be changed in the definition of the attribute itself.
-      attrToAdd = attrToDelete;
+      return attrToDelete;
     }
-    return attrToAdd;
   }
 
   private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
   {
-    ObjectClass ocToAdd;
     boolean containsAttribute = false;
     for (AttributeType attr : providedAttrsToDelete)
     {
@@ -630,11 +619,7 @@ public class DeleteSchemaElementsTask extends Task
 
     if (containsAttribute || hasSuperior)
     {
-      ArrayList<String> allNames = new ArrayList<>();
-      for (String str : ocToDelete.getNormalizedNames())
-      {
-        allNames.add(str);
-      }
+      ArrayList<String> allNames = new ArrayList<>(ocToDelete.getNormalizedNames());
       Map<String, List<String>> extraProperties =
         cloneExtraProperties(ocToDelete);
       Set<AttributeType> required;
@@ -651,7 +636,7 @@ public class DeleteSchemaElementsTask extends Task
         required = ocToDelete.getRequiredAttributes();
         optional = ocToDelete.getOptionalAttributes();
       }
-      ocToAdd = new ObjectClass("",
+      return new ObjectClass("",
           ocToDelete.getPrimaryName(),
           allNames,
           ocToDelete.getOID(),
@@ -666,11 +651,9 @@ public class DeleteSchemaElementsTask extends Task
     else
     {
       // Nothing to be changed in the definition of the object class itself.
-      ocToAdd = ocToDelete;
+      return ocToDelete;
     }
-    return ocToAdd;
   }
-
 
   private Set<ObjectClass> getNewSuperiors(ObjectClass currentSup)
   {
@@ -692,7 +675,6 @@ public class DeleteSchemaElementsTask extends Task
     }
     return newSuperiors;
   }
-
 
   /**
    * Returns an ordered set of the attributes that must be deleted.
@@ -784,7 +766,6 @@ public class DeleteSchemaElementsTask extends Task
     }
     return extraProperties;
   }
-
 
   private static LinkedHashSet<AttributeType> getOrderedChildrenToDelete(
       AttributeType attribute, Schema schema)

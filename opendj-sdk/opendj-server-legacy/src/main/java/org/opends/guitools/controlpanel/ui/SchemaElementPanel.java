@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import java.util.HashSet;
@@ -44,7 +43,6 @@ import org.opends.server.types.Schema;
 /**
  * Abstract class used to re-factor some code among the panels that display the
  * contents of a schema element.
- *
  */
 public abstract class SchemaElementPanel extends StatusGenericPanel
 {
@@ -141,21 +139,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
    */
   protected Set<String> getAliases(AttributeType attr)
   {
-    Set<String> aliases = new LinkedHashSet<>();
-    Iterable<String> ocNames = attr.getNormalizedNames();
-    String primaryName = attr.getPrimaryName();
-    if (primaryName == null)
-    {
-      primaryName = "";
-    }
-    for (String name : ocNames)
-    {
-      if (!name.equalsIgnoreCase(primaryName))
-      {
-        aliases.add(name);
-      }
-    }
-    return aliases;
+    return getAliases(attr.getNormalizedNames(), attr.getPrimaryName());
   }
 
   /**
@@ -165,14 +149,17 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
    */
   protected Set<String> getAliases(ObjectClass oc)
   {
+    return getAliases(oc.getNormalizedNames(), oc.getPrimaryName());
+  }
+
+  private Set<String> getAliases(Set<String> names, String primaryName)
+  {
     Set<String> aliases = new LinkedHashSet<>();
-    Iterable<String> ocNames = oc.getNormalizedNames();
-    String primaryName = oc.getPrimaryName();
     if (primaryName == null)
     {
       primaryName = "";
     }
-    for (String name : ocNames)
+    for (String name : names)
     {
       if (!name.equalsIgnoreCase(primaryName))
       {

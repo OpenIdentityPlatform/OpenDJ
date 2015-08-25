@@ -149,64 +149,50 @@ public class ModifyAttributeTask extends Task
 
   private AttributeType getAttributeToAdd(AttributeType attrToDelete)
   {
-    AttributeType attrToAdd;
     if (attrToDelete.equals(oldAttribute))
     {
-      attrToAdd = newAttribute;
+      return newAttribute;
+    }
+    else if (oldAttribute.equals(attrToDelete.getSuperiorType()))
+    {
+      ArrayList<String> allNames = new ArrayList<>(attrToDelete.getNormalizedNames());
+      Map<String, List<String>> extraProperties =
+        DeleteSchemaElementsTask.cloneExtraProperties(attrToDelete);
+      AttributeType newSuperior = newAttribute;
+      return new AttributeType(
+          "",
+          attrToDelete.getPrimaryName(),
+          allNames,
+          attrToDelete.getOID(),
+          attrToDelete.getDescription(),
+          newSuperior,
+          attrToDelete.getSyntax(),
+          attrToDelete.getApproximateMatchingRule(),
+          attrToDelete.getEqualityMatchingRule(),
+          attrToDelete.getOrderingMatchingRule(),
+          attrToDelete.getSubstringMatchingRule(),
+          attrToDelete.getUsage(),
+          attrToDelete.isCollective(),
+          attrToDelete.isNoUserModification(),
+          attrToDelete.isObsolete(),
+          attrToDelete.isSingleValue(),
+          extraProperties);
     }
     else
     {
-      if (oldAttribute.equals(attrToDelete.getSuperiorType()))
-      {
-        ArrayList<String> allNames = new ArrayList<>();
-        for (String str : attrToDelete.getNormalizedNames())
-        {
-          allNames.add(str);
-        }
-        Map<String, List<String>> extraProperties =
-          DeleteSchemaElementsTask.cloneExtraProperties(attrToDelete);
-        AttributeType newSuperior = newAttribute;
-        attrToAdd = new AttributeType(
-            "",
-            attrToDelete.getPrimaryName(),
-            allNames,
-            attrToDelete.getOID(),
-            attrToDelete.getDescription(),
-            newSuperior,
-            attrToDelete.getSyntax(),
-            attrToDelete.getApproximateMatchingRule(),
-            attrToDelete.getEqualityMatchingRule(),
-            attrToDelete.getOrderingMatchingRule(),
-            attrToDelete.getSubstringMatchingRule(),
-            attrToDelete.getUsage(),
-            attrToDelete.isCollective(),
-            attrToDelete.isNoUserModification(),
-            attrToDelete.isObsolete(),
-            attrToDelete.isSingleValue(),
-            extraProperties);
-      }
-      else
-      {
-        // Nothing to be changed in the definition of the attribute itself.
-        attrToAdd = attrToDelete;
-      }
+      // Nothing to be changed in the definition of the attribute itself.
+      return attrToDelete;
     }
-    return attrToAdd;
   }
 
   private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
   {
-    ObjectClass ocToAdd;
     boolean containsAttribute =
       ocToDelete.getRequiredAttributeChain().contains(oldAttribute) ||
       ocToDelete.getOptionalAttributeChain().contains(oldAttribute);
     if (containsAttribute)
     {
-      ArrayList<String> allNames = new ArrayList<>();
-      for (String str : ocToDelete.getNormalizedNames())
-      {
-        allNames.add(str);
-      }
+      ArrayList<String> allNames = new ArrayList<>(ocToDelete.getNormalizedNames());
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
       Set<AttributeType> required = new HashSet<>(ocToDelete.getRequiredAttributes());
@@ -221,7 +207,7 @@ public class ModifyAttributeTask extends Task
         optional.remove(oldAttribute);
         optional.add(newAttribute);
       }
-      ocToAdd = new ObjectClass("",
+      return new ObjectClass("",
           ocToDelete.getPrimaryName(),
           allNames,
           ocToDelete.getOID(),
@@ -236,9 +222,8 @@ public class ModifyAttributeTask extends Task
     else
     {
       // Nothing to be changed in the definition of the object class itself.
-      ocToAdd = ocToDelete;
+      return ocToDelete;
     }
-    return ocToAdd;
   }
 
   /**
