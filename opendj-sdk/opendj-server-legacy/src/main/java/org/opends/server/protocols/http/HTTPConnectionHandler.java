@@ -21,8 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2015 ForgeRock AS
- *      Portions Copyright 2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -68,7 +67,6 @@ import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.glassfish.grizzly.http.HttpProbe;
 import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.http.server.HttpServerMonitoringConfig;
 import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.monitoring.MonitoringConfig;
@@ -95,12 +93,11 @@ import org.opends.server.util.StaticUtils;
  * with clients over HTTP. The connection handler is responsible for
  * starting/stopping the embedded web server.
  */
-public class HTTPConnectionHandler extends
-    ConnectionHandler<HTTPConnectionHandlerCfg> implements
-    ConfigurationChangeListener<HTTPConnectionHandlerCfg>,
-    ServerShutdownListener, AlertGenerator
+public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandlerCfg>
+                                   implements ConfigurationChangeListener<HTTPConnectionHandlerCfg>,
+                                              ServerShutdownListener,
+                                              AlertGenerator
 {
-
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -110,8 +107,7 @@ public class HTTPConnectionHandler extends
   /** SSL instance name used in context creation. */
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-  private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(
-      JsonParser.Feature.ALLOW_COMMENTS, true);
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(JsonParser.Feature.ALLOW_COMMENTS, true);
 
   /** The initialization configuration. */
   private HTTPConnectionHandlerCfg initConfig;
@@ -119,9 +115,7 @@ public class HTTPConnectionHandler extends
   /** The current configuration. */
   private HTTPConnectionHandlerCfg currentConfig;
 
-  /**
-   * Indicates whether the Directory Server is in the process of shutting down.
-   */
+  /** Indicates whether the Directory Server is in the process of shutting down. */
   private volatile boolean shutdownRequested;
 
   /** Indicates whether this connection handler is enabled. */
@@ -164,15 +158,10 @@ public class HTTPConnectionHandler extends
   /** The friendly name of this connection handler. */
   private String friendlyName;
 
-  /**
-   * The SSL engine configurator is used for obtaining default SSL parameters.
-   */
+  /** The SSL engine configurator is used for obtaining default SSL parameters. */
   private SSLEngineConfigurator sslEngineConfigurator;
 
-  /**
-   * Default constructor. It is invoked by reflection to create this
-   * {@link ConnectionHandler}.
-   */
+  /** Default constructor. It is invoked by reflection to create this {@link ConnectionHandler}. */
   public HTTPConnectionHandler()
   {
     super(DEFAULT_FRIENDLY_NAME);
@@ -187,9 +176,8 @@ public class HTTPConnectionHandler extends
    */
   public boolean acceptUnauthenticatedRequests()
   {
-    // the global setting overrides the more specific setting here.
-    return !DirectoryServer.rejectUnauthenticatedRequests()
-        && !this.currentConfig.isAuthenticationRequired();
+    // The global setting overrides the more specific setting here.
+    return !DirectoryServer.rejectUnauthenticatedRequests() && !this.currentConfig.isAuthenticationRequired();
   }
 
   /**
@@ -203,10 +191,8 @@ public class HTTPConnectionHandler extends
     clientConnections.put(clientConnection, clientConnection);
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      HTTPConnectionHandlerCfg config)
+  public ConfigChangeResult applyConfigurationChange(HTTPConnectionHandlerCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
@@ -230,16 +216,17 @@ public class HTTPConnectionHandler extends
     }
 
     if (config.isEnabled() && this.currentConfig.isEnabled() && isListening())
-    { // server was running and will still be running
-      // if the "enabled" was flipped, leave it to the stop / start server to
-      // handle it
+    {
+      // Server was running and will still be running if the "enabled" was flipped,
+      // leave it to the stop / start server to handle it.
       if (!this.currentConfig.isKeepStats() && config.isKeepStats())
-      { // it must now keep stats while it was not previously
+      {
+        // It must now keep stats while it was not previously.
         setHttpStatsProbe(this.httpServer);
       }
-      else if (this.currentConfig.isKeepStats() && !config.isKeepStats()
-          && this.httpProbe != null)
-      { // it must NOT keep stats anymore
+      else if (this.currentConfig.isKeepStats() && !config.isKeepStats() && this.httpProbe != null)
+      {
+        // It must NOT keep stats anymore.
         getHttpConfig(this.httpServer).removeProbes(this.httpProbe);
         this.httpProbe = null;
       }
@@ -296,7 +283,6 @@ public class HTTPConnectionHandler extends
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
@@ -315,40 +301,35 @@ public class HTTPConnectionHandler extends
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
     Map<String, String> alerts = new LinkedHashMap<>();
 
     alerts.put(ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
-        ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
+               ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
 
     return alerts;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return HTTPConnectionHandler.class.getName();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<ClientConnection> getClientConnections()
   {
     return clientConnections.keySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
     return currentConfig.dn();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName()
   {
@@ -365,7 +346,6 @@ public class HTTPConnectionHandler extends
     return this.currentConfig;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<String> getEnabledSSLCipherSuites()
   {
@@ -377,7 +357,6 @@ public class HTTPConnectionHandler extends
     return super.getEnabledSSLCipherSuites();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<String> getEnabledSSLProtocols()
   {
@@ -389,7 +368,6 @@ public class HTTPConnectionHandler extends
     return super.getEnabledSSLProtocols();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners()
   {
@@ -406,7 +384,6 @@ public class HTTPConnectionHandler extends
     return this.initConfig.getListenPort();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getProtocol()
   {
@@ -424,7 +401,6 @@ public class HTTPConnectionHandler extends
     return sslEngineConfigurator.createSSLEngine();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName()
   {
@@ -441,7 +417,6 @@ public class HTTPConnectionHandler extends
     return statTracker;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(HTTPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
@@ -501,10 +476,9 @@ public class HTTPConnectionHandler extends
     return nameBuffer.toString();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
-      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAcceptable(
+      ConnectionHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     HTTPConnectionHandlerCfg config = (HTTPConnectionHandlerCfg) configuration;
 
@@ -512,9 +486,8 @@ public class HTTPConnectionHandler extends
     {
       // Attempt to bind to the listen port on all configured addresses to
       // verify whether the connection handler will be able to start.
-      LocalizableMessage errorMessage =
-          checkAnyListenAddressInUse(config.getListenAddress(), config
-              .getListenPort(), config.isAllowTCPReuseAddress(), config.dn());
+      LocalizableMessage errorMessage = checkAnyListenAddressInUse(
+          config.getListenAddress(), config.getListenPort(), config.isAllowTCPReuseAddress(), config.dn());
       if (errorMessage != null)
       {
         unacceptableReasons.add(errorMessage);
@@ -531,7 +504,6 @@ public class HTTPConnectionHandler extends
       catch (DirectoryException e)
       {
         logger.traceException(e);
-
         unacceptableReasons.add(e.getMessageObject());
         return false;
       }
@@ -556,8 +528,7 @@ public class HTTPConnectionHandler extends
    *         null otherwise.
    */
   private LocalizableMessage checkAnyListenAddressInUse(
-      Collection<InetAddress> listenAddresses, int listenPort,
-      boolean allowReuseAddress, DN configEntryDN)
+      Collection<InetAddress> listenAddresses, int listenPort, boolean allowReuseAddress, DN configEntryDN)
   {
     for (InetAddress a : listenAddresses)
     {
@@ -571,14 +542,13 @@ public class HTTPConnectionHandler extends
       catch (IOException e)
       {
         logger.traceException(e);
-        return ERR_CONNHANDLER_CANNOT_BIND.get("HTTP", configEntryDN, a.getHostAddress(), listenPort,
-            getExceptionMessage(e));
+        return ERR_CONNHANDLER_CANNOT_BIND.get(
+            "HTTP", configEntryDN, a.getHostAddress(), listenPort, getExceptionMessage(e));
       }
     }
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       HTTPConnectionHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -597,7 +567,6 @@ public class HTTPConnectionHandler extends
     return currentConfig.isKeepStats();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
@@ -609,14 +578,12 @@ public class HTTPConnectionHandler extends
     return httpServer != null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void start()
   {
-    // The Directory Server start process should only return
-    // when the connection handlers port are fully opened
-    // and working. The start method therefore needs to wait for
-    // the created thread to
+    // The Directory Server start process should only return when the connection handlers port
+    // are fully opened and working.
+    // The start method therefore needs to wait for the created thread too.
     synchronized (waitListen)
     {
       super.start();
@@ -627,8 +594,7 @@ public class HTTPConnectionHandler extends
       }
       catch (InterruptedException e)
       {
-        // If something interrupted the start its probably better
-        // to return ASAP.
+        // If something interrupted the start its probably better to return ASAP
       }
     }
   }
@@ -644,7 +610,6 @@ public class HTTPConnectionHandler extends
     clientConnections.remove(clientConnection);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void run()
   {
@@ -655,8 +620,7 @@ public class HTTPConnectionHandler extends
 
     while (!shutdownRequested)
     {
-      // If this connection handler is not enabled, then just sleep
-      // for a bit and check again.
+      // If this connection handler is not enabled, then just sleep for a bit and check again.
       if (!this.enabled)
       {
         if (isListening())
@@ -666,10 +630,8 @@ public class HTTPConnectionHandler extends
 
         if (starting)
         {
-          // This may happen if there was an initialisation error
-          // which led to disable the connector.
-          // The main thread is waiting for the connector to listen
-          // on its port, which will not occur yet,
+          // This may happen if there was an initialisation error which led to disable the connector.
+          // The main thread is waiting for the connector to listen on its port, which will not occur yet,
           // so notify here to allow the server startup to complete.
           synchronized (waitListen)
           {
@@ -691,45 +653,39 @@ public class HTTPConnectionHandler extends
 
       try
       {
-        // At this point, the connection Handler either started
-        // correctly or failed to start but the start process
-        // should be notified and resume its work in any cases.
+        // At this point, the connection Handler either started correctly or failed
+        // to start but the start process should be notified and resume its work in any cases.
         synchronized (waitListen)
         {
           waitListen.notify();
         }
 
         // If we have gotten here, then we are about to start listening
-        // for the first time since startup or since we were previously
-        // disabled. Start the embedded HTTP server
+        // for the first time since startup or since we were previously disabled.
+        // Start the embedded HTTP server
         startHttpServer();
         lastIterationFailed = false;
       }
       catch (Exception e)
       {
-        // clean up the messed up HTTP server
+        // Clean up the messed up HTTP server
         cleanUpHttpServer();
 
-        // error + alert about the horked config
+        // Error + alert about the horked config
         logger.traceException(e);
-
-        logger.error(ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION,
-            friendlyName, currentConfig.dn(), getExceptionMessage(e));
+        logger.error(
+            ERR_CONNHANDLER_CANNOT_ACCEPT_CONNECTION, friendlyName, currentConfig.dn(), getExceptionMessage(e));
 
         if (lastIterationFailed)
         {
-          // The last time through the accept loop we also
-          // encountered a failure. Rather than enter a potential
-          // infinite loop of failures, disable this acceptor and
-          // log an error.
-          LocalizableMessage message =
-              ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(friendlyName,
-                  currentConfig.dn(), stackTraceToSingleLineString(e));
+          // The last time through the accept loop we also encountered a failure.
+          // Rather than enter a potential infinite loop of failures,
+          // disable this acceptor and log an error.
+          LocalizableMessage message = ERR_CONNHANDLER_CONSECUTIVE_ACCEPT_FAILURES.get(
+              friendlyName, currentConfig.dn(), stackTraceToSingleLineString(e));
           logger.error(message);
 
-          DirectoryServer.sendAlertNotification(this,
-              ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES, message);
-
+          DirectoryServer.sendAlertNotification(this, ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES, message);
           this.enabled = false;
         }
         else
@@ -745,7 +701,7 @@ public class HTTPConnectionHandler extends
 
   private void startHttpServer() throws Exception
   {
-    // silence Grizzly's own logging
+    // Silence Grizzly's own logging
     Logger.getLogger("org.glassfish.grizzly").setLevel(Level.OFF);
 
     if (HTTPAccessLogger.getHTTPAccessLogPublishers().isEmpty())
@@ -755,7 +711,7 @@ public class HTTPConnectionHandler extends
 
     this.httpServer = createHttpServer();
 
-    // register servlet as default servlet and also able to serve REST requests
+    // Register servlet as default servlet and also able to serve REST requests
     createAndRegisterServlet("OpenDJ Rest2LDAP servlet", "", "/*");
 
     logger.trace("Starting HTTP server...");
@@ -779,31 +735,28 @@ public class HTTPConnectionHandler extends
       setHttpStatsProbe(server);
     }
 
-    // configure the network listener
-    final NetworkListener listener =
-        new NetworkListener("Rest2LDAP", NetworkListener.DEFAULT_NETWORK_HOST,
-            initConfig.getListenPort());
+    // Configure the network listener
+    final NetworkListener listener = new NetworkListener(
+        "Rest2LDAP", NetworkListener.DEFAULT_NETWORK_HOST, initConfig.getListenPort());
     server.addListener(listener);
 
-    // configure the network transport
+    // Configure the network transport
     final TCPNIOTransport transport = listener.getTransport();
     transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
     transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
     transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
-    transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(),
-        TimeUnit.MILLISECONDS);
+    transport.setWriteTimeout(currentConfig.getMaxBlockedWriteTimeLimit(), TimeUnit.MILLISECONDS);
 
     final int bufferSize = (int) currentConfig.getBufferSize();
     transport.setReadBufferSize(bufferSize);
     transport.setWriteBufferSize(bufferSize);
     transport.setIOStrategy(SameThreadIOStrategy.getInstance());
-    final int numRequestHandlers =
-        getNumRequestHandlers(currentConfig.getNumRequestHandlers(),
-            friendlyName);
+
+    final int numRequestHandlers = getNumRequestHandlers(currentConfig.getNumRequestHandlers(), friendlyName);
     transport.setSelectorRunnersCount(numRequestHandlers);
     transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
 
-    // configure SSL
+    // Configure SSL
     if (sslEngineConfigurator != null)
     {
       listener.setSecure(true);
@@ -821,54 +774,45 @@ public class HTTPConnectionHandler extends
 
   private MonitoringConfig<HttpProbe> getHttpConfig(HttpServer server)
   {
-    final HttpServerMonitoringConfig monitoringCfg =
-        server.getServerConfiguration().getMonitoringConfig();
-    return monitoringCfg.getHttpConfig();
+    return server.getServerConfiguration().getMonitoringConfig().getHttpConfig();
   }
 
-  private void createAndRegisterServlet(final String servletName,
-      final String... urlPatterns) throws Exception
+  private void createAndRegisterServlet(final String servletName, final String... urlPatterns) throws Exception
   {
-    // parse and use JSON config
+    // Parse and use JSON config
     File jsonConfigFile = getFileForPath(this.currentConfig.getConfigFile());
-    final JsonValue configuration =
-        parseJsonConfiguration(jsonConfigFile).recordKeyAccesses();
-    final HTTPAuthenticationConfig authenticationConfig =
-        getAuthenticationConfig(configuration);
+    final JsonValue configuration = parseJsonConfiguration(jsonConfigFile).recordKeyAccesses();
+    final HTTPAuthenticationConfig authenticationConfig = getAuthenticationConfig(configuration);
     final ConnectionFactory connFactory = getConnectionFactory(configuration);
     configuration.verifyAllKeysAccessed();
 
-    Filter filter =
-        new CollectClientConnectionsFilter(this, authenticationConfig);
-    final HttpServlet servlet = new HttpServlet(connFactory,
+    Filter filter = new CollectClientConnectionsFilter(this, authenticationConfig);
     // Used for hooking our HTTPClientConnection in Rest2LDAP
-        Rest2LDAPContextFactory.getHttpServletContextFactory());
+    final HttpServlet servlet = new HttpServlet(connFactory, Rest2LDAPContextFactory.getHttpServletContextFactory());
 
     // Create and deploy the Web app context
     final WebappContext ctx = new WebappContext(servletName);
-    ctx.addFilter("collectClientConnections", filter).addMappingForUrlPatterns(
-        EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
+    ctx.addFilter("collectClientConnections", filter)
+       .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
     ctx.addServlet(servletName, servlet).addMapping(urlPatterns);
     ctx.deploy(this.httpServer);
   }
 
-  private HTTPAuthenticationConfig getAuthenticationConfig(
-      final JsonValue configuration)
+  private HTTPAuthenticationConfig getAuthenticationConfig(final JsonValue configuration)
   {
     final HTTPAuthenticationConfig result = new HTTPAuthenticationConfig();
+
     final JsonValue val = configuration.get("authenticationFilter");
-    result.setBasicAuthenticationSupported(asBool(val,
-        "supportHTTPBasicAuthentication"));
-    result.setCustomHeadersAuthenticationSupported(asBool(val,
-        "supportAltAuthentication"));
-    result.setCustomHeaderUsername(val.get("altAuthenticationUsernameHeader")
-        .asString());
-    result.setCustomHeaderPassword(val.get("altAuthenticationPasswordHeader")
-        .asString());
+    result.setBasicAuthenticationSupported(asBool(val, "supportHTTPBasicAuthentication"));
+    result.setCustomHeadersAuthenticationSupported(asBool(val, "supportAltAuthentication"));
+    result.setCustomHeaderUsername(val.get("altAuthenticationUsernameHeader").asString());
+    result.setCustomHeaderPassword(val.get("altAuthenticationPasswordHeader").asString());
+
     final String searchBaseDN = asString(val, "searchBaseDN");
     result.setSearchBaseDN(org.forgerock.opendj.ldap.DN.valueOf(searchBaseDN));
     result.setSearchScope(SearchScope.valueOf(asString(val, "searchScope")));
     result.setSearchFilterTemplate(asString(val, "searchFilterTemplate"));
+
     return result;
   }
 
@@ -885,28 +829,27 @@ public class HTTPConnectionHandler extends
   private ConnectionFactory getConnectionFactory(final JsonValue configuration)
   {
     final Router router = new Router();
-    final JsonValue mappings =
-        configuration.get("servlet").get("mappings").required();
+    final JsonValue mappings = configuration.get("servlet").get("mappings").required();
     for (final String mappingUrl : mappings.keys())
     {
       final JsonValue mapping = mappings.get(mappingUrl);
-      final CollectionResourceProvider provider =
-          Rest2LDAP.builder().authorizationPolicy(AuthorizationPolicy.REUSE)
-              .configureMapping(mapping).build();
+      final CollectionResourceProvider provider = Rest2LDAP.builder()
+                                                           .authorizationPolicy(AuthorizationPolicy.REUSE)
+                                                           .configureMapping(mapping).build();
       router.addRoute(mappingUrl, provider);
     }
     return Resources.newInternalConnectionFactory(router);
   }
 
-  private JsonValue parseJsonConfiguration(File configFile) throws IOException,
-      JsonParseException, JsonMappingException, ServletException
+  private JsonValue parseJsonConfiguration(File configFile)
+      throws IOException, JsonParseException, JsonMappingException, ServletException
   {
     // Parse the config file.
     final Object content = JSON_MAPPER.readValue(configFile, Object.class);
     if (!(content instanceof Map))
     {
-      throw new ServletException("Servlet configuration file '" + configFile
-          + "' does not contain a valid JSON configuration");
+      throw new ServletException(
+          "Servlet configuration file '" + configFile + "' does not contain a valid JSON configuration");
     }
     return new JsonValue(content);
   }
@@ -929,15 +872,13 @@ public class HTTPConnectionHandler extends
     this.httpProbe = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append(handlerName);
   }
 
-  private SSLEngineConfigurator createSSLEngineConfigurator(
-      HTTPConnectionHandlerCfg config) throws DirectoryException
+  private SSLEngineConfigurator createSSLEngineConfigurator(HTTPConnectionHandlerCfg config) throws DirectoryException
   {
     if (!config.isUseSSL())
     {
@@ -947,8 +888,7 @@ public class HTTPConnectionHandler extends
     try
     {
       SSLContext sslContext = createSSLContext(config);
-      SSLEngineConfigurator configurator =
-          new SSLEngineConfigurator(sslContext);
+      SSLEngineConfigurator configurator = new SSLEngineConfigurator(sslContext);
       configurator.setClientMode(false);
 
       // configure with defaults from the JVM
@@ -959,15 +899,13 @@ public class HTTPConnectionHandler extends
       final Set<String> protocols = config.getSSLProtocol();
       if (!protocols.isEmpty())
       {
-        String[] array = protocols.toArray(new String[protocols.size()]);
-        configurator.setEnabledProtocols(array);
+        configurator.setEnabledProtocols(protocols.toArray(new String[protocols.size()]));
       }
 
       final Set<String> ciphers = config.getSSLCipherSuite();
       if (!ciphers.isEmpty())
       {
-        String[] array = ciphers.toArray(new String[ciphers.size()]);
-        configurator.setEnabledCipherSuites(array);
+        configurator.setEnabledCipherSuites(ciphers.toArray(new String[ciphers.size()]));
       }
 
       switch (config.getSSLClientAuthPolicy())
@@ -993,14 +931,11 @@ public class HTTPConnectionHandler extends
     {
       logger.traceException(e);
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
-      LocalizableMessage message =
-          ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.get(getExceptionMessage(e));
-      throw new DirectoryException(resCode, message, e);
+      throw new DirectoryException(resCode, ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.get(getExceptionMessage(e)), e);
     }
   }
 
-  private SSLContext createSSLContext(HTTPConnectionHandlerCfg config)
-      throws Exception
+  private SSLContext createSSLContext(HTTPConnectionHandlerCfg config) throws Exception
   {
     if (!config.isUseSSL())
     {
@@ -1008,8 +943,7 @@ public class HTTPConnectionHandler extends
     }
 
     DN keyMgrDN = config.getKeyManagerProviderDN();
-    KeyManagerProvider<?> keyManagerProvider =
-        DirectoryServer.getKeyManagerProvider(keyMgrDN);
+    KeyManagerProvider<?> keyManagerProvider = DirectoryServer.getKeyManagerProvider(keyMgrDN);
     if (keyManagerProvider == null) {
       logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
       logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
@@ -1036,14 +970,11 @@ public class HTTPConnectionHandler extends
         logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
         enabled = false;
       }
-      keyManagers =
-          SelectableCertificateKeyManager.wrap(keyManagerProvider
-              .getKeyManagers(), alias);
+      keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), alias);
     }
 
     DN trustMgrDN = config.getTrustManagerProviderDN();
-    TrustManagerProvider<?> trustManagerProvider =
-        DirectoryServer.getTrustManagerProvider(trustMgrDN);
+    TrustManagerProvider<?> trustManagerProvider = DirectoryServer.getTrustManagerProvider(trustMgrDN);
     if (trustManagerProvider == null)
     {
       trustManagerProvider = new NullTrustManagerProvider();
@@ -1053,5 +984,4 @@ public class HTTPConnectionHandler extends
     sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(), null);
     return sslContext;
   }
-
 }

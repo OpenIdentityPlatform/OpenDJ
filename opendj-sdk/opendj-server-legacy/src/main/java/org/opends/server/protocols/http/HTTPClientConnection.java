@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -89,12 +89,10 @@ import static org.opends.server.loggers.AccessLogger.*;
  * connection that will be accepted by an instance of the HTTP connection
  * handler.
  */
-final class HTTPClientConnection extends ClientConnection implements
-    HTTPRequestInfo
+final class HTTPClientConnection extends ClientConnection implements HTTPRequestInfo
 {
 
-  // TODO JNR Confirm with Matt that persistent searches are inapplicable to
-  // Rest2LDAP.
+  // TODO JNR Confirm with Matt that persistent searches are inapplicable to Rest2LDAP.
   // TODO JNR Should I override getIdleTime()?
 
   /**
@@ -126,8 +124,8 @@ final class HTTPClientConnection extends ClientConnection implements
 
     final SearchResultHandler entryHandler;
 
-    public SearchOperationWithPromise(Operation operation, LdapPromiseImpl<Result> promise,
-        SearchResultHandler entryHandler)
+    public SearchOperationWithPromise(
+        Operation operation, LdapPromiseImpl<Result> promise, SearchResultHandler entryHandler)
     {
       super(operation, promise);
       this.entryHandler = entryHandler;
@@ -141,8 +139,7 @@ final class HTTPClientConnection extends ClientConnection implements
    * Official servlet property giving access to the SSF (Security Strength
    * Factor) used to encrypt the current connection.
    */
-  private static final String SERVLET_SSF_CONSTANT =
-      "javax.servlet.request.key_size";
+  private static final String SERVLET_SSF_CONSTANT = "javax.servlet.request.key_size";
 
   /**
    * Indicates whether the Directory Server believes this connection to be valid
@@ -250,13 +247,11 @@ final class HTTPClientConnection extends ClientConnection implements
    * @param request
    *          represents this client connection.
    */
-  public HTTPClientConnection(HTTPConnectionHandler connectionHandler,
-      HttpServletRequest request)
+  public HTTPClientConnection(HTTPConnectionHandler connectionHandler, HttpServletRequest request)
   {
     this.connectionHandler = connectionHandler;
 
-    // memoize all the fields we need from the request before Grizzly decides to
-    // recycle it
+    // Memorize all the fields we need from the request before Grizzly decides to recycle it
     this.clientAddress = request.getRemoteAddr();
     this.clientPort = request.getRemotePort();
     this.serverAddress = request.getLocalAddr();
@@ -264,8 +259,7 @@ final class HTTPClientConnection extends ClientConnection implements
     this.remoteAddress = toInetAddress(request.getRemoteAddr());
     this.localAddress = toInetAddress(request.getLocalAddr());
     this.isSecure = request.isSecure();
-    this.securityStrengthFactor =
-        calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
+    this.securityStrengthFactor = calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
     this.method = request.getMethod();
     this.query = computeQuery(request);
     this.protocol = request.getProtocol();
@@ -292,105 +286,90 @@ final class HTTPClientConnection extends ClientConnection implements
     return request.getRequestURI();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getAuthUser()
   {
     return this.authUser;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getConnectionID()
   {
     return connectionID;
   }
 
-  /** {@inheritDoc} */
   @Override
   public HTTPConnectionHandler getConnectionHandler()
   {
     return connectionHandler;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getTotalProcessingTime()
   {
     return totalProcessingTime.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getProtocol()
   {
     return protocol;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getClientAddress()
   {
     return clientAddress;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getClientHost()
   {
     return clientHost;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getClientPort()
   {
     return clientPort;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getServerAddress()
   {
     return serverAddress;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getServerHost()
   {
     return serverHost;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getServerPort()
   {
     return serverPort;
   }
 
-  /** {@inheritDoc} */
   @Override
   public InetAddress getRemoteAddress()
   {
     return remoteAddress;
   }
 
-  /** {@inheritDoc} */
   @Override
   public InetAddress getLocalAddress()
   {
     return localAddress;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure()
   {
     return isSecure;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void sendResponse(Operation operation)
   {
@@ -400,8 +379,7 @@ final class HTTPClientConnection extends ClientConnection implements
     if (keepStats)
     {
       this.statTracker.updateRequestMonitoringData(getMethod(), time);
-      this.statTracker.updateOperationMonitoringData(operation
-          .getOperationType(), time);
+      this.statTracker.updateOperationMonitoringData(operation.getOperationType(), time);
     }
 
     OperationWithPromise op = this.operationsInProgress.get(operation.getMessageID());
@@ -413,8 +391,8 @@ final class HTTPClientConnection extends ClientConnection implements
 
         if (keepStats)
         {
-          this.statTracker.updateMessageWritten(new LDAPMessage(operation
-              .getMessageID(), toResponseProtocolOp(operation)));
+          this.statTracker.updateMessageWritten(
+              new LDAPMessage(operation.getMessageID(), toResponseProtocolOp(operation)));
         }
       }
       catch (LdapException e)
@@ -471,10 +449,8 @@ final class HTTPClientConnection extends ClientConnection implements
     throw new RuntimeException("Not implemented for operation " + operation);
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void sendSearchEntry(SearchOperation operation,
-      SearchResultEntry searchEntry) throws DirectoryException
+  public void sendSearchEntry(SearchOperation operation, SearchResultEntry searchEntry) throws DirectoryException
   {
     SearchOperationWithPromise op =
         (SearchOperationWithPromise) this.operationsInProgress.get(operation.getMessageID());
@@ -483,16 +459,15 @@ final class HTTPClientConnection extends ClientConnection implements
       op.entryHandler.handleEntry(from(searchEntry));
       if (keepStats)
       {
-        this.statTracker.updateMessageWritten(new LDAPMessage(operation
-            .getMessageID(), new SearchResultEntryProtocolOp(searchEntry)));
+        this.statTracker.updateMessageWritten(
+            new LDAPMessage(operation.getMessageID(), new SearchResultEntryProtocolOp(searchEntry)));
       }
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean sendSearchReference(SearchOperation operation,
-      SearchResultReference searchReference) throws DirectoryException
+  public boolean sendSearchReference(SearchOperation operation, SearchResultReference searchReference)
+      throws DirectoryException
   {
     SearchOperationWithPromise op =
         (SearchOperationWithPromise) this.operationsInProgress.get(operation.getMessageID());
@@ -501,18 +476,16 @@ final class HTTPClientConnection extends ClientConnection implements
       op.entryHandler.handleReference(from(searchReference));
       if (keepStats)
       {
-        this.statTracker.updateMessageWritten(new LDAPMessage(operation.getMessageID(),
-            new SearchResultReferenceProtocolOp(searchReference)));
+        this.statTracker.updateMessageWritten(
+            new LDAPMessage(operation.getMessageID(), new SearchResultReferenceProtocolOp(searchReference)));
       }
     }
 
     return connectionValid;
   }
 
-  /** {@inheritDoc} */
   @Override
-  protected boolean sendIntermediateResponseMessage(
-      IntermediateResponse intermediateResponse)
+  protected boolean sendIntermediateResponseMessage(IntermediateResponse intermediateResponse)
   {
     // if (keepStats)
     // {
@@ -523,7 +496,6 @@ final class HTTPClientConnection extends ClientConnection implements
     throw new RuntimeException("Not implemented");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setAuthUser(String authUser)
   {
@@ -537,16 +509,14 @@ final class HTTPClientConnection extends ClientConnection implements
    *          not used with HTTP.
    */
   @Override
-  public void disconnect(DisconnectReason disconnectReason,
-      boolean sendNotification, LocalizableMessage message)
+  public void disconnect(DisconnectReason disconnectReason, boolean sendNotification, LocalizableMessage message)
   {
     // Set a flag indicating that the connection is being terminated so
-    // that no new requests will be accepted. Also cancel all operations
-    // in progress.
+    // that no new requests will be accepted.
+    // Also cancel all operations in progress.
     synchronized (opsInProgressLock)
     {
-      // If we are already in the middle of a disconnect, then don't
-      // do anything.
+      // If we are already in the middle of a disconnect, then don't do anything.
       if (disconnectRequested)
       {
         return;
@@ -578,8 +548,7 @@ final class HTTPClientConnection extends ClientConnection implements
     }
     else
     {
-      cancelAllOperations(new CancelRequest(true, disconnectReason
-          .getClosureMessage()));
+      cancelAllOperations(new CancelRequest(true, disconnectReason.getClosureMessage()));
     }
     finalizeConnectionInternal();
 
@@ -588,35 +557,30 @@ final class HTTPClientConnection extends ClientConnection implements
     logDisconnect(this, disconnectReason, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getMethod()
   {
     return this.method;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getQuery()
   {
     return this.query;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getStatusCode()
   {
     return this.statusCode.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getUserAgent()
   {
     return this.userAgent;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<Operation> getOperationsInProgress()
   {
@@ -629,7 +593,6 @@ final class HTTPClientConnection extends ClientConnection implements
     return results;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Operation getOperationInProgress(int messageID)
   {
@@ -682,7 +645,6 @@ final class HTTPClientConnection extends ClientConnection implements
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean removeOperationInProgress(int messageID)
   {
@@ -702,7 +664,6 @@ final class HTTPClientConnection extends ClientConnection implements
     return previousValue != null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public CancelResult cancelOperation(int messageID, CancelRequest cancelRequest)
   {
@@ -736,7 +697,6 @@ final class HTTPClientConnection extends ClientConnection implements
     return 0;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
@@ -757,7 +717,7 @@ final class HTTPClientConnection extends ClientConnection implements
             }
           }
           catch (Exception e)
-          { // make sure all operations are cancelled, no matter what
+          { // Make sure all operations are cancelled, no matter what
             logger.traceException(e);
           }
         }
@@ -771,7 +731,6 @@ final class HTTPClientConnection extends ClientConnection implements
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
       int messageID)
@@ -790,14 +749,12 @@ final class HTTPClientConnection extends ClientConnection implements
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfOperations()
   {
     return this.operationsPerformed.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getMonitorSummary()
   {
@@ -835,7 +792,6 @@ final class HTTPClientConnection extends ClientConnection implements
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
@@ -855,33 +811,29 @@ final class HTTPClientConnection extends ClientConnection implements
     return statTracker;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
     return securityStrengthFactor;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConnectionValid()
   {
     return connectionValid;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInnerConnection()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void log(int statusCode)
   {
     if (this.statusCode.compareAndSet(0, statusCode))
-    { // this request was not logged before
+    { // This request was not logged before
       HTTPAccessLogger.logRequestInfo(this);
     }
   }
