@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -44,27 +44,22 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
 {
-
   private static final String USERNAME = "Aladdin";
   private static final String PASSWORD = "open sesame";
-  private static final String BASE64_USERPASS = Base64
-      .encode((USERNAME + ":" + PASSWORD).getBytes());
+  private static final String BASE64_USERPASS = Base64.encode((USERNAME + ":" + PASSWORD).getBytes());
 
   private HTTPAuthenticationConfig authConfig = new HTTPAuthenticationConfig();
 
-  private CollectClientConnectionsFilter filter =
-      new CollectClientConnectionsFilter(null, authConfig);
+  private CollectClientConnectionsFilter filter = new CollectClientConnectionsFilter(null, authConfig);
 
   @DataProvider(name = "Invalid HTTP basic auth strings")
   public Object[][] getInvalidHttpBasicAuthStrings()
   {
-    return new Object[][] { { null }, { "bla" },
-      { "basic " + Base64.encode("la:bli:blu".getBytes()) } };
+    return new Object[][] { { null }, { "bla" }, { "basic " + Base64.encode("la:bli:blu".getBytes()) } };
   }
 
   @Test(dataProvider = "Invalid HTTP basic auth strings")
-  public void parseUsernamePasswordFromInvalidAuthZHeader(String authZHeader)
-      throws Exception
+  public void parseUsernamePasswordFromInvalidAuthZHeader(String authZHeader) throws Exception
   {
     assertThat(filter.parseUsernamePassword(authZHeader)).isNull();
   }
@@ -72,21 +67,17 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
   @DataProvider(name = "Valid HTTP basic auth strings")
   public Object[][] getValidHttpBasicAuthStrings()
   {
-    return new Object[][] { { "basic " + BASE64_USERPASS },
-      { "Basic " + BASE64_USERPASS } };
+    return new Object[][] { { "basic " + BASE64_USERPASS }, { "Basic " + BASE64_USERPASS } };
   }
 
   @Test(dataProvider = "Valid HTTP basic auth strings")
-  public void parseUsernamePasswordFromValidAuthZHeader(String authZHeader)
-      throws Exception
+  public void parseUsernamePasswordFromValidAuthZHeader(String authZHeader) throws Exception
   {
-    assertThat(filter.parseUsernamePassword(authZHeader)).containsExactly(
-        USERNAME, PASSWORD);
+    assertThat(filter.parseUsernamePassword(authZHeader)).containsExactly(USERNAME, PASSWORD);
   }
 
   @Test
-  public void sendUnauthorizedResponseWithHttpBasicAuthWillChallengeUserAgent()
-      throws Exception
+  public void sendUnauthorizedResponseWithHttpBasicAuthWillChallengeUserAgent() throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
 
@@ -96,14 +87,12 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    verify(response).setHeader("WWW-Authenticate",
-        "Basic realm=\"org.forgerock.opendj\"");
+    verify(response).setHeader("WWW-Authenticate", "Basic realm=\"org.forgerock.opendj\"");
     verifyUnauthorizedOutputMessage(response, oStream);
   }
 
   @Test
-  public void sendUnauthorizedResponseWithoutHttpBasicAuthWillNotChallengeUserAgent()
-      throws Exception
+  public void sendUnauthorizedResponseWithoutHttpBasicAuthWillNotChallengeUserAgent() throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
 
@@ -116,35 +105,31 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     verifyUnauthorizedOutputMessage(response, oStream);
   }
 
-  private void sendUnauthorizedResponseWithHTTPBasicAuthChallenge(
-      HttpServletResponse response)
+  private void sendUnauthorizedResponseWithHTTPBasicAuthChallenge(HttpServletResponse response)
   {
-    filter.sendErrorReponse(response, true, ResourceException.getException(
-        HttpServletResponse.SC_UNAUTHORIZED, "Invalid Credentials"));
+    filter.sendErrorReponse(
+        response, true, ResourceException.getException(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Credentials"));
   }
 
-  private void verifyUnauthorizedOutputMessage(HttpServletResponse response,
-      ServletOutputStream oStream) throws IOException
+  private void verifyUnauthorizedOutputMessage(HttpServletResponse response, ServletOutputStream oStream)
+      throws IOException
   {
     verify(response).getOutputStream();
     verify(oStream).println(
         "{\n" + "    \"code\": 401,\n"
-            + "    \"message\": \"Invalid Credentials\",\n"
-            + "    \"reason\": \"Unauthorized\"\n" + "}");
+              + "    \"message\": \"Invalid Credentials\",\n"
+              + "    \"reason\": \"Unauthorized\"\n" + "}");
   }
 
   @Test
-  public void extractUsernamePasswordHttpBasicAuthWillAcceptUserAgent()
-      throws Exception
+  public void extractUsernamePasswordHttpBasicAuthWillAcceptUserAgent() throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeader(HTTP_BASIC_AUTH_HEADER)).thenReturn(
-        "Basic " + BASE64_USERPASS);
+    when(request.getHeader(HTTP_BASIC_AUTH_HEADER)).thenReturn("Basic " + BASE64_USERPASS);
 
-    assertThat(filter.extractUsernamePassword(request)).containsExactly(
-        USERNAME, PASSWORD);
+    assertThat(filter.extractUsernamePassword(request)).containsExactly(USERNAME, PASSWORD);
   }
 
   @Test
@@ -161,8 +146,6 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     when(request.getHeader(customHeaderUsername)).thenReturn(USERNAME);
     when(request.getHeader(customHeaderPassword)).thenReturn(PASSWORD);
 
-    assertThat(filter.extractUsernamePassword(request)).containsExactly(
-        USERNAME, PASSWORD);
+    assertThat(filter.extractUsernamePassword(request)).containsExactly(USERNAME, PASSWORD);
   }
-
 }
