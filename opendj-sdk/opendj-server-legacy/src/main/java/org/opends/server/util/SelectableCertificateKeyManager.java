@@ -26,8 +26,6 @@
  */
 package org.opends.server.util;
 
-
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import java.net.Socket;
@@ -40,7 +38,6 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
 import static org.opends.messages.ExtensionMessages.INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS;
-
 
 /**
  * This class implements an X.509 key manager that will be used to wrap an
@@ -57,6 +54,8 @@ import static org.opends.messages.ExtensionMessages.INFO_KEYSTORE_DOES_NOT_CONTA
 public final class SelectableCertificateKeyManager
        extends X509ExtendedKeyManager
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /** The alias of the certificate that should be selected from the key manager. */
   private final String alias;
 
@@ -65,8 +64,6 @@ public final class SelectableCertificateKeyManager
 
   /** Provide additional troubleshooting aid to localize a misconfigured SSL connection. */
   private final String componentName;
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
   /**
@@ -143,7 +140,7 @@ public final class SelectableCertificateKeyManager
 
   /**
    * Chooses the alias of the client certificate that should be used based on
-   * the provided critieria.  This will either return the preferred alias
+   * the provided criteria.  This will either return the preferred alias
    * configured for this key manager, or {@code null} if no client certificate
    * with that alias is configured in the underlying key manager.
    *
@@ -160,30 +157,14 @@ public final class SelectableCertificateKeyManager
   public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
                                         SSLEngine engine)
   {
-    for (String type : keyType)
-    {
-      String[] clientAliases = keyManager.getClientAliases(type, issuers);
-      if (clientAliases != null)
-      {
-        for (String clientAlias : clientAliases)
-        {
-          if (clientAlias.equals(alias))
-          {
-            return alias;
-          }
-        }
-      }
-    }
-
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
-    return null;
+    return chooseClientAlias(keyType, issuers, null);
   }
 
 
 
   /**
    * Chooses the alias of the server certificate that should be used based on
-   * the provided critieria.  This will either return the preferred alias
+   * the provided criteria.  This will either return the preferred alias
    * configured for this key manager, or {@code null} if no server certificate
    * with that alias is configured in the underlying key manager.
    *
@@ -218,7 +199,7 @@ public final class SelectableCertificateKeyManager
 
   /**
    * Chooses the alias of the server certificate that should be used based on
-   * the provided critieria.  This will either return the preferred alias
+   * the provided criteria.  This will either return the preferred alias
    * configured for this key manager, or {@code null} if no server certificate
    * with that alias is configured in the underlying key manager.
    * Note that the returned alias can be transformed in lowercase, depending
@@ -362,4 +343,3 @@ public final class SelectableCertificateKeyManager
     return wrap(keyManagers, alias, "[unknown]");
   }
 }
-
