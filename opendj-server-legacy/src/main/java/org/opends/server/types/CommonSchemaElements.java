@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -72,17 +73,13 @@ import static org.opends.server.util.StaticUtils.*;
      mayExtend=false,
      mayInvoke=true)
 public abstract class CommonSchemaElements implements SchemaFileElement {
-
   /** Indicates whether this definition is declared "obsolete". */
   private final boolean isObsolete;
 
   /** The hash code for this definition. */
   private final int hashCode;
 
-  /**
-   * The set of additional name-value pairs associated with this
-   * definition.
-   */
+  /** The set of additional name-value pairs associated with this definition. */
   private final Map<String, List<String>> extraProperties;
 
   /**
@@ -102,8 +99,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
 
   /** The lower case name for this definition. */
   private final String lowerName;
-
-
 
   /**
    * Creates a new definition with the provided information.
@@ -138,8 +133,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
       Collection<String> names, String oid, String description,
       boolean isObsolete, Map<String, List<String>> extraProperties)
       throws NullPointerException {
-
-
     // Make sure mandatory parameters are specified.
     if (oid == null) {
       throw new NullPointerException(
@@ -190,8 +183,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     }
   }
 
-
-
   /**
    * Check if the extra schema properties contain safe filenames.
    *
@@ -218,8 +209,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     }
   }
 
-
-
   /**
    * Retrieves the primary name for this schema definition.
    *
@@ -227,11 +216,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         <code>null</code> if there is no primary name.
    */
   public final String getPrimaryName() {
-
     return primaryName;
   }
-
-
 
   /**
    * Retrieve the normalized primary name for this schema definition.
@@ -240,11 +226,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         type, or <code>null</code> if there is no primary name.
    */
   public final String getNormalizedPrimaryName() {
-
     return lowerName;
   }
-
-
 
   /**
    * Retrieves an iterable over the set of normalized names that may
@@ -255,12 +238,9 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return Returns an iterable over the set of normalized names that
    *         may be used to reference this schema definition.
    */
-  public final Iterable<String> getNormalizedNames() {
-
+  public final Set<String> getNormalizedNames() {
     return names.keySet();
   }
-
-
 
   /**
    * Retrieves an iterable over the set of user-defined names that may
@@ -270,11 +250,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         that may be used to reference this schema definition.
    */
   public final Iterable<String> getUserDefinedNames() {
-
     return names.values();
   }
-
-
 
   /**
    * Indicates whether this schema definition has the specified name.
@@ -285,11 +262,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         this schema definition, or <code>false</code> if not.
    */
   public final boolean hasName(String lowerName) {
-
     return names.containsKey(lowerName);
   }
-
-
 
   /**
    * Retrieves the OID for this schema definition.
@@ -297,11 +271,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return The OID for this schema definition.
    */
   public final String getOID() {
-
     return oid;
   }
-
-
 
   /**
    * Retrieves the name or OID for this schema definition. If it has
@@ -333,8 +304,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     return oid;
   }
 
-
-
   /**
    * Indicates whether this schema definition has the specified name
    * or OID.
@@ -346,11 +315,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         or <code>false</code> if not.
    */
   public final boolean hasNameOrOID(String lowerValue) {
-
     return names.containsKey(lowerValue) || oid.equals(lowerValue);
   }
-
-
 
   /**
    * Retrieves the name of the schema file that contains the
@@ -384,8 +350,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     return null;
   }
 
-
-
   /**
    * Specifies the name of the schema file that contains the
    * definition for this schema element.  If a schema file is already
@@ -402,8 +366,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     setExtraProperty(elem, SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
-
-
   /**
    * Retrieves the description for this schema definition.
    *
@@ -411,11 +373,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         <code>null</code> if there is no description.
    */
   public final String getDescription() {
-
     return description;
   }
-
-
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
@@ -424,20 +383,14 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         "obsolete", or <code>false</code> if not.
    */
   public final boolean isObsolete() {
-
     return isObsolete;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final Map<String, List<String>> getExtraProperties()
   {
     return extraProperties;
   }
-
-
 
   /**
    * Sets the value for an "extra" property for this schema element.
@@ -466,8 +419,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     }
   }
 
-
-
   /**
    * Sets the values for an "extra" property for this schema element.
    * If a property already exists with the specified name, then it
@@ -483,7 +434,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    */
   public final void setExtraProperty(String name,
                                      List<String> values) {
-
     ifNull(name);
 
     if (values == null || values.isEmpty())
@@ -496,8 +446,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
       extraProperties.put(name, valuesCopy);
     }
   }
-
-
 
   /**
    * Indicates whether the provided object is equal to this attribute
@@ -522,8 +470,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
 
     return false;
   }
-
-
 
   /**
    * Retrieves the hash code for this schema definition. It will be
