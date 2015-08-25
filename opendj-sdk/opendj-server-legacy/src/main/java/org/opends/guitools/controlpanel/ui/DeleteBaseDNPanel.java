@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -55,6 +54,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -63,38 +64,24 @@ import org.opends.guitools.controlpanel.task.DeleteBaseDNAndBackendTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.DN;
 
 /**
  * The panel displayed when the user clicks on 'Delete Base DN...' in the
  * browse entries dialog.
- *
  */
 public class DeleteBaseDNPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2182662824496761087L;
 
-  /**
-   * The list containing the base DNs.
-   */
+  /** The list containing the base DNs. */
   protected JList list;
-
-  /**
-   * Label indicating that no element was found.
-   */
+  /** Label indicating that no element was found. */
   protected JLabel lNoElementsFound;
-
-  /**
-   * The main panel.
-   */
+  /** The main panel. */
   protected JPanel mainPanel;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public DeleteBaseDNPanel()
   {
     super();
@@ -213,9 +200,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     lNoElementsFound.setVisible(list.getModel().getSize() == 0);
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -364,23 +349,10 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     for (Object o : dns)
     {
       DN dn = (DN)o;
-      boolean found = false;
-      for (BackendDescriptor backend :
-        getInfo().getServerDescriptor().getBackends())
+      BaseDNDescriptor baseDN = findBaseDN(dn);
+      if (baseDN != null)
       {
-        for (BaseDNDescriptor baseDN : backend.getBaseDns())
-        {
-          if (baseDN.getDn().equals(dn))
-          {
-            baseDNsToDelete.add(baseDN);
-            found = true;
-            break;
-          }
-        }
-        if (found)
-        {
-          break;
-        }
+        baseDNsToDelete.add(baseDN);
       }
     }
     DeleteBaseDNAndBackendTask newTask = new DeleteBaseDNAndBackendTask(
@@ -413,6 +385,21 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     {
       displayErrorDialog(errors);
     }
+  }
+
+  private BaseDNDescriptor findBaseDN(DN dn)
+  {
+    for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
+    {
+      for (BaseDNDescriptor baseDN : backend.getBaseDns())
+      {
+        if (baseDN.getDn().equals(dn))
+        {
+          return baseDN;
+        }
+      }
+    }
+    return null;
   }
 
   private LocalizableMessage getConfirmationMessage(

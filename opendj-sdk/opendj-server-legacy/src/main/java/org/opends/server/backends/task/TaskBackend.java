@@ -733,46 +733,39 @@ public class TaskBackend
    */
   private boolean isReplaceEntryAcceptable(ModifyOperation modifyOperation)
   {
-    boolean acceptable = true;
-
     for (Modification m : modifyOperation.getModifications()) {
       if (m.isInternal()) {
         continue;
       }
 
       if (m.getModificationType() != ModificationType.REPLACE) {
-        acceptable = false;
-        break;
+        return false;
       }
 
       Attribute a = m.getAttribute();
       AttributeType at = a.getAttributeType();
       if (!at.hasName(ATTR_TASK_STATE)) {
-        acceptable = false;
-        break;
+        return false;
       }
 
       Iterator<ByteString> iterator = a.iterator();
       if (!iterator.hasNext()) {
-        acceptable = false;
-        break;
+        return false;
       }
 
       ByteString v = iterator.next();
+      if (iterator.hasNext()) {
+        return false;
+      }
+
       String valueString = toLowerCase(v.toString());
       if (!valueString.startsWith("cancel")
           && !valueString.startsWith("stop")) {
-        acceptable = false;
-        break;
-      }
-
-      if (iterator.hasNext()) {
-        acceptable = false;
-        break;
+        return false;
       }
     }
 
-    return acceptable;
+    return true;
   }
 
 
@@ -1069,10 +1062,7 @@ public class TaskBackend
             LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
             throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, le);
           }
-          else
-          {
-            continue;
-          }
+          continue;
         }
         ldifWriter.writeEntry(e);
       }

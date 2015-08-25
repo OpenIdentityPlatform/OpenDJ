@@ -35,6 +35,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -43,6 +45,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -58,17 +61,13 @@ import org.opends.guitools.controlpanel.task.DeleteEntryTask;
 import org.opends.guitools.controlpanel.task.ModifyEntryTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
-/**
- * This is the panel that contains all the different views to display an entry.
- *
- */
+/** This is the panel that contains all the different views to display an entry. */
 public class LDAPEntryPanel extends StatusGenericPanel
 implements EntryReadListener
 {
@@ -100,40 +99,25 @@ implements EntryReadListener
 
   private View view = View.SIMPLIFIED_VIEW;
 
-  /**
-   * The different views that we have to display an LDAP entry.
-   *
-   */
+  /** The different views that we have to display an LDAP entry. */
   public enum View
   {
-    /**
-     * Simplified view.
-     */
+    /** Simplified view. */
     SIMPLIFIED_VIEW,
-    /**
-     * Attribute view (contained in a table).
-     */
+    /** Attribute view (contained in a table). */
     ATTRIBUTE_VIEW,
-    /**
-     * LDIF view (text based).
-     */
+    /** LDIF view (text based). */
     LDIF_VIEW
   }
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public LDAPEntryPanel()
   {
     super();
     createLayout();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   *
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -358,10 +342,7 @@ implements EntryReadListener
     displayedEntryPanel = null;
   }
 
-  /**
-   * Displays a panel informing that nothing is selected.
-   *
-   */
+  /** Displays a panel informing that nothing is selected. */
   public void noEntrySelected()
   {
     searchResult = null;
@@ -374,10 +355,7 @@ implements EntryReadListener
     displayedEntryPanel = null;
   }
 
-  /**
-   * Displays a panel informing that multiple entries are selected.
-   *
-   */
+  /** Displays a panel informing that multiple entries are selected. */
   public void multipleEntriesSelected()
   {
     searchResult = null;
@@ -431,7 +409,6 @@ implements EntryReadListener
     });
   }
 
-
   /** {@inheritDoc} */
   public void setInfo(ControlPanelInfo info)
   {
@@ -442,22 +419,22 @@ implements EntryReadListener
     errorSearchingPanel.setInfo(info);
   }
 
-  private DN[] parentReadOnly;
-  private DN[] nonDeletable;
+  private List<DN> parentReadOnly;
+  private List<DN> nonDeletable;
   {
     try
     {
-      parentReadOnly = new DN[] {
+      parentReadOnly = Arrays.asList(
         DN.valueOf(ConfigConstants.DN_TASK_ROOT),
         DN.valueOf(ConfigConstants.DN_MONITOR_ROOT),
         DN.valueOf(ConfigConstants.DN_BACKUP_ROOT),
         DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT)
-      };
-      nonDeletable = new DN[] {
+      );
+      nonDeletable = Arrays.asList(
           DN.valueOf(ConfigConstants.DN_CONFIG_ROOT),
           DN.valueOf(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT),
           DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT)
-      };
+      );
     }
     catch (Throwable t)
     {
@@ -507,39 +484,29 @@ implements EntryReadListener
    */
   public boolean canDelete(String sDn)
   {
-    boolean canDelete = true;
     try
     {
       DN dn = DN.valueOf(sDn);
-      for (DN parentDN : parentReadOnly)
-      {
-        if (dn.isDescendantOf(parentDN))
-        {
-          canDelete = false;
-          break;
-        }
-      }
-      if (canDelete)
-      {
-        for (DN cannotDelete : nonDeletable)
-        {
-          if (cannotDelete.equals(dn))
-          {
-            canDelete = false;
-            break;
-          }
-        }
-      }
-      if (canDelete)
-      {
-        canDelete = !dn.equals(DN.NULL_DN);
-      }
+      return !dn.equals(DN.NULL_DN)
+          && !nonDeletable.contains(dn)
+          && isDescendantOfAny(dn, parentReadOnly);
     }
     catch (Throwable t)
     {
       throw new RuntimeException("Error decoding DNs: "+t, t);
     }
-    return canDelete;
+  }
+
+  private boolean isDescendantOfAny(DN dn, List<DN> parentDNs)
+  {
+    for (DN parentDN : parentDNs)
+    {
+      if (dn.isDescendantOf(parentDN))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
