@@ -3265,30 +3265,21 @@ public class EntryContainer
   private boolean isAttributeModified(AttributeIndex index,
                                       List<Modification> mods)
   {
-    boolean attributeModified = false;
     AttributeType indexAttributeType = index.getAttributeType();
-    Iterable<AttributeType> subTypes =
+    List<AttributeType> subTypes =
             DirectoryServer.getSchema().getSubTypes(indexAttributeType);
 
     for (Modification mod : mods)
     {
       Attribute modAttr = mod.getAttribute();
       AttributeType modAttrType = modAttr.getAttributeType();
-      if (modAttrType.equals(indexAttributeType))
+      if (modAttrType.equals(indexAttributeType)
+          || subTypes.contains(modAttrType))
       {
-        attributeModified = true;
-        break;
-      }
-      for(AttributeType subType : subTypes)
-      {
-        if(modAttrType.equals(subType))
-        {
-          attributeModified = true;
-          break;
-        }
+        return true;
       }
     }
-    return attributeModified;
+    return false;
   }
 
 

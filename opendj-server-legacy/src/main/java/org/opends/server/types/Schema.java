@@ -439,11 +439,9 @@ public final class Schema
    *          type, or an empty set if there are no subtypes
    *          registered for the attribute type.
    */
-  public Iterable<AttributeType>
-              getSubTypes(AttributeType attributeType)
+  public List<AttributeType> getSubTypes(AttributeType attributeType)
   {
-    List<AttributeType> subTypes =
-         subordinateTypes.get(attributeType);
+    List<AttributeType> subTypes = subordinateTypes.get(attributeType);
     if (subTypes == null)
     {
       return Collections.emptyList();
