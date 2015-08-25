@@ -35,10 +35,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * An abstract base class for implementing new types of
- * {@link Attribute}.
- */
+/** An abstract base class for implementing new types of {@link Attribute}. */
 @org.opends.server.types.PublicAPI(
     stability = org.opends.server.types.StabilityLevel.UNCOMMITTED,
     mayInstantiate = false,
@@ -46,16 +43,11 @@ import static org.opends.server.util.StaticUtils.*;
     mayInvoke = true)
 public abstract class AbstractAttribute implements Attribute
 {
-
-  /**
-   * Creates a new abstract attribute.
-   */
+  /** Creates a new abstract attribute. */
   protected AbstractAttribute()
   {
     // No implementation required.
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -77,9 +69,6 @@ public abstract class AbstractAttribute implements Attribute
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final boolean equals(Object o)
   {
@@ -87,37 +76,33 @@ public abstract class AbstractAttribute implements Attribute
     {
       return true;
     }
-    else if (o instanceof Attribute)
-    {
-      Attribute a = (Attribute) o;
-
-      if (!getAttributeType().equals(a.getAttributeType()))
-      {
-        return false;
-      }
-
-      if (size() != a.size())
-      {
-        return false;
-      }
-
-      for (ByteString v : a)
-      {
-        if (!contains(v))
-        {
-          return false;
-        }
-      }
-
-      return optionsEqual(a.getOptions());
-    }
-    else
+    if (!(o instanceof Attribute))
     {
       return false;
     }
+
+    Attribute a = (Attribute) o;
+    return getAttributeType().equals(a.getAttributeType())
+        && valuesEqual(a)
+        && optionsEqual(a.getOptions());
   }
 
+  private boolean valuesEqual(Attribute a)
+  {
+    if (size() != a.size())
+    {
+      return false;
+    }
 
+    for (ByteString v : a)
+    {
+      if (!contains(v))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * {@inheritDoc}
@@ -131,8 +116,6 @@ public abstract class AbstractAttribute implements Attribute
   {
     return getAttributeType().getNameOrOID();
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -149,20 +132,16 @@ public abstract class AbstractAttribute implements Attribute
     {
       return getName();
     }
-    else
+
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getName());
+    for (String option : getOptions())
     {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append(getName());
-      for (String option : getOptions())
-      {
-        buffer.append(';');
-        buffer.append(option);
-      }
-      return buffer.toString();
+      buffer.append(';');
+      buffer.append(option);
     }
+    return buffer.toString();
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -183,25 +162,13 @@ public abstract class AbstractAttribute implements Attribute
       return true;
     }
 
-    if (!hasOptions())
+    if (hasOptions())
     {
-      return false;
+      return hasAllOptions0(options);
     }
-
-    for (String option : options)
-    {
-      if (!hasOption(option))
-      {
-        return false;
-      }
-    }
-
-    return true;
+    return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -220,8 +187,6 @@ public abstract class AbstractAttribute implements Attribute
     }
     return hashCode;
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -249,8 +214,6 @@ public abstract class AbstractAttribute implements Attribute
     return false;
   }
 
-
-
   /**
    * {@inheritDoc}
    * <p>
@@ -262,8 +225,6 @@ public abstract class AbstractAttribute implements Attribute
   {
     return !getOptions().isEmpty();
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -277,7 +238,11 @@ public abstract class AbstractAttribute implements Attribute
     return size() == 0;
   }
 
-
+  @Override
+  public boolean isReal()
+  {
+    return !isVirtual();
+  }
 
   /**
    * {@inheritDoc}
@@ -299,12 +264,16 @@ public abstract class AbstractAttribute implements Attribute
       return !hasOptions();
     }
 
-    if (getOptions().size() != options.size())
+    if (getOptions().size() == options.size())
     {
-      return false;
+      return hasAllOptions0(options);
     }
+    return false;
+  }
 
-    // Cannot use Set.containsAll() because the set of options are not normalized.
+  /** Cannot use Set.containsAll() because the set of options are not normalized. */
+  private boolean hasAllOptions0(Collection<String> options)
+  {
     for (String option : options)
     {
       if (!hasOption(option))
@@ -315,9 +284,6 @@ public abstract class AbstractAttribute implements Attribute
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final String toString()
   {

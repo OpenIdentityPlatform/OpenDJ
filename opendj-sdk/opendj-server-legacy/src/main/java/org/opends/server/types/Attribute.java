@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -41,14 +41,12 @@ import org.forgerock.opendj.ldap.ConditionResult;
  * Attributes are immutable and therefore any attempts to modify them
  * will result in an {@link UnsupportedOperationException}.
  * <p>
- * There are two types of attribute: real attributes and virtual
- * attributes. Real attributes can be created using the
- * {@link AttributeBuilder} class or by using the various static
- * factory methods in the {@link Attributes} class, whereas virtual
- * attributes are represented using the {@link VirtualAttribute}
- * class. New attribute implementations can be implemented by either
- * implementing this interface or by extending
- * {@link AbstractAttribute}.
+ * There are two types of attribute: real attributes and virtual attributes.
+ * Real attributes can be created using the {@link AttributeBuilder} class
+ * or by using the various static factory methods in the {@link Attributes} class,
+ * whereas virtual attributes are represented using the {@link VirtualAttribute} class.
+ * New attribute implementations can be implemented by either implementing this interface
+ * or by extending {@link AbstractAttribute}.
  */
 @org.opends.server.types.PublicAPI(
     stability = org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -57,7 +55,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
     mayInvoke = true)
 public interface Attribute extends Iterable<ByteString>
 {
-
   /**
    * Indicates whether this attribute has any value(s) that are
    * approximately equal to the provided value.
@@ -71,8 +68,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   ConditionResult approximatelyEqualTo(ByteString assertionValue);
 
-
-
   /**
    * Indicates whether this attribute contains the specified value.
    *
@@ -82,8 +77,6 @@ public interface Attribute extends Iterable<ByteString>
    *         value, or <CODE>false</CODE> if not.
    */
   boolean contains(ByteString value);
-
-
 
   /**
    * Indicates whether this attribute contains all the values in the
@@ -97,8 +90,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   boolean containsAll(Collection<ByteString> values);
 
-
-
   /**
    * Indicates whether this attribute matches the specified assertion value.
    *
@@ -108,8 +99,6 @@ public interface Attribute extends Iterable<ByteString>
    *         value, or <CODE>false</CODE> if not.
    */
   ConditionResult matchesEqualityAssertion(ByteString assertionValue);
-
-
 
   /**
    * Indicates whether the provided object is an attribute that is
@@ -125,8 +114,6 @@ public interface Attribute extends Iterable<ByteString>
   @Override
   boolean equals(Object o);
 
-
-
   /**
    * Retrieves the attribute type for this attribute.
    *
@@ -134,16 +121,12 @@ public interface Attribute extends Iterable<ByteString>
    */
   AttributeType getAttributeType();
 
-
-
   /**
    * Retrieves the user-provided name for this attribute.
    *
    * @return The user-provided name for this attribute.
    */
   String getName();
-
-
 
   /**
    * Retrieves the user-provided name of this attribute, along with
@@ -154,8 +137,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   String getNameWithOptions();
 
-
-
   /**
    * Retrieves the unmodifiable set of attribute options for this
    * attribute. The returned set of options are not normalized.
@@ -164,8 +145,6 @@ public interface Attribute extends Iterable<ByteString>
    *         attribute.
    */
   Set<String> getOptions();
-
-
 
   /**
    * Indicates whether this attribute has any value(s) that are
@@ -180,8 +159,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   ConditionResult greaterThanOrEqualTo(ByteString assertionValue);
 
-
-
   /**
    * Indicates whether this attribute has all of the options in the
    * provided collection.
@@ -195,8 +172,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   boolean hasAllOptions(Collection<String> options);
 
-
-
   /**
    * Retrieves the hash code for this attribute. It will be calculated
    * as the sum of the hash code for the attribute type and all
@@ -206,8 +181,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   @Override
   int hashCode();
-
-
 
   /**
    * Indicates whether this attribute has the specified option.
@@ -219,8 +192,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   boolean hasOption(String option);
 
-
-
   /**
    * Indicates whether this attribute has any options at all.
    *
@@ -228,8 +199,6 @@ public interface Attribute extends Iterable<ByteString>
    *         option, or <CODE>false</CODE> if not.
    */
   boolean hasOptions();
-
-
 
   /**
    * Returns <code>true</code> if this attribute contains no
@@ -240,17 +209,21 @@ public interface Attribute extends Iterable<ByteString>
    */
   boolean isEmpty();
 
-
+  /**
+   * Indicates whether this is a real attribute (persisted) rather than a virtual attribute
+   * (dynamically computed).
+   *
+   * @return {@code true} if this is a real attribute.
+   */
+  boolean isReal();
 
   /**
-   * Indicates whether this is a virtual attribute rather than a real
-   * attribute.
+   * Indicates whether this is a virtual attribute (dynamically computed) rather than a real
+   * attribute (persisted).
    *
    * @return {@code true} if this is a virtual attribute.
    */
   boolean isVirtual();
-
-
 
   /**
    * Returns an iterator over the attribute values in this attribute.
@@ -262,8 +235,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   @Override
   Iterator<ByteString> iterator();
-
-
 
   /**
    * Indicates whether this attribute has any value(s) that are less
@@ -277,8 +248,6 @@ public interface Attribute extends Iterable<ByteString>
    *         assertion value, or <CODE>false</CODE> otherwise.
    */
   ConditionResult lessThanOrEqualTo(ByteString assertionValue);
-
-
 
   /**
    * Indicates whether this attribute has any value(s) that match the
@@ -298,8 +267,6 @@ public interface Attribute extends Iterable<ByteString>
   ConditionResult matchesSubstring(ByteString subInitial,
       List<ByteString> subAny, ByteString subFinal);
 
-
-
   /**
    * Indicates whether this attribute has exactly the specified set of
    * options.
@@ -312,16 +279,12 @@ public interface Attribute extends Iterable<ByteString>
    */
   boolean optionsEqual(Set<String> options);
 
-
-
   /**
    * Returns the number of attribute values in this attribute.
    *
    * @return The number of attribute values in this attribute.
    */
   int size();
-
-
 
   /**
    * Retrieves a one-line string representation of this attribute.
@@ -330,8 +293,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   @Override
   String toString();
-
-
 
   /**
    * Appends a one-line string representation of this attribute to the
