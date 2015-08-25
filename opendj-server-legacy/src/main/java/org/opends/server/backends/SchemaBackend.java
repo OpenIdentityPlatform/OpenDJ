@@ -113,103 +113,50 @@ import org.opends.server.util.StaticUtils;
 public class SchemaBackend extends Backend<SchemaBackendCfg>
      implements ConfigurationChangeListener<SchemaBackendCfg>, AlertGenerator, Backupable
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.backends.SchemaBackend";
-
 
   private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
   private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
 
-
-
-  /**
-   * The set of user-defined attributes that will be included in the schema
-   * entry.
-   */
+  /** The set of user-defined attributes that will be included in the schema entry. */
   private ArrayList<Attribute> userDefinedAttributes;
 
-  /**
-   * The attribute type that will be used to include the defined attribute
-   * types.
-   */
+  /** The attribute type that will be used to include the defined attribute types. */
   private AttributeType attributeTypesType;
-
-  /**
-   * The attribute type that will be used to hold the schema creation timestamp.
-   */
+  /** The attribute type that will be used to hold the schema creation timestamp. */
   private AttributeType createTimestampType;
-
   /** The attribute type that will be used to hold the schema creator's name. */
   private AttributeType creatorsNameType;
-
-  /**
-   * The attribute type that will be used to include the defined DIT content
-   * rules.
-   */
+  /** The attribute type that will be used to include the defined DIT content rules. */
   private AttributeType ditContentRulesType;
-
-  /**
-   * The attribute type that will be used to include the defined DIT structure
-   * rules.
-   */
+  /** The attribute type that will be used to include the defined DIT structure rules. */
   private AttributeType ditStructureRulesType;
-
-  /**
-   * The attribute type that will be used to include the defined attribute
-   * syntaxes.
-   */
+  /** The attribute type that will be used to include the defined attribute syntaxes. */
   private AttributeType ldapSyntaxesType;
-
-  /**
-   * The attribute type that will be used to include the defined matching rules.
-   */
+  /** The attribute type that will be used to include the defined matching rules. */
   private AttributeType matchingRulesType;
-
-  /**
-   * The attribute type that will be used to include the defined matching rule
-   * uses.
-   */
+  /** The attribute type that will be used to include the defined matching rule uses. */
   private AttributeType matchingRuleUsesType;
-
   /** The attribute that will be used to hold the schema modifier's name. */
   private AttributeType modifiersNameType;
-
-  /**
-   * The attribute type that will be used to hold the schema modification
-   * timestamp.
-   */
+  /** The attribute type that will be used to hold the schema modification timestamp. */
   private AttributeType modifyTimestampType;
-
-  /**
-   * The attribute type that will be used to include the defined object classes.
-   */
+  /** The attribute type that will be used to include the defined object classes. */
   private AttributeType objectClassesType;
-
   /** The attribute type that will be used to include the defined name forms. */
   private AttributeType nameFormsType;
 
-  /**
-   * The value containing DN of the user we'll say created the configuration.
-   */
+  /** The value containing DN of the user we'll say created the configuration. */
   private ByteString creatorsName;
-
-  /**
-   * The value containing the DN of the last user to modify the configuration.
-   */
+  /** The value containing the DN of the last user to modify the configuration. */
   private ByteString modifiersName;
-
   /** The timestamp that will be used for the schema creation time. */
   private ByteString createTimestamp;
-
-  /**
-   * The timestamp that will be used for the latest schema modification time.
-   */
+  /** The timestamp that will be used for the latest schema modification time. */
   private ByteString modifyTimestamp;
 
   /**
@@ -253,7 +200,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Perform all initialization in initializeBackend.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(SchemaBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
@@ -343,7 +289,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void openBackend() throws ConfigException, InitializationException
   {
@@ -467,7 +412,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     currentConfig.addSchemaChangeListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void closeBackend()
   {
@@ -515,14 +459,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
@@ -530,7 +472,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return 1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -538,7 +479,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
@@ -546,7 +486,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return ConditionResult.FALSE;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
@@ -554,7 +493,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return 1L;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException
   {
@@ -562,22 +500,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return 0L;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public Entry getEntry(DN entryDN)
-         throws DirectoryException
+  public Entry getEntry(DN entryDN) throws DirectoryException
   {
-    // If the requested entry was one of the schema entries, then create and
-    // return it.
-    DN[] dnArray = baseDNs;
-    for (DN baseDN : dnArray)
+    // If the requested entry was one of the schema entries, then create and return it.
+    if (entryExists(entryDN))
     {
-      if (entryDN.equals(baseDN))
-      {
-        return getSchemaEntry(entryDN, false, true);
-      }
+      return getSchemaEntry(entryDN, false, true);
     }
-
 
     // There is never anything below the schema entries, so we will return null.
     return null;
@@ -772,10 +702,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean entryExists(DN entryDN)
-         throws DirectoryException
+  public boolean entryExists(DN entryDN) throws DirectoryException
   {
     // The specified DN must be one of the specified schema DNs.
     DN[] baseArray = baseDNs;
@@ -789,7 +717,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
@@ -798,7 +725,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         ERR_BACKEND_ADD_NOT_SUPPORTED.get(entry.getName(), getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
@@ -807,7 +733,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         ERR_BACKEND_DELETE_NOT_SUPPORTED.get(entryDN, getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
@@ -3445,8 +3370,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *
    * @throws  IOException  If a problem occurs.
    */
-  private void copyFile(File from, File to)
-          throws IOException
+  private void copyFile(File from, File to) throws IOException
   {
     byte[]           buffer        = new byte[4096];
     FileInputStream  inputStream   = null;
@@ -3483,7 +3407,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     deleteFiles(tempSchemaFiles.values());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
@@ -3493,7 +3416,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
@@ -3545,21 +3467,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
@@ -3602,7 +3521,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
@@ -3621,7 +3539,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
@@ -3900,28 +3817,24 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
     new BackupManager(getBackendID()).createBackup(this, backupConfig);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
     new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
     new BackupManager(getBackendID()).restoreBackup(this, restoreConfig);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        SchemaBackendCfg configEntry,
@@ -3930,10 +3843,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-       SchemaBackendCfg backendCfg)
+  public ConfigChangeResult applyConfigurationChange(SchemaBackendCfg backendCfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
@@ -4098,21 +4009,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     this.showAllAttributes = showAllAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
     return configEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return CLASS_NAME;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
@@ -4126,7 +4034,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return alerts;
   }
 
-  /** {@inheritDoc} */
   @Override
   public File getDirectory()
   {
@@ -4142,21 +4049,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   };
 
-  /** {@inheritDoc} */
   @Override
   public ListIterator<Path> getFilesToBackup() throws DirectoryException
   {
     return BackupManager.getFiles(getDirectory(), BACKUP_FILES_FILTER, getBackendID()).listIterator();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isDirectRestore()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Path beforeRestore() throws DirectoryException
   {
@@ -4164,13 +4068,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return BackupManager.saveCurrentFilesToDirectory(this, getBackendID());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void afterRestore(Path restoreDirectory, Path saveDirectory) throws DirectoryException
   {
     // restore was successful, delete save directory
     StaticUtils.recursiveDelete(saveDirectory.toFile());
   }
-
 }
-

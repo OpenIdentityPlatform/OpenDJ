@@ -287,13 +287,7 @@ public class ServerDescriptor
    */
   public String getLDAPURL()
   {
-    int port = getPort(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT);
-    if (port != -1)
-    {
-      String host = getHostName();
-      return getLDAPUrl(host, port, false);
-    }
-    return null;
+    return getLDAPUrl0(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, false);
   }
 
   /**
@@ -304,31 +298,25 @@ public class ServerDescriptor
    */
   public String getLDAPsURL()
   {
-    int port = getPort(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT);
+    return getLDAPUrl0(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT, true);
+  }
+
+  private String getLDAPUrl0(ServerProperty enabledProp, ServerProperty portProp, boolean useSSL)
+  {
+    int port = getPort(enabledProp, portProp);
     if (port != -1)
     {
       String host = getHostName();
-      return getLDAPUrl(host, port, true);
+      return getLDAPUrl(host, port, useSSL);
     }
     return null;
   }
 
-  private int getPort(ServerProperty enabled, ServerProperty port)
+  private int getPort(ServerProperty enabledProp, ServerProperty portProp)
   {
     if (!serverProperties.isEmpty())
     {
-      List<?> s = (List<?>) serverProperties.get(enabled);
-      List<?> p = (List<?>) serverProperties.get(port);
-      if (s != null)
-      {
-        for (int i=0; i<s.size(); i++)
-        {
-          if (Boolean.TRUE.equals(s.get(i)))
-          {
-            return (Integer) p.get(i);
-          }
-        }
-      }
+      return getPort(enabledProp, portProp, -1);
     }
     return -1;
   }
@@ -341,13 +329,7 @@ public class ServerDescriptor
    */
   public String getAdminConnectorURL()
   {
-    String host = getHostName();
-    int port = getPort(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT);
-    if (port != -1)
-    {
-      return getLDAPUrl(host, port, true);
-    }
-    return null;
+    return getLDAPUrl0(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, true);
   }
 
   /**
@@ -386,10 +368,10 @@ public class ServerDescriptor
 
     if (!serverProperties.isEmpty())
     {
-      port = getPort(port, ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT);
+      port = getPort(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, port);
       if (securePreferred)
       {
-        port = getPort(port, ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT);
+        port = getPort(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, port);
       }
     }
     else
@@ -462,12 +444,12 @@ public class ServerDescriptor
     }
   }
 
-  private int getPort(int port, ServerProperty adminEnabled, ServerProperty adminPort)
+  private int getPort(ServerProperty enabledProp, ServerProperty portProp, int defaultValue)
   {
-    List<?> s = (List<?>) serverProperties.get(adminEnabled);
-    List<?> p = (List<?>) serverProperties.get(adminPort);
+    List<?> s = (List<?>) serverProperties.get(enabledProp);
     if (s != null)
     {
+      List<?> p = (List<?>) serverProperties.get(portProp);
       for (int i=0; i<s.size(); i++)
       {
         if (Boolean.TRUE.equals(s.get(i)))
@@ -476,7 +458,7 @@ public class ServerDescriptor
         }
       }
     }
-    return port;
+    return defaultValue;
   }
 
   /**

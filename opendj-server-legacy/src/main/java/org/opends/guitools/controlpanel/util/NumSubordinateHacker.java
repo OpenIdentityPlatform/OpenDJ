@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.util;
 
 import java.util.ArrayList;
@@ -36,10 +35,10 @@ import org.opends.server.types.OpenDsException;
 
 /** Class used to handle the case where numsubordinates does not work between databases. */
 public class NumSubordinateHacker {
-  String serverHost = "not-initialized";
-  int serverPort = -1;
-  final ArrayList<DN> unreliableEntryList = new ArrayList<>();
-  boolean isUnreliableEntryListEmpty;
+  private String serverHost = "not-initialized";
+  private int serverPort = -1;
+  private final ArrayList<DN> unreliableEntryList = new ArrayList<>();
+  private boolean isUnreliableEntryListEmpty;
 
   /**
     * Tells whether the list of unreliable contains children of
@@ -48,33 +47,13 @@ public class NumSubordinateHacker {
     * @return <CODE>true</CODE> if the list of unreliable entries contains a
     * children of the parentUrl.  Returns <CODE>false</CODE> otherwise.
     */
-  public boolean containsChildrenOf(LDAPURL parentUrl) {
-    if (!isUnreliableEntryListEmpty) {
-      boolean isInServer = serverHost.equalsIgnoreCase(String.valueOf(parentUrl.getHost()))
-          && serverPort == parentUrl.getPort();
-      if (isInServer) {
-        try
-        {
-          for (DN dn : unreliableEntryList)
-          {
-            if (dn.equals(DN.valueOf(parentUrl.getRawBaseDN())))
-            {
-              return true;
-            }
-          }
-        }
-        catch (OpenDsException oe)
-        {
-          throw new RuntimeException("Error decoding DN of url: "+ parentUrl);
-        }
-      }
-    }
-    return false;
+  public boolean containsChildrenOf(LDAPURL parentUrl)
+  {
+    return contains(parentUrl);
   }
 
   /**
-    * Tells whether the list of unreliable contains the entry with LDAPURL
-    * url.
+    * Tells whether the list of unreliable contains the entry with LDAPURL url.
     * It assumes that we previously called containsChildrenOf (there's no check
     * of the host/port).
     * @param url the LDAPURL of the parent.
@@ -83,24 +62,15 @@ public class NumSubordinateHacker {
     */
   public boolean contains(LDAPURL url) {
     if (!isUnreliableEntryListEmpty) {
-      boolean isInServer =
-        serverHost.equalsIgnoreCase(String.valueOf(url.getHost())) &&
-      serverPort == url.getPort();
+      boolean isInServer = serverHost.equalsIgnoreCase(url.getHost()) && serverPort == url.getPort();
       if (isInServer) {
-        for (DN dn : unreliableEntryList)
+        try
         {
-          try
-          {
-            if (dn.equals(DN.valueOf(url.getRawBaseDN())))
-            {
-              return true;
-            }
-          }
-          catch (OpenDsException oe)
-          {
-            throw new RuntimeException("Error decoding DN of url: "+
-                url);
-          }
+          return unreliableEntryList.contains(DN.valueOf(url.getRawBaseDN()));
+        }
+        catch (OpenDsException oe)
+        {
+          throw new RuntimeException("Error decoding DN of url: " + url);
         }
       }
     }

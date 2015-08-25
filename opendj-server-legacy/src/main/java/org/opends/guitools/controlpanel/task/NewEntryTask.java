@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -43,6 +42,8 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -52,16 +53,11 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
-/**
- * The task launched when we must create an entry.
- *
- */
+/** The task launched when we must create an entry. */
 public class NewEntryTask extends Task
 {
   private Entry newEntry;
@@ -377,24 +373,16 @@ public class NewEntryTask extends Task
 
   private boolean isBaseDN(DN dn)
   {
-    boolean isBaseDN = false;
-    for (BackendDescriptor backend :
-      getInfo().getServerDescriptor().getBackends())
+    for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
     {
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
         if (baseDN.getDn().equals(dn))
         {
-          isBaseDN = true;
-          break;
+          return true;
         }
       }
-      if (isBaseDN)
-      {
-        break;
-      }
     }
-    return isBaseDN;
+    return false;
   }
 }
-

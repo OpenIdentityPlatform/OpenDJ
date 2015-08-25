@@ -136,7 +136,6 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private CommonSchemaElements lastCreatedElement;
 
-
   private final CategoryTreeNode attributes = new CategoryTreeNode(INFO_CTRL_PANEL_ATTRIBUTES_CATEGORY_NODE.get());
   private final CategoryTreeNode objectClasses =
       new CategoryTreeNode(INFO_CTRL_PANEL_OBJECTCLASSES_CATEGORY_NODE.get());
@@ -1172,18 +1171,15 @@ class BrowseSchemaPanel extends StatusGenericPanel
     return mustAdd(ocName, oc.getOID(), oc.getPrimaryName(), oc.getNormalizedNames());
   }
 
-  private boolean mustAdd(String name, String oid, String primaryName, Iterable<String> names)
+  private boolean mustAdd(String name, String oid, String primaryName, Set<String> names)
   {
-    List<String> values = new ArrayList<>();
+    List<String> values = new ArrayList<>(names.size() + 2);
     values.add(oid);
     if (primaryName != null)
     {
       values.add(primaryName);
     }
-    for (String v : names)
-    {
-      values.add(v);
-    }
+    values.addAll(names);
 
     return matchFilter(values, name, false);
   }

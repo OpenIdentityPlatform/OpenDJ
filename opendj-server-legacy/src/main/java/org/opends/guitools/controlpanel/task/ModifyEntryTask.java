@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -65,9 +64,7 @@ import org.opends.messages.AdminToolMessages;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
-/**
- * The task that is called when we must modify an entry.
- */
+/** The task that is called when we must modify an entry. */
 public class ModifyEntryTask extends Task
 {
   private Set<String> backendSet;
@@ -169,7 +166,6 @@ public class ModifyEntryTask extends Task
   {
     return INFO_CTRL_PANEL_MODIFY_ENTRY_TASK_DESCRIPTION.get(oldEntry.getDN());
   }
-
 
   /** {@inheritDoc} */
   protected String getCommandLinePath()
@@ -466,7 +462,7 @@ public class ModifyEntryTask extends Task
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       List<Object> values = entry.getAttributeValues(rdn.getAttributeName(i));
-      if (!!values.isEmpty())
+      if (values.isEmpty())
       {
         return false;
       }
@@ -547,7 +543,7 @@ public class ModifyEntryTask extends Task
         if (oldRDN.getAttributeName(i).equalsIgnoreCase(attrName))
         {
           ByteString value = oldRDN.getAttributeValue(i);
-          if (containsValue(attr, value))
+          if (attr.contains(value))
           {
             if (rdnValue == null || !rdnValue.equals(value))
             {
@@ -650,18 +646,6 @@ public class ModifyEntryTask extends Task
         {
           return true;
         }
-      }
-    }
-    return false;
-  }
-
-  private static boolean containsValue(org.opends.server.types.Attribute attr, Object value)
-  {
-    for (Iterator<ByteString> it = attr.iterator(); it.hasNext();)
-    {
-      if (value.equals(it.next()))
-      {
-        return true;
       }
     }
     return false;
