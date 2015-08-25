@@ -70,7 +70,7 @@ public class BackendToolUtils
    * @return 0 if everything went fine. 1 if an error occurred.
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public static int getBackends(final List<? super Backend<?>> backendList, final List<BackendCfg> entryList,
+  public static int getBackends(final List<Backend> backendList, final List<BackendCfg> entryList,
       final List<List<DN>> dnList)
   {
     try
@@ -94,7 +94,7 @@ public class BackendToolUtils
         final BackendCfg cfg;
         try
         {
-          backend = (Backend<?>) backendClass.newInstance();
+          backend = (Backend) backendClass.newInstance();
           backend.setBackendID(backendID);
           cfg = root.getBackend(backendID);
           backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());
@@ -231,4 +231,5 @@ public class BackendToolUtils
       throw e;
     }
   }
+
 }
