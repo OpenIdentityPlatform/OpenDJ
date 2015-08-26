@@ -41,6 +41,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
@@ -57,7 +58,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class represents a DB environment that acts as a factory for
  * ReplicationDBs.
  */
-public class ReplicationDbEnv
+public class ReplicationDbEnv implements ChangelogStateProvider
 {
   private Environment dbEnvironment;
   private Database changelogStateDb;
@@ -227,11 +228,7 @@ public class ReplicationDbEnv
     return db;
   }
 
-  /**
-   * Return the current changelog state.
-   *
-   * @return the current {@link ChangelogState}
-   */
+  @Override
   public ChangelogState getChangelogState()
   {
     return changelogState;

@@ -49,10 +49,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.replication.server.changelog.file.ChangeNumberIndexer;
-import org.opends.server.replication.server.changelog.file.DomainDBCursor;
-import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
-import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
+import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.types.DN;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -593,7 +590,9 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
         return eclEnabledDomains.contains(baseDN);
       }
     };
-    cnIndexer = new ChangeNumberIndexer(changelogDB, initialState, predicate)
+    ChangelogStateProvider changeLogState = mock(ChangelogStateProvider.class);
+    when(changeLogState.getChangelogState()).thenReturn(initialState);
+    cnIndexer = new ChangeNumberIndexer(changelogDB, changeLogState, predicate)
     {
       /** {@inheritDoc} */
       @Override

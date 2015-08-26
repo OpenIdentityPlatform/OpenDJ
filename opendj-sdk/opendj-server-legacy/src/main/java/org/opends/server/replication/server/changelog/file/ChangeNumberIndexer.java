@@ -37,13 +37,13 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.changelog.api.AbortedChangelogCursorException;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
+import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.types.DN;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -73,8 +73,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   private final ConcurrentSkipListSet<DN> domainsToClear = new ConcurrentSkipListSet<>();
   private final ChangelogDB changelogDB;
-  /** Only used for initialization, and then discarded. */
-  private ChangelogState changelogState;
+  private final ChangelogStateProvider changelogStateProvider;
   private final ECLEnabledDomainPredicate predicate;
 
   /*
@@ -111,33 +110,30 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   /**
    * Builds a ChangeNumberIndexer object.
-   *
-   * @param changelogDB
+   *  @param changelogDB
    *          the changelogDB
-   * @param changelogState
-   *          the changelog state used for initialization
+   * @param changelogStateProvider
+   *          the replication environment information for access to changelog state
    */
-  public ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState)
+  public ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogStateProvider changelogStateProvider)
   {
-    this(changelogDB, changelogState, new ECLEnabledDomainPredicate());
+    this(changelogDB, changelogStateProvider, new ECLEnabledDomainPredicate());
   }
 
   /**
    * Builds a ChangeNumberIndexer object.
-   *
    * @param changelogDB
    *          the changelogDB
-   * @param changelogState
+   * @param changelogStateProvider
    *          the changelog state used for initialization
    * @param predicate
-   *          tells whether a domain is enabled for the external changelog
    */
-  ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState,
+  ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogStateProvider changelogStateProvider,
       ECLEnabledDomainPredicate predicate)
   {
     super("Change number indexer");
     this.changelogDB = changelogDB;
-    this.changelogState = changelogState;
+    this.changelogStateProvider = changelogStateProvider;
     this.predicate = predicate;
   }
 
@@ -310,9 +306,6 @@ public class ChangeNumberIndexer extends DirectoryThread
     initializeLastAliveCSNs(domainDB);
     initializeNextChangeCursor(domainDB);
     initializeOfflineReplicas();
-
-    // this will not be used any more. Discard for garbage collection.
-    this.changelogState = null;
   }
 
   private void initializeNextChangeCursor(final ReplicationDomainDB domainDB) throws ChangelogException
@@ -331,7 +324,7 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   private void initializeLastAliveCSNs(final ReplicationDomainDB domainDB)
   {
-    for (Entry<DN, Set<Integer>> entry : changelogState.getDomainToServerIds().entrySet())
+    for (Entry<DN, Set<Integer>> entry : changelogStateProvider.getChangelogState().getDomainToServerIds().entrySet())
     {
       final DN baseDN = entry.getKey();
       if (predicate.isECLEnabledDomain(baseDN))
@@ -353,7 +346,7 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   private void initializeOfflineReplicas()
   {
-    final MultiDomainServerState offlineReplicas = changelogState.getOfflineReplicas();
+    final MultiDomainServerState offlineReplicas = changelogStateProvider.getChangelogState().getOfflineReplicas();
     for (DN baseDN : offlineReplicas)
     {
       for (CSN offlineCSN : offlineReplicas.getServerState(baseDN))
@@ -409,7 +402,11 @@ public class ChangeNumberIndexer extends DirectoryThread
             // once this domain's state has been cleared.
             domainsToClear.remove(baseDNToClear);
           }
-
+          if (nextChangeForInsertDBCursor.shouldReInitialize())
+          {
+            nextChangeForInsertDBCursor.close();
+            initialize();
+          }
           // Do not call DBCursor.next() here
           // because we might not have consumed the last record,
           // for example if we could not move the MCP forward
