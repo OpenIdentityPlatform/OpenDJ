@@ -489,20 +489,16 @@ public final class VersionCompatibilityIssue {
 
   static
   {
-    register(Cause.DS_SYNC_HIST_NORMALIZATION_CHANGE_1, new BuildVersion(2, 4,
-        5, 7635));
-    register (Cause.REVERT_NOT_SUPPORTED_1, new BuildVersion(2,0,0,5278));
-    register(Cause.STRINGPREP_NORMALIZATION_CHANGE_1,
-            new BuildVersion(1,2,0,5134));
-    register(Cause.DN_NORMALIZATION_CHANGE_1, new BuildVersion(1, 0, 0, 3873));
-    register(Cause.BACKEND_CONFIGURATION_CHANGE_1,
-        new BuildVersion(1, 0, 0, 3708));
-    register(Cause.REPLICATION_SECURITY_CHANGE_1,
-        new BuildVersion(1, 0, 0, 3294));
-    register(Cause.PROPERTY_CHANGE_1, new BuildVersion(1, 0, 0, 3053));
-    register(Cause.DB_FORMAT_CHANGE_2, new BuildVersion(0, 9, 0, 2049));
-    register(Cause.DB_FORMAT_CHANGE_1, new BuildVersion(0, 1, 0, 1582));
-    register(Cause.BERKLEY_UPGRADE_1, new BuildVersion(0, 1, 0, 890));
+    register(Cause.DS_SYNC_HIST_NORMALIZATION_CHANGE_1, new BuildVersion(2, 4, 5));
+    register(Cause.REVERT_NOT_SUPPORTED_1, new BuildVersion(2, 0, 0));
+    register(Cause.STRINGPREP_NORMALIZATION_CHANGE_1, new BuildVersion(1, 2, 0));
+    register(Cause.DN_NORMALIZATION_CHANGE_1, new BuildVersion(1, 0, 0));
+    register(Cause.BACKEND_CONFIGURATION_CHANGE_1, new BuildVersion(1, 0, 0));
+    register(Cause.REPLICATION_SECURITY_CHANGE_1, new BuildVersion(1, 0, 0));
+    register(Cause.PROPERTY_CHANGE_1, new BuildVersion(1, 0, 0));
+    register(Cause.DB_FORMAT_CHANGE_2, new BuildVersion(0, 9, 0));
+    register(Cause.DB_FORMAT_CHANGE_1, new BuildVersion(0, 1, 0));
+    register(Cause.BERKLEY_UPGRADE_1, new BuildVersion(0, 1, 0));
   }
 
   private static void register(Cause cause,
@@ -547,8 +543,7 @@ public final class VersionCompatibilityIssue {
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       if (!excludeIds.contains(evt.getCause().getId())) {
         BuildVersion currentVersion = new BuildVersion(
-            current.getMajorVersion(), current.getMinorVersion(),
-            current.getPointVersion(), current.getRevisionNumber());
+            current.getMajorVersion(), current.getMinorVersion(), current.getPointVersion());
         // If the currentVersion is newer than the issue described, then there
         // is no problem.  This can occur for instance when we discovered a
         // flag day too late (and we added the flag day description to the

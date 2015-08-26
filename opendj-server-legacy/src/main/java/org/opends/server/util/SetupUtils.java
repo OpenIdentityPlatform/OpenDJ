@@ -111,9 +111,9 @@ public class SetupUtils
   public static final String MINOR_VERSION = "Minor Version";
   /** Point version of the product. */
   public static final String POINT_VERSION = "Point Version";
-  /** Revision number in SVN. */
-  public static final String REVISION_NUMBER = "Revision Number";
-  /** The SVN url repository. */
+  /** Revision in VCS. */
+  public static final String REVISION = "Revision Number";
+  /** The VCS url repository. */
   public static final String URL_REPOSITORY = "URL Repository";
   /** The version qualifier. */
   public static final String VERSION_QUALIFIER = "Version Qualifier";

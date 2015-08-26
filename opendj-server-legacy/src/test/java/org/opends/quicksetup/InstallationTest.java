@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 Forgerock AS
  */
 
 package org.opends.quicksetup;
@@ -162,7 +163,7 @@ public class InstallationTest extends QuickSetupTestCase {
    */
   @Test(enabled = false)
   public void testGetSvnRev() throws ApplicationException {
-    assertNotNull(installation.getSvnRev());
+    assertNotNull(installation.getVCSRevision());
   }
 
   /**

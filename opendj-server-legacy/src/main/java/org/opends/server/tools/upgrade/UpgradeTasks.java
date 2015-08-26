@@ -705,7 +705,7 @@ public final class UpgradeTasks
 
         try
         {
-          String toRevision = String.valueOf(context.getToVersion().getRevisionNumber());
+          String toRevision = String.valueOf(context.getToVersion().getRevision());
           updateConfigUpgradeSchemaFile(configSchemaDirectory, toRevision);
 
           context.notifyProgress(pnc.setProgress(100));

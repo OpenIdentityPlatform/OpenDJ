@@ -1459,7 +1459,7 @@ final class OnDiskMergeStorageImporter
         throw new InitializationException(ERR_IMPORT_LDIF_READER_IO_ERROR.get(), ioe);
       }
 
-      logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION_NUMBER);
+      logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION);
       logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
 
       final Storage backendStorage = rootContainer.getStorage();

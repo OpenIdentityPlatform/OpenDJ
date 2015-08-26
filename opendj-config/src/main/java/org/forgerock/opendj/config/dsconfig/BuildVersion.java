@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -43,6 +43,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.Utils;
 
 /**
  * Represents a particular version of OpenDJ useful for making comparisons between versions. FIXME TODO Move this file
@@ -53,7 +54,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
     private final int major;
     private final int minor;
     private final int point;
-    private final long rev;
+    private final String rev;
 
     /**
      * Creates a new build version using the provided version information.
@@ -65,9 +66,9 @@ public class BuildVersion implements Comparable<BuildVersion> {
      * @param point
      *            Point release version number.
      * @param rev
-     *            VCS revision number.
+     *            VCS revision.
      */
-    public BuildVersion(final int major, final int minor, final int point, final long rev) {
+    public BuildVersion(final int major, final int minor, final int point, final String rev) {
         this.major = major;
         this.minor = minor;
         this.point = point;
@@ -157,7 +158,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
         final int major = Integer.parseInt(fields[0]);
         final int minor = Integer.parseInt(fields[1]);
         final int point = Integer.parseInt(fields[2]);
-        final long rev = Long.parseLong(fields[3]);
+        final String rev = fields[3];
         return new BuildVersion(major, minor, point, rev);
     }
 
@@ -194,7 +195,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
             return true;
         } else if (obj instanceof BuildVersion) {
             final BuildVersion other = (BuildVersion) obj;
-            return major == other.major && minor == other.minor && point == other.point && rev == other.rev;
+            return major == other.major && minor == other.minor && point == other.point && rev.equals(other.rev);
         } else {
             return false;
         }
@@ -207,7 +208,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
                 if (point == version.point) {
                     if (rev == version.rev) {
                         return 0;
-                    } else if (rev < version.rev) {
+                    } else if (rev.compareTo(version.rev) < 0) {
                         return -1;
                     }
                 } else if (point < version.point) {
@@ -223,17 +224,17 @@ public class BuildVersion implements Comparable<BuildVersion> {
     }
 
     /**
-     * Returns the VCS revision number.
+     * Returns the VCS revision.
      *
-     * @return The VCS revision number.
+     * @return The VCS revision.
      */
-    public long getRevisionNumber() {
+    public String getRevision() {
         return rev;
     }
 
     /** {@inheritDoc} */
     public int hashCode() {
-        return Arrays.hashCode(new int[] { major, minor, point, (int) (rev >>> 32), (int) (rev & 0xFFFFL) });
+        return Arrays.hashCode(new int[] { major, minor, point, rev.hashCode() });
     }
 
     /**
@@ -246,14 +247,6 @@ public class BuildVersion implements Comparable<BuildVersion> {
      * @return The string representation of the version.
      */
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(major);
-        builder.append('.');
-        builder.append(minor);
-        builder.append('.');
-        builder.append(point);
-        builder.append('.');
-        builder.append(rev);
-        return builder.toString();
+        return Utils.joinAsString(".", major, minor, point, rev);
     }
 }

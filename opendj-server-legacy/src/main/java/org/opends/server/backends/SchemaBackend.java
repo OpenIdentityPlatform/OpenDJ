@@ -338,9 +338,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
       else
       {
-        concatFile = new File(upgradeDirectory,
-                              SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION +
-                              DynamicConstants.REVISION_NUMBER);
+        concatFile = new File(upgradeDirectory, SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION + DynamicConstants.REVISION);
         if (concatFile.exists())
         {
           concatFilePath = concatFile.getAbsolutePath();
