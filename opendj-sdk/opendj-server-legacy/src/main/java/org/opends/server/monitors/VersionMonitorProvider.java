@@ -196,8 +196,7 @@ public class VersionMonitorProvider
       attrs.add(createAttribute(ATTR_FIX_IDS, fixIDs));
     }
 
-    attrs.add(createAttribute(ATTR_REVISION_NUMBER,
-                   String.valueOf(DynamicConstants.REVISION_NUMBER)));
+    attrs.add(createAttribute(ATTR_REVISION_NUMBER, String.valueOf(DynamicConstants.REVISION)));
     attrs.add(createAttribute(ATTR_BUILD_ID, DynamicConstants.BUILD_ID));
     attrs.add(createAttribute(ATTR_COMPACT_VERSION,
                               DynamicConstants.COMPACT_VERSION_STRING));

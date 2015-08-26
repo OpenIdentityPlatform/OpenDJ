@@ -121,15 +121,14 @@ public final class DynamicConstants
    */
   public static boolean DEBUG_BUILD = ${isDebugBuild};
 
-  /**
-   * The Subversion revision number on which this build is based.
-   */
-  public static long REVISION_NUMBER = ${buildRevision};
+  /** The revision on which this build is based. */
+  public static String REVISION = "${buildRevision}";
 
   /**
    * The Subversion url repository location on which this build is based.
    */
-  public static String URL_REPOSITORY = "${scm.url}";
+  public static String URL_REPOSITORY =
+      "${scm.url}";
 
   /**
    * The documentation home.
@@ -240,7 +239,7 @@ public final class DynamicConstants
         }
         catch (Exception ex) {}
         try{
-         REVISION_NUMBER = (Long)c.getField("REVISION_NUMBER").get(obj);
+         REVISION = (String)c.getField("REVISION_NUMBER").get(obj);
         }
         catch (Exception ex) {}
         try{

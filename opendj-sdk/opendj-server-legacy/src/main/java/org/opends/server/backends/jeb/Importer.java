@@ -890,7 +890,7 @@ final class Importer implements DiskSpaceMonitorHandler
       updateDiskMonitor(tempDir, "backend import tmp directory");
       updateDiskMonitor(backendDirectory, "backend import DB directory");
 
-      logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION_NUMBER);
+      logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION);
       logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
       initializeSuffixes();
       setupIndexesForImport();

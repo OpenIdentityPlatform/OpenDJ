@@ -53,10 +53,10 @@ public final class BuildVersion implements Comparable<BuildVersion>
   private final int major;
   private final int minor;
   private final int point;
-  private final long rev;
+  private final String rev;
   private static final BuildVersion BINARY_VERSION = new BuildVersion(
       DynamicConstants.MAJOR_VERSION, DynamicConstants.MINOR_VERSION,
-      DynamicConstants.POINT_VERSION, DynamicConstants.REVISION_NUMBER);
+      DynamicConstants.POINT_VERSION, DynamicConstants.REVISION);
 
   /**
    * Returns the build version as specified by the dynamic constants.
@@ -121,7 +121,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
    * form:
    *
    * <pre>
-   * major.minor.point.rev
+   * major.minor.point[.rev]
    * </pre>
    *
    * @param s
@@ -133,15 +133,38 @@ public final class BuildVersion implements Comparable<BuildVersion>
   public static BuildVersion valueOf(final String s) throws IllegalArgumentException
   {
     final String[] fields = s.split("\\.");
-    if (fields.length != 4)
+    final int nbFields = fields.length;
+    if (!(nbFields == 3 || nbFields == 4))
     {
       throw new IllegalArgumentException("Invalid version string " + s);
     }
     final int major = Integer.parseInt(fields[0]);
     final int minor = Integer.parseInt(fields[1]);
     final int point = Integer.parseInt(fields[2]);
-    final long rev = Long.parseLong(fields[3]);
-    return new BuildVersion(major, minor, point, rev);
+
+    if (nbFields == 4)
+    {
+      return new BuildVersion(major, minor, point, fields[3]);
+    }
+    else
+    {
+      return new BuildVersion(major, minor, point);
+    }
+  }
+
+  /**
+   * Creates a new build version using the provided version information.
+   *
+   * @param major
+   *          Major release version number.
+   * @param minor
+   *          Minor release version number.
+   * @param point
+   *          Point release version number.
+   */
+  public BuildVersion(final int major, final int minor, final int point)
+  {
+    this(major, minor, point, "");
   }
 
   /**
@@ -154,9 +177,9 @@ public final class BuildVersion implements Comparable<BuildVersion>
    * @param point
    *          Point release version number.
    * @param rev
-   *          VCS revision number.
+   *          VCS revision.
    */
-  public BuildVersion(final int major, final int minor, final int point, final long rev)
+  public BuildVersion(final int major, final int minor, final int point, final String rev)
   {
     this.major = major;
     this.minor = minor;
@@ -177,7 +200,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
           {
             return 0;
           }
-          else if (rev < version.rev)
+          else if (rev.compareTo(version.rev) < 0)
           {
             return -1;
           }
@@ -209,7 +232,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     else if (obj instanceof BuildVersion)
     {
       final BuildVersion other = (BuildVersion) obj;
-      return major == other.major && minor == other.minor && point == other.point && rev == other.rev;
+      return major == other.major && minor == other.minor && point == other.point && rev.equals(other.rev);
     }
     else
     {
@@ -248,11 +271,11 @@ public final class BuildVersion implements Comparable<BuildVersion>
   }
 
   /**
-   * Returns the VCS revision number.
+   * Returns the VCS revision.
    *
-   * @return The VCS revision number.
+   * @return The VCS revision.
    */
-  public long getRevisionNumber()
+  public String getRevision()
   {
     return rev;
   }
@@ -260,7 +283,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
   @Override
   public int hashCode()
   {
-    return Arrays.hashCode(new int[] { major, minor, point, (int) (rev >>> 32), (int) (rev & 0xFFFFL) });
+    return Arrays.hashCode(new int[] { major, minor, point, rev.hashCode() });
   }
 
   @Override
