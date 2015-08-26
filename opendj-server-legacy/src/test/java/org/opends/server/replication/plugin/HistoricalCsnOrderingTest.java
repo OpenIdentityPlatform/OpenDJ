@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -50,6 +50,7 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;

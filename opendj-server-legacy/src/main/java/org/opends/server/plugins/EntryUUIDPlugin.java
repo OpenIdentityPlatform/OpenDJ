@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.plugins;
 
 import static org.opends.messages.PluginMessages.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +36,6 @@ import java.util.UUID;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
@@ -46,6 +44,7 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
@@ -62,56 +61,20 @@ public final class EntryUUIDPlugin
        extends DirectoryServerPlugin<EntryUUIDPluginCfg>
        implements ConfigurationChangeListener<EntryUUIDPluginCfg>
 {
-  /**
-   * The name of the entryUUID attribute type.
-   */
+  /** The name of the entryUUID attribute type. */
   private static final String ENTRYUUID = "entryuuid";
-
-
 
   /** The attribute type for the "entryUUID" attribute. */
   private final AttributeType entryUUIDType;
-
   /** The current configuration for this plugin. */
   private EntryUUIDPluginCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this Directory Server plugin.  Every plugin must
-   * implement a default constructor (it is the only one that will be used to
-   * create plugins defined in the configuration), and every plugin constructor
-   * must call <CODE>super()</CODE> as its first element.
-   */
+  /** Mandatory default constructor of this Directory Server plugin. */
   public EntryUUIDPlugin()
   {
-    super();
-
-
-    // Get the entryUUID attribute type.  This needs to be done in the
-    // constructor in order to make the associated variables "final".
-    AttributeType at = DirectoryServer.getAttributeTypeOrNull(ENTRYUUID);
-    if (at == null)
-    {
-      String definition =
-           "( 1.3.6.1.1.16.4 NAME 'entryUUID' DESC 'UUID of the entry' " +
-           "EQUALITY uuidMatch ORDERING uuidOrderingMatch " +
-           "SYNTAX 1.3.6.1.1.16.1 SINGLE-VALUE NO-USER-MODIFICATION " +
-           "USAGE directoryOperation X-ORIGIN 'RFC 4530' )";
-
-      at = new AttributeType(definition, ENTRYUUID,
-                             Collections.singleton(ENTRYUUID), ENTRYUUID, null,
-                             null, DirectoryConfig.getDefaultAttributeSyntax(),
-                             AttributeUsage.DIRECTORY_OPERATION, false, true,
-                             false, true);
-    }
-
-    entryUUIDType = at;
+    entryUUIDType = DirectoryServer.getAttributeTypeOrDefault(ENTRYUUID);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      EntryUUIDPluginCfg configuration)

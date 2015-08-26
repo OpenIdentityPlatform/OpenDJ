@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -63,9 +63,13 @@ public final class DefaultCompressedSchema extends CompressedSchema
 
   /**
    * Creates a new instance of this compressed schema manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public DefaultCompressedSchema()
+  public DefaultCompressedSchema(ServerContext serverContext)
   {
+    super(serverContext);
     load();
   }
 

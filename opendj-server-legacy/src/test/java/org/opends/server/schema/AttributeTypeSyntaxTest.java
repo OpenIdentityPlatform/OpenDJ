@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -30,15 +30,15 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.AttributeType;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -47,21 +47,16 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
-/**
- * Test the AttributeTypeSyntax.
- */
+/** Test the AttributeTypeSyntax. */
 @RemoveOnceSDKSchemaIsUsed
 public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 {
-
-  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax getRule()
   {
     return new AttributeTypeSyntax();
   }
 
-  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()
@@ -127,13 +122,9 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
   @Test
   public void testXAPPROXExtension() throws Exception
   {
-    MatchingRule mrule = Schema.getCoreSchema().getMatchingRule("ds-mr-double-metaphone-approx");
-
-    // Get a reference to the attribute type syntax implementation in the
-    // server.
-    Syntax attrTypeSyntax = DirectoryServer.getSchema().getSyntax("1.3.6.1.4.1.1466.115.121.1.3", false);
+    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+    Syntax attrTypeSyntax = schema.getSyntax("1.3.6.1.4.1.1466.115.121.1.3");
     assertNotNull(attrTypeSyntax);
-
 
     // Create an attribute type definition and verify that it is acceptable.
     ByteString definition = ByteString.valueOfUtf8(
@@ -141,22 +132,18 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
            "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
            "X-APPROX 'ds-mr-double-metaphone-approx' )");
     LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-    assertTrue(attrTypeSyntax.valueIsAcceptable(definition, invalidReason),
-            invalidReason.toString());
-
+    assertTrue(attrTypeSyntax.valueIsAcceptable(definition, invalidReason), invalidReason.toString());
 
     // Verify that we can decode the attribute type and that it has the
     // correct approximate matching rule.
-    AttributeType attrType =
-         AttributeTypeSyntax.decodeAttributeType(definition,
-                                                 DirectoryServer.getSchema(),
-                                                 false);
-    assertNotNull(attrType);
+    Schema newSchema = new SchemaBuilder(schema.getSchemaNG())
+      .addAttributeType(definition.toString(), false)
+      .toSchema();
+
+    AttributeType attrType = newSchema.getAttributeType("testXApproxType");
     assertNotNull(attrType.getApproximateMatchingRule());
-    assertEquals(attrType.getApproximateMatchingRule(), mrule);
+    assertEquals(attrType.getApproximateMatchingRule(), schema.getMatchingRule("ds-mr-double-metaphone-approx"));
   }
-
-
 
   /**
    * Tests a situation when two radically different equality and substring

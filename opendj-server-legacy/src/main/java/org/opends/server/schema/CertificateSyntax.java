@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.schema;
@@ -37,11 +37,11 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.util.Option;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
 
 
 /**
@@ -69,37 +69,22 @@ public class CertificateSyntax
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(CertificateAttributeSyntaxCfg configuration, ServerContext serverContext)
-         throws ConfigException
+      throws ConfigException, DirectoryException
   {
     this.config = configuration;
     this.serverContext = serverContext;
-    updateNewSchema();
+    serverContext.getSchema().updateSchemaOption(SchemaOptions.ALLOW_MALFORMED_CERTIFICATES, !config.isStrictFormat());
     config.addCertificateChangeListener(this);
   }
 
-  /** Update the option in new schema if it changes from current value. */
-  private void updateNewSchema()
-  {
-    Option<Boolean> option = SchemaOptions.ALLOW_MALFORMED_CERTIFICATES;
-    if (config.isStrictFormat() == serverContext.getSchemaNG().getOption(option))
-    {
-      SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-      schemaUpdater.updateSchema(
-          schemaUpdater.getSchemaBuilder().setOption(option, !config.isStrictFormat()).toSchema());
-    }
-  }
-
-  /** {@inheritDoc} */
   @Override
   public Syntax getSDKSyntax(Schema schema)
   {
     return schema.getSyntax(SchemaConstants.SYNTAX_CERTIFICATE_OID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       CertificateAttributeSyntaxCfg configuration,
@@ -109,14 +94,23 @@ public class CertificateSyntax
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       CertificateAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
-    updateNewSchema();
-    return new ConfigChangeResult();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    try
+    {
+      serverContext.getSchema()
+          .updateSchemaOption(SchemaOptions.ALLOW_MALFORMED_CERTIFICATES, !config.isStrictFormat());
+    }
+    catch (DirectoryException e)
+    {
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
+    return ccr;
   }
 
   /**

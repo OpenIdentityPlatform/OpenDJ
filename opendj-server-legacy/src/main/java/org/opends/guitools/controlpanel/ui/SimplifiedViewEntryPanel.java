@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -92,6 +92,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
@@ -1180,9 +1181,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (schema != null)
     {
-      AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
-      if (attr != null)
+      if (schema.hasAttributeType(attrName.toLowerCase()))
       {
+        AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
         isSingleValue = attr.isSingleValue();
       }
     }
@@ -1199,9 +1200,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (schema != null)
     {
-      AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
-      if (attr != null)
+      if (schema.hasAttributeType(attrName.toLowerCase()))
       {
+        AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
         List<Object> ocs = sr.getAttributeValues(
             ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
         for (Object o : ocs)
@@ -1445,9 +1446,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       Schema schema = getInfo().getServerDescriptor().getSchema();
       if (schema != null)
       {
-        AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
-        if (attr != null)
+        if (schema.hasAttributeType(attrName.toLowerCase()))
         {
+          AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
           // There is no name for a regex syntax.
           String syntaxName = attr.getSyntax().getName();
           if (syntaxName!=null) {
@@ -1553,10 +1554,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                 {
                   String aName =
                     Utilities.getAttributeNameWithoutOptions(attrName);
-                  AttributeType attr =
-                    schema.getAttributeType(aName.toLowerCase());
-                  if (attr != null)
+                  if (schema.hasAttributeType(aName.toLowerCase()))
                   {
+                    AttributeType attr = schema.getAttributeType(aName.toLowerCase());
                     attributeTypes.add(attr);
                     attributeNames.add(attrName);
                     attributeValues.add(ByteString.valueOfUtf8((String) o));
@@ -1845,7 +1845,6 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       this.attrName = attrName;
     }
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       addBrowseClicked(attrName, tc);

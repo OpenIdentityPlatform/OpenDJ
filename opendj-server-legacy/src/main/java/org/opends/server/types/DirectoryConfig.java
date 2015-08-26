@@ -22,10 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.schema.AttributeType;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -179,16 +182,12 @@ public final class DirectoryConfig
 
   /**
    * Retrieves the set of matching rules registered with the Directory
-   * Server.  The mapping will be between the lowercase name or OID
-   * for each matching rule and the matching rule implementation.  The
-   * same matching rule instance may be included multiple times with
-   * different keys.  The returned map must not be altered by the
-   * caller.
+   * Server.
    *
    * @return  The set of matching rules registered with the Directory
    *          Server.
    */
-  public static Map<String,MatchingRule> getMatchingRules()
+  public static Collection<MatchingRule> getMatchingRules()
   {
     return DirectoryServer.getMatchingRules();
   }
@@ -354,7 +353,7 @@ public final class DirectoryConfig
    * @return The set of attribute type definitions that have been
    *         defined in the Directory Server.
    */
-  public static Map<String,AttributeType> getAttributeTypes()
+  public static Collection<AttributeType> getAttributeTypes()
   {
     return DirectoryServer.getAttributeTypes();
   }
@@ -373,32 +372,15 @@ public final class DirectoryConfig
 
   /**
    * Retrieves the set of attribute syntaxes defined in the Directory
-   * Server.  The mapping will be between the OID and the
-   * corresponding syntax implementation.  The returned map must not
-   * be altered by the caller.
+   * Server.
    *
    * @return  The set of attribute syntaxes defined in the Directory
    *          Server.
    */
-  public static Map<String,Syntax>
-       getAttributeSyntaxes()
+  public static Collection<Syntax> getAttributeSyntaxes()
   {
     return DirectoryServer.getAttributeSyntaxes();
   }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for
-   * attributes that are not defined in the server schema.
-   *
-   * @return  The default attribute syntax that should be used for
-   *          attributes that are not defined in the server schema.
-   */
-  public static Syntax getDefaultAttributeSyntax()
-  {
-    return DirectoryServer.getDefaultAttributeSyntax();
-  }
-
-
 
   /**
    * Retrieves the default attribute syntax that should be used for

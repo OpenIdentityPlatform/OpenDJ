@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -59,6 +59,7 @@ import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.SubentryPasswordPolicy;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 
 /**
@@ -115,9 +116,6 @@ public final class PasswordPolicyImportPlugin
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                          PasswordPolicyImportPluginCfg configuration)
@@ -243,16 +241,14 @@ public final class PasswordPolicyImportPlugin
     processImportBegin(null, null);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void processImportBegin(Backend backend, LDIFImportConfig config)
   {
     // Find the set of attribute types with the auth password and user password
     // syntax defined in the schema.
     HashSet<AttributeType> authPWTypes = new HashSet<>();
     HashSet<AttributeType> userPWTypes = new HashSet<>();
-    for (AttributeType t : DirectoryServer.getAttributeTypes().values())
+    for (AttributeType t : DirectoryServer.getAttributeTypes())
     {
       if (t.getSyntax().getOID().equals(SYNTAX_AUTH_PASSWORD_OID))
       {
@@ -293,18 +289,13 @@ public final class PasswordPolicyImportPlugin
     userPasswordTypes = userTypesArray;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void processImportEnd(Backend backend, LDIFImportConfig config,
                                boolean successful)
   {
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
@@ -552,9 +543,6 @@ policyLoop:
     return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -564,9 +552,7 @@ policyLoop:
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       PasswordPolicyImportPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -674,9 +660,7 @@ policyLoop:
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordPolicyImportPluginCfg configuration)
   {

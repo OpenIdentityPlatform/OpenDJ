@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -43,8 +43,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.util.CollectionUtils;
 
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines an integer configuration attribute, which can hold zero or
@@ -275,6 +275,7 @@ public final class IntegerConfigAttribute
    *
    * @return  The name of the data type for this configuration attribute.
    */
+  @Override
   public String getDataType()
   {
     return "Integer";
@@ -285,6 +286,7 @@ public final class IntegerConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
+  @Override
   public Syntax getSyntax()
   {
     return DirectoryServer.getDefaultIntegerSyntax();
@@ -674,6 +676,7 @@ public final class IntegerConfigAttribute
    * configuration attribute.  This will not take any action if there are no
    * pending values.
    */
+  @Override
   public void applyPendingValues()
   {
     if (! hasPendingValues())
@@ -697,6 +700,7 @@ public final class IntegerConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteString value, StringBuilder rejectReason)
   {
     // First, make sure we can represent it as a long.
@@ -753,6 +757,7 @@ public final class IntegerConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
+  @Override
   public LinkedHashSet<ByteString>
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
@@ -832,6 +837,7 @@ public final class IntegerConfigAttribute
    * @return  The string representations of the set of active values for this
    *          configuration attribute.
    */
+  @Override
   public List<String> activeValuesToStrings()
   {
     return toListOfString(activeValues);
@@ -848,6 +854,7 @@ public final class IntegerConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if there are no
    *          pending values.
    */
+  @Override
   public List<String> pendingValuesToStrings()
   {
     if (hasPendingValues())
@@ -888,6 +895,7 @@ public final class IntegerConfigAttribute
    *                           single-valued and the provided attribute has
    *                           multiple values).
    */
+  @Override
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
@@ -1122,6 +1130,7 @@ public final class IntegerConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if it does not have
    *          any active values.
    */
+  @Override
   public javax.management.Attribute toJMXAttribute()
   {
     return _toJMXAttribute(false);
@@ -1134,6 +1143,7 @@ public final class IntegerConfigAttribute
    * @return  A JMX attribute containing the pending value set for this
    *          configuration attribute.
    */
+  @Override
   public  javax.management.Attribute toJMXAttributePending()
   {
       return _toJMXAttribute(true);
@@ -1150,6 +1160,7 @@ public final class IntegerConfigAttribute
    * @param  attributeList  The attribute list to which the JMX attribute(s)
    *                        should be added.
    */
+  @Override
   public void toJMXAttribute(AttributeList attributeList)
   {
     if (!activeValues.isEmpty())
@@ -1219,6 +1230,7 @@ public final class IntegerConfigAttribute
    * @param  attributeInfoList  The list to which the attribute information
    *                            should be added.
    */
+  @Override
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
     if (isMultiValued())
@@ -1266,6 +1278,7 @@ public final class IntegerConfigAttribute
    * @return  A JMX <CODE>MBeanParameterInfo</CODE> object that describes this
    *          configuration attribute.
    */
+  @Override
   public MBeanParameterInfo toJMXParameterInfo()
   {
     if (isMultiValued())
@@ -1291,6 +1304,7 @@ public final class IntegerConfigAttribute
    *                           acceptable value for this configuration
    *                           attribute.
    */
+  @Override
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
@@ -1393,6 +1407,7 @@ public final class IntegerConfigAttribute
    *
    * @return  A duplicate of this configuration attribute.
    */
+  @Override
   public ConfigAttribute duplicate()
   {
     return new IntegerConfigAttribute(getName(), getDescription(), isRequired(),

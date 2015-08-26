@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -58,6 +58,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.*;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.util.BackupManager;

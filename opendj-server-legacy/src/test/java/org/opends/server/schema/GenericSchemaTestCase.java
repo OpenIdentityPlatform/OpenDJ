@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS.
+ *      Portions Copyright 2014-2016 ForgeRock AS.
  *
  */
 package org.opends.server.schema;
@@ -33,12 +33,12 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NameForm;
@@ -83,7 +83,7 @@ public class GenericSchemaTestCase
     TreeSet<String> invalidOIDs = new TreeSet<>();
 
     Schema schema = DirectoryServer.getSchema();
-    for (Syntax as : schema.getSyntaxes().values())
+    for (Syntax as : schema.getSyntaxes())
     {
       if (! isNumericOID(as.getOID()))
       {
@@ -117,7 +117,7 @@ public class GenericSchemaTestCase
     TreeSet<String> invalidOIDs = new TreeSet<>();
 
     Schema schema = DirectoryServer.getSchema();
-    for (MatchingRule mr : schema.getMatchingRules().values())
+    for (MatchingRule mr : schema.getMatchingRules())
     {
       if (! isNumericOID(mr.getOID()))
       {
@@ -190,8 +190,7 @@ public class GenericSchemaTestCase
       {
         for (ByteString v : a)
         {
-          AttributeType at = AttributeTypeSyntax.decodeAttributeType(
-              v, DirectoryServer.getSchema(),true);
+          AttributeType at = DirectoryServer.getSchema().parseAttributeType(v.toString());
           if (! isNumericOID(at.getOID()))
           {
             invalidOIDs.add(at.getNameOrOID());

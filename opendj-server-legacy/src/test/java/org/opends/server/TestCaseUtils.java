@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server;
@@ -214,16 +214,7 @@ public final class TestCaseUtils {
   public static void startFakeServer() throws Exception
   {
     schemaBeforeStartingFakeServer = DirectoryServer.getSchema();
-    DirectoryServer.setSchema(initializeInMemory(new Schema()));
-  }
-
-  private static Schema initializeInMemory(final Schema schema) throws Exception
-  {
-    for (AttributeType attributeType : AttributeTypeConstants.ALL)
-    {
-      schema.registerAttributeType(attributeType, true);
-    }
-    return schema;
+    DirectoryServer.setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema()));
   }
 
   /**

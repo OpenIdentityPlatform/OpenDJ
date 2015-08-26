@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -57,7 +57,7 @@ import org.opends.guitools.controlpanel.event.LDAPEntryChangedListener;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -357,7 +357,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     {
       schemaReadOnlyAttributes.clear();
       schemaReadOnlyAttributesLowerCase.clear();
-      for (AttributeType attr : schema.getAttributeTypes().values())
+      for (AttributeType attr : schema.getAttributeTypes())
       {
         if (attr.isNoUserModification())
         {
@@ -487,10 +487,10 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     // Check all the attributes that we consider binaries.
     if (schema != null)
     {
-      AttributeType attr = schema.getAttributeType(
-          Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase());
-      if (attr != null)
+      String attributeName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+      if (schema.hasAttributeType(attributeName))
       {
+        AttributeType attr = schema.getAttributeType(attributeName);
         Syntax syntax = attr.getSyntax();
         if (syntax != null)
         {
@@ -574,9 +574,9 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     attrName = Utilities.getAttributeNameWithoutOptions(attrName);
     if (schema != null)
     {
-      AttributeType attrType = schema.getAttributeType(attrName.toLowerCase());
-      if (attrType != null)
+      if (schema.hasAttributeType(attrName.toLowerCase()))
       {
+        AttributeType attrType = schema.getAttributeType(attrName.toLowerCase());
         isEditable = !attrType.isNoUserModification();
       }
     }

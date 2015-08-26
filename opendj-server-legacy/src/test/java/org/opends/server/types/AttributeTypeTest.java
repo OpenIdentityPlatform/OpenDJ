@@ -20,12 +20,13 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
 import static org.opends.server.core.DirectoryServer.*;
 
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.testng.Assert;

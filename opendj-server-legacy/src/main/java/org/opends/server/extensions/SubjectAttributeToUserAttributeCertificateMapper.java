@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.extensions;
@@ -59,7 +59,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -421,7 +421,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
 
   /**
-   * Tries to normalize the given attribute name; if normalization is not
+   * Normalizes the given attribute name; if normalization is not
    * possible the original String value is returned.
    *
    * @param   attrName  The attribute name which should be normalized.
@@ -430,14 +430,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   private static String normalizeAttributeName(String attrName)
   {
     AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
-    if (attrType != null)
-    {
-      String attrNameNormalized = attrType.getNormalizedPrimaryNameOrOID();
-      if (attrNameNormalized != null)
-      {
-        return attrNameNormalized;
-      }
-    }
-    return attrName;
+    return attrType != null ? attrType.getNormalizedNameOrOID() : attrName;
   }
 }

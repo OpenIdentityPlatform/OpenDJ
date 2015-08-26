@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  *      Portions Copyright 2012 Manuel Gaupp
  */
 package org.opends.server.schema;
 
-
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.List;
@@ -36,13 +36,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.util.Option;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CountryStringAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class defines the country string attribute syntax, which should be a
@@ -71,37 +70,22 @@ public class CountryStringSyntax
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(CountryStringAttributeSyntaxCfg configuration, ServerContext serverContext)
-         throws ConfigException
+      throws ConfigException, DirectoryException
   {
     this.config = configuration;
     this.serverContext = serverContext;
-    updateNewSchema();
+    serverContext.getSchema().updateSchemaOption(STRICT_FORMAT_FOR_COUNTRY_STRINGS, config.isStrictFormat());
     config.addCountryStringChangeListener(this);
   }
 
-  /** Update the option in new schema if it changes from current value. */
-  private void updateNewSchema()
-  {
-    Option<Boolean> option = SchemaOptions.STRICT_FORMAT_FOR_COUNTRY_STRINGS;
-    if (config.isStrictFormat() != serverContext.getSchemaNG().getOption(option))
-    {
-      SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-      schemaUpdater.updateSchema(
-          schemaUpdater.getSchemaBuilder().setOption(option, config.isStrictFormat()).toSchema());
-    }
-  }
-
-  /** {@inheritDoc} */
   @Override
   public Syntax getSDKSyntax(Schema schema)
   {
     return schema.getSyntax(SchemaConstants.SYNTAX_COUNTRY_STRING_OID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       CountryStringAttributeSyntaxCfg configuration,
@@ -111,46 +95,36 @@ public class CountryStringSyntax
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      CountryStringAttributeSyntaxCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(CountryStringAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
-    updateNewSchema();
-    return new ConfigChangeResult();
+
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    try
+    {
+      serverContext.getSchema().updateSchemaOption(STRICT_FORMAT_FOR_COUNTRY_STRINGS, config.isStrictFormat());
+    }
+    catch (DirectoryException e)
+    {
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
+    return ccr;
   }
 
-
-
-
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
   @Override
   public String getName()
   {
     return SYNTAX_COUNTRY_STRING_NAME;
   }
 
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
   @Override
   public String getOID()
   {
     return SYNTAX_COUNTRY_STRING_OID;
   }
 
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
   @Override
   public String getDescription()
   {

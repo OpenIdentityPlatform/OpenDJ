@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
 
@@ -659,7 +660,6 @@ public final class DN implements Comparable<DN>, Serializable
       // Create the new RDN with the provided information.
       RDN rdn = newRDN(attributeName, parsedValue);
 
-
       // Skip over any spaces that might be after the attribute value.
       b = ' ';
       while (dnReader.remaining() > 0 && (b = dnReader.readByte()) == ' ')
@@ -768,10 +768,7 @@ public final class DN implements Comparable<DN>, Serializable
 
         // Parse the value for this RDN component.
         parsedValue = parseAttributeValue(dnReader);
-
-
         addValue(attributeName, rdn, parsedValue);
-
 
         // Skip over any spaces that might be after the attribute value.
         // Skip over any spaces that might be after the attribute value.
@@ -1082,9 +1079,6 @@ public final class DN implements Comparable<DN>, Serializable
         // Parse the value for this RDN component.
         parsedValue.clear();
         pos = parseAttributeValue(dnString, pos, parsedValue);
-
-
-        // Create the new RDN with the provided information.
         addValue(attributeName, rdn, parsedValue.toByteString());
 
 
@@ -2613,5 +2607,6 @@ public final class DN implements Comparable<DN>, Serializable
   {
     return toNormalizedByteString().compareTo(other.toNormalizedByteString());
   }
+
 }
 

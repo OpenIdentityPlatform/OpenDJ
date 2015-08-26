@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -38,8 +38,9 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.*;
 import org.opends.server.types.*;
@@ -80,7 +81,9 @@ public class SchemaConfigManager
   public SchemaConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    schema = new Schema();
+    // the manager will build the schema from scratch, but we need to start from
+    // core schema for SDK schema
+    schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
   }
 
 
@@ -134,8 +137,7 @@ public class SchemaConfigManager
   public void initializeMatchingRules()
          throws ConfigException, InitializationException
   {
-    MatchingRuleConfigManager matchingRuleConfigManager =
-         new MatchingRuleConfigManager();
+    MatchingRuleConfigManager matchingRuleConfigManager = new MatchingRuleConfigManager(serverContext);
     matchingRuleConfigManager.initializeMatchingRules();
   }
 
@@ -300,7 +302,7 @@ public class SchemaConfigManager
     // from that entry and parse them to initialize the server schema.
     for (String schemaFile : fileNames)
     {
-      loadSchemaFile(serverContext, schema, schemaFile, false);
+      loadSchemaFile(schema, schemaFile, false);
     }
   }
 
@@ -308,9 +310,6 @@ public class SchemaConfigManager
 
   /**
    * Loads the contents of the specified schema file into the provided schema.
-   *
-   * @param serverContext
-   *          The server context.
    *
    * @param  schema      The schema in which the contents of the schema file are
    *                     to be loaded.
@@ -327,10 +326,10 @@ public class SchemaConfigManager
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  public static List<Modification> loadSchemaFile(ServerContext serverContext, Schema schema, String schemaFile)
+  public static List<Modification> loadSchemaFile(Schema schema, String schemaFile)
          throws ConfigException, InitializationException
   {
-    return loadSchemaFile(serverContext, schema, schemaFile, true);
+    return loadSchemaFile(schema, schemaFile, true);
   }
 
 
@@ -360,7 +359,7 @@ public class SchemaConfigManager
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  private static List<Modification> loadSchemaFile(ServerContext serverContext, Schema schema, String schemaFile,
+  private static List<Modification> loadSchemaFile(Schema schema, String schemaFile,
       boolean failOnError) throws ConfigException, InitializationException
   {
     // Create an LDIF reader to use when reading the files.
@@ -464,8 +463,7 @@ public class SchemaConfigManager
       }
     }
 
-    parseLdapSyntaxesDefinitions(serverContext, schema, schemaFile, failOnError,
-        ldapSyntaxList);
+    parseLdapSyntaxesDefinitions(schema, schemaFile, failOnError, ldapSyntaxList);
     parseAttributeTypeDefinitions(schema, schemaFile, failOnError, attrList);
     parseObjectclassDefinitions(schema, schemaFile, failOnError, ocList);
     parseNameFormDefinitions(schema, schemaFile, failOnError, nfList);
@@ -485,7 +483,7 @@ public class SchemaConfigManager
       syntax = CoreSchema.getLDAPSyntaxDescriptionSyntax();
     }
 
-    AttributeType ldapSyntaxAttrType = getAttributeType(schema, ATTR_LDAP_SYNTAXES, ATTR_LDAP_SYNTAXES_LC, syntax);
+    AttributeType ldapSyntaxAttrType = schema.getAttributeType(ATTR_LDAP_SYNTAXES, syntax);
     return createAddModifications(entry, mods, ldapSyntaxAttrType);
   }
 
@@ -498,8 +496,7 @@ public class SchemaConfigManager
     {
       syntax = CoreSchema.getAttributeTypeDescriptionSyntax();
     }
-    AttributeType attributeAttrType = getAttributeType(
-        schema, ATTR_ATTRIBUTE_TYPES, ATTR_ATTRIBUTE_TYPES_LC, syntax);
+    AttributeType attributeAttrType = schema.getAttributeType(ATTR_ATTRIBUTE_TYPES, syntax);
     return createAddModifications(entry, mods, attributeAttrType);
   }
 
@@ -513,7 +510,7 @@ public class SchemaConfigManager
     {
       syntax = CoreSchema.getObjectClassDescriptionSyntax();
     }
-    AttributeType objectclassAttrType = getAttributeType(schema, ATTR_OBJECTCLASSES, ATTR_OBJECTCLASSES_LC, syntax);
+    AttributeType objectclassAttrType = schema.getAttributeType(ATTR_OBJECTCLASSES, syntax);
     return createAddModifications(entry, mods, objectclassAttrType);
   }
 
@@ -527,8 +524,7 @@ public class SchemaConfigManager
     {
       syntax = CoreSchema.getNameFormDescriptionSyntax();
     }
-    AttributeType nameFormAttrType = getAttributeType(
-        schema, ATTR_NAME_FORMS, ATTR_NAME_FORMS_LC, syntax);
+    AttributeType nameFormAttrType = schema.getAttributeType(ATTR_NAME_FORMS, syntax);
     return createAddModifications(entry, mods, nameFormAttrType);
   }
 
@@ -542,8 +538,7 @@ public class SchemaConfigManager
     {
       syntax = CoreSchema.getDITContentRuleDescriptionSyntax();
     }
-    AttributeType dcrAttrType = getAttributeType(
-        schema, ATTR_DIT_CONTENT_RULES, ATTR_DIT_CONTENT_RULES_LC, syntax);
+    AttributeType dcrAttrType = schema.getAttributeType(ATTR_DIT_CONTENT_RULES, syntax);
     return createAddModifications(entry, mods, dcrAttrType);
   }
 
@@ -557,7 +552,7 @@ public class SchemaConfigManager
     {
       syntax = CoreSchema.getDITStructureRuleDescriptionSyntax();
     }
-    AttributeType dsrAttrType = getAttributeType(schema, ATTR_DIT_STRUCTURE_RULES, ATTR_DIT_STRUCTURE_RULES_LC, syntax);
+    AttributeType dsrAttrType = schema.getAttributeType(ATTR_DIT_STRUCTURE_RULES, syntax);
     return createAddModifications(entry, mods, dsrAttrType);
   }
 
@@ -571,19 +566,8 @@ public class SchemaConfigManager
     {
       syntax = CoreSchema.getMatchingRuleUseDescriptionSyntax();
     }
-    AttributeType mruAttrType = getAttributeType(schema, ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULE_USE_LC, syntax);
+    AttributeType mruAttrType = schema.getAttributeType(ATTR_MATCHING_RULE_USE, syntax);
     return createAddModifications(entry, mods, mruAttrType);
-  }
-
-  private static AttributeType getAttributeType(Schema schema, String attrName,
-      String attrLowerName, Syntax syntax)
-  {
-    final AttributeType attrType = schema.getAttributeType(attrLowerName);
-    if (attrType != null)
-    {
-      return attrType;
-    }
-    return DirectoryServer.getDefaultAttributeType(attrName, syntax);
   }
 
   private static List<Attribute> createAddModifications(Entry entry,
@@ -598,7 +582,7 @@ public class SchemaConfigManager
   }
 
   /** Parse the ldapsyntaxes definitions if there are any. */
-  private static void parseLdapSyntaxesDefinitions(ServerContext serverContext, Schema schema,
+  private static void parseLdapSyntaxesDefinitions(Schema schema,
       String schemaFile, boolean failOnError, List<Attribute> ldapSyntaxList)
       throws ConfigException
   {
@@ -608,56 +592,36 @@ public class SchemaConfigManager
       {
         for (ByteString v : a)
         {
-          LDAPSyntaxDescription syntaxDescription;
+          final String definition = Schema.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile);
           try
           {
-            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, serverContext, schema, false, false);
-            setExtraProperty(syntaxDescription, SCHEMA_PROPERTY_FILENAME, null);
-            setSchemaFile(syntaxDescription, schemaFile);
+            schema.registerLdapSyntaxDescription(definition, failOnError);
           }
           catch (DirectoryException de)
           {
             logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
-                    schemaFile,
-                    de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
-                    schemaFile, v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
-           // Register it with the schema.  We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          try
-          {
-            schema.registerLdapSyntaxDescription(syntaxDescription, failOnError);
-            registerLdapSyntaxInSchemaNG(serverContext, syntaxDescription, failOnError);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX, schemaFile, de.getMessageObject());
-
-            try
+            if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
             {
-              schema.registerLdapSyntaxDescription(syntaxDescription, true);
-              registerLdapSyntaxInSchemaNG(serverContext, syntaxDescription, true);
+              // Register it with the schema.  We will allow duplicates, with the
+              // later definition overriding any earlier definition, but we want
+              // to trap them and log a warning.
+              logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX, schemaFile, de.getMessageObject());
+              try
+              {
+                schema.registerLdapSyntaxDescription(definition, true);
+              }
+              catch (Exception e)
+              {
+                // This should never happen.
+                logger.traceException(e);
+              }
             }
-            catch (Exception e)
+            else
             {
-              // This should never happen.
-              logger.traceException(e);
+              LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
+                  schemaFile, de.getMessageObject());
+              reportError(failOnError, de, message);
             }
           }
         }
@@ -665,80 +629,49 @@ public class SchemaConfigManager
     }
   }
 
-  private static void registerLdapSyntaxInSchemaNG(ServerContext serverContext, LDAPSyntaxDescription syntaxDescription,
-      boolean overwrite)
-  {
-     // The server context may be null when this code is reached through non-server code (e.g. gui tools)
-     if (serverContext != null)
-     {
-        SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-        Syntax.Builder builder = schemaUpdater.getSchemaBuilder().buildSyntax(syntaxDescription.getSyntax());
-        SchemaBuilder schemaBuilder = overwrite ? builder.addToSchemaOverwrite() : builder.addToSchema();
-        schemaUpdater.updateSchema(schemaBuilder.toSchema());
-     }
-  }
-
   /** Parse the attribute type definitions if there are any. */
-  private static void parseAttributeTypeDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> attrList)
-      throws ConfigException
+  private static void parseAttributeTypeDefinitions(
+      Schema schema, String schemaFile, boolean failOnError, List<Attribute> attrList)
+          throws ConfigException
   {
     if (attrList != null)
     {
+      List<String> definitions = new ArrayList<>();
       for (Attribute a : attrList)
       {
         for (ByteString v : a)
         {
-          // Parse the attribute type.
-          AttributeType attrType;
-          try
-          {
-            attrType = AttributeTypeSyntax.decodeAttributeType(v, schema, false);
-            setExtraProperty(attrType, SCHEMA_PROPERTY_FILENAME, null);
-            setSchemaFile(attrType, schemaFile);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          definitions.add(v.toString());
+        }
+      }
+      try
+      {
+        schema.registerAttributeTypes(definitions, schemaFile, !failOnError);
+      }
+      catch (DirectoryException de)
+      {
+        logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
-                    schemaFile, de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
-                    schemaFile, v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
-          // Register it with the schema.  We will allow duplicates, with the
+        if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+        {
+          // Register it with the schema. We will allow duplicates, with the
           // later definition overriding any earlier definition, but we want
           // to trap them and log a warning.
+          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE, schemaFile, de.getMessageObject());
           try
           {
-            schema.registerAttributeType(attrType, failOnError);
+            schema.registerAttributeTypes(definitions, schemaFile, true);
           }
-          catch (DirectoryException de)
+          catch (DirectoryException e)
           {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE, schemaFile, de.getMessageObject());
-
-            try
-            {
-              schema.registerAttributeType(attrType, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
+            // This should never happen
+            logger.traceException(e);
           }
+        }
+        else
+        {
+          LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(schemaFile, de.getMessageObject());
+          reportError(failOnError, de, message);
         }
       }
     }

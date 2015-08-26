@@ -92,6 +92,7 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
@@ -879,7 +880,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Get attribute from attributes1
       AttributeType attributeType1 = schema.getAttributeType(attrName1);
-      if (attributeType1 == null)
+      if (attributeType1.isPlaceHolder())
       {
         throw new ConfigException(
           NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(attrName1));
@@ -889,7 +890,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       for (String attrName2 : attributes2)
       {
         AttributeType attributeType2 = schema.getAttributeType(attrName2);
-        if (attributeType2 == null)
+        if (attributeType2.isPlaceHolder())
         {
           throw new ConfigException(
             NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(attrName2));
@@ -978,7 +979,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
         // Does the attribute exist ?
         AttributeType attributeType = schema.getAttributeType(attrName);
-        if (attributeType != null)
+        if (!attributeType.isPlaceHolder())
         {
           // No more checking for the extensibleObject class
           if (!isExtensibleObjectClass
@@ -1296,7 +1297,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
    private static boolean isFractionalProhibited(AttributeType attrType)
    {
-     String attributeName = attrType.getPrimaryName();
+     String attributeName = attrType.getNameOrOID();
      return (attributeName != null && isFractionalProhibitedAttr(attributeName))
          || isFractionalProhibitedAttr(attrType.getOID());
    }
@@ -1304,12 +1305,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private static boolean canRemoveAttribute(AttributeType attributeType,
       boolean fractionalExclusive, Set<String> fractionalConcernedAttributes)
   {
-    String attributeName = attributeType.getPrimaryName();
+    String attributeName = attributeType.getNameOrOID();
     String attributeOid = attributeType.getOID();
 
     // Is the current attribute part of the established list ?
-    boolean foundAttribute =
-        contains(fractionalConcernedAttributes, attributeName, attributeOid);
+    boolean foundAttribute = contains(fractionalConcernedAttributes, attributeName, attributeOid);
     // Now remove the attribute or modification if:
     // - exclusive mode and attribute is in configuration
     // - inclusive mode and attribute is not in configuration
@@ -1323,11 +1323,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         || (!foundAttribute && !fractionalExclusive);
   }
 
-  private static boolean contains(Set<String> attrNames, String attrName,
-      String attrOID)
+  private static boolean contains(Set<String> attrNames, String attrName, String attrOID)
   {
-    return attrNames.contains(attrOID)
-        || (attrName != null && attrNames.contains(attrName.toLowerCase()));
+    return attrNames.contains(attrOID) || attrNames.contains(attrName.toLowerCase());
   }
 
   /**

@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin;
-
-
 
 import java.util.SortedSet;
 import org.opends.server.admin.Configuration;
@@ -34,10 +32,8 @@ import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
-
-
 
 /**
  * A server-side interface for querying Test Parent settings.

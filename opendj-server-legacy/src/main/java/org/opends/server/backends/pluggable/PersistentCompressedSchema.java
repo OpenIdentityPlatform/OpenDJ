@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -46,6 +46,7 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -80,6 +81,8 @@ final class PersistentCompressedSchema extends CompressedSchema
   /**
    * Creates a new instance of this compressed schema manager.
    *
+   * @param serverContext
+   *          The server context.
    * @param storage
    *          A reference to the storage in which the trees will be held.
    * @param txn a non null transaction
@@ -92,9 +95,10 @@ final class PersistentCompressedSchema extends CompressedSchema
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
    */
-  PersistentCompressedSchema(final Storage storage, WriteableTransaction txn, AccessMode accessMode)
-      throws StorageRuntimeException, InitializationException
+  PersistentCompressedSchema(ServerContext serverContext, final Storage storage, WriteableTransaction txn,
+      AccessMode accessMode) throws StorageRuntimeException, InitializationException
   {
+    super(serverContext);
     this.storage = storage;
     load(txn, accessMode.isWriteable());
   }

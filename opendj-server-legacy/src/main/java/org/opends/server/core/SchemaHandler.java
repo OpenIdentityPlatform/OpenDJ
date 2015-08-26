@@ -21,12 +21,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl.*;
+import static org.opends.server.schema.AciSyntax.*;
+import static org.opends.server.schema.SubtreeSpecificationSyntax.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -51,8 +54,10 @@ import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.SchemaProviderCfg;
 import org.forgerock.util.Utils;
 import org.opends.server.schema.SchemaProvider;
-import org.opends.server.schema.SchemaUpdater;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Schema.SchemaUpdater;
+import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 
 /**
  * Responsible for loading the server schema.
@@ -64,6 +69,7 @@ import org.opends.server.types.InitializationException;
  *   <li>Load all schema files located in the schema directory.</li>
  * </ul>
  */
+@ActivateOnceSDKSchemaIsUsed
 public final class SchemaHandler
 {
   private static final String CORE_SCHEMA_PROVIDER_NAME = "Core Schema";
@@ -101,18 +107,47 @@ public final class SchemaHandler
     this.serverContext = serverContext;
 
     final RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-    final SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
+    final org.opends.server.types.Schema schema = serverContext.getSchema();
 
-    // Start from the core schema (TODO: or start with empty schema and add core schema in core schema provider ?)
-    final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
+    schema.exclusiveLock();
+    try
+    {
+      // Start from the core schema (TODO: or start with empty schema and add core schema in core schema provider ?)
+      final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
-    // Take providers into account.
-    loadSchemaFromProviders(rootConfiguration, schemaBuilder, schemaUpdater);
+      // Take providers into account.
+      loadSchemaFromProviders(rootConfiguration, schemaBuilder);
 
-    // Take schema files into account (TODO : or load files using provider mechanism ?)
-    completeSchemaFromFiles(schemaBuilder);
+      // Take schema files into account (TODO : or load files using provider mechanism ?)
+      completeSchemaFromFiles(schemaBuilder);
 
-    schemaUpdater.updateSchema(schemaBuilder.toSchema());
+      try
+      {
+        schema.updateSchema(new SchemaUpdater()
+        {
+          @Override
+          public Schema update(SchemaBuilder ignored)
+          {
+            // see RemoteSchemaLoader.readSchema()
+            addAciSyntax(schemaBuilder);
+            addSubtreeSpecificationSyntax(schemaBuilder);
+            addHistoricalCsnOrderingMatchingRule(schemaBuilder);
+
+            // Uses the builder incrementally updated instead of the default provided by the method.
+            // This is why it is necessary to explicitly lock/unlock the schema updater.
+            return schemaBuilder.toSchema();
+          }
+        });
+      }
+      catch (DirectoryException e)
+      {
+        throw new ConfigException(e.getMessageObject(), e);
+      }
+    }
+    finally
+    {
+      schema.exclusiveUnlock();
+    }
   }
 
   /**
@@ -123,22 +158,21 @@ public final class SchemaHandler
    * @param schemaBuilder
    *          The schema builder that providers should update.
    * @param schemaUpdater
-   *          The updater that providers should use when applying a
-   *          configuration change.
+   *          The updater that providers should use when applying a configuration change.
    */
-  private void loadSchemaFromProviders(final RootCfg rootConfiguration, final SchemaBuilder schemaBuilder,
-      final SchemaUpdater schemaUpdater)  throws ConfigException, InitializationException {
+  private void loadSchemaFromProviders(final RootCfg rootConfiguration, final SchemaBuilder schemaBuilder)
+      throws ConfigException, InitializationException {
     for (final String name : rootConfiguration.listSchemaProviders())
     {
       final SchemaProviderCfg config = rootConfiguration.getSchemaProvider(name);
       if (config.isEnabled())
       {
-        loadSchemaProvider(config.getJavaClass(), config, schemaBuilder, schemaUpdater, true);
+        loadSchemaProvider(config.getJavaClass(), config, schemaBuilder, true);
       }
-      else if (name.equals(CORE_SCHEMA_PROVIDER_NAME)) {
+      else if (name.equals(CORE_SCHEMA_PROVIDER_NAME))
+      {
         // TODO : use correct message ERR_CORE_SCHEMA_NOT_ENABLED
-        LocalizableMessage message = LocalizableMessage.raw("Core Schema can't be disabled");
-        throw new ConfigException(message);
+        throw new ConfigException(LocalizableMessage.raw("Core Schema can't be disabled"));
       }
     }
   }
@@ -147,11 +181,10 @@ public final class SchemaHandler
    * Load the schema provider from the provided class name.
    * <p>
    * If {@code} initialize} is {@code true}, then the provider is initialized,
-   * and the provided schema builder is updated with schema elements fropm the
-   * provider.
+   * and the provided schema builder is updated with schema elements from the provider.
    */
   private <T extends SchemaProviderCfg> SchemaProvider<T> loadSchemaProvider(final String className,
-      final T config, final SchemaBuilder schemaBuilder, final SchemaUpdater schemaUpdater, final boolean initialize)
+      final T config, final SchemaBuilder schemaBuilder, final boolean initialize)
       throws InitializationException
   {
     try
@@ -160,13 +193,14 @@ public final class SchemaHandler
       final Class<? extends SchemaProvider> providerClass = propertyDef.loadClass(className, SchemaProvider.class);
       final SchemaProvider<T> provider = providerClass.newInstance();
 
-      if (initialize) {
-        provider.initialize(config, schemaBuilder, schemaUpdater);
+      if (initialize)
+      {
+        provider.initialize(serverContext, config, schemaBuilder);
       }
-      else {
+      else
+      {
         final List<LocalizableMessage> unacceptableReasons = new ArrayList<>();
-        final boolean isAcceptable = provider.isConfigurationAcceptable(config, unacceptableReasons);
-        if (!isAcceptable)
+        if (!provider.isConfigurationAcceptable(config, unacceptableReasons))
         {
           final String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           // TODO : fix message, eg CONFIG SCHEMA PROVIDER CONFIG NOT ACCEPTABLE
@@ -176,11 +210,11 @@ public final class SchemaHandler
       return provider;
     }
     catch (Exception e)
-      {
-        // TODO : fix message
-        throw new InitializationException(ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.
-            get(className, config.dn(), stackTraceToSingleLineString(e)), e);
-      }
+    {
+      // TODO : fix message
+      throw new InitializationException(ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.get(
+          className, config.dn(), stackTraceToSingleLineString(e)), e);
+    }
   }
 
   /**

@@ -22,35 +22,31 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  *      Portions Copyright 2012 Manuel Gaupp
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.ServerContextBuilder;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.CountryStringAttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.DN;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test the CountryStringSyntax.
- */
+/** Test the CountryStringSyntax. */
 @RemoveOnceSDKSchemaIsUsed
 @Test
 public class CountryStringSyntaxTest extends AttributeSyntaxTest
 {
 
-  /** {@inheritDoc} */
   @Override
-  protected AttributeSyntax getRule()
+  protected AttributeSyntax<?> getRule() throws Exception
   {
     CountryStringSyntax syntax = new CountryStringSyntax();
     CountryStringAttributeSyntaxCfg cfg = new CountryStringAttributeSyntaxCfg()
@@ -132,24 +128,13 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
       }
     };
 
-    try
-    {
-      Schema schema = Schema.getCoreSchema();
-      ServerContext serverContext = ServerContextBuilder.aServerContext()
-        .schemaNG(schema)
-        .schemaUpdater(new ServerContextBuilder.MockSchemaUpdater(schema)).build();
-      syntax.initializeSyntax(cfg, serverContext);
-    }
-    catch (ConfigException e)
-    {
-      // Should never happen.
-      throw new RuntimeException(e);
-    }
-
+    ServerContext serverContext = ServerContextBuilder.aServerContext()
+        .schema(new org.opends.server.types.Schema(Schema.getCoreSchema()))
+        .build();
+    syntax.initializeSyntax(cfg, serverContext);
     return syntax;
   }
 
-  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()
@@ -164,5 +149,4 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
         {"\u00D6\u00C4", false},
     };
   }
-
 }

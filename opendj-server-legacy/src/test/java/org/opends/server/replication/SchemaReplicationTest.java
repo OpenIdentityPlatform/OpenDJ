@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -130,7 +130,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     {
       // Modify the schema
       Attribute attr = Attributes.create("attributetypes",
-          "( 2.5.44.77.33 NAME 'dummy' )");
+          "( 2.5.44.77.33 NAME 'dummy' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )");
       Modification mod = new Modification(ADD, attr);
       processModify(baseDN, mod);
 

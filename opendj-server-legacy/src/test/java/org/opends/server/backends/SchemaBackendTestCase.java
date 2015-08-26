@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -43,6 +43,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -58,7 +59,17 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.*;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
@@ -3169,10 +3180,15 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999001;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
-    assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, true);
+  }
+
+  private void assertSchemaHasDITStructureRule(int ruleID, boolean expected)
+  {
+    assertEquals(DirectoryServer.getSchema().getDITStructureRulesByID().containsKey(ruleID), expected);
   }
 
   /**
@@ -3215,10 +3231,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999002;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
-    assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, true);
   }
 
   /**
@@ -3255,14 +3271,14 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999010;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
                                "98-schema-test-dsr.ldif");
     assertFalse(schemaFile.exists());
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
-    assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, true);
 
     assertTrue(schemaFile.exists());
   }
@@ -3314,10 +3330,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999003;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
-    assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, true);
   }
 
   /**
@@ -3340,10 +3356,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999004;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
   }
 
   /**
@@ -3377,10 +3393,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999005;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
   }
 
   /**
@@ -3499,10 +3515,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999006;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
   }
 
   /**
@@ -3556,10 +3572,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     int ruleID = 999007;
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
-    assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, true);
 
     ldif = toLdif(
          "dn: cn=schema",
@@ -3575,7 +3591,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
-    assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
+    assertSchemaHasDITStructureRule(ruleID, false);
   }
 
   private MatchingRule getMatchingRule(String name, String oid, boolean isObsolete)
@@ -3612,7 +3628,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddMRUSuccessful' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
@@ -3644,7 +3660,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-SCHEMA-FILE '98-schema-test-mru.ldif' " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
                                "98-schema-test-mru.ldif");
@@ -3688,7 +3704,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testReplaceMRUSuccessful' APPLIES ( cn $ sn ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
 
@@ -3730,7 +3746,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testRemoveAndAddMRU' APPLIES ( cn $ sn ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
@@ -3769,7 +3785,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddMRUMRConflict2' APPLIES sn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
 
@@ -3822,7 +3838,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "APPLIES xxxundefinedxxx " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
@@ -3850,9 +3866,14 @@ public class SchemaBackendTestCase extends BackendTestCase
               "APPLIES ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
+  }
+
+  private void assertSchemaDoesNotHaveMatchingRuleUse(MatchingRule matchingRule)
+  {
+    assertFalse(DirectoryServer.getSchema().getMatchingRuleUses().containsKey(matchingRule));
   }
 
   /**
@@ -3876,7 +3897,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddMatchingRuleUseObsoleteMatchingRule' " +
               "APPLIES cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
@@ -3907,7 +3928,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "APPLIES testAddMRUObsoleteAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
@@ -3964,7 +3985,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testRemoveMRUSuccessful' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
@@ -4236,7 +4257,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testmatchingruleusematchingruleat1";
-    assertNull(DirectoryServer.getSchema().getAttributeType(attrName));
+
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
@@ -4272,7 +4294,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
-         "objectClasses: ( testissue1318oc1-oid NAME 'testIssue1381OC1' )",
+         "objectClasses: ( testissue1318oc1-oid NAME 'testIssue1381OC1')",
          "",
          "dn: cn=schema",
          "changetype: modify",
@@ -4280,7 +4302,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "objectClasses: ( testissue1318oc1-oid NAME 'testIssue1381OC1' )",
          "-",
          "add: attributeTypes",
-         "attributeTypes: ( testissue1318at-oid NAME 'testIssue1381AT' )",
+         "attributeTypes: ( testissue1318at-oid NAME 'testIssue1381AT' SUP name)",
          "-",
          "add: objectClasses",
          "objectClasses: ( testissue1318oc2-oid NAME 'testIssue1381OC2' " +

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -52,7 +52,8 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
@@ -246,11 +247,7 @@ public class StandardAttributePanel extends SchemaElementPanel
    */
   public void update(AttributeType attr, Schema schema)
   {
-    String n = attr.getPrimaryName();
-    if (n == null)
-    {
-      n = NOT_APPLICABLE.toString();
-    }
+    String n = attr.getNameOrOID();
     titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     AttributeType superior = attr.getSuperiorType();
@@ -260,15 +257,11 @@ public class StandardAttributePanel extends SchemaElementPanel
     }
     else
     {
-      n = superior.getPrimaryName();
-    }
-    if (n == null)
-    {
-      n = NOT_APPLICABLE.toString();
+      n = superior.getNameOrOID();
     }
     parent.setText(n);
     oid.setText(attr.getOID());
-    origin.setText(StandardObjectClassPanel.getOrigin(attr).toString());
+    origin.setText(StandardObjectClassPanel.getOrigin(new SomeSchemaElement(attr)).toString());
     n = attr.getDescription();
     if (n == null)
     {

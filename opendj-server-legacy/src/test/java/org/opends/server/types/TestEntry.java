@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -40,9 +40,9 @@ import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.AttributeTypeSyntax;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -226,9 +226,7 @@ public final class TestEntry extends TypesTestCase {
     String string = "( 2.5.18.6 NAME 'subtreeSpecification' "
         + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.45 )";
 
-    AttributeType type = AttributeTypeSyntax.decodeAttributeType(
-        ByteString.valueOfUtf8(string),
-        DirectoryServer.getSchema(), false);
+    AttributeType type = DirectoryServer.getSchema().parseAttributeType(string);
 
     // Test values.
     String[] values = new String[] { "{ }",

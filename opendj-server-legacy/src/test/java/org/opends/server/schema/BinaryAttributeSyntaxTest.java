@@ -22,23 +22,24 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @RemoveOnceSDKSchemaIsUsed
 public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
 {
@@ -57,8 +58,9 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
    * Get an instance of the attribute syntax that must be tested.
    *
    * @return An instance of the attribute syntax that must be tested.
+   * @throws Exception if a problem occurs
    */
-  protected abstract AttributeSyntax getRule();
+  protected abstract AttributeSyntax<?> getRule() throws Exception;
 
   /**
    * Test the normalization and the approximate comparison.

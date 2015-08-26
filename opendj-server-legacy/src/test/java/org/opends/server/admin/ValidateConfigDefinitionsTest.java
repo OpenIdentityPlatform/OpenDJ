@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -38,7 +38,7 @@ import java.util.Set;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.testng.Assert;
@@ -188,13 +188,14 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
 
 
     Schema schema = DirectoryServer.getSchema();
-    AttributeType attrType = schema.getAttributeType(ldapAttrName.toLowerCase());
 
     // LDAP attribute exists
-    if (attrType == null) {
+    if (!schema.hasAttributeType(ldapAttrName.toLowerCase()))
+    {
       errors.append(propName + " property on config object " + objName + " is declared" +
                " to use ldap attribute " + ldapAttrName + ", but this attribute is not in the schema ").append(EOL + EOL);
     } else {
+      AttributeType attrType = schema.getAttributeType(ldapAttrName.toLowerCase());
 
       // LDAP attribute is multivalued if the property is multivalued
       if (propDef.hasOption(PropertyOption.MULTI_VALUED) && attrType.isSingleValue()) {

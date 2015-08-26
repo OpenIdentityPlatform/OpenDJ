@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS
+ *      Portions Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class defines a line that may appear in a template or branch.  It may

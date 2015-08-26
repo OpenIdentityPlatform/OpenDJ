@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -53,6 +53,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import static org.opends.server.protocols.internal.Requests.*;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;

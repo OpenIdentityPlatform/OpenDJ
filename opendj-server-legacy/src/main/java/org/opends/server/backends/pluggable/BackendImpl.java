@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -66,7 +66,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
@@ -123,6 +123,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
       OID_VLV_REQUEST_CONTROL);
 
+  private ServerContext serverContext;
+
   /**
    * Begin a Backend API method that accesses the {@link EntryContainer} for <code>entryDN</code>
    * and returns it.
@@ -177,6 +179,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     Reject.ifNull(cfg, "cfg must not be null");
 
     this.cfg = cfg;
+    this.serverContext = serverContext;
     baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
     storage = new TracedStorage(configureStorage(cfg, serverContext), cfg.getBackendId());
   }
@@ -1021,7 +1024,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
           throws ConfigException, InitializationException {
     // Open the storage
     try {
-      final RootContainer rc = new RootContainer(getBackendID(), storage, cfg);
+      final RootContainer rc = new RootContainer(getBackendID(), serverContext, storage, cfg);
       rc.open(accessMode);
       return rc;
     }

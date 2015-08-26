@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -32,9 +32,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
@@ -45,9 +42,9 @@ import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.loggers.CommonAudit;
-import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.*;
 
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -120,19 +117,16 @@ public class CoreConfigManager
       }
     }
 
-
-    // Apply the configuration to the server.
     applyGlobalConfiguration(globalConfig, serverContext);
   }
-
-
 
   /**
    * Applies the settings in the provided configuration to the Directory Server.
    *
    * @param  globalConfig  The configuration settings to be applied.
    */
-  private static void applyGlobalConfiguration(GlobalCfg globalConfig, ServerContext serverContext)
+  private static void applyGlobalConfiguration(final GlobalCfg globalConfig, final ServerContext serverContext)
+      throws ConfigException
   {
     setCheckSchema(globalConfig.isCheckSchema());
     setDefaultPasswordPolicyDN(globalConfig.getDefaultPasswordPolicyDN());
@@ -170,17 +164,16 @@ public class CoreConfigManager
       commonAudit.setTrustTransactionIds(globalConfig.isTrustTransactionIds());
     }
 
-    // Update the "new" schema with configuration changes
-    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-    SchemaBuilder schemaBuilder = schemaUpdater.getSchemaBuilder();
-    boolean allowMalformedNames = globalConfig.isAllowAttributeNameExceptions();
-    schemaBuilder.setOption(SchemaOptions.ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowMalformedNames);
-    Schema schema = schemaBuilder.toSchema();
-    if (!globalConfig.isCheckSchema())
+    // Update the "new" schema with configuration changes if necessary
+    try
     {
-      schema = schema.asNonStrictSchema();
+      final boolean allowMalformedNames = globalConfig.isAllowAttributeNameExceptions();
+      serverContext.getSchema().updateSchemaOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowMalformedNames);
     }
-    schemaUpdater.updateSchema(schema);
+    catch (DirectoryException e)
+    {
+      throw new ConfigException(e.getMessageObject(), e);
+    }
   }
 
   private static AcceptRejectWarn convert(InvalidAttributeSyntaxBehavior invalidAttributeSyntaxBehavior)
@@ -326,8 +319,6 @@ public class CoreConfigManager
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(GlobalCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -346,8 +337,7 @@ public class CoreConfigManager
         }
         catch (RuntimeException e)
         {
-          LocalizableMessage message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
-          unacceptableReasons.add(message);
+          unacceptableReasons.add(ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server));
           configAcceptable = false;
         }
       }
@@ -370,17 +360,19 @@ public class CoreConfigManager
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(GlobalCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    applyGlobalConfiguration(configuration, serverContext);
-
+    try
+    {
+      applyGlobalConfiguration(configuration, serverContext);
+    }
+    catch (ConfigException e)
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
     return ccr;
   }
 }
-

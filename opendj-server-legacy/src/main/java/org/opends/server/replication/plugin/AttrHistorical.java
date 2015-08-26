@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock, AS.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -32,7 +32,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -42,6 +42,7 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
@@ -1299,7 +1300,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getDetails().toString(), errorDetails);
   }
 
-  @DataProvider(name = "initializeTargetMsgV3")
+  @DataProvider
   public Object[][] createInitializeTargetMsgV3()
   {
     return new Object[][] {
@@ -1320,7 +1321,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getEntryCount(), entryCount);
   }
 
-  @DataProvider(name = "initializeRequestMsgV3")
+  @DataProvider
   public Object[][] createInitializeRequestMsgV3()
   {
     return new Object[][] {

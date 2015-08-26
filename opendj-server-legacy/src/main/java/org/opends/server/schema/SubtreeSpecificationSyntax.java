@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -32,16 +32,16 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.types.SubtreeSpecification;
-
 
 /**
  * This class defines the subtree specification attribute syntax,
@@ -63,76 +63,61 @@ public final class SubtreeSpecificationSyntax
     // No implementation required.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration, ServerContext serverContext)
-      throws ConfigException
+      throws ConfigException, DirectoryException
   {
     // Add the subtree specification syntax to the "new" schema
-    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-    SchemaBuilder builder = schemaUpdater.getSchemaBuilder().buildSyntax(SYNTAX_SUBTREE_SPECIFICATION_OID)
-      .description(SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION)
-      .implementation(new SubtreeSpecificationSyntaxImpl())
-      .addToSchema();
-    schemaUpdater.updateSchema(builder.toSchema());
+    serverContext.getSchema().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public Schema update(SchemaBuilder builder)
+      {
+        return addSubtreeSpecificationSyntax(builder).toSchema();
+      }
+    });
   }
 
-  /** {@inheritDoc} */
+  /**
+   * Adds the subtree specification syntax to the provided schema builder.
+   *
+   * @param builder
+   *          where to add the subtree specification syntax
+   * @return the provided builder
+   */
+  public static SchemaBuilder addSubtreeSpecificationSyntax(SchemaBuilder builder)
+  {
+    return builder
+        .buildSyntax(SYNTAX_SUBTREE_SPECIFICATION_OID)
+        .description(SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION)
+        .implementation(new SubtreeSpecificationSyntaxImpl())
+        .addToSchema();
+  }
+
   @Override
   public Syntax getSDKSyntax(Schema schema)
   {
     return schema.getSyntax(SchemaConstants.SYNTAX_SUBTREE_SPECIFICATION_OID);
   }
 
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return The common name for this attribute syntax.
-   */
   @Override
   public String getName() {
-
     return SYNTAX_SUBTREE_SPECIFICATION_NAME;
   }
 
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return The OID for this attribute syntax.
-   */
   @Override
   public String getOID() {
-
     return SYNTAX_SUBTREE_SPECIFICATION_OID;
   }
 
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return A description for this attribute syntax.
-   */
   @Override
   public String getDescription() {
-
     return SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION;
   }
 
-  /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   *
-   * @param value
-   *          The value for which to make the determination.
-   * @param invalidReason
-   *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
-   */
   @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason) {
-
     // Use the subtree specification code to make this determination.
     try {
       SubtreeSpecification.valueOf(DN.rootDN(), value.toString());
@@ -146,14 +131,12 @@ public final class SubtreeSpecificationSyntax
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

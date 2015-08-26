@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -38,9 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
@@ -594,8 +592,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   protected Attribute createAttribute(String name, Object value)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(name.toLowerCase());
-    return Attributes.create(attrType, String.valueOf(value));
+    return Attributes.create(name, String.valueOf(value));
   }
 
 

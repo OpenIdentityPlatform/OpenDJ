@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

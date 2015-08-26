@@ -21,14 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
-import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
 
@@ -69,14 +68,6 @@ public interface ServerContext
    * @return the new version of the schema
    */
   org.forgerock.opendj.ldap.schema.Schema getSchemaNG();
-
-  /**
-   * Returns the schema updater, which provides
-   * a mean to update the server's current schema.
-   *
-   * @return the schema updater
-   */
-  SchemaUpdater getSchemaUpdater();
 
   /**
    * Returns the environment of the server.

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -56,6 +56,7 @@ import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 
 import com.forgerock.opendj.cli.Argument;

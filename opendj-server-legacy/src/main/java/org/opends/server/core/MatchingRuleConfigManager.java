@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -36,7 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -48,12 +50,12 @@ import org.opends.server.admin.std.meta.MatchingRuleCfgDefn;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.opends.server.schema.CollationMatchingRuleFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Schema;
 
 /**
  * This class defines a utility that will be used to manage the set of matching
@@ -76,9 +78,17 @@ public class MatchingRuleConfigManager
    */
   private ConcurrentHashMap<DN,MatchingRuleFactory> matchingRuleFactories;
 
-  /** Creates a new instance of this matching rule config manager. */
-  public MatchingRuleConfigManager()
+  private final ServerContext serverContext;
+
+  /**
+   * Creates a new instance of this matching rule config manager.
+   *
+   * @param serverContext
+   *          The server context.
+   */
+  public MatchingRuleConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     matchingRuleFactories = new ConcurrentHashMap<>();
   }
 
@@ -100,8 +110,7 @@ public class MatchingRuleConfigManager
          throws ConfigException, InitializationException
   {
     // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
+    ServerManagementContext managementContext = ServerManagementContext.getInstance();
     RootCfg rootConfiguration =
          managementContext.getRootConfiguration();
 
@@ -110,7 +119,6 @@ public class MatchingRuleConfigManager
     // can be notified if any matching rule entries are added or removed.
     rootConfiguration.addMatchingRuleAddListener(this);
     rootConfiguration.addMatchingRuleDeleteListener(this);
-
 
     //Initialize the existing matching rules.
     for (String name : rootConfiguration.listMatchingRules())
@@ -123,14 +131,18 @@ public class MatchingRuleConfigManager
         String className = mrConfiguration.getJavaClass();
         try
         {
-          MatchingRuleFactory<?> factory =
-               loadMatchingRuleFactory(className, mrConfiguration, true);
+          MatchingRuleFactory<?> factory = loadMatchingRuleFactory(className, mrConfiguration, true);
 
           try
           {
             for(MatchingRule matchingRule: factory.getMatchingRules())
             {
-              DirectoryServer.registerMatchingRule(matchingRule, false);
+              Schema schema = serverContext.getSchema();
+              // skip the matching rule registration if already defined in the (core) schema
+              if (!schema.hasMatchingRule(matchingRule.getNameOrOID()))
+              {
+                DirectoryServer.registerMatchingRule(matchingRule, false);
+              }
             }
             matchingRuleFactories.put(mrConfiguration.dn(), factory);
           }
@@ -237,7 +249,7 @@ public class MatchingRuleConfigManager
     {
       if (matchingRule != null)
       {
-        for (AttributeType at : DirectoryServer.getAttributeTypes().values())
+        for (AttributeType at : DirectoryServer.getAttributeTypes())
         {
           final String attr = at.getNameOrOID();
           if (!isDeleteAcceptable(at.getApproximateMatchingRule(), matchingRule, attr, unacceptableReasons)
@@ -339,7 +351,7 @@ public class MatchingRuleConfigManager
       {
         if (matchingRule != null)
         {
-          for (AttributeType at : DirectoryServer.getAttributeTypes().values())
+          for (AttributeType at : DirectoryServer.getAttributeTypes())
           {
             final String attr = at.getNameOrOID();
             if (!isDisableAcceptable(at.getApproximateMatchingRule(), matchingRule, attr, unacceptableReasons)
@@ -488,6 +500,13 @@ public class MatchingRuleConfigManager
            propertyDefinition.loadClass(className,
                                         MatchingRuleFactory.class);
       factory = matchingRuleFactoryClass.newInstance();
+      // specific behavior for collation
+      // in order to avoid useless injection of context server for all factories
+      if (factory instanceof CollationMatchingRuleFactory)
+      {
+        CollationMatchingRuleFactory collationFactory = (CollationMatchingRuleFactory) factory;
+        collationFactory.setServerContext(serverContext);
+      }
 
       if (initialize)
       {

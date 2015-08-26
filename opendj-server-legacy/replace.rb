@@ -406,7 +406,7 @@ class Replace
 
   ###############################  List of replacements to run #################################
 
-  REPLACEMENTS = [ SYNTAXES_TO_SDK, SYNTAXES_TO_SDK_SCM ]
+  REPLACEMENTS = [ ATTRTYPE ]
 
   ################################### Processing methods ########################################
 

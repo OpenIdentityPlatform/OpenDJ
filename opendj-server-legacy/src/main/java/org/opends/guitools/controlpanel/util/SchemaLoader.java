@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -42,7 +42,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
@@ -84,14 +84,13 @@ public class SchemaLoader
     }
     for (String name : ATTRIBUTES_TO_KEEP)
     {
-      AttributeType attr = sc.getAttributeType(name.toLowerCase());
-      if (attr != null)
+      if (sc.hasAttributeType(name))
       {
-        attributesToKeep.add(attr);
+        attributesToKeep.add(sc.getAttributeType(name));
       }
     }
-    matchingRulesToKeep.addAll(sc.getMatchingRules().values());
-    syntaxesToKeep.addAll(sc.getSyntaxes().values());
+    matchingRulesToKeep.addAll(sc.getMatchingRules());
+    syntaxesToKeep.addAll(sc.getSyntaxes());
   }
 
   private static String getSchemaDirectoryPath()
@@ -176,8 +175,7 @@ public class SchemaLoader
     //  initialize the server schema.
     for (String schemaFile : fileNames)
     {
-      // no server context to pass
-      SchemaConfigManager.loadSchemaFile(null, schema, schemaFile);
+      SchemaConfigManager.loadSchemaFile(schema, schemaFile);
     }
   }
 
@@ -191,7 +189,8 @@ public class SchemaLoader
    */
   protected Schema getBaseSchema() throws DirectoryException
   {
-    Schema schema = new Schema();
+    // start from default schema
+    Schema schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema());
     for (MatchingRule mr : matchingRulesToKeep)
     {
       schema.registerMatchingRule(mr, true);

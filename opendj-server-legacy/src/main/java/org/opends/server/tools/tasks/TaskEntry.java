@@ -22,17 +22,17 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
@@ -133,7 +133,7 @@ public class TaskEntry {
     // Build a map of non-superior attribute value pairs for display
     Map<AttributeType, List<Attribute>> attrMap = entry.getUserAttributes();
     for (AttributeType type : attrMap.keySet()) {
-      String typeName = type.getNameOrOID();
+      String typeName = type.getNormalizedNameOrOID();
 
       // See if we've handled it already above
       if (!supAttrNames.contains(typeName)) {

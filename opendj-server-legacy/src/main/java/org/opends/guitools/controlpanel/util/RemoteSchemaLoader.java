@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -38,7 +38,6 @@ import javax.naming.ldap.InitialLdapContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -50,14 +49,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
 import org.opends.server.schema.AciSyntax;
-import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDAPSyntaxDescription;
 import org.opends.server.types.Schema;
 
 /** Class used to retrieve the schema from the schema files. */
@@ -133,11 +129,12 @@ public class RemoteSchemaLoader extends SchemaLoader
     for (AttributeSyntax<?> syntax : syntaxes)
     {
       final ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
-      if (!serverContext.getSchemaNG().hasSyntax(syntax.getOID()))
+      final org.forgerock.opendj.ldap.schema.Schema schemaNG = serverContext.getSchemaNG();
+      if (!schemaNG.hasSyntax(syntax.getOID()))
       {
         syntax.initializeSyntax(null, serverContext);
       }
-      schema.registerSyntax(syntax.getSDKSyntax(serverContext.getSchemaNG()), true);
+      schema.registerSyntax(syntax.getSDKSyntax(schemaNG), true);
     }
   }
 
@@ -145,14 +142,15 @@ public class RemoteSchemaLoader extends SchemaLoader
       final MatchingRuleImpl impl)
       throws InitializationException, ConfigException, DirectoryException
   {
+    final org.forgerock.opendj.ldap.schema.Schema schemaNG = schema.getSchemaNG();
     final MatchingRule matchingRule;
-    if (CoreSchema.getInstance().hasMatchingRule(name))
+    if (schemaNG.hasMatchingRule(name))
     {
-      matchingRule = CoreSchema.getInstance().getMatchingRule(name);
+      matchingRule = schemaNG.getMatchingRule(name);
     }
     else
     {
-      matchingRule = new SchemaBuilder(CoreSchema.getInstance()).buildMatchingRule(oid)
+      matchingRule = new SchemaBuilder(schemaNG).buildMatchingRule(oid)
                                                                 .names(name)
                                                                 .syntaxOID(syntaxOID)
                                                                 .implementation(impl)
@@ -183,7 +181,7 @@ public class RemoteSchemaLoader extends SchemaLoader
           switch (schemaAttr)
           {
           case ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC:
-            schema.registerAttributeType(AttributeTypeSyntax.decodeAttributeType(sb, schema, false), true);
+            schema.registerAttributeType(sb.toString(), null, true);
             break;
           case ConfigConstants.ATTR_OBJECTCLASSES_LC:
             schema.registerObjectClass(ObjectClassSyntax.decodeObjectClass(sb, schema, false), true);
@@ -214,9 +212,7 @@ public class RemoteSchemaLoader extends SchemaLoader
       {
         try
         {
-          final LDAPSyntaxDescription syntaxDesc = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-              sb, DirectoryServer.getInstance().getServerContext(), schema, false, false);
-          schema.registerLdapSyntaxDescription(syntaxDesc, true);
+          schema.registerLdapSyntaxDescription(sb.toString(), true);
         }
         catch (DirectoryException e)
         {

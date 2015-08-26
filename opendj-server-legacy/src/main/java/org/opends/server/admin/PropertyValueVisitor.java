@@ -22,19 +22,16 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015-2016 ForgeRock AS
  */
-
 package org.opends.server.admin;
-
-
 
 import java.net.InetAddress;
 
 import org.forgerock.opendj.ldap.AddressMask;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.authorization.dseecompat.Aci;
-
 
 /**
  * A visitor of property values, in the style of the visitor design

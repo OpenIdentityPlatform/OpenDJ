@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.types;
+
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -88,7 +90,7 @@ public final class RDN
   {
     Reject.ifNull(attributeType, attributeValue);
     attributeTypes  = new AttributeType[] { attributeType };
-    attributeNames  = new String[] { attributeType.getPrimaryName() };
+    attributeNames  = new String[] { attributeType.getNameOrOID() };
     attributeValues = new ByteString[] { attributeValue };
   }
 
@@ -666,16 +668,11 @@ public final class RDN
     // don't return it yet because this could be a multi-valued RDN.
     String name            = attributeName.toString();
     String lowerName       = toLowerCase(name);
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
-    if (attrType == null)
-    {
-      // This must be an attribute type that we don't know about.
-      // In that case, we'll create a new attribute using the default
-      // syntax.  If this is a problem, it will be caught later either
-      // by not finding the target entry or by not allowing the entry
-      // to be added.
-      attrType = DirectoryServer.getAttributeTypeOrDefault(name);
-    }
+
+    // If using default is a problem, it will be caught later either
+    // by not finding the target entry or by not allowing the entry
+    // to be added.
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, name);
 
     RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
 
@@ -785,17 +782,7 @@ public final class RDN
       {
         name      = attributeName.toString();
         lowerName = toLowerCase(name);
-        attrType  = DirectoryServer.getAttributeTypeOrNull(lowerName);
-
-        if (attrType == null)
-        {
-          // This must be an attribute type that we don't know about.
-          // In that case, we'll create a new attribute using the
-          // default syntax.  If this is a problem, it will be caught
-          // later either by not finding the target entry or by not
-          // allowing the entry to be added.
-          attrType = DirectoryServer.getAttributeTypeOrDefault(name);
-        }
+        attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName.toString(), name);
 
         rdn.addValue(attrType, name, ByteString.empty());
         return rdn;
@@ -810,16 +797,10 @@ public final class RDN
       // Update the RDN to include the new attribute/value.
       name            = attributeName.toString();
       lowerName       = toLowerCase(name);
-      attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
-      if (attrType == null)
-      {
-        // This must be an attribute type that we don't know about.
-        // In that case, we'll create a new attribute using the
-        // default syntax.  If this is a problem, it will be caught
-        // later either by not finding the target entry or by not
-        // allowing the entry to be added.
-        attrType = DirectoryServer.getAttributeTypeOrDefault(name);
-      }
+      // If using default is a problem, it will be caught later either
+      // by not finding the target entry or by not allowing the entry
+      // to be added.
+      attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, name);
 
       rdn.addValue(attrType, name, parsedValue.toByteString());
 
@@ -1091,7 +1072,7 @@ public final class RDN
    */
   private ByteStringBuilder normalizeAVAToByteString(int position, final ByteStringBuilder builder)
   {
-    builder.appendUtf8(attributeTypes[position].getNormalizedPrimaryNameOrOID());
+    builder.appendUtf8(attributeTypes[position].getNormalizedNameOrOID());
     builder.appendUtf8("=");
     final ByteString value = getEqualityNormalizedValue(position);
     if (value.length() > 0)
@@ -1156,7 +1137,7 @@ public final class RDN
    */
   private StringBuilder normalizeAVAToUrlSafeString(int position, StringBuilder builder)
   {
-      builder.append(attributeTypes[position].getNormalizedPrimaryNameOrOID());
+      builder.append(attributeTypes[position].getNormalizedNameOrOID());
       builder.append('=');
 
       ByteString value = getEqualityNormalizedValue(position);
@@ -1164,7 +1145,7 @@ public final class RDN
       {
         return builder;
       }
-      final boolean hasAttributeName = attributeTypes[position].getPrimaryName() != null;
+      final boolean hasAttributeName = !attributeTypes[position].getNames().isEmpty();
       final boolean isHumanReadable = attributeTypes[position].getSyntax().isHumanReadable();
       if (!hasAttributeName || !isHumanReadable)
       {

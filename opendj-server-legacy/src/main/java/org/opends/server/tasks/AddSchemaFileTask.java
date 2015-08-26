@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -36,6 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
@@ -149,7 +150,7 @@ public class AddSchemaFileTask
     {
       try
       {
-        SchemaConfigManager.loadSchemaFile(getServerContext(), schema, schemaFile);
+        SchemaConfigManager.loadSchemaFile(schema, schemaFile);
       }
       catch (ConfigException | InitializationException e)
       {
@@ -184,8 +185,7 @@ public class AddSchemaFileTask
       {
         try
         {
-          List<Modification> modList =
-               SchemaConfigManager.loadSchemaFile(getServerContext(), schema, schemaFile);
+          List<Modification> modList = SchemaConfigManager.loadSchemaFile(schema, schemaFile);
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();

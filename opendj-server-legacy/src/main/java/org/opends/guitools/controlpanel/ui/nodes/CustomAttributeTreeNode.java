@@ -22,17 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015-2016 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui.nodes;
 
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
-/**
- * Class of the nodes that represent a custom attribute in the 'Manage
- * Schema' tree.
- *
- */
+/** Class of the nodes that represent a custom attribute in the 'Manage Schema' tree. */
 public class CustomAttributeTreeNode extends SchemaElementTreeNode
 {
   private static final long serialVersionUID = -9198486156950262507L;

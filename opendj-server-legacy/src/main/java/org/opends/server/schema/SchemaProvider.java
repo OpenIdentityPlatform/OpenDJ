@@ -21,8 +21,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -32,6 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.SchemaProviderCfg;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -50,12 +51,12 @@ public interface SchemaProvider<T extends SchemaProviderCfg>
    * Initialize the schema provider from provided configuration and schema
    * builder.
    *
+   * @param serverContext
+   *            The server context.
    * @param configuration
    *          Configuration of the provider.
    * @param initialSchemaBuilder
    *          Schema builder to update during initialization phase.
-   * @param schemaUpdater
-   *          The updater to call when applying a configuration change.
    * @throws ConfigException
    *           If a configuration problem arises in the process of performing
    *           the initialization.
@@ -63,7 +64,7 @@ public interface SchemaProvider<T extends SchemaProviderCfg>
    *           If a problem that is not configuration-related occurs during
    *           initialization.
    */
-  void initialize(T configuration, SchemaBuilder initialSchemaBuilder, SchemaUpdater schemaUpdater)
+  void initialize(ServerContext serverContext, T configuration, SchemaBuilder initialSchemaBuilder)
       throws ConfigException, InitializationException;
 
   /**
@@ -85,10 +86,4 @@ public interface SchemaProvider<T extends SchemaProviderCfg>
    */
   boolean isConfigurationAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
 
-  /**
-   * Returns the schema builder, as updated by this provider.
-   *
-   * @return the schema builder resulting from this provider.
-   */
-  SchemaBuilder getSchema();
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -41,18 +41,25 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import net.jcip.annotations.GuardedBy;
+
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteSequenceReader;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 
 /**
  * This class provides a utility for interacting with compressed representations
@@ -66,14 +73,128 @@ import org.opends.server.types.ObjectClass;
     mayInvoke = false)
 public class CompressedSchema
 {
-  /** Maps attribute description to ID. */
-  private final List<Entry<AttributeType, Set<String>>> adDecodeMap = new CopyOnWriteArrayList<>();
-  /** Maps ID to attribute description. */
-  private final Map<Entry<AttributeType, Set<String>>, Integer> adEncodeMap = new ConcurrentHashMap<>();
-  /** The map between encoded representations and object class sets. */
-  private final List<Map<ObjectClass, String>> ocDecodeMap = new CopyOnWriteArrayList<>();
-  /** The map between object class sets and encoded representations. */
-  private final Map<Map<ObjectClass, String>, Integer> ocEncodeMap = new ConcurrentHashMap<>();
+  /** Encloses all the encode and decode mappings for attribute and object classes. */
+  private static final class Mappings
+  {
+    /** Maps encoded representation's ID to its attribute description (the List's index is the ID). */
+    private final List<Entry<AttributeType, Set<String>>> adDecodeMap = new CopyOnWriteArrayList<>();
+    /** Maps attribute description to its encoded representation's ID. */
+    private final Map<Entry<AttributeType, Set<String>>, Integer> adEncodeMap;
+    /** Maps encoded representation's ID to its object class (the List's index is the ID). */
+    private final List<Map<ObjectClass, String>> ocDecodeMap = new CopyOnWriteArrayList<>();
+    /** Maps object class to its encoded representation's ID. */
+    private final Map<Map<ObjectClass, String>, Integer> ocEncodeMap;
+
+    private Mappings()
+    {
+      this.adEncodeMap = new ConcurrentHashMap<>();
+      this.ocEncodeMap = new ConcurrentHashMap<>();
+    }
+
+    private Mappings(int adEncodeMapSize, int ocEncodeMapSize)
+    {
+      this.adEncodeMap = new ConcurrentHashMap<>(adEncodeMapSize);
+      this.ocEncodeMap = new ConcurrentHashMap<>(ocEncodeMapSize);
+    }
+  }
+
+  private final ServerContext serverContext;
+  /** Lock to update the maps. */
+  final ReadWriteLock lock = new ReentrantReadWriteLock();
+  private final Lock exclusiveLock = lock.writeLock();
+  private final Lock sharedLock = lock.readLock();
+
+  /** Schema used to build the compressed information. */
+  @GuardedBy("lock")
+  private Schema schemaNG;
+  @GuardedBy("lock")
+  private Mappings mappings = new Mappings();
+
+  /**
+   * Creates a new empty instance of this compressed schema.
+   *
+   * @param serverContext
+   *            The server context.
+   */
+  public CompressedSchema(ServerContext serverContext)
+  {
+    this.serverContext = serverContext;
+  }
+
+  private Mappings getMappings()
+  {
+    sharedLock.lock();
+    try
+    {
+      return mappings;
+    }
+    finally
+    {
+      sharedLock.unlock();
+    }
+  }
+
+  private Mappings reloadMappingsIfSchemaChanged(boolean force)
+  {
+    // @RemoveOnceSDKSchemaIsUsed remove the "force" parameter
+    sharedLock.lock();
+    boolean shared = true;
+    try
+    {
+      Schema currentSchema = serverContext.getSchemaNG();
+      if (force || schemaNG != currentSchema)
+      {
+        sharedLock.unlock();
+        exclusiveLock.lock();
+        shared = false;
+
+        currentSchema = serverContext.getSchemaNG();
+        if (force || schemaNG != currentSchema)
+        {
+          // build new maps from existing ones
+          Mappings newMappings = new Mappings(mappings.adEncodeMap.size(), mappings.ocEncodeMap.size());
+          reloadAttributeTypeMaps(mappings, newMappings);
+          reloadObjectClassesMap(mappings, newMappings);
+
+          mappings = newMappings;
+          schemaNG = currentSchema;
+        }
+      }
+      return mappings;
+    }
+    finally
+    {
+      (shared ? sharedLock : exclusiveLock).unlock();
+    }
+  }
+
+  /**
+   * Reload the attribute types maps. This should be called when schema has changed, because some
+   * types may be out dated.
+   */
+  private void reloadAttributeTypeMaps(Mappings mappings, Mappings newMappings)
+  {
+    for (Entry<Entry<AttributeType, Set<String>>, Integer> entry : mappings.adEncodeMap.entrySet())
+    {
+      Entry<AttributeType, Set<String>> ad = entry.getKey();
+      Integer id = entry.getValue();
+      loadAttributeToMaps(id, ad.getKey().getNameOrOID(), ad.getValue(), newMappings);
+    }
+  }
+
+  /**
+   * Reload the object classes maps. This should be called when schema has changed, because some
+   * classes may be out dated.
+   */
+  private void reloadObjectClassesMap(Mappings mappings, Mappings newMappings)
+  {
+    for (Entry<Map<ObjectClass, String>, Integer> entry : mappings.ocEncodeMap.entrySet())
+    {
+      Map<ObjectClass, String> ocMap = entry.getKey();
+      Integer id = entry.getValue();
+      loadObjectClassesToMaps(id, ocMap.values(), newMappings, false);
+    }
+  }
 
   /**
    * Decodes the contents of the provided array as an attribute at the current
@@ -89,40 +210,27 @@ public class CompressedSchema
       throws DirectoryException
   {
     // First decode the encoded attribute description id.
-    final int length = reader.readBERLength();
-    final byte[] idBytes = new byte[length];
-    reader.readBytes(idBytes);
-    final int id = decodeId(idBytes);
+    final int id = decodeId(reader);
 
-    // Look up the attribute description.
-    Entry<AttributeType, Set<String>> ad = adDecodeMap.get(id);
+    // Before returning the attribute, make sure that the attribute type is not stale.
+    final Mappings mappings = reloadMappingsIfSchemaChanged(false);
+    final Entry<AttributeType, Set<String>> ad = mappings.adDecodeMap.get(id);
     if (ad == null)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(id));
     }
 
-    // Before returning the attribute, make sure that the attribute type is not
-    // stale.
     AttributeType attrType = ad.getKey();
     Set<String> options = ad.getValue();
-    if (attrType.isDirty())
-    {
-      ad = loadAttribute(idBytes, attrType.getNameOrOID(), options);
-      attrType = ad.getKey();
-      options = ad.getValue();
-    }
 
     // Determine the number of values for the attribute.
     final int numValues = reader.readBERLength();
 
-    // For the common case of a single value with no options, generate
-    // less garbage.
+    // For the common case of a single value with no options, generate less garbage.
     if (numValues == 1 && options.isEmpty())
     {
-      final int valueLength = reader.readBERLength();
-      final ByteSequence valueBytes = reader.readByteSequence(valueLength);
-      return Attributes.create(attrType, valueBytes.toByteString());
+      return Attributes.create(attrType, readValue(reader));
     }
     else
     {
@@ -131,15 +239,16 @@ public class CompressedSchema
       builder.setOptions(options);
       for (int i = 0; i < numValues; i++)
       {
-        final int valueLength = reader.readBERLength();
-        final ByteSequence valueBytes = reader.readByteSequence(valueLength);
-        builder.add(valueBytes.toByteString());
+        builder.add(readValue(reader));
       }
       return builder.toAttribute();
     }
   }
 
-
+  private ByteString readValue(final ByteSequenceReader reader)
+  {
+    return reader.readByteSequence(reader.readBERLength()).toByteString();
+  }
 
   /**
    * Decodes an object class set from the provided byte string.
@@ -155,35 +264,44 @@ public class CompressedSchema
       final ByteSequenceReader reader) throws DirectoryException
   {
     // First decode the encoded object class id.
-    final int length = reader.readBERLength();
-    final byte[] idBytes = new byte[length];
-    reader.readBytes(idBytes);
-    final int id = decodeId(idBytes);
+    final int id = decodeId(reader);
 
     // Look up the object classes.
-    final Map<ObjectClass, String> ocMap = ocDecodeMap.get(id);
-    if (ocMap != null)
+    final Mappings mappings = getMappings();
+    Map<ObjectClass, String> ocMap = mappings.ocDecodeMap.get(id);
+    if (ocMap == null)
     {
-      // Before returning the object classes, make sure that none of them are
-      // stale.
-      for (final ObjectClass oc : ocMap.keySet())
-      {
-        if (oc.isDirty())
-        {
-          // Found at least one object class which is dirty so refresh them.
-          return loadObjectClasses(idBytes, ocMap.values());
-        }
-      }
-      return ocMap;
-    }
-    else
-    {
+      // @RemoveOnceSDKSchemaIsUsed remove this first check (check is performed again later)
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(id));
     }
+    // Before returning the object classes, make sure that none of them are stale.
+    boolean forceReload = isAnyObjectClassDirty(ocMap.keySet());
+    final Mappings newMappings = reloadMappingsIfSchemaChanged(forceReload);
+    if (mappings != newMappings)
+    {
+      ocMap = newMappings.ocDecodeMap.get(id);
+      if (ocMap == null)
+      {
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+            ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(id));
+      }
+    }
+    return ocMap;
   }
 
-
+  @RemoveOnceSDKSchemaIsUsed
+  private boolean isAnyObjectClassDirty(Set<ObjectClass> objectClasses)
+  {
+    for (final ObjectClass oc : objectClasses)
+    {
+      if (oc.isDirty())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Encodes the information in the provided attribute to a byte array.
@@ -202,24 +320,7 @@ public class CompressedSchema
     // Re-use or allocate a new ID.
     final AttributeType type = attribute.getAttributeType();
     final Set<String> options = attribute.getOptions();
-    final Entry<AttributeType, Set<String>> ad = new SimpleImmutableEntry<>(type, options);
-
-    // Use double checked locking to avoid lazy registration races.
-    Integer id = adEncodeMap.get(ad);
-    if (id == null)
-    {
-      synchronized (adEncodeMap)
-      {
-        id = adEncodeMap.get(ad);
-        if (id == null)
-        {
-          id = adDecodeMap.size();
-          adDecodeMap.add(ad);
-          adEncodeMap.put(ad, id);
-          storeAttribute(encodeId(id), type.getNameOrOID(), options);
-        }
-      }
-    }
+    int id = getAttributeId(new SimpleImmutableEntry<>(type, options));
 
     // Encode the attribute.
     final byte[] idBytes = encodeId(id);
@@ -233,7 +334,38 @@ public class CompressedSchema
     }
   }
 
+  private int getAttributeId(final Entry<AttributeType, Set<String>> ad) throws DirectoryException
+  {
+    // avoid lazy registration races
+    boolean shared = true;
+    sharedLock.lock();
+    try
+    {
+      Integer id = mappings.adEncodeMap.get(ad);
+      if (id != null)
+      {
+        return id;
+      }
 
+      sharedLock.unlock();
+      exclusiveLock.lock();
+      shared = false;
+
+      id = mappings.adEncodeMap.get(ad);
+      if (id == null)
+      {
+        id = mappings.adDecodeMap.size();
+        mappings.adDecodeMap.add(ad);
+        mappings.adEncodeMap.put(ad, id);
+        storeAttribute(encodeId(id), ad.getKey().getNameOrOID(), ad.getValue());
+      }
+      return id;
+    }
+    finally
+    {
+      (shared ? sharedLock : exclusiveLock).unlock();
+    }
+  }
 
   /**
    * Encodes the provided set of object classes to a byte array. If the same set
@@ -253,22 +385,7 @@ public class CompressedSchema
       final Map<ObjectClass, String> objectClasses) throws DirectoryException
   {
     // Re-use or allocate a new ID.
-    // Use double checked locking to avoid lazy registration races.
-    Integer id = ocEncodeMap.get(objectClasses);
-    if (id == null)
-    {
-      synchronized (ocEncodeMap)
-      {
-        id = ocEncodeMap.get(objectClasses);
-        if (id == null)
-        {
-          id = ocDecodeMap.size();
-          ocDecodeMap.add(objectClasses);
-          ocEncodeMap.put(objectClasses, id);
-          storeObjectClasses(encodeId(id), objectClasses.values());
-        }
-      }
-    }
+    int id = getObjectClassId(objectClasses);
 
     // Encode the object classes.
     final byte[] idBytes = encodeId(id);
@@ -276,39 +393,64 @@ public class CompressedSchema
     builder.appendBytes(idBytes);
   }
 
+  private int getObjectClassId(final Map<ObjectClass, String> objectClasses) throws DirectoryException
+  {
+    // avoid lazy registration races
+    boolean shared = true;
+    sharedLock.lock();
+    try
+    {
+      Integer id = mappings.ocEncodeMap.get(objectClasses);
+      if (id != null)
+      {
+        return id;
+      }
 
+      sharedLock.unlock();
+      exclusiveLock.lock();
+      shared = false;
+
+      id = mappings.ocEncodeMap.get(objectClasses);
+      if (id == null)
+      {
+        id = mappings.ocDecodeMap.size();
+        mappings.ocDecodeMap.add(objectClasses);
+        mappings.ocEncodeMap.put(objectClasses, id);
+        storeObjectClasses(encodeId(id), objectClasses.values());
+      }
+      return id;
+    }
+    finally
+    {
+      (shared ? sharedLock : exclusiveLock).unlock();
+    }
+  }
 
   /**
-   * Returns a view of the encoded attributes in this compressed schema which
-   * can be used for saving the entire content to disk. The iterator returned by
-   * this method is not thread safe.
+   * Returns a view of the encoded attributes in this compressed schema which can be used for saving
+   * the entire content to disk.
+   * <p>
+   * The iterator returned by this method is not thread safe.
    *
    * @return A view of the encoded attributes in this compressed schema.
    */
-  protected final Iterable<Entry<byte[],
-                                 Entry<String,
-                                       Collection<String>>>> getAllAttributes()
+  protected final Iterable<Entry<byte[], Entry<String, Collection<String>>>> getAllAttributes()
   {
     return new Iterable<Entry<byte[], Entry<String, Collection<String>>>>()
     {
-
       @Override
-      public Iterator<Entry<byte[],
-                            Entry<String, Collection<String>>>> iterator()
+      public Iterator<Entry<byte[], Entry<String, Collection<String>>>> iterator()
       {
         return new Iterator<Entry<byte[], Entry<String, Collection<String>>>>()
         {
-          private int id = 0;
-
-
+          private int id;
+          private List<Entry<AttributeType, Set<String>>> adDecodeMap = getMappings().adDecodeMap;
 
           @Override
           public boolean hasNext()
           {
             return id < adDecodeMap.size();
           }
-
-
 
           @Override
           public Entry<byte[], Entry<String, Collection<String>>> next()
@@ -322,8 +464,6 @@ public class CompressedSchema
                     .getKey().getNameOrOID(), ad.getValue()));
           }
 
-
-
           @Override
           public void remove()
           {
@@ -334,27 +474,25 @@ public class CompressedSchema
     };
   }
 
-
-
   /**
-   * Returns a view of the encoded object classes in this compressed schema
-   * which can be used for saving the entire content to disk. The iterator
-   * returned by this method is not thread safe.
+   * Returns a view of the encoded object classes in this compressed schema which can be used for
+   * saving the entire content to disk.
+   * <p>
+   * The iterator returned by this method is not thread safe.
    *
    * @return A view of the encoded object classes in this compressed schema.
    */
-  protected final Iterable<Entry<byte[],
-                                 Collection<String>>> getAllObjectClasses()
+  protected final Iterable<Entry<byte[], Collection<String>>> getAllObjectClasses()
   {
     return new Iterable<Entry<byte[], Collection<String>>>()
     {
-
       @Override
       public Iterator<Entry<byte[], Collection<String>>> iterator()
       {
         return new Iterator<Map.Entry<byte[], Collection<String>>>()
         {
-          private int id = 0;
+          private int id;
+          private final List<Map<ObjectClass, String>> ocDecodeMap = getMappings().ocDecodeMap;
 
           @Override
           public boolean hasNext()
@@ -397,28 +535,52 @@ public class CompressedSchema
       final byte[] encodedAttribute, final String attributeName,
       final Collection<String> attributeOptions)
   {
-    final AttributeType type = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeName));
+    final int id = decodeId(encodedAttribute);
+    return loadAttributeToMaps(id, attributeName, attributeOptions, getMappings());
+  }
+
+  /**
+   * Loads an attribute into provided encode and decode maps, given its id, name, and options.
+   *
+   * @param id
+   *          the id computed on the attribute.
+   * @param attributeName
+   *          The user provided attribute type name.
+   * @param attributeOptions
+   *          The non-null but possibly empty set of attribute options.
+   * @param mappings
+   *          attribute description encodeMap and decodeMap maps id to entry
+   * @return The attribute type description.
+   */
+  private Entry<AttributeType, Set<String>> loadAttributeToMaps(final int id, final String attributeName,
+      final Collection<String> attributeOptions, final Mappings mappings)
+  {
+    final AttributeType type = DirectoryServer.getAttributeTypeOrDefault(attributeName);
     final Set<String> options = getOptions(attributeOptions);
     final Entry<AttributeType, Set<String>> ad = new SimpleImmutableEntry<>(type, options);
-    final int id = decodeId(encodedAttribute);
-    synchronized (adEncodeMap)
+    exclusiveLock.lock();
+    try
     {
-      adEncodeMap.put(ad, id);
-      if (id < adDecodeMap.size())
+      mappings.adEncodeMap.put(ad, id);
+      if (id < mappings.adDecodeMap.size())
       {
-        adDecodeMap.set(id, ad);
+        mappings.adDecodeMap.set(id, ad);
       }
       else
       {
         // Grow the decode array.
-        while (id > adDecodeMap.size())
+        while (id > mappings.adDecodeMap.size())
         {
-          adDecodeMap.add(null);
+          mappings.adDecodeMap.add(null);
         }
-        adDecodeMap.add(ad);
+        mappings.adDecodeMap.add(ad);
       }
+      return ad;
     }
-    return ad;
+    finally
+    {
+      exclusiveLock.unlock();
+    }
   }
 
   private Set<String> getOptions(final Collection<String> attributeOptions)
@@ -449,6 +611,29 @@ public class CompressedSchema
       final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames)
   {
+    final int id = decodeId(encodedObjectClasses);
+    return loadObjectClassesToMaps(id, objectClassNames, mappings, true);
+  }
+
+  /**
+   * Loads a set of object classes into provided encode and decode maps, given the id and set of
+   * names.
+   *
+   * @param id
+   *          the id computed on the object classes set.
+   * @param objectClassNames
+   *          The user provided set of object class names.
+   * @param mappings
+   *          .ocEncodeMap maps id to entry
+   * @param mappings
+   *          .ocDecodeMap maps entry to id
+   * @param sync
+   *          indicates if update of maps should be synchronized
+   * @return The object class set.
+   */
+  private final Map<ObjectClass, String> loadObjectClassesToMaps(int id, final Collection<String> objectClassNames,
+      Mappings mappings, boolean sync)
+  {
     final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(objectClassNames.size());
     for (final String name : objectClassNames)
     {
@@ -456,28 +641,42 @@ public class CompressedSchema
       final ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
       ocMap.put(oc, name);
     }
-    final int id = decodeId(encodedObjectClasses);
-    synchronized (ocEncodeMap)
+    if (sync)
     {
-      ocEncodeMap.put(ocMap, id);
-      if (id < ocDecodeMap.size())
+      exclusiveLock.lock();
+      try
       {
-        ocDecodeMap.set(id, ocMap);
+        updateObjectClassesMaps(id, mappings, ocMap);
       }
-      else
+      finally
       {
-        // Grow the decode array.
-        while (id > ocDecodeMap.size())
-        {
-          ocDecodeMap.add(null);
-        }
-        ocDecodeMap.add(ocMap);
+        exclusiveLock.unlock();
       }
+    }
+    else
+    {
+      updateObjectClassesMaps(id, mappings, ocMap);
     }
     return ocMap;
   }
 
-
+  private void updateObjectClassesMaps(int id, Mappings mappings, LinkedHashMap<ObjectClass, String> ocMap)
+  {
+    mappings.ocEncodeMap.put(ocMap, id);
+    if (id < mappings.ocDecodeMap.size())
+    {
+      mappings.ocDecodeMap.set(id, ocMap);
+    }
+    else
+    {
+      // Grow the decode array.
+      while (id > mappings.ocDecodeMap.size())
+      {
+        mappings.ocDecodeMap.add(null);
+      }
+      mappings.ocDecodeMap.add(ocMap);
+    }
+  }
 
   /**
    * Persists the provided encoded attribute. The default implementation is to
@@ -502,8 +701,6 @@ public class CompressedSchema
     // Do nothing by default.
   }
 
-
-
   /**
    * Persists the provided encoded object classes. The default implementation is
    * to do nothing. Calls to this method are synchronized, so implementations
@@ -524,8 +721,6 @@ public class CompressedSchema
     // Do nothing by default.
   }
 
-
-
   /**
    * Decodes the provided encoded schema element ID.
    *
@@ -544,7 +739,13 @@ public class CompressedSchema
     return id - 1; // Subtract 1 to compensate for old behavior.
   }
 
-
+  private int decodeId(final ByteSequenceReader reader)
+  {
+    final int length = reader.readBERLength();
+    final byte[] idBytes = new byte[length];
+    reader.readBytes(idBytes);
+    return decodeId(idBytes);
+  }
 
   /**
    * Encodes the provided schema element ID.

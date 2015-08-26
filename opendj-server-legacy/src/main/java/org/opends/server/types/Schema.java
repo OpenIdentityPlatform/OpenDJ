@@ -22,12 +22,20 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -37,26 +45,38 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Option;
+import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.schema.SomeSchemaElement;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -78,6 +98,7 @@ import static org.opends.server.util.StaticUtils.*;
  *   <LI>DIT structure rule definitions</LI>
  *   <LI>Name form definitions</LI>
  * </UL>
+ * It always uses non-strict {@link org.forgerock.opendj.ldap.schema.Schema} under the hood.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -89,16 +110,10 @@ public final class Schema
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   * The set of subordinate attribute types registered within the server schema.
+   * Provides for each attribute type having at least one subordinate type the complete list of
+   * its descendants.
    */
-  private ConcurrentHashMap<AttributeType,List<AttributeType>>
-               subordinateTypes;
-
-  /**
-   * The set of attribute type definitions for this schema, mapped between the
-   * lowercase names and OID for the definition and the attribute type itself.
-   */
-  private ConcurrentHashMap<String,AttributeType> attributeTypes;
+  private Map<AttributeType, List<AttributeType>> subordinateTypes;
 
   /**
    * The set of objectclass definitions for this schema, mapped between the
@@ -107,23 +122,9 @@ public final class Schema
   private ConcurrentHashMap<String,ObjectClass> objectClasses;
 
   /**
-   * The set of attribute syntaxes for this schema, mapped between the OID for
-   * the syntax and the syntax itself.
-   */
-  private ConcurrentHashMap<String,Syntax> syntaxes;
-
-  /**
    * The default attribute syntax to use for attributes with no defined syntax.
    */
-  private Syntax defaultSyntax;
-
-  /**
-   * The entire set of matching rules for this schema, mapped between the
-   * lowercase names and OID for the definition and the matching rule itself.
-   */
-  private ConcurrentHashMap<String,MatchingRule> matchingRules;
-
-
+  private String defaultSyntaxOID;
 
   /**
    * The set of matching rule uses for this schema, mapped between the matching
@@ -187,186 +188,378 @@ public final class Schema
    */
   private Map<String, Attribute> extraAttributes = new HashMap<>();
 
+  /**
+   * The SDK schema.
+   * <p>
+   * It will progressively take over server implementation of the schema.
+   * <p>
+   * @GuardedBy("exclusiveLock")
+   */
+  private volatile org.forgerock.opendj.ldap.schema.Schema schemaNG;
 
-  /** Creates a new schema structure with all elements initialized but empty. */
-  public Schema()
+  /** Guards updates to the schema. */
+  private final Lock exclusiveLock = new ReentrantLock();
+
+  /**
+   * Creates a new schema structure with all elements initialized but empty.
+   *
+   * @param schemaNG
+   *          The SDK schema
+   */
+  public Schema(org.forgerock.opendj.ldap.schema.Schema schemaNG)
   {
-    attributeTypes = new ConcurrentHashMap<>();
-    objectClasses = new ConcurrentHashMap<>();
-    syntaxes = new ConcurrentHashMap<>();
-    matchingRules = new ConcurrentHashMap<>();
-    matchingRuleUses = new ConcurrentHashMap<>();
-    ditContentRules = new ConcurrentHashMap<>();
-    ditStructureRulesByID = new ConcurrentHashMap<>();
-    ditStructureRulesByNameForm = new ConcurrentHashMap<>();
-    nameFormsByOC = new ConcurrentHashMap<>();
-    nameFormsByName = new ConcurrentHashMap<>();
-    ldapSyntaxDescriptions = new ConcurrentHashMap<>();
-    subordinateTypes = new ConcurrentHashMap<>();
+    setSchemaNG(schemaNG);
+
+    objectClasses = new ConcurrentHashMap<String,ObjectClass>();
+    matchingRuleUses = new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
+    ditContentRules = new ConcurrentHashMap<ObjectClass,DITContentRule>();
+    ditStructureRulesByID = new ConcurrentHashMap<Integer,DITStructureRule>();
+    ditStructureRulesByNameForm = new ConcurrentHashMap<NameForm,DITStructureRule>();
+    nameFormsByOC = new ConcurrentHashMap<ObjectClass,List<NameForm>>();
+    nameFormsByName = new ConcurrentHashMap<String,NameForm>();
+    ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
+    subordinateTypes = new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
     oldestModificationTime    = System.currentTimeMillis();
     youngestModificationTime  = oldestModificationTime;
   }
 
-
+  /**
+   * Returns the SDK schema.
+   *
+   * @return the SDK schema
+   */
+  public org.forgerock.opendj.ldap.schema.Schema getSchemaNG()
+  {
+    return schemaNG;
+  }
 
   /**
-   * Retrieves the attribute type definitions for this schema, as a
-   * mapping between the lowercase names and OIDs for the attribute
-   * type and the attribute type itself.  Each attribute type may be
-   * associated with multiple keys (once for the OID and again for
-   * each name).  The contents of the returned mapping must not be
-   * altered.
+   * Retrieves the attribute type definitions for this schema.
    *
    * @return  The attribute type definitions for this schema.
    */
-  public ConcurrentHashMap<String,AttributeType> getAttributeTypes()
+  public Collection<AttributeType> getAttributeTypes()
   {
-    return attributeTypes;
+    return schemaNG.getAttributeTypes();
   }
-
-
 
   /**
    * Indicates whether this schema definition includes an attribute
    * type with the provided name or OID.
    *
-   * @param  lowerName  The name or OID for which to make the
-   *                    determination, formatted in all lowercase
-   *                    characters.
-   *
+   * @param  nameOrOid  The name or OID for which to make the determination, ignoring case considerations
    * @return  {@code true} if this schema contains an attribute type
    *          with the provided name or OID, or {@code false} if not.
    */
-  public boolean hasAttributeType(String lowerName)
+  public boolean hasAttributeType(String nameOrOid)
   {
-    return attributeTypes.containsKey(lowerName);
+    return schemaNG.hasAttributeType(nameOrOid);
   }
 
-
-
   /**
-   * Retrieves the attribute type definition with the specified name
-   * or OID.
+   * Retrieves the attribute type definition with the specified name or OID.
    *
-   * @param  lowerName  The name or OID of the attribute type to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested attribute type, or <CODE>null</CODE> if no
-   *          type is registered with the provided name or OID.
+   * @param nameOrOid
+   *          The name or OID of the attribute type to retrieve, ignoring case considerations
+   * @return The requested attribute type
    */
-  public AttributeType getAttributeType(String lowerName)
+  public AttributeType getAttributeType(String nameOrOid)
   {
-    return attributeTypes.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided attribute type definition with this
-   * schema.
-   *
-   * @param  attributeType      The attribute type to register with
-   *                            this schema.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another attribute
-   *                            type with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerAttributeType(AttributeType attributeType,
-                                    boolean overwriteExisting)
-         throws DirectoryException
-  {
-    synchronized (attributeTypes)
+    try
     {
-      if (! overwriteExisting)
-      {
-        String oid = toLowerCase(attributeType.getOID());
-        if (attributeTypes.containsKey(oid))
-        {
-          AttributeType conflictingType = attributeTypes.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.
-              get(attributeType.getNameOrOID(), oid,
-                  conflictingType.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        for (String name : attributeType.getNormalizedNames())
-        {
-          if (attributeTypes.containsKey(name))
-          {
-            AttributeType conflictingType = attributeTypes.get(name);
-
-            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_NAME.
-                get(attributeType.getNameOrOID(), name,
-                    conflictingType.getNameOrOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-        }
-      }
-
-      AttributeType old = attributeTypes.put(
-          toLowerCase(attributeType.getOID()), attributeType);
-      if (old != null && old != attributeType)
-      {
-        // Mark the old attribute type as stale so that caches (such as
-        // compressed schema) can detect changes.
-        old.setDirty();
-      }
-
-      for (String name : attributeType.getNormalizedNames())
-      {
-        attributeTypes.put(name, attributeType);
-      }
-
-      AttributeType superiorType = attributeType.getSuperiorType();
-      if (superiorType != null)
-      {
-        registerSubordinateType(attributeType, superiorType);
-      }
+      return schemaNG.getAttributeType(nameOrOid);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      // It should never happen because we only use non-strict schemas
+      throw new RuntimeException(e);
     }
   }
 
   /**
-   * Deregisters the provided attribute type definition with this
-   * schema.
+   * Retrieves the attribute type definition with the specified name or OID.
    *
-   * @param  attributeType  The attribute type to deregister with this
-   *                        schema.
+   * @param nameOrOid
+   *          The name or OID of the attribute type to retrieve, ignoring case considerations
+   * @param syntax
+   *          The syntax to use when creating the temporary "place-holder" attribute type.
+   * @return The requested attribute type
    */
-  public void deregisterAttributeType(AttributeType attributeType)
+  public AttributeType getAttributeType(String nameOrOid, Syntax syntax)
   {
-    synchronized (attributeTypes)
+    try
     {
-      if (attributeTypes.remove(toLowerCase(attributeType.getOID()),
-          attributeType))
-      {
-        // Mark the old attribute type as stale so that caches (such as
-        // compressed schema) can detect changes.
-        attributeType.setDirty();
-      }
-
-      for (String name : attributeType.getNormalizedNames())
-      {
-        attributeTypes.remove(name, attributeType);
-      }
-
-      AttributeType superiorType = attributeType.getSuperiorType();
-      if (superiorType != null)
-      {
-        deregisterSubordinateType(attributeType, superiorType);
-      }
+      return schemaNG.getAttributeType(nameOrOid, syntax);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      // It should never happen because we only use non-strict schemas
+      throw new RuntimeException(e);
     }
   }
 
+  /**
+   * Parses an attribute type from its provided definition.
+   *
+   * @param definition
+   *          The definition of the attribute type
+   * @return the attribute type
+   * @throws DirectoryException
+   *            If an error occurs
+   */
+  public AttributeType parseAttributeType(final String definition) throws DirectoryException
+  {
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.addAttributeType(definition, true);
+      org.forgerock.opendj.ldap.schema.Schema newSchema = builder.toSchema();
+      rejectSchemaWithWarnings(newSchema);
+      return newSchema.getAttributeType(parseAttributeTypeOID(definition));
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      // this should never happen
+      LocalizableMessage msg = ERR_ATTR_TYPE_CANNOT_REGISTER.get(definition);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+  }
+
+  /**
+   * Registers a list of attribute types from their provided definitions.
+   * <p>
+   * This method allows to do only one schema change for multiple definitions,
+   * thus avoiding the cost (and the issue of stale schema references) of rebuilding a new schema for each definition.
+   *
+   * @param definitions
+   *          The definitions of the attribute types
+   * @param schemaFile
+   *          The schema file where these definitions belong, can be {@code null}
+   * @param overwrite
+   *          Indicates whether to overwrite the attribute
+   *          type if it already exists based on OID or name
+   * @throws DirectoryException
+   *            If an error occurs
+   */
+  public void registerAttributeTypes(final List<String> definitions, final String schemaFile, final boolean overwrite)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      for (String definition : definitions)
+      {
+        String defWithFile = schemaFile != null ?
+            addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile) : definition;
+        builder.addAttributeType(defWithFile, overwrite);
+      }
+      switchSchema(builder.toSchema());
+
+      for (String definition : definitions)
+      {
+        updateSubordinateTypes(schemaNG.getAttributeType(parseAttributeTypeOID(definition)));
+      }
+    }
+    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  /**
+   * Registers an attribute type from its provided definition.
+   *
+   * @param definition
+   *          The definition of the attribute type
+   * @param schemaFile
+   *          The schema file where this definition belongs,
+   *          maybe {@code null}
+   * @param overwrite
+   *          Indicates whether to overwrite the attribute
+   *          type if it already exists based on OID or name
+   * @throws DirectoryException
+   *            If an error occurs
+   */
+  public void registerAttributeType(final String definition, final String schemaFile, final boolean overwrite)
+      throws DirectoryException
+  {
+    registerAttributeTypes(Arrays.asList(definition), schemaFile, overwrite);
+  }
+
+  /**
+   * Registers the provided attribute type definition with this schema.
+   *
+   * @param attributeType
+   *          The attribute type to register with this schema.
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are
+   *          any conflicts (i.e., another attribute type with the same OID or
+   *          name).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the
+   *           <CODE>overwriteExisting</CODE> flag is set to <CODE>false</CODE>
+   */
+  public void registerAttributeType(final AttributeType attributeType, final boolean overwriteExisting)
+      throws DirectoryException
+  {
+    registerAttributeType(attributeType, null, overwriteExisting);
+  }
+
+  /**
+   * Registers the provided attribute type definition with this schema.
+   *
+   * @param attributeType
+   *          The attribute type to register with this schema.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are
+   *          any conflicts (i.e., another attribute type with the same OID or
+   *          name).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the
+   *           <CODE>overwriteExisting</CODE> flag is set to <CODE>false</CODE>
+   */
+  public void registerAttributeType(final AttributeType attributeType, final String schemaFile,
+      final boolean overwriteExisting) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      AttributeType.Builder b = builder.buildAttributeType(attributeType);
+      if (schemaFile != null)
+      {
+        b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+      if (overwriteExisting)
+      {
+        b.addToSchemaOverwrite();
+      }
+      else
+      {
+        b.addToSchema();
+      }
+      switchSchema(builder.toSchema());
+
+      updateSubordinateTypes(attributeType);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  private String parseAttributeTypeOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE);
+  }
+
+  /**
+   * Returns the OID from the provided attribute type definition, assuming the
+   * definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition, assumed to be valid
+   * @param parsingErrorResultCode the result code to use if a problem occurs while parsing the definition
+   * @param parsingErrorMsg the message to use if a problem occurs while parsing the definition
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseOID(String definition, ResultCode parsingErrorResultCode, Arg0 parsingErrorMsg)
+      throws DirectoryException
+  {
+    try
+    {
+      int pos = 0;
+      int length = definition.length();
+      // Skip over any leading whitespace.
+      while (pos < length && (definition.charAt(pos) == ' '))
+      {
+        pos++;
+      }
+      // Skip the open parenthesis.
+      pos++;
+      // Skip over any spaces immediately following the opening parenthesis.
+      while (pos < length && definition.charAt(pos) == ' ')
+      {
+        pos++;
+      }
+      // The next set of characters must be the OID.
+      int oidStartPos = pos;
+      while (pos < length && definition.charAt(pos) != ' ' && definition.charAt(pos) != ')')
+      {
+        pos++;
+      }
+      return definition.substring(oidStartPos, pos);
+    }
+    catch (IndexOutOfBoundsException e)
+    {
+      throw new DirectoryException(parsingErrorResultCode, parsingErrorMsg.get(), e);
+    }
+  }
+
+  /**
+   * Deregisters the provided attribute type definition with this schema.
+   *
+   * @param  attributeType  The attribute type to deregister with this schema.
+   */
+  public void deregisterAttributeType(final AttributeType attributeType)
+  {
+    exclusiveLock.lock();
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      if (builder.removeAttributeType(attributeType.getNameOrOID()))
+      {
+        AttributeType superiorType = attributeType.getSuperiorType();
+        if (superiorType != null)
+        {
+          deregisterSubordinateType(attributeType, superiorType);
+        }
+        setSchemaNG(builder.toSchema());
+      }
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  private void setSchemaNG(org.forgerock.opendj.ldap.schema.Schema newSchemaNG)
+  {
+    schemaNG = newSchemaNG.asNonStrictSchema();
+  }
+
+  private void updateSubordinateTypes(AttributeType attributeType)
+  {
+    AttributeType superiorType = attributeType.getSuperiorType();
+    if (superiorType != null)
+    {
+      registerSubordinateType(attributeType, superiorType);
+    }
+  }
 
   /**
    * Registers the provided attribute type as a subtype of the given
@@ -378,18 +571,15 @@ public final class Schema
    * @param  superiorType   The superior type for which to register
    *                        the given attribute type as a subtype.
    */
-  private void registerSubordinateType(AttributeType attributeType,
-                                       AttributeType superiorType)
+  private void registerSubordinateType(AttributeType attributeType, AttributeType superiorType)
   {
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes == null)
     {
-      superiorType.setMayHaveSubordinateTypes();
       subordinateTypes.put(superiorType, newLinkedList(attributeType));
     }
-    else if (! subTypes.contains(attributeType))
+    else if (!subTypes.contains(attributeType))
     {
-      superiorType.setMayHaveSubordinateTypes();
       subTypes.add(attributeType);
 
       AttributeType higherSuperior = superiorType.getSuperiorType();
@@ -399,8 +589,6 @@ public final class Schema
       }
     }
   }
-
-
 
   /**
    * Deregisters the provided attribute type as a subtype of the given
@@ -412,8 +600,7 @@ public final class Schema
    * @param  superiorType   The superior type for which to deregister
    *                        the given attribute type as a subtype.
    */
-  private void deregisterSubordinateType(AttributeType attributeType,
-                                         AttributeType superiorType)
+  private void deregisterSubordinateType(AttributeType attributeType, AttributeType superiorType)
   {
     List<AttributeType> subTypes = subordinateTypes.get(superiorType);
     if (subTypes != null && subTypes.remove(attributeType))
@@ -425,8 +612,6 @@ public final class Schema
       }
     }
   }
-
-
 
   /**
    * Retrieves the set of subtypes registered for the given attribute
@@ -442,14 +627,7 @@ public final class Schema
   public List<AttributeType> getSubTypes(AttributeType attributeType)
   {
     List<AttributeType> subTypes = subordinateTypes.get(attributeType);
-    if (subTypes == null)
-    {
-      return Collections.emptyList();
-    }
-    else
-    {
-      return subTypes;
-    }
+    return subTypes != null ? subTypes : Collections.<AttributeType> emptyList();
   }
 
 
@@ -524,7 +702,8 @@ public final class Schema
                                   boolean overwriteExisting)
          throws DirectoryException
   {
-    synchronized (objectClasses)
+    exclusiveLock.lock();
+    try
     {
       if (! overwriteExisting)
       {
@@ -569,6 +748,10 @@ public final class Schema
         objectClasses.put(name, objectClass);
       }
     }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
   }
 
 
@@ -600,72 +783,40 @@ public final class Schema
 
 
   /**
-   * Retrieves the attribute syntax definitions for this schema, as a
-   * mapping between the OID for the syntax and the syntax itself.
-   * Each syntax should only be present once, since its only key is
-   * its OID.  The contents of the returned mapping must not be
-   * altered.
+   * Retrieves the attribute syntax definitions for this schema.
    *
    * @return  The attribute syntax definitions for this schema.
    */
-  public ConcurrentHashMap<String,Syntax> getSyntaxes()
+  public Collection<Syntax> getSyntaxes()
   {
-    return syntaxes;
+    return schemaNG.getSyntaxes();
   }
 
 
 
   /**
    * Indicates whether this schema definition includes an attribute
-   * syntax with the provided name or OID.
+   * syntax with the provided OID.
    *
-   * @param  lowerName  The name or OID for which to make the
-   *                    determination, formatted in all lowercase
-   *                    characters.
-   *
+   * @param  oid  The OID for which to make the determination
    * @return  {@code true} if this schema contains an attribute syntax
-   *          with the provided name or OID, or {@code false} if not.
+   *          with the provided OID, or {@code false} if not.
    */
-  public boolean hasSyntax(String lowerName)
+  public boolean hasSyntax(String oid)
   {
-    return syntaxes.containsKey(lowerName);
-  }
-
-  /**
-   * Retrieves the requested attribute syntax.
-   *
-   * @param oid
-   *          The OID of the syntax to retrieve.
-   * @param allowDefault
-   *          Indicates whether to return the default attribute syntax if the
-   *          requested syntax is unknown.
-   * @return The requested attribute syntax, the default syntax if the requested
-   *         syntax is unknown and the caller has indicated that the default is
-   *         acceptable, or <CODE>null</CODE> otherwise.
-   */
-  public Syntax getSyntax(String oid, boolean allowDefault)
-  {
-    Syntax syntax = getSyntax(oid);
-    if (syntax == null && allowDefault)
-    {
-      return getDefaultSyntax();
-    }
-
-    return syntax;
+    return schemaNG.hasSyntax(oid);
   }
 
   /**
    * Retrieves the attribute syntax definition with the OID.
    *
-   * @param  lowerName  The OID of the attribute syntax to retrieve,
-   *                    formatted in all lowercase characters.
-   *
-   * @return  The requested attribute syntax, or <CODE>null</CODE> if
-   *          no syntax is registered with the provided OID.
+   * @param  oid  The OID of the attribute syntax to retrieve.
+   * @return  The requested attribute syntax,
+   *          or {@code null} if no syntax is registered with the provided OID.
    */
-  public Syntax getSyntax(String lowerName)
+  public Syntax getSyntax(String oid)
   {
-    return syntaxes.get(lowerName);
+    return schemaNG.getSyntax(oid);
   }
 
   /**
@@ -677,7 +828,7 @@ public final class Schema
    */
   public Syntax getDefaultSyntax()
   {
-    return defaultSyntax;
+    return schemaNG.getSyntax(defaultSyntaxOID);
   }
 
 
@@ -688,10 +839,9 @@ public final class Schema
    * @param defaultSyntax
    *            The defautl syntax to use.
    */
-  public void registerDefaultSyntax(
-      Syntax defaultSyntax)
+  public void registerDefaultSyntax(Syntax defaultSyntax)
   {
-    this.defaultSyntax = defaultSyntax;
+    this.defaultSyntaxOID = defaultSyntax.getOID();
   }
 
 
@@ -711,45 +861,75 @@ public final class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public void registerSyntax(Syntax syntax,
-                             boolean overwriteExisting)
-         throws DirectoryException
+  public void registerSyntax(final Syntax syntax, final boolean overwriteExisting) throws DirectoryException
   {
-    synchronized (syntaxes)
+    exclusiveLock.lock();
+    try
     {
-      if (! overwriteExisting)
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      Syntax.Builder b = builder.buildSyntax(syntax);
+      if (overwriteExisting)
       {
-        String oid = toLowerCase(syntax.getOID());
-        if (syntaxes.containsKey(oid))
-        {
-          Syntax conflictingSyntax = syntaxes.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
-              get(syntax.getName(), oid,
-                  conflictingSyntax.getName());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
+        b.addToSchemaOverwrite();
       }
-
-      syntaxes.put(toLowerCase(syntax.getOID()), syntax);
+      else
+      {
+        b.addToSchema();
+      }
+      switchSchema(builder.toSchema());
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
-
+  private void registerSyntax(final String definition, final boolean overwriteExisting) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      org.forgerock.opendj.ldap.schema.Schema newSchema =
+          new SchemaBuilder(schemaNG)
+          .addSyntax(definition, overwriteExisting)
+          .toSchema();
+      switchSchema(newSchema);
+    }
+    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
 
   /**
-   * Deregisters the provided attribute syntax definition with this
-   * schema.
+   * Deregisters the provided attribute syntax definition with this schema.
    *
-   * @param  syntax  The attribute syntax to deregister with this
-   *                 schema.
+   * @param  syntax  The attribute syntax to deregister with this schema.
    */
-  public void deregisterSyntax(Syntax syntax)
+  public void deregisterSyntax(final Syntax syntax)
   {
-    synchronized (syntaxes)
+    exclusiveLock.lock();
+    try
     {
-      syntaxes.remove(toLowerCase(syntax.getOID()), syntax);
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeSyntax(syntax.getOID());
+      setSchemaNG(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -764,31 +944,10 @@ public final class Schema
    *
    * @return  The ldap syntax definitions for this schema.
    */
-  public ConcurrentHashMap<String,LDAPSyntaxDescription>
-          getLdapSyntaxDescriptions()
+  public ConcurrentHashMap<String,LDAPSyntaxDescription> getLdapSyntaxDescriptions()
   {
     return ldapSyntaxDescriptions;
   }
-
-
-
-  /**
-   * Indicates whether this schema definition includes an ldap
-   * syntax description with the provided name or OID.
-   *
-   * @param  lowerName  The OID for which to make the
-   *                    determination, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  {@code true} if this schema contains an ldap syntax
-   *          with the provided name or OID, or {@code false} if not.
-   */
-  public boolean hasLdapSyntaxDescription(String lowerName)
-  {
-    return ldapSyntaxDescriptions.containsKey(lowerName);
-  }
-
-
 
   /**
    * Retrieves the ldap syntax definition with the OID.
@@ -799,33 +958,25 @@ public final class Schema
    * @return  The requested ldap syntax, or <CODE>null</CODE> if
    *          no syntax is registered with the provided OID.
    */
-  public LDAPSyntaxDescription getLdapSyntaxDescription(
-          String lowerName)
+  public LDAPSyntaxDescription getLdapSyntaxDescription(String lowerName)
   {
     return ldapSyntaxDescriptions.get(lowerName);
   }
 
-
-
   /**
-   * Registers the provided ldap syntax description with this
-   * schema.
+   * Registers the provided ldap syntax description with this schema.
    *
-   * @param  syntax    The ldap syntax description to register
-   *                              with this schema.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another ldap
-   *                            syntax with the same OID).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
+   * @param definition
+   *          The ldap syntax definition to register with this schema.
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are
+   *          any conflicts (i.e., another ldap syntax with the same OID).
+   * @throws DirectoryException
+   *           If a conflict is encountered and <CODE>overwriteExisting</CODE>
+   *           flag is set to <CODE>false</CODE>
    */
-  public void registerLdapSyntaxDescription(
-                            LDAPSyntaxDescription syntax,
-                             boolean overwriteExisting)
-         throws DirectoryException
+  public void registerLdapSyntaxDescription(String definition, boolean overwriteExisting)
+      throws DirectoryException
   {
     /**
      * ldapsyntaxes is part real and part virtual. For any
@@ -835,71 +986,65 @@ public final class Schema
      * virtual syntax set to make this available through virtual
      * ldapsyntaxes attribute.
      */
-    synchronized (ldapSyntaxDescriptions)
+    exclusiveLock.lock();
+    try
     {
-      String oid = toLowerCase(syntax.getSyntax().getOID());
+      String oid = parseAttributeTypeOID(definition);
       if (! overwriteExisting && ldapSyntaxDescriptions.containsKey(oid))
       {
-         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
             ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.get(oid));
       }
 
-      ldapSyntaxDescriptions.put(oid, syntax);
+      // Register the attribute syntax with the schema.
+      // It will ensure syntax is available along with the other virtual values for ldapsyntaxes.
+      registerSyntax(definition, overwriteExisting);
 
-      //Register the attribute syntax with the schema. It will ensure
-      // syntax is available along with the other virtual values for
-      // ldapsyntaxes.
-      registerSyntax(syntax.getSyntax(), overwriteExisting);
+      Syntax syntax = schemaNG.getSyntax(oid);
+      LDAPSyntaxDescription syntaxDesc = new LDAPSyntaxDescription(definition, oid, syntax.getExtraProperties());
+      ldapSyntaxDescriptions.put(oid, syntaxDesc);
     }
-  }
-
-
-
-  /**
-   * Deregisters the provided ldap syntax description with this
-   * schema.
-   *
-   * @param  syntax  The ldap syntax to deregister with this
-   *                 schema.
-   */
-  public void deregisterLdapSyntaxDescription(
-          LDAPSyntaxDescription syntax)
-  {
-    synchronized (ldapSyntaxDescriptions)
+    finally
     {
-      //Remove the real value.
-      ldapSyntaxDescriptions.remove(
-       toLowerCase(syntax.getSyntax().getOID()),
-       syntax);
-
-      try
-      {
-        //Get rid of this from the virtual ldapsyntaxes.
-        deregisterSyntax(syntax.getSyntax());
-      }
-      catch (Exception e)
-      {
-        deregisterSyntax(syntax.getSyntax());
-      }
+      exclusiveLock.unlock();
     }
   }
 
 
 
   /**
-   * Retrieves the entire set of matching rule definitions for this
-   * schema, as a mapping between the lowercase names and OIDs for the
-   * matching rule and the matching rule itself.  Each matching rule
-   * may be associated with multiple keys (once for the OID and again
-   * for each name).  This should be a superset of the sets of
-   * approximate, equality, ordering, and substring matching rules.
-   * The contents of the returned mapping must not be altered.
+   * Deregisters the provided ldap syntax description with this schema.
    *
-   * @return  The matching rule definitions for this schema.
+   * @param syntaxDesc
+   *          The ldap syntax to deregister with this schema.
    */
-  public ConcurrentHashMap<String,MatchingRule> getMatchingRules()
+  public void deregisterLdapSyntaxDescription(LDAPSyntaxDescription syntaxDesc)
   {
-    return matchingRules;
+    exclusiveLock.lock();
+    try
+    {
+      // Remove the real value.
+      ldapSyntaxDescriptions.remove(toLowerCase(syntaxDesc.getOID()), syntaxDesc);
+
+      // Get rid of this from the virtual ldapsyntaxes.
+      deregisterSyntax(getSyntax(syntaxDesc.getOID()));
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Retrieves all matching rule definitions for this schema.
+   *
+   * @return The matching rule definitions for this schema
+   */
+  public Collection<MatchingRule> getMatchingRules()
+  {
+    return schemaNG.getMatchingRules();
   }
 
 
@@ -908,34 +1053,26 @@ public final class Schema
    * Indicates whether this schema definition includes a matching rule
    * with the provided name or OID.
    *
-   * @param  lowerName  The name or OID for which to make the
-   *                    determination, formatted in all lowercase
-   *                    characters.
-   *
+   * @param  nameOrOid  The name or OID for which to make the determination, ignoring case considerations
    * @return  {@code true} if this schema contains a matching rule
    *          with the provided name or OID, or {@code false} if not.
    */
-  public boolean hasMatchingRule(String lowerName)
+  public boolean hasMatchingRule(String nameOrOid)
   {
-    return matchingRules.containsKey(lowerName);
+    return schemaNG.hasMatchingRule(nameOrOid);
   }
 
 
 
   /**
-   * Retrieves the matching rule definition with the specified name or
-   * OID.
+   * Retrieves the matching rule definition with the specified name or OID.
    *
-   * @param  lowerName  The name or OID of the matching rule to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no
-   *          rule is registered with the provided name or OID.
+   * @param nameOrOid The name or OID of the matching rule to retrieve, ignoring case considerations
+   * @return The requested matching rule, or {@code null} if no rule is registered with the provided name or OID.
    */
-  public MatchingRule getMatchingRule(String lowerName)
+  public MatchingRule getMatchingRule(String nameOrOid)
   {
-    return matchingRules.get(lowerName);
+    return schemaNG.getMatchingRule(nameOrOid);
   }
 
 
@@ -943,87 +1080,81 @@ public final class Schema
   /**
    * Registers the provided matching rule definition with this schema.
    *
-   * @param  matchingRule       The matching rule to register with
-   *                            this schema.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e.,
-   *                            another matching rule with the same
-   *                            OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
+   * @param matchingRule
+   *          The matching rule to register with this schema.
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are
+   *          any conflicts (i.e., another matching rule with the same OID or
+   *          name).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the
+   *           {@code overwriteExisting} flag is set to {@code false}
    */
-  public void registerMatchingRule(MatchingRule matchingRule, boolean overwriteExisting)
+  public void registerMatchingRule(final MatchingRule matchingRule, final boolean overwriteExisting)
          throws DirectoryException
   {
-    synchronized (matchingRules)
+    exclusiveLock.lock();
+    try
     {
       if (!overwriteExisting)
       {
-        String oid = toLowerCase(matchingRule.getOID());
-        if (matchingRules.containsKey(oid))
-        {
-          MatchingRule conflictingRule = matchingRules.get(oid);
-
-          LocalizableMessage message =
-              ERR_SCHEMA_CONFLICTING_MR_OID.get(matchingRule.getNameOrOID(),
-                  oid, conflictingRule.getNameOrOID());
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
+        // check all names of the matching rules because it is not checked by SDK schema
         for (String name : matchingRule.getNames())
         {
-          if (name != null)
+          if (schemaNG.hasMatchingRule(name))
           {
-            name = toLowerCase(name);
-            if (matchingRules.containsKey(name))
-            {
-              MatchingRule conflictingRule = matchingRules.get(name);
+            Collection<MatchingRule> conflictingRules = schemaNG.getMatchingRulesWithName(name);
+            // there should be only one
+            MatchingRule conflictingRule = conflictingRules.iterator().next();
 
-              LocalizableMessage message =
-                  ERR_SCHEMA_CONFLICTING_MR_NAME.get(matchingRule.getOID(),
-                      name, conflictingRule.getOID());
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  message);
-            }
+            LocalizableMessage message =
+                ERR_SCHEMA_CONFLICTING_MR_NAME.get(matchingRule.getOID(), name, conflictingRule.getOID());
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
         }
       }
-      matchingRules.put(toLowerCase(matchingRule.getOID()), matchingRule);
 
-      for (String name : matchingRule.getNames())
+      // now register the matching rule
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      MatchingRule.Builder b = builder.buildMatchingRule(matchingRule);
+      if (overwriteExisting)
       {
-        if (name != null)
-        {
-          matchingRules.put(toLowerCase(name), matchingRule);
-        }
+        b.addToSchemaOverwrite();
       }
+      else
+      {
+        b.addToSchema();
+      }
+      switchSchema(builder.toSchema());
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
-
   /**
-   * Deregisters the provided matching rule definition with this
-   * schema.
+   * Deregisters the provided matching rule definition with this schema.
    *
-   * @param  matchingRule  The matching rule to deregister with this
-   *                       schema.
+   * @param matchingRule
+   *          The matching rule to deregister with this schema.
    */
-  public void deregisterMatchingRule(MatchingRule matchingRule)
+  public void deregisterMatchingRule(final MatchingRule matchingRule)
   {
-    synchronized (matchingRules)
+    exclusiveLock.lock();
+    try
     {
-      matchingRules.remove(toLowerCase(matchingRule.getOID()), matchingRule);
-
-      for (String name : matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          matchingRules.remove(toLowerCase(name), matchingRule);
-        }
-      }
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeMatchingRule(matchingRule.getNameOrOID());
+      setSchemaNG(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -1042,23 +1173,6 @@ public final class Schema
               getMatchingRuleUses()
   {
     return matchingRuleUses;
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition includes a matching rule
-   * use for the provided matching rule.
-   *
-   * @param  matchingRule  The matching rule for which to make the
-   *                       determination.
-   *
-   * @return  {@code true} if this schema contains a matching rule use
-   *          for the provided matching rule, or {@code false} if not.
-   */
-  public boolean hasMatchingRuleUse(MatchingRule matchingRule)
-  {
-    return matchingRuleUses.containsKey(matchingRule);
   }
 
 
@@ -1153,23 +1267,6 @@ public final class Schema
               getDITContentRules()
   {
     return ditContentRules;
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition includes a DIT content
-   * rule for the provided objectclass.
-   *
-   * @param  objectClass  The objectclass for which to make the
-   *                      determination.
-   *
-   * @return  {@code true} if this schema contains a DIT content rule
-   *          for the provided objectclass, or {@code false} if not.
-   */
-  public boolean hasDITContentRule(ObjectClass objectClass)
-  {
-    return ditContentRules.containsKey(objectClass);
   }
 
 
@@ -1281,40 +1378,6 @@ public final class Schema
               getDITStructureRulesByNameForm()
   {
     return ditStructureRulesByNameForm;
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition includes a DIT structure
-   * rule with the provided rule ID.
-   *
-   * @param  ruleID  The rule ID for which to make the determination.
-   *
-   * @return  {@code true} if this schema contains a DIT structure
-   *          rule with the provided rule ID, or {@code false} if not.
-   */
-  public boolean hasDITStructureRule(int ruleID)
-  {
-    return ditStructureRulesByID.containsKey(ruleID);
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition includes a DIT structure
-   * rule for the provided name form.
-   *
-   * @param  nameForm  The name form for which to make the
-   *                   determination.
-   *
-   * @return  {@code true} if this schema contains a DIT structure
-   *          rule for the provided name form, or {@code false} if
-   *          not.
-   */
-  public boolean hasDITStructureRule(NameForm nameForm)
-  {
-    return ditStructureRulesByNameForm.containsKey(nameForm);
   }
 
 
@@ -1464,23 +1527,6 @@ public final class Schema
   public ConcurrentHashMap<String,NameForm> getNameFormsByNameOrOID()
   {
     return nameFormsByName;
-  }
-
-
-
-  /**
-   * Indicates whether this schema definition includes a name form for
-   * the specified objectclass.
-   *
-   * @param  objectClass  The objectclass for which to make the
-   *                      determination.
-   *
-   * @return  {@code true} if this schema contains a name form for the
-   *          provided objectclass, or {@code false} if not.
-   */
-  public boolean hasNameForm(ObjectClass objectClass)
-  {
-    return nameFormsByOC.containsKey(objectClass);
   }
 
 
@@ -1714,8 +1760,6 @@ public final class Schema
     this.youngestModificationTime = youngestModificationTime;
   }
 
-
-
   /**
    * Recursively rebuilds all schema elements that are dependent upon
    * the provided element.  This must be invoked whenever an existing
@@ -1757,12 +1801,33 @@ public final class Schema
    * @throws  DirectoryException  If a problem occurs while rebuilding
    *                              any of the schema elements.
    */
-  public void rebuildDependentElements(SchemaFileElement element)
-         throws DirectoryException
+  public void rebuildDependentElements(SchemaFileElement element) throws DirectoryException
   {
     try
     {
-      rebuildDependentElements(element, 0);
+      // increase the depth for each level of recursion to protect against errors due to circular references.
+      final int depth = 0;
+
+      if (element instanceof SomeSchemaElement)
+      {
+        SomeSchemaElement elt = (SomeSchemaElement) element;
+        if (elt.isAttributeType())
+        {
+          rebuildDependentElements(elt.getAttributeType(), depth);
+        }
+      }
+      else if (element instanceof ObjectClass)
+      {
+        rebuildDependentElements((ObjectClass) element, depth);
+      }
+      else if (element instanceof NameForm)
+      {
+        rebuildDependentElements((NameForm) element, depth);
+      }
+      else if (element instanceof DITStructureRule)
+      {
+        rebuildDependentElements((DITStructureRule) element, depth);
+      }
     }
     catch (DirectoryException de)
     {
@@ -1774,194 +1839,157 @@ public final class Schema
       {
         LocalizableMessage message =
             ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(element);
-        throw new DirectoryException(de.getResultCode(), message,
-                                     de);
+        throw new DirectoryException(de.getResultCode(), message, de);
       }
 
-
-      // It wasn't a circular reference error, so just re-throw the
-      // exception.
+      // It wasn't a circular reference error, so just re-throw the exception.
       throw de;
     }
   }
 
-
-
-  /**
-   * Recursively rebuilds all schema elements that are dependent upon
-   * the provided element, increasing the depth for each level of
-   * recursion to protect against errors due to circular references.
-   *
-   * @param  element  The element for which to recursively rebuild all
-   *                  dependent elements.
-   * @param  depth    The current recursion depth.
-   *
-   * @throws  DirectoryException  If a problem occurs while rebuilding
-   *                              any of the schema elements.
-   */
-  private void rebuildDependentElements(SchemaFileElement element,
-                                        int depth)
-          throws DirectoryException
+  private void circularityCheck(int depth, SchemaFileElement element) throws DirectoryException
   {
     if (depth > 20)
     {
-      // FIXME -- Is this an appropriate maximum depth for detecting
-      // circular references?
+      // FIXME use a stack of already traversed elements and verify we're updating them only once instead of depth only
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(element));
     }
+  }
 
+  private void rebuildDependentElements(AttributeType type, int depth) throws DirectoryException
+  {
+    circularityCheck(depth, null);
 
-    // Figure out what type of element we're dealing with and make the
-    // appropriate determinations for that element.
-    if (element instanceof AttributeType)
+    for (AttributeType at : schemaNG.getAttributeTypes())
     {
-      AttributeType t = (AttributeType) element;
-
-      for (AttributeType at : attributeTypes.values())
+      if ((at.getSuperiorType() != null) && at.getSuperiorType().equals(type))
       {
-        if (at.getSuperiorType() != null && at.getSuperiorType().equals(t))
-        {
-          AttributeType newAT = recreateFromDefinition(at);
-          deregisterAttributeType(at);
-          registerAttributeType(newAT, true);
-          rebuildDependentElements(at, depth+1);
-        }
+        deregisterAttributeType(at);
+        registerAttributeType(at.toString(), getSchemaFileName(at), true);
+        rebuildDependentElements(at, depth + 1);
       }
+    }
 
-      for (ObjectClass oc : objectClasses.values())
+    for (ObjectClass oc : objectClasses.values())
+    {
+      if (oc.getRequiredAttributes().contains(type) || oc.getOptionalAttributes().contains(type))
       {
-        if (oc.getRequiredAttributes().contains(t) ||
-            oc.getOptionalAttributes().contains(t))
-        {
-          ObjectClass newOC = recreateFromDefinition(oc);
-          deregisterObjectClass(oc);
-          registerObjectClass(newOC, true);
-          rebuildDependentElements(oc, depth+1);
-        }
+        ObjectClass newOC = recreateFromDefinition(oc);
+        deregisterObjectClass(oc);
+        registerObjectClass(newOC, true);
+        rebuildDependentElements(oc, depth + 1);
       }
+    }
 
-      for (List<NameForm> mappedForms : nameFormsByOC.values())
+    for (List<NameForm> mappedForms : nameFormsByOC.values())
+    {
+      for (NameForm nf : mappedForms)
       {
-        for(NameForm nf : mappedForms)
+        if (nf.getRequiredAttributes().contains(type) || nf.getOptionalAttributes().contains(type))
         {
-          if (nf.getRequiredAttributes().contains(t) ||
-              nf.getOptionalAttributes().contains(t))
-          {
-            NameForm newNF = recreateFromDefinition(nf);
-            deregisterNameForm(nf);
-            registerNameForm(newNF, true);
-            rebuildDependentElements(nf, depth+1);
-          }
-        }
-      }
-
-      for (DITContentRule dcr : ditContentRules.values())
-      {
-        if (dcr.getRequiredAttributes().contains(t) ||
-            dcr.getOptionalAttributes().contains(t) ||
-            dcr.getProhibitedAttributes().contains(t))
-        {
-          DITContentRule newDCR = recreateFromDefinition(dcr);
-          deregisterDITContentRule(dcr);
-          registerDITContentRule(newDCR, true);
-          rebuildDependentElements(dcr, depth+1);
-        }
-      }
-
-      for (MatchingRuleUse mru : matchingRuleUses.values())
-      {
-        if (mru.getAttributes().contains(t))
-        {
-          MatchingRuleUse newMRU = recreateFromDefinition(mru);
-          deregisterMatchingRuleUse(mru);
-          registerMatchingRuleUse(newMRU, true);
-          rebuildDependentElements(mru, depth+1);
+          NameForm newNF = recreateFromDefinition(nf);
+          deregisterNameForm(nf);
+          registerNameForm(newNF, true);
+          rebuildDependentElements(nf, depth + 1);
         }
       }
     }
-    else if (element instanceof ObjectClass)
+
+    for (DITContentRule dcr : ditContentRules.values())
     {
-      ObjectClass c = (ObjectClass) element;
-
-      for (ObjectClass oc : objectClasses.values())
+      if (dcr.getRequiredAttributes().contains(type) || dcr.getOptionalAttributes().contains(type)
+          || dcr.getProhibitedAttributes().contains(type))
       {
-        if (oc.getSuperiorClasses().contains(c))
-        {
-          ObjectClass newOC = recreateFromDefinition(oc);
-          deregisterObjectClass(oc);
-          registerObjectClass(newOC, true);
-          rebuildDependentElements(oc, depth+1);
-        }
-      }
-
-      List<NameForm> mappedForms = nameFormsByOC.get(c);
-      if(mappedForms != null)
-      {
-        for(NameForm nf : mappedForms)
-        {
-          if (nf != null)
-          {
-            NameForm newNF = recreateFromDefinition(nf);
-            deregisterNameForm(nf);
-            registerNameForm(newNF, true);
-            rebuildDependentElements(nf, depth+1);
-          }
-        }
-      }
-
-      for (DITContentRule dcr : ditContentRules.values())
-      {
-        if (dcr.getStructuralClass().equals(c) ||
-            dcr.getAuxiliaryClasses().contains(c))
-        {
-          DITContentRule newDCR = recreateFromDefinition(dcr);
-          deregisterDITContentRule(dcr);
-          registerDITContentRule(newDCR, true);
-          rebuildDependentElements(dcr, depth+1);
-        }
+        DITContentRule newDCR = recreateFromDefinition(dcr);
+        deregisterDITContentRule(dcr);
+        registerDITContentRule(newDCR, true);
       }
     }
-    else if (element instanceof NameForm)
+
+    for (MatchingRuleUse mru : matchingRuleUses.values())
     {
-      NameForm n = (NameForm) element;
-      DITStructureRule dsr = ditStructureRulesByNameForm.get(n);
-      if (dsr != null)
+      if (mru.getAttributes().contains(type))
       {
-        DITStructureRule newDSR = recreateFromDefinition(dsr);
-        deregisterDITStructureRule(dsr);
-        registerDITStructureRule(newDSR, true);
-        rebuildDependentElements(dsr, depth+1);
-      }
-    }
-    else if (element instanceof DITStructureRule)
-    {
-      DITStructureRule d = (DITStructureRule) element;
-      for (DITStructureRule dsr : ditStructureRulesByID.values())
-      {
-        if (dsr.getSuperiorRules().contains(d))
-        {
-          DITStructureRule newDSR = recreateFromDefinition(dsr);
-          deregisterDITStructureRule(dsr);
-          registerDITStructureRule(newDSR, true);
-          rebuildDependentElements(dsr, depth+1);
-        }
+        MatchingRuleUse newMRU = recreateFromDefinition(mru);
+        deregisterMatchingRuleUse(mru);
+        registerMatchingRuleUse(newMRU, true);
       }
     }
   }
 
-  private AttributeType recreateFromDefinition(AttributeType attrType)
-      throws DirectoryException
+  private void rebuildDependentElements(ObjectClass c, int depth) throws DirectoryException
   {
-    ByteString value = ByteString.valueOfUtf8(attrType.toString());
-    AttributeType copy =
-        AttributeTypeSyntax.decodeAttributeType(value, this, false);
-    setSchemaFile(copy, getSchemaFile(attrType));
-    if (attrType.mayHaveSubordinateTypes())
+    circularityCheck(depth, c);
+    for (ObjectClass oc : objectClasses.values())
     {
-      copy.setMayHaveSubordinateTypes();
+      if (oc.getSuperiorClasses().contains(c))
+      {
+        ObjectClass newOC = recreateFromDefinition(oc);
+        deregisterObjectClass(oc);
+        registerObjectClass(newOC, true);
+        rebuildDependentElements(oc, depth + 1);
+      }
     }
-    return copy;
+
+    List<NameForm> mappedForms = nameFormsByOC.get(c);
+    if (mappedForms != null)
+    {
+      for (NameForm nf : mappedForms)
+      {
+        if (nf != null)
+        {
+          NameForm newNF = recreateFromDefinition(nf);
+          deregisterNameForm(nf);
+          registerNameForm(newNF, true);
+          rebuildDependentElements(nf, depth + 1);
+        }
+      }
+    }
+
+    for (DITContentRule dcr : ditContentRules.values())
+    {
+      if (dcr.getStructuralClass().equals(c) || dcr.getAuxiliaryClasses().contains(c))
+      {
+        DITContentRule newDCR = recreateFromDefinition(dcr);
+        deregisterDITContentRule(dcr);
+        registerDITContentRule(newDCR, true);
+      }
+    }
+  }
+
+  private void rebuildDependentElements(NameForm n, int depth) throws DirectoryException
+  {
+    circularityCheck(depth, n);
+    DITStructureRule dsr = ditStructureRulesByNameForm.get(n);
+    if (dsr != null)
+    {
+      DITStructureRule newDSR = recreateFromDefinition(dsr);
+      deregisterDITStructureRule(dsr);
+      registerDITStructureRule(newDSR, true);
+      rebuildDependentElements(dsr, depth + 1);
+    }
+  }
+
+  private void rebuildDependentElements(DITStructureRule d, int depth) throws DirectoryException
+  {
+    circularityCheck(depth, d);
+    for (DITStructureRule dsr : ditStructureRulesByID.values())
+    {
+      if (dsr.getSuperiorRules().contains(d))
+      {
+        DITStructureRule newDSR = recreateFromDefinition(dsr);
+        deregisterDITStructureRule(dsr);
+        registerDITStructureRule(newDSR, true);
+        rebuildDependentElements(dsr, depth + 1);
+      }
+    }
+  }
+
+  private String getSchemaFileName(AttributeType attributeType)
+  {
+    List<String> values = attributeType.getExtraProperties().get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    return values != null && ! values.isEmpty() ? values.get(0) : null;
   }
 
   private DITContentRule recreateFromDefinition(DITContentRule dcr)
@@ -2022,13 +2050,10 @@ public final class Schema
    */
   public Schema duplicate()
   {
-    Schema dupSchema = new Schema();
+    Schema dupSchema = new Schema(schemaNG);
 
-    dupSchema.attributeTypes.putAll(attributeTypes);
     dupSchema.subordinateTypes.putAll(subordinateTypes);
     dupSchema.objectClasses.putAll(objectClasses);
-    dupSchema.syntaxes.putAll(syntaxes);
-    dupSchema.matchingRules.putAll(matchingRules);
     dupSchema.matchingRuleUses.putAll(matchingRuleUses);
     dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
@@ -2104,75 +2129,25 @@ public final class Schema
       concatFilePath = concatFile.getAbsolutePath();
 
       File tempFile = new File(concatFilePath + ".tmp");
-      BufferedWriter writer =
-           new BufferedWriter(new FileWriter(tempFile, false));
-      writer.write("dn: " + DirectoryServer.getSchemaDN());
-      writer.newLine();
-      writer.write("objectClass: top");
-      writer.newLine();
-      writer.write("objectClass: ldapSubentry");
-      writer.newLine();
-      writer.write("objectClass: subschema");
-      writer.newLine();
-
-      for (String line : attributeTypes)
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile, false)))
       {
-        writer.write(ATTR_ATTRIBUTE_TYPES);
-        writer.write(": ");
-        writer.write(line);
+        writer.write("dn: " + DirectoryServer.getSchemaDN());
         writer.newLine();
-      }
-
-      for (String line : objectClasses)
-      {
-        writer.write(ATTR_OBJECTCLASSES);
-        writer.write(": ");
-        writer.write(line);
+        writer.write("objectClass: top");
         writer.newLine();
-      }
-
-      for (String line : nameForms)
-      {
-        writer.write(ATTR_NAME_FORMS);
-        writer.write(": ");
-        writer.write(line);
+        writer.write("objectClass: ldapSubentry");
         writer.newLine();
-      }
-
-      for (String line : ditContentRules)
-      {
-        writer.write(ATTR_DIT_CONTENT_RULES);
-        writer.write(": ");
-        writer.write(line);
+        writer.write("objectClass: subschema");
         writer.newLine();
+
+        writeLines(writer, ATTR_ATTRIBUTE_TYPES, attributeTypes);
+        writeLines(writer, ATTR_OBJECTCLASSES, objectClasses);
+        writeLines(writer, ATTR_NAME_FORMS, nameForms);
+        writeLines(writer, ATTR_DIT_CONTENT_RULES, ditContentRules);
+        writeLines(writer, ATTR_DIT_STRUCTURE_RULES, ditStructureRules);
+        writeLines(writer, ATTR_MATCHING_RULE_USE, matchingRuleUses);
+        writeLines(writer, ATTR_LDAP_SYNTAXES, ldapSyntaxes);
       }
-
-      for (String line : ditStructureRules)
-      {
-        writer.write(ATTR_DIT_STRUCTURE_RULES);
-        writer.write(": ");
-        writer.write(line);
-        writer.newLine();
-      }
-
-      for (String line : matchingRuleUses)
-      {
-        writer.write(ATTR_MATCHING_RULE_USE);
-        writer.write(": ");
-        writer.write(line);
-        writer.newLine();
-      }
-
-
-      for (String line : ldapSyntaxes)
-      {
-        writer.write(ATTR_LDAP_SYNTAXES);
-        writer.write(": ");
-        writer.write(line);
-        writer.newLine();
-      }
-
-      writer.close();
 
       if (concatFile.exists())
       {
@@ -2190,6 +2165,17 @@ public final class Schema
       // when this server is restarted, which shouldn't hurt anything.
       // Still, we should log a warning message.
       logger.error(ERR_SCHEMA_CANNOT_WRITE_CONCAT_SCHEMA_FILE, concatFilePath, getExceptionMessage(e));
+    }
+  }
+
+  private static void writeLines(BufferedWriter writer, String beforeColumn, Set<String> lines) throws IOException
+  {
+    for (String line : lines)
+    {
+      writer.write(beforeColumn);
+      writer.write(": ");
+      writer.write(line);
+      writer.newLine();
     }
   }
 
@@ -2516,10 +2502,9 @@ public final class Schema
        mayInvoke=true)
   public synchronized void destroy()
   {
-    if (attributeTypes != null)
+    if (schemaNG != null)
     {
-      attributeTypes.clear();
-      attributeTypes = null;
+      schemaNG = null;
     }
 
     if (ditContentRules != null)
@@ -2538,12 +2523,6 @@ public final class Schema
     {
       ditStructureRulesByNameForm.clear();
       ditStructureRulesByNameForm = null;
-    }
-
-    if (matchingRules != null)
-    {
-      matchingRules.clear();
-      matchingRules = null;
     }
 
     if (matchingRuleUses != null)
@@ -2582,18 +2561,122 @@ public final class Schema
       extraAttributes = null;
     }
 
-    if (syntaxes != null)
-    {
-      syntaxes.clear();
-      syntaxes = null;
-    }
-
     if(ldapSyntaxDescriptions != null)
     {
       ldapSyntaxDescriptions.clear();
       ldapSyntaxDescriptions = null;
     }
+  }
 
+  /**
+   * Update the schema using the provided schema updater.
+   * <p>
+   * An implicit lock is performed, so it is in general not necessary
+   * to call the {code lock()}  and {code unlock() methods.
+   * However, these method should be used if/when the SchemaBuilder passed
+   * as an argument to the updater is not used to return the schema
+   * (see for example usage in {@code CoreSchemaProvider} class). This
+   * case should remain exceptional.
+   *
+   * @param updater
+   *          the updater that returns a new schema
+   * @throws DirectoryException if there is any problem updating the schema
+   */
+  public void updateSchema(SchemaUpdater updater) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      switchSchema(updater.update(new SchemaBuilder(schemaNG)));
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  /** Interface to update a schema provided a schema builder. */
+  public interface SchemaUpdater
+  {
+    /**
+     * Returns an updated schema.
+     *
+     * @param builder
+     *          The builder on the current schema
+     * @return the new schema
+     */
+    org.forgerock.opendj.ldap.schema.Schema update(SchemaBuilder builder);
+  }
+
+  /**
+   * Updates the schema option  if the new value differs from the old value.
+   *
+   * @param <T> the schema option's type
+   * @param option the schema option to update
+   * @param newValue the new value for the schema option
+   * @throws DirectoryException if there is any problem updating the schema
+   */
+  public <T> void updateSchemaOption(final Option<T> option, final T newValue) throws DirectoryException
+  {
+    final T oldValue = schemaNG.getOption(option);
+    if (!oldValue.equals(newValue))
+    {
+      updateSchema(new SchemaUpdater()
+      {
+        @Override
+        public org.forgerock.opendj.ldap.schema.Schema update(SchemaBuilder builder)
+        {
+          return builder.setOption(option, newValue).toSchema();
+        }
+      });
+    }
+  }
+
+  /** Takes an exclusive lock on the schema. */
+  public void exclusiveLock()
+  {
+    exclusiveLock.lock();
+  }
+
+  /** Releases an exclusive lock on the schema. */
+  public void exclusiveUnlock()
+  {
+    exclusiveLock.unlock();
+  }
+
+  /**
+   * Adds the provided schema file to the provided schema element definition.
+   *
+   * @param definition
+   *            The schema element definition
+   * @param schemaFile
+   *            The name of the schema file to include in the definition
+   * @return  The definition string of the element
+   *          including the X-SCHEMA-FILE extension.
+   */
+  public static String addSchemaFileToElementDefinitionIfAbsent(String definition, String schemaFile)
+  {
+    if (schemaFile != null && !definition.contains(SCHEMA_PROPERTY_FILENAME))
+    {
+      int pos = definition.lastIndexOf(')');
+      return definition.substring(0, pos).trim() + " " + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
+    }
+    return definition;
+  }
+
+  private void switchSchema(org.forgerock.opendj.ldap.schema.Schema newSchema) throws DirectoryException
+  {
+    rejectSchemaWithWarnings(newSchema);
+    setSchemaNG(newSchema);
+  }
+
+  private void rejectSchemaWithWarnings(org.forgerock.opendj.ldap.schema.Schema newSchema) throws DirectoryException
+  {
+    Collection<LocalizableMessage> warnings = newSchema.getWarnings();
+    if (!warnings.isEmpty())
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+          ERR_SCHEMA_HAS_WARNINGS.get(warnings.size(), Utils.joinAsString("; ", warnings)));
+    }
   }
 }
-

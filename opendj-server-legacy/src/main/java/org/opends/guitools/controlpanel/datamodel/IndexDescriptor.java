@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS
+ *      Portions Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * The class used to describe the index configuration (the normal index: the one

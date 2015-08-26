@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -30,12 +30,8 @@ import static org.opends.server.ServerContextBuilder.*;
 
 import java.io.File;
 
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.opends.server.ServerContextBuilder.MockSchemaUpdater;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.schema.SchemaUpdater;
-import org.opends.server.types.InitializationException;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
@@ -47,12 +43,8 @@ public class SchemaHandlerTestCase extends CoreTestCase
   @Test
   public void testSchemaInitialization() throws Exception
   {
-    MockSchemaUpdater schemaUpdater = new MockSchemaUpdater(Schema.getEmptySchema());
-    initializeSchemaHandler(schemaUpdater);
-
-    assertThat(schemaUpdater.getSchemaBuilder()).isNotNull();
-
-    Schema schema = schemaUpdater.getSchemaBuilder().toSchema();
+    org.opends.server.types.Schema schema = new org.opends.server.types.Schema(Schema.getCoreSchema());
+    initializeSchemaHandler(schema);
 
     assertThat(schema.getMatchingRules()).isNotEmpty(); // some matching rules defined
     schema.getSyntax(DIRECTORY_STRING_SYNTAX_OID);
@@ -61,15 +53,14 @@ public class SchemaHandlerTestCase extends CoreTestCase
     schema.getObjectClass("changeLogEntry"); // from file 03-changelog.ldif
   }
 
-
-  private void initializeSchemaHandler(SchemaUpdater updater) throws InitializationException, ConfigException
+  private void initializeSchemaHandler(org.opends.server.types.Schema schema) throws Exception
   {
-    final ServerContext serverContext = aServerContext().
-        schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema")).
-        configFile(TestCaseUtils.getTestResource("config-small.ldif")).
-        schemaUpdater(updater).
-        withConfigurationBootstrapped().
-        build();
+    final ServerContext serverContext = aServerContext()
+        .schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema"))
+        .configFile(TestCaseUtils.getTestResource("config-small.ldif"))
+        .withConfigurationBootstrapped()
+        .schema(schema)
+        .build();
 
     SchemaHandler schemaHandler = new SchemaHandler();
     schemaHandler.initialize(serverContext);

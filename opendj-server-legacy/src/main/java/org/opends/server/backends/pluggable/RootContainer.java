@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -55,6 +55,7 @@ import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -89,18 +90,23 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   /** The compressed schema manager for this backend. */
   private PersistentCompressedSchema compressedSchema;
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new RootContainer object representing a storage.
    *
-   * @param config
-   *          The configuration of the backend.
    * @param backendID
    *          A reference to the backend that is creating this root
    *          container.
+   * @param serverContext
+   *          The server context.
+   * @param config
+   *          The configuration of the backend.
    */
-  RootContainer(String backendID, Storage storage, PluggableBackendCfg config)
+  RootContainer(String backendID, ServerContext serverContext, Storage storage, PluggableBackendCfg config)
   {
     this.backendId = backendID;
+    this.serverContext = serverContext;
     this.storage = storage;
     this.config = config;
 
@@ -140,7 +146,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          compressedSchema = new PersistentCompressedSchema(storage, txn, accessMode);
+          compressedSchema = new PersistentCompressedSchema(serverContext, storage, txn, accessMode);
           openAndRegisterEntryContainers(txn, config.getBaseDN(), accessMode);
         }
       });

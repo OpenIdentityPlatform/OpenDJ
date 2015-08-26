@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.admin;
-
-
 
 import java.util.Collection;
 import java.util.SortedSet;
@@ -33,10 +32,8 @@ import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.TestChildCfg;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
-
-
 
 /**
  * A client-side interface for reading and modifying Test Child

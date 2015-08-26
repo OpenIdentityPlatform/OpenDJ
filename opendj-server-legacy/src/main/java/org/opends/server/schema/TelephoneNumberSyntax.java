@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -36,11 +36,11 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.util.Option;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class implements the telephone number attribute syntax, which is defined
@@ -74,87 +74,54 @@ public class TelephoneNumberSyntax
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(TelephoneNumberAttributeSyntaxCfg configuration, ServerContext serverContext)
-         throws ConfigException
+      throws ConfigException, DirectoryException
   {
     this.serverContext = serverContext;
 
     // We may or may not have access to the config entry.  If we do, then see if
-    // we should use the strict compliance mode.  If not, just assume that we
-    // won't.
+    // we should use the strict compliance mode. If not, just assume that we won't.
     strictMode = false;
     if (configuration != null)
     {
       currentConfig = configuration;
       currentConfig.addTelephoneNumberChangeListener(this);
       strictMode = currentConfig.isStrictFormat();
-      updateNewSchema();
+      serverContext.getSchema().updateSchemaOption(SchemaOptions.ALLOW_NON_STANDARD_TELEPHONE_NUMBERS, !strictMode);
     }
   }
 
-  /** Update the option in new schema if it changes from current value. */
-  private void updateNewSchema()
-  {
-    Option<Boolean> option = SchemaOptions.ALLOW_NON_STANDARD_TELEPHONE_NUMBERS;
-    if (strictMode == serverContext.getSchemaNG().getOption(option))
-    {
-      SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-      schemaUpdater.updateSchema(schemaUpdater.getSchemaBuilder().setOption(option, !strictMode).toSchema());
-    }
-  }
-
-  /** {@inheritDoc} */
   @Override
   public Syntax getSDKSyntax(Schema schema)
   {
     return schema.getSyntax(SchemaConstants.SYNTAX_TELEPHONE_OID);
   }
 
-  /**
-   * Performs any finalization that may be necessary for this attribute syntax.
-   */
   @Override
   public void finalizeSyntax()
   {
     currentConfig.removeTelephoneNumberChangeListener(this);
   }
 
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
   @Override
   public String getName()
   {
     return SYNTAX_TELEPHONE_NAME;
   }
 
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
   @Override
   public String getOID()
   {
     return SYNTAX_TELEPHONE_OID;
   }
 
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
   @Override
   public String getDescription()
   {
     return SYNTAX_TELEPHONE_DESCRIPTION;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       TelephoneNumberAttributeSyntaxCfg configuration,
@@ -164,16 +131,23 @@ public class TelephoneNumberSyntax
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               TelephoneNumberAttributeSyntaxCfg configuration)
   {
     currentConfig = configuration;
     strictMode = configuration.isStrictFormat();
-    updateNewSchema();
-
-    return new ConfigChangeResult();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    try
+    {
+      serverContext.getSchema().updateSchemaOption(SchemaOptions.ALLOW_NON_STANDARD_TELEPHONE_NUMBERS, !strictMode);
+    }
+    catch (DirectoryException e)
+    {
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
+    return ccr;
   }
 }
 

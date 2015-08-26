@@ -22,36 +22,32 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.ServerContextBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.DN;
 import org.opends.server.util.Base64;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-/**
- * Test the CertificateSyntax.
- */
+/** Test the CertificateSyntax. */
 @RemoveOnceSDKSchemaIsUsed
 @Test
 public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
 {
 
-  /** {@inheritDoc} */
   @Override
-  protected AttributeSyntax<?> getRule()
+  protected AttributeSyntax<?> getRule() throws Exception
   {
     CertificateSyntax syntax = new CertificateSyntax();
     CertificateAttributeSyntaxCfg cfg = new CertificateAttributeSyntaxCfg()
@@ -132,24 +128,13 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
       }
     };
 
-    try
-    {
-      Schema schema = Schema.getCoreSchema();
-      ServerContext serverContext = ServerContextBuilder.aServerContext()
-          .schemaNG(schema)
-          .schemaUpdater(new ServerContextBuilder.MockSchemaUpdater(schema)).build();
-      syntax.initializeSyntax(cfg, serverContext);
-    }
-    catch (ConfigException e)
-    {
-      // Should never happen.
-      throw new RuntimeException(e);
-    }
-
+    ServerContext serverContext = ServerContextBuilder.aServerContext()
+        .schema(new org.opends.server.types.Schema(Schema.getCoreSchema()))
+        .build();
+    syntax.initializeSyntax(cfg, serverContext);
     return syntax;
   }
 
-  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()
@@ -205,6 +190,4 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
       return new Object[][] {};
     }
   }
-
-
 }

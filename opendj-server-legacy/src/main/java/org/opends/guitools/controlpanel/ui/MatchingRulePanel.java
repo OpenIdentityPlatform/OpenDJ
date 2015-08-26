@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -32,7 +32,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Comparator;
 import java.util.TreeSet;
 
 import javax.swing.DefaultListModel;
@@ -46,7 +45,7 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Schema;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -206,7 +205,7 @@ public class MatchingRulePanel extends SchemaElementPanel
     oid.setText(matchingRule.getOID());
     Syntax s = null;
     String syntaxOID = matchingRule.getSyntax().getOID();
-    for (Syntax candidate : schema.getSyntaxes().values())
+    for (Syntax candidate : schema.getSyntaxes())
     {
       if (candidate.getOID().equals(syntaxOID))
       {
@@ -230,9 +229,8 @@ public class MatchingRulePanel extends SchemaElementPanel
     }
     description.setText(n);
 
-    Comparator<String> lowerCaseComparator = new LowerCaseComparator();
-    TreeSet<String> attributes = new TreeSet<>(lowerCaseComparator);
-    for (AttributeType attr : schema.getAttributeTypes().values())
+    TreeSet<String> attributes = new TreeSet<>(new LowerCaseComparator());
+    for (AttributeType attr : schema.getAttributeTypes())
     {
       if (matchingRule.equals(attr.getApproximateMatchingRule()) ||
           matchingRule.equals(attr.getEqualityMatchingRule()) ||

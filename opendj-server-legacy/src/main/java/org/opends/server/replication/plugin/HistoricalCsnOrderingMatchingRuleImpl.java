@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -181,11 +182,26 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     };
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<? extends Indexer> createIndexers(IndexingOptions options)
   {
     return indexers;
   }
 
+  /**
+   * Adds the historical csn ordering matching rule to the provided schema builder.
+   *
+   * @param builder
+   *          where to add the historical csn ordering matching rule
+   * @return the provided builder
+   */
+  public static SchemaBuilder addHistoricalCsnOrderingMatchingRule(SchemaBuilder builder)
+  {
+    return builder
+        .buildMatchingRule("1.3.6.1.4.1.26027.1.4.4")
+        .names("historicalCsnOrderingMatch")
+        .syntaxOID("1.3.6.1.4.1.1466.115.121.1.40")
+        .implementation(new HistoricalCsnOrderingMatchingRuleImpl())
+        .addToSchema();
+  }
 }

@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.types;
+
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -485,21 +487,18 @@ public class Entry
     }
 
     // Check sub-types.
-    if (attributeType.mayHaveSubordinateTypes())
+    for (AttributeType subType : schema.getSubTypes(attributeType))
     {
-      for (AttributeType subType : schema.getSubTypes(attributeType))
+      attributes = getAttributes(subType);
+      if (attributes != null)
       {
-        attributes = getAttributes(subType);
-        if (attributes != null)
+        for (Attribute attribute : attributes)
         {
-          for (Attribute attribute : attributes)
+          // It's possible that there could be an attribute without any values,
+          // which we should treat as not having the requested attribute.
+          if (!attribute.isEmpty() && attribute.hasAllOptions(options))
           {
-            // It's possible that there could be an attribute without any values,
-            // which we should treat as not having the requested attribute.
-            if (!attribute.isEmpty() && attribute.hasAllOptions(options))
-            {
-              return true;
-            }
+            return true;
           }
         }
       }
@@ -601,7 +600,7 @@ public class Entry
   public List<Attribute> getAttribute(AttributeType attributeType,
                                       boolean includeSubordinates)
   {
-    if (includeSubordinates && attributeType.mayHaveSubordinateTypes())
+    if (includeSubordinates && !attributeType.isObjectClass())
     {
       List<Attribute> attributes = new LinkedList<>();
       addAllIfNotNull(attributes, userAttributes.get(attributeType));
@@ -718,7 +717,7 @@ public class Entry
                                       Set<String> options)
   {
     List<Attribute> attributes = new LinkedList<>();
-    if (attributeType.mayHaveSubordinateTypes())
+    if (!attributeType.isObjectClass())
     {
       addAllIfNotNull(attributes, userAttributes.get(attributeType));
       addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
@@ -824,18 +823,13 @@ public class Entry
   private List<Attribute> getAttribute(AttributeType attributeType,
       Map<AttributeType, List<Attribute>> attrs)
   {
-    if (attributeType.mayHaveSubordinateTypes())
+    List<Attribute> attributes = new LinkedList<>();
+    addAllIfNotNull(attributes, attrs.get(attributeType));
+    for (AttributeType at : schema.getSubTypes(attributeType))
     {
-      List<Attribute> attributes = new LinkedList<>();
-      addAllIfNotNull(attributes, attrs.get(attributeType));
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        addAllIfNotNull(attributes, attrs.get(at));
-      }
-      return attributes;
+      addAllIfNotNull(attributes, attrs.get(at));
     }
-    List<Attribute> results = attrs.get(attributeType);
-    return results != null ? results : Collections.<Attribute> emptyList();
+    return attributes;
   }
 
 
@@ -858,12 +852,9 @@ public class Entry
     List<Attribute> attributes = new LinkedList<>();
     addAllIfNotNull(attributes, attrs.get(attributeType));
 
-    if (attributeType.mayHaveSubordinateTypes())
+    for (AttributeType at : schema.getSubTypes(attributeType))
     {
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        addAllIfNotNull(attributes, attrs.get(at));
-      }
+      addAllIfNotNull(attributes, attrs.get(at));
     }
 
     onlyKeepAttributesWithAllOptions(attributes, options);
@@ -914,21 +905,16 @@ public class Entry
       return true;
     }
 
-    if (attributeType.mayHaveSubordinateTypes())
+    for (AttributeType at : schema.getSubTypes(attributeType))
     {
-      for (AttributeType at : schema.getSubTypes(attributeType))
+      if (attributes.containsKey(at))
       {
-        if (attributes.containsKey(at))
-        {
-          return true;
-        }
+        return true;
       }
     }
 
     return false;
   }
-
-
 
   /**
    * Retrieves the requested operational attribute element(s) for the
@@ -2946,8 +2932,7 @@ public class Entry
         for (Attribute collectiveAttr : collectiveAttrList)
         {
           AttributeType attributeType = collectiveAttr.getAttributeType();
-          if (exclusionsNameSet.contains(
-                  attributeType.getNormalizedPrimaryNameOrOID()))
+          if (exclusionsNameSet.contains(attributeType.getNormalizedNameOrOID()))
           {
             continue;
           }

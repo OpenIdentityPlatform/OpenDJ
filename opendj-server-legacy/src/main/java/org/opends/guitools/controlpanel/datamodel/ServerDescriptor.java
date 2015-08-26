@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -39,8 +39,9 @@ import java.util.Set;
 
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.quicksetup.UserData;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
@@ -563,17 +564,19 @@ public class ServerDescriptor
 
   private static boolean areAttributeTypesEqual(Schema schema1, Schema schema2)
   {
-    final Map<String, AttributeType> attrs1 = schema1.getAttributeTypes();
-    final Map<String, AttributeType> attrs2 = schema2.getAttributeTypes();
+    final List<AttributeType> attrs1 = new ArrayList<>(schema1.getAttributeTypes());
+    final List<AttributeType> attrs2 = new ArrayList<>(schema2.getAttributeTypes());
     if (attrs1.size() != attrs2.size())
     {
       return false;
     }
-    for (String name : attrs1.keySet())
+    Collections.sort(attrs1);
+    Collections.sort(attrs2);
+    for (int i = 0; i < attrs1.size(); i++)
     {
-      AttributeType attr1 = attrs1.get(name);
-      AttributeType attr2 = attrs2.get(name);
-      if (attr2 == null && !areAttributesEqual(attr1, attr2))
+      AttributeType attr1 = attrs1.get(i);
+      AttributeType attr2 = attrs2.get(i);
+      if (attr2 == null || !areAttributesEqual(attr1, attr2))
       {
         return false;
       }
@@ -620,7 +623,8 @@ public class ServerDescriptor
         && attr1.isOperational() == attr2.isOperational()
         && attr1.isSingleValue() == attr2.isSingleValue()
         && areEqual(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
-        && areEqual(getDefinitionWithFileName(attr1), getDefinitionWithFileName(attr2))
+        && areEqual(new SomeSchemaElement(attr1).getDefinitionWithFileName(),
+            new SomeSchemaElement(attr2).getDefinitionWithFileName())
         && areEqual(attr1.getDescription(), attr2.getDescription())
         && areEqual(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
         && areEqual(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())
@@ -629,8 +633,7 @@ public class ServerDescriptor
         && areEqual(attr1.getSyntax(), attr2.getSyntax())
         && areEqual(attr1.getSyntax().getOID(), attr2.getSyntax().getOID())
         && areEqual(attr1.getExtraProperties().keySet(), attr2.getExtraProperties().keySet())
-        && areEqual(toSet(attr1.getNormalizedNames()), toSet(attr2.getNormalizedNames()))
-        && areEqual(toSet(attr1.getUserDefinedNames()), toSet(attr2.getUserDefinedNames()));
+        && areEqual(toSet(attr1.getNames()), toSet(attr2.getNames()));
   }
 
   /**

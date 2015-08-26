@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -69,6 +69,7 @@ import javax.swing.event.ListDataListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.SortableListModel;
@@ -86,7 +87,7 @@ import org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEdito
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -528,7 +529,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     lastAliases.addAll(aliases);
     this.aliases.setText(Utilities.getStringFromCollection(aliases, ", "));
 
-    String sOrigin = Utilities.getOrigin(oc);
+    String sOrigin = Utilities.getOrigin(new SomeSchemaElement(oc));
     if (sOrigin == null)
     {
       sOrigin = "";
@@ -1037,8 +1038,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
         attributes.getSelectedList2()
     };
     attributes.getAvailableListModel().clear();
-    Collection<AttributeType> allAttrs =
-      schema.getAttributeTypes().values();
+    Collection<AttributeType> allAttrs = schema.getAttributeTypes();
     attributes.getAvailableListModel().addAll(allAttrs);
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -36,7 +36,7 @@ import java.util.Map;
 import org.opends.server.backends.pluggable.AttributeIndex.IndexFilterType;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
 

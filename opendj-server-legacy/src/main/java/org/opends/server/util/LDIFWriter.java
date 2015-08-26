@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -38,6 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.tools.makeldif.TemplateEntry;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 
 import static org.forgerock.util.Reject.*;

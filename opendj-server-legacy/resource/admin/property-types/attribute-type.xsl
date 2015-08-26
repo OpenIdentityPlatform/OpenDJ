@@ -22,6 +22,7 @@
   !
   !
   !      Copyright 2008 Sun Microsystems, Inc.
+  !      Portions copyright 2015-2016 ForgeRock AS
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -29,7 +30,7 @@
     Templates for processing attribute type properties.
   -->
   <xsl:template match="adm:attribute-type" mode="java-value-imports">
-    <import>org.opends.server.types.AttributeType</import>
+    <import>org.forgerock.opendj.ldap.schema.AttributeType</import>
   </xsl:template>
   <xsl:template match="adm:attribute-type" mode="java-value-type">
     <xsl:value-of select="'AttributeType'" />

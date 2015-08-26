@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -58,6 +58,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
@@ -69,7 +70,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -189,9 +190,8 @@ public class NewAttributePanel extends StatusGenericPanel
       schema = s;
       Map<String, Syntax> syntaxNameMap = new HashMap<>();
 
-      for (String key : schema.getSyntaxes().keySet())
+      for (Syntax syntax : schema.getSyntaxes())
       {
-        Syntax syntax = schema.getSyntax(key);
         String name = syntax.getName();
         if (name == null)
         {
@@ -209,9 +209,8 @@ public class NewAttributePanel extends StatusGenericPanel
       updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
 
       Map<String, AttributeType> attributeNameMap = new HashMap<>();
-      for (String key : schema.getAttributeTypes().keySet())
+      for (AttributeType attr : schema.getAttributeTypes())
       {
-        AttributeType attr = schema.getAttributeType(key);
         attributeNameMap.put(attr.getNameOrOID(), attr);
       }
       orderedKeys.clear();
@@ -226,9 +225,8 @@ public class NewAttributePanel extends StatusGenericPanel
 
       final List<MatchingRule> availableMatchingRules = new ArrayList<>();
       final Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
-      for (String key : schema.getMatchingRules().keySet())
+      for (MatchingRule rule : schema.getMatchingRules())
       {
-        MatchingRule rule = schema.getMatchingRule(key);
         matchingRuleNameMap.put(rule.getNameOrOID(), rule);
       }
 
@@ -240,9 +238,9 @@ public class NewAttributePanel extends StatusGenericPanel
       }
 
       final JComboBox[] combos = { approximate, equality, ordering, substring };
-      for (int i = 0; i < combos.length; i++)
+      for (JComboBox combo : combos)
       {
-        final DefaultComboBoxModel model = (DefaultComboBoxModel) combos[i].getModel();
+        final DefaultComboBoxModel model = (DefaultComboBoxModel) combo.getModel();
         final List<Object> el = new ArrayList<Object>(availableMatchingRules);
         el.add(0, model.getSize() == 0 ? NO_MATCHING_RULE : model.getElementAt(0));
         updateComboBoxModel(el, model);
@@ -438,7 +436,7 @@ public class NewAttributePanel extends StatusGenericPanel
   static LocalizableMessage getSchemaElementType(String name, Schema schema)
   {
     final String lowerCase = name.toLowerCase();
-    if (schema.getAttributeType(lowerCase) != null)
+    if (schema.hasAttributeType(lowerCase))
     {
       return INFO_CTRL_PANEL_TYPE_ATTRIBUTE.get();
     }
@@ -455,7 +453,7 @@ public class NewAttributePanel extends StatusGenericPanel
       return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
     }
 
-    for (Syntax attr : schema.getSyntaxes().values())
+    for (Syntax attr : schema.getSyntaxes())
     {
       if (name.equalsIgnoreCase(attr.getName()))
       {
@@ -463,7 +461,7 @@ public class NewAttributePanel extends StatusGenericPanel
       }
     }
 
-    for (MatchingRule rule : schema.getMatchingRules().values())
+    for (MatchingRule rule : schema.getMatchingRules())
     {
       String n = rule.getNameOrOID();
       if (n != null && n.equalsIgnoreCase(name))
@@ -726,22 +724,23 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private AttributeType getAttribute()
   {
-    return new AttributeType("",
-                             getAttributeName(),
-                             getAllNames(),
-                             getOID(),
-                             getDescription(),
-                             getSuperior(),
-                             (Syntax) syntax.getSelectedItem(),
-                             getApproximateMatchingRule(),
-                             getEqualityMatchingRule(),
-                             getOrderingMatchingRule(),
-                             getSubstringMatchingRule(),
-                             (AttributeUsage) usage.getSelectedItem(),
-                             collective.isSelected(),
-                             nonModifiable.isSelected(),
-                             obsolete.isSelected(),
-                             singleValued.isSelected(),
-                             getExtraProperties());
+    return new SchemaBuilder().buildAttributeType(getOID())
+      .names(getAllNames())
+      .description(getDescription())
+      .superiorType(getSuperior().getNameOrOID())
+      .syntax(((Syntax) syntax.getSelectedItem()).getOID())
+      .approximateMatchingRule(getApproximateMatchingRule().getOID())
+      .equalityMatchingRule(getEqualityMatchingRule().getOID())
+      .orderingMatchingRule(getOrderingMatchingRule().getOID())
+      .substringMatchingRule(getSubstringMatchingRule().getOID())
+      .usage((AttributeUsage)usage.getSelectedItem())
+      .collective(collective.isSelected())
+      .obsolete(obsolete.isSelected())
+      .noUserModification(nonModifiable.isSelected())
+      .singleValue(singleValued.isSelected())
+      .extraProperties(getExtraProperties())
+      .addToSchema()
+      .toSchema()
+      .getAttributeType(getOID());
   }
 }

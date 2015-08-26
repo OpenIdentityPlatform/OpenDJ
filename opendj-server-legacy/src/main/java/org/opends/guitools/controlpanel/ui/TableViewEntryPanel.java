@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -64,6 +64,7 @@ import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
@@ -335,10 +336,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
               {
                 String aName =
                   Utilities.getAttributeNameWithoutOptions(attrName);
-                AttributeType attr =
-                  schema.getAttributeType(aName.toLowerCase());
-                if (attr != null)
+                if (schema.hasAttributeType(aName.toLowerCase()))
                 {
+                  AttributeType attr = schema.getAttributeType(aName.toLowerCase());
                   attributeTypes.add(attr);
                   attributeNames.add(attrName);
                   attributeValues.add(ByteString.valueOfUtf8((String) o));

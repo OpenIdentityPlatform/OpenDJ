@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -93,7 +93,7 @@ import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredi
 import org.opends.server.replication.server.changelog.file.ECLMultiDomainDBCursor;
 import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -814,7 +814,7 @@ public class ChangelogBackend extends Backend<Configuration>
   {
     return filter.getFilterType() == filterType
            && filter.getAttributeType() != null
-           && filter.getAttributeType().getPrimaryName().equalsIgnoreCase(primaryName);
+           && filter.getAttributeType().getNameOrOID().equalsIgnoreCase(primaryName);
   }
 
   /** Search the changelog when a cookie control is provided. */

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -33,8 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.forgerock.opendj.ldap.schema.Syntax;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -58,36 +56,24 @@ public final class LDAPSyntaxDescription
   /** The definition string used to create this ldap syntax description. */
   private final String definition;
 
-  /** The description for this ldap syntax description. */
-  private final String description;
-
   /** The OID of the enclosed ldap syntax description. */
   private final String oid;
 
-  /** The LDAPSyntaxDescritpionSyntax associated with this ldap syntax. */
-  private Syntax syntax;
-
-
-
   /**
-   * Creates a new ldap syntax definition with the provided
-   * information.
+   * Creates a new ldap syntax definition with the provided information.
    *
-   * @param  definition          The definition string used to create
-   *                             this ldap syntax.  It must not be
-   *                             {@code null}.
-   * @param syntax    The ldap syntax description syntax
-   *                            associated with this ldap syntax.
-   * @param  extraProperties     A set of extra properties for this
-   *                             ldap syntax description.
+   * @param definition
+   *          The definition string used to create this ldap syntax. It must not be {@code null}.
+   * @param oid
+   *          oid of the syntax
+   * @param extraProperties
+   *          A set of extra properties for this ldap syntax description.
    */
-  public LDAPSyntaxDescription(String definition, Syntax syntax, Map<String,List<String>> extraProperties)
+  public LDAPSyntaxDescription(String definition, String oid, Map<String,List<String>> extraProperties)
   {
-    ifNull(definition, syntax);
+    ifNull(definition, oid);
 
-    this.syntax = syntax;
-    this.oid = syntax.getOID();
-    this.description = syntax.getDescription();
+    this.oid = oid;
 
     int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
     if (schemaFilePos > 0)
@@ -121,32 +107,6 @@ public final class LDAPSyntaxDescription
     {
       this.extraProperties = new LinkedHashMap<>(extraProperties);
     }
-  }
-
-
-
-   /**
-   * Retrieves the ldap syntax description syntax associated with
-    * this ldap syntax.
-   *
-   * @return  The description syntax for this definition.
-   */
-  public Syntax getSyntax()
-  {
-    return syntax;
-  }
-
-
-
-  /**
-   * Retrieves the description for this ldap syntax description.
-   *
-   * @return  The description for this ldap syntax description, or
-   *                {@code true} if there is none.
-   */
-  public String getDescription()
-  {
-    return description;
   }
 
   /**

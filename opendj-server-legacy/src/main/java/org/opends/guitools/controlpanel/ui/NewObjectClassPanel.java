@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -73,7 +73,7 @@ import org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEdito
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -364,8 +364,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
         attributes.getSelectedList2()
     };
     attributes.getAvailableListModel().clear();
-    Collection<AttributeType> allAttrs =
-      schema.getAttributeTypes().values();
+    Collection<AttributeType> allAttrs = schema.getAttributeTypes();
     attributes.getAvailableListModel().addAll(allAttrs);
 
 

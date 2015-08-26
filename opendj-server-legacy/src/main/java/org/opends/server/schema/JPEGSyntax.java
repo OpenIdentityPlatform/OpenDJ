@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  *
  */
 package org.opends.server.schema;
@@ -37,11 +37,11 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.util.Option;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.JPEGAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class implements the JPEG attribute syntax.  This is actually
@@ -70,70 +70,40 @@ public class JPEGSyntax
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeSyntax(JPEGAttributeSyntaxCfg configuration, ServerContext serverContext)
-         throws ConfigException
+      throws ConfigException, DirectoryException
   {
     this.config = configuration;
     this.serverContext = serverContext;
-    updateNewSchema();
+    serverContext.getSchema().updateSchemaOption(SchemaOptions.ALLOW_MALFORMED_JPEG_PHOTOS, !config.isStrictFormat());
     config.addJPEGChangeListener(this);
   }
 
-  /** Update the option in new schema if it changes from current value. */
-  private void updateNewSchema()
-  {
-    Option<Boolean> option = SchemaOptions.ALLOW_MALFORMED_JPEG_PHOTOS;
-    if (config.isStrictFormat() == serverContext.getSchemaNG().getOption(option))
-    {
-      SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-      schemaUpdater.updateSchema(
-          schemaUpdater.getSchemaBuilder().setOption(option, !config.isStrictFormat()).toSchema());
-    }
-  }
-
-  /** {@inheritDoc} */
   @Override
   public Syntax getSDKSyntax(Schema schema)
   {
     return schema.getSyntax(SchemaConstants.SYNTAX_JPEG_OID);
   }
 
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
   @Override
   public String getName()
   {
     return SYNTAX_JPEG_NAME;
   }
 
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
   @Override
   public String getOID()
   {
     return SYNTAX_JPEG_OID;
   }
 
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
   @Override
   public String getDescription()
   {
     return SYNTAX_JPEG_DESCRIPTION;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       JPEGAttributeSyntaxCfg configuration,
@@ -143,14 +113,22 @@ public class JPEGSyntax
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               JPEGAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
-    updateNewSchema();
-    return new ConfigChangeResult();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    try
+    {
+      serverContext.getSchema().updateSchemaOption(SchemaOptions.ALLOW_MALFORMED_JPEG_PHOTOS, !config.isStrictFormat());
+    }
+    catch (DirectoryException e)
+    {
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
+    return ccr;
   }
 }
 

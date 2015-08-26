@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -43,6 +43,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.opends.server.admin.std.meta.RootDNCfgDefn;
@@ -951,18 +952,20 @@ public class PrivilegeTestCase extends TypesTestCase
       "objectClass: top",
       "objectClass: ldapSubentry",
       "objectClass: subschema",
-      "attributeTypes: ( " + identifier.toLowerCase() + "-oid " +
-           "NAME '" + identifier + "' )"
+      "attributeTypes: ( " + identifier.toLowerCase() + "-oid"
+          + " NAME '" + identifier + "'"
+          + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )"
     };
 
     File validFile = new File(schemaDirectory, "05-" + identifier + ".ldif");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(validFile));
-    for (String line : fileLines)
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(validFile)))
     {
-      writer.write(line);
-      writer.newLine();
+      for (String line : fileLines)
+      {
+        writer.write(line);
+        writer.newLine();
+      }
     }
-    writer.close();
 
     assertPrivilege(conn, hasPrivilege,
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
@@ -2278,8 +2281,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
     // We won't use an internal connection here because these are not notified
     // of dynamic changes to authentication info.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    try
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       TestCaseUtils.configureSocket(s);
       LDAPReader r = new LDAPReader(s);
@@ -2330,10 +2332,6 @@ public class PrivilegeTestCase extends TypesTestCase
 
       DeleteOperation deleteOperation = rootConnection.processDelete("cn=Test User,o=test");
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    }
-    finally
-    {
-      s.close();
     }
   }
 

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
@@ -34,10 +34,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Schema.SchemaUpdater;
 
 /**
  * Provides the core schema, which includes core matching rules and syntaxes.
@@ -50,20 +54,14 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
   /** The current configuration of core schema. */
   private CoreSchemaCfg currentConfig;
 
-  /** The current schema builder. */
-  private SchemaBuilder currentSchemaBuilder;
+  private ServerContext serverContext;
 
-  /** Updater to notify schema update when configuration changes. */
-  private SchemaUpdater schemaUpdater;
-
-  /** {@inheritDoc} */
   @Override
-  public void initialize(final CoreSchemaCfg configuration, final SchemaBuilder initialSchemaBuilder,
-      final SchemaUpdater schemaUpdater) throws ConfigException, InitializationException
+  public void initialize(final ServerContext serverContext, final CoreSchemaCfg configuration,
+      final SchemaBuilder initialSchemaBuilder) throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     this.currentConfig = configuration;
-    this.currentSchemaBuilder = initialSchemaBuilder;
-    this.schemaUpdater = schemaUpdater;
 
     updateSchemaFromConfiguration(initialSchemaBuilder, configuration);
 
@@ -107,14 +105,12 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeProvider()
   {
     currentConfig.removeCoreSchemaChangeListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(final CoreSchemaCfg configuration,
       final List<LocalizableMessage> unacceptableReasons)
@@ -123,14 +119,6 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
     return true;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public SchemaBuilder getSchema()
-  {
-    return currentSchemaBuilder;
-  }
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(final CoreSchemaCfg configuration,
       final List<LocalizableMessage> unacceptableReasons)
@@ -145,20 +133,29 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(final CoreSchemaCfg configuration)
   {
-    currentSchemaBuilder = schemaUpdater.getSchemaBuilder();
-
-    updateSchemaFromConfiguration(currentSchemaBuilder, configuration);
-
-    final boolean isUpdated = schemaUpdater.updateSchema(currentSchemaBuilder.toSchema());
-
-    // TODO : fix result code + log an error in case of failure
-    final ConfigChangeResult result = new ConfigChangeResult();
-    result.setResultCode(isUpdated ? ResultCode.SUCCESS : ResultCode.OTHER);
-    return result;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    // TODO : the server schema should probably be renamed to something like ServerSchema
+    // Even after migration to SDK schema, it will be probably be kept
+    try
+    {
+      serverContext.getSchema().updateSchema(new SchemaUpdater()
+      {
+        @Override
+        public Schema update(SchemaBuilder builder)
+        {
+          updateSchemaFromConfiguration(builder, configuration);
+          return builder.toSchema();
+        }
+      });
+    }
+    catch (DirectoryException e)
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
+    return ccr;
   }
-
 }

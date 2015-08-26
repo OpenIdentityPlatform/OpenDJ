@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  *      Portions copyright 2011 profiq s.r.o.
  */
 package org.opends.server.plugins;
@@ -73,6 +73,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
@@ -349,13 +350,11 @@ public class ReferentialIntegrityPlugin
       if (attrType == null || !theAttributeTypes.contains(attrType))
       {
         isAcceptable = false;
-        unacceptableReasons.add(
-          ERR_PLUGIN_REFERENT_ATTR_NOT_LISTED.get(attr));
+        unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_NOT_LISTED.get(attr));
       }
 
       /* Verify the filter.
        */
-
       try
       {
         SearchFilter.createFilterFromString(filtStr);
@@ -366,7 +365,6 @@ public class ReferentialIntegrityPlugin
         unacceptableReasons.add(
           ERR_PLUGIN_REFERENT_BAD_FILTER.get(filtStr, de.getMessage()));
       }
-
     }
 
     return isAcceptable;

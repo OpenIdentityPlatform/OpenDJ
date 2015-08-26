@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -41,14 +41,12 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ServerContext;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPSyntaxDescription;
@@ -190,8 +188,6 @@ public class LDAPSyntaxDescriptionSyntax
    * @param  value                 The byte sequence containing the value
    *                               to decode (it does not need to be
    *                               normalized).
-   * @param serverContext
-   *            The server context.
    * @param  schema                The schema to use to resolve references to
    *                               other schema elements.
    * @param  allowUnknownElements  Indicates whether to allow values that are
@@ -207,8 +203,9 @@ public class LDAPSyntaxDescriptionSyntax
    * @throws  DirectoryException  If the provided value cannot be decoded as an
    *                              ldapsyntax definition.
    */
-  public static LDAPSyntaxDescription decodeLDAPSyntax(ByteSequence value, ServerContext serverContext,
-          Schema schema, boolean allowUnknownElements, boolean forDelete) throws DirectoryException
+  public static LDAPSyntaxDescription decodeLDAPSyntax(
+      ByteSequence value, Schema schema, boolean allowUnknownElements, boolean forDelete)
+          throws DirectoryException
   {
     // Get string representations of the provided value using the provided form.
     String valueStr = value.toString();
@@ -275,24 +272,17 @@ public class LDAPSyntaxDescriptionSyntax
           if (lastWasPeriod)
           {
             LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(valueStr, pos-1);
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(valueStr, pos-1);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
-          else
-          {
-            lastWasPeriod = true;
-          }
+          lastWasPeriod = true;
         }
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
           LocalizableMessage message =
-              ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.
-                get(valueStr, c, pos-1);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos-1);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         else
         {
@@ -394,8 +384,7 @@ public class LDAPSyntaxDescriptionSyntax
       }
       else
       {
-        SchemaBuilder schemaBuilder = serverContext != null ?
-            serverContext.getSchemaUpdater().getSchemaBuilder() : new SchemaBuilder(CoreSchema.getInstance());
+        SchemaBuilder schemaBuilder = new SchemaBuilder(schema.getSchemaNG());
 
         if (lowerTokenName.equals("x-subst"))
         {
@@ -528,7 +517,7 @@ public class LDAPSyntaxDescriptionSyntax
     CommonSchemaElements.checkSafeProperties(extraProperties);
 
     //Since we reached here it means everything is OK.
-    return new LDAPSyntaxDescription(valueStr, syntax, extraProperties);
+    return new LDAPSyntaxDescription(valueStr, syntax.getOID(), extraProperties);
   }
 
   /**

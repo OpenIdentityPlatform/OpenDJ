@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.quicksetup.Installation.*;
-import static org.opends.server.types.CommonSchemaElements.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
@@ -129,13 +127,12 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.schema.SomeSchemaElement;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RDN;
 import org.opends.server.types.Schema;
-import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -2039,20 +2036,17 @@ public class Utilities
    * @return <CODE>true</CODE> if the provided schema element is part of the
    * standard and <CODE>false</CODE> otherwise.
    */
-  public static boolean isStandard(SchemaFileElement fileElement)
+  public static boolean isStandard(SomeSchemaElement fileElement)
   {
-    final String fileName = getSchemaFile(fileElement);
+    final String fileName = fileElement.getSchemaFile();
     if (fileName != null)
     {
       return contains(standardSchemaFileNames, fileName) || fileName.toLowerCase().contains("-rfc");
     }
-    else if (fileElement instanceof CommonSchemaElements)
+    String xOrigin = getOrigin(fileElement);
+    if (xOrigin != null)
     {
-      String xOrigin = getOrigin(fileElement);
-      if (xOrigin != null)
-      {
-        return contains(standardSchemaOrigins, xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
-      }
+      return contains(standardSchemaOrigins, xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
     }
     return false;
   }
@@ -2064,20 +2058,17 @@ public class Utilities
    * @return <CODE>true</CODE> if the provided schema element is part of the
    * configuration and <CODE>false</CODE> otherwise.
    */
-  public static boolean isConfiguration(SchemaFileElement fileElement)
+  public static boolean isConfiguration(SomeSchemaElement fileElement)
   {
-    String fileName = getSchemaFile(fileElement);
+    String fileName = fileElement.getSchemaFile();
     if (fileName != null)
     {
       return contains(configurationSchemaFileNames, fileName);
     }
-    else if (fileElement instanceof CommonSchemaElements)
+    String xOrigin = getOrigin(fileElement);
+    if (xOrigin != null)
     {
-      String xOrigin = getOrigin(fileElement);
-      if (xOrigin != null)
-      {
-        return contains(configurationSchemaOrigins, xOrigin);
-      }
+      return contains(configurationSchemaOrigins, xOrigin);
     }
     return false;
   }
@@ -2099,10 +2090,9 @@ public class Utilities
    * @param element the schema element.
    * @return the origin of the provided schema element.
    */
-  public static String getOrigin(SchemaFileElement element)
+  public static String getOrigin(SomeSchemaElement element)
   {
-    return CommonSchemaElements.getSingleValueProperty(
-        element, ServerConstants.SCHEMA_PROPERTY_ORIGIN);
+    return element.getOrigin();
   }
 
   /**
@@ -2131,20 +2121,17 @@ public class Utilities
    */
   public static boolean hasImageSyntax(String attrName, Schema schema)
   {
-    attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+    attrName = Utilities.getAttributeNameWithoutOptions(attrName);
     if ("photo".equals(attrName))
     {
       return true;
     }
     // Check all the attributes that we consider binaries.
-    if (schema != null)
+    if (schema != null && schema.hasAttributeType(attrName))
     {
       AttributeType attr = schema.getAttributeType(attrName);
-      if (attr != null)
-      {
-        String syntaxOID = attr.getSyntax().getOID();
-        return SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
-      }
+      String syntaxOID = attr.getSyntax().getOID();
+      return SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
     }
     return false;
   }
@@ -2181,9 +2168,9 @@ public class Utilities
     if (schema != null)
     {
       attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
-      AttributeType attr = schema.getAttributeType(attrName);
-      if (attr != null)
+      if (schema.hasAttributeType(attrName))
       {
+        AttributeType attr = schema.getAttributeType(attrName);
         return contains(oids, attr.getSyntax().getOID());
       }
     }

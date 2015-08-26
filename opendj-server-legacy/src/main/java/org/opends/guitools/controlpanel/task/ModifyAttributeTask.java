@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -41,11 +41,12 @@ import java.util.Set;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
@@ -155,28 +156,8 @@ public class ModifyAttributeTask extends Task
     }
     else if (oldAttribute.equals(attrToDelete.getSuperiorType()))
     {
-      ArrayList<String> allNames = new ArrayList<>(attrToDelete.getNormalizedNames());
-      Map<String, List<String>> extraProperties =
-        DeleteSchemaElementsTask.cloneExtraProperties(attrToDelete);
-      AttributeType newSuperior = newAttribute;
-      return new AttributeType(
-          "",
-          attrToDelete.getPrimaryName(),
-          allNames,
-          attrToDelete.getOID(),
-          attrToDelete.getDescription(),
-          newSuperior,
-          attrToDelete.getSyntax(),
-          attrToDelete.getApproximateMatchingRule(),
-          attrToDelete.getEqualityMatchingRule(),
-          attrToDelete.getOrderingMatchingRule(),
-          attrToDelete.getSubstringMatchingRule(),
-          attrToDelete.getUsage(),
-          attrToDelete.isCollective(),
-          attrToDelete.isNoUserModification(),
-          attrToDelete.isObsolete(),
-          attrToDelete.isSingleValue(),
-          extraProperties);
+      // get a new attribute with the new superior type
+      return SomeSchemaElement.changeSuperiorType(attrToDelete, newAttribute);
     }
     else
     {

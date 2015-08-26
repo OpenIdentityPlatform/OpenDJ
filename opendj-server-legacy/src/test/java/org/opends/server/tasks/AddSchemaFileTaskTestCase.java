@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -108,7 +108,7 @@ public class AddSchemaFileTaskTestCase
       "objectClass: ldapSubentry",
       "objectClass: subschema",
       "attributeTypes: ( testaddvalidschemafileat-oid " +
-           "NAME 'testAddValidSchemaFileAT' )",
+           "NAME 'testAddValidSchemaFileAT' SUP name)",
       "objectClasses: ( testaddvalidschemafileoc-oid " +
            "NAME 'testAddValidSchemaFileOC' STRUCTURAL " +
            "MUST testAddValidSchemaFileAT )",
@@ -179,7 +179,7 @@ public class AddSchemaFileTaskTestCase
       "objectClass: ldapSubentry",
       "objectClass: subschema",
       "attributeTypes: ( testaddmultiplevalidschemafiles1at-oid " +
-           "NAME 'testAddMultipleValidSchemaFiles1AT' )",
+           "NAME 'testAddMultipleValidSchemaFiles1AT' SUP name)",
       "objectClasses: ( testaddmultiplevalidschemafiles1oc-oid " +
            "NAME 'testAddMultipleValidSchemaFiles1OC' STRUCTURAL " +
            "MUST testAddMultipleValidSchemaFiles1AT )",
@@ -212,7 +212,7 @@ public class AddSchemaFileTaskTestCase
       "objectClass: ldapSubentry",
       "objectClass: subschema",
       "attributeTypes: ( testaddmultiplevalidschemafiles2at-oid " +
-           "NAME 'testAddMultipleValidSchemaFiles2AT' )",
+           "NAME 'testAddMultipleValidSchemaFiles2AT' SUP name)",
       "objectClasses: ( testaddmultiplevalidschemafiles2oc-oid " +
            "NAME 'testAddMultipleValidSchemaFiles2OC' STRUCTURAL " +
            "MUST testAddMultipleValidSchemaFiles2AT )",

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
@@ -288,9 +288,7 @@ public class SubentryPasswordPolicyTestCase
     assertEquals(policy.getLockoutDuration(), 300);
     assertEquals(policy.getLockoutFailureCount(), 3);
     assertEquals(policy.isForceChangeOnReset(), true);
-    assertTrue(policy.getPasswordAttribute(
-            ).getPrimaryName().equalsIgnoreCase(
-            "authPassword"));
+    assertTrue(policy.getPasswordAttribute().getNameOrOID().equalsIgnoreCase("authPassword"));
     assertEquals(policy.getMinPasswordAge(), 600);
     assertEquals(policy.getMaxPasswordAge(), 2147483647);
     assertEquals(policy.getPasswordHistoryCount(), 5);

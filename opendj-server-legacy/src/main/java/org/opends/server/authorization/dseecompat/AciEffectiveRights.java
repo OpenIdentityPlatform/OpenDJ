@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 
@@ -640,9 +640,7 @@ public class AciEffectiveRights {
     //Check if the aclRightsInfo attribute was requested.
     if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       //Build the attribute type.
-      String typeStr=
-              aclRightsInfoAttrLogsStr + ";" + rightStr + ";" +
-              aType.getPrimaryName();
+      String typeStr = aclRightsInfoAttrLogsStr + ";" + rightStr + ";" + aType.getNameOrOID();
       AttributeType attributeType = DirectoryServer.getAttributeTypeOrDefault(typeStr);
       Attribute attr = Attributes.create(attributeType, container.getEvalSummary());
       // The attribute type might have already been added, probably
@@ -751,7 +749,7 @@ public class AciEffectiveRights {
     String attrStr="NULL";
     if(aType != null)
     {
-      attrStr=aType.getPrimaryName();
+      attrStr = aType.getNameOrOID();
     }
     if(evalCtx.getTargAttrFiltersAciName() != null)
     {

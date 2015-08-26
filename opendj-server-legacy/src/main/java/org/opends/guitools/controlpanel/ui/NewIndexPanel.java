@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -66,7 +66,8 @@ import org.opends.server.admin.std.client.BackendIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
@@ -141,16 +142,17 @@ public class NewIndexPanel extends AbstractIndexPanel
       TreeSet<String> standardAttrNames = new TreeSet<>();
       TreeSet<String> configurationAttrNames = new TreeSet<>();
       TreeSet<String> customAttrNames = new TreeSet<>();
-      for (AttributeType attr : schema.getAttributeTypes().values())
+      for (AttributeType attr : schema.getAttributeTypes())
       {
-        String name = attr.getPrimaryName();
+        SomeSchemaElement element = new SomeSchemaElement(attr);
+        String name = attr.getNameOrOID();
         if (!indexExists(backend, name))
         {
-          if (Utilities.isStandard(attr))
+          if (Utilities.isStandard(element))
           {
             standardAttrNames.add(name);
           }
-          else if (Utilities.isConfiguration(attr))
+          else if (Utilities.isConfiguration(element))
           {
             configurationAttrNames.add(name);
           }

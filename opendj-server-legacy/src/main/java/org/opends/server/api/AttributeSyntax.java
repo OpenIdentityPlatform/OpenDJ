@@ -22,32 +22,31 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.List;
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.core.ServerContext;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements an
  * attribute syntax.
  *
- * @param  <T>  The type of configuration handled by this attribute
- *              syntax.
+ * @param  <T>  The type of configuration handled by this attribute syntax.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -58,25 +57,22 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
 {
   /**
-   * Initializes this attribute syntax based on the information in the
-   * provided configuration entry.
+   * Initializes this attribute syntax based on the information in the provided configuration entry.
    *
-   * @param  configuration  The configuration to use to initialize
-   *                        this attribute syntax.
+   * @param configuration
+   *          The configuration to use to initialize this attribute syntax.
    * @param serverContext
-   *            The server context.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
+   *          The server context.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises in the process of performing the initialization.
+   * @throws DirectoryException
+   *           If an unrecoverable problem arises in the process of performing the initialization.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not related to the server
+   *           configuration.
    */
   public void initializeSyntax(T configuration, ServerContext serverContext)
-         throws ConfigException, InitializationException
+      throws ConfigException, DirectoryException, InitializationException
   {
     // not implemented
   }

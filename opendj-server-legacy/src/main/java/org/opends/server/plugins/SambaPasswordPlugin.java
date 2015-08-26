@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011-2012 profiq s.r.o.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -55,6 +55,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.extensions.PasswordModifyExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationExtendedOperation;

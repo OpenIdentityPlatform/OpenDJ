@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2015 ForgeRock AS.
+ *      Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -69,11 +69,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.AdministrationConnector;
@@ -113,7 +112,6 @@ import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
@@ -151,32 +149,7 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
-import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseExactEqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseExactIA5EqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseExactIA5SubstringMatchingRuleFactory;
-import org.opends.server.schema.CaseExactOrderingMatchingRuleFactory;
-import org.opends.server.schema.CaseExactSubstringMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreOrderingMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreSubstringMatchingRuleFactory;
-import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
-import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory;
-import org.opends.server.schema.GeneralizedTimeEqualityMatchingRuleFactory;
-import org.opends.server.schema.GeneralizedTimeOrderingMatchingRuleFactory;
-import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
-import org.opends.server.schema.IntegerOrderingMatchingRuleFactory;
-import org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory;
-import org.opends.server.schema.OctetStringEqualityMatchingRuleFactory;
-import org.opends.server.schema.OctetStringOrderingMatchingRuleFactory;
-import org.opends.server.schema.OctetStringSubstringMatchingRuleFactory;
-import org.opends.server.schema.SchemaUpdater;
-import org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory;
-import org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory;
 import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
 import org.opends.server.types.DITContentRule;
@@ -204,7 +177,6 @@ import org.opends.server.util.ActivateOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.MultiOutputStream;
-import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
@@ -281,8 +253,6 @@ public final class DirectoryServer
   /** The account status notification handler config manager for the server. */
   private AccountStatusNotificationHandlerConfigManager accountStatusNotificationHandlerConfigManager;
 
-  /** The attribute type used to reference the "objectclass" attribute. */
-  private AttributeType objectClassAttributeType;
   /** The authenticated users manager for the server. */
   private AuthenticatedUsers authenticatedUsers;
   /** The configuration manager that will handle the server backends. */
@@ -636,19 +606,6 @@ public final class DirectoryServer
   /** The schema for the Directory Server. */
   private Schema schema;
 
-  /**
-   * The schema for the Directory Server.
-   * <p>
-   * This schema is synchronized indirectly to the existing schema, because
-   * syntaxes are defined in schemaNG (i.e, migrated to SDK classes) and there
-   * is currently no way to handle the SchemaOptions in the configuration (e.g.
-   * SchemaOptions.ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS).
-   * Thus, configuration of the legacy syntaxes are kept, and any change related
-   * to them is synchronized with this schema.
-   */
-  @RemoveOnceSDKSchemaIsUsed("'schema' field will then be a reference to a SDK schema")
-  private org.forgerock.opendj.ldap.schema.Schema schemaNG;
-
   /** The schema configuration manager for the Directory Server. */
   private SchemaConfigManager schemaConfigManager;
 
@@ -753,64 +710,36 @@ public final class DirectoryServer
    */
   private class DirectoryServerContext implements ServerContext
   {
-
-    /** {@inheritDoc} */
     @Override
     public String getInstanceRoot()
     {
       return DirectoryServer.getInstanceRoot();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getServerRoot()
     {
       return DirectoryServer.getServerRoot();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Schema getSchema()
     {
       return directoryServer.schema;
     }
 
-    /** {@inheritDoc} */
     @Override
     public org.forgerock.opendj.ldap.schema.Schema getSchemaNG()
     {
-      return directoryServer.schemaNG;
+      return directoryServer.schema.getSchemaNG();
     }
 
-    /** {@inheritDoc} */
     @Override
     public DirectoryEnvironmentConfig getEnvironment()
     {
       return directoryServer.environmentConfig;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public SchemaUpdater getSchemaUpdater()
-    {
-      return new SchemaUpdater()
-      {
-        @Override
-        public boolean updateSchema(org.forgerock.opendj.ldap.schema.Schema schema)
-        {
-          schemaNG = schema;
-          return true;
-        }
-
-        @Override
-        public SchemaBuilder getSchemaBuilder()
-        {
-          return new SchemaBuilder(schemaNG);
-        }
-      };
-    }
-
-    /** {@inheritDoc} */
     @Override
     public org.forgerock.opendj.config.server.ServerManagementContext getServerManagementContext()
     {
@@ -958,15 +887,13 @@ public final class DirectoryServer
   {
     synchronized (directoryServer)
     {
-      // Set default values for variables that may be needed during schema
-      // processing.
+      // Set default values for variables that may be needed during schema processing.
       directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
 
       // Create the server schema and initialize and register a minimal set of
       // matching rules and attribute syntaxes.
-      directoryServer.schema = new Schema();
-      directoryServer.schemaNG = new SchemaBuilder("mainSchema").addSchema(CoreSchema.getInstance(), true).toSchema();
-      directoryServer.bootstrapMatchingRules();
+      org.forgerock.opendj.ldap.schema.Schema coreSchema = org.forgerock.opendj.ldap.schema.Schema.getCoreSchema();
+      directoryServer.schema = new Schema(coreSchema);
       directoryServer.bootstrapAttributeSyntaxes();
 
       // Perform any additional initialization that might be necessary before
@@ -1525,61 +1452,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Registers a basic set of matching rules with the server that should always
-   * be available regardless of the server configuration and may be needed for
-   * configuration processing.
-   */
-  private void bootstrapMatchingRules()
-  {
-    MatchingRuleFactory<?>[] factories =
-            new MatchingRuleFactory<?>[] {
-              new DoubleMetaphoneApproximateMatchingRuleFactory(),
-              new BooleanEqualityMatchingRuleFactory(),
-              new CaseExactEqualityMatchingRuleFactory(),
-              new CaseExactIA5EqualityMatchingRuleFactory(),
-              new CaseIgnoreEqualityMatchingRuleFactory(),
-              new CaseIgnoreIA5EqualityMatchingRuleFactory(),
-              new DistinguishedNameEqualityMatchingRuleFactory(),
-              new GeneralizedTimeEqualityMatchingRuleFactory(),
-              new IntegerEqualityMatchingRuleFactory(),
-              new OctetStringEqualityMatchingRuleFactory(),
-              new ObjectIdentifierEqualityMatchingRuleFactory(),
-              new TelephoneNumberEqualityMatchingRuleFactory(),
-              new CaseExactOrderingMatchingRuleFactory(),
-              new CaseIgnoreOrderingMatchingRuleFactory(),
-              new GeneralizedTimeOrderingMatchingRuleFactory(),
-              new IntegerOrderingMatchingRuleFactory(),
-              new OctetStringOrderingMatchingRuleFactory(),
-              new CaseExactSubstringMatchingRuleFactory(),
-              new CaseExactIA5SubstringMatchingRuleFactory(),
-              new CaseIgnoreSubstringMatchingRuleFactory(),
-              new CaseIgnoreIA5SubstringMatchingRuleFactory(),
-              new OctetStringSubstringMatchingRuleFactory(),
-              new TelephoneNumberSubstringMatchingRuleFactory()};
-
-    MatchingRuleFactory<?> currentFactory = null;
-    try
-    {
-      for(MatchingRuleFactory<?> factory: factories)
-      {
-        currentFactory = factory;
-        currentFactory.initializeMatchingRule(null);
-        for(MatchingRule matchingRule: currentFactory.getMatchingRules())
-        {
-         registerMatchingRule(matchingRule, true);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      logger.error(ERR_CANNOT_BOOTSTRAP_MATCHING_RULE, currentFactory.getClass().getName(),
-              stackTraceToSingleLineString(e));
-    }
-  }
-
-  /**
    * Registers a basic set of attribute syntaxes with the server that should
    * always be available regardless of the server configuration and may be
    * needed for configuration processing.
@@ -1722,7 +1594,7 @@ public final class DirectoryServer
     schemaConfigManager.initializeSchemaFromFiles();
 
     // With server schema in place set compressed schema.
-    compressedSchema = new DefaultCompressedSchema();
+    compressedSchema = new DefaultCompressedSchema(serverContext);
 
     // At this point we have a problem, because none of the configuration is
     // usable because it was all read before we had a schema (and therefore all
@@ -2403,13 +2275,10 @@ public final class DirectoryServer
 
   /**
    * Retrieves the set of matching rules registered with the Directory Server.
-   * The mapping will be between the lowercase name or OID for each matching
-   * rule and the matching rule implementation.  The same matching rule instance
-   * may be included multiple times with different keys.
    *
    * @return  The set of matching rules registered with the Directory Server.
    */
-  public static ConcurrentMap<String, MatchingRule> getMatchingRules()
+  public static Collection<MatchingRule> getMatchingRules()
   {
     return directoryServer.schema.getMatchingRules();
   }
@@ -2638,7 +2507,7 @@ public final class DirectoryServer
    * @return The set of attribute type definitions that have been
    *         defined in the Directory Server.
    */
-  public static ConcurrentMap<String, AttributeType> getAttributeTypes()
+  public static Collection<AttributeType> getAttributeTypes()
   {
     return directoryServer.schema.getAttributeTypes();
   }
@@ -2654,7 +2523,8 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrNull(String lowerName)
   {
-    return directoryServer.schema.getAttributeType(lowerName);
+    AttributeType attrType = directoryServer.schema.getAttributeType(lowerName);
+    return attrType.isPlaceHolder() ? null : attrType;
   }
 
   /**
@@ -2706,12 +2576,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName, Syntax syntax)
   {
-    AttributeType attrType = getAttributeTypeOrNull(lowerName);
-    if (attrType == null)
-    {
-      attrType = getDefaultAttributeType(upperName, syntax);
-    }
-    return attrType;
+    return directoryServer.schema.getAttributeType(upperName, syntax);
   }
 
   /**
@@ -2732,8 +2597,7 @@ public final class DirectoryServer
                                            boolean overwriteExisting)
          throws DirectoryException
   {
-    directoryServer.schema.registerAttributeType(attributeType,
-                                                 overwriteExisting);
+    directoryServer.schema.registerAttributeType(attributeType, overwriteExisting);
   }
 
   /**
@@ -2754,78 +2618,7 @@ public final class DirectoryServer
    */
   public static AttributeType getObjectClassAttributeType()
   {
-    if (directoryServer.objectClassAttributeType == null)
-    {
-      directoryServer.objectClassAttributeType =
-           directoryServer.schema.getAttributeType(
-                OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-
-      if (directoryServer.objectClassAttributeType == null)
-      {
-        Syntax oidSyntax = directoryServer.schema.getSyntax(SYNTAX_OID_NAME);
-        if (oidSyntax == null)
-        {
-          try
-          {
-            oidSyntax = CoreSchema.getOIDSyntax();
-            directoryServer.schema.registerSyntax(oidSyntax, true);
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-          }
-        }
-
-        String definition =
-             "( 2.5.4.0 NAME 'objectClass' EQUALITY objectIdentifierMatch " +
-             "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 X-ORIGIN 'RFC 2256' )";
-
-        directoryServer.objectClassAttributeType =
-            newAttributeType(definition, "objectClass", OBJECTCLASS_ATTRIBUTE_TYPE_OID, oidSyntax);
-        try
-        {
-          directoryServer.schema.registerAttributeType(
-                 directoryServer.objectClassAttributeType, true);
-        }
-        catch (Exception e)
-        {
-          // This should never happen.
-          logger.traceException(e);
-        }
-      }
-    }
-
-    return directoryServer.objectClassAttributeType;
-  }
-
-  /**
-   * Causes the Directory Server to construct a new attribute type definition
-   * with the provided name and syntax.  This should only be used if there is no
-   * real attribute type for the specified name.
-   * <p>
-   * TODO remove once we switch to the SDK Schema
-   * <p>
-   * FIXME move to {@link org.opends.server.types.Schema}?
-   *
-   * @param  name    The name to use for the attribute type, as provided by the user.
-   * @param  syntax  The syntax to use for the attribute type.
-   *
-   * @return  The constructed attribute type definition.
-   */
-  public static AttributeType getDefaultAttributeType(String name, Syntax syntax)
-  {
-    String oid        = toLowerCase(name) + "-oid";
-    String definition = "( " + oid + " NAME '" + name + "' SYNTAX " +
-                        syntax.getOID() + " )";
-
-    // Temporary attribute types are immediately dirty.
-    return newAttributeType(definition, name, oid, syntax).setDirty();
-  }
-
-  private static AttributeType newAttributeType(String definition, String name, String oid, Syntax syntax)
-  {
-    return new AttributeType(definition, name, Collections.singleton(name), oid, null, null, syntax,
-        AttributeUsage.USER_APPLICATIONS, false, false, false, false);
+    return directoryServer.schema.getAttributeType(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
   }
 
   /**
@@ -2833,7 +2626,7 @@ public final class DirectoryServer
    *
    * @return The set of attribute syntaxes defined in the Directory Server.
    */
-  public static ConcurrentMap<String, Syntax> getAttributeSyntaxes()
+  public static Collection<Syntax> getAttributeSyntaxes()
   {
     return directoryServer.schema.getSyntaxes();
   }
@@ -6447,7 +6240,6 @@ public final class DirectoryServer
     cryptoManager            = null;
     entryCache               = null;
     environmentConfig        = null;
-    objectClassAttributeType = null;
     schemaDN                 = null;
     shutdownHook             = null;
     workQueue                = null;

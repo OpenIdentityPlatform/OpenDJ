@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -29,13 +29,18 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.opends.server.ConfigurationMock;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.CoreTestCase;
+import org.opends.server.core.ServerContext;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.ServerContextBuilder.*;
 import static org.opends.server.util.CollectionUtils.*;
+
+import java.io.File;
 
 @SuppressWarnings("javadoc")
 public class CoreSchemaProviderTestCase extends CoreTestCase
@@ -49,9 +54,21 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     CoreSchemaCfg coreSchemaCfg = ConfigurationMock.mockCfg(CoreSchemaCfg.class);
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    provider.initialize(coreSchemaCfg, new SchemaBuilder(), mock(SchemaUpdater.class));
+
+    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
+    provider.initialize(getServerContext(schema), coreSchemaCfg, new SchemaBuilder());
 
     verify(coreSchemaCfg).addCoreSchemaChangeListener(provider);
+  }
+
+  private ServerContext getServerContext(org.opends.server.types.Schema schema) throws Exception
+  {
+    return aServerContext()
+        .schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema"))
+        .configFile(TestCaseUtils.getTestResource("config-small.ldif"))
+        .withConfigurationBootstrapped()
+        .schema(schema)
+        .build();
   }
 
   @Test
@@ -62,7 +79,8 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     SchemaBuilder schemaBuilder = new SchemaBuilder();
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    provider.initialize(coreSchemaCfg, schemaBuilder, mock(SchemaUpdater.class));
+    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
+    provider.initialize(getServerContext(schema), coreSchemaCfg, schemaBuilder);
 
     assertThat(schemaBuilder.toSchema().getOption(ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS)).isTrue();
   }
@@ -75,7 +93,8 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    provider.initialize(coreSchemaCfg, schemaBuilder, mock(SchemaUpdater.class));
+    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
+    provider.initialize(getServerContext(schema), coreSchemaCfg, schemaBuilder);
 
     assertThat(schemaBuilder.toSchema().hasSyntax(DIRECTORY_STRING_SYNTAX_OID)).isFalse();
   }
@@ -88,7 +107,8 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    provider.initialize(coreSchemaCfg, schemaBuilder, mock(SchemaUpdater.class));
+    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
+    provider.initialize(getServerContext(schema), coreSchemaCfg, schemaBuilder);
 
     assertThat(schemaBuilder.toSchema().hasMatchingRule(DIRECTORY_STRING_SYNTAX_OID)).isFalse();
   }

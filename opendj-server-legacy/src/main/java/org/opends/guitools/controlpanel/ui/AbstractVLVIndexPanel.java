@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -89,7 +89,8 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
@@ -327,16 +328,17 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         configurationAttrNames.clear();
         customAttrNames.clear();
 
-        for (AttributeType attr : schema.getAttributeTypes().values())
+        for (AttributeType attr : schema.getAttributeTypes())
         {
-          String name = attr.getPrimaryName();
+          SomeSchemaElement element = new SomeSchemaElement(attr);
+          String name = attr.getNameOrOID();
           if (!isDefined(name))
           {
-            if (Utilities.isStandard(attr))
+            if (Utilities.isStandard(element))
             {
               standardAttrNames.add(name);
             }
-            else if (Utilities.isConfiguration(attr))
+            else if (Utilities.isConfiguration(element))
             {
               configurationAttrNames.add(name);
             }

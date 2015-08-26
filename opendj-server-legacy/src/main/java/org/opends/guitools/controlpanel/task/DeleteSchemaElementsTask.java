@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -46,26 +46,27 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
-import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
@@ -232,131 +233,20 @@ public class DeleteSchemaElementsTask extends Task
    */
   private void updateSchema() throws OpenDsException
   {
-    final boolean[] isFirst = {true};
     final int totalNumber = ocsToDelete.size() + attrsToDelete.size();
     int numberDeleted = 0;
     for (ObjectClass objectClass : ocsToDelete)
     {
-      final ObjectClass fObjectclass = objectClass;
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          if (!isFirst[0])
-          {
-            getProgressDialog().appendProgressHtml("<br><br>");
-          }
-          isFirst[0] = false;
-          printEquivalentCommandToDelete(fObjectclass);
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_DELETING_OBJECTCLASS.get(
-                      fObjectclass.getNameOrOID()),
-                  ColorAndFontConstants.progressFont));
-        }
-      });
-
-      if (isServerRunning())
-      {
-        try
-        {
-          BasicAttribute attr = new BasicAttribute(
-              getSchemaFileAttributeName(objectClass));
-          attr.add(getSchemaFileAttributeValue(objectClass));
-          ModificationItem mod =
-            new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
-          getInfo().getDirContext().modifyAttributes(
-              ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-              new ModificationItem[]  { mod });
-        }
-        catch (NamingException ne)
-        {
-          throw new OnlineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
-        }
-      }
-      else
-      {
-        updateSchemaFile(objectClass);
-      }
-      numberDeleted ++;
-      final int fNumberDeleted = numberDeleted;
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getProgressDialog().getProgressBar().setIndeterminate(false);
-          getProgressDialog().getProgressBar().setValue(
-              (fNumberDeleted * 100) / totalNumber);
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressDone(ColorAndFontConstants.progressFont));
-        }
-      });
+      final SomeSchemaElement element = new SomeSchemaElement(objectClass);
+      deleteSchemaElement(element, numberDeleted, totalNumber, INFO_CTRL_PANEL_DELETING_OBJECTCLASS);
+      numberDeleted++;
     }
 
     for (AttributeType attribute : attrsToDelete)
     {
-      final AttributeType fAttribute = attribute;
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          if (!isFirst[0])
-          {
-            getProgressDialog().appendProgressHtml("<br><br>");
-          }
-          isFirst[0] = false;
-          printEquivalentCommandToDelete(fAttribute);
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_DELETING_ATTRIBUTE.get(
-                      fAttribute.getNameOrOID()),
-                  ColorAndFontConstants.progressFont));
-        }
-      });
-
-      if (isServerRunning())
-      {
-        try
-        {
-          BasicAttribute attr = new BasicAttribute(
-              getSchemaFileAttributeName(attribute));
-          attr.add(getSchemaFileAttributeValue(attribute));
-          ModificationItem mod = new ModificationItem(
-              DirContext.REMOVE_ATTRIBUTE,
-              attr);
-          getInfo().getDirContext().modifyAttributes(
-              ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-              new ModificationItem[]  { mod });
-        }
-        catch (NamingException ne)
-        {
-          throw new OnlineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
-        }
-      }
-      else
-      {
-        updateSchemaFile(attribute);
-      }
-
-      numberDeleted ++;
-      final int fNumberDeleted = numberDeleted;
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getProgressDialog().getProgressBar().setIndeterminate(false);
-          getProgressDialog().getProgressBar().setValue(
-              (fNumberDeleted * 100) / totalNumber);
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressDone(ColorAndFontConstants.progressFont));
-        }
-      });
+      final SomeSchemaElement element = new SomeSchemaElement(attribute);
+      deleteSchemaElement(element, numberDeleted, totalNumber, INFO_CTRL_PANEL_DELETING_ATTRIBUTE);
+      numberDeleted++;
     }
 
     if (!ocsToAdd.isEmpty() || !attrsToAdd.isEmpty())
@@ -381,12 +271,67 @@ public class DeleteSchemaElementsTask extends Task
     }
   }
 
+  private void deleteSchemaElement(final SomeSchemaElement element, final int numberDeleted, final int totalNumber,
+      final Arg1<Object> deletingElementMsg) throws OnlineUpdateException, OpenDsException
+  {
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        final boolean isFirst = numberDeleted == 0;
+        if (!isFirst)
+        {
+          getProgressDialog().appendProgressHtml("<br><br>");
+        }
+        printEquivalentCommandToDelete(element);
+        getProgressDialog().appendProgressHtml(
+            Utilities.getProgressWithPoints(
+                deletingElementMsg.get(element.getNameOrOID()), ColorAndFontConstants.progressFont));
+      }
+    });
+
+    if (isServerRunning())
+    {
+      try
+      {
+        BasicAttribute attr = new BasicAttribute(getSchemaFileAttributeName(element));
+        attr.add(getSchemaFileAttributeValue(element));
+        ModificationItem mod = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
+        getInfo().getDirContext().modifyAttributes(
+            ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
+            new ModificationItem[]  { mod });
+      }
+      catch (NamingException ne)
+      {
+        throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
+      }
+    }
+    else
+    {
+      updateSchemaFile(element);
+    }
+
+    final int fNumberDeleted = numberDeleted + 1;
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        getProgressDialog().getProgressBar().setIndeterminate(false);
+        getProgressDialog().getProgressBar().setValue((fNumberDeleted * 100) / totalNumber);
+        getProgressDialog().appendProgressHtml(
+            Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+      }
+    });
+  }
+
   /**
    * Updates the schema file by deleting the provided schema element.
    * @param schemaElement the schema element to be deleted.
    * @throws OpenDsException if an error occurs.
    */
-  private void updateSchemaFile(CommonSchemaElements schemaElement)
+  private void updateSchemaFile(SomeSchemaElement schemaElement)
   throws OpenDsException
   {
     String schemaFile = getSchemaFile(schemaElement);
@@ -425,9 +370,9 @@ public class DeleteSchemaElementsTask extends Task
    * @param element the schema element.
    * @return the schema file for a given schema element.
    */
-  private String getSchemaFile(SchemaFileElement element)
+  private String getSchemaFile(SomeSchemaElement element)
   {
-    String schemaFile = CommonSchemaElements.getSchemaFile(element);
+    String schemaFile = element.getSchemaFile();
     if (schemaFile == null)
     {
       schemaFile = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;
@@ -449,9 +394,9 @@ public class DeleteSchemaElementsTask extends Task
    * @return the attribute name in the schema entry that corresponds to the
    * provided schema element.
    */
-  private String getSchemaFileAttributeName(CommonSchemaElements element)
+  private String getSchemaFileAttributeName(SomeSchemaElement element)
   {
-    if (element instanceof AttributeType)
+    if (element.isAttributeType())
     {
       return "attributeTypes";
     }
@@ -466,7 +411,7 @@ public class DeleteSchemaElementsTask extends Task
    * @param element the schema element.
    * @return the value in the schema file for the provided element.
    */
-  private String getSchemaFileAttributeValue(CommonSchemaElements element)
+  private String getSchemaFileAttributeValue(SomeSchemaElement element)
   {
     return element.toString();
   }
@@ -476,7 +421,7 @@ public class DeleteSchemaElementsTask extends Task
    * progress dialog.
    * @param element the schema element to be deleted.
    */
-  private void printEquivalentCommandToDelete(CommonSchemaElements element)
+  private void printEquivalentCommandToDelete(SomeSchemaElement element)
   {
     String schemaFile = getSchemaFile(element);
     String attrName = getSchemaFileAttributeName(element);
@@ -484,7 +429,7 @@ public class DeleteSchemaElementsTask extends Task
     if (!isServerRunning())
     {
       LocalizableMessage msg;
-      if (element instanceof AttributeType)
+      if (element.isAttributeType())
       {
         msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_OFFLINE.get(
             element.getNameOrOID(), schemaFile);
@@ -510,7 +455,7 @@ public class DeleteSchemaElementsTask extends Task
           args);
 
       LocalizableMessage msg;
-      if (element instanceof AttributeType)
+      if (element.isAttributeType())
       {
         msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_ONLINE.get(
             element.getNameOrOID());
@@ -543,38 +488,13 @@ public class DeleteSchemaElementsTask extends Task
       if (attr.equals(attrToDelete.getSuperiorType()))
       {
         isSuperior = true;
-        AttributeType newSuperior = attr.getSuperiorType();
-        while (newSuperior != null &&
-            providedAttrsToDelete.contains(newSuperior))
-        {
-          newSuperior = newSuperior.getSuperiorType();
-        }
         break;
       }
     }
     if (isSuperior)
     {
-      ArrayList<String> allNames = new ArrayList<>(attrToDelete.getNormalizedNames());
-      Map<String, List<String>> extraProperties =
-        cloneExtraProperties(attrToDelete);
-      return new AttributeType(
-          "",
-          attrToDelete.getPrimaryName(),
-          allNames,
-          attrToDelete.getOID(),
-          attrToDelete.getDescription(),
-          null,
-          attrToDelete.getSyntax(),
-          attrToDelete.getApproximateMatchingRule(),
-          attrToDelete.getEqualityMatchingRule(),
-          attrToDelete.getOrderingMatchingRule(),
-          attrToDelete.getSubstringMatchingRule(),
-          attrToDelete.getUsage(),
-          attrToDelete.isCollective(),
-          attrToDelete.isNoUserModification(),
-          attrToDelete.isObsolete(),
-          attrToDelete.isSingleValue(),
-          extraProperties);
+       // get a new attribute without the superior type
+       return SomeSchemaElement.changeSuperiorType(attrToDelete, null);
     }
     else
     {
@@ -771,7 +691,7 @@ public class DeleteSchemaElementsTask extends Task
       AttributeType attribute, Schema schema)
   {
     LinkedHashSet<AttributeType> children = new LinkedHashSet<>();
-    for (AttributeType attr : schema.getAttributeTypes().values())
+    for (AttributeType attr : schema.getAttributeTypes())
     {
       if (attribute.equals(attr.getSuperiorType()))
       {

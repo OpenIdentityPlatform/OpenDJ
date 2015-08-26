@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -37,8 +37,8 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -82,7 +82,7 @@ public class GetEffectiveRightsRequestControl extends Control
   private static final class Decoder
       implements ControlDecoder<GetEffectiveRightsRequestControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public GetEffectiveRightsRequestControl decode(boolean isCritical,
         ByteString value) throws DirectoryException
     {
@@ -138,6 +138,7 @@ public class GetEffectiveRightsRequestControl extends Control
       }
     }
 
+    @Override
     public String getOID()
     {
       return OID_GET_EFFECTIVE_RIGHTS;
@@ -212,13 +213,6 @@ public class GetEffectiveRightsRequestControl extends Control
     this.rawAttrs=attrs;
   }
 
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
   @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);

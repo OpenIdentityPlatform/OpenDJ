@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -43,12 +43,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
@@ -719,16 +719,10 @@ public class ObjectClassSyntax
   {
     String woidString = woidBuffer.toString();
     AttributeType attr = schema.getAttributeType(woidString);
-    if (attr == null)
+    if (attr.isPlaceHolder() && !allowUnknownElements)
     {
-      // This isn't good because it means that the objectclass
-      // refers to an attribute type that we don't know anything about.
-      if (!allowUnknownElements)
-      {
-        LocalizableMessage message = msg.get(oid, woidString);
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-      attr = DirectoryServer.getAttributeTypeOrDefault(woidString);
+      LocalizableMessage message = msg.get(oid, woidString);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
     return attr;
   }

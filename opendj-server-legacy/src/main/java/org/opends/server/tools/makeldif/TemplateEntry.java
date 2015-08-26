@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
 
@@ -37,6 +37,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFException;
 
@@ -168,7 +169,7 @@ public class TemplateEntry
             return null;
           }
 
-          names[i]  = t.getPrimaryName();
+          names[i]  = t.getNameOrOID();
           values[i] = ByteString.valueOfUtf8(v.getValue().toString());
         }
 

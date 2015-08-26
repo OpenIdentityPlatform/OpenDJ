@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +76,7 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -91,8 +94,7 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
@@ -134,7 +136,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private JPopupMenu popup;
 
-  private CommonSchemaElements lastCreatedElement;
+  private SomeSchemaElement lastCreatedElement;
 
   private final CategoryTreeNode attributes = new CategoryTreeNode(INFO_CTRL_PANEL_ATTRIBUTES_CATEGORY_NODE.get());
   private final CategoryTreeNode objectClasses =
@@ -664,13 +666,14 @@ class BrowseSchemaPanel extends StatusGenericPanel
     {
       if (mustAdd(oc))
       {
+        SomeSchemaElement element = new SomeSchemaElement(oc);
         String name = oc.getPrimaryName();
-        if (Utilities.isStandard(oc))
+        if (Utilities.isStandard(element))
         {
           standardOcNames.add(name);
           hmStandardOcs.put(name, new StandardObjectClassTreeNode(name, oc));
         }
-        else if (Utilities.isConfiguration(oc))
+        else if (Utilities.isConfiguration(element))
         {
           configurationOcNames.add(name);
           hmConfigurationOcs.put(name, new ConfigurationObjectClassTreeNode(name, oc));
@@ -689,17 +692,18 @@ class BrowseSchemaPanel extends StatusGenericPanel
     Map<String, ConfigurationAttributeTreeNode> hmConfigurationAttrs = new HashMap<>();
     Set<String> customAttrNames = new TreeSet<>(lowerCaseComparator);
     Map<String, CustomAttributeTreeNode> hmCustomAttrs = new HashMap<>();
-    for (AttributeType attr : lastSchema.getAttributeTypes().values())
+    for (AttributeType attr : lastSchema.getAttributeTypes())
     {
+      SomeSchemaElement element = new SomeSchemaElement(attr);
       if (mustAdd(attr))
       {
-        String name = attr.getPrimaryName();
-        if (Utilities.isStandard(attr))
+        String name = attr.getNameOrOID();
+        if (Utilities.isStandard(element))
         {
           standardAttrNames.add(name);
           hmStandardAttrs.put(name, new StandardAttributeTreeNode(name, attr));
         }
-        else if (Utilities.isConfiguration(attr))
+        else if (Utilities.isConfiguration(element))
         {
           configurationAttrNames.add(name);
           hmConfigurationAttrs.put(name, new ConfigurationAttributeTreeNode(name, attr));
@@ -714,7 +718,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
     Set<String> matchingRuleNames = new TreeSet<>(lowerCaseComparator);
     Map<String, MatchingRuleTreeNode> hmMatchingRules = new HashMap<>();
-    for (MatchingRule matchingRule : lastSchema.getMatchingRules().values())
+    for (MatchingRule matchingRule : lastSchema.getMatchingRules())
     {
       if (mustAdd(matchingRule))
       {
@@ -726,7 +730,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
     Set<String> syntaxNames = new TreeSet<>(lowerCaseComparator);
     Map<String, AttributeSyntaxTreeNode> hmSyntaxes = new HashMap<>();
-    for (Syntax syntax : lastSchema.getSyntaxes().values())
+    for (Syntax syntax : lastSchema.getSyntaxes())
     {
       if (mustAdd(syntax))
       {
@@ -862,15 +866,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
           {
             if (lastCreatedElement != null)
             {
-              if (node instanceof CustomObjectClassTreeNode && lastCreatedElement instanceof ObjectClass)
-              {
-                if (name.equals(lastCreatedElement.getNameOrOID()))
-                {
-                  newSelectionPath = new TreePath(node.getPath());
-                  lastCreatedElement = null;
-                }
-              }
-              else if (node instanceof CustomAttributeTreeNode && lastCreatedElement instanceof AttributeType
+              if (node instanceof CustomObjectClassTreeNode
                   && name.equals(lastCreatedElement.getNameOrOID()))
               {
                 newSelectionPath = new TreePath(node.getPath());
@@ -1163,23 +1159,27 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean mustAddAttributeName(AttributeType attr, String attrName)
   {
-    return mustAdd(attrName, attr.getOID(), attr.getPrimaryName(), attr.getNormalizedNames());
+    return mustAdd(attrName, attr.getOID(), attr.getNameOrOID(), new HashSet<String>(attr.getNames()));
   }
 
   private boolean mustAddObjectClassName(ObjectClass oc, String ocName)
   {
-    return mustAdd(ocName, oc.getOID(), oc.getPrimaryName(), oc.getNormalizedNames());
+    return mustAdd(ocName, oc.getOID(), oc.getNameOrOID(), oc.getNormalizedNames());
   }
 
-  private boolean mustAdd(String name, String oid, String primaryName, Set<String> names)
+  /** Provided names may not be normalized. */
+  private boolean mustAdd(String name, String oid, String primaryNameOrOID, Set<String> names)
   {
     List<String> values = new ArrayList<>(names.size() + 2);
     values.add(oid);
-    if (primaryName != null)
+    if (!primaryNameOrOID.equals(oid))
     {
-      values.add(primaryName);
+      values.add(primaryNameOrOID);
     }
-    values.addAll(names);
+    for (String v : names)
+    {
+      values.add(toLowerCase(v));
+    }
 
     return matchFilter(values, name, false);
   }
@@ -1459,9 +1459,9 @@ class BrowseSchemaPanel extends StatusGenericPanel
   private void configurationElementCreated(ConfigurationElementCreatedEvent ev)
   {
     Object o = ev.getConfigurationObject();
-    if (o instanceof CommonSchemaElements)
+    if (o instanceof SomeSchemaElement)
     {
-      lastCreatedElement = (CommonSchemaElements) o;
+      lastCreatedElement = (SomeSchemaElement) o;
     }
   }
 
@@ -1596,7 +1596,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
     // Analyze attributes
     for (AttributeType attribute : attrsToDelete)
     {
-      for (AttributeType attr : schema.getAttributeTypes().values())
+      for (AttributeType attr : schema.getAttributeTypes())
       {
         if (attribute.equals(attr.getSuperiorType()))
         {

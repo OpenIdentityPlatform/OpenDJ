@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
+
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -34,9 +36,9 @@ import javax.swing.JList;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionEvent;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
@@ -139,7 +141,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
    */
   protected Set<String> getAliases(AttributeType attr)
   {
-    return getAliases(attr.getNormalizedNames(), attr.getPrimaryName());
+    return getAliases(attr.getNames(), toLowerCase(attr.getNameOrOID()));
   }
 
   /**
@@ -152,7 +154,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
     return getAliases(oc.getNormalizedNames(), oc.getPrimaryName());
   }
 
-  private Set<String> getAliases(Set<String> names, String primaryName)
+  private Set<String> getAliases(Iterable<String> names, String primaryName)
   {
     Set<String> aliases = new LinkedHashSet<>();
     if (primaryName == null)
@@ -163,7 +165,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
     {
       if (!name.equalsIgnoreCase(primaryName))
       {
-        aliases.add(name);
+        aliases.add(toLowerCase(name));
       }
     }
     return aliases;

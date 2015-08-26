@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -222,6 +222,7 @@ public final class DNConfigAttribute
    *
    * @return  The name of the data type for this configuration attribute.
    */
+  @Override
   public String getDataType()
   {
     return "DN";
@@ -234,6 +235,7 @@ public final class DNConfigAttribute
    *
    * @return  The attribute syntax for this configuration attribute.
    */
+  @Override
   public Syntax getSyntax()
   {
     return DirectoryServer.getDefaultStringSyntax();
@@ -486,6 +488,7 @@ public final class DNConfigAttribute
    * configuration attribute.  This will not take any action if there are no
    * pending values.
    */
+  @Override
   public void applyPendingValues()
   {
     if (! hasPendingValues())
@@ -511,6 +514,7 @@ public final class DNConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteString value, StringBuilder rejectReason)
   {
     // Make sure that the value is not null.
@@ -557,6 +561,7 @@ public final class DNConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
+  @Override
   public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
@@ -633,6 +638,7 @@ public final class DNConfigAttribute
    * @return  The string representations of the set of active values for this
    *          configuration attribute.
    */
+  @Override
   public List<String> activeValuesToStrings()
   {
     ArrayList<String> valueStrings = new ArrayList<>(activeValues.size());
@@ -657,6 +663,7 @@ public final class DNConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if there are no
    *          pending values.
    */
+  @Override
   public List<String> pendingValuesToStrings()
   {
     if (hasPendingValues())
@@ -694,6 +701,7 @@ public final class DNConfigAttribute
    *                           single-valued and the provided attribute has
    *                           multiple values).
    */
+  @Override
   public ConfigAttribute getConfigAttribute(List<Attribute> attributeList)
          throws ConfigException
   {
@@ -889,6 +897,7 @@ public final class DNConfigAttribute
    *          configuration attribute, or <CODE>null</CODE> if it does not have
    *          any active values.
    */
+  @Override
   public  javax.management.Attribute toJMXAttribute()
   {
       return _toJMXAttribute(false) ;
@@ -901,6 +910,7 @@ public final class DNConfigAttribute
    * @return  A JMX attribute containing the pending value set for this
    *          configuration attribute.
    */
+  @Override
   public  javax.management.Attribute toJMXAttributePending()
   {
       return _toJMXAttribute(true) ;
@@ -917,6 +927,7 @@ public final class DNConfigAttribute
    * @param  attributeList  The attribute list to which the JMX attribute(s)
    *                        should be added.
    */
+  @Override
   public void toJMXAttribute(AttributeList attributeList)
   {
     if (!activeValues.isEmpty())
@@ -987,6 +998,7 @@ public final class DNConfigAttribute
    * @param  attributeInfoList  The list to which the attribute information
    *                            should be added.
    */
+  @Override
   public void toJMXAttributeInfo(List<MBeanAttributeInfo> attributeInfoList)
   {
     attributeInfoList.add(new MBeanAttributeInfo(getName(), getType(),
@@ -1009,6 +1021,7 @@ public final class DNConfigAttribute
    * @return  A JMX <CODE>MBeanParameterInfo</CODE> object that describes this
    *          configuration attribute.
    */
+  @Override
   public MBeanParameterInfo toJMXParameterInfo()
   {
     return new MBeanParameterInfo(getName(), getType(), String.valueOf(getDescription()));
@@ -1030,6 +1043,7 @@ public final class DNConfigAttribute
    *                           acceptable value for this configuration
    *                           attribute.
    */
+  @Override
   public void setValue(javax.management.Attribute jmxAttribute)
          throws ConfigException
   {
@@ -1137,6 +1151,7 @@ public final class DNConfigAttribute
    *
    * @return  A duplicate of this configuration attribute.
    */
+  @Override
   public ConfigAttribute duplicate()
   {
     return new DNConfigAttribute(getName(), getDescription(), isRequired(),

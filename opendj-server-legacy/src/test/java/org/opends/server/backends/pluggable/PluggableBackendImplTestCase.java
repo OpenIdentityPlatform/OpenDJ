@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -79,10 +79,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DN;
@@ -1144,8 +1145,10 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
 
-    final Storage storage = backend.configureStorage(backendCfg, DirectoryServer.getInstance().getServerContext());
-    final RootContainer readOnlyContainer = new RootContainer(backend.getBackendID(), storage, backendCfg);
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    final Storage storage = backend.configureStorage(backendCfg, serverContext);
+    final RootContainer readOnlyContainer =
+        new RootContainer(backend.getBackendID(), serverContext, storage, backendCfg);
 
     // Put backend offline so that export LDIF open read-only container
     backend.finalizeBackend();

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -29,7 +29,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
@@ -37,9 +37,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
-/**
- * Utility class providing common code for extensions tests.
- */
+/** Utility class providing common code for extensions tests. */
 @SuppressWarnings("javadoc")
 class ExtensionTestUtils
 {

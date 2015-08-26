@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.Group;
 
 import java.net.InetAddress;

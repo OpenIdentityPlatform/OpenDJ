@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -35,7 +35,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -46,9 +50,6 @@ import org.opends.server.admin.std.meta.AttributeSyntaxCfgDefn;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -133,8 +134,16 @@ public class AttributeSyntaxConfigManager
           AttributeSyntax<?> syntax = loadSyntax(className, syntaxConfiguration, true);
           try
           {
-            Syntax sdkSyntax = syntax.getSDKSyntax(serverContext.getSchemaNG());
-            serverContext.getSchema().registerSyntax(sdkSyntax, false);
+            Schema schemaNG = serverContext.getSchemaNG();
+            Syntax sdkSyntax = syntax.getSDKSyntax(schemaNG);
+            // skip the syntax registration if already defined in the (core) schema
+            if (!schemaNG.hasSyntax(sdkSyntax.getOID()))
+            {
+              // The syntaxes configuration options (e.g. strictness, support for zero length values, etc)
+              // are set by the call to loadSyntax() which calls initializeSyntax()
+              // which updates the SDK schema options.
+              serverContext.getSchema().registerSyntax(sdkSyntax, false);
+            }
             syntaxes.put(syntaxConfiguration.dn(), syntax);
           }
           catch (DirectoryException de)
@@ -243,7 +252,7 @@ public class AttributeSyntaxConfigManager
     if (syntax != null)
     {
       String oid = syntax.getOID();
-      for (AttributeType at : DirectoryServer.getAttributeTypes().values())
+      for (AttributeType at : DirectoryServer.getAttributeTypes())
       {
         if (oid.equals(at.getSyntax().getOID()))
         {
@@ -310,7 +319,7 @@ public class AttributeSyntaxConfigManager
       if (syntax != null)
       {
         String oid = syntax.getOID();
-        for (AttributeType at : DirectoryServer.getAttributeTypes().values())
+        for (AttributeType at : DirectoryServer.getAttributeTypes())
         {
           if (oid.equals(at.getSyntax().getOID()))
           {

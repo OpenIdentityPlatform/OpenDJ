@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -31,13 +31,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.api.MatchingRuleFactory;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
-import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
-import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
-import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -48,11 +45,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/**
- * Test MatchedValuesControl.
- */
-public class MatchedValuesControlTest
-    extends ControlsTestCase
+/** Test MatchedValuesControl. */
+@SuppressWarnings("javadoc")
+public class MatchedValuesControlTest extends ControlsTestCase
 {
 
   /**
@@ -673,24 +668,15 @@ public class MatchedValuesControlTest
     }
   }
 
-  @DataProvider(name = "extensibleMatchFilterData")
-  public Object[][] createExtensibleMatchFilterData() throws Exception
+  @DataProvider
+  public Object[][] extensibleMatchFilterData() throws Exception
   {
-    MatchingRuleFactory<?> factory = new BooleanEqualityMatchingRuleFactory();
-    factory.initializeMatchingRule(null);
-    MatchingRule booleanEquality = factory.getMatchingRules().iterator().next();
-    factory = new IntegerEqualityMatchingRuleFactory();
-    factory.initializeMatchingRule(null);
-    MatchingRule integerEquality = factory.getMatchingRules().iterator().next();
-    factory = new DistinguishedNameEqualityMatchingRuleFactory();
-    factory.initializeMatchingRule(null);
-    MatchingRule distinguishedEquality = factory.getMatchingRules().iterator().next();
-
     return new Object[][]
     {
-    { "description", booleanEquality, "description" },
-    { "objectclass", integerEquality ,"top" },
-    { "fakeobjecttype", distinguishedEquality, "fakevalue" }, };
+      { "description", CoreSchema.getBooleanMatchingRule(), "description" },
+      { "objectclass", CoreSchema.getIntegerMatchingRule(), "top" },
+      { "fakeobjecttype", CoreSchema.getDistinguishedNameMatchingRule(), "fakevalue" },
+    };
   }
 
   /**

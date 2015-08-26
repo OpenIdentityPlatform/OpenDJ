@@ -22,18 +22,21 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Schema.SchemaUpdater;
 
 /**
  * This class implements the access control information (aci) attribute syntax.
@@ -52,53 +55,55 @@ public class AciSyntax
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void initializeSyntax(AttributeSyntaxCfg configuration, ServerContext serverContext) throws ConfigException
+  public void initializeSyntax(AttributeSyntaxCfg configuration, ServerContext serverContext)
+      throws ConfigException, DirectoryException
   {
     // Add the Aci syntax to the "new" schema
-    SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();
-    SchemaBuilder builder = schemaUpdater.getSchemaBuilder().buildSyntax(SYNTAX_ACI_OID)
-      .description(SYNTAX_ACI_DESCRIPTION)
-      .implementation(new AciSyntaxImpl())
-      .addToSchema();
-    schemaUpdater.updateSchema(builder.toSchema());
+    serverContext.getSchema().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public Schema update(SchemaBuilder builder)
+      {
+        return addAciSyntax(builder).toSchema();
+      }
+    });
   }
 
-  /** {@inheritDoc} */
+  /**
+   * Adds the ACI syntax to the provided schema builder.
+   *
+   * @param builder
+   *          where to add the ACI syntax
+   * @return the provided builder
+   */
+  public static SchemaBuilder addAciSyntax(SchemaBuilder builder)
+  {
+    return builder
+        .buildSyntax(SYNTAX_ACI_OID)
+        .description(SYNTAX_ACI_DESCRIPTION)
+        .implementation(new AciSyntaxImpl())
+        .addToSchema();
+  }
+
   @Override
   public Syntax getSDKSyntax(org.forgerock.opendj.ldap.schema.Schema schema)
   {
     return schema.getSyntax(SchemaConstants.SYNTAX_ACI_OID);
   }
 
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
   @Override
   public String getName()
   {
     return SYNTAX_ACI_NAME;
   }
 
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
   @Override
   public String getOID()
   {
     return SYNTAX_ACI_OID;
   }
 
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
   @Override
   public String getDescription()
   {

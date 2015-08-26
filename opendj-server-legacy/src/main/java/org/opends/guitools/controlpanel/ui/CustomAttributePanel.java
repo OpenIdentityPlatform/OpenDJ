@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
@@ -75,8 +74,10 @@ import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -91,7 +92,7 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -529,11 +530,7 @@ class CustomAttributePanel extends SchemaElementPanel
   void update(AttributeType attr, Schema schema)
   {
     ignoreChangeEvents = true;
-    String n = attr.getPrimaryName();
-    if (n == null)
-    {
-      n = "";
-    }
+    String n = attr.getNameOrOID();
     titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
 
@@ -554,14 +551,15 @@ class CustomAttributePanel extends SchemaElementPanel
     lastAliases.addAll(someAliases);
     this.aliases.setText(Utilities.getStringFromCollection(someAliases, ", "));
 
-    String sOrigin = Utilities.getOrigin(attr);
+    SomeSchemaElement element = new SomeSchemaElement(attr);
+    String sOrigin = Utilities.getOrigin(element);
     if (sOrigin == null)
     {
       sOrigin = "";
     }
     origin.setText(sOrigin);
 
-    String sFile = getSchemaFile(attr);
+    String sFile = element.getSchemaFile();
     if (sFile == null)
     {
       sFile = "";
@@ -643,9 +641,8 @@ class CustomAttributePanel extends SchemaElementPanel
 
       LowerCaseComparator lowerCase = new LowerCaseComparator();
       Map<String, Syntax> syntaxNameMap = new TreeMap<>(lowerCase);
-      for (String key : schema.getSyntaxes().keySet())
+      for (Syntax syntax : schema.getSyntaxes())
       {
-        Syntax syntax = schema.getSyntax(key);
         String name = syntax.getName();
         if (name == null)
         {
@@ -658,9 +655,8 @@ class CustomAttributePanel extends SchemaElementPanel
       updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
 
       Map<String, AttributeType> attributeNameMap = new TreeMap<>(lowerCase);
-      for (String key : schema.getAttributeTypes().keySet())
+      for (AttributeType attr : schema.getAttributeTypes())
       {
-        AttributeType attr = schema.getAttributeType(key);
         attributeNameMap.put(attr.getNameOrOID(), attr);
       }
       List<Object> newParents = new ArrayList<>();
@@ -669,17 +665,16 @@ class CustomAttributePanel extends SchemaElementPanel
       updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
 
       final Map<String, MatchingRule> matchingRuleNameMap = new TreeMap<>(lowerCase);
-      for (String key : schema.getMatchingRules().keySet())
+      for (MatchingRule rule : schema.getMatchingRules())
       {
-        MatchingRule rule = schema.getMatchingRule(key);
         matchingRuleNameMap.put(rule.getNameOrOID(), rule);
       }
 
       final List<MatchingRule> availableMatchingRules = new ArrayList<>(matchingRuleNameMap.values());
       JComboBox[] combos = {approximate, equality, ordering, substring};
-      for (JComboBox<LocalizableMessage> combo : combos)
+      for (JComboBox combo : combos)
       {
-        final DefaultComboBoxModel<LocalizableMessage> model = (DefaultComboBoxModel) combo.getModel();
+        final DefaultComboBoxModel model = (DefaultComboBoxModel) combo.getModel();
         final List<Object> el = new ArrayList<Object>(availableMatchingRules);
         el.add(0, model.getSize() != 0 ? model.getElementAt(0) : NO_MATCHING_RULE);
         updateComboBoxModel(el, model);
@@ -761,7 +756,7 @@ class CustomAttributePanel extends SchemaElementPanel
     TreeSet<String> dependentClasses = new TreeSet<>();
     if (schema != null)
     {
-      for (AttributeType attr : schema.getAttributeTypes().values())
+      for (AttributeType attr : schema.getAttributeTypes())
       {
         if (attribute.equals(attr.getSuperiorType()))
         {
@@ -1100,20 +1095,24 @@ class CustomAttributePanel extends SchemaElementPanel
 
   private AttributeType getNewAttribute()
   {
-    return new AttributeType("", getAttributeName(),
-        getAllNames(),
-        getOID(),
-        getDescription(),
-        getSuperior(),
-        (Syntax)syntax.getSelectedItem(),
-        getMatchingRule(approximate),
-        getMatchingRule(equality),
-        getMatchingRule(ordering),
-        getMatchingRule(substring),
-        (AttributeUsage)usage.getSelectedItem(),
-        collective.isSelected(), nonModifiable.isSelected(),
-        obsolete.isSelected(), singleValued.isSelected(),
-        getExtraProperties());
+    return new SchemaBuilder().buildAttributeType(getOID())
+        .names(getAllNames())
+        .description(getDescription())
+        .superiorType(getSuperior().getNameOrOID())
+        .syntax(((Syntax) syntax.getSelectedItem()).getOID())
+        .approximateMatchingRule(getMatchingRule(approximate).getNameOrOID())
+        .equalityMatchingRule(getMatchingRule(equality).getNameOrOID())
+        .orderingMatchingRule(getMatchingRule(ordering).getNameOrOID())
+        .substringMatchingRule(getMatchingRule(substring).getNameOrOID())
+        .usage((AttributeUsage)usage.getSelectedItem())
+        .collective(collective.isSelected())
+        .obsolete(obsolete.isSelected())
+        .noUserModification(nonModifiable.isSelected())
+        .singleValue(singleValued.isSelected())
+        .extraProperties(getExtraProperties())
+        .addToSchema()
+      .toSchema()
+      .getAttributeType(getOID());
   }
 
   private void updateDefaultMatchingRuleNames()

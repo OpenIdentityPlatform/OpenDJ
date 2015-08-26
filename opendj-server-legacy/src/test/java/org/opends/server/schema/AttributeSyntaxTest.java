@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -39,6 +39,7 @@ import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @RemoveOnceSDKSchemaIsUsed
 public abstract class AttributeSyntaxTest extends SchemaTestCase
 {
@@ -57,12 +58,12 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
    * Get an instance of the attribute syntax that must be tested.
    *
    * @return An instance of the attribute syntax that must be tested.
+   * @throws Exception
+   *           if a problem occurs
    */
-  protected abstract AttributeSyntax<?> getRule();
+  protected abstract AttributeSyntax<?> getRule() throws Exception;
 
-  /**
-   * Test the normalization and the approximate comparison.
-   */
+  /** Test the normalization and the approximate comparison. */
   @Test(dataProvider= "acceptableValues")
   public void testAcceptableValues(String value, Boolean result) throws Exception
   {
@@ -75,7 +76,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
 
     LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     // test the valueIsAcceptable method
-    Boolean liveResult =
+    boolean liveResult =
       syntax.valueIsAcceptable(ByteString.valueOfUtf8(value), reason);
 
     assertSame(liveResult, result, syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);

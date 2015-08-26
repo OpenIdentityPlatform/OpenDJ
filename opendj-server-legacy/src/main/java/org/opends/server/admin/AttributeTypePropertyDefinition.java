@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -31,7 +31,7 @@ import static org.forgerock.util.Reject.ifNull;
 import java.util.EnumSet;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /** Attribute type property definition. */
 public final class AttributeTypePropertyDefinition extends

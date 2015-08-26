@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -48,7 +48,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.types.AttributeType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Schema;
 
 /**
@@ -76,23 +76,27 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
   }
 
   /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_TITLE.get();
   }
 
   /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return usedByAttributes;
   }
 
   /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
   /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
@@ -153,6 +157,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
 
     MouseAdapter clickListener = new MouseAdapter()
     {
+      @Override
       public void mouseClicked(MouseEvent ev)
       {
         if (ev.getClickCount() == 1)
@@ -166,6 +171,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
     KeyAdapter keyListener = new KeyAdapter()
     {
       /** {@inheritDoc} */
+      @Override
       public void keyTyped(KeyEvent ev)
       {
         if (ev.getKeyChar() == KeyEvent.VK_SPACE ||
@@ -205,7 +211,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
     TreeSet<String> attributes = new TreeSet<>(lowerCaseComparator);
-    for (AttributeType attr : schema.getAttributeTypes().values())
+    for (AttributeType attr : schema.getAttributeTypes())
     {
       if (syntax == attr.getSyntax())
       {

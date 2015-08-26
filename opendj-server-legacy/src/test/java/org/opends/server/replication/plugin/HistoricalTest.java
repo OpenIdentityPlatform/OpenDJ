@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -33,6 +33,7 @@ import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -341,7 +342,7 @@ public class HistoricalTest extends ReplicationTestCase
   private static void publishModify(ReplicationBroker broker, CSN changeNum,
       DN dn, String entryuuid, AttributeType attrType, String newValue)
   {
-    Attribute attr = Attributes.create(attrType.getNameOrOID(), newValue);
+    Attribute attr = Attributes.create(attrType.getNormalizedNameOrOID(), newValue);
     List<Modification> mods = newArrayList(new Modification(ModificationType.ADD, attr));
     broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }

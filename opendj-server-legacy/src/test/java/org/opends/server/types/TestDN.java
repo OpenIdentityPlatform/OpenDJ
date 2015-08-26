@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.types;
+
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
@@ -1152,10 +1154,11 @@ public class TestDN extends TypesTestCase {
     DN dn1 = DN.valueOf(first);
     DN dn2 = DN.valueOf(second);
 
+    String msg = "DN equality for <" + first + "> and <" + second + ">";
     if (result == 0) {
-      assertEquals   (dn1, dn2, "DN equality for <" + first + "> and <" + second + ">");
+      assertEquals   (dn1, dn2, msg);
     } else {
-      assertNotEquals(dn1, dn2, "DN equality for <" + first + "> and <" + second + ">");
+      assertNotEquals(dn1, dn2, msg);
     }
   }
 

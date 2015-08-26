@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -45,6 +45,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.CollectionUtils;
@@ -70,11 +71,24 @@ public final class CollationMatchingRuleFactory extends
   /** Map of OID and the Matching Rule. */
   private final Map<String, MatchingRule> matchingRules = new HashMap<>();
 
+  private ServerContext serverContext;
+
 
   /** Creates a new instance of CollationMatchingRuleFactory. */
   public CollationMatchingRuleFactory()
   {
     super();
+  }
+
+  /**
+   * Sets the server context.
+   *
+   * @param serverContext
+   *            The server context.
+   */
+  public void setServerContext(ServerContext serverContext)
+  {
+    this.serverContext = serverContext;
   }
 
   /** {@inheritDoc} */
@@ -196,13 +210,13 @@ public final class CollationMatchingRuleFactory extends
     // Clear the associated matching rules.
     resetRules();
 
-    final Schema coreSchema = CoreSchema.getInstance();
+    final Schema schema = serverContext.getSchemaNG();
     for (String collation : configuration.getCollation())
     {
       // validation has already been performed in isConfigurationChangeAcceptable()
       CollationMapper mapper = new CollationMapper(collation);
       String nOID = mapper.getNumericOID();
-      addMatchingRule(nOID, coreSchema.getMatchingRule(nOID));
+      addMatchingRule(nOID, schema.getMatchingRule(nOID));
     }
 
     try

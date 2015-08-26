@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -30,11 +30,8 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.core.ConfigurationBootstrapper;
 import org.opends.server.core.ServerContext;
-import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
 
@@ -72,9 +69,10 @@ public class ServerContextBuilder
     return this;
   }
 
-  public ServerContextBuilder schemaNG(Schema schema)
+  public ServerContextBuilder schema(org.opends.server.types.Schema schema)
   {
-    when(serverContext.getSchemaNG()).thenReturn(schema);
+    when(serverContext.getSchema()).thenReturn(schema);
+    when(serverContext.getSchemaNG()).thenReturn(schema.getSchemaNG());
     return this;
   }
 
@@ -85,12 +83,6 @@ public class ServerContextBuilder
     return this;
   }
 
-  public ServerContextBuilder schemaUpdater(SchemaUpdater updater)
-  {
-    when(serverContext.getSchemaUpdater()).thenReturn(updater);
-    return this;
-  }
-
   /**
    * Ensure that configuration is fully bootstrapped. Only use when necessary as
    * it will impact test performance.
@@ -98,38 +90,9 @@ public class ServerContextBuilder
   public ServerContextBuilder withConfigurationBootstrapped()
       throws InitializationException
   {
-    if (serverContext.getSchemaUpdater() == null) {
-      throw new RuntimeException("You must set a non-null schema updater to bootstrap configuration.");
-    }
-    final ServerManagementContext serverManagementContext =
-        ConfigurationBootstrapper.bootstrap(serverContext);
-    when(serverContext.getServerManagementContext()).thenReturn(
-        serverManagementContext);
+    final ServerManagementContext serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
+    when(serverContext.getServerManagementContext()).thenReturn(serverManagementContext);
     return this;
-  }
-
-  /** A mock for schema updater. */
-  public static final class MockSchemaUpdater implements SchemaUpdater
-  {
-    private Schema schema;
-
-    public MockSchemaUpdater(Schema schema)
-    {
-      this.schema = schema;
-    }
-
-    @Override
-    public boolean updateSchema(Schema schema)
-    {
-      this.schema = schema;
-      return true;
-    }
-
-    @Override
-    public SchemaBuilder getSchemaBuilder()
-    {
-      return new SchemaBuilder(schema);
-    }
   }
 
 }

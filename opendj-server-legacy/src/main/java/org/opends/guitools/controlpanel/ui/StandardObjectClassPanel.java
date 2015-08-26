@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -55,12 +55,10 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.CommonSchemaElements;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
-
-import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
  * The panel that displays a standard object class definition.
@@ -261,10 +259,10 @@ public class StandardObjectClassPanel extends SchemaElementPanel
    * @param element the schema element.
    * @return the message describing the schema element origin (file, RFC, etc.).
    */
-  static LocalizableMessage getOrigin(CommonSchemaElements element)
+  static LocalizableMessage getOrigin(SomeSchemaElement element)
   {
     LocalizableMessageBuilder returnValue = new LocalizableMessageBuilder();
-    String fileName = getSchemaFile(element);
+    String fileName = element.getSchemaFile();
     String xOrigin = Utilities.getOrigin(element);
     if (xOrigin != null)
     {
@@ -309,7 +307,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     name.setText(n);
     parent.setText(getSuperiorText(oc));
     oid.setText(oc.getOID());
-    origin.setText(getOrigin(oc).toString());
+    origin.setText(getOrigin(new SomeSchemaElement(oc)).toString());
     n = oc.getDescription();
     if (n == null)
     {
