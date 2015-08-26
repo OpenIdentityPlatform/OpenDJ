@@ -125,43 +125,36 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
     final DN baseDN1 = DN.valueOf("dc=example,dc=com");
     final DN baseDN2 = DN.valueOf("cn=admin data");
     eclEnabledDomains.add(baseDN1);
+    final UpdateMsg msgs[] = newUpdateMsgs(13);
 
     // At least two updates in an enabled domain
-    final UpdateMsg msg1 = new FakeUpdateMsg(1);
-    final UpdateMsg msg2 = new FakeUpdateMsg(2);
-    final UpdateMsg msg3 = new FakeUpdateMsg(3);
-    final UpdateMsg msg4 = new FakeUpdateMsg(4);
-    addDomainCursorToCursor(baseDN1, new SequentialDBCursor(msg1, msg4));
-    addDomainCursorToCursor(baseDN2, new SequentialDBCursor(msg2, msg3));
+    addDomainCursorToCursor(baseDN1, new SequentialDBCursor(msgs[0], msgs[3]));
+    addDomainCursorToCursor(baseDN2, new SequentialDBCursor(msgs[1], msgs[2]));
 
-    assertMessagesInOrder(baseDN1, msg1, msg4);
+    assertMessagesInOrder(baseDN1, msgs[0], msgs[3]);
     assertEmpty();
 
     //Only one update in an enabled domain
-    final UpdateMsg msg5 = new FakeUpdateMsg(5);
-    final UpdateMsg msg6 = new FakeUpdateMsg(6);
-    final UpdateMsg msg7 = new FakeUpdateMsg(7);
-    addDomainCursorToCursor(baseDN1, new SequentialDBCursor(msg5));
-    addDomainCursorToCursor(baseDN2, new SequentialDBCursor(msg6, msg7));
+    addDomainCursorToCursor(baseDN1, new SequentialDBCursor(msgs[4]));
+    addDomainCursorToCursor(baseDN2, new SequentialDBCursor(msgs[5], msgs[6]));
 
-    assertMessagesInOrder(baseDN1, msg5, null);
+    assertMessagesInOrder(baseDN1, msgs[4], null);
     assertEmpty();
 
     // Two disabled domains
-    final DN baseDN3 = DN.valueOf("cn=schema");
-    final UpdateMsg msg8 = new FakeUpdateMsg(8);
-    final UpdateMsg msg9 = new FakeUpdateMsg(9);
-    final UpdateMsg msg10 = new FakeUpdateMsg(10);
-    final UpdateMsg msg11 = new FakeUpdateMsg(11);
-    final UpdateMsg msg12 = new FakeUpdateMsg(12);
-    final UpdateMsg msg13 = new FakeUpdateMsg(13);
+    final DN baseDN3 = DN.valueOf("dc=example,dc=net");
 
-    addDomainCursorToCursor(baseDN1, new SequentialDBCursor(msg8, msg10));
-    addDomainCursorToCursor(baseDN2, new SequentialDBCursor(msg9, msg11));
-    addDomainCursorToCursor(baseDN3, new SequentialDBCursor(msg12, msg13));
+    addDomainCursorToCursor(baseDN1, new SequentialDBCursor(msgs[7], msgs[9]));
+    addDomainCursorToCursor(baseDN2, new SequentialDBCursor(msgs[8], msgs[10]));
+    addDomainCursorToCursor(baseDN3, new SequentialDBCursor(msgs[11], msgs[12]));
 
-    assertMessagesInOrder(baseDN1, msg8, msg10);
+    assertMessagesInOrder(baseDN1, msgs[7], msgs[9]);
     assertEmpty();
+
+    // Test disable/enable domain tracking
+    eclEnabledDomains.add(baseDN3);
+    assertThat(eclCursor.shouldReInitialize()).isTrue();
+    assertThat(eclCursor.shouldReInitialize()).isFalse();
   }
 
   private void assertEmpty() throws Exception
@@ -172,6 +165,16 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   private void assertSingleMessage(DN baseDN, UpdateMsg msg1) throws Exception
   {
     assertMessagesInOrder(baseDN, msg1, null);
+  }
+
+  private UpdateMsg[] newUpdateMsgs(int num)
+  {
+    UpdateMsg[] results = new UpdateMsg[num];
+    for (int i = 0; i < num; i++)
+    {
+      results[i] = new FakeUpdateMsg(i + 1);
+    }
+    return results;
   }
 
   private void assertMessagesInOrder(DN baseDN, UpdateMsg msg1, UpdateMsg msg2) throws Exception

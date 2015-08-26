@@ -323,7 +323,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       initializeToChangelogState(changelogState);
       if (config.isComputeChangeNumber())
       {
-        startIndexer(changelogState);
+        startIndexer();
       }
       setPurgeDelay(replicationServer.getPurgeDelay());
     }
@@ -652,7 +652,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   {
     if (computeChangeNumber)
     {
-      startIndexer(replicationEnv.getChangelogState());
+      startIndexer();
     }
     else
     {
@@ -664,9 +664,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  private void startIndexer(final ChangelogState changelogState)
+  private void startIndexer()
   {
-    final ChangeNumberIndexer indexer = new ChangeNumberIndexer(this, changelogState);
+    final ChangeNumberIndexer indexer = new ChangeNumberIndexer(this, replicationEnv);
     if (cnIndexer.compareAndSet(null, indexer))
     {
       indexer.start();

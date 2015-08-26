@@ -29,6 +29,9 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Multi domain DB cursor that only returns updates for the domains which have
  * been enabled for the external changelog.
@@ -37,6 +40,7 @@ public final class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
 {
   private final ECLEnabledDomainPredicate predicate;
   private final MultiDomainDBCursor cursor;
+  private final List<DN> eclDisabledDomains = new ArrayList<>();
 
   /**
    * Builds an instance of this class filtering updates from the provided cursor.
@@ -82,6 +86,24 @@ public final class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
     cursor.removeDomain(baseDN);
   }
 
+  /**
+   * Returns whether the cursor should be reinitialized because a domain became re-enabled.
+   *
+   * @return whether the cursor should be reinitialized
+   */
+  public boolean shouldReInitialize()
+  {
+    for (DN domainDN : eclDisabledDomains)
+    {
+      if (predicate.isECLEnabledDomain(domainDN))
+      {
+        eclDisabledDomains.clear();
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public boolean next() throws ChangelogException
   {
@@ -94,6 +116,7 @@ public final class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
     while (domain != null && !predicate.isECLEnabledDomain(domain))
     {
       cursor.removeDomain(domain);
+      eclDisabledDomains.add(domain);
       domain = cursor.getData();
     }
     return domain != null;

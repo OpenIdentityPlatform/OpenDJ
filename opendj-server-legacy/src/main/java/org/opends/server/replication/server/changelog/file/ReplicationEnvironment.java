@@ -59,6 +59,7 @@ import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.replication.server.changelog.file.Log.LogRotationParameters;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -124,7 +125,7 @@ import static org.opends.messages.ReplicationMessages.*;
  * |           \---head.log [contains last records written]
  * </pre>
  */
-class ReplicationEnvironment
+class ReplicationEnvironment implements ChangelogStateProvider
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -318,12 +319,8 @@ class ReplicationEnvironment
     return state;
   }
 
-  /**
-   * Returns the current state of the replication changelog.
-   *
-   * @return the current {@link ChangelogState}
-   */
-  ChangelogState getChangelogState()
+  @Override
+  public ChangelogState getChangelogState()
   {
     return changelogState;
   }
