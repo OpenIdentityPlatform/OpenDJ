@@ -118,7 +118,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
             try {
                 final ByteString va =
                         valueAssertion != null ? encoder().apply(valueAssertion) : null;
-                h.handleResult(toFilter(c, type, ldapAttributeName.toString(), va));
+                h.handleResult(toFilter(type, ldapAttributeName.toString(), va));
             } catch (final Exception e) {
                 // Invalid assertion value - bad request.
                 h.handleError(new BadRequestException(i18n(
