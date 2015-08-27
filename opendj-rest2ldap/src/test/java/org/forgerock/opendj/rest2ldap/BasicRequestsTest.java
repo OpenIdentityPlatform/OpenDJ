@@ -618,29 +618,29 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     private Builder builder(final List<Request> requests) throws IOException {
-        return Rest2LDAP.builder().ldapConnectionFactory(getConnectionFactory(requests)).baseDN(
-                "dc=test").useEtagAttribute().useClientDNNaming("uid").readOnUpdatePolicy(
-                ReadOnUpdatePolicy.CONTROLS).authorizationPolicy(AuthorizationPolicy.NONE)
+        return Rest2LDAP.builder()
+                .ldapConnectionFactory(getConnectionFactory(requests))
+                .baseDN("dc=test")
+                .useEtagAttribute()
+                .useClientDNNaming("uid")
+                .readOnUpdatePolicy(ReadOnUpdatePolicy.CONTROLS)
+                .authorizationPolicy(AuthorizationPolicy.NONE)
                 .additionalLDAPAttribute("objectClass", "top", "person")
                 .mapper(object()
                         .attribute("schemas", constant(asList("urn:scim:schemas:core:1.0")))
-                        .attribute(
-                                "_id",
-                                simple("uid").isSingleValued().isRequired().writability(
-                                        WritabilityPolicy.CREATE_ONLY)).attribute(
-                                "name",
-                                object().attribute("displayName",
-                                        simple("cn").isSingleValued().isRequired()).attribute(
-                                        "surname", simple("sn").isSingleValued().isRequired()))
-                        .attribute(
-                                "_rev",
-                                simple("etag").isSingleValued().isRequired().writability(
-                                        WritabilityPolicy.READ_ONLY)).attribute("description",
-                                simple("description")).attribute(
-                                "singleNumber",
-                                simple("singleNumber").decoder(byteStringToInteger())
-                                        .isSingleValued()).attribute("multiNumber",
-                                simple("multiNumber").decoder(byteStringToInteger())));
+                        .attribute("_id", simple("uid").isSingleValued()
+                                                       .isRequired()
+                                                       .writability(WritabilityPolicy.CREATE_ONLY))
+                        .attribute("name", object().attribute("displayName", simple("cn").isSingleValued()
+                                                                                         .isRequired())
+                                                    .attribute("surname", simple("sn").isSingleValued().isRequired()))
+                        .attribute("_rev", simple("etag").isSingleValued()
+                                                         .isRequired()
+                                                         .writability(WritabilityPolicy.READ_ONLY))
+                        .attribute("description", simple("description"))
+                        .attribute("singleNumber", simple("singleNumber").decoder(byteStringToInteger())
+                                                                         .isSingleValued())
+                        .attribute("multiNumber", simple("multiNumber").decoder(byteStringToInteger())));
     }
 
     private void checkResourcesAreEqual(final Resource actual, final JsonValue expected) {

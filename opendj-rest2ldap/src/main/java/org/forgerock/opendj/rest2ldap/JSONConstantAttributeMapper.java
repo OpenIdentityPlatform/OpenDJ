@@ -90,17 +90,17 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
                 filter = toFilter(v1.startsWith(v2));
                 break;
             default:
-                filter = compare(c, type, v1, v2);
+                filter = compare(type, v1, v2);
                 break;
             }
         } else if (value.isNumber() && valueAssertion instanceof Number) {
             final Double v1 = value.asDouble();
             final Double v2 = ((Number) valueAssertion).doubleValue();
-            filter = compare(c, type, v1, v2);
+            filter = compare(type, v1, v2);
         } else if (value.isBoolean() && valueAssertion instanceof Boolean) {
             final Boolean v1 = value.asBoolean();
             final Boolean v2 = (Boolean) valueAssertion;
-            filter = compare(c, type, v1, v2);
+            filter = compare(type, v1, v2);
         } else {
             // This attribute mapper is a candidate but it does not match.
             filter = alwaysFalse();
@@ -134,30 +134,21 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
         }
     }
 
-    private <T extends Comparable<T>> Filter compare(final Context c, final FilterType type,
-            final T v1, final T v2) {
-        final Filter filter;
+    private <T extends Comparable<T>> Filter compare(final FilterType type, final T v1, final T v2) {
         switch (type) {
         case EQUAL_TO:
-            filter = toFilter(v1.equals(v2));
-            break;
+            return toFilter(v1.equals(v2));
         case GREATER_THAN:
-            filter = toFilter(v1.compareTo(v2) > 0);
-            break;
+            return toFilter(v1.compareTo(v2) > 0);
         case GREATER_THAN_OR_EQUAL_TO:
-            filter = toFilter(v1.compareTo(v2) >= 0);
-            break;
+            return toFilter(v1.compareTo(v2) >= 0);
         case LESS_THAN:
-            filter = toFilter(v1.compareTo(v2) < 0);
-            break;
+            return toFilter(v1.compareTo(v2) < 0);
         case LESS_THAN_OR_EQUAL_TO:
-            filter = toFilter(v1.compareTo(v2) <= 0);
-            break;
+            return toFilter(v1.compareTo(v2) <= 0);
         default:
-            filter = alwaysFalse(); // Not supported.
-            break;
+            return alwaysFalse(); // Not supported.
         }
-        return filter;
     }
 
 }

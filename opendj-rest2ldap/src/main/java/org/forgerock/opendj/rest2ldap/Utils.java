@@ -266,42 +266,28 @@ final class Utils {
         return value ? Filter.alwaysTrue() : Filter.alwaysFalse();
     }
 
-    static Filter toFilter(final Context c, final FilterType type, final String ldapAttribute,
-            final ByteString valueAssertion) {
-        final Filter filter;
+    static Filter toFilter(final FilterType type, final String ldapAttribute, final ByteString valueAssertion) {
         switch (type) {
         case CONTAINS:
-            filter =
-                    Filter.substrings(ldapAttribute, null, Collections.singleton(valueAssertion),
-                            null);
-            break;
+            return Filter.substrings(ldapAttribute, null, Collections.singleton(valueAssertion), null);
         case STARTS_WITH:
-            filter = Filter.substrings(ldapAttribute, valueAssertion, null, null);
-            break;
+            return Filter.substrings(ldapAttribute, valueAssertion, null, null);
         case EQUAL_TO:
-            filter = Filter.equality(ldapAttribute, valueAssertion);
-            break;
+            return Filter.equality(ldapAttribute, valueAssertion);
         case GREATER_THAN:
-            filter = Filter.greaterThan(ldapAttribute, valueAssertion);
-            break;
+            return Filter.greaterThan(ldapAttribute, valueAssertion);
         case GREATER_THAN_OR_EQUAL_TO:
-            filter = Filter.greaterOrEqual(ldapAttribute, valueAssertion);
-            break;
+            return Filter.greaterOrEqual(ldapAttribute, valueAssertion);
         case LESS_THAN:
-            filter = Filter.lessThan(ldapAttribute, valueAssertion);
-            break;
+            return Filter.lessThan(ldapAttribute, valueAssertion);
         case LESS_THAN_OR_EQUAL_TO:
-            filter = Filter.lessOrEqual(ldapAttribute, valueAssertion);
-            break;
+            return Filter.lessOrEqual(ldapAttribute, valueAssertion);
         case PRESENT:
-            filter = Filter.present(ldapAttribute);
-            break;
+            return Filter.present(ldapAttribute);
         case EXTENDED:
         default:
-            filter = alwaysFalse(); // Not supported.
-            break;
+            return alwaysFalse(); // Not supported.
         }
-        return filter;
     }
 
     static String toLowerCase(final String s) {

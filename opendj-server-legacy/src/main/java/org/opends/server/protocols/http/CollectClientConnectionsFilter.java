@@ -190,11 +190,11 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
       ctx.connection = new SdkConnectionAdapter(clientConnection);
 
-      final String[] userPassword = extractUsernamePassword(request);
-      if (userPassword != null && userPassword.length == 2)
+      final String[] userCredentials = extractUsernamePassword(request);
+      if (userCredentials != null && userCredentials.length == 2)
       {
-        ctx.userName = userPassword[0];
-        ctx.password = userPassword[1];
+        ctx.userName = userCredentials[0];
+        ctx.password = userCredentials[1];
         ctx.asyncContext = getAsyncContext(request);
 
         newRootConnection().searchSingleEntryAsync(buildSearchRequest(ctx.userName)).thenAsync(
@@ -419,10 +419,10 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       String httpBasicAuthHeader = request.getHeader(HTTP_BASIC_AUTH_HEADER);
       if (httpBasicAuthHeader != null)
       {
-        String[] userPassword = parseUsernamePassword(httpBasicAuthHeader);
-        if (userPassword != null)
+        String[] userCredentials = parseUsernamePassword(httpBasicAuthHeader);
+        if (userCredentials != null)
         {
-          return userPassword;
+          return userCredentials;
         }
       }
     }
@@ -525,8 +525,8 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       {
         // Example usage of base64:
         // Base64("Aladdin:open sesame") = "QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-        String userPassword = new String(Base64.decode(base64UserPassword));
-        String[] split = userPassword.split(":");
+        String userCredentials = new String(Base64.decode(base64UserPassword));
+        String[] split = userCredentials.split(":");
         if (split.length == 2)
         {
           return split;
