@@ -48,8 +48,10 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class AttrHistoricalSingleTest extends ReplicationTestCase
 {
+  private static final String ATTRIBUTE_NAME = "display";
   private static final boolean CONFLICT = true;
   private static final boolean NO_CONFLICT = false;
+
   private CSNGenerator csnGen = new CSNGenerator(1025, System.currentTimeMillis());
   private AttrHistoricalSingle attrHist;
   private CSN csn;
@@ -77,9 +79,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   {
     mod = newModification(ADD, "X");
     replayOperation(csn, entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
     replayOperation(csn, entry, mod, NO_CONFLICT);
+    assertNoAttributeValue(entry);
   }
 
   @Test
@@ -89,12 +93,15 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
     mod = newModification(ADD, "X");
     replayOperation(t[0], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
-    mod = newModification(DELETE, "X");
+    mod = newModification(DELETE);
     replayOperation(t[2], entry, mod, NO_CONFLICT);
+    assertNoAttributeValue(entry);
 
-    mod = newModification(ADD, "X");
+    mod = newModification(ADD, "Z");
     replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
+    assertNoAttributeValue(entry);
   }
 
   @Test
@@ -104,15 +111,19 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
     mod = newModification(ADD, "X");
     replayOperation(t[0], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
     replayOperation(t[1], entry, mod, NO_CONFLICT);
+    assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "X");
     replayOperation(t[3], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(ADD, "Y");
     replayOperation(t[2], entry, mod, CONFLICT);
+    assertAttributeValue(entry, "X");
   }
 
   @Test
@@ -122,12 +133,15 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
     mod = newModification(ADD, "X");
     replayOperation(t[0], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
     replayOperation(t[1], entry, mod, NO_CONFLICT);
+    assertNoAttributeValue(entry);
 
     mod = newModification(DELETE, "X");
     replayOperationSuppressMod(t[2], entry, mod, CONFLICT);
+    assertNoAttributeValue(entry);
   }
 
   @Test
@@ -136,10 +150,12 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[1], null, mod, NO_CONFLICT);
+    replayOperation(t[1], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
     replayOperationSuppressMod(t[0], entry, mod, CONFLICT);
+    assertAttributeValue(entry, "X");
   }
 
   @Test
@@ -147,6 +163,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   {
     mod = newModification(DELETE, "X");
     replayOperationSuppressMod(csn, entry, mod, CONFLICT);
+    assertNoAttributeValue(entry);
   }
 
   @Test
@@ -156,9 +173,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
     mod = newModification(ADD, "X");
     replayOperation(t[0], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "Y");
     replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
+    assertAttributeValue(entry, "X");
   }
 
   /**
@@ -175,9 +194,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
     mod = newModification(ADD, "X");
     entry.applyModification(mod);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "Y");
     replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
+    assertAttributeValue(entry, "X");
   }
 
   /**
@@ -194,23 +215,27 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     attrHist.assign(histAttrVal.getHistKey(), histAttrVal.getAttributeValue(), csn);
     mod = newModification(ADD, "X");
     entry.applyModification(mod);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "Y");
     replayOperationSuppressMod(csn, entry, mod, CONFLICT);
+    assertAttributeValue(entry, "X");
   }
 
   @Test
   public void replay_replaceWithValue() throws Exception
   {
     mod = newModification(REPLACE, "X");
-    replayOperation(csn, null, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
   }
 
   @Test
   public void replay_replaceNoValue() throws Exception
   {
     mod = newModification(REPLACE);
-    replayOperation(csn, null, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, NO_CONFLICT);
+    assertNoAttributeValue(entry);
   }
 
   @Test
@@ -220,12 +245,15 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
     mod = newModification(ADD, "X");
     replayOperation(t[0], entry, mod, NO_CONFLICT);
+    assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE);
     replayOperation(t[2], entry, mod, NO_CONFLICT);
+    assertNoAttributeValue(entry);
 
     mod = newModification(REPLACE);
     replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
+    assertNoAttributeValue(entry);
   }
 
   @Test
@@ -248,17 +276,19 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private Modification newModification(ModificationType modType, String attrValue)
   {
-    return new Modification(modType, Attributes.create("display", attrValue));
+    return new Modification(modType, Attributes.create(ATTRIBUTE_NAME, attrValue));
   }
 
   private Modification newModification(ModificationType modType)
   {
-    return new Modification(modType, Attributes.empty("display"));
+    return new Modification(modType, Attributes.empty(ATTRIBUTE_NAME));
   }
 
   private void replayOperation(CSN csn, Entry entry, Modification mod, boolean shouldConflict) throws Exception
   {
-    replayOperation(null, csn, entry, mod, shouldConflict);
+    Iterator<Modification> itMod = mock(Iterator.class);
+    replayOperation(itMod, csn, entry, mod, shouldConflict);
+    verifyZeroInteractions(itMod);
   }
 
   private void replayOperationSuppressMod(CSN csn, Entry entry, Modification mod, boolean shouldConflict)
@@ -266,7 +296,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   {
     Iterator<Modification> itMod = mock(Iterator.class);
     replayOperation(itMod, csn, entry, mod, shouldConflict);
-    verifyModNotReplayed(itMod);
+    verifyModSuppressed(itMod);
   }
 
   private void replayOperation(Iterator<Modification> modsIterator, CSN csn, Entry entry, Modification mod,
@@ -288,10 +318,28 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     switch (mod.getModificationType().asEnum())
     {
     case ADD:
-    case REPLACE:
-      ByteString expectedValue = uniqueValue(mod.getAttribute());
+    {
+      Attribute attribute = mod.getAttribute();
+      assertThat(attribute).hasSize(1);
+      ByteString expectedValue = attribute.iterator().next();
       assertEquals(actualValue, expectedValue);
       return;
+    }
+
+    case REPLACE:
+    {
+      Attribute attribute = mod.getAttribute();
+      if (!attribute.isEmpty())
+      {
+        ByteString expectedValue = attribute.iterator().next();
+        assertEquals(actualValue, expectedValue);
+      }
+      else
+      {
+        assertNull(actualValue);
+      }
+      return;
+    }
 
     case DELETE:
       assertNull(actualValue);
@@ -301,23 +349,33 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private ByteString getActualValue(Entry entry, Modification mod)
   {
-    List<Attribute> attributes = entry.getAttribute(mod.getAttribute().getAttributeType());
+    return getActualValue(entry.getAttribute(mod.getAttribute().getAttributeType()));
+  }
+
+  private ByteString getActualValue(List<Attribute> attributes)
+  {
     if (attributes != null)
     {
       assertThat(attributes).hasSize(1);
-      return uniqueValue(attributes.get(0));
+      Attribute attribute = attributes.get(0);
+      assertThat(attribute).hasSize(1);
+      return attribute.iterator().next();
     }
     return null;
   }
 
-  private ByteString uniqueValue(Attribute attribute)
+  private void assertNoAttributeValue(Entry entry)
   {
-    assertThat(attribute).hasSize(1);
-    ByteString attrValue = attribute.iterator().next();
-    return attrValue;
+    assertAttributeValue(entry, (String) null);
   }
 
-  private void verifyModNotReplayed(Iterator<Modification> it)
+  private void assertAttributeValue(Entry entry, String expectedValue)
+  {
+    ByteString actualValue = getActualValue(entry.getAttribute(ATTRIBUTE_NAME));
+    assertEquals(actualValue, expectedValue != null ? ByteString.valueOf(expectedValue) : null);
+  }
+
+  private void verifyModSuppressed(Iterator<Modification> it)
   {
     verify(it, times(1)).remove();
     verify(it, only()).remove();
