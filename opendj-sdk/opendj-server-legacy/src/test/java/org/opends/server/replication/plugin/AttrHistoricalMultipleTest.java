@@ -60,7 +60,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
 {
   private static enum E
   {
-    CONFLICT(true), CONFLICT_BUT_SHOULD_NOT_BE(true), NO_CONFLICT(false);
+    CONFLICT(true), CONFLICT_BUT_SHOULD_NOT_BE(true), SUCCESS(false);
 
     private final boolean expectedConflictStatus;
 
@@ -327,7 +327,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
   public void replay_replace() throws Exception
   {
     mod = newModification(REPLACE, "X");
-    replayOperation(csn, entry, mod, E.NO_CONFLICT);
+    replayOperation(csn, entry, mod, E.SUCCESS);
     assertAttributeValues(entry, "X");
   }
 
