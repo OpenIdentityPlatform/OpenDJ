@@ -610,7 +610,7 @@ userPassword: {SSHA512}WiYWHyAa612EZwCMY7uGwN/WYp2Ne7EmV0QTPX5g6RrTKi8jZX3u5rBIW
    <para>
     For details see
     <link
-     xlink:href="admin-guide#chap-pwd-storage"
+     xlink:href="admin-guide#configure-pwd-storage"
      xlink:role="http://docbook.org/xlink/role/olink"
      xlink:show="new"
     ><citetitle>Configuring Password Storage</citetitle></link>.
