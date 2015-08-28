@@ -246,7 +246,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     replayOperation(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[1], entry, mod, E.CONFLICT);
+    replayOperation(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
   }
 
   @Test
@@ -276,7 +276,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     replay_addDeleteNoValue(t[0], t[2]);
 
     mod = newModification(DELETE, "X");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
   }
 
   @Test
@@ -348,7 +348,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
 
   private Modification newModification(ModificationType modType)
   {
-    return new Modification(modType, Attributes.empty("display"));
+    return new Modification(modType, Attributes.empty("description"));
   }
 
   private void replayOperationSuppressMod(CSN csn, Entry entry, Modification mod, E conflictStatus)
