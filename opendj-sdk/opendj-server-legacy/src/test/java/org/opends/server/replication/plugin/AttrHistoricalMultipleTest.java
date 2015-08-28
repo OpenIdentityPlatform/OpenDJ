@@ -58,24 +58,9 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class AttrHistoricalMultipleTest extends ReplicationTestCase
 {
-  private static enum E
-  {
-    CONFLICT(true), CONFLICT_BUT_SHOULD_NOT_BE(true), SUCCESS(false);
-
-    private final boolean expectedConflictStatus;
-
-    private E(boolean expectedResultForReplay)
-    {
-      this.expectedConflictStatus = expectedResultForReplay;
-    }
-
-    private boolean getExpectedResult()
-    {
-      return this.expectedConflictStatus;
-    }
-  }
-
   private static final String ATTRIBUTE_NAME = "description";
+  private static final boolean CONFLICT = true;
+  private static final boolean SUCCESS = false;
 
   private CSNGenerator csnGen = new CSNGenerator(1025, System.currentTimeMillis());
   private AttrHistoricalMultiple attrHist;
@@ -177,11 +162,11 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
   public void replay_addDeleteSameTime() throws Exception
   {
     mod = newModification(ADD, "X");
-    replayOperation(csn, entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(csn, entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
   }
 
@@ -191,15 +176,15 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(ADD, "Y");
-    replayOperation(t[2], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[2], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X", "Y");
 
     mod = newModification(DELETE, "Y");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
     assertAttributeValues(entry, "X", "Y");
   }
 
@@ -211,7 +196,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     replay_addDeleteNoValue(t[0], t[2]);
 
     mod = newModification(ADD, "Y");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
     assertNoAttributeValue(entry);
   }
 
@@ -221,15 +206,15 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(t[2], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[2], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "X");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
     assertNoAttributeValue(entry);
   }
 
@@ -239,11 +224,11 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(ADD, "X");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
     assertAttributeValues(entry, "X");
   }
 
@@ -253,15 +238,15 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
   }
 
@@ -269,7 +254,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
   public void replay_deleteNoPreviousHistory() throws Exception
   {
     mod = newModification(DELETE, "Y");
-    replayOperationSuppressMod(csn, entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(csn, entry, mod, CONFLICT);
     assertNoAttributeValue(entry);
   }
 
@@ -279,11 +264,11 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
   }
 
@@ -295,7 +280,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     replay_addDeleteNoValue(t[0], t[2]);
 
     mod = newModification(DELETE, "X");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
     assertNoAttributeValue(entry);
   }
 
@@ -315,11 +300,11 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
   private void replay_addDeleteNoValue(CSN tAdd, CSN tDel) throws Exception
   {
     mod = newModification(ADD, "X");
-    replayOperation(tAdd, entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(tAdd, entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(DELETE);
-    replayOperation(tDel, entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(tDel, entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
   }
 
@@ -327,7 +312,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
   public void replay_replace() throws Exception
   {
     mod = newModification(REPLACE, "X");
-    replayOperation(csn, entry, mod, E.SUCCESS);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
   }
 
@@ -337,11 +322,11 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[1], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
 
     mod = newModification(REPLACE, "Y");
-    replayOperation(t[0], entry, mod, E.CONFLICT_BUT_SHOULD_NOT_BE);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X", "Y");
   }
 
@@ -353,7 +338,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     replay_addDeleteNoValue(t[0], t[2]);
 
     mod = newModification(REPLACE, "Y");
-    replayOperationSuppressMod(t[1], entry, mod, E.CONFLICT);
+    replayOperationSuppressMod(t[1], entry, mod, CONFLICT);
     assertNoAttributeValue(entry);
   }
 
@@ -377,28 +362,28 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     return new Modification(modType, Attributes.empty(ATTRIBUTE_NAME));
   }
 
-  private void replayOperationSuppressMod(CSN csn, Entry entry, Modification mod, E conflictStatus)
+  private void replayOperationSuppressMod(CSN csn, Entry entry, Modification mod, boolean shouldConflict)
       throws Exception
   {
     Iterator<Modification> itMod = mock(Iterator.class);
-    replayOperation(itMod, csn, entry, mod, conflictStatus);
+    replayOperation(itMod, csn, entry, mod, shouldConflict);
     verifyModSuppressed(itMod);
   }
 
-  private void replayOperation(CSN csn, Entry entry, Modification mod, E conflictStatus) throws Exception
+  private void replayOperation(CSN csn, Entry entry, Modification mod, boolean shouldConflict) throws Exception
   {
     Iterator<Modification> itMod = mock(Iterator.class);
-    replayOperation(itMod, csn, entry, mod, conflictStatus);
+    replayOperation(itMod, csn, entry, mod, shouldConflict);
     verifyZeroInteractions(itMod);
   }
 
   private void replayOperation(Iterator<Modification> modsIterator, CSN csn, Entry entry, Modification mod,
-      E conflictStatus) throws Exception
+      boolean shouldConflict) throws Exception
   {
     boolean result = attrHist.replayOperation(modsIterator, csn, entry, mod);
-    assertEquals(result, conflictStatus.getExpectedResult(),
-        "Expected " + (conflictStatus == E.CONFLICT ? "a" : "no") + " conflict when applying " + mod + " to " + entry);
-    if (entry != null && conflictStatus != E.CONFLICT)
+    assertEquals(result, shouldConflict,
+        "Expected " + (shouldConflict ? "a" : "no") + " conflict when applying " + mod + " to " + entry);
+    if (entry != null && !shouldConflict)
     {
       entry.applyModification(mod);
       assertAttributeValues(entry, mod);
