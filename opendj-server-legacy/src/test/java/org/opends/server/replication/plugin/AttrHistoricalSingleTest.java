@@ -50,7 +50,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 {
   private static final String ATTRIBUTE_NAME = "display";
   private static final boolean CONFLICT = true;
-  private static final boolean NO_CONFLICT = false;
+  private static final boolean SUCCESS = false;
 
   private CSNGenerator csnGen = new CSNGenerator(1025, System.currentTimeMillis());
   private AttrHistoricalSingle attrHist;
@@ -78,11 +78,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   public void replay_addDeleteSameTime() throws Exception
   {
     mod = newModification(ADD, "X");
-    replayOperation(csn, entry, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(csn, entry, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
   }
 
@@ -92,11 +92,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE);
-    replayOperation(t[2], entry, mod, NO_CONFLICT);
+    replayOperation(t[2], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "Z");
@@ -110,15 +110,15 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(4);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(t[1], entry, mod, NO_CONFLICT);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[3], entry, mod, NO_CONFLICT);
+    replayOperation(t[3], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(ADD, "Y");
@@ -132,11 +132,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
-    replayOperation(t[1], entry, mod, NO_CONFLICT);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(DELETE, "X");
@@ -150,7 +150,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[1], entry, mod, NO_CONFLICT);
+    replayOperation(t[1], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "X");
@@ -172,7 +172,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(2);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE, "Y");
@@ -226,7 +226,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   public void replay_replaceWithValue() throws Exception
   {
     mod = newModification(REPLACE, "X");
-    replayOperation(csn, entry, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
   }
 
@@ -234,7 +234,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   public void replay_replaceNoValue() throws Exception
   {
     mod = newModification(REPLACE);
-    replayOperation(csn, entry, mod, NO_CONFLICT);
+    replayOperation(csn, entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
   }
 
@@ -244,11 +244,11 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     CSN[] t = newCSNs(3);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[0], entry, mod, NO_CONFLICT);
+    replayOperation(t[0], entry, mod, SUCCESS);
     assertAttributeValue(entry, "X");
 
     mod = newModification(DELETE);
-    replayOperation(t[2], entry, mod, NO_CONFLICT);
+    replayOperation(t[2], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(REPLACE);
@@ -260,7 +260,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   public void replay_increment() throws Exception
   {
     mod = newModification(INCREMENT, "X");
-    replayOperation(csn, null, mod, NO_CONFLICT);
+    replayOperation(csn, null, mod, SUCCESS);
   }
 
 
