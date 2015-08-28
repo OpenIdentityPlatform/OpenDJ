@@ -31,7 +31,35 @@
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Managing Schema</title>
  <indexterm><primary>Schema</primary></indexterm>
- 
+
+ <itemizedlist>
+  <para>
+   This chapter describes how to manage
+   Lightweight Directory Access Protocol (LDAP) schema definitions for directory data.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Understand LDAP schemas including the schema definitions delivered
+    with OpenDJ directory server
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Change and extend OpenDJ LDAP schemas
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Relax schema checking when troubleshooting data
+    that do not conform to schema definitions
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para>Schema definitions describe the data, and especially the object classes
  and attribute types that can be stored in the directory. By default OpenDJ
  conforms strictly to LDAPv3 standards pertaining to schema definitions and
@@ -44,11 +72,7 @@
  In addition you can update and extend schema definitions while OpenDJ
  is online. As a result you can add new applications requiring additional
  data without stopping your directory service.</para>
- 
- <para>This chapter demonstrates how to change and to extend OpenDJ schema.
- This chapter also identifies the standard schema definitions available when
- you install OpenDJ.</para>
- 
+
  <section xml:id="about-schema">
   <title>About Directory Schema</title>
   

@@ -38,6 +38,76 @@
   <secondary>About</secondary>
  </indexterm>
 
+ <itemizedlist>
+  <para>
+   This chapter introduces directory concepts and directory server features.
+   In this chapter you will learn:
+  </para>
+
+  <listitem>
+   <para>
+    Why directory services exist and what they do well
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    How data is arranged in directories that support
+    Lightweight Directory Access Protocol (LDAP)
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    How clients and servers communicate in LDAP
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    What operations are standard according to LDAP
+    and how standard extensions to the protocol work
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Why directory servers index directory data
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    What LDAP schemas are for
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    What LDAP directories provide to control access to directory data
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Why LDAP directory data is replicated and what replication does
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    What Directory Services Markup Language (DSML) is for
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    How HTTP applications can access directory data
+    in the Representation State Transfer (REST) style
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para>A directory resembles a dictionary or a phone book. If you know a
  word, you can look it up its entry in the dictionary to learn its definition
  or its pronunciation. If you know a name, you can look it up its entry in the
@@ -62,7 +132,7 @@
  rather than LDAP.</para>
 
  <section xml:id="ldap-directory-history">
-  <title>How Directories &amp; LDAP Evolved</title>
+  <title>How Directories and LDAP Evolved</title>
   
   <para>Phone companies have been managing directories for many decades. The
   Internet itself has relied on distributed directory services like DNS since
@@ -245,7 +315,7 @@ mail: escape@example.com</computeroutput>
  </section>
  
  <section xml:id="ldap-client-server-communication">
-  <title>About LDAP Client &amp; Server Communication</title>
+  <title>About LDAP Client and Server Communication</title>
 
   <para>In some client server communication, like web browsing, a connection is
   set up and then torn down for each client request to the server. LDAP has a
@@ -329,7 +399,7 @@ mail: escape@example.com</computeroutput>
  </section>
  
  <section xml:id="standard-ldap-controls-extensions">
-  <title>About LDAP Controls &amp; Extensions</title>
+  <title>About LDAP Controls and Extensions</title>
   <para>LDAP has standardized two mechanisms for extending what directory
   servers can do beyond the basic operations listed above. One mechanism
   involves using LDAP controls. The other mechanism involves using LDAP extended
@@ -465,7 +535,7 @@ mail: escape@example.com</computeroutput>
   <para>For more, read <link xlink:show="new"
   xlink:href="admin-guide#chap-privileges-acis"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
-  Privileges &amp; Access Control</citetitle></link>.</para>
+  Privileges and Access Control</citetitle></link>.</para>
  </section>
 
  <section xml:id="about-replication">

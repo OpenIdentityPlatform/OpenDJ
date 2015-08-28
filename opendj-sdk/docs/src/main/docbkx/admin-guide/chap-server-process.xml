@@ -30,17 +30,29 @@
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Managing Server Processes</title>
- <para>Using the OpenDJ Control Panel, you can start and stop local servers.
- You can also start and stop OpenDJ using command-line tools, and use the
- operating system's capabilities for starting OpenDJ at boot time.</para>
- 
- <para>This chapter demonstrates how to start and stop server processes
- with command line tools and using operating system capabilities. This
- chapter also describes what OpenDJ directory server does during startup
- and shutdown, and how it recovers following an abrupt shutdown such as
- happens during a system crash or when you kill the server process using
- system tools.</para>
-  
+
+ <itemizedlist>
+  <para>
+   This chapter covers starting and stopping OpenDJ directory server.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Start, restart, and stop OpenDJ directory server
+    using OpenDJ command-line tools, OpenDJ control panel,
+    or system service integration on Linux and Windows systems
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Understand and configure what happens when OpenDJ directory server
+    recovers from a crash or abrupt shutdown
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <section xml:id="start-server">
   <title>Starting a Server</title>
   <indexterm><primary>Start server</primary></indexterm>

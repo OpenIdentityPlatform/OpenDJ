@@ -23,18 +23,36 @@
   !
 -->
 <chapter xml:id='chap-pta'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>Configuring Pass Through Authentication</title>
  <indexterm><primary>Pass through authentication</primary></indexterm>
 
- <para>This chapter focuses on pass through authentication (PTA), whereby you
- configure another server to determine the response to an authentication
- request. A typical use case for pass through authentication involves
- passing authentication through to Active Directory for users coming
- from Microsoft Windows systems.</para>
+ <itemizedlist>
+  <para>
+   This chapter focuses on pass through authentication (PTA),
+   whereby you configure another server
+   to determine the response to an authentication request.
+   A typical use case for pass through authentication involves
+   passing authentication through to Active Directory
+   for users coming from Microsoft Windows systems.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Configure password policies to use pass through authentication
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Assign pass through authentication policies to users and to groups
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <section xml:id="about-pta">
   <title>About Pass Through Authentication</title>

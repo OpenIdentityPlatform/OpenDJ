@@ -30,13 +30,60 @@
          xmlns:xlink="http://www.w3.org/1999/xlink">
  <title>Securing and Hardening OpenDJ Directory Server</title>
 
- <para>
-  By default OpenDJ directory server is set up
-  for ease of evaluation and deployment.
-  When you deploy OpenDJ in production,
-  there are specific precautions you should take to minimize risks.
-  This chapter recommends the key precautions to take.
- </para>
+ <itemizedlist>
+  <para>
+   By default OpenDJ directory server is set up
+   for ease of evaluation and deployment.
+   When you deploy OpenDJ in production,
+   there are specific precautions you should take to minimize risks.
+   This chapter recommends the key precautions to take.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Set up a special system account for OpenDJ directory server,
+    and appropriately protect access to directory server files
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enforce use of the latest Java security updates
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enable only directory services that are actually used
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Use appropriate log configuration, global access control,
+    password storage, and password policy settings
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Avoid overuse of the default directory root user account
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Use appropriate global access control settings
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Secure connections to the directory
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>
   After following the recommendations in this chapter,
