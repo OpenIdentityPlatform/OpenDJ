@@ -241,18 +241,18 @@ public class AttrHistoricalMultiple extends AttrHistorical
            * skip this mod
            */
           modsIterator.remove();
-          break;
+          return true;
         }
 
         if (!conflictDelete(csn, m, modifiedEntry))
         {
           modsIterator.remove();
+          return true;
         }
-        break;
+        return false;
 
       case ADD:
-        conflictAdd(csn, m, modsIterator);
-        break;
+        return conflictAdd(csn, m, modsIterator);
 
       case REPLACE:
         if (csn.isOlderThan(getDeleteTime()))
@@ -261,15 +261,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
            * skip this mod
            */
           modsIterator.remove();
-          break;
+          return true;
         }
 
-        /* save the values that are added by the replace operation
-         * into addedValues
-         * first process the replace as a delete operation -> this generate
-         * a list of values that should be kept
-         * then process the addedValues as if they were coming from a add
-         * -> this generate the list of values that needs to be added
+        /* save the values that are added by the replace operation into addedValues
+         * first process the replace as a delete operation
+         * -> this generates a list of values that should be kept
+         * then process the addedValues as if they were coming from an add
+         * -> this generates the list of values that needs to be added
          * concatenate the 2 generated lists into a replace
          */
         Attribute addedValues = m.getAttribute();
@@ -284,13 +283,15 @@ public class AttrHistoricalMultiple extends AttrHistorical
         AttributeBuilder builder = new AttributeBuilder(keptValues);
         builder.addAll(m.getAttribute());
         m.setAttribute(builder.toAttribute());
-        break;
+        return false;
 
       case INCREMENT:
         // TODO : FILL ME
-        break;
+        return false;
+
+      default:
+        return false;
       }
-      return true;
     }
     else
     {
@@ -485,14 +486,17 @@ public class AttrHistoricalMultiple extends AttrHistorical
   }
 
   /**
-   * Process a add attribute values that is conflicting with a previous
-   * modification.
+   * Process a add attribute values that is conflicting with a previous modification.
    *
-   * @param csn  the historical info associated to the entry
-   * @param m the modification that is being processed
-   * @param modsIterator iterator on the list of modification
+   * @param csn
+   *          the historical info associated to the entry
+   * @param m
+   *          the modification that is being processed
+   * @param modsIterator
+   *          iterator on the list of modification
+   * @return {@code true} if a conflict was detected, {@code false} otherwise.
    */
-  private void conflictAdd(CSN csn, Modification m, Iterator<Modification> modsIterator)
+  private boolean conflictAdd(CSN csn, Modification m, Iterator<Modification> modsIterator)
   {
     /*
      * if historicalattributedelete is newer forget this mod else find
@@ -510,7 +514,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
        * forget this MOD ADD
        */
       modsIterator.remove();
-      return;
+      return true;
     }
 
     AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
@@ -576,12 +580,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
     if (attr.isEmpty())
     {
       modsIterator.remove();
+      return true;
     }
 
     if (csn.isNewerThan(getLastUpdateTime()))
     {
       lastUpdateTime = csn;
     }
+    return false;
   }
 
   @Override

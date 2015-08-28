@@ -44,13 +44,11 @@ public abstract class AttrHistorical
    * It should use whatever historical information is stored in this class
    * to solve the conflict and modify the mod and the mods iterator accordingly
    *
-   * @param modsIterator  The iterator on the mods from which the mod is
-   *                      extracted.
+   * @param modsIterator  The iterator on the mods from which the mod is extracted.
    * @param csn  The CSN associated to the operation.
    * @param modifiedEntry The entry modified by this operation.
    * @param mod           The modification.
-   *
-   * @return a boolean indicating if a conflict was detected.
+   * @return {@code true} if a conflict was detected, {@code false} otherwise.
    */
   public abstract boolean replayOperation(
       Iterator<Modification> modsIterator, CSN csn, Entry modifiedEntry, Modification mod);
