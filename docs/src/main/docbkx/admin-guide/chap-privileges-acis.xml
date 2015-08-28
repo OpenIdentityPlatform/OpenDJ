@@ -29,26 +29,56 @@
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Configuring Privileges &amp; Access Control</title>
+ <title>Configuring Privileges and Access Control</title>
 
- <para>OpenDJ supports two mechanisms to protect access to the directory,
- <firstterm>access control instructions</firstterm> and
- <firstterm>privileges</firstterm>.</para>
+ <itemizedlist>
+  <para>
+   OpenDJ supports two mechanisms to protect access to the directory,
+   <firstterm>access control instructions</firstterm>
+   and administrative <firstterm>privileges</firstterm>.
+   Access control instructions apply to directory data, providing fine-grained control
+   over what a user or group member is authorized to do
+   in terms of Lightweight Directory Access Protocol (LDAP) operations.
+   Most access control instructions specify scopes (targets) to which they apply
+   such that an administrative user
+   who has all access to <literal>dc=example,dc=com</literal>
+   need not have any access to <literal>dc=example,dc=org</literal>.
+   Privileges control the administrative tasks that users can perform,
+   such as bypassing the access control mechanism,
+   performing backup and restore operations,
+   making changes to the configuration, and so forth.
+   Privileges are implemented independently from access control.
+   By default, privileges restrict administrative access to directory root users,
+   though any user can be assigned a privilege.
+   Privileges apply to a directory server, and do not have a scope.
+   This chapter covers both access control and privileges.
+   In this chapter you will learn to:
+  </para>
 
- <para>Access control instructions apply to directory data, providing
- fine-grained control over what a user or group member is authorized to do in
- terms of LDAP operations. Most access control instructions specify scopes
- (targets) to which they apply such that an administrative user who has all
- access to <literal>dc=example,dc=com</literal> need not have any access to
- <literal>dc=example,dc=org</literal>.</para>
+  <listitem>
+   <para>
+    Configure privileges for directory administration
+   </para>
+  </listitem>
 
- <para>Privileges control the administrative tasks that users can perform,
- such as bypassing the access control mechanism, performing backup and restore
- operations, making changes to the configuration, and so forth. Privileges are
- implemented independently from access control. By default, privileges restrict
- administrative access to directory root users, though any user can be assigned
- a privilege. Privileges apply to a directory server, and do not have a
- scope.</para>
+  <listitem>
+   <para>
+    Read and write access control instructions
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure access rights by setting access control instructions
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Evaluate effective access rights for a particular user
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>Some operations require both privileges and also access control
  instructions. For example, in order to reset user's passwords, an administrator
@@ -58,9 +88,6 @@
  effectively restrict the scope of that privilege to a particular branch of
  the Directory Information Tree.</para>
 
- <para>This chapter covers both access control instructions and privileges,
- demonstrating how to configure both.</para>
- 
  <section xml:id="about-acis">
   <title>About Access Control Instructions</title>
   <indexterm><primary>Access control</primary></indexterm>
@@ -1274,7 +1301,7 @@ reset operations</computeroutput>
   follow.</para>
 
   <example xml:id="access-control-anonymous-reads">
-   <title>ACI: Anonymous Reads &amp; Searches</title>
+   <title>ACI: Anonymous Reads and Searches</title>
    
    <para>This works when the only attributes you do not want world-readable
    are password attributes.</para>

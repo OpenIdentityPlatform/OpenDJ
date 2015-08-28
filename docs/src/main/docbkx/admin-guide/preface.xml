@@ -30,31 +30,201 @@
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Preface</title>
 
- <para>This guide shows you how to configure, maintain, and troubleshoot
- OpenDJ directory services. This guide also describes file layouts, ports
- used, and standards, controls, extended operations, and languages supported
- for OpenDJ installations.</para>
+ <para>
+  This guide shows you how to configure, maintain, and troubleshoot
+  OpenDJ directory services.
+  OpenDJ directory services allow applications to access directory data
+  using Lightweight Directory Access Protocol (LDAP),
+  using Directory Services Markup Language (DSML)
+  over Hypertext Transfer Protocol (HTTP),
+  or using HTTP methods in the Representational State Transfer (REST) style.
+ </para>
+
+ <itemizedlist>
+  <para>
+   In reading and following the instructions in this guide, you will learn how to:
+  </para>
+
+  <listitem>
+   <para>
+    Use OpenDJ administration tools
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Manage OpenDJ server processes
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Import, export, backup, and restore directory data
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure OpenDJ server connection handlers for all supported protocols
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure administrative privileges and fine-grained access control
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Index directory data, manage schemas for directory data,
+    and enforce uniqueness of directory data attribute values
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure data replication between OpenDJ directory servers
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Implement password policies, pass through authentication to another directory,
+    password synchronization with Samba, account lockout, and account status notification
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Set resource limits to prevent unfair use of directory server resources
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Monitor directory servers through logs and alerts and over JMX
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Tune directory servers for best performance
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Secure directory server deployments
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Change directory server key pairs and public key certificates
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Move a directory server to a different system
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Troubleshoot directory server issues
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <section>
-  <title>Who Should Read this Guide</title>
+  <title>Using This Guide</title>
 
-  <para>This guide is written for directory integrators and administrators who
-  build, deploy, and maintain OpenDJ directory services for your
-  organizations.</para>
+  <para>
+   This guide is intended for system administrators
+   who build, deploy, and maintain OpenDJ directory services
+   for their organizations.
+  </para>
 
-  <para>This guide starts by introducing the OpenDJ administrative interfaces
-  and tools, and by showing how to manage OpenDJ server processes. It also
-  demonstrates how to import and export directory data. This guide continues
-  by showing how to configure and monitor the principle features of individual
-  OpenDJ servers, and how to configure and monitor replicated server
-  topologies for distributed high availability. It then demonstrates how to
-  tune, troubleshoot, and move servers.</para>
+  <itemizedlist>
+   <para>
+    This guide starts with an introduction to directory services.
+    The rest of this guide is written with the assumption
+    that you have basic familiarity with the following topics:
+   </para>
 
-  <para>You do not need to be an LDAP wizard to learn something from this
-  guide, though a background in directory services and maintaining server
-  software can help. You do need some background in managing servers and
-  services on your operating system of choice. You can nevertheless get
-  started with this guide, and then learn more as you go along.</para>
+   <listitem>
+    <para>
+     The client-server model of distributed computing
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Lightweight Directory Access Protocol (LDAP),
+     including how clients and servers exchange messages
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Managing Java-based services on operating systems and application servers
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Using command-line tools and reading command-line examples
+     written for UNIX/Linux systems
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Configuring network connections on operating systems
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Managing Public Key Infrastructure (PKI) used to establish secure connections
+    </para>
+   </listitem>
+  </itemizedlist>
+
+  <itemizedlist>
+   <para>
+    Depending on the features you use, you should also have basic familiarity
+    with the following topics:
+   </para>
+
+   <listitem>
+    <para>
+     Directory Services Markup Language (DSML),
+     including how clients and servers exchange messages
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Hypertext Transfer Protocol (HTTP),
+     including how clients and servers exchange messages
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Java Management Extensions (JMX) for monitoring services
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Simple Network Management Protocol (SNMP) for monitoring services
+    </para>
+   </listitem>
+  </itemizedlist>
  </section>
 
  <xinclude:include href="../shared/sec-formatting-conventions.xml" />

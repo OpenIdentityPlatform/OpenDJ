@@ -31,6 +31,25 @@
  <title>Samba Password Synchronization</title>
  <indexterm><primary>Samba</primary></indexterm>
  
+ <itemizedlist>
+  <para>
+   This chapter covers synchronization between directory passwords and Samba passwords.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Configure Samba for use with OpenDJ directory server
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Set up the OpenDJ directory sever Samba password plugin for synchronization
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para><link xlink:href="http://www.samba.org/" xlink:show="new">Samba</link>,
  the Windows interoperability suite for Linux and UNIX, stores accounts because
  UNIX and Windows password storage management is not interoperable. The default

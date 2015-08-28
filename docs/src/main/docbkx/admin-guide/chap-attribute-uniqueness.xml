@@ -23,12 +23,40 @@
   !
 -->
 <chapter xml:id='chap-attribute-uniqueness'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Implementing Attribute Value Uniqueness</title>
+
+ <itemizedlist>
+  <para>
+   This chapter shows you how to enforce that specified attributes
+   do not have repeated values in different directory entries.
+   You can use attribute uniqueness for example to prevent two user entries
+   sharing the same email address.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Enforce uniqueness for user IDs and other attributes
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Limit the scope of attribute value uniqueness
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Deal with attribute value uniqueness across replicated directory servers
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>Some attribute values ought to remain unique. If you are using
  <literal>uid</literal> values as RDNs to distinguish between millions of

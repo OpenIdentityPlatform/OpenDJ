@@ -31,6 +31,25 @@
  <title>Changing Server Certificates</title>
  <indexterm><primary>Certificates</primary></indexterm>
 
+ <itemizedlist>
+  <para>
+   This chapter covers how to replace OpenDJ key pairs and public key certificates.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Replace a key pair for securing a connection handler
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Replace a key pair used for replication
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para>OpenDJ uses key stores (for private keys) and trust stores (for
  public, signed certificates). Up to three sets of key stores are used,
  as shown in the following illustration.</para>
