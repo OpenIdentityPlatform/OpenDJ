@@ -37,8 +37,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -75,6 +77,17 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     attrHist = new AttrHistoricalMultiple();
     csn = csnGen.newCSN();
     entry = new Entry(null, null, null, null);
+    entry = TestCaseUtils.makeEntry(
+        "dn: uid=test.user",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password");
   }
 
   @AfterMethod
@@ -387,6 +400,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     {
       entry.applyModification(mod);
       assertAttributeValues(entry, mod);
+      conformsToSchema(entry);
     }
   }
 
@@ -443,6 +457,13 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
       results.add(value);
     }
     return results;
+  }
+
+  private void conformsToSchema(Entry entry)
+  {
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+    final boolean isValid = entry.conformsToSchema(null, false, false, false, invalidReason);
+    assertThat(isValid).as(invalidReason.toString()).isTrue();
   }
 
   private void assertNoAttributeValue(Entry entry)

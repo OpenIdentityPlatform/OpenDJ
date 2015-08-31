@@ -27,13 +27,16 @@ package org.opends.server.replication.plugin;
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.Iterator;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -48,7 +51,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class AttrHistoricalSingleTest extends ReplicationTestCase
 {
-  private static final String ATTRIBUTE_NAME = "display";
+  private static final String ATTRIBUTE_NAME = "displayName";
   private static final boolean CONFLICT = true;
   private static final boolean SUCCESS = false;
 
@@ -64,7 +67,17 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   {
     attrHist = new AttrHistoricalSingle();
     csn = csnGen.newCSN();
-    entry = new Entry(null, null, null, null);
+    entry = TestCaseUtils.makeEntry(
+        "dn: uid=test.user",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password");
   }
 
   @AfterMethod
@@ -309,6 +322,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     {
       entry.applyModification(mod);
       assertAttributeValue(entry, mod);
+      conformsToSchema(entry);
     }
   }
 
@@ -364,6 +378,13 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     return null;
   }
 
+  private void conformsToSchema(Entry entry)
+  {
+    LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+    final boolean isValid = entry.conformsToSchema(null, false, false, false, invalidReason);
+    assertThat(isValid).as(invalidReason.toString()).isTrue();
+  }
+
   private void assertNoAttributeValue(Entry entry)
   {
     assertAttributeValue(entry, (String) null);
@@ -371,7 +392,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private void assertAttributeValue(Entry entry, String expectedValue)
   {
-    ByteString actualValue = getActualValue(entry.getAttribute(ATTRIBUTE_NAME));
+    ByteString actualValue = getActualValue(entry.getAttribute(toLowerCase(ATTRIBUTE_NAME)));
     assertEquals(actualValue, expectedValue != null ? ByteString.valueOf(expectedValue) : null);
   }
 
