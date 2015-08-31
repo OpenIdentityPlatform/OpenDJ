@@ -26,32 +26,22 @@
  */
 package org.opends.server.tasks;
 
-
-
 import java.net.Socket;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-
-import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.extensions.GetConnectionIDExtendedOperation;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
-import org.forgerock.opendj.ldap.ByteString;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
-
-
-/**
- * Tests the disconnect client task.
- */
+/** Tests the disconnect client task. */
 public class DisconnectClientTaskTestCase
        extends TasksTestCase
 {
@@ -127,13 +117,10 @@ public class DisconnectClientTaskTestCase
       "ds-task-disconnect-notify-client: true",
       "ds-task-disconnect-message: " + disconnectMessage);
 
-    Task task = getCompletedTask(taskDN);
-    assertNotNull(task);
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(taskDN);
 
 
-    // Make sure that we get a notice of disconnection on the initial
-    // connection.
+    // Make sure that we get a notice of disconnection on the initial connection.
     message = r.readMessage();
     extendedResponse = message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getOID(),
@@ -201,16 +188,12 @@ public class DisconnectClientTaskTestCase
       "ds-task-disconnect-connection-id: " + connectionID,
       "ds-task-disconnect-notify-client: false");
 
-    Task task = getCompletedTask(taskDN);
-    assertNotNull(task);
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(taskDN);
 
 
-    // Make sure that the client connection has been closed with no notice of
-    // disconnection.
+    // Make sure that the client connection has been closed with no notice of disconnection.
     assertNull(r.readMessage());
 
     StaticUtils.close(s);
   }
 }
-

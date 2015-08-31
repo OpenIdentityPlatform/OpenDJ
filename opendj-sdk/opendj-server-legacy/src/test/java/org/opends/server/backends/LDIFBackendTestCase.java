@@ -39,8 +39,6 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
@@ -103,8 +101,8 @@ public class LDIFBackendTestCase
          "config" + File.separator + "MakeLDIF";
     LdifFileWriter.makeLdif(ldifFile.getPath(), resourcePath, templateFilePath);
 
-    String taskDN = "ds-task-id=" + UUID.randomUUID() +
-                    ",cn=Scheduled Tasks,cn=Tasks";
+    DN taskDN = DN.valueOf("ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks");
 
     TestCaseUtils.addEntry(
       "dn: " + taskDN,
@@ -115,9 +113,7 @@ public class LDIFBackendTestCase
       "ds-task-import-backend-id: ldifRoot",
       "ds-task-import-ldif-file: " + ldifFile.getAbsolutePath());
 
-    Task t = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
-    assertNotNull(t);
-    assertEquals(t.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    TasksTestCase.waitTaskCompletedSuccessfully(taskDN);
   }
 
 
@@ -129,8 +125,7 @@ public class LDIFBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddAndDelete()
-         throws Exception
+  public void testAddAndDelete() throws Exception
   {
     // Add a number of entries to the server.
     int resultCode = TestCaseUtils.applyModifications(false,
@@ -700,9 +695,7 @@ public class LDIFBackendTestCase
       "ds-task-export-backend-id: ldifRoot",
       "ds-task-export-ldif-file: " + tempFilePath);
 
-    Task t = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
-    assertNotNull(t);
-    assertEquals(t.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    TasksTestCase.waitTaskCompletedSuccessfully(DN.valueOf(taskDN));
   }
 
 
