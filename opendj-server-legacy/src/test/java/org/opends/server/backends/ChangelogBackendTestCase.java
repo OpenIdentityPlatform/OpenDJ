@@ -25,6 +25,8 @@
  */
 package org.opends.server.backends;
 
+import static java.util.concurrent.TimeUnit.*;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ReplicationMessages.*;
@@ -35,6 +37,7 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.TestTimer.*;
 import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -47,8 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.Callable;
 
-import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -106,6 +109,7 @@ import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.TestTimer;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
@@ -473,32 +477,28 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     }
   }
 
-  private void isOldestCSNForReplica(DN baseDN, CSN csn) throws Exception
+  private void isOldestCSNForReplica(final DN baseDN, final CSN csn) throws Exception
   {
-    AssertionError ex = null;
-    int cnt = 0;
-    while (cnt < 30)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(3, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      cnt++;
-      final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
-      CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
-      try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options))
+      @Override
+      public Void call() throws Exception
       {
-        assertTrue(cursor.next(),
-            "Expected to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
-        assertEquals(cursor.getRecord().getCSN(), csn);
-        return;
+        final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
+        CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
+        try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options))
+        {
+          assertTrue(cursor.next(), "Expected to find at least one change in replicaDB(" + baseDN + " "
+              + csn.getServerId() + ")");
+          assertEquals(cursor.getRecord().getCSN(), csn);
+          return END_RUN;
+        }
       }
-      catch (AssertionError e)
-      {
-        ex = e;
-      }
-      Thread.sleep(100);
-    }
-    if (ex != null)
-    {
-      throw ex;
-    }
+    });
   }
 
   @Test(enabled=true, dependsOnMethods = { "searchInCookieModeOnTwoSuffixes" })
@@ -787,7 +787,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         newHashSet("firstchangenumber", "lastchangenumber", "changelog", "lastExternalChangelogCookie");
 
     InternalSearchOperation searchOp = searchDNWithBaseScope(DN_OTEST, attributes);
-    waitForSearchOpResult(searchOp, ResultCode.SUCCESS);
+    waitForSearchOpResult(searchOp, SUCCESS);
 
     final List<SearchResultEntry> entries = searchOp.getSearchEntries();
     assertThat(entries).hasSize(1);
@@ -846,12 +846,16 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   private List<SearchResultEntry> assertChangelogAttributesInRootDSE(
-      int expectedFirstChangeNumber, int expectedLastChangeNumber) throws Exception
+      final int expectedFirstChangeNumber, final int expectedLastChangeNumber) throws Exception
   {
-    AssertionError error = null;
-    for (int count = 0 ; count < 30; count++)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(3, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<List<SearchResultEntry>>()
     {
-      try
+      @Override
+      public List<SearchResultEntry> call() throws Exception
       {
         final Set<String> attributes = new LinkedHashSet<>();
         if (expectedFirstChangeNumber > 0)
@@ -876,15 +880,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         assertNotNull(getAttributeValue(entry, "lastExternalChangelogCookie"));
         return entries;
       }
-      catch (AssertionError ae)
-      {
-        // try again to see if changes have been persisted
-        error = ae;
-      }
-      Thread.sleep(100);
-    }
-    assertNotNull(error);
-    throw error;
+    });
   }
 
   private String readLastCookieFromRootDSE() throws Exception
@@ -905,40 +901,42 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return cookie;
   }
 
-  private String assertLastCookieIsEqualTo(String expectedLastCookie) throws Exception
+  private String assertLastCookieIsEqualTo(final String expectedLastCookie) throws Exception
   {
-    String lastCookie = null;
-    int count = 0;
-    while (count < 100)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(1, SECONDS)
+      .sleepTimes(10, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<String>()
     {
-      lastCookie = readLastCookieFromRootDSE();
-      if (lastCookie.equals(expectedLastCookie))
+      @Override
+      public String call() throws Exception
       {
+        final String lastCookie = readLastCookieFromRootDSE();
+        assertThat(lastCookie).isEqualTo(expectedLastCookie);
         return lastCookie;
       }
-      count++;
-      Thread.sleep(10);
-    }
-    Assertions.fail("Expected last cookie to be equal to <" + expectedLastCookie + "> but found <" + lastCookie + ">");
-    return null;// dead code
+    });
   }
 
   private String assertLastCookieDifferentThanLastValue(final String notExpectedLastCookie) throws Exception
   {
-    int count = 0;
-    while (count < 100)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(1, SECONDS)
+      .sleepTimes(10, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<String>()
     {
-      final String lastCookie = readLastCookieFromRootDSE();
-      if (!lastCookie.equals(notExpectedLastCookie))
+      @Override
+      public String call() throws Exception
       {
+        final String lastCookie = readLastCookieFromRootDSE();
+        assertThat(lastCookie)
+          .as("Expected last cookie to be updated, but it always stayed at value '" + notExpectedLastCookie + "'")
+          .isNotEqualTo(notExpectedLastCookie);
         return lastCookie;
       }
-      count++;
-      Thread.sleep(10);
-    }
-    Assertions.fail("Expected last cookie should have been updated,"
-        + " but it always stayed at value '" + notExpectedLastCookie + "'");
-    return null;// dead code
+    });
   }
 
   private String readCookieFromNthEntry(List<SearchResultEntry> entries, int i)
@@ -950,7 +948,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private String assertEntriesContainsCSNsAndReadLastCookie(String test, List<SearchResultEntry> entries,
       LDIFWriter ldifWriter, CSN... csns) throws Exception
   {
-    assertThat(getCSNsFromEntries(entries)).containsExactly(csns);
+    // TODO JNR Should the order be guaranteed?
+    assertThat(getCSNsFromEntries(entries)).containsOnly(csns);
     debugAndWriteEntries(ldifWriter, entries, test);
     return readCookieFromNthEntry(entries, csns.length - 1);
   }
@@ -1114,18 +1113,23 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         .addAttribute("*", "+"); // all user and operational attributes
   }
 
-  private InternalSearchOperation searchChangelog(SearchRequest request, int expectedNbEntries,
+  private InternalSearchOperation searchChangelog(final SearchRequest request, final int expectedNbEntries,
       ResultCode expectedResultCode, String testName) throws Exception
   {
-    InternalSearchOperation searchOp = null;
-    int count = 0;
-    do
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(5, SECONDS)
+      .sleepTimes(10, MILLISECONDS)
+      .toTimer();
+    InternalSearchOperation searchOp = timer.repeatUntilSuccess(new Callable<InternalSearchOperation>()
     {
-      Thread.sleep(10);
-      searchOp = connection.processSearch(request);
-      count++;
-    }
-    while (count < 500 && searchOp.getSearchEntries().size() != expectedNbEntries);
+      @Override
+      public InternalSearchOperation call() throws Exception
+      {
+        InternalSearchOperation searchOp = connection.processSearch(request);
+        assertThat(searchOp.getSearchEntries()).hasSize(expectedNbEntries);
+        return searchOp;
+      }
+    });
 
     final List<SearchResultEntry> entries = searchOp.getSearchEntries();
     assertThat(entries).hasSize(expectedNbEntries);
@@ -1225,18 +1229,21 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   /** TODO : share this code with other classes ? */
-  private void waitForSearchOpResult(Operation operation, ResultCode expectedResult) throws Exception
+  private void waitForSearchOpResult(final Operation operation, final ResultCode expectedResult) throws Exception
   {
-    int i = 0;
-    while (operation.getResultCode() == ResultCode.UNDEFINED || operation.getResultCode() != expectedResult)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(500, MILLISECONDS)
+      .sleepTimes(50, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      Thread.sleep(50);
-      i++;
-      if (i > 10)
+      @Override
+      public Void call() throws Exception
       {
         assertEquals(operation.getResultCode(), expectedResult, operation.getErrorMessage().toString());
+        return END_RUN;
       }
-    }
+    });
   }
 
   /** Verify that no entry contains the ChangeLogCookie control. */

@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -36,13 +37,15 @@ import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.AttributeParser;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.Test;
+
+import static java.util.concurrent.TimeUnit.*;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -59,39 +62,18 @@ public class TasksTestCase extends DirectoryServerTestCase {
    * Add a task definition and check that it completes with the expected state.
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
-   * @param timeout The number of seconds to wait for the task to complete.
+   * @param timeoutInSec The number of seconds to wait for the task to complete.
    * @throws Exception If the test fails.
    */
-  protected void testTask(Entry taskEntry, TaskState expectedState, int timeout)
-       throws Exception
+  protected void testTask(Entry taskEntry, TaskState expectedState, int timeoutInSec) throws Exception
   {
-    InternalClientConnection connection = getRootConnection();
-
     // Add the task.
-    AddOperation addOperation = connection.processAdd(taskEntry);
+    AddOperation addOperation = getRootConnection().processAdd(taskEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
                  "Add of the task definition was not successful");
 
-    // Wait until the task completes.
-    final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
-    Entry resultEntry = null;
-    String completionTime = null;
-    long startMillisecs = System.currentTimeMillis();
-    boolean timedOut;
-    do
-    {
-      Thread.sleep(100);
-      InternalSearchOperation searchOperation = connection.processSearch(request);
-      resultEntry = searchOperation.getSearchEntries().getFirst();
-      completionTime = parseAttribute(resultEntry, ATTR_TASK_COMPLETION_TIME).asString();
-      timedOut = System.currentTimeMillis() - startMillisecs > 1000 * timeout;
-    }
-    while (completionTime == null && !timedOut);
-
-    assertNotNull(completionTime, "The task had not completed after " + timeout + " seconds.\n"
-        + "resultEntry=[" + resultEntry + "]");
-
     // Check that the task state is as expected.
+    Entry resultEntry = getCompletedTaskEntry(taskEntry.getName(), timeoutInSec);
     String stateString = parseAttribute(resultEntry, ATTR_TASK_STATE).asString();
     TaskState taskState = TaskState.fromString(stateString);
     assertEquals(taskState, expectedState,
@@ -99,12 +81,33 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
     // Check that the task contains some log messages.
     Set<String> logMessages = parseAttribute(resultEntry, ATTR_TASK_LOG_MESSAGES).asSetOfString();
-    if (taskState != TaskState.COMPLETED_SUCCESSFULLY && logMessages.isEmpty())
-    {
-      fail("No log messages were written to the task entry on a failed task.\n"
+    assertTrue(taskState == TaskState.COMPLETED_SUCCESSFULLY || !logMessages.isEmpty(),
+        "No log messages were written to the task entry on a failed task.\n"
           + "taskState=" + taskState
           + "logMessages size=" + logMessages.size() + " and content=[" + logMessages + "]");
-    }
+  }
+
+  private Entry getCompletedTaskEntry(DN name, final int timeoutInSec) throws Exception
+  {
+    final SearchRequest request = newSearchRequest(name, SearchScope.BASE_OBJECT);
+
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(timeoutInSec, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<Entry>()
+    {
+      @Override
+      public Entry call()
+      {
+        InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
+        Entry resultEntry = searchOperation.getSearchEntries().getFirst();
+        String completionTime = parseAttribute(resultEntry, ATTR_TASK_COMPLETION_TIME).asString();
+        assertNotNull(completionTime,
+            "The task had not completed after " + timeoutInSec + " seconds.\nresultEntry=[" + resultEntry + "]");
+        return resultEntry;
+      }
+    });
   }
 
   private AttributeParser parseAttribute(Entry resultEntry, String attrName)
@@ -121,23 +124,24 @@ public class TasksTestCase extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
-  public static Task getTask(DN taskEntryDN) throws Exception
+  public static Task getTask(final DN taskEntryDN) throws Exception
   {
-    TaskBackend taskBackend =
-         (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
-    Task task = taskBackend.getScheduledTask(taskEntryDN);
-    if (task == null)
-    {
-      long stopWaitingTime = System.currentTimeMillis() + 10000L;
-      while (task == null && System.currentTimeMillis() < stopWaitingTime)
-      {
-        Thread.sleep(10);
-        task = taskBackend.getScheduledTask(taskEntryDN);
-      }
-    }
+    final TaskBackend taskBackend = (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
 
-    assertNotNull(task, "There is no such task " + taskEntryDN);
-    return task;
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(10, SECONDS)
+      .sleepTimes(10, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<Task>()
+    {
+      @Override
+      public Task call() throws Exception
+      {
+        Task task = taskBackend.getScheduledTask(taskEntryDN);
+        assertNotNull("There is no such task " + taskEntryDN);
+        return task;
+      }
+    });
   }
 
 
@@ -153,21 +157,23 @@ public class TasksTestCase extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
-  public static Task getCompletedTask(DN taskEntryDN) throws Exception
+  public static Task getCompletedTask(final DN taskEntryDN) throws Exception
   {
-    Task task = getTask(taskEntryDN);
+    final Task task = getTask(taskEntryDN);
 
-    if (! TaskState.isDone(task.getTaskState()))
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(20, SECONDS)
+      .sleepTimes(10, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<Task>()
     {
-      long stopWaitingTime = System.currentTimeMillis() + 20000L;
-      while (! TaskState.isDone(task.getTaskState()) &&
-             System.currentTimeMillis() < stopWaitingTime)
+      @Override
+      public Task call() throws Exception
       {
-        Thread.sleep(10);
+        assertTrue(TaskState.isDone(task.getTaskState()),
+            "Task " + taskEntryDN + " did not complete in a timely manner.");
+        return task;
       }
-    }
-
-    assertTrue(TaskState.isDone(task.getTaskState()), "Task " + taskEntryDN + " did not complete in a timely manner.");
-    return task;
+    });
   }
 }
