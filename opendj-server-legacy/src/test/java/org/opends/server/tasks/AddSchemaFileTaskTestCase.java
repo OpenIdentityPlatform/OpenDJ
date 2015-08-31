@@ -26,29 +26,24 @@
  */
 package org.opends.server.tasks;
 
-
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.SchemaTestMatchingRuleImpl;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DN;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * Tests invocation of the import and export tasks, but does not aim to
@@ -63,8 +58,7 @@ public class AddSchemaFileTaskTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
@@ -130,13 +124,7 @@ public class AddSchemaFileTaskTestCase
     };
 
     File validFile = new File(schemaDirectory, "05-single-valid.ldif");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(validFile));
-    for (String line : fileLines)
-    {
-      writer.write(line);
-      writer.newLine();
-    }
-    writer.close();
+    writeLines(validFile, fileLines);
 
     String taskDNStr =
          "ds-task-id=add-single-valid-file,cn=Scheduled Tasks,cn=Tasks";
@@ -151,8 +139,7 @@ public class AddSchemaFileTaskTestCase
          "ds-task-schema-file-name: 05-single-valid.ldif");
     assertEquals(resultCode, 0);
 
-    Task task = getCompletedTask(DN.valueOf(taskDNStr));
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
     assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
                      beforeModifyTimestamp);
   }
@@ -211,13 +198,7 @@ public class AddSchemaFileTaskTestCase
     };
 
     File validFile1 = new File(schemaDirectory, "05-multiple-valid-1.ldif");
-    BufferedWriter writer1 = new BufferedWriter(new FileWriter(validFile1));
-    for (String line : fileLines1)
-    {
-      writer1.write(line);
-      writer1.newLine();
-    }
-    writer1.close();
+    writeLines(validFile1, fileLines1);
 
 
     MatchingRule matchingRule2 =
@@ -250,13 +231,7 @@ public class AddSchemaFileTaskTestCase
     };
 
     File validFile2 = new File(schemaDirectory, "05-multiple-valid-2.ldif");
-    BufferedWriter writer2 = new BufferedWriter(new FileWriter(validFile2));
-    for (String line : fileLines2)
-    {
-      writer2.write(line);
-      writer2.newLine();
-    }
-    writer2.close();
+    writeLines(validFile2, fileLines2);
 
 
     String taskDNStr =
@@ -273,13 +248,22 @@ public class AddSchemaFileTaskTestCase
          "ds-task-schema-file-name: 05-multiple-valid-2.ldif");
     assertEquals(resultCode, 0);
 
-    Task task = getCompletedTask(DN.valueOf(taskDNStr));
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
     assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
                      beforeModifyTimestamp);
   }
 
-
+  private void writeLines(File file, String[] lines) throws IOException
+  {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file)))
+    {
+      for (String line : lines)
+      {
+        writer.write(line);
+        writer.newLine();
+      }
+    }
+  }
 
   /**
    * Attempts to add a new file to the server schema in which the task entry
@@ -367,13 +351,10 @@ public class AddSchemaFileTaskTestCase
          "ds-task-schema-file-name: 05-empty.ldif");
     assertEquals(resultCode, 0);
 
-    Task task = getCompletedTask(DN.valueOf(taskDNStr));
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
     assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
                      beforeModifyTimestamp);
   }
-
-
 
   /**
    * Attempts to add a new file to the server schema in which the file exists
@@ -388,9 +369,10 @@ public class AddSchemaFileTaskTestCase
     String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     File invalidFile = new File(schemaDirectory, "05-invalid.ldif");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(invalidFile));
-    writer.write("invalid");
-    writer.close();
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(invalidFile)))
+    {
+      writer.write("invalid");
+    }
 
     String taskDNStr =
          "ds-task-id=add-invalid-file,cn=Scheduled Tasks,cn=Tasks";
@@ -407,4 +389,3 @@ public class AddSchemaFileTaskTestCase
     invalidFile.delete();
   }
 }
-

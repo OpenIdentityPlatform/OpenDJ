@@ -52,9 +52,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
-/**
- * A base class for all tasks test cases.
- */
+/** A base class for all tasks test cases. */
 @Test(groups = { "precommit", "tasks" }, sequential = true)
 public class TasksTestCase extends DirectoryServerTestCase {
 
@@ -144,8 +142,6 @@ public class TasksTestCase extends DirectoryServerTestCase {
     });
   }
 
-
-
   /**
    * Retrieves the specified task from the server, waiting for it to finish all
    * the running its going to do before returning.
@@ -157,7 +153,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
-  public static Task getCompletedTask(final DN taskEntryDN) throws Exception
+  public static Task getDoneTask(final DN taskEntryDN) throws Exception
   {
     final Task task = getTask(taskEntryDN);
 
@@ -175,5 +171,12 @@ public class TasksTestCase extends DirectoryServerTestCase {
         return task;
       }
     });
+  }
+
+  public static void waitTaskCompletedSuccessfully(DN taskDN) throws Exception
+  {
+    Task task = getDoneTask(taskDN);
+    assertNotNull(task);
+    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
   }
 }

@@ -26,8 +26,6 @@
  */
 package org.opends.server.tasks;
 
-
-
 import java.net.InetAddress;
 
 import org.testng.annotations.Test;
@@ -35,8 +33,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPModify;
@@ -44,11 +40,7 @@ import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;
 
-
-
-/**
- * Tests the enter and leave lockdown mode tasks.
- */
+/** Tests the enter and leave lockdown mode tasks. */
 public class LockdownModeTaskTestCase
        extends TasksTestCase
 {
@@ -58,8 +50,7 @@ public class LockdownModeTaskTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
@@ -179,9 +170,7 @@ public class LockdownModeTaskTestCase
       "-f", taskFile
     };
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
-    Task task = getCompletedTask(taskDN);
-    assertNotNull(task);
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(taskDN);
     assertTrue(DirectoryServer.lockdownMode());
 
 
@@ -276,9 +265,7 @@ public class LockdownModeTaskTestCase
       "-f", taskFile
     };
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
-    task = getCompletedTask(taskDN);
-    assertNotNull(task);
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
+    waitTaskCompletedSuccessfully(taskDN);
     assertFalse(DirectoryServer.lockdownMode());
 
 

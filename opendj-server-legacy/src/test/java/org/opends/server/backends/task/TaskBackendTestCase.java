@@ -47,9 +47,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases that can be used to test the task backend.
- */
+/** A set of test cases that can be used to test the task backend. */
 public class TaskBackendTestCase
        extends BackendTestCase
 {
@@ -186,11 +184,9 @@ public class TaskBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testDeleteCompletedTask()
-         throws Exception
+  public void testDeleteCompletedTask() throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start immediately that will simply sleep for 30s
     String taskID = "testDeleteCompltedTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -203,10 +199,8 @@ public class TaskBackendTestCase
       "ds-task-class-name: org.opends.server.tasks.DummyTask");
 
 
-    // Wait until the task has completed.
-    Task task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
-    assertTrue(TaskState.isDone(task.getTaskState()));
-
+    // Wait until the task is done.
+    TasksTestCase.getDoneTask(DN.valueOf(taskDN));
 
     // Perform a modification to delete that task.
     int resultCode = TestCaseUtils.applyModifications(true,
@@ -288,8 +282,7 @@ public class TaskBackendTestCase
   public void testModifyRunningTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 5
-    // minutes.
+    // Schedule a task to start immediately that will simply sleep for 5 minutes
     String taskID = "testModifyRunningTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -337,9 +330,8 @@ public class TaskBackendTestCase
 
     // We may have to wait for the task to register as done, but it should
     // definitely be done before it would have stopped normally.
-    task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
+    task = TasksTestCase.getDoneTask(DN.valueOf(taskDN));
     assertTrue(System.currentTimeMillis() - startTime < 300000L);
-    assertTrue(TaskState.isDone(task.getTaskState()));
 
 
     // Perform a modification to delete that task unless
@@ -358,8 +350,7 @@ public class TaskBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testModifyCompletedTask()
-         throws Exception
+  public void testModifyCompletedTask() throws Exception
   {
     // Schedule a task to start and complete immediately.
     String taskID = "testModifyCompltedTask";
@@ -373,10 +364,8 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask");
 
-    // Wait until the task has completed.
-    Task task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));
-    assertTrue(TaskState.isDone(task.getTaskState()));
-
+    // Wait until the task is done
+    TasksTestCase.getDoneTask(DN.valueOf(taskDN));
 
     // Perform a modification to update a non-state attribute.
     int resultCode = TestCaseUtils.applyModifications(true,

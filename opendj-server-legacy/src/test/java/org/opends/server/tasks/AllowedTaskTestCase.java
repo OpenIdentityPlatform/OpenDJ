@@ -26,21 +26,15 @@
  */
 package org.opends.server.tasks;
 
-
-
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * Tests the ability of the server to control the set of tasks that are allowed
@@ -124,10 +118,8 @@ public class AllowedTaskTestCase
     assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
                  LDAPResultCode.SUCCESS);
 
-    Task task = getCompletedTask(DN.valueOf(
+    waitTaskCompletedSuccessfully(DN.valueOf(
          "ds-task-id=testAllowedTask 2,cn=Scheduled Tasks,cn=Tasks"));
-    assertNotNull(task);
-    assertEquals(task.getTaskState(), TaskState.COMPLETED_SUCCESSFULLY);
 
 
     // Remove the task class from the set of allowed tasks and verify that we
