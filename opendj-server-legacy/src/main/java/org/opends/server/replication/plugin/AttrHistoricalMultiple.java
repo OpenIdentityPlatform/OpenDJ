@@ -244,7 +244,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
           return true;
         }
 
-        if (!conflictDelete(csn, m, modifiedEntry))
+        if (!processDeleteConflict(csn, m, modifiedEntry))
         {
           modsIterator.remove();
           return true;
@@ -252,7 +252,12 @@ public class AttrHistoricalMultiple extends AttrHistorical
         return false;
 
       case ADD:
-        return conflictAdd(csn, m, modsIterator);
+        if (!processAddConflict(csn, m))
+        {
+          modsIterator.remove();
+          return true;
+        }
+        return false;
 
       case REPLACE:
         if (csn.isOlderThan(getDeleteTime()))
@@ -274,11 +279,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
         Attribute addedValues = m.getAttribute();
         m.setAttribute(new AttributeBuilder(addedValues, true).toAttribute());
 
-        conflictDelete(csn, m, modifiedEntry);
+        processDeleteConflict(csn, m, modifiedEntry);
         Attribute keptValues = m.getAttribute();
 
         m.setAttribute(addedValues);
-        conflictAdd(csn, m, modsIterator);
+        if (!processAddConflict(csn, m))
+        {
+          modsIterator.remove();
+        }
 
         AttributeBuilder builder = new AttributeBuilder(keptValues);
         builder.addAll(m.getAttribute());
@@ -349,15 +357,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
   }
 
   /**
-   * Process a delete attribute values that is conflicting with a previous
-   * modification.
+   * Process a delete attribute values that is conflicting with a previous modification.
    *
    * @param csn The CSN of the currently processed change
    * @param m the modification that is being processed
    * @param modifiedEntry the entry that is modified (before current mod)
-   * @return false if there is nothing to do
+   * @return {@code true} if no conflict was detected, {@code false} otherwise.
    */
-  private boolean conflictDelete(CSN csn, Modification m, Entry modifiedEntry)
+  private boolean processDeleteConflict(CSN csn, Modification m, Entry modifiedEntry)
   {
     /*
      * We are processing a conflicting DELETE modification
@@ -492,11 +499,9 @@ public class AttrHistoricalMultiple extends AttrHistorical
    *          the historical info associated to the entry
    * @param m
    *          the modification that is being processed
-   * @param modsIterator
-   *          iterator on the list of modification
-   * @return {@code true} if a conflict was detected, {@code false} otherwise.
+   * @return {@code true} if no conflict was detected, {@code false} otherwise.
    */
-  private boolean conflictAdd(CSN csn, Modification m, Iterator<Modification> modsIterator)
+  private boolean processAddConflict(CSN csn, Modification m)
   {
     /*
      * if historicalattributedelete is newer forget this mod else find
@@ -513,8 +518,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       /* A delete has been done more recently than this add
        * forget this MOD ADD
        */
-      modsIterator.remove();
-      return true;
+      return false;
     }
 
     AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
@@ -579,15 +583,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
 
     if (attr.isEmpty())
     {
-      modsIterator.remove();
-      return true;
+      return false;
     }
 
     if (csn.isNewerThan(getLastUpdateTime()))
     {
       lastUpdateTime = csn;
     }
-    return false;
+    return true;
   }
 
   @Override
