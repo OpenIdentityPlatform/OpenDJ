@@ -276,6 +276,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
          * -> this generates the list of values that needs to be added
          * concatenate the 2 generated lists into a replace
          */
+        boolean conflict = false;
         Attribute addedValues = m.getAttribute();
         m.setAttribute(new AttributeBuilder(addedValues, true).toAttribute());
 
@@ -286,12 +287,13 @@ public class AttrHistoricalMultiple extends AttrHistorical
         if (!processAddConflict(csn, m))
         {
           modsIterator.remove();
+          conflict = true;
         }
 
         AttributeBuilder builder = new AttributeBuilder(keptValues);
         builder.addAll(m.getAttribute());
         m.setAttribute(builder.toAttribute());
-        return false;
+        return conflict;
 
       case INCREMENT:
         // TODO : FILL ME
