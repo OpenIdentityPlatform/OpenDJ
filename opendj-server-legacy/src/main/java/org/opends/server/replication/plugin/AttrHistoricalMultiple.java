@@ -203,14 +203,19 @@ public class AttrHistoricalMultiple extends AttrHistorical
      update(csn, new AttrValueHistorical(addedValue, csn, null));
    }
 
-  private void update(CSN csn, AttrValueHistorical info)
+  private void update(CSN csn, AttrValueHistorical valInfo)
   {
-    valuesHist.remove(info);
-    valuesHist.put(info, info);
+    updateValInfo(valInfo, valInfo);
     if (csn.isNewerThan(lastUpdateTime))
     {
       lastUpdateTime = csn;
     }
+  }
+
+  private void updateValInfo(AttrValueHistorical oldValInfo, AttrValueHistorical newValInfo)
+  {
+    valuesHist.remove(oldValInfo);
+    valuesHist.put(newValInfo, newValInfo);
   }
 
   @Override
@@ -391,8 +396,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       m.setModificationType(ModificationType.REPLACE);
       AttributeBuilder builder = new AttributeBuilder(modAttr, true);
 
-      Iterator<AttrValueHistorical> it = valuesHist.keySet().iterator();
-      while (it.hasNext())
+      for (Iterator<AttrValueHistorical> it = valuesHist.keySet().iterator(); it.hasNext();)
       {
         AttrValueHistorical valInfo = it.next();
 
@@ -449,8 +453,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
           if (csn.isNewerThanOrEqualTo(oldValInfo.getValueDeleteTime()) &&
               csn.isNewerThanOrEqualTo(oldValInfo.getValueUpdateTime()))
           {
-            valuesHist.remove(oldValInfo);
-            valuesHist.put(valInfo, valInfo);
+            updateValInfo(oldValInfo, valInfo);
           }
           else if (oldValInfo.isUpdate())
           {
@@ -459,8 +462,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
         }
         else
         {
-          valuesHist.remove(oldValInfo);
-          valuesHist.put(valInfo, valInfo);
+          updateValInfo(oldValInfo, valInfo);
         }
 
         /* if the attribute value is not to be deleted
@@ -547,8 +549,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
            */
           if (csn.isNewerThan(oldValInfo.getValueUpdateTime()))
           {
-            valuesHist.remove(oldValInfo);
-            valuesHist.put(valInfo, valInfo);
+            updateValInfo(oldValInfo, valInfo);
           }
           builder.remove(addVal);
         }
@@ -559,13 +560,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
            */
           if (csn.isNewerThanOrEqualTo(oldValInfo.getValueDeleteTime()))
           {
-            /* this add is more recent,
-             * remove the old delete historical information
-             * and add our more recent one
-             * let the operation process
-             */
-            valuesHist.remove(oldValInfo);
-            valuesHist.put(valInfo, valInfo);
+            updateValInfo(oldValInfo, valInfo);
           }
           else
           {
