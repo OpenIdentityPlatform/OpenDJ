@@ -29,7 +29,7 @@
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Importing &amp; Exporting LDIF Data</title>
+ <title>Importing and Exporting LDIF Data</title>
  <indexterm><primary>Provisioning</primary></indexterm>
  <indexterm><primary>Importing data</primary></indexterm>
  <indexterm>
@@ -46,8 +46,45 @@
   <primary>LDIF</primary>
   <secondary>Export</secondary>
  </indexterm>
- 
- <para>LDAP Data Interchange Format provides a mechanism for representing
+
+ <itemizedlist>
+  <para>
+   This chapter deals with management of LDAP Data Interchange Format (LDIF) data.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Generate test LDIF data
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Import and export LDIF data
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Perform searches and modifications on LDIF files with command-line tools
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Create and manage database backends to house directory data imported from LDIF
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Delete database backends
+   </para>
+  </listitem>
+ </itemizedlist>
+
+ <para>LDIF provides a mechanism for representing
  directory data in text format. LDIF data is typically used to initialize
  directory databases, but also may be used to move data between different
  directories that cannot replicate directly, or even as an alternative
@@ -135,7 +172,7 @@ LDIF processing complete.  10003 entries written</computeroutput>
  </section>
  
  <section xml:id="importing-exporting-ldif">
-  <title>Importing &amp; Exporting Data</title>
+  <title>Importing and Exporting Data</title>
   
   <para>
    You can use OpenDJ Control Panel
@@ -721,7 +758,7 @@ base-dn  : "dc=example,dc=com", o=example</computeroutput>
   the mistake by creating the backend again, reconfiguring the indexes that
   were removed, and rebuilding the indexes as described in the section on <link
   xlink:href="admin-guide#configure-indexes"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring &amp;
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring and
   Rebuilding Indexes</citetitle></link>.</para>
  </section>
 </chapter>

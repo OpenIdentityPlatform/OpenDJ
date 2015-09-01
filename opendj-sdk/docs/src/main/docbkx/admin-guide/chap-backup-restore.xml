@@ -28,7 +28,29 @@
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'>
- <title>Backing Up &amp; Restoring Data</title>
+ <title>Backing Up and Restoring Data</title>
+
+ <itemizedlist>
+  <para>
+   This chapter deals with management of directory data backup archives.
+   For information on managing directory data in an interoperable format
+   that is portable between directory server products,
+   see <xref linkend="chap-import-export" /> instead.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Create backup archives
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Restore data from backup archives
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>OpenDJ lets you backup and restore your data either in compressed,
  binary format, or in LDAP Data Interchange Format. This chapter shows you how

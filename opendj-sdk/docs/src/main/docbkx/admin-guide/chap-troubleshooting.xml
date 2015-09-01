@@ -32,10 +32,58 @@
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Troubleshooting Server Problems</title>
  <indexterm><primary>Troubleshooting</primary></indexterm>
- 
- <para>This chapter describes how to troubleshoot common server problems,
- and how to collect information necessary when seeking support help.</para>
- 
+
+ <itemizedlist>
+  <para>
+   This chapter describes how to troubleshoot common server problems,
+   and how to collect information necessary when seeking support help.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Identify directory server problems systematically as a first troubleshooting step
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Troubleshoot problems with installation and upgrade procedures,
+    directory data import, data replication, and secure connections
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Reset lost administrator passwords
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enable debug logging judiciously when solving problems
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Prevent applications from accessing the directory server when solving problems
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Troubleshoot problems with the way client applications access the directory
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Prepare evidence when asking a directory expert for help
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <section xml:id="troubleshoot-identify-problem">
   <title>Identifying the Problem</title>
   
@@ -74,7 +122,7 @@
  </section>
  
  <section xml:id="troubleshoot-installation">
-  <title>Troubleshooting Installation &amp; Upgrade</title>
+  <title>Troubleshooting Installation and Upgrade</title>
 
   <para>Installation and upgrade procedures result in a log file tracing
   the operation. The log location differs by operating system, but look for
@@ -490,7 +538,7 @@ $ <userinput>OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</userinput>
   </screen>
   
   <section xml:id="troubleshoot-certificate-authentication">
-   <title>Troubleshooting Certificates &amp; SSL Authentication</title>
+   <title>Troubleshooting Certificates and SSL Authentication</title>
    
    <para>Replication uses SSL to protect directory data on the network.
    In some configurations, replica can fail to connect to each other due

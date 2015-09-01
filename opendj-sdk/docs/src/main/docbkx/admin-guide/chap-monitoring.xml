@@ -28,12 +28,43 @@
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'>
- <title>Monitoring, Logging, &amp; Alerts</title>
-
- <para>This chapter describes the monitoring capabilities that OpenDJ
- implements, and shows how to configure them.</para>
+ <title>Monitoring, Logging, and Alerts</title>
 
  <indexterm><primary>Monitoring</primary></indexterm>
+
+ <itemizedlist>
+  <para>
+   This chapter covers OpenDJ monitoring capabilities.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Access monitoring information
+    over Lightweight Directory Access Protocol (LDAP),
+    over Simple Network Monitoring Protocol (SNMP),
+    and though use of Java Management Extensions (JMX)
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Monitor directory server status, including status of directory server tasks
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure directory server logs and interpret the messages they contain
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure email settings for administrative alert notifications
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>OpenDJ Control Panel provides basic monitoring capabilities under
  Monitoring &gt; General Information, Monitoring &gt; Connection Handler, and
@@ -249,7 +280,7 @@ $ <userinput>jvisualvm --openpid 3363 &amp;</userinput>
  </section>
 
  <section xml:id="monitoring-status-and-tasks">
-  <title>Server Operation &amp; Tasks</title>
+  <title>Server Operation and Tasks</title>
 
   <para>
    OpenDJ comes with two commands for monitoring server processes and tasks.
@@ -589,7 +620,7 @@ example-20110623030000000  Backup  Waiting on start time</computeroutput>
   to control what gets logged.</para>
 
   <section xml:id="log-rotation">
-   <title>Log Rotation &amp; Retention</title>
+   <title>Log Rotation and Retention</title>
 
    <para>Each file-based log can be associated with a <firstterm>log rotation
    policy</firstterm>, and a <firstterm>log retention policy</firstterm>. The

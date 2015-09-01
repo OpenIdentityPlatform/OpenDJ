@@ -30,12 +30,62 @@
          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Managing Data Replication</title>
 
- <para>OpenDJ uses advanced data replication with automated conflict
- resolution to help ensure your directory services remain available in the
- event a server crashes or a network goes down, and also as you backup or
- upgrade your directory service. You can configure data replication as part
- of OpenDJ installation, and in many cases let replication do its work in
- the background.</para>
+ <itemizedlist>
+  <para>
+   OpenDJ uses advanced data replication with automated conflict resolution
+   to help ensure your directory services remain available
+   during administrative operations that take an individual server offline,
+   or in the event a server crashes or a network goes down.
+   This chapter explains how to manage OpenDJ directory data replication.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Set up replication as part of initial installation using OpenDJ control panel,
+    or at any time using command-line tools
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Understand how replication operates in order to configure it appropriately
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enable, initialize, and stop data replication
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure stand-alone directory servers and replication servers,
+    or break a server that plays both roles into two stand-alone servers
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure replication groups, read-only replicas, assured replication,
+    subtree replication, and fractional replication for complex deployments
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure and use change notification to synchronize external applications
+    with changes to directory data
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Recover from situations where a user error has been applied to all replicas
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <section xml:id="repl-quick-setup">
   <title>Replication Quick Setup</title>

@@ -41,6 +41,54 @@
    xlink:role="http://docbook.org/xlink/role/olink"
   ><command>dsconfig</command></link> command.
  </para>
+
+ <itemizedlist>
+  <para>
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Enable client applications to access the directory
+    over Lightweight Directory Access Protocol (LDAP) and secure LDAP (LDAPS)
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enable client applications to access the directory
+    over Hypertext Transfer Protocol (HTTP)
+    whether using Directory Services Markup Language (DSML)
+    or the Representational State Transfer (REST) style
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enable monitoring using Java Management Extensions (JMX)
+    or over Simple Network Management Protocol (SNMP)
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Enable automated processing of LDAP Data Interchange Format (LDIF) files
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure restrictions for client access such as requiring authentication
+    or limiting the maximum number of concurrent connections
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure transport layer security for all relevant protocols
+   </para>
+  </listitem>
+ </itemizedlist>
  
  <section xml:id="configure-ldap-port">
   <title>LDAP Client Access</title>
@@ -609,7 +657,7 @@ $ <userinput>dsconfig \
   </procedure>
 
   <procedure xml:id="new-self-signed-cert">
-   <title>To Create &amp; Install a Self-Signed Certificate</title>
+   <title>To Create and Install a Self-Signed Certificate</title>
 
    <para>If you choose to configure LDAP Secure Access when setting up OpenDJ
    directory server, the setup program generates a key pair in the Java Key
@@ -965,7 +1013,7 @@ $ <userinput>dsconfig \
   instructions that OpenDJ supports, see the chapter on <link
   xlink:href="admin-guide#chap-privileges-acis"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
-  Privileges &amp; Access Control</citetitle></link>.</para>
+  Privileges and Access Control</citetitle></link>.</para>
 
   <variablelist>
    <para>Consider the following global configuration settings.</para>
@@ -1058,7 +1106,7 @@ $ <userinput>dsconfig \
  </section>
 
  <section xml:id="tls-protocols-cipher-suites">
-  <title>TLS Protocols &amp; Cipher Suites</title>
+  <title>TLS Protocols and Cipher Suites</title>
   <indexterm>
    <primary>TLS</primary>
   </indexterm>
@@ -1268,7 +1316,7 @@ $ <userinput>curl http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen
     certificate). If you did not generate a default, self-signed certificate
     when installing OpenDJ directory server see the instructions, <link
     xlink:show="new" xlink:href="admin-guide#new-self-signed-cert"
-    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Create &amp;
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Create and
     Install a Self-Signed Certificate</citetitle></link>, and more generally the
     section on <link xlink:show="new"
     xlink:href="admin-guide#setup-server-cert"
