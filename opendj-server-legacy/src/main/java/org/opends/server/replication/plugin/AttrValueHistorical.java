@@ -29,7 +29,7 @@ package org.opends.server.replication.plugin;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.replication.common.CSN;
 
-/** Store historical information for an attribute value. */
+/** AttrValueHistorical is the historical information of the modification of one attribute value. */
 public class AttrValueHistorical
 {
   private ByteString value;
@@ -50,12 +50,6 @@ public class AttrValueHistorical
     this.valueDeleteTime = csnDelete;
   }
 
-  /**
-   * Compares this object with another ValueInfo object.
-   * Object are said equals when their values matches.
-   * @param obj object to be compared with this object
-   * @return true if equal, false otherwise
-   */
   @Override
   public boolean equals(Object obj)
   {
@@ -67,11 +61,6 @@ public class AttrValueHistorical
     return false;
   }
 
-  /**
-   * Calculates the hasCode for this object.
-   * Only value is used when calculating the hashCode
-   * @return the hashcode
-   */
   @Override
   public int hashCode()
   {

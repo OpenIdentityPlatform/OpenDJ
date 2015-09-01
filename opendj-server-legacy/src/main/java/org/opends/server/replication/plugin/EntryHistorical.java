@@ -100,55 +100,14 @@ public class EntryHistorical
    */
   private int lastPurgedValuesCount;
 
-  /**
-   * The in-memory historical information is made of.
-   *
-   * EntryHistorical ::= ADDDate MODDNDate attributesInfo
-   * ADDDate       ::= CSN  // the date the entry was added
-   * MODDNDate     ::= CSN  // the date the entry was last renamed
-   *
-   * attributesInfo      ::= (AttrInfoWithOptions)*
-   *                         one AttrInfoWithOptions by attributeType
-   *
-   * AttrInfoWithOptions ::= (AttributeInfo)*
-   *                         one AttributeInfo by attributeType and option
-   *
-   * AttributeInfo       ::= AttrInfoSingle | AttrInfoMultiple
-   *
-   * AttrInfoSingle      ::= AddTime DeleteTime ValueInfo
-   *
-   * AttrInfoMultiple    ::= AddTime DeleteTime ValuesInfo
-   *
-   * ValuesInfo          ::= (AttrValueHistorical)*
-   *                         AttrValueHistorical is the historical of the
-   *                         the modification of one value
-   *
-   * AddTime             ::= CSN // last time the attribute was added to the entry
-   * DeleteTime          ::= CSN // last time the attribute was deleted from the entry
-   *
-   * AttrValueHistorical ::= AttributeValue valueDeleteTime valueUpdateTime
-   * valueDeleteTime     ::= CSN
-   * valueUpdateTime     ::= CSN
-   *
-   * - a list indexed on AttributeType of AttrInfoWithOptions :
-   *     each value is the historical for this attribute
-   *     an AttrInfoWithOptions is a set indexed on the optionValue(string) of
-   *     AttributeInfo
-   */
-
   /** The date when the entry was added. */
   private CSN entryADDDate;
-
   /** The date when the entry was last renamed. */
   private CSN entryMODDNDate;
 
-  /**
-   * Contains Historical information for each attribute sorted by attribute
-   * type. key:AttributeType value:AttrInfoWithOptions
-   */
-  private final HashMap<AttributeType,AttrHistoricalWithOptions> attributesHistorical = new HashMap<>();
+  /** Contains Historical information for each attribute description. */
+  private final Map<AttributeDescription, AttrHistorical> attributesHistorical = new HashMap<>();
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -341,28 +300,15 @@ public class EntryHistorical
       // used to store the historical information.
       return null;
     }
-    Set<String> modOptions = modAttr.getOptions();
-    AttributeType modAttrType = modAttr.getAttributeType();
 
     // Read from this entryHistorical,
     // Create one empty if none was existing in this entryHistorical.
-    AttrHistoricalWithOptions attrHistWithOptions = attributesHistorical.get(modAttrType);
-    AttrHistorical attrHist;
-    if (attrHistWithOptions != null)
-    {
-      attrHist = attrHistWithOptions.get(modOptions);
-    }
-    else
-    {
-      attrHistWithOptions = new AttrHistoricalWithOptions();
-      attributesHistorical.put(modAttrType, attrHistWithOptions);
-      attrHist = null;
-    }
-
+    AttributeDescription attrDesc = new AttributeDescription(modAttr);
+    AttrHistorical attrHist = attributesHistorical.get(attrDesc);
     if (attrHist == null)
     {
-      attrHist = AttrHistorical.createAttributeHistorical(modAttrType);
-      attrHistWithOptions.put(modOptions, attrHist);
+      attrHist = AttrHistorical.createAttributeHistorical(modAttr.getAttributeType());
+      attributesHistorical.put(attrDesc, attrHist);
     }
     return attrHist;
   }
@@ -401,81 +347,73 @@ public class EntryHistorical
     AttributeType historicalAttrType = DirectoryServer.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     AttributeBuilder builder = new AttributeBuilder(historicalAttrType);
 
-    for (Map.Entry<AttributeType, AttrHistoricalWithOptions> entryWithOptions :
-          attributesHistorical.entrySet())
+    for (Map.Entry<AttributeDescription, AttrHistorical> mapEntry : attributesHistorical.entrySet())
     {
-      // Encode an attribute type
-      AttributeType type = entryWithOptions.getKey();
-      Map<Set<String>, AttrHistorical> attrWithOptions =
-                                entryWithOptions.getValue().getAttributesInfo();
+      AttributeDescription attrDesc = mapEntry.getKey();
+      AttributeType type = attrDesc.attributeType;
+      String optionsString = attrDesc.toOptionsString();
+      AttrHistorical attrHist = mapEntry.getValue();
 
-      for (Map.Entry<Set<String>, AttrHistorical> entry : attrWithOptions.entrySet())
+      CSN deleteTime = attrHist.getDeleteTime();
+      /* generate the historical information for deleted attributes */
+      boolean attrDel = deleteTime != null;
+
+      for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical())
       {
-        // Encode an (attribute type/option)
-        String optionsString = toOptionsString(entry.getKey());
-        AttrHistorical attrHist = entry.getValue();
+        final ByteString value = attrValHist.getAttributeValue();
 
-        CSN deleteTime = attrHist.getDeleteTime();
-        /* generate the historical information for deleted attributes */
-        boolean attrDel = deleteTime != null;
-
-        for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical())
+        // Encode an attribute value
+        if (attrValHist.getValueDeleteTime() != null)
         {
-          final ByteString value = attrValHist.getAttributeValue();
-
-          // Encode an attribute value
-          if (attrValHist.getValueDeleteTime() != null)
-          {
-            if (needsPurge(attrValHist.getValueDeleteTime(), purgeDate))
-            {
-              // this hist must be purged now, so skip its encoding
-              continue;
-            }
-            String strValue = encode(DEL, type, optionsString, attrValHist.getValueDeleteTime(), value);
-            builder.add(strValue);
-          }
-          else if (attrValHist.getValueUpdateTime() != null)
-          {
-            if (needsPurge(attrValHist.getValueUpdateTime(), purgeDate))
-            {
-              // this hist must be purged now, so skip its encoding
-              continue;
-            }
-
-            String strValue;
-            final CSN updateTime = attrValHist.getValueUpdateTime();
-            // FIXME very suspicious use of == in the next if statement,
-            // unit tests do not like changing it
-            if (attrDel && updateTime == deleteTime && value != null)
-            {
-              strValue = encode(REPL, type, optionsString, updateTime, value);
-              attrDel = false;
-            }
-            else if (value != null)
-            {
-              strValue = encode(ADD, type, optionsString, updateTime, value);
-            }
-            else
-            {
-              // "add" without any value is suspicious. Tests never go there.
-              // Is this used to encode "add" with an empty string?
-              strValue = encode(ADD, type, optionsString, updateTime);
-            }
-
-            builder.add(strValue);
-          }
-        }
-
-        if (attrDel)
-        {
-          if (needsPurge(deleteTime, purgeDate))
+          if (needsPurge(attrValHist.getValueDeleteTime(), purgeDate))
           {
             // this hist must be purged now, so skip its encoding
             continue;
           }
-          String strValue = encode(ATTRDEL, type, optionsString, deleteTime);
+          String strValue = encode(DEL, type, optionsString, attrValHist.getValueDeleteTime(), value);
           builder.add(strValue);
         }
+        else if (attrValHist.getValueUpdateTime() != null)
+        {
+          if (needsPurge(attrValHist.getValueUpdateTime(), purgeDate))
+          {
+            // this hist must be purged now, so skip its encoding
+            continue;
+          }
+
+          String strValue;
+          final CSN updateTime = attrValHist.getValueUpdateTime();
+          // FIXME very suspicious use of == in the next if statement,
+          // unit tests do not like changing it
+          if (attrDel && updateTime == deleteTime && value != null)
+          {
+            strValue = encode(REPL, type, optionsString, updateTime, value);
+            attrDel = false;
+          }
+          else if (value != null)
+          {
+            strValue = encode(ADD, type, optionsString, updateTime, value);
+          }
+          else
+          {
+            // "add" without any value is suspicious. Tests never go there.
+            // Is this used to encode "add" with an empty string?
+            strValue = encode(ADD, type, optionsString, updateTime);
+          }
+
+          builder.add(strValue);
+        }
+      }
+
+      if (attrDel)
+      {
+        if (needsPurge(deleteTime, purgeDate))
+        {
+          // this hist must be purged now, so skip its encoding
+          continue;
+        }
+        String strValue = encode(ATTRDEL, type, optionsString, deleteTime);
+        builder.add(strValue);
       }
     }
 
@@ -494,20 +432,6 @@ public class EntryHistorical
     }
 
     return builder.toAttribute();
-  }
-
-  private String toOptionsString(Set<String> options)
-  {
-    if (options != null)
-    {
-      StringBuilder optionsBuilder = new StringBuilder();
-      for (String s : options)
-      {
-        optionsBuilder.append(';').append(s);
-      }
-      return optionsBuilder.toString();
-    }
-    return "";
   }
 
   private boolean needsPurge(CSN csn, long purgeDate)
@@ -606,11 +530,6 @@ public class EntryHistorical
 
     try
     {
-      AttributeType lastAttrType = null;
-      Set<String> lastOptions = new HashSet<>();
-      AttrHistorical attrInfo = null;
-      AttrHistoricalWithOptions attrInfoWithOptions = null;
-
       // For each value of the historical attr read (mod. on a user attribute)
       //   build an AttrInfo sub-object
 
@@ -638,8 +557,8 @@ public class EntryHistorical
           }
           else
           {
-            AttributeType attrType = histVal.getAttrType();
-            if (attrType == null)
+            AttributeDescription attrDesc = histVal.getAttributeDescription();
+            if (attrDesc == null)
             {
               /*
                * This attribute is unknown from the schema
@@ -658,28 +577,12 @@ public class EntryHistorical
              *   AttrInfo that we add to AttrInfoWithOptions
              * if both match we keep everything
              */
-            Set<String> options = histVal.getOptions();
-            if (attrType != lastAttrType)
+            AttrHistorical attrInfo = newHistorical.attributesHistorical.get(attrDesc);
+            if (attrInfo == null)
             {
-              attrInfo = AttrHistorical.createAttributeHistorical(attrType);
-
-              // Create attrInfoWithOptions and store inside the attrInfo
-              attrInfoWithOptions = new AttrHistoricalWithOptions();
-              attrInfoWithOptions.put(options, attrInfo);
-
-              // Store this attrInfoWithOptions in the newHistorical object
-              newHistorical.attributesHistorical.put(attrType, attrInfoWithOptions);
-
-              lastAttrType = attrType;
-              lastOptions = options;
+              attrInfo = AttrHistorical.createAttributeHistorical(attrDesc.attributeType);
+              newHistorical.attributesHistorical.put(attrDesc, attrInfo);
             }
-            else if (!options.equals(lastOptions))
-            {
-              attrInfo = AttrHistorical.createAttributeHistorical(attrType);
-              attrInfoWithOptions.put(options, attrInfo);
-              lastOptions = options;
-            }
-
             attrInfo.assign(histVal.getHistKey(), histVal.getAttributeValue(), csn);
           }
         }

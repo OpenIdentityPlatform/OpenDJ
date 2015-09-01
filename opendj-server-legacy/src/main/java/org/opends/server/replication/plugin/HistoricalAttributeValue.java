@@ -28,6 +28,7 @@ package org.opends.server.replication.plugin;
 
 import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeDescription;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Modification;
 
@@ -74,11 +76,10 @@ import org.opends.server.types.Modification;
  */
 class HistoricalAttributeValue
 {
-  private final AttributeType attrType;
+  private final AttributeDescription attrDesc;
   private final String attrString;
   private final ByteString attributeValue;
   private final CSN csn;
-  private final Set<String> options = new LinkedHashSet<>();
   private final HistAttrModificationKey histKey;
   private final String stringValue;
 
@@ -98,8 +99,10 @@ class HistoricalAttributeValue
   {
     String[] token = strVal.split(":", 4);
 
+    Set<String> options;
     if (token[0].contains(";"))
     {
+      options = new LinkedHashSet<>();
       String[] optionsToken = token[0].split(";");
       int index = 1;
       while (index < optionsToken.length)
@@ -111,9 +114,11 @@ class HistoricalAttributeValue
     }
     else
     {
+      options = Collections.emptySet();
       attrString = token[0];
     }
 
+    AttributeType attrType;
     if (attrString.compareTo("dn") != 0)
     {
       // This HistVal was used to store the date when some
@@ -130,6 +135,7 @@ class HistoricalAttributeValue
         isModDN = true;
       }
     }
+    this.attrDesc = attrType != null ? new AttributeDescription(attrType, options) : null;
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
@@ -164,14 +170,14 @@ class HistoricalAttributeValue
   }
 
   /**
-   * Get the type of this HistVal.
+   * Get the attribute description of this HistVal.
    *
-   * @return Returns the type of this HistVal.
-   *         Can return NULL if the HistVal was generated for a ADD Operation.
+   * @return Returns the attribute description of this HistVal.
+   *         Can return {@code null} if the HistVal was generated for a ADD Operation.
    */
-  public AttributeType getAttrType()
+  AttributeDescription getAttributeDescription()
   {
-    return attrType;
+    return attrDesc;
   }
 
   /**
@@ -193,15 +199,6 @@ class HistoricalAttributeValue
   }
 
   /**
-   * Get the options or an empty set if there are no options.
-   * @return Returns the options.
-   */
-  public Set<String> getOptions()
-  {
-    return options;
-  }
-
-  /**
    * Get the Attribute Value.
    * @return The Attribute Value.
    */
@@ -219,8 +216,8 @@ class HistoricalAttributeValue
    */
   public Modification generateMod()
   {
-    AttributeBuilder builder = new AttributeBuilder(attrType, attrString);
-    builder.setOptions(options);
+    AttributeBuilder builder = new AttributeBuilder(attrDesc.attributeType, attrString);
+    builder.setOptions(attrDesc.options);
 
     if (histKey != ATTRDEL)
     {
@@ -250,7 +247,7 @@ class HistoricalAttributeValue
    */
   public boolean isADDOperation()
   {
-    return attrType == null && !isModDN;
+    return attrDesc.attributeType == null && !isModDN;
   }
 
   /**
@@ -261,7 +258,7 @@ class HistoricalAttributeValue
    */
   public boolean isMODDNOperation()
   {
-    return attrType == null && isModDN;
+    return attrDesc.attributeType == null && isModDN;
   }
 
   @Override
@@ -269,7 +266,7 @@ class HistoricalAttributeValue
   {
     final StringBuilder sb = new StringBuilder();
     sb.append(attrString);
-    for (String option : this.options)
+    for (String option : attrDesc.options)
     {
       sb.append(";").append(option);
     }
