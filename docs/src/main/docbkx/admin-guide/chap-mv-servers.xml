@@ -23,13 +23,33 @@
   !
 -->
 <chapter xml:id='chap-mv-servers'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Moving Servers</title>
  <indexterm><primary>Moving servers</primary></indexterm>
+
+ <itemizedlist>
+  <para>
+   This chapter explains how to move OpenDJ directory servers.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Prepare for the move, especially when the server is replicated,
+    and when the directory service remains available during the move
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Perform the configuration needed to move the directory server
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>When you change where OpenDJ is deployed, you must take host names,
  port numbers, and certificates into account. The changes can also affect

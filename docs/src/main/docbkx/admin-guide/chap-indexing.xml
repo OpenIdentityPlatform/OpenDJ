@@ -34,7 +34,31 @@
   <primary>Indexes</primary>
  </indexterm>
 
- <para>OpenDJ provides several indexing schemes to speed up searches.</para>
+ <itemizedlist>
+  <para>
+   This chapter covers OpenDJ indexing features used to speed up searches,
+   and to limit the impact of searches on directory server resources.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Determine which attributes to index and what types of indexes to configure
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure, build, and rebuild indexes
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Check that indexes are valid
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>When a client requests a directory search operation, the client sends
  the server a filter expression such as
@@ -58,7 +82,7 @@
  configuration for OpenDJ directory server.</para>
 
  <section xml:id="indexes-overview">
-  <title>Index Types &amp; What Each Does</title>
+  <title>Index Types and What Each Does</title>
 
   <para>OpenDJ provides several different index types, each corresponding
   to a different type of search.</para>
@@ -540,7 +564,7 @@ $ <userinput>dsconfig \
  </section>
 
  <section xml:id="configure-indexes">
-  <title>Configuring &amp; Rebuilding Indexes</title>
+  <title>Configuring and Rebuilding Indexes</title>
   <indexterm>
    <primary>Indexes</primary>
    <secondary>Configuring</secondary>

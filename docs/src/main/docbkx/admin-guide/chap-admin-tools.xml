@@ -29,7 +29,26 @@
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Administration Interfaces &amp; Tools</title>
+ <title>Administration Interfaces and Tools</title>
+
+ <itemizedlist>
+  <para>
+   This chapter covers OpenDJ administration tools.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Find and run OpenDJ control panel
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Find and run OpenDJ command line tools
+   </para>
+  </listitem>
+ </itemizedlist>
 
  <para>OpenDJ server software installs with a cross-platform, Java Swing-based
  Control Panel for many day-to-day tasks. OpenDJ server software also installs

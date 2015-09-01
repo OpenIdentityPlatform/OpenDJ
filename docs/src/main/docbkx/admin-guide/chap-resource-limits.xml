@@ -30,9 +30,32 @@
  <title>Setting Resource Limits</title>
  <indexterm><primary>Resource limits</primary></indexterm>
  
- <para>This chapter shows you how to set resource limits that prevent
- directory clients from using an unfair share of system resources.</para>
- 
+ <itemizedlist>
+  <para>
+   This chapter shows you how to set resource limits
+   that prevent directory clients from using an unfair share of system resources.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Limit the resources used when a user searches the diretory
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Limit how long connections can remain idle before they are dropped
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Limit the size of directory server requests
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <section xml:id="limit-search-resources">
   <title>Limiting Search Resources</title>
   

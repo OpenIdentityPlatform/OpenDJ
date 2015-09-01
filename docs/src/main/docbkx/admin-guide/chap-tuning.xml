@@ -32,6 +32,39 @@
  <title>Tuning Servers For Performance</title>
  <indexterm><primary>Performance tuning</primary></indexterm>
 
+ <itemizedlist>
+  <para>
+   This chapter suggests ways to measure and improve directory service performance.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Define directory server performance goals operationally
+    in accordance with the needs of client applications
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Identify constraints that might limit achievable performance goals
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Design and execute appropriate performance tests with the help of
+    OpenDJ command-line tools
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Adjust OpenDJ and system settings to achieve performance goals
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para>Server tuning refers to the art of adjusting server, JVM, and system
  configuration to meet the service level performance requirements of directory
  clients. In the optimal case you achieve service level performance
@@ -41,11 +74,10 @@
  <para>If you are reading this chapter, however, you are probably not
  facing an optimal situation. Instead you are looking for trade offs that
  maximize performance for clients given the constraints of your deployment.
- This chapter therefore aims to provide suggestions on how to measure and
- to improve directory service performance for better trade offs.</para>
+ </para>
 
  <section xml:id="perf-define-starting-points">
-  <title>Defining Performance Requirements &amp; Constraints</title>
+  <title>Defining Performance Requirements and Constraints</title>
 
   <para>Your key performance requirement is most likely to satisfy your
   users or customers with the resources available to you. Before you can

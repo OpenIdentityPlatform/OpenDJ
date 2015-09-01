@@ -31,15 +31,50 @@
  <title>Configuring Password Policy</title>
  <indexterm><primary>Password policy</primary></indexterm>
  
+ <itemizedlist>
+  <para>
+   This chapter covers password policy including examples for common use cases.
+   In this chapter you will learn to:
+  </para>
+
+  <listitem>
+   <para>
+    Decide what type of password policy is needed
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Discover which password policy applies for a given user
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure server-based and subentry-based password policies
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Assign password policies to users and to groups
+   </para>
+  </listitem>
+
+  <listitem>
+   <para>
+    Configure automated password generation, password storage schemes,
+    and validation of new passwords to reject invalid passwords before they are set
+   </para>
+  </listitem>
+ </itemizedlist>
+
  <para>If you want to synchronize password policy across your organization
  and your applications go to the directory for authentication, then the
  directory can be a good place to enforce your password policy uniformly.
  Even if you do not depend on the directory for all your password policy,
  you no doubt still want to consider directory password policy if only to
  choose the appropriate password storage scheme.</para>
- 
- <para>This chapter covers password policy, including examples of how
- to configure password policies for common use cases.</para>
 
  <section xml:id="pwp-overview">
   <title>About OpenDJ Password Policies</title>
