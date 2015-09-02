@@ -337,6 +337,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
     InternalSearchOperation searchOp = searchChangelogUsingCookie("(targetDN=*)", "", SUCCESS, 3, test);
     String firstCookie = readCookieFromNthEntry(searchOp.getSearchEntries(), 0);
+    assertThat(firstCookie).isEqualTo(buildCookie(csns[0]));
 
     // remove the domain by sending a reset message
     publishUpdateMessages(test, server1, false, new ResetGenerationIdMsg(23657));
@@ -385,19 +386,27 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       CSN csn3 = new CSN(time, seqNum++, server2.getServerId());
       CSN csn4 = new CSN(time, seqNum++, server1.getServerId());
 
-      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(server1, csn1, test, 1));
-
+      publishUpdateMessagesInOTest(test, false,
+          generateDeleteMsg(server1, csn1, test, 1));
       publishUpdateMessagesInOTest2(test,
           generateDeleteMsg(server2, csn2, test, 2),
           generateDeleteMsg(server2, csn3, test, 3));
-
-      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(server1, csn4, test, 4));
+      publishUpdateMessagesInOTest(test, false,
+          generateDeleteMsg(server1, csn4, test, 4));
 
       // search on all suffixes using empty cookie
       String cookie = "";
       InternalSearchOperation searchOp =
           searchChangelogUsingCookie("(targetDN=*" + test + "*)", cookie, SUCCESS, 4, test);
       cookie = readCookieFromNthEntry(searchOp.getSearchEntries(), 2);
+      if (!new MultiDomainServerState(cookie).equals("o=test:" + csn1 + " " + csn3 + ";"))
+      {
+        // the changes were inserted in the DB while we were reading the results.
+        // so they are not in the order expected by this test.
+        // now that all the changes are in, retry, because they will now be returned in the expected order
+        searchOp = searchChangelogUsingCookie("(targetDN=*" + test + "*)", cookie, SUCCESS, 4, test);
+        cookie = readCookieFromNthEntry(searchOp.getSearchEntries(), 2);
+      }
 
       // search using previous cookie and expect to get ONLY the 4th change
       LDIFWriter ldifWriter = getLDIFWriter();
@@ -943,7 +952,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private String assertEntriesContainsCSNsAndReadLastCookie(String test, List<SearchResultEntry> entries,
       LDIFWriter ldifWriter, CSN... csns) throws Exception
   {
-    // TODO JNR Should the order be guaranteed?
     assertThat(getCSNsFromEntries(entries)).containsOnly(csns);
     debugAndWriteEntries(ldifWriter, entries, test);
     return readCookieFromNthEntry(entries, csns.length - 1);
