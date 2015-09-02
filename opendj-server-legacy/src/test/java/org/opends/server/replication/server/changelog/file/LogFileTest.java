@@ -270,12 +270,11 @@ public class LogFileTest extends DirectoryServerTestCase
     }
   }
 
-  /** Test that changes are visible immediately to a reader after a write. */
+  /** Test that changes are properly ordered. */
   @Test
-  public void testWriteAndReadOnSameLogFile() throws Exception
+  public void testAppendingChangesAreOrdered() throws Exception
   {
-    try (LogFile<String, String> writeLog = getLogFile(RECORD_PARSER);
-        LogFile<String, String> readLog = getLogFile(RECORD_PARSER))
+    try (LogFile<String, String> writeLog = getLogFile(RECORD_PARSER))
     {
       for (int i = 1; i <= 100; i++)
       {
@@ -283,8 +282,6 @@ public class LogFileTest extends DirectoryServerTestCase
         writeLog.append(record);
         assertThat(writeLog.getNewestRecord()).as("write changelog " + i).isEqualTo(record);
         assertThat(writeLog.getOldestRecord()).as("write changelog " + i).isEqualTo(Record.from("key01", "value1"));
-        assertThat(readLog.getNewestRecord()).as("read changelog " + i).isEqualTo(record);
-        assertThat(readLog.getOldestRecord()).as("read changelog " + i).isEqualTo(Record.from("key01", "value1"));
       }
     }
   }

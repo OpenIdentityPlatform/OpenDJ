@@ -620,4 +620,23 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
    }
  }
 
+Record<K, V> getNewestRecord() throws ChangelogException
+ {
+   try {
+     final long lastBlockStart = getClosestBlockStartBeforeOrAtPosition(getFileLength());
+     positionToRecordFromBlockStart(lastBlockStart);
+     ByteString candidate = readNextRecord();
+     ByteString record = candidate;
+     while (candidate != null)
+     {
+       record = candidate;
+       candidate = readNextRecord();
+     }
+     return record == null ? null : parser.decodeRecord(record);
+   }
+   catch (IOException e)
+   {
+     throw new ChangelogException(ERR_CHANGELOG_CANNOT_READ_NEWEST_RECORD.get(file.getPath()), e);
+   }
+ }
 }
