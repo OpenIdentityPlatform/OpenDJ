@@ -80,6 +80,8 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   /** Indicates if log is enabled for write. */
   private final boolean isWriteEnabled;
 
+  private Record<K, V> newestRecord;
+
   /**
    * Creates a new log file.
    *
@@ -243,6 +245,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   {
     checkLogIsEnabledForWrite();
     writer.write(record);
+    newestRecord = record;
   }
 
   /**
@@ -366,22 +369,11 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   Record<K, V> getNewestRecord() throws ChangelogException
   {
-    // TODO : need a more efficient way to retrieve it
-    DBCursor<Record<K, V>> cursor = null;
-    try
+    if (newestRecord == null)
     {
-      cursor = getCursor();
-      Record<K, V> record = null;
-      while (cursor.next())
-      {
-        record = cursor.getRecord();
-      }
-      return record;
+      newestRecord = getReader().getNewestRecord();
     }
-    finally
-    {
-      StaticUtils.close(cursor);
-    }
+    return newestRecord;
   }
 
   /**
