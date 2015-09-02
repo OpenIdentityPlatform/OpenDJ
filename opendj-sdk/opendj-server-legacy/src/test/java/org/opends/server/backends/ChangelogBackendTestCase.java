@@ -60,6 +60,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
+import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -278,7 +279,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     assertAddEntry(searchEntries.get(1), test + 2, USER1_ENTRY_UUID, CHANGENUMBER_ZERO, csns[1]);
     assertModEntry(searchEntries.get(2), test + 3, test + "uuid3", CHANGENUMBER_ZERO, csns[2]);
     assertModDNEntry(searchEntries.get(3), test + 4, test + "new4", test + "uuid4", CHANGENUMBER_ZERO, csns[3]);
-    assertResultsContainCookieControl(searchOp, buildCookiesFromCsns(csns));
+    assertResultsContainCookieControl(searchOp, newArrayList(buildCookiesFromCsns(csns)));
 
     assertChangelogAttributesInRootDSE(1, 4);
 
@@ -395,7 +396,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           generateDeleteMsg(server1, csn4, test, 4));
 
       // search on all suffixes using empty cookie
-      String cookie = "";
+      String startCookie = "";
+      String cookie = startCookie;
       InternalSearchOperation searchOp =
           searchChangelogUsingCookie("(targetDN=*" + test + "*)", cookie, SUCCESS, 4, test);
       cookie = readCookieFromNthEntry(searchOp.getSearchEntries(), 2);
@@ -404,6 +406,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         // the changes were inserted in the DB while we were reading the results.
         // so they are not in the order expected by this test.
         // now that all the changes are in, retry, because they will now be returned in the expected order
+        cookie = startCookie;
         searchOp = searchChangelogUsingCookie("(targetDN=*" + test + "*)", cookie, SUCCESS, 4, test);
         cookie = readCookieFromNthEntry(searchOp.getSearchEntries(), 2);
       }
@@ -1267,23 +1270,30 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   /** Verify that all entries contains the ChangeLogCookie control with the correct cookie value. */
-  private void assertResultsContainCookieControl(InternalSearchOperation searchOp, String[] cookies) throws Exception
+  private void assertResultsContainCookieControl(InternalSearchOperation searchOp, List<String> cookies)
+      throws Exception
   {
     for (SearchResultEntry entry : searchOp.getSearchEntries())
     {
-      boolean cookieControlFound = false;
-      for (Control control : entry.getControls())
-      {
-        if (OID_ECL_COOKIE_EXCHANGE_CONTROL.equals(control.getOID()))
-        {
-          String cookieString =
-              searchOp.getRequestControl(ExternalChangelogRequestControl.DECODER).getCookie().toString();
-          assertThat(cookieString).isIn((Object[]) cookies);
-          cookieControlFound = true;
-        }
-      }
-      assertTrue(cookieControlFound, "result entry " + entry + " should contain the cookie control");
+      EntryChangelogNotificationControl cookieControl = getCookieControl(entry);
+      assertNotNull(cookieControl, "result entry " + entry + " should contain the cookie control");
+      String cookieStr = cookieControl.getCookie().toString();
+      assertThat(cookieStr).isIn(cookies);
+      cookies.remove(cookieStr);
     }
+    assertThat(cookies).as("All cookie values should have been returned").isEmpty();
+  }
+
+  private EntryChangelogNotificationControl getCookieControl(SearchResultEntry entry)
+  {
+    for (Control control : entry.getControls())
+    {
+      if (OID_ECL_COOKIE_EXCHANGE_CONTROL.equals(control.getOID()))
+      {
+        return (EntryChangelogNotificationControl) control;
+      }
+    }
+    return null;
   }
 
   /** Check the DEL entry has the right content. */
