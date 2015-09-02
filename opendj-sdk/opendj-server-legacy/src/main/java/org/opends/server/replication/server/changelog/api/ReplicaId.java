@@ -26,13 +26,9 @@ package org.opends.server.replication.server.changelog.api;
 
 import org.opends.server.types.DN;
 
-/**
- * Replica identifier comprised of the domain baseDN and its serverId within
- * this domain.
- */
+/** Replica identifier comprised of the domain baseDN and its serverId within this domain. */
 public final class ReplicaId implements Comparable<ReplicaId>
 {
-
   private final DN baseDN;
   private final int serverId;
 
@@ -64,7 +60,24 @@ public final class ReplicaId implements Comparable<ReplicaId>
     return new ReplicaId(baseDN, serverId);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * Returns the baseDN.
+   * @return the baseDN
+   */
+  public DN getBaseDN()
+  {
+    return baseDN;
+  }
+
+  /**
+   * Returns the serverId.
+   * @return the serverId
+   */
+  public int getServerId()
+  {
+    return serverId;
+  }
+
   @Override
   public int compareTo(ReplicaId o)
   {
@@ -76,7 +89,6 @@ public final class ReplicaId implements Comparable<ReplicaId>
     return compareResult;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -86,7 +98,6 @@ public final class ReplicaId implements Comparable<ReplicaId>
     return prime * result + serverId;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object obj)
   {
@@ -102,7 +113,6 @@ public final class ReplicaId implements Comparable<ReplicaId>
     return serverId == other.serverId && baseDN.equals(other.baseDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

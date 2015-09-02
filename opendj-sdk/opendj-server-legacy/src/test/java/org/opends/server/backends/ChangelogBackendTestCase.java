@@ -136,8 +136,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private static DN DN_OTEST;
   private static DN DN_OTEST2;
   private static DN DN_OTEST3;
+  private static ReplicaId server1;
+  private static ReplicaId server2;
 
-  private final int brokerSessionTimeout = 5000;
   private final int maxWindow = 100;
 
   /** The replicationServer that will be used in this test. */
@@ -153,9 +154,12 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
+
     DN_OTEST = DN.valueOf(TEST_ROOT_DN_STRING);
     DN_OTEST2 = DN.valueOf(TEST_ROOT_DN_STRING2);
     DN_OTEST3 = DN.valueOf(TEST_ROOT_DN_STRING3);
+    server1 = ReplicaId.of(DN_OTEST, SERVER_ID_1);
+    server2 = ReplicaId.of(DN_OTEST2, SERVER_ID_2);
 
     // This test suite depends on having the schema available.
     configureReplicationServer();
@@ -211,17 +215,15 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo("configure", "ReplicationServer created:" + replicationServer);
   }
 
-  /** Enable replication on provided domain DN and serverid, using provided port. */
-  private ReplicationBroker enableReplication(DN domainDN, int serverId, int replicationPort, int timeout)
-      throws Exception
+  /** Enable replication on provided domain DN and serverId, using provided port. */
+  private ReplicationBroker enableReplication(ReplicaId replicaId) throws Exception
   {
-    ReplicaId replicaId = ReplicaId.of(domainDN, serverId);
     ReplicationBroker broker = brokers.get(replicaId);
     if (broker == null)
     {
-      broker = openReplicationSession(domainDN, serverId, 100, replicationPort, timeout);
+      broker = openReplicationSession(replicaId.getBaseDN(), replicaId.getServerId(), 100, replicationServerPort, 5000);
       brokers.put(replicaId, broker);
-      DomainFakeCfg domainConf = newFakeCfg(domainDN, serverId, replicationPort);
+      DomainFakeCfg domainConf = newFakeCfg(replicaId.getBaseDN(), replicaId.getServerId(), replicationServerPort);
       startNewReplicationDomain(domainConf, null, null);
     }
     return broker;
@@ -265,7 +267,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(test, "Starting test\n\n");
 
     final CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(test, true);
-    final String[] cookies = buildCookiesFromCsns(csns);
 
     int nbEntries = 4;
     String cookie = "";
@@ -273,12 +274,11 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         searchChangelogUsingCookie("(targetdn=*" + test + "*,o=test)", cookie, SUCCESS, nbEntries, test);
 
     final List<SearchResultEntry> searchEntries = searchOp.getSearchEntries();
-    assertDelEntry(searchEntries.get(0), test + 1, test + "uuid1", CHANGENUMBER_ZERO, csns[0], cookies[0]);
-    assertAddEntry(searchEntries.get(1), test + 2, USER1_ENTRY_UUID, CHANGENUMBER_ZERO, csns[1], cookies[1]);
-    assertModEntry(searchEntries.get(2), test + 3, test + "uuid3", CHANGENUMBER_ZERO, csns[2], cookies[2]);
-    assertModDNEntry(searchEntries.get(3), test + 4, test + "new4", test+"uuid4", CHANGENUMBER_ZERO,
-        csns[3], cookies[3]);
-    assertResultsContainCookieControl(searchOp, cookies);
+    assertDelEntry(searchEntries.get(0), test + 1, test + "uuid1", CHANGENUMBER_ZERO, csns[0]);
+    assertAddEntry(searchEntries.get(1), test + 2, USER1_ENTRY_UUID, CHANGENUMBER_ZERO, csns[1]);
+    assertModEntry(searchEntries.get(2), test + 3, test + "uuid3", CHANGENUMBER_ZERO, csns[2]);
+    assertModDNEntry(searchEntries.get(3), test + 4, test + "new4", test + "uuid4", CHANGENUMBER_ZERO, csns[3]);
+    assertResultsContainCookieControl(searchOp, buildCookiesFromCsns(csns));
 
     assertChangelogAttributesInRootDSE(1, 4);
 
@@ -300,10 +300,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     searchOp = searchChangelogUsingCookie("(targetdn=*" + test + "*,o=test)", cookies[0], SUCCESS, nbEntries, test);
 
     List<SearchResultEntry> searchEntries = searchOp.getSearchEntries();
-    assertAddEntry(searchEntries.get(0), test + 2, USER1_ENTRY_UUID, CHANGENUMBER_ZERO, csns[1], cookies[1]);
-    assertModEntry(searchEntries.get(1), test + 3, test + "uuid3", CHANGENUMBER_ZERO, csns[2], cookies[2]);
-    assertModDNEntry(searchEntries.get(2), test + 4, test + "new4", test+"uuid4", CHANGENUMBER_ZERO,
-        csns[3], cookies[3]);
+    assertAddEntry(searchEntries.get(0), test + 2, USER1_ENTRY_UUID, CHANGENUMBER_ZERO, csns[1]);
+    assertModEntry(searchEntries.get(1), test + 3, test + "uuid3", CHANGENUMBER_ZERO, csns[2]);
+    assertModDNEntry(searchEntries.get(2), test + 4, test + "new4", test + "uuid4", CHANGENUMBER_ZERO, csns[3]);
 
     // check querying with cookie of add entry : should return 2 entries
     nbEntries = 2;
@@ -314,8 +313,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     searchOp = searchChangelogUsingCookie("(targetdn=*" + test + "*,o=test)", cookies[2], SUCCESS, nbEntries, test);
 
     searchEntries = searchOp.getSearchEntries();
-    assertModDNEntry(searchEntries.get(0), test + 4, test + "new4", test+"uuid4", CHANGENUMBER_ZERO,
-        csns[3], cookies[3]);
+    assertModDNEntry(searchEntries.get(0), test + 4, test + "new4", test + "uuid4", CHANGENUMBER_ZERO, csns[3]);
 
     // check querying with cookie of mod dn entry : should return 0 entry
     nbEntries = 0;
@@ -330,18 +328,18 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     String test = "CookieAfterDomainIsRemoved";
     debugInfo(test, "Starting test");
 
-    final CSN[] csns = generateCSNs(3, SERVER_ID_1);
+    final CSN[] csns = generateCSNs(3, server1);
 
     publishUpdateMessagesInOTest(test, true,
-      generateDeleteMsg(DN_OTEST, csns[0], test, 1),
-      generateDeleteMsg(DN_OTEST, csns[1], test, 2),
-      generateDeleteMsg(DN_OTEST, csns[2], test, 3));
+      generateDeleteMsg(server1, csns[0], test, 1),
+      generateDeleteMsg(server1, csns[1], test, 2),
+      generateDeleteMsg(server1, csns[2], test, 3));
 
     InternalSearchOperation searchOp = searchChangelogUsingCookie("(targetDN=*)", "", SUCCESS, 3, test);
     String firstCookie = readCookieFromNthEntry(searchOp.getSearchEntries(), 0);
 
     // remove the domain by sending a reset message
-    publishUpdateMessages(test, DN_OTEST, SERVER_ID_1, false, new ResetGenerationIdMsg(23657));
+    publishUpdateMessages(test, server1, false, new ResetGenerationIdMsg(23657));
 
     // replication changelog must have been cleared
     String cookie= "";
@@ -382,18 +380,18 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // publish 4 changes (2 on each suffix)
       long time = TimeThread.getTime();
       int seqNum = 1;
-      CSN csn1 = new CSN(time, seqNum++, SERVER_ID_1);
-      CSN csn2 = new CSN(time, seqNum++, SERVER_ID_2);
-      CSN csn3 = new CSN(time, seqNum++, SERVER_ID_2);
-      CSN csn4 = new CSN(time, seqNum++, SERVER_ID_1);
+      CSN csn1 = new CSN(time, seqNum++, server1.getServerId());
+      CSN csn2 = new CSN(time, seqNum++, server2.getServerId());
+      CSN csn3 = new CSN(time, seqNum++, server2.getServerId());
+      CSN csn4 = new CSN(time, seqNum++, server1.getServerId());
 
-      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(DN_OTEST, csn1, test, 1));
+      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(server1, csn1, test, 1));
 
-      publishUpdateMessagesInOTest2(test, false,
-        generateDeleteMsg(DN_OTEST2, csn2, test, 2),
-        generateDeleteMsg(DN_OTEST2, csn3, test, 3));
+      publishUpdateMessagesInOTest2(test,
+          generateDeleteMsg(server2, csn2, test, 2),
+          generateDeleteMsg(server2, csn3, test, 3));
 
-      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(DN_OTEST, csn4, test, 4));
+      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(server1, csn4, test, 4));
 
       // search on all suffixes using empty cookie
       String cookie = "";
@@ -407,8 +405,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       cookie = assertEntriesContainsCSNsAndReadLastCookie(test, searchOp.getSearchEntries(), ldifWriter, csn4);
 
       // publish a new change on first suffix
-      CSN csn5 = new CSN(time, seqNum++, SERVER_ID_1);
-      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(DN_OTEST, csn5, test, 5));
+      CSN csn5 = new CSN(time, seqNum++, server1.getServerId());
+      publishUpdateMessagesInOTest(test, false, generateDeleteMsg(server1, csn5, test, 5));
 
       // search using last cookie and expect to get the last change
       searchOp = searchChangelogUsingCookie("(targetDN=*" + test + "*)", cookie, SUCCESS, 1, test);
@@ -423,31 +421,28 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // publish 4 more changes (2 on each suffix, on different server ids)
       time = TimeThread.getTime();
       seqNum = 6;
-      int serverId11 = 1203;
-      int serverId22 = 1204;
-      CSN csn6 = new CSN(time, seqNum++, serverId11);
-      CSN csn7 = new CSN(time, seqNum++, serverId22);
-      CSN csn8 = new CSN(time, seqNum++, serverId11);
-      CSN csn9 = new CSN(time, seqNum++, serverId22);
+      final ReplicaId server3 = ReplicaId.of(DN_OTEST2, 1203);
+      final ReplicaId server4 = ReplicaId.of(DN_OTEST, 1204);
+      CSN csn6 = new CSN(time, seqNum++, server3.getServerId());
+      CSN csn7 = new CSN(time, seqNum++, server4.getServerId());
+      CSN csn8 = new CSN(time, seqNum++, server3.getServerId());
+      CSN csn9 = new CSN(time, seqNum++, server4.getServerId());
 
-      publishUpdateMessages(test, DN_OTEST2, serverId11, false,
-        generateDeleteMsg(DN_OTEST2, csn6, test, 6));
-
-      publishUpdateMessages(test, DN_OTEST, serverId22, false,
-        generateDeleteMsg(DN_OTEST, csn7, test, 7));
-
-      publishUpdateMessages(test, DN_OTEST2, serverId11, false,
-        generateDeleteMsg(DN_OTEST2, csn8, test, 8));
-
-      publishUpdateMessages(test, DN_OTEST, serverId22, false,
-        generateDeleteMsg(DN_OTEST, csn9, test, 9));
+      publishUpdateMessages(test, server3, false,
+        generateDeleteMsg(server3, csn6, test, 6));
+      publishUpdateMessages(test, server4, false,
+        generateDeleteMsg(server4, csn7, test, 7));
+      publishUpdateMessages(test, server3, false,
+        generateDeleteMsg(server3, csn8, test, 8));
+      publishUpdateMessages(test, server4, false,
+        generateDeleteMsg(server4, csn9, test, 9));
 
       // ensure oldest state is correct for each suffix and for each server id
-      isOldestCSNForReplica(DN_OTEST, csn1);
-      isOldestCSNForReplica(DN_OTEST, csn7);
+      isOldestCSNForReplica(server1, csn1);
+      isOldestCSNForReplica(server4, csn7);
 
-      isOldestCSNForReplica(DN_OTEST2, csn2);
-      isOldestCSNForReplica(DN_OTEST2, csn6);
+      isOldestCSNForReplica(server2, csn2);
+      isOldestCSNForReplica(server3, csn6);
 
       // test last cookie on root DSE
       String expectedLastCookie = "o=test:" + csn5 + " " + csn9 + ";o=test2:" + csn3 + " " + csn8 + ";";
@@ -477,8 +472,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     }
   }
 
-  private void isOldestCSNForReplica(final DN baseDN, final CSN csn) throws Exception
+  private void isOldestCSNForReplica(final ReplicaId replicaId, final CSN csn) throws Exception
   {
+    assertSameServerId(replicaId, csn);
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(3, SECONDS)
       .sleepTimes(100, MILLISECONDS)
@@ -490,10 +486,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       {
         final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
         CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
-        try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, options))
+        try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(replicaId.getBaseDN(), csn.getServerId(), csn, options))
         {
-          assertTrue(cursor.next(), "Expected to find at least one change in replicaDB(" + baseDN + " "
-              + csn.getServerId() + ")");
+          assertTrue(cursor.next(), "Expected to find at least one change in replicaDB for " + replicaId);
           assertEquals(cursor.getRecord().getCSN(), csn);
           return END_RUN;
         }
@@ -511,12 +506,12 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       Backend<?> backend3 = null;
       LDAPReplicationDomain domain2 = null;
       try {
-        ReplicationBroker broker = enableReplication(DN_OTEST, SERVER_ID_1, replicationServerPort, brokerSessionTimeout);
+        ReplicationBroker broker = enableReplication(server1);
 
         // create and publish 1 change on each suffix
         long time = TimeThread.getTime();
-        CSN csn1 = new CSN(time, 1, SERVER_ID_1);
-        broker.publish(generateDeleteMsg(DN_OTEST, csn1, test, 1));
+        CSN csn1 = new CSN(time, 1, server1.getServerId());
+        broker.publish(generateDeleteMsg(server1, csn1, test, 1));
 
         // create backend and configure replication for it
         backend3 = initializeMemoryBackend(false, TEST_BACKEND_ID3);
@@ -542,7 +537,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
         // test the lastExternalChangelogCookie attribute of the ECL
         // (does only refer to non private backend)
-        assertLastCookieIsEqualTo("o=test:" + csn1 + ";");
+        assertLastCookieIsEqualTo(buildCookie(csn1));
       }
       finally
       {
@@ -605,8 +600,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // add a new change, then check again first and last change number without previous search
     testName = "Multiple/9";
     CSN lastCsn = csns[csns.length - 1];
-    CSN csn = new CSN(lastCsn.getTime() + 1, 9, SERVER_ID_1);
-    publishUpdateMessagesInOTest(testName, false, generateDeleteMsg(DN_OTEST, csn, testName, 1));
+    CSN csn = new CSN(lastCsn.getTime() + 1, 9, server1.getServerId());
+    publishUpdateMessagesInOTest(testName, false, generateDeleteMsg(server1, csn, testName, 1));
 
     assertChangelogAttributesInRootDSE(1, 9);
   }
@@ -974,12 +969,12 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private CSN[] generateAndPublishUpdateMsgForEachOperationType(String testName, boolean checkLastCookie)
       throws Exception
   {
-    CSN[] csns = generateCSNs(4, SERVER_ID_1);
+    CSN[] csns = generateCSNs(4, server1);
     publishUpdateMessagesInOTest(testName, checkLastCookie,
-      generateDeleteMsg(DN_OTEST, csns[0], testName, 1),
-      generateAddMsg(DN_OTEST, csns[1], USER1_ENTRY_UUID, testName),
-      generateModMsg(DN_OTEST, csns[2], testName),
-      generateModDNMsg(DN_OTEST, csns[3], testName));
+      generateDeleteMsg(server1, csns[0], testName, 1),
+      generateAddMsg(server1, csns[1], USER1_ENTRY_UUID, testName),
+      generateModMsg(server1, csns[2], testName),
+      generateModDNMsg(server1, csns[3], testName));
     return csns;
   }
 
@@ -987,13 +982,13 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private void publishUpdateMessagesInOTest(String testName, boolean checkLastCookie, UpdateMsg...messages)
       throws Exception
   {
-    publishUpdateMessages(testName, DN_OTEST, SERVER_ID_1, checkLastCookie, messages);
+    publishUpdateMessages(testName, server1, checkLastCookie, messages);
   }
 
-  private void publishUpdateMessagesInOTest2(String testName, boolean checkLastCookie, UpdateMsg...messages)
+  private void publishUpdateMessagesInOTest2(String testName, UpdateMsg...messages)
       throws Exception
   {
-    publishUpdateMessages(testName, DN_OTEST2, SERVER_ID_2, checkLastCookie, messages);
+    publishUpdateMessages(testName, server2, false, messages);
   }
 
   /**
@@ -1001,17 +996,17 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
    *
    * @param checkLastCookie if true, checks that last cookie is update after each message publication
    */
-  private void publishUpdateMessages(String testName, DN baseDN, int serverId, boolean checkLastCookie,
-      ReplicationMsg...messages) throws Exception
+  private void publishUpdateMessages(String testName, ReplicaId replicaId, boolean checkLastCookie,
+      ReplicationMsg... messages) throws Exception
   {
-    ReplicationBroker broker = enableReplication(baseDN, serverId, replicationServerPort, brokerSessionTimeout);
+    ReplicationBroker broker = enableReplication(replicaId);
     String cookie = "";
     for (ReplicationMsg msg : messages)
     {
       if (msg instanceof UpdateMsg)
       {
         final UpdateMsg updateMsg = (UpdateMsg) msg;
-        assertThat(updateMsg.getCSN().getServerId()).isEqualTo(serverId);
+        assertThat(updateMsg.getCSN().getServerId()).isEqualTo(replicaId.getServerId());
         debugInfo(testName, " publishes " + updateMsg.getCSN());
       }
 
@@ -1029,7 +1024,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     final String[] cookies = new String[csns.length];
     for (int j = 0; j < cookies.length; j++)
     {
-      cookies[j] = "o=test:" + csns[j] + ";";
+      cookies[j] = buildCookie(csns[j]);
     }
     return cookies;
   }
@@ -1073,8 +1068,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
     SearchResultEntry entry = searchOp.getSearchEntries().get(0);
     String uncheckedUid = null;
-    assertEntryCommonAttributes(entry, uncheckedUid, USER1_ENTRY_UUID, changeNumber, expectedCsn,
-        "o=test:" + expectedCsn + ";");
+    assertEntryCommonAttributes(entry, uncheckedUid, USER1_ENTRY_UUID, changeNumber, expectedCsn);
 
     debugInfo(testName, "Ending search with success");
   }
@@ -1162,7 +1156,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return new LDIFWriter(exportConfig);
   }
 
-  private CSN[] generateCSNs(int numberOfCsns, int serverId)
+  private CSN[] generateCSNs(int numberOfCsns, ReplicaId replicaId)
   {
     long startTime = TimeThread.getTime();
 
@@ -1170,23 +1164,23 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     for (int i = 0; i < numberOfCsns; i++)
     {
       // seqNum must be greater than 0, so start at 1
-      csns[i] = new CSN(startTime + i, i + 1, serverId);
+      csns[i] = new CSN(startTime + i, i + 1, replicaId.getServerId());
     }
     return csns;
   }
 
-  private UpdateMsg generateDeleteMsg(DN baseDn, CSN csn, String testName, int testIndex)
-      throws Exception
+  private UpdateMsg generateDeleteMsg(ReplicaId replicaId, CSN csn, String testName, int testIndex)      throws Exception
   {
-    String dn = "uid=" + testName + testIndex + "," + baseDn;
+    assertSameServerId(replicaId, csn);
+    String dn = "uid=" + testName + testIndex + "," + replicaId.getBaseDN();
     return new DeleteMsg(DN.valueOf(dn), csn, testName + "uuid" + testIndex);
   }
 
-  private UpdateMsg generateAddMsg(DN baseDn, CSN csn, String user1entryUUID, String testName)
-      throws Exception
+  private UpdateMsg generateAddMsg(ReplicaId replicaId, CSN csn, String user1entryUUID, String testName)      throws Exception
   {
+    assertSameServerId(replicaId, csn);
     String baseUUID = "22222222-2222-2222-2222-222222222222";
-    String dn = "uid=" + testName + "2," + baseDn;
+    String dn = "uid=" + testName + "2," + replicaId.getBaseDN();
     Entry entry = makeEntry(
         "dn: " + dn,
         "objectClass: top",
@@ -1202,9 +1196,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         Collections.<Attribute> emptyList());
   }
 
-  private UpdateMsg generateModMsg(DN baseDn, CSN csn, String testName) throws Exception
+  private UpdateMsg generateModMsg(ReplicaId replicaId, CSN csn, String testName) throws Exception
   {
-    DN baseDN = DN.valueOf("uid=" + testName + "3," + baseDn);
+    assertSameServerId(replicaId, csn);
+    DN baseDN = DN.valueOf("uid=" + testName + "3," + replicaId.getBaseDN());
     List<Modification> mods = createAttributeModif("description", "new value");
     return new ModifyMsg(csn, baseDN, mods, testName + "uuid3");
   }
@@ -1215,17 +1210,23 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return newArrayList(new Modification(ModificationType.REPLACE, attr));
   }
 
-  private UpdateMsg generateModDNMsg(DN baseDn, CSN csn, String testName) throws Exception
+  private UpdateMsg generateModDNMsg(ReplicaId replicaId, CSN csn, String testName) throws Exception
   {
+    assertSameServerId(replicaId, csn);
     final DN newSuperior = DN_OTEST2;
     ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
-        DN.valueOf("uid=" + testName + "4," + baseDn), // entryDN
+        DN.valueOf("uid=" + testName + "4," + replicaId.getBaseDN()), // entryDN
         RDN.decode("uid=" + testName + "new4"), // new rdn
         true,  // deleteoldrdn
         newSuperior);
     op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(csn, testName + "uuid4", "newparentId"));
     LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
     return new ModifyDNMsg(localOp);
+  }
+
+  private void assertSameServerId(ReplicaId replicaId, CSN csn)
+  {
+    assertThat(replicaId.getServerId()).isEqualTo(csn.getServerId());
   }
 
   /** TODO : share this code with other classes ? */
@@ -1279,49 +1280,50 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** Check the DEL entry has the right content. */
   private void assertDelEntry(SearchResultEntry entry, String uid, String entryUUID,
-      long changeNumber, CSN csn, String cookie) throws Exception
+      long changeNumber, CSN csn) throws Exception
   {
     assertAttributeValue(entry, "changetype", "delete");
     assertAttributeValue(entry, "targetuniqueid", entryUUID);
     assertAttributeValue(entry, "targetentryuuid", entryUUID);
-    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn, cookie);
+    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn);
   }
 
   /** Check the ADD entry has the right content. */
   private void assertAddEntry(SearchResultEntry entry, String uid, String entryUUID,
-      long changeNumber, CSN csn, String cookie) throws Exception
+      long changeNumber, CSN csn) throws Exception
   {
     assertAttributeValue(entry, "changetype", "add");
     assertEntryMatchesLDIF(entry, "changes",
         "objectClass: domain",
         "objectClass: top",
         "entryUUID: " + entryUUID);
-    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn, cookie);
+    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn);
   }
 
   private void assertModEntry(SearchResultEntry entry, String uid, String entryUUID,
-      long changeNumber, CSN csn, String cookie) throws Exception
+      long changeNumber, CSN csn) throws Exception
   {
     assertAttributeValue(entry, "changetype", "modify");
     assertEntryMatchesLDIF(entry, "changes",
         "replace: description",
         "description: new value",
         "-");
-    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn, cookie);
+    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn);
   }
 
   private void assertModDNEntry(SearchResultEntry entry, String uid, String newUid,
-      String entryUUID, long changeNumber, CSN csn, String cookie) throws Exception
+      String entryUUID, long changeNumber, CSN csn) throws Exception
   {
     assertAttributeValue(entry, "changetype", "modrdn");
     assertAttributeValue(entry, "newrdn", "uid=" + newUid);
     assertAttributeValue(entry, "newsuperior", DN_OTEST2);
     assertAttributeValue(entry, "deleteoldrdn", "true");
-    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn, cookie);
+    assertEntryCommonAttributes(entry, uid, entryUUID, changeNumber, csn);
   }
 
   private void assertEntryCommonAttributes(SearchResultEntry resultEntry,
-      String uid, String entryUUID, long changeNumber, CSN csn, String cookie) throws Exception
+ String uid, String entryUUID,
+      long changeNumber, CSN csn) throws Exception
   {
     if (changeNumber == 0)
     {
@@ -1335,7 +1337,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     assertAttributeValue(resultEntry, "targetentryuuid", entryUUID);
     assertAttributeValue(resultEntry, "replicaidentifier", SERVER_ID_1);
     assertAttributeValue(resultEntry, "replicationcsn", csn);
-    assertAttributeValue(resultEntry, "changelogcookie", cookie);
+    assertAttributeValue(resultEntry, "changelogcookie", buildCookie(csn));
     // A null value can be provided for uid if it should not be checked
     if (uid != null)
     {
@@ -1351,19 +1353,30 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
     assertThat(entries).hasSize(4);
 
-    CSN csn = csns[0];
-    assertDelEntry(entries.get(0), testName + "1", testName + "uuid1", firstChangeNumber, csn, "o=test:" + csn + ";");
+    int idx = 0;
+    assertDelEntry(entries.get(idx), testName + (idx + 1),
+        testName + "uuid1",
+        firstChangeNumber + idx, csns[idx]);
 
-    csn = csns[1];
-    assertAddEntry(entries.get(1), testName + "2", entryUUID, firstChangeNumber+1, csn, "o=test:" + csn + ";");
+    idx = 1;
+    assertAddEntry(entries.get(idx), testName + (idx + 1),
+        entryUUID,
+        firstChangeNumber + idx, csns[idx]);
 
-    csn = csns[2];
-    assertModEntry(entries.get(2), testName + "3", testName + "uuid3", firstChangeNumber+2, csn,
-        "o=test:" + csn + ";");
+    idx = 2;
+    assertModEntry(entries.get(idx), testName + (idx + 1),
+        testName + "uuid3",
+        firstChangeNumber + idx, csns[idx]);
 
-    csn = csns[3];
-    assertModDNEntry(entries.get(3), testName + "4", testName + "new4", testName + "uuid4", firstChangeNumber+3, csn,
-        "o=test:" + csn + ";");
+    idx = 3;
+    assertModDNEntry(entries.get(idx), testName + (idx + 1),
+        testName + "new4", testName + "uuid4",
+        firstChangeNumber + idx, csns[idx]);
+  }
+
+  private String buildCookie(CSN csn)
+  {
+    return "o=test:" + csn + ";";
   }
 
   /** Asserts the attribute value as LDIF to ignore lines ordering. */
