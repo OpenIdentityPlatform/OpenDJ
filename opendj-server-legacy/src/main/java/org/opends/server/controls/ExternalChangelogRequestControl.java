@@ -110,12 +110,13 @@ public class ExternalChangelogRequestControl
   }
 
   /**
-   * Returns the cookie value.
-   * @return The cookie value.
+   * Returns a copy of the cookie value.
+   *
+   * @return a copy of the cookie value
    */
   public MultiDomainServerState getCookie()
   {
-    return this.cookie;
+    return new MultiDomainServerState(cookie);
   }
 
   @Override

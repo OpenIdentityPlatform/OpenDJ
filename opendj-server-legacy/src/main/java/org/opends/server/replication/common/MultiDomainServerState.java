@@ -64,13 +64,31 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
+   * Copy constructor.
+   *
+   * @param cookie
+   *          the cookie to copy
+   */
+  public MultiDomainServerState(MultiDomainServerState cookie)
+  {
+    list = new ConcurrentSkipListMap<>();
+
+    for (Map.Entry<DN, ServerState> mapEntry : cookie.list.entrySet())
+    {
+      DN dn = mapEntry.getKey();
+      ServerState state = mapEntry.getValue();
+      list.put(dn, state.duplicate());
+    }
+  }
+
+  /**
    * Create an object from a string representation.
-   * @param mdss The provided string representation of the state.
+   * @param cookie The provided string representation of the state.
    * @throws DirectoryException when the string has an invalid format
    */
-  public MultiDomainServerState(String mdss) throws DirectoryException
+  public MultiDomainServerState(String cookie) throws DirectoryException
   {
-    list = new ConcurrentSkipListMap<>(splitGenStateToServerStates(mdss));
+    list = new ConcurrentSkipListMap<>(splitGenStateToServerStates(cookie));
   }
 
   /**
