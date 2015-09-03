@@ -33,6 +33,7 @@ import org.forgerock.util.Pair;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
@@ -55,21 +56,43 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
     dn3 = DN.valueOf("o=test3");
   }
 
-  @Test
-  public void testDecodeAndEncode1() throws Exception
+  @DataProvider
+  public Object[][] decodeAndEncodeData()
   {
-    final String cookie = "o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:";
-    final MultiDomainServerState state = new MultiDomainServerState(cookie);
-    assertEquals(state.toString(), cookie + ";");
+    String cookie = "o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:";
+    return new Object[][] {
+      { "", "" },
+      { "o=test1:", "o=test1:;" },
+      { ";;o=test1:;;", ":;o=test1:;" },
+      { cookie, cookie + ";" },
+      { "o=test1:" + csn1 + ";o=test2:" + csn2 + ";;o=test6:", ":;o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:;" },
+    };
   }
 
-  @Test
-  public void testDecodeAndEncode2() throws Exception
+  @Test(dataProvider = "decodeAndEncodeData")
+  public void decodeAndEncode(String cookie, String expectedCookie) throws Exception
   {
-    final String cookie = "o=test1:" + csn1 + ";o=test2:" + csn2 + ";;o=test6:";
     final MultiDomainServerState state = new MultiDomainServerState(cookie);
-    final String expected = ":;o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:;";
-    assertEquals(state.toString(), expected);
+    assertEquals(state.toString(), expectedCookie);
+  }
+
+  @DataProvider
+  public Object[][] copyCtorData()
+  {
+    return new Object[][] {
+      { "" },
+      { "o=test1:" + csn1 + ";" },
+      { "o=test1:" + csn1 + ";o=test2:" + csn2 + ";" },
+      { "o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:;" },
+    };
+  }
+
+  @Test(dataProvider = "copyCtorData")
+  public void copyCtor(String cookie) throws Exception
+  {
+    final MultiDomainServerState state = new MultiDomainServerState(cookie);
+    final MultiDomainServerState copy = new MultiDomainServerState(state);
+    assertEquals(copy.toString(), cookie);
   }
 
   @Test

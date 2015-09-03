@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -1119,7 +1120,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   private InternalSearchOperation searchChangelog(final SearchRequest request, final int expectedNbEntries,
-      ResultCode expectedResultCode, String testName) throws Exception
+      final ResultCode expectedResultCode, String testName) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(5, SECONDS)
@@ -1131,15 +1132,18 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       public InternalSearchOperation call() throws Exception
       {
         InternalSearchOperation searchOp = connection.processSearch(request);
-        assertThat(searchOp.getSearchEntries()).hasSize(expectedNbEntries);
+
+        final SoftAssertions softly = new SoftAssertions();
+        softly.assertThat(searchOp.getResultCode()).as(searchOp.getErrorMessage().toString())
+            .isEqualTo(expectedResultCode);
+        softly.assertThat(searchOp.getSearchEntries()).hasSize(expectedNbEntries);
+        softly.assertAll();
+
         return searchOp;
       }
     });
 
-    final List<SearchResultEntry> entries = searchOp.getSearchEntries();
-    assertThat(entries).hasSize(expectedNbEntries);
-    debugAndWriteEntries(getLDIFWriter(), entries, testName);
-    waitForSearchOpResult(searchOp, expectedResultCode);
+    debugAndWriteEntries(getLDIFWriter(), searchOp.getSearchEntries(), testName);
     return searchOp;
   }
 
