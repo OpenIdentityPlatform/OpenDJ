@@ -513,8 +513,7 @@ public class ManageTasks extends ConsoleApplication {
     }
 
     @Override
-    public MenuResult<TaskEntry> invoke(ConsoleApplication app)
-            throws ClientException
+    public MenuResult<TaskEntry> invoke(ConsoleApplication app) throws ClientException
     {
       return invoke((ManageTasks)app);
     }
@@ -528,15 +527,13 @@ public class ManageTasks extends ConsoleApplication {
      * @throws ClientException
      *           if any problem occurred
      */
-    protected abstract MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws ClientException;
+    protected abstract MenuResult<TaskEntry> invoke(ManageTasks app) throws ClientException;
   }
 
   /** Executable for printing a task summary table. */
   private static class PrintSummaryTop extends TopMenuCallback {
     @Override
-    public MenuResult<Void> invoke(ManageTasks app)
-            throws ClientException
+    public MenuResult<Void> invoke(ManageTasks app) throws ClientException
     {
       // Since the summary table is reprinted every time,
       // the user enters the top level this task just returns 'success'
@@ -619,10 +616,8 @@ public class ManageTasks extends ConsoleApplication {
     @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app) throws ClientException
     {
-      LocalizableMessage m;
-      TaskEntry taskEntry;
       try {
-        taskEntry = app.getTaskClient().getTaskEntry(taskId);
+        TaskEntry taskEntry = app.getTaskClient().getTaskEntry(taskId);
 
         TableBuilder table = new TableBuilder();
         table.appendHeading(INFO_TASKINFO_DETAILS.get());
@@ -643,10 +638,10 @@ public class ManageTasks extends ConsoleApplication {
         table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
 
         if (TaskState.isRecurring(taskEntry.getTaskState())) {
-          m = taskEntry.getScheduleTab();
+          LocalizableMessage m = taskEntry.getScheduleTab();
           table.appendCell(m);
         } else {
-          m = taskEntry.getScheduledStartTime();
+          LocalizableMessage m = taskEntry.getScheduledStartTime();
           if (m == null || m.equals(LocalizableMessage.EMPTY)) {
             table.appendCell(INFO_TASKINFO_IMMEDIATE_EXECUTION.get());
           } else {
@@ -669,7 +664,7 @@ public class ManageTasks extends ConsoleApplication {
 
         table.startRow();
         table.appendCell(INFO_TASKINFO_FIELD_FAILED_DEPENDENCY_ACTION.get());
-        m = taskEntry.getFailedDependencyAction();
+        LocalizableMessage m = taskEntry.getFailedDependencyAction();
         table.appendCell(m != null ? m : INFO_TASKINFO_NONE.get());
 
         writeMultiValueCells(
@@ -728,11 +723,11 @@ public class ManageTasks extends ConsoleApplication {
         }
 
         app.getOutputStream().println();
+        return MenuResult.success(taskEntry);
       } catch (Exception e) {
-        app.println(ERR_TASKINFO_RETRIEVING_TASK_ENTRY.get(taskId, e.getMessage()));
+        app.errPrintln(ERR_TASKINFO_RETRIEVING_TASK_ENTRY.get(taskId, e.getMessage()));
         return MenuResult.again();
       }
-      return MenuResult.success(taskEntry);
     }
 
     /**
@@ -788,8 +783,7 @@ public class ManageTasks extends ConsoleApplication {
     }
 
     @Override
-    protected MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws ClientException
+    protected MenuResult<TaskEntry> invoke(ManageTasks app) throws ClientException
     {
       TaskEntry taskEntry = null;
       try {
@@ -867,7 +861,7 @@ public class ManageTasks extends ConsoleApplication {
       } catch (NumberFormatException ignored) {}
 
       if (index == null) {
-        app.println(ERR_TASKINFO_INVALID_MENU_KEY.get(line));
+        app.errPrintln(ERR_TASKINFO_INVALID_MENU_KEY.get(line));
         return MenuResult.again();
       }
 
@@ -899,14 +893,14 @@ public class ManageTasks extends ConsoleApplication {
     {
       try {
         TaskEntry entry = app.getTaskClient().getTaskEntry(taskId);
-        if (entry.isCancelable()) {
-          app.getTaskClient().cancelTask(taskId);
-          app.println(INFO_TASKINFO_CMD_CANCEL_SUCCESS.get(taskId));
-          return MenuResult.success(entry);
-        } else {
-          app.println(ERR_TASKINFO_TASK_NOT_CANCELABLE_TASK.get(taskId));
+        if (!entry.isCancelable()) {
+          app.errPrintln(ERR_TASKINFO_TASK_NOT_CANCELABLE_TASK.get(taskId));
           return MenuResult.again();
         }
+
+        app.getTaskClient().cancelTask(taskId);
+        app.println(INFO_TASKINFO_CMD_CANCEL_SUCCESS.get(taskId));
+        return MenuResult.success(entry);
       } catch (Exception e) {
         app.errPrintln(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
         return MenuResult.again();
