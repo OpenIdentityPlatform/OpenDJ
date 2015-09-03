@@ -27,8 +27,9 @@
 package org.opends.server.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.tasks.TaskClient;
@@ -37,22 +38,19 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.StringArgument;
-
-import org.opends.server.backends.task.TaskState;
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuCallback;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
 
@@ -69,13 +67,10 @@ import java.util.TreeMap;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.*;
 
-/**
- * Tool for getting information and managing tasks in the Directory Server.
- */
+/** Tool for getting information and managing tasks in the Directory Server. */
 public class ManageTasks extends ConsoleApplication {
-
   /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
 
@@ -144,29 +139,16 @@ public class ManageTasks extends ConsoleApplication {
 
   private static final int INDENT = 2;
 
-  /**
-   * ID of task for which to display details and exit.
-   */
+  /** ID of task for which to display details and exit. */
   private StringArgument task;
-
-  /**
-   * Indicates print summary and exit.
-   */
+  /** Indicates print summary and exit. */
   private BooleanArgument summary;
-
-  /**
-   * ID of task to cancel.
-   */
+  /** ID of task to cancel. */
   private StringArgument cancel;
-
-  /**
-   * Argument used to request non-interactive behavior.
-   */
+  /** Argument used to request non-interactive behavior. */
   private BooleanArgument noPrompt;
 
-  /**
-   * Accesses the directory's task backend.
-   */
+  /** Accesses the directory's task backend. */
   private TaskClient taskClient;
 
   /**
@@ -211,7 +193,6 @@ public class ManageTasks extends ConsoleApplication {
     }
     JDKLogging.disableLogging();
 
-
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
             "org.opends.server.tools.TaskInfo",
@@ -219,10 +200,8 @@ public class ManageTasks extends ConsoleApplication {
             false, null, alwaysSSL);
     argParser.setShortToolDescription(REF_SHORT_DESC_MANAGE_TASKS.get());
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser
     try {
-
        StringArgument propertiesFileArgument = new StringArgument(
           "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
           true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
@@ -270,10 +249,7 @@ public class ManageTasks extends ConsoleApplication {
     {
       argParser.getArguments().initArgumentsWithConfiguration();
     }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
+    catch (ConfigException ignored) {}
 
     // Parse the command-line arguments provided to this program.
     try {
@@ -306,9 +282,7 @@ public class ManageTasks extends ConsoleApplication {
                 getOutputStream(), getErrorStream()));
 
         if (isMenuDrivenMode()) {
-
-          // Keep prompting the user until they specify quit of
-          // there is a fatal exception
+          // Keep prompting the user until they specify quit of there is a fatal exception
           while (true) {
             getOutputStream().println();
             Menu<Void> menu = getSummaryMenu();
@@ -317,11 +291,9 @@ public class ManageTasks extends ConsoleApplication {
               return 0;
             }
           }
-
         } else if (task.isPresent()) {
           getOutputStream().println();
-          MenuResult<TaskEntry> r =
-                  new PrintTaskInfo(task.getValue()).invoke(this);
+          MenuResult<TaskEntry> r = new PrintTaskInfo(task.getValue()).invoke(this);
           if (r.isAgain())
           {
             return 1;
@@ -330,8 +302,7 @@ public class ManageTasks extends ConsoleApplication {
           getOutputStream().println();
           printSummaryTable();
         } else if (cancel.isPresent()) {
-          MenuResult<TaskEntry> r =
-                  new CancelTask(cancel.getValue()).invoke(this);
+          MenuResult<TaskEntry> r = new CancelTask(cancel.getValue()).invoke(this);
           if (r.isAgain())
           {
             return 1;
@@ -342,7 +313,6 @@ public class ManageTasks extends ConsoleApplication {
            printSummaryTable();
            return 0;
         }
-
       } catch (LDAPConnectionException lce) {
         println(INFO_TASKINFO_LDAP_EXCEPTION.get(lce.getMessageObject()));
         return 1;
@@ -354,38 +324,31 @@ public class ManageTasks extends ConsoleApplication {
     return 0;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return !noPrompt.isPresent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
-    return !task.isPresent() && !cancel.isPresent() && !summary.isPresent() &&
-           !noPrompt.isPresent();
+    return !task.isPresent() && !cancel.isPresent() && !summary.isPresent() && !noPrompt.isPresent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isQuiet() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return false;
@@ -507,13 +470,18 @@ public class ManageTasks extends ConsoleApplication {
     return this.taskClient;
   }
 
-  /**
-   * Base for callbacks that implement top level menu items.
-   */
+  private static void printTable(TableBuilder table, int column, int width, StringWriter sw)
+  {
+    TextTablePrinter tablePrinter = new TextTablePrinter(sw);
+    tablePrinter.setTotalWidth(80);
+    tablePrinter.setIndentWidth(INDENT);
+    tablePrinter.setColumnWidth(column, width);
+    table.print(tablePrinter);
+  }
+
+  /** Base for callbacks that implement top level menu items. */
   private static abstract class TopMenuCallback
           implements MenuCallback<Void> {
-
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Void> invoke(ConsoleApplication app) throws ClientException {
       return invoke((ManageTasks)app);
@@ -526,17 +494,12 @@ public class ManageTasks extends ConsoleApplication {
      * @return MessageResult result of task
      * @throws ClientException if there is a problem
      */
-    protected abstract MenuResult<Void> invoke(ManageTasks app)
-            throws ClientException;
-
+    protected abstract MenuResult<Void> invoke(ManageTasks app) throws ClientException;
   }
 
-  /**
-   * Base for callbacks that manage task entries.
-   */
+  /** Base for callbacks that manage task entries. */
   private static abstract class TaskOperationCallback
           implements MenuCallback<TaskEntry> {
-
     /** ID of the task to manage. */
     protected String taskId;
 
@@ -549,7 +512,6 @@ public class ManageTasks extends ConsoleApplication {
       this.taskId = taskId;
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<TaskEntry> invoke(ConsoleApplication app)
             throws ClientException
@@ -568,30 +530,22 @@ public class ManageTasks extends ConsoleApplication {
      */
     protected abstract MenuResult<TaskEntry> invoke(ManageTasks app)
             throws ClientException;
-
   }
 
-  /**
-   * Executable for printing a task summary table.
-   */
+  /** Executable for printing a task summary table. */
   private static class PrintSummaryTop extends TopMenuCallback {
-
     @Override
     public MenuResult<Void> invoke(ManageTasks app)
             throws ClientException
     {
-      // Since the summary table is reprinted every time the
-      // user enters the top level this task just returns
-      // 'success'
+      // Since the summary table is reprinted every time,
+      // the user enters the top level this task just returns 'success'
       return MenuResult.success();
     }
   }
 
-  /**
-   * Executable for printing a particular task's details.
-   */
+  /** Executable for printing a particular task's details. */
   private static class TaskDrilldownMenu extends TopMenuCallback {
-
     private String taskId;
 
     /**
@@ -603,7 +557,6 @@ public class ManageTasks extends ConsoleApplication {
       this.taskId = taskId;
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Void> invoke(ManageTasks app) throws ClientException {
       MenuResult<TaskEntry> res = new PrintTaskInfo(taskId).invoke(app);
@@ -650,14 +603,10 @@ public class ManageTasks extends ConsoleApplication {
       }
       return MenuResult.success();
     }
-
   }
 
-  /**
-   * Executable for printing a particular task's details.
-   */
+  /** Executable for printing a particular task's details. */
   private static class PrintTaskInfo extends TaskOperationCallback {
-
     /**
      * Constructs a parameterized instance.
      *
@@ -667,10 +616,8 @@ public class ManageTasks extends ConsoleApplication {
       super(taskId);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws ClientException
+    public MenuResult<TaskEntry> invoke(ManageTasks app) throws ClientException
     {
       LocalizableMessage m;
       TaskEntry taskEntry;
@@ -738,11 +685,7 @@ public class ManageTasks extends ConsoleApplication {
                 INFO_TASKINFO_NONE_SPECIFIED.get());
 
         StringWriter sw = new StringWriter();
-        TextTablePrinter tablePrinter = new TextTablePrinter(sw);
-        tablePrinter.setTotalWidth(80);
-        tablePrinter.setIndentWidth(INDENT);
-        tablePrinter.setColumnWidth(1, 0);
-        table.print(tablePrinter);
+        printTable(table, 1, 0, sw);
         app.getOutputStream().println();
         app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
 
@@ -767,11 +710,7 @@ public class ManageTasks extends ConsoleApplication {
           }
         }
         sw = new StringWriter();
-        tablePrinter = new TextTablePrinter(sw);
-        tablePrinter.setTotalWidth(80);
-        tablePrinter.setIndentWidth(INDENT);
-        tablePrinter.setColumnWidth(1, 0);
-        table.print(tablePrinter);
+        printTable(table, 1, 0, sw);
         app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
 
         // Print the last log message if any
@@ -784,11 +723,7 @@ public class ManageTasks extends ConsoleApplication {
           table.appendCell(logs.get(logs.size() - 1));
 
           sw = new StringWriter();
-          tablePrinter = new TextTablePrinter(sw);
-          tablePrinter.setTotalWidth(80);
-          tablePrinter.setIndentWidth(INDENT);
-          tablePrinter.setColumnWidth(0, 0);
-          table.print(tablePrinter);
+          printTable(table, 0, 0, sw);
           app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
         }
 
@@ -841,11 +776,8 @@ public class ManageTasks extends ConsoleApplication {
     }
   }
 
-  /**
-   * Executable for printing a particular task's details.
-   */
+  /** Executable for printing a particular task's details. */
   private static class ViewTaskLogs extends TaskOperationCallback {
-
     /**
      * Constructs a parameterized instance.
      *
@@ -855,7 +787,6 @@ public class ManageTasks extends ConsoleApplication {
       super(taskId);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MenuResult<TaskEntry> invoke(ManageTasks app)
             throws ClientException
@@ -879,11 +810,7 @@ public class ManageTasks extends ConsoleApplication {
           table.appendCell(INFO_TASKINFO_NONE.get());
         }
         StringWriter sw = new StringWriter();
-        TextTablePrinter tablePrinter = new TextTablePrinter(sw);
-        tablePrinter.setTotalWidth(80);
-        tablePrinter.setIndentWidth(INDENT);
-        tablePrinter.setColumnWidth(0, 0);
-        table.print(tablePrinter);
+        printTable(table, 0, 0, sw);
         app.getOutputStream().println(LocalizableMessage.raw(sw.getBuffer().toString()));
         app.getOutputStream().println();
       } catch (Exception e) {
@@ -893,11 +820,8 @@ public class ManageTasks extends ConsoleApplication {
     }
   }
 
-  /**
-   * Executable for canceling a particular task.
-   */
+  /** Executable for canceling a particular task. */
   private static class CancelTaskTop extends TopMenuCallback {
-
     private List<String> taskIds;
     private List<Integer> cancelableIndices;
 
@@ -908,74 +832,59 @@ public class ManageTasks extends ConsoleApplication {
      * @param cancelableIndices list of integers whose elements represent
      *        the indices of <code>taskIds</code> that are cancelable
      */
-    public CancelTaskTop(List<String> taskIds,
-                         List<Integer> cancelableIndices) {
+    public CancelTaskTop(List<String> taskIds, List<Integer> cancelableIndices)
+    {
       this.taskIds = taskIds;
       this.cancelableIndices = cancelableIndices;
     }
 
-    /** {@inheritDoc} */
     @Override
-    public MenuResult<Void> invoke(ManageTasks app)
-            throws ClientException
+    public MenuResult<Void> invoke(ManageTasks app) throws ClientException
     {
-      if (taskIds != null && !taskIds.isEmpty()) {
-        if (cancelableIndices != null && !cancelableIndices.isEmpty()) {
-
-          // Prompt for the task number
-          Integer index = null;
-          String line = app.readLineOfInput(
-                  INFO_TASKINFO_CMD_CANCEL_NUMBER_PROMPT.get(
-                          cancelableIndices.get(0)));
-          if (line.length() == 0) {
-            line = String.valueOf(cancelableIndices.get(0));
-          }
-          try {
-            int i = Integer.parseInt(line);
-            if (!cancelableIndices.contains(i)) {
-              app.println(ERR_TASKINFO_NOT_CANCELABLE_TASK_INDEX.get(i));
-            } else {
-              index = i - 1;
-            }
-          } catch (NumberFormatException nfe) {
-            // ignore;
-          }
-          if (index != null) {
-            String taskId = taskIds.get(index);
-            try {
-              CancelTask ct = new CancelTask(taskId);
-              MenuResult<TaskEntry> result = ct.invoke(app);
-              if (result.isSuccess()) {
-                return MenuResult.success();
-              } else {
-                return MenuResult.again();
-              }
-            } catch (Exception e) {
-              app.println(ERR_TASKINFO_CANCELING_TASK.get(
-                          taskId, e.getMessage()));
-              return MenuResult.again();
-            }
-          } else {
-            app.println(ERR_TASKINFO_INVALID_MENU_KEY.get(line));
-            return MenuResult.again();
-          }
-        } else {
-          app.println(INFO_TASKINFO_NO_CANCELABLE_TASKS.get());
-          return MenuResult.cancel();
-        }
-      } else {
+      if (taskIds == null || taskIds.isEmpty()) {
         app.println(INFO_TASKINFO_NO_TASKS.get());
         return MenuResult.cancel();
       }
-    }
+      if (cancelableIndices == null || cancelableIndices.isEmpty()) {
+        app.println(INFO_TASKINFO_NO_CANCELABLE_TASKS.get());
+        return MenuResult.cancel();
+      }
 
+      // Prompt for the task number
+      Integer index = null;
+      String line = app.readLineOfInput(INFO_TASKINFO_CMD_CANCEL_NUMBER_PROMPT.get(cancelableIndices.get(0)));
+      if (line.length() == 0) {
+        line = String.valueOf(cancelableIndices.get(0));
+      }
+
+      try {
+        int i = Integer.parseInt(line);
+        if (!cancelableIndices.contains(i)) {
+          app.println(ERR_TASKINFO_NOT_CANCELABLE_TASK_INDEX.get(i));
+        } else {
+          index = i - 1;
+        }
+      } catch (NumberFormatException ignored) {}
+
+      if (index == null) {
+        app.println(ERR_TASKINFO_INVALID_MENU_KEY.get(line));
+        return MenuResult.again();
+      }
+
+      String taskId = taskIds.get(index);
+      try {
+        CancelTask ct = new CancelTask(taskId);
+        MenuResult<TaskEntry> result = ct.invoke(app);
+        return result.isSuccess() ? MenuResult.<Void> success() : MenuResult.<Void> again();
+      } catch (Exception e) {
+        app.println(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
+        return MenuResult.again();
+      }
+    }
   }
 
-  /**
-   * Executable for canceling a particular task.
-   */
+  /** Executable for canceling a particular task. */
   private static class CancelTask extends TaskOperationCallback {
-
     /**
      * Constructs a parameterized instance.
      *
@@ -985,10 +894,8 @@ public class ManageTasks extends ConsoleApplication {
       super(taskId);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws ClientException
+    public MenuResult<TaskEntry> invoke(ManageTasks app) throws ClientException
     {
       try {
         TaskEntry entry = app.getTaskClient().getTaskEntry(taskId);
@@ -1001,12 +908,9 @@ public class ManageTasks extends ConsoleApplication {
           return MenuResult.again();
         }
       } catch (Exception e) {
-        app.println(ERR_TASKINFO_CANCELING_TASK.get(
-                taskId, e.getMessage()));
+        app.println(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
         return MenuResult.again();
       }
     }
-
   }
-
 }
