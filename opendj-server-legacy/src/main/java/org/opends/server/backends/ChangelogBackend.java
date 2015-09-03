@@ -271,14 +271,12 @@ public class ChangelogBackend extends Backend<Configuration>
     return (ChangelogBackend) DirectoryServer.getBackend(CHANGELOG_BASE_DN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(final Configuration config, ServerContext serverContext) throws ConfigException
   {
     throw new UnsupportedOperationException("The changelog backend is not configurable");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void openBackend() throws InitializationException
   {
@@ -295,7 +293,6 @@ public class ChangelogBackend extends Backend<Configuration>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void closeBackend()
   {
@@ -309,21 +306,18 @@ public class ChangelogBackend extends Backend<Configuration>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(final AttributeType attributeType, final IndexType indexType)
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(final DN entryDN) throws DirectoryException
   {
@@ -335,7 +329,6 @@ public class ChangelogBackend extends Backend<Configuration>
     throw new RuntimeException("Not implemented");
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(final DN entryDN) throws DirectoryException
   {
@@ -360,15 +353,10 @@ public class ChangelogBackend extends Backend<Configuration>
       {
         final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
         CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
-        final MultiDomainDBCursor cursor = replicationDomainDB.getCursorFrom(
-            new MultiDomainServerState(), options, getExcludedBaseDNs());
-        try
+        try (final MultiDomainDBCursor cursor =
+            replicationDomainDB.getCursorFrom(new MultiDomainServerState(), options, getExcludedBaseDNs()))
         {
           baseEntryHasSubordinates = cursor.next();
-        }
-        finally
-        {
-          close(cursor);
         }
       }
       catch (ChangelogException e)
@@ -380,14 +368,12 @@ public class ChangelogBackend extends Backend<Configuration>
     return baseEntryHasSubordinates;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(final DN baseDN) throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(final DN parentDN) throws DirectoryException
   {
@@ -491,7 +477,6 @@ public class ChangelogBackend extends Backend<Configuration>
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation)
       throws DirectoryException, CanceledOperationException
@@ -500,7 +485,6 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getName()), getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
@@ -509,7 +493,6 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN), getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException,
@@ -519,7 +502,6 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_MODIFY_NOT_SUPPORTED.get(String.valueOf(newEntry.getName()), getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void renameEntry(DN currentDN, Entry entry,
       ModifyDNOperation modifyDNOperation) throws DirectoryException,
@@ -585,28 +567,24 @@ public class ChangelogBackend extends Backend<Configuration>
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void exportLDIF(final LDIFExportConfig exportConfig)
       throws DirectoryException
@@ -615,7 +593,6 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
@@ -624,7 +601,6 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
@@ -632,7 +608,6 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
@@ -640,7 +615,6 @@ public class ChangelogBackend extends Backend<Configuration>
           ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
@@ -648,7 +622,6 @@ public class ChangelogBackend extends Backend<Configuration>
           ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
@@ -844,9 +817,7 @@ public class ChangelogBackend extends Backend<Configuration>
            && filter.getAttributeType().getPrimaryName().equalsIgnoreCase(primaryName);
   }
 
-  /**
-   * Search the changelog when a cookie control is provided.
-   */
+  /** Search the changelog when a cookie control is provided. */
   private void initialSearchFromCookie(final CookieEntrySender entrySender)
       throws DirectoryException, ChangelogException
   {
@@ -855,15 +826,12 @@ public class ChangelogBackend extends Backend<Configuration>
       return;
     }
 
-    ECLMultiDomainDBCursor replicaUpdatesCursor = null;
-    try
+    final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
+    CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
+    try (final MultiDomainDBCursor cursor =
+        replicationDomainDB.getCursorFrom(entrySender.cookie, options, entrySender.excludedBaseDNs);
+        ECLMultiDomainDBCursor replicaUpdatesCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor))
     {
-      final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
-      CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
-      final MultiDomainDBCursor cursor = replicationDomainDB.getCursorFrom(
-          entrySender.cookie, options, entrySender.excludedBaseDNs);
-      replicaUpdatesCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor);
-
       if (sendCookieEntriesFromCursor(entrySender, replicaUpdatesCursor))
       {
         entrySender.transitioningToPersistentSearchPhase();
@@ -873,7 +841,6 @@ public class ChangelogBackend extends Backend<Configuration>
     finally
     {
       entrySender.finalizeInitialSearch();
-      StaticUtils.close(replicaUpdatesCursor);
     }
   }
 
@@ -912,7 +879,6 @@ public class ChangelogBackend extends Backend<Configuration>
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void registerPersistentSearch(PersistentSearch pSearch) throws DirectoryException
   {
@@ -1003,9 +969,7 @@ public class ChangelogBackend extends Backend<Configuration>
     }
   }
 
-  /**
-   * Search the changelog using change number(s).
-   */
+  /** Search the changelog using change number(s). */
   private void initialSearchFromChangeNumber(final ChangeNumberEntrySender entrySender)
       throws ChangelogException, DirectoryException
   {
@@ -1014,11 +978,9 @@ public class ChangelogBackend extends Backend<Configuration>
       return;
     }
 
-    DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor = null;
     final AtomicReference<MultiDomainDBCursor> replicaUpdatesCursor = new AtomicReference<>();
-    try
+    try (DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor = getCNIndexDBCursor(entrySender.lowestChangeNumber))
     {
-      cnIndexDBCursor = getCNIndexDBCursor(entrySender.lowestChangeNumber);
       final MultiDomainServerState cookie = new MultiDomainServerState();
 
       if (sendChangeNumberEntriesFromCursors(entrySender, cnIndexDBCursor, replicaUpdatesCursor, cookie))
@@ -1030,7 +992,7 @@ public class ChangelogBackend extends Backend<Configuration>
     finally
     {
       entrySender.finalizeInitialSearch();
-      StaticUtils.close(cnIndexDBCursor, replicaUpdatesCursor.get());
+      StaticUtils.close(replicaUpdatesCursor.get());
     }
   }
 
@@ -1194,9 +1156,7 @@ public class ChangelogBackend extends Backend<Configuration>
     return cnIndexDB.getCursorFrom(changeNumberToUse);
   }
 
-  /**
-   * Creates a changelog entry.
-   */
+  /** Creates a changelog entry. */
   private static Entry createEntryFromMsg(final DN baseDN, final long changeNumber, final String cookie,
       final UpdateMsg msg) throws DirectoryException
   {
@@ -1557,9 +1517,7 @@ public class ChangelogBackend extends Backend<Configuration>
     }
   }
 
-  /**
-   * Describes the current search phase.
-   */
+  /** Describes the current search phase. */
   private enum SearchPhase
   {
     /**

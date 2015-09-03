@@ -54,14 +54,10 @@ import org.opends.server.types.DirectoryException;
  */
 public class MultiDomainServerState implements Iterable<DN>
 {
-  /**
-   * The list of (domain service id, ServerState).
-   */
+  /** The list of (domain service id, ServerState). */
   private final ConcurrentMap<DN, ServerState> list;
 
-  /**
-   * Creates a new empty object.
-   */
+  /** Creates a new empty object. */
   public MultiDomainServerState()
   {
     list = new ConcurrentSkipListMap<>();
