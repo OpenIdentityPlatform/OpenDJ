@@ -877,7 +877,7 @@ public class ManageTasks extends ConsoleApplication {
         MenuResult<TaskEntry> result = ct.invoke(app);
         return result.isSuccess() ? MenuResult.<Void> success() : MenuResult.<Void> again();
       } catch (Exception e) {
-        app.println(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
+        app.errPrintln(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
         return MenuResult.again();
       }
     }
@@ -908,7 +908,7 @@ public class ManageTasks extends ConsoleApplication {
           return MenuResult.again();
         }
       } catch (Exception e) {
-        app.println(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
+        app.errPrintln(ERR_TASKINFO_CANCELING_TASK.get(taskId, e.getMessage()));
         return MenuResult.again();
       }
     }
