@@ -36,84 +36,74 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.replication.common.MultiDomainServerState;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
-/**
- * This class implements the control used to browse the external changelog.
- */
+/** This class implements the control used to browse the external changelog. */
 public class ExternalChangelogRequestControl
        extends Control
 {
   private MultiDomainServerState cookie;
 
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<ExternalChangelogRequestControl>
   {
-    /** {@inheritDoc} */
-    public ExternalChangelogRequestControl decode(boolean isCritical,
-        ByteString value)
-    throws DirectoryException
+    @Override
+    public ExternalChangelogRequestControl decode(boolean isCritical, ByteString value) throws DirectoryException
     {
-      MultiDomainServerState mdss;
+      return new ExternalChangelogRequestControl(isCritical, decodeCookie(value));
+    }
+
+    private MultiDomainServerState decodeCookie(ByteString value) throws DirectoryException
+    {
       if (value == null)
       {
-        mdss = new MultiDomainServerState();
-      } else {
+        return new MultiDomainServerState();
+      }
 
       ASN1Reader reader = ASN1.getReader(value);
       String mdssValue = null;
       try
       {
         mdssValue = reader.readOctetStringAsString();
-        mdss = new MultiDomainServerState(mdssValue);
+        return new MultiDomainServerState(mdssValue);
       }
       catch (Exception e)
       {
         try
         {
           mdssValue = value.toString();
-          mdss = new MultiDomainServerState(mdssValue);
+          return new MultiDomainServerState(mdssValue);
         }
         catch (Exception e2)
         {
-          LocalizableMessage message =
-            ERR_CANNOT_DECODE_CONTROL_VALUE.get(
-                getOID() + " x=" + value.toHexString() + " v="
-                + mdssValue , getExceptionMessage(e));
+          LocalizableMessage message = ERR_CANNOT_DECODE_CONTROL_VALUE.get(
+              getOID() + " x=" + value.toHexString() + " v=" + mdssValue, getExceptionMessage(e));
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
         }
       }
-      }
-      return new ExternalChangelogRequestControl(isCritical, mdss);
     }
 
+    @Override
     public String getOID()
     {
       return OID_ECL_COOKIE_EXCHANGE_CONTROL;
     }
-
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
-  public static final ControlDecoder<ExternalChangelogRequestControl> DECODER =
-    new Decoder();
+  /** The Control Decoder that can be used to decode this control. */
+  public static final ControlDecoder<ExternalChangelogRequestControl> DECODER = new Decoder();
 
   /**
    * Create a new external change log request control to contain the cookie.
    * @param isCritical Specifies whether the control is critical.
    * @param cookie Specifies the cookie value.
    */
-  public ExternalChangelogRequestControl(boolean isCritical,
-      MultiDomainServerState cookie)
+  public ExternalChangelogRequestControl(boolean isCritical, MultiDomainServerState cookie)
   {
     super(OID_ECL_COOKIE_EXCHANGE_CONTROL, isCritical);
     this.cookie = cookie;
@@ -128,10 +118,7 @@ public class ExternalChangelogRequestControl
     return this.cookie;
   }
 
-  /**
-   * Dump a string representation of this object to the provided bufer.
-   * @param buffer The provided buffer.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ExternalChangelogRequestControl(cookie=");
@@ -139,20 +126,11 @@ public class ExternalChangelogRequestControl
     buffer.append(")");
   }
 
-  /**
-   * Writes this control's value to an ASN.1 writer. The value
-   * (if any) must be written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 writer to use.
-   * @throws IOException If a problem occurs while writing to the
-   *                     stream.
-   */
-  protected void writeValue(ASN1Writer writer)
-      throws IOException
+  @Override
+  protected void writeValue(ASN1Writer writer) throws IOException
   {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeOctetString(this.cookie.toString());
     writer.writeEndSequence();
   }
 }
-
