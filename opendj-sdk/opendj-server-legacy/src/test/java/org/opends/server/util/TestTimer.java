@@ -125,19 +125,12 @@ public interface TestTimer
     private final long sleepTime;
     private final long totalNbSteps;
     private long nbStepsRemaining;
-    private boolean started;
 
     private SteppingTimer(Builder builder)
     {
       this.sleepTime = builder.sleepTimes;
       this.totalNbSteps = sleepTime > 0 ? builder.maxSleepTimeInMillis / sleepTime : 0;
       this.nbStepsRemaining = totalNbSteps;
-    }
-
-    private SteppingTimer startTimer()
-    {
-      started = true;
-      return this;
     }
 
     /**
@@ -152,6 +145,7 @@ public interface TestTimer
       if (!done)
       {
         Thread.sleep(sleepTime);
+        nbStepsRemaining--;
       }
       return done;
     }
@@ -163,14 +157,12 @@ public interface TestTimer
      */
     private boolean hasTimedOutNoSleep()
     {
-      Reject.ifTrue(!started, "start() method should have been called first");
-      return nbStepsRemaining-- <= 0;
+      return nbStepsRemaining <= 0;
     }
 
     @Override
     public <R> R repeatUntilSuccess(Callable<R> callable) throws Exception, InterruptedException
     {
-      startTimer();
       do
       {
         try
