@@ -25,25 +25,26 @@
   !
 -->
 <appendix xml:id='appendix-log-messages'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Log Message Reference</title>
  <indexterm>
   <primary>Logs</primary>
   <secondary>Log Message Reference</secondary>
  </indexterm>
 
- <para>The section on <link xlink:href="admin-guide#logging"
- xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Server
- Logs</citetitle></link> describes logs. Access and audit logs concern client
- operations rather than OpenDJ directory server and tools, and so are not
- listed here. Instead, this appendix covers severe and fatal error messages
- for the directory server and its tools, such as those logged in
- <filename>/path/to/opendj/logs/errors</filename>, and
- <filename>/path/to/opendj/logs/replication</filename>.</para>
+ <para>
+  <olink targetdoc="admin-guide" targetptr="logging"/> describes logs.
+  Access and audit logs concern client operations
+  rather than OpenDJ directory server and tools, and so are not listed here.
+  Instead, this appendix covers severe and fatal error messages
+  for the directory server and its tools,
+  such as those logged in <filename>/path/to/opendj/logs/errors</filename>,
+  and <filename>/path/to/opendj/logs/replication</filename>.
+ </para>
 
  <!-- <xinclude:include href="log-ref-access-control.xml" /> -->
  <!-- <xinclude:include href="log-ref-admin-tool.xml" /> -->

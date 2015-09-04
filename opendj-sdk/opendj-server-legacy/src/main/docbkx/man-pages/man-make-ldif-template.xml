@@ -561,12 +561,7 @@ description: This is the description for {cn}.]]></programlisting>
   <title>See Also</title>
 
   <para>
-   <link
-    xlink:show="new"
-    xlink:href="reference#make-ldif-1"
-    xlink:role="http://docbook.org/xlink/role/olink"
-   ><citerefentry><refentrytitle
-    >make-ldif</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
+     <xref linkend="make-ldif-1" />,
    the OpenDJ directory server template file
    <filename>/path/to/opendj/config/MakeLDIF/example.template</filename>
   </para>
