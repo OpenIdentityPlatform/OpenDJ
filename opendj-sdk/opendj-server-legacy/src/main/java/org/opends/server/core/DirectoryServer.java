@@ -76,7 +76,6 @@ import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
@@ -208,7 +207,6 @@ import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
-import org.opends.server.util.VersionCompatibilityIssue;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 import com.forgerock.opendj.cli.ArgumentConstants;
@@ -7500,7 +7498,7 @@ public final class DirectoryServer
    * @see Class#forName(String, boolean, ClassLoader)
    */
   public static Class<?> loadClass(String name) throws LinkageError,
-      ExceptionInInitializerError, ClassNotFoundException
+          ExceptionInInitializerError, ClassNotFoundException
   {
     return Class.forName(name, true, DirectoryServer.getClassLoader());
   }
@@ -7675,8 +7673,6 @@ public final class DirectoryServer
     System.out.println(SetupUtils.BUILD_JVM_VERSION+separator+
         BUILD_JVM_VERSION);
     System.out.println(SetupUtils.BUILD_JVM_VENDOR+separator+BUILD_JVM_VENDOR);
-    System.out.println(SetupUtils.INCOMPATIBILITY_EVENTS+separator+
-        Utils.joinAsString(",", VersionCompatibilityIssue.getAllEvents()));
 
     // Print extensions' extra information
     String extensionInformation =
