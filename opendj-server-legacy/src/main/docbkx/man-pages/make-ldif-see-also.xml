@@ -28,15 +28,10 @@
           version="5.0" xml:lang="en"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://docbook.org/ns/docbook
-                              http://docbook.org/xml/5.0/xsd/docbook.xsd"
-          xmlns:xlink="http://www.w3.org/1999/xlink">
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
  <title>See Also</title>
 
  <para>
-  <link xlink:show="new"
-        xlink:href="reference#make-ldif-template-5"
-        xlink:role="http://docbook.org/xlink/role/olink"
-   ><citerefentry><refentrytitle
-   >make-ldif.template</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
+  <xref linkend="make-ldif-template-5" />
  </para>
 </refsect1>
