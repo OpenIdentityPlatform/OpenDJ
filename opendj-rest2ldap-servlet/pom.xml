@@ -12,187 +12,91 @@
   ! Header, with the fields enclosed by brackets [] replaced by your own identifying
   ! information: "Portions Copyright [year] [name of copyright owner]".
   !
-  ! Copyright 2013 ForgeRock AS.
+  ! Copyright 2013-2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <artifactId>opendj-project</artifactId>
-        <groupId>org.forgerock.opendj</groupId>
-        <version>3.0.0-SNAPSHOT</version>
-    </parent>
-    <artifactId>opendj-rest2ldap-servlet</artifactId>
-    <name>OpenDJ Commons REST LDAP Gateway</name>
-    <description>
-        Provides integration between the OpenDJ Commons REST Adapter and Servlet APIs.
-    </description>
-    <packaging>bundle</packaging>
-    <properties>
-        <jacksonVersion>1.9.2</jacksonVersion>
-        <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-rest2ldap</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-grizzly</artifactId>
-            <version>${project.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <!-- Required for compilation -->
-            <groupId>org.forgerock.commons</groupId>
-            <artifactId>json-resource-servlet</artifactId>
-            <version>${forgerockRestVersion}</version>
-        </dependency>
-        <dependency>
-            <!-- Required for runtime via WAR overlay -->
-            <groupId>org.forgerock.commons</groupId>
-            <artifactId>json-resource-servlet</artifactId>
-            <version>${forgerockRestVersion}</version>
-            <type>war</type>
-            <classifier>servlet</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>${jacksonVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${jacksonVersion}</version>
-        </dependency>
-    </dependencies>
-    <build>
-        <resources>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>opendj-project</artifactId>
+    <groupId>org.forgerock.opendj</groupId>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>opendj-rest2ldap-servlet</artifactId>
+  <name>OpenDJ Commons REST LDAP Gateway</name>
+  <description>
+    Provides integration between the OpenDJ Commons REST Adapter and Servlet APIs.
+  </description>
+  <packaging>war</packaging>
+
+  <properties>
+    <!-- When released, with the 'binary.license.url' property set,
+         this artifact will contain an additional binary license -->
+    <include.binary.license>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</include.binary.license>
+    <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.forgerock.http</groupId>
+      <artifactId>chf-http-servlet</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-rest2ldap</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-grizzly</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.2.11.v20150529</version>
+        <configuration>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
+          <webAppConfig>
+            <contextPath>/</contextPath>
+          </webAppConfig>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <webResources> 
             <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
+              <targetPath>WEB-INF/legal-notices</targetPath>
+              <directory>../legal-notices</directory>
+              <excludes>
+                <!-- The web-app does not include the documentation -->
+                <exclude>CC-BY-NC-ND.txt</exclude>
+              </excludes>
             </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-            </plugin>
-            <!--  include opendj-grizzly and its dependencies in war -->
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-dependency-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>copy-grizzly</id>
-                  <phase>package</phase>
-                  <goals>
-                    <goal>copy-dependencies</goal>
-                  </goals>
-                  <configuration>
-                    <includeArtifactIds>opendj-grizzly</includeArtifactIds>
-                    <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
-                    <overWriteReleases>false</overWriteReleases>
-                    <overWriteSnapshots>false</overWriteSnapshots>
-                    <overWriteIfNewer>true</overWriteIfNewer>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>war</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>war</goal>
-                        </goals>
-                        <configuration>
-                            <classifier>servlet</classifier>
-                            <overlays>
-                                <overlay>
-                                    <groupId>org.forgerock.commons</groupId>
-                                    <artifactId>json-resource-servlet</artifactId>
-                                    <classifier>servlet</classifier>
-                                    <includes>
-                                        <include>WEB-INF/*.xml</include>
-                                    </includes>
-                                </overlay>
-                            </overlays>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.0.4.v20130625</version>
-            </plugin>
-        </plugins>
-        <pluginManagement>
-          <plugins>
-            <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-            <plugin>
-              <groupId>org.eclipse.m2e</groupId>
-              <artifactId>lifecycle-mapping</artifactId>
-              <version>1.0.0</version>
-              <configuration>
-                <lifecycleMappingMetadata>
-                  <pluginExecutions>
-                    <pluginExecution>
-                      <pluginExecutionFilter>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <versionRange>[2.6,)</versionRange>
-                        <goals>
-                          <goal>copy-dependencies</goal>
-                        </goals>
-                      </pluginExecutionFilter>
-                      <action>
-                        <ignore />
-                      </action>
-                    </pluginExecution>
-                  </pluginExecutions>
-                </lifecycleMappingMetadata>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-    </build>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>dependencies</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
+            <resource>
+              <targetPath>/</targetPath>
+              <directory>src/main/webapp/</directory>
+              <excludes>
+                <exclude>web.xml</exclude>
+              </excludes>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

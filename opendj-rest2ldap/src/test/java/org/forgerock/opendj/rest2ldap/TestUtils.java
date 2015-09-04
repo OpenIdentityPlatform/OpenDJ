@@ -15,20 +15,18 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.json.fluent.JsonValue.json;
+import static org.forgerock.json.JsonValue.json;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.forgerock.json.fluent.JsonPointer;
-import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.resource.Resource;
-import org.forgerock.json.resource.RootContext;
+import org.forgerock.http.context.RootContext;
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
+import org.forgerock.json.resource.ResourceResponse;
+import org.forgerock.json.resource.Responses;
 
-/**
- * Unit test utility methods, including fluent methods for creating JSON
- * objects.
- */
+/** Unit test utility methods, including fluent methods for creating JSON objects. */
 public final class TestUtils {
 
     /**
@@ -39,8 +37,8 @@ public final class TestUtils {
      *            The JSON content.
      * @return A {@code Resource} containing the provided JSON content.
      */
-    public static Resource asResource(final JsonValue content) {
-        return new Resource(content.get("_id").asString(), content.get("_rev").asString(), content);
+    public static ResourceResponse asResource(final JsonValue content) {
+        return Responses.newResourceResponse(content.get("_id").asString(), content.get("_rev").asString(), content);
     }
 
     /**

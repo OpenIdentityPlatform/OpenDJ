@@ -11,15 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
-import org.forgerock.json.resource.QueryFilter;
+import org.forgerock.util.query.QueryFilter;
 
-/**
- * An enumeration of the commons REST query comparison filter types.
- */
+/** An enumeration of the commons REST query comparison filter types. */
 enum FilterType {
 
     /**
@@ -83,5 +81,5 @@ enum FilterType {
      *
      * @see QueryFilter#startsWith
      */
-    STARTS_WITH;
+    STARTS_WITH
 }

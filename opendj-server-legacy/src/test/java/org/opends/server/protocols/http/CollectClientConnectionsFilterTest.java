@@ -26,18 +26,17 @@
 package org.opends.server.protocols.http;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.http.CollectClientConnectionsFilter.*;
 
 import java.io.IOException;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.assertj.core.api.SoftAssertions;
+import org.forgerock.http.protocol.Request;
+import org.forgerock.http.protocol.Response;
 import org.forgerock.json.resource.ResourceException;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.util.Base64;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -48,9 +47,15 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
   private static final String PASSWORD = "open sesame";
   private static final String BASE64_USERPASS = Base64.encode((USERNAME + ":" + PASSWORD).getBytes());
 
-  private HTTPAuthenticationConfig authConfig = new HTTPAuthenticationConfig();
+  private HTTPAuthenticationConfig authConfig;
+  private CollectClientConnectionsFilter filter;
 
-  private CollectClientConnectionsFilter filter = new CollectClientConnectionsFilter(null, authConfig);
+  @BeforeMethod
+  private void createConfigAndFilter()
+  {
+    authConfig = new HTTPAuthenticationConfig();
+    filter = new CollectClientConnectionsFilter(null, authConfig);
+  }
 
   @DataProvider(name = "Invalid HTTP basic auth strings")
   public Object[][] getInvalidHttpBasicAuthStrings()
@@ -80,45 +85,35 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
   public void sendUnauthorizedResponseWithHttpBasicAuthWillChallengeUserAgent() throws Exception
   {
     authConfig.setBasicAuthenticationSupported(true);
+    final Response response = sendUnauthorizedResponseWithHTTPBasicAuthChallenge();
 
-    ServletOutputStream oStream = mock(ServletOutputStream.class);
-    HttpServletResponse response = mock(HttpServletResponse.class);
-    when(response.getOutputStream()).thenReturn(oStream);
-    sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
-
-    verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    verify(response).setHeader("WWW-Authenticate", "Basic realm=\"org.forgerock.opendj\"");
-    verifyUnauthorizedOutputMessage(response, oStream);
+    assertThat(response.getHeaders().getFirst("WWW-Authenticate")).isEqualTo("Basic realm=\"org.forgerock.opendj\"");
+    verifyUnauthorizedOutputMessage(response);
   }
 
   @Test
   public void sendUnauthorizedResponseWithoutHttpBasicAuthWillNotChallengeUserAgent() throws Exception
   {
-    authConfig.setBasicAuthenticationSupported(true);
+    authConfig.setBasicAuthenticationSupported(false);
+    final Response response = sendUnauthorizedResponseWithHTTPBasicAuthChallenge();
 
-    HttpServletResponse response = mock(HttpServletResponse.class);
-    ServletOutputStream oStream = mock(ServletOutputStream.class);
-    when(response.getOutputStream()).thenReturn(oStream);
-    sendUnauthorizedResponseWithHTTPBasicAuthChallenge(response);
-
-    verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    verifyUnauthorizedOutputMessage(response, oStream);
+    assertThat(response.getHeaders().getFirst("WWW-Authenticate")).isNull();
+    verifyUnauthorizedOutputMessage(response);
   }
 
-  private void sendUnauthorizedResponseWithHTTPBasicAuthChallenge(HttpServletResponse response)
+  private Response sendUnauthorizedResponseWithHTTPBasicAuthChallenge() throws Exception
   {
-    filter.sendErrorReponse(
-        response, true, ResourceException.getException(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Credentials"));
+    return filter.resourceExceptionToPromise(ResourceException.getException(401, "Invalid Credentials")).get();
   }
 
-  private void verifyUnauthorizedOutputMessage(HttpServletResponse response, ServletOutputStream oStream)
-      throws IOException
+  private void verifyUnauthorizedOutputMessage(Response response) throws IOException
   {
-    verify(response).getOutputStream();
-    verify(oStream).println(
-        "{\n" + "    \"code\": 401,\n"
-              + "    \"message\": \"Invalid Credentials\",\n"
-              + "    \"reason\": \"Unauthorized\"\n" + "}");
+    final SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(response.getStatus().getCode()).isEqualTo(401);
+    softly.assertThat(response.getStatus().getReasonPhrase()).isEqualTo("Unauthorized");
+    softly.assertThat(response.getEntity().getJson().toString()).isEqualTo(
+            "{code=401, reason=Unauthorized, message=Invalid Credentials}");
+    softly.assertAll();
   }
 
   @Test
@@ -126,9 +121,8 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
   {
     authConfig.setBasicAuthenticationSupported(true);
 
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeader(HTTP_BASIC_AUTH_HEADER)).thenReturn("Basic " + BASE64_USERPASS);
-
+    final Request request = new Request();
+    request.getHeaders().add(HTTP_BASIC_AUTH_HEADER, "Basic " + BASE64_USERPASS);
     assertThat(filter.extractUsernamePassword(request)).containsExactly(USERNAME, PASSWORD);
   }
 
@@ -142,9 +136,9 @@ public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
     authConfig.setCustomHeaderUsername(customHeaderUsername);
     authConfig.setCustomHeaderPassword(customHeaderPassword);
 
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeader(customHeaderUsername)).thenReturn(USERNAME);
-    when(request.getHeader(customHeaderPassword)).thenReturn(PASSWORD);
+    final Request request = new Request();
+    request.getHeaders().add(customHeaderUsername, USERNAME);
+    request.getHeaders().add(customHeaderPassword, PASSWORD);
 
     assertThat(filter.extractUsernamePassword(request)).containsExactly(USERNAME, PASSWORD);
   }

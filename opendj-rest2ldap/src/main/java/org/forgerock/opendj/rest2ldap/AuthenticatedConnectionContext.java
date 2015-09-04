@@ -11,18 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.*;
 
-import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.resource.Context;
-import org.forgerock.json.resource.InternalServerErrorException;
-import org.forgerock.json.resource.PersistenceConfig;
-import org.forgerock.json.resource.ResourceException;
+import org.forgerock.http.Context;
+import org.forgerock.http.context.AbstractContext;
 import org.forgerock.opendj.ldap.Connection;
 
 /**
@@ -32,7 +28,7 @@ import org.forgerock.opendj.ldap.Connection;
  * servlet filter. It is the responsibility of the component which acquired the
  * connection to release once processing has completed.
  */
-public final class AuthenticatedConnectionContext extends Context {
+public final class AuthenticatedConnectionContext extends AbstractContext {
     /*
      * TODO: this context does not support persistence because there is no
      * obvious way to restore the connection. We could just persist the context
@@ -53,7 +49,7 @@ public final class AuthenticatedConnectionContext extends Context {
      *            re-used for subsequent LDAP operations.
      */
     public AuthenticatedConnectionContext(final Context parent, final Connection connection) {
-        super(ensureNotNull(parent));
+        super(ensureNotNull(parent), "authenticated connection");
         this.connection = connection;
     }
 
@@ -69,35 +65,10 @@ public final class AuthenticatedConnectionContext extends Context {
      *            The cached pre-authenticated LDAP connection which should be
      *            re-used for subsequent LDAP operations.
      */
-    public AuthenticatedConnectionContext(final String id, final Context parent,
+    AuthenticatedConnectionContext(final String id, final Context parent,
             final Connection connection) {
-        super(id, ensureNotNull(parent));
+        super(id, "authenticated connection", ensureNotNull(parent));
         this.connection = connection;
-    }
-
-    /**
-     * Restore from JSON representation.
-     *
-     * @param savedContext
-     *            The JSON representation from which this context's attributes
-     *            should be parsed.
-     * @param config
-     *            The persistence configuration.
-     * @throws ResourceException
-     *             If the JSON representation could not be parsed.
-     */
-    AuthenticatedConnectionContext(final JsonValue savedContext, final PersistenceConfig config)
-            throws ResourceException {
-        super(savedContext, config);
-        throw new InternalServerErrorException(i18n("Cached LDAP connections cannot be restored"));
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void saveToJson(final JsonValue savedContext, final PersistenceConfig config)
-            throws ResourceException {
-        super.saveToJson(savedContext, config);
-        throw new InternalServerErrorException(i18n("Cached LDAP connections cannot be persisted"));
     }
 
     /**

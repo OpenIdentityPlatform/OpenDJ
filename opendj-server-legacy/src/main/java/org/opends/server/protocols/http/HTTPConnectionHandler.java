@@ -25,46 +25,38 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ConfigMessages.WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES;
+import static org.opends.server.util.ServerConstants.ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.isAddressInUse;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-import java.io.File;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.ServletException;
-
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.forgerock.http.servlet.HttpFrameworkServlet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.resource.CollectionResourceProvider;
-import org.forgerock.json.resource.ConnectionFactory;
-import org.forgerock.json.resource.Resources;
-import org.forgerock.json.resource.Router;
-import org.forgerock.json.resource.servlet.HttpServlet;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
-import org.forgerock.opendj.rest2ldap.Rest2LDAP;
-import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.glassfish.grizzly.http.HttpProbe;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
@@ -78,13 +70,21 @@ import org.glassfish.grizzly.utils.Charsets;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.HTTPConnectionHandlerCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
-import org.opends.server.types.*;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 
@@ -106,8 +106,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
   /** SSL instance name used in context creation. */
   private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
-
-  private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(JsonParser.Feature.ALLOW_COMMENTS, true);
 
   /** The initialization configuration. */
   private HTTPConnectionHandlerCfg initConfig;
@@ -779,79 +777,10 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
   private void createAndRegisterServlet(final String servletName, final String... urlPatterns) throws Exception
   {
-    // Parse and use JSON config
-    File jsonConfigFile = getFileForPath(this.currentConfig.getConfigFile());
-    final JsonValue configuration = parseJsonConfiguration(jsonConfigFile).recordKeyAccesses();
-    final HTTPAuthenticationConfig authenticationConfig = getAuthenticationConfig(configuration);
-    final ConnectionFactory connFactory = getConnectionFactory(configuration);
-    configuration.verifyAllKeysAccessed();
-
-    Filter filter = new CollectClientConnectionsFilter(this, authenticationConfig);
-    // Used for hooking our HTTPClientConnection in Rest2LDAP
-    final HttpServlet servlet = new HttpServlet(connFactory, Rest2LDAPContextFactory.getHttpServletContextFactory());
-
     // Create and deploy the Web app context
     final WebappContext ctx = new WebappContext(servletName);
-    ctx.addFilter("collectClientConnections", filter)
-       .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
-    ctx.addServlet(servletName, servlet).addMapping(urlPatterns);
+    ctx.addServlet(servletName, new HttpFrameworkServlet(new LdapHttpApplication(this))).addMapping(urlPatterns);
     ctx.deploy(this.httpServer);
-  }
-
-  private HTTPAuthenticationConfig getAuthenticationConfig(final JsonValue configuration)
-  {
-    final HTTPAuthenticationConfig result = new HTTPAuthenticationConfig();
-
-    final JsonValue val = configuration.get("authenticationFilter");
-    result.setBasicAuthenticationSupported(asBool(val, "supportHTTPBasicAuthentication"));
-    result.setCustomHeadersAuthenticationSupported(asBool(val, "supportAltAuthentication"));
-    result.setCustomHeaderUsername(val.get("altAuthenticationUsernameHeader").asString());
-    result.setCustomHeaderPassword(val.get("altAuthenticationPasswordHeader").asString());
-
-    final String searchBaseDN = asString(val, "searchBaseDN");
-    result.setSearchBaseDN(org.forgerock.opendj.ldap.DN.valueOf(searchBaseDN));
-    result.setSearchScope(SearchScope.valueOf(asString(val, "searchScope")));
-    result.setSearchFilterTemplate(asString(val, "searchFilterTemplate"));
-
-    return result;
-  }
-
-  private String asString(JsonValue value, String key)
-  {
-    return value.get(key).required().asString();
-  }
-
-  private boolean asBool(JsonValue value, String key)
-  {
-    return value.get(key).defaultTo(false).asBoolean();
-  }
-
-  private ConnectionFactory getConnectionFactory(final JsonValue configuration)
-  {
-    final Router router = new Router();
-    final JsonValue mappings = configuration.get("servlet").get("mappings").required();
-    for (final String mappingUrl : mappings.keys())
-    {
-      final JsonValue mapping = mappings.get(mappingUrl);
-      final CollectionResourceProvider provider = Rest2LDAP.builder()
-                                                           .authorizationPolicy(AuthorizationPolicy.REUSE)
-                                                           .configureMapping(mapping).build();
-      router.addRoute(mappingUrl, provider);
-    }
-    return Resources.newInternalConnectionFactory(router);
-  }
-
-  private JsonValue parseJsonConfiguration(File configFile)
-      throws IOException, JsonParseException, JsonMappingException, ServletException
-  {
-    // Parse the config file.
-    final Object content = JSON_MAPPER.readValue(configFile, Object.class);
-    if (!(content instanceof Map))
-    {
-      throw new ServletException(
-          "Servlet configuration file '" + configFile + "' does not contain a valid JSON configuration");
-    }
-    return new JsonValue(content);
   }
 
   private void stopHttpServer()

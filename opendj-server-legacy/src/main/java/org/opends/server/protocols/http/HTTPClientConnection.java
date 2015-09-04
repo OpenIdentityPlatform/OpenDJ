@@ -25,6 +25,12 @@
  */
 package org.opends.server.protocols.http;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.from;
+import static org.forgerock.opendj.adapter.server3x.Converters.getResponseResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.opends.messages.ProtocolMessages.WARN_CLIENT_DISCONNECT_IN_PROGRESS;
+import static org.opends.server.loggers.AccessLogger.logDisconnect;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -34,16 +40,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.servlet.http.HttpServletRequest;
-
+import org.forgerock.http.Context;
+import org.forgerock.http.MutableUri;
+import org.forgerock.http.context.ClientContext;
+import org.forgerock.http.context.AttributesContext;
+import org.forgerock.http.protocol.Request;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
@@ -78,11 +87,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
 
 /**
  * This class defines an HTTP client connection, which is a type of client
@@ -234,7 +238,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   private final InetAddress localAddress;
 
   /** Whether this connection is secure. */
-  private final boolean isSecure;
+  private boolean isSecure;
 
   /** Security-Strength Factor extracted from the request attribute. */
   private final int securityStrengthFactor;
@@ -244,26 +248,29 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
    *
    * @param connectionHandler
    *          the connection handler that accepted this connection
-   * @param request
-   *          represents this client connection.
+   * @param context
+   *          represents the context of this client connection.
    */
-  public HTTPClientConnection(HTTPConnectionHandler connectionHandler, HttpServletRequest request)
+  public HTTPClientConnection(HTTPConnectionHandler connectionHandler, Context context, Request request)
   {
     this.connectionHandler = connectionHandler;
-
+    final ClientContext clientCtx = context.asContext(ClientContext.class);
     // Memorize all the fields we need from the request before Grizzly decides to recycle it
-    this.clientAddress = request.getRemoteAddr();
-    this.clientPort = request.getRemotePort();
-    this.serverAddress = request.getLocalAddr();
-    this.serverPort = request.getLocalPort();
-    this.remoteAddress = toInetAddress(request.getRemoteAddr());
-    this.localAddress = toInetAddress(request.getLocalAddr());
-    this.isSecure = request.isSecure();
-    this.securityStrengthFactor = calcSSF(request.getAttribute(SERVLET_SSF_CONSTANT));
+    this.clientAddress = clientCtx.getRemoteAddress();
+    this.remoteAddress = toInetAddress(clientAddress);
+    this.clientPort = clientCtx.getRemotePort();
+    this.isSecure = clientCtx.isSecure();
+
+    final MutableUri uri = request.getUri();
+    this.serverAddress = uri.getHost();
+    this.localAddress = toInetAddress(serverAddress);
+    this.serverPort = uri.getPort();
+    this.securityStrengthFactor = calcSSF(
+            context.asContext(AttributesContext.class).getAttributes().get(SERVLET_SSF_CONSTANT));
     this.method = request.getMethod();
-    this.query = computeQuery(request);
-    this.protocol = request.getProtocol();
-    this.userAgent = request.getHeader("User-Agent");
+    this.query = uri.getQuery();
+    this.protocol = request.getVersion();
+    this.userAgent = clientCtx.getUserAgent();
 
     this.statTracker = this.connectionHandler.getStatTracker();
 
@@ -275,15 +282,6 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
     }
 
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
-  }
-
-  private String computeQuery(HttpServletRequest request)
-  {
-    if (request.getQueryString() != null)
-    {
-      return request.getRequestURI() + "?" + request.getQueryString();
-    }
-    return request.getRequestURI();
   }
 
   @Override

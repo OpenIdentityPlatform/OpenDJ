@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
+import org.forgerock.http.Context;
 import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.SecurityContext;
-import org.forgerock.json.resource.ServerContext;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
@@ -55,20 +55,21 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
+import org.forgerock.util.promise.Promises;
 import org.forgerock.util.promise.ResultHandler;
 
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
 
 /**
- * Common context information passed to containers and mappers. A new context is
- * allocated for each REST request.
+ * Common request information passed to containers and mappers.
+ * A new @{code RequestState} is allocated for each REST request.
  */
-final class Context implements Closeable {
+final class RequestState implements Closeable {
 
-    /**
-     * A cached read request - see cachedReads for more information.
-     */
+    /** A cached read request - see cachedReads for more information. */
     private static final class CachedRead implements SearchResultHandler, LdapResultHandler<Result> {
         private SearchResultEntry cachedEntry;
         private final String cachedFilterString;
@@ -122,10 +123,7 @@ final class Context implements Closeable {
         }
 
         LdapPromise<Result> getPromise() {
-            /*
-             * Perform uninterrupted wait since this method is unlikely to block
-             * for a long time.
-             */
+            // Perform uninterrupted wait since this method is unlikely to block for a long time.
             boolean wasInterrupted = false;
             while (true) {
                 try {
@@ -185,11 +183,11 @@ final class Context implements Closeable {
     };
 
     private final Config config;
-    private final ServerContext context;
+    private final Context context;
     private Connection connection;
     private Control proxiedAuthzControl;
 
-    Context(final Config config, final ServerContext context) {
+    RequestState(final Config config, final Context context) {
         this.config = config;
         this.context = context;
 
@@ -215,31 +213,20 @@ final class Context implements Closeable {
         return config;
     }
 
-    Connection getConnection() {
-        return connection;
-    }
-
-    ServerContext getServerContext() {
+    Context getContext() {
         return context;
     }
 
     /**
      * Performs common processing required before handling an HTTP request,
-     * including calculating the proxied authorization request control, and
-     * obtaining an LDAP connection.
+     * including calculating the proxied authorization request control. Then
+     * return a promise containing a valid LDAP connection or a
+     * {@link ResourceException} if an error is detected.
      * <p>
      * This method should be called at most once per request.
-     *
-     * @param handler
-     *            The result handler which should be invoked if an error is
-     *            detected.
-     * @param runnable
-     *            The runnable which will be invoked once the common processing
-     *            has completed. Implementations will be able to call
-     *            {@link #getConnection()} to get the LDAP connection for use
-     *            with subsequent LDAP requests.
+     * @return A {@link Promise} containing a valid {@link Connection}
      */
-    void run(final org.forgerock.json.resource.ResultHandler<?> handler, final Runnable runnable) {
+    Promise<Connection, ResourceException> getConnection() {
         /*
          * Compute the proxied authorization control from the content of the
          * security context if present. Only do this if we are not using a
@@ -254,13 +241,11 @@ final class Context implements Closeable {
                             securityContext.getAuthorizationId(), config.schema());
                     proxiedAuthzControl = ProxiedAuthV2RequestControl.newControl(authzId);
                 } catch (final ResourceException e) {
-                    handler.handleError(e);
-                    return;
+                    return Promises.newExceptionPromise(e);
                 }
             } else {
-                handler.handleError(new InternalServerErrorException(
+                return Promises.<Connection, ResourceException> newExceptionPromise(new InternalServerErrorException(
                         i18n("The request could not be authorized because it did not contain a security context")));
-                return;
             }
         }
 
@@ -270,23 +255,24 @@ final class Context implements Closeable {
          * to re-use the LDAP connection which was used for authentication.
          */
         if (connection != null) {
-            // Invoke the handler immediately since a connection is available.
-            runnable.run();
+            return Promises.newResultPromise(connection);
         } else if (config.connectionFactory() != null) {
+            final PromiseImpl<Connection, ResourceException> promise = PromiseImpl.create();
             config.connectionFactory().getConnectionAsync().thenOnResult(new ResultHandler<Connection>() {
                 @Override
                 public final void handleResult(final Connection result) {
                     connection = wrap(result);
-                    runnable.run();
+                    promise.handleResult(connection);
                 }
             }).thenOnException(new ExceptionHandler<LdapException>() {
                 @Override
                 public final void handleException(final LdapException exception) {
-                    handler.handleError(asResourceException(exception));
+                    promise.handleException(asResourceException(exception));
                 }
             });
+            return promise;
         } else {
-            handler.handleError(new InternalServerErrorException(
+            return Promises.<Connection, ResourceException> newExceptionPromise(new InternalServerErrorException(
                     i18n("The request could not be processed because there was no LDAP connection available for use")));
         }
     }
