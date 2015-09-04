@@ -25,18 +25,14 @@ import static org.forgerock.opendj.ldap.Functions.byteStringToString;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.resource.ResourceException;
-import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.JsonValue;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -51,64 +47,6 @@ import org.forgerock.util.promise.NeverThrowsException;
  * Internal utility methods.
  */
 final class Utils {
-    /**
-     * Implementation class for {@link #accumulate}.
-     *
-     * @param <V>
-     *            The type of result.
-     */
-    private static final class AccumulatingResultHandler<V> implements ResultHandler<V> {
-        /** Guarded by latch. */
-        private ResourceException exception;
-        private final ResultHandler<List<V>> handler;
-        private final AtomicInteger latch;
-        private final List<V> results;
-
-        private AccumulatingResultHandler(final int size, final ResultHandler<List<V>> handler) {
-            if (size < 0) {
-                throw new IllegalStateException();
-            }
-            this.latch = new AtomicInteger(size);
-            this.results = new ArrayList<>(size);
-            this.handler = handler;
-            if (size == 0) {
-                // Invoke immediately.
-                handler.handleResult(results);
-            }
-        }
-
-        @Override
-        public void handleError(final ResourceException e) {
-            exception = e;
-            latch(); // Volatile write publishes exception.
-        }
-
-        @Override
-        public void handleResult(final V result) {
-            if (result != null) {
-                synchronized (results) {
-                    results.add(result);
-                }
-            }
-            latch();
-        }
-
-        private void latch() {
-            /*
-             * Invoke the handler once all results have been received. Avoid
-             * failing-fast when an error occurs because some in-flight tasks
-             * may depend on resources (e.g. connections) which are
-             * automatically closed on completion.
-             */
-            if (latch.decrementAndGet() == 0) {
-                if (exception != null) {
-                    handler.handleError(exception);
-                } else {
-                    handler.handleResult(results);
-                }
-            }
-        }
-    }
 
     private static final Function<Object, ByteString, NeverThrowsException> BASE64_TO_BYTESTRING =
             new Function<Object, ByteString, NeverThrowsException>() {
@@ -126,30 +64,6 @@ final class Utils {
                 }
             };
 
-    /**
-     * Returns a result handler which can be used to collect the results of
-     * {@code size} asynchronous operations. Once all results have been received
-     * {@code handler} will be invoked with a list containing the results.
-     * Accumulation ignores {@code null} results, so the result list may be
-     * smaller than {@code size}. The returned result handler does not
-     * fail-fast: it will wait until all results have been received even if an
-     * error has been detected. This ensures that asynchronous operations can
-     * use resources such as connections which are automatically released
-     * (closed) upon completion of the final operation.
-     *
-     * @param <V>
-     *            The type of result to be collected.
-     * @param size
-     *            The number of expected results.
-     * @param handler
-     *            The result handler to be invoked when all results have been
-     *            received.
-     * @return A result handler which can be used to collect the results of
-     *         {@code size} asynchronous operations.
-     */
-    static <V> ResultHandler<V> accumulate(final int size, final ResultHandler<List<V>> handler) {
-        return new AccumulatingResultHandler<>(size, handler);
-    }
 
     static Object attributeToJson(final Attribute a) {
         final Function<ByteString, Object, NeverThrowsException> f = byteStringToJson(a.getAttributeDescription());
@@ -292,44 +206,6 @@ final class Utils {
 
     static String toLowerCase(final String s) {
         return s != null ? s.toLowerCase(Locale.ENGLISH) : null;
-    }
-
-    /**
-     * Returns a result handler which accepts results of type {@code M}, applies
-     * the function {@code f} in order to convert the result to an object of
-     * type {@code N}, and subsequently invokes {@code handler}. If an
-     * unexpected error occurs while performing the transformation, the
-     * exception is converted to a {@code ResourceException} before invoking
-     * {@code handler.handleError()}.
-     *
-     * @param <M>
-     *            The type of result expected by the returned handler.
-     * @param <N>
-     *            The type of result expected by {@code handler}.
-     * @param f
-     *            A function which converts the result of type {@code M} to type
-     *            {@code N}.
-     * @param handler
-     *            A result handler which accepts results of type {@code N}.
-     * @return A result handler which accepts results of type {@code M}.
-     */
-    static <M, N> ResultHandler<M> transform(final Function<M, N, NeverThrowsException> f,
-            final ResultHandler<N> handler) {
-        return new ResultHandler<M>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                handler.handleError(error);
-            }
-
-            @Override
-            public void handleResult(final M result) {
-                try {
-                    handler.handleResult(f.apply(result));
-                } catch (final Throwable t) {
-                    handler.handleError(asResourceException(t));
-                }
-            }
-        };
     }
 
     private static <T> List<T> asList(final Collection<T> c) {

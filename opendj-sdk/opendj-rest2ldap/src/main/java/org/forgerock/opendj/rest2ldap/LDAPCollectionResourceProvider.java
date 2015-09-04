@@ -15,6 +15,18 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Arrays.asList;
+import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
+import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
+import static org.forgerock.opendj.ldap.requests.Requests.newAddRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newDeleteRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
+import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,10 +34,13 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.json.fluent.JsonPointer;
-import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.http.Context;
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ActionRequest;
+import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.DeleteRequest;
@@ -33,27 +48,25 @@ import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.PatchRequest;
 import org.forgerock.json.resource.PreconditionFailedException;
-import org.forgerock.json.resource.QueryFilter;
-import org.forgerock.json.resource.QueryFilterVisitor;
 import org.forgerock.json.resource.QueryRequest;
-import org.forgerock.json.resource.QueryResult;
-import org.forgerock.json.resource.QueryResultHandler;
+import org.forgerock.json.resource.QueryResourceHandler;
+import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
-import org.forgerock.json.resource.Resource;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.json.resource.ResultHandler;
-import org.forgerock.json.resource.ServerContext;
+import org.forgerock.json.resource.ResourceResponse;
+import org.forgerock.json.resource.Responses;
 import org.forgerock.json.resource.UncategorizedException;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -72,45 +85,21 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
-import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.Promises;
-
-import static java.util.Arrays.*;
-
-import static org.forgerock.opendj.ldap.Filter.*;
-import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.*;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
-import static org.forgerock.opendj.rest2ldap.Utils.*;
+import org.forgerock.util.promise.ResultHandler;
+import org.forgerock.util.query.QueryFilter;
+import org.forgerock.util.query.QueryFilterVisitor;
 
 /**
  * A {@code CollectionResourceProvider} implementation which maps a JSON
  * resource collection to LDAP entries beneath a base DN.
  */
 final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
-    private static class ResultHandlerFromPromise<T> implements ResultHandler<T> {
-        private final PromiseImpl<T, ResourceException> promise;
-
-        ResultHandlerFromPromise() {
-            promise = PromiseImpl.create();
-        }
-
-        @Override
-        public void handleError(ResourceException error) {
-            promise.handleException(error);
-
-        }
-
-        @Override
-        public void handleResult(T result) {
-            promise.handleResult(result);
-        }
-    }
-
     /** Dummy exception used for signalling search success. */
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
 
@@ -136,511 +125,663 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     }
 
     @Override
-    public void actionCollection(final ServerContext context, final ActionRequest request,
-            final ResultHandler<JsonValue> handler) {
-        handler.handleError(new NotSupportedException("Not yet implemented"));
+    public Promise<ActionResponse, ResourceException> actionCollection(
+            final Context context, final ActionRequest request) {
+        return Promises.<ActionResponse, ResourceException> newExceptionPromise(
+                                                            new NotSupportedException("Not yet implemented"));
     }
 
     @Override
-    public void actionInstance(final ServerContext context, final String resourceId,
-            final ActionRequest request, final ResultHandler<JsonValue> handler) {
-        handler.handleError(new NotSupportedException("Not yet implemented"));
+    public Promise<ActionResponse, ResourceException> actionInstance(
+            final Context context, final String resourceId, final ActionRequest request) {
+        return Promises.<ActionResponse, ResourceException> newExceptionPromise(
+                                                            new NotSupportedException("Not yet implemented"));
     }
 
     @Override
-    public void createInstance(final ServerContext context, final CreateRequest request,
-            final ResultHandler<Resource> handler) {
-        final Context c = wrap(context);
-        final ResultHandler<Resource> h = wrap(c, handler);
+    public Promise<ResourceResponse, ResourceException> createInstance(
+            final Context context, final CreateRequest request) {
+        final RequestState requestState = wrap(context);
 
-        // Get the connection, then determine entry content, then perform add.
-        c.run(h, new Runnable() {
-            @Override
-            public void run() {
-                // Calculate entry content.
-                attributeMapper.create(c, new JsonPointer(), request.getContent(),
-                    new ResultHandler<List<Attribute>>() {
-                        @Override
-                        public void handleError(final ResourceException error) {
-                            h.handleError(error);
-                        }
-
-                        @Override
-                        public void handleResult(final List<Attribute> result) {
-                            // Perform add operation.
-                            final AddRequest addRequest = newAddRequest(DN.rootDN());
-                            for (final Attribute attribute : additionalLDAPAttributes) {
-                                addRequest.addAttribute(attribute);
-                            }
-                            for (final Attribute attribute : result) {
-                                addRequest.addAttribute(attribute);
-                            }
-                            try {
-                                nameStrategy.setResourceId(c, getBaseDN(c), request.getNewResourceId(), addRequest);
-                            } catch (final ResourceException e) {
-                                h.handleError(e);
-                                return;
-                            }
-                            if (config.readOnUpdatePolicy() == CONTROLS) {
-                                final String[] attributes = getLDAPAttributes(c, request.getFields());
-                                addRequest.addControl(PostReadRequestControl.newControl(false, attributes));
-                            }
-                            c.getConnection().applyChangeAsync(addRequest)
-                                        .thenOnResult(postUpdateResultHandler(c, h))
-                                        .thenOnException(postUpdateExceptionHandler(h));
-                        }
-                    });
-            }
-        });
-    }
-
-    @Override
-    public void deleteInstance(final ServerContext context, final String resourceId,
-            final DeleteRequest request, final ResultHandler<Resource> handler) {
-        final Context c = wrap(context);
-        final ResultHandler<Resource> h = wrap(c, handler);
-
-        // Get connection, search if needed, then delete.
-        c.run(h, doUpdate(c, resourceId, request.getRevision(), new ResultHandler<DN>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error);
-            }
-
-            @Override
-            public void handleResult(final DN dn) {
-                try {
-                    final ChangeRecord deleteRequest = newDeleteRequest(dn);
-                    if (config.readOnUpdatePolicy() == CONTROLS) {
-                        final String[] attributes = getLDAPAttributes(c, request.getFields());
-                        deleteRequest.addControl(PreReadRequestControl.newControl(false, attributes));
-                    }
-                    if (config.useSubtreeDelete()) {
-                        deleteRequest.addControl(SubtreeDeleteRequestControl.newControl(true));
-                    }
-                    addAssertionControl(deleteRequest, request.getRevision());
-                    c.getConnection().applyChangeAsync(deleteRequest).thenOnResult(postUpdateResultHandler(c, h))
-                                                                     .thenOnException(postUpdateExceptionHandler(h));
-                } catch (final Exception e) {
-                    h.handleError(asResourceException(e));
-                }
-            }
-        }));
-    }
-
-    @Override
-    public void patchInstance(final ServerContext context, final String resourceId, final PatchRequest request,
-            final ResultHandler<Resource> handler) {
-        final Context c = wrap(context);
-        final ResultHandler<Resource> h = wrap(c, handler);
-
-        if (request.getPatchOperations().isEmpty()) {
-            /*
-             * This patch is a no-op so just read the entry and check its version.
-             */
-            c.run(h, new Runnable() {
+        return requestState.getConnection().thenAsync(
+            new AsyncFunction<Connection, ResourceResponse, ResourceException>() {
                 @Override
-                public void run() {
-                    final String[] attributes = getLDAPAttributes(c, request.getFields());
-                    final SearchRequest searchRequest = nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
-                            .addAttribute(attributes);
-                    c.getConnection().searchSingleEntryAsync(searchRequest)
-                            .thenOnResult(postEmptyPatchResultHandler(c, request, h))
-                            .thenOnException(postEmptyPatchExceptionHandler(h));
-                }
-            });
-        } else {
-            /*
-             * Get the connection, search if needed, then determine modifications, then perform modify.
-             */
-            c.run(h, doUpdate(c, resourceId, request.getRevision(), new ResultHandler<DN>() {
-                @Override
-                public void handleError(final ResourceException error) {
-                    h.handleError(error);
-                }
-
-                @Override
-                public void handleResult(final DN dn) {
-                    // Convert the patch operations to LDAP modifications.
-                    List<Promise<List<Modification>, ResourceException>> promises =
-                            new ArrayList<>(request.getPatchOperations().size());
-                    for (final PatchOperation operation : request.getPatchOperations()) {
-                        final ResultHandlerFromPromise<List<Modification>> handler = new ResultHandlerFromPromise<>();
-                        attributeMapper.patch(c, new JsonPointer(), operation, handler);
-                        promises.add(handler.promise);
-                    }
-
-                    Promises.when(promises).thenOnResult(
-                        new org.forgerock.util.promise.ResultHandler<List<List<Modification>>>() {
-                            @Override
-                            public void handleResult(final List<List<Modification>> result) {
-                                // The patch operations have been converted successfully.
-                                try {
-                                    final ModifyRequest modifyRequest = newModifyRequest(dn);
-
-                                    // Add the modifications.
-                                    for (final List<Modification> modifications : result) {
-                                        if (modifications != null) {
-                                            modifyRequest.getModifications().addAll(modifications);
-                                        }
-                                    }
-
-                                    final List<String> attributes = asList(getLDAPAttributes(c, request.getFields()));
-                                    if (modifyRequest.getModifications().isEmpty()) {
-                                        /*
-                                         * This patch is a no-op so just read the entry and check its version.
-                                         */
-                                        c.getConnection().readEntryAsync(dn, attributes)
-                                                .thenOnResult(postEmptyPatchResultHandler(c, request, h))
-                                                .thenOnException(postEmptyPatchExceptionHandler(h));
-                                    } else {
-                                        // Add controls and perform the modify request.
-                                        if (config.readOnUpdatePolicy() == CONTROLS) {
-                                            modifyRequest.addControl(
-                                                PostReadRequestControl.newControl(false, attributes));
-                                        }
-                                        if (config.usePermissiveModify()) {
-                                            modifyRequest.addControl(PermissiveModifyRequestControl.newControl(true));
-                                        }
-                                        addAssertionControl(modifyRequest, request.getRevision());
-                                        c.getConnection().applyChangeAsync(modifyRequest)
-                                                .thenOnResult(postUpdateResultHandler(c, h))
-                                                .thenOnException(postUpdateExceptionHandler(h));
-                                    }
-                                } catch (final Exception e) {
-                                    h.handleError(asResourceException(e));
-                                }
-                            }
-                        }).thenOnException(new ExceptionHandler<ResourceException>() {
-                            @Override
-                            public void handleException(ResourceException exception) {
-                                h.handleError(asResourceException(exception));
-                            }
-                        });
-                }
-            }));
-        }
-    }
-
-    @Override
-    public void queryCollection(final ServerContext context, final QueryRequest request,
-            final QueryResultHandler handler) {
-        final Context c = wrap(context);
-        final QueryResultHandler h = wrap(c, handler);
-
-        /*
-         * Get the connection, then calculate the search filter, then perform the search.
-         */
-        c.run(h, new Runnable() {
-            @Override
-            public void run() {
-                // Calculate the filter (this may require the connection).
-                getLDAPFilter(c, request.getQueryFilter(), new ResultHandler<Filter>() {
-                    /**
-                     * The following fields are guarded by sequenceLock. In
-                     * addition, the sequenceLock ensures that we send one JSON
-                     * resource at a time back to the client.
-                     */
-                    private final Object sequenceLock = new Object();
-                    private String cookie;
-                    private ResourceException pendingResult;
-                    private int pendingResourceCount;
-                    private boolean resultSent;
-                    private int totalResourceCount;
-
-                    @Override
-                    public void handleError(final ResourceException error) {
-                        h.handleError(error);
-                    }
-
-                    @Override
-                    public void handleResult(final Filter ldapFilter) {
-                        /*
-                         * Avoid performing a search if the filter could not be mapped or if it will never match.
-                         */
-                        if (ldapFilter == null || ldapFilter == alwaysFalse()) {
-                            h.handleResult(new QueryResult());
-                        } else {
-                            // Perform the search.
-                            final String[] attributes = getLDAPAttributes(c, request.getFields());
-                            final Filter searchFilter =
-                                    ldapFilter == Filter.alwaysTrue() ? Filter.objectClassPresent() : ldapFilter;
-                            final SearchRequest searchRequest =
-                                    newSearchRequest(getBaseDN(c), SearchScope.SINGLE_LEVEL, searchFilter, attributes);
-
-                            /*
-                             * Add the page results control. We can support the page offset by
-                             * reading the next offset pages, or offset x page size resources.
-                             */
-                            final int pageResultStartIndex;
-                            final int pageSize = request.getPageSize();
-                            if (request.getPageSize() > 0) {
-                                final int pageResultEndIndex;
-                                if (request.getPagedResultsOffset() > 0) {
-                                    pageResultStartIndex = request.getPagedResultsOffset() * pageSize;
-                                    pageResultEndIndex = pageResultStartIndex + pageSize;
-                                } else {
-                                    pageResultStartIndex = 0;
-                                    pageResultEndIndex = pageSize;
-                                }
-                                final ByteString cookie =
-                                        request.getPagedResultsCookie() != null ? ByteString
-                                                .valueOfBase64(request.getPagedResultsCookie())
-                                                : ByteString.empty();
-                                final SimplePagedResultsControl control =
-                                        SimplePagedResultsControl.newControl(true, pageResultEndIndex, cookie);
-                                searchRequest.addControl(control);
-                            } else {
-                                pageResultStartIndex = 0;
-                            }
-
-                            c.getConnection().searchAsync(searchRequest, new SearchResultHandler() {
+                public Promise<ResourceResponse, ResourceException> apply(final Connection connection)
+                        throws ResourceException {
+                    // Calculate entry content.
+                    return attributeMapper.create(requestState, new JsonPointer(), request.getContent())
+                            .thenAsync(new AsyncFunction<List<Attribute>, ResourceResponse, ResourceException>() {
                                 @Override
-                                public boolean handleEntry(final SearchResultEntry entry) {
-                                    /*
-                                     * Search result entries will be returned before the search result/error so the
-                                     * only reason pendingResult will be non-null is if a mapping error has occurred.
-                                     */
-                                    synchronized (sequenceLock) {
-                                        if (pendingResult != null) {
-                                            return false;
-                                        }
-                                        if (totalResourceCount++ < pageResultStartIndex) {
-                                            // Haven't reached paged results threshold yet.
-                                            return true;
-                                        }
-                                        pendingResourceCount++;
+                                public Promise<ResourceResponse, ResourceException> apply(
+                                        final List<Attribute> attributes) {
+                                    // Perform add operation.
+                                    final AddRequest addRequest = newAddRequest(DN.rootDN());
+                                    for (final Attribute attribute : additionalLDAPAttributes) {
+                                        addRequest.addAttribute(attribute);
                                     }
-
-                                    /*
-                                     * FIXME: secondary asynchronous searches will complete in a non-deterministic
-                                     * order and may cause the JSON resources to be returned in a different order to the
-                                     * order in which the primary LDAP search results were received. This is benign at
-                                     * the moment, but will need resolving when we implement server side sorting. A
-                                     * possible fix will be to use a queue of pending resources (promises?). However,
-                                     * the queue cannot be unbounded in case it grows very large, but it cannot be
-                                     * bounded either since that could cause a deadlock between rest2ldap and the LDAP
-                                     * server (imagine the case where the server has a single worker thread which is
-                                     * occupied processing the primary search).
-                                     * The best solution is probably to process the primary search results in batches
-                                     * using the paged results control.
-                                     */
-                                    final String id = nameStrategy.getResourceId(c, entry);
-                                    final String revision = getRevisionFromEntry(entry);
-                                    attributeMapper.read(c, new JsonPointer(), entry, new ResultHandler<JsonValue>() {
-                                        @Override
-                                        public void handleError(final ResourceException e) {
-                                            synchronized (sequenceLock) {
-                                                pendingResourceCount--;
-                                                completeIfNecessary(e);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void handleResult(final JsonValue result) {
-                                            synchronized (sequenceLock) {
-                                                pendingResourceCount--;
-                                                if (!resultSent) {
-                                                    h.handleResource(new Resource(id, revision, result));
-                                                }
-                                                completeIfNecessary();
-                                            }
-                                        }
-                                    });
-                                    return true;
-                                }
-
-                                @Override
-                                public boolean handleReference(final SearchResultReference reference) {
-                                    // TODO: should this be classed as an error since rest2ldap
-                                    // assumes entries are all colocated?
-                                    return true;
-                                }
-
-                            }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Result>() {
-                                @Override
-                                public void handleResult(Result result) {
-                                    synchronized (sequenceLock) {
-                                        if (request.getPageSize() > 0) {
-                                            try {
-                                                final SimplePagedResultsControl control =
-                                                    result.getControl(SimplePagedResultsControl.DECODER,
-                                                        DECODE_OPTIONS);
-                                                if (control != null && !control.getCookie().isEmpty()) {
-                                                    cookie = control.getCookie().toBase64String();
-                                                }
-                                            } catch (final DecodeException e) {
-                                                // FIXME: need some logging.
-                                            }
-                                        }
-                                        completeIfNecessary(SUCCESS);
+                                    for (final Attribute attribute : attributes) {
+                                        addRequest.addAttribute(attribute);
                                     }
-                                }
-                            }).thenOnException(new ExceptionHandler<LdapException>() {
-                                @Override
-                                public void handleException(LdapException exception) {
-                                    synchronized (sequenceLock) {
-                                        completeIfNecessary(asResourceException(exception));
+                                    try {
+                                        nameStrategy.setResourceId(requestState, getBaseDN(requestState),
+                                                request.getNewResourceId(), addRequest);
+                                    } catch (final ResourceException e) {
+                                        return Promises.newExceptionPromise(e);
                                     }
+                                    if (config.readOnUpdatePolicy() == CONTROLS) {
+                                        addRequest.addControl(PostReadRequestControl.newControl(
+                                                false, getLDAPAttributes(requestState, request.getFields())));
+                                    }
+                                    return connection.applyChangeAsync(addRequest)
+                                                     .thenAsync(postUpdateResultAsyncFunction(requestState),
+                                                                ldapExceptionToResourceException());
                                 }
                             });
-                        }
-                    }
+                }
+            }).thenFinally(close(requestState));
+    }
 
-                    /**
-                     * This method must be invoked with the sequenceLock held.
-                     */
-                    private void completeIfNecessary(final ResourceException e) {
-                        if (pendingResult == null) {
-                            pendingResult = e;
-                        }
-                        completeIfNecessary();
-                    }
-
-                    /**
-                     * Close out the query result set if there are no more
-                     * pending resources and the LDAP result has been received.
-                     * This method must be invoked with the sequenceLock held.
-                     */
-                    private void completeIfNecessary() {
-                        if (pendingResourceCount == 0 && pendingResult != null && !resultSent) {
-                            if (pendingResult == SUCCESS) {
-                                h.handleResult(new QueryResult(cookie, -1));
-                            } else {
-                                h.handleError(pendingResult);
+    @Override
+    public Promise<ResourceResponse, ResourceException> deleteInstance(
+            final Context context, final String resourceId, final DeleteRequest request) {
+        final RequestState requestState = wrap(context);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
+        return requestState.getConnection()
+                .thenOnResult(saveConnection(connectionHolder))
+                .thenAsync(doUpdateFunction(requestState, resourceId, request.getRevision()))
+                .thenAsync(new AsyncFunction<DN, ResourceResponse, ResourceException>() {
+                    @Override
+                    public Promise<ResourceResponse, ResourceException> apply(DN dn) throws ResourceException {
+                        try {
+                            final ChangeRecord deleteRequest = newDeleteRequest(dn);
+                            if (config.readOnUpdatePolicy() == CONTROLS) {
+                                final String[] attributes = getLDAPAttributes(requestState, request.getFields());
+                                deleteRequest.addControl(PreReadRequestControl.newControl(false, attributes));
                             }
-                            resultSent = true;
+                            if (config.useSubtreeDelete()) {
+                                deleteRequest.addControl(SubtreeDeleteRequestControl.newControl(true));
+                            }
+                            addAssertionControl(deleteRequest, request.getRevision());
+                            return connectionHolder.get().applyChangeAsync(deleteRequest)
+                                                         .thenAsync(postUpdateResultAsyncFunction(requestState),
+                                                                    ldapExceptionToResourceException());
+
+                        } catch (final Exception e) {
+                            return Promises.newExceptionPromise((asResourceException(e)));
+                        }
+                    }
+                }).thenFinally(close(requestState));
+    }
+
+    @Override
+    public Promise<ResourceResponse, ResourceException> patchInstance(
+            final Context context, final String resourceId, final PatchRequest request) {
+        final RequestState requestState = wrap(context);
+
+        if (request.getPatchOperations().isEmpty()) {
+            return emptyPatchInstance(requestState, resourceId, request);
+        }
+
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
+        return requestState.getConnection()
+                .thenOnResult(saveConnection(connectionHolder))
+                .thenAsync(doUpdateFunction(requestState, resourceId, request.getRevision()))
+                .thenAsync(new AsyncFunction<DN, ResourceResponse, ResourceException>() {
+                    @Override
+                    public Promise<ResourceResponse, ResourceException> apply(final DN dn) throws ResourceException {
+                        // Convert the patch operations to LDAP modifications.
+                        List<Promise<List<Modification>, ResourceException>> promises =
+                                new ArrayList<>(request.getPatchOperations().size());
+                        for (final PatchOperation operation : request.getPatchOperations()) {
+                            promises.add(attributeMapper.patch(requestState, new JsonPointer(), operation));
+                        }
+
+                        return Promises.when(promises).thenAsync(
+                                new AsyncFunction<List<List<Modification>>, ResourceResponse, ResourceException>() {
+                                    @Override
+                                    public Promise<ResourceResponse, ResourceException> apply(
+                                            final List<List<Modification>> result) {
+                                        // The patch operations have been converted successfully.
+                                        try {
+                                            final ModifyRequest modifyRequest = newModifyRequest(dn);
+
+                                            // Add the modifications.
+                                            for (final List<Modification> modifications : result) {
+                                                if (modifications != null) {
+                                                    modifyRequest.getModifications().addAll(modifications);
+                                                }
+                                            }
+
+                                            final List<String> attributes =
+                                                    asList(getLDAPAttributes(requestState, request.getFields()));
+                                            if (modifyRequest.getModifications().isEmpty()) {
+                                                // This patch is a no-op so just read the entry and check its version.
+                                                return connectionHolder.get()
+                                                        .readEntryAsync(dn, attributes)
+                                                        .thenAsync(postEmptyPatchAsyncFunction(requestState, request),
+                                                                   ldapExceptionToResourceException());
+                                            } else {
+                                                // Add controls and perform the modify request.
+                                                if (config.readOnUpdatePolicy() == CONTROLS) {
+                                                    modifyRequest.addControl(
+                                                            PostReadRequestControl.newControl(false, attributes));
+                                                }
+                                                if (config.usePermissiveModify()) {
+                                                    modifyRequest.addControl(
+                                                            PermissiveModifyRequestControl.newControl(true));
+                                                }
+                                                addAssertionControl(modifyRequest, request.getRevision());
+                                                return connectionHolder.get()
+                                                        .applyChangeAsync(modifyRequest)
+                                                        .thenAsync(postUpdateResultAsyncFunction(requestState),
+                                                                   ldapExceptionToResourceException());
+                                            }
+                                        } catch (final Exception e) {
+                                            return Promises.newExceptionPromise(asResourceException(e));
+                                        }
+                                    }
+                                });
+                    }
+                }).thenFinally(close(requestState));
+    }
+
+    /** Just read the entry and check its version. */
+    private Promise<ResourceResponse, ResourceException> emptyPatchInstance(
+            final RequestState requestState, final String resourceId, final PatchRequest request) {
+        return requestState.getConnection()
+                .thenAsync(new AsyncFunction<Connection, ResourceResponse, ResourceException>() {
+                    @Override
+                    public Promise<ResourceResponse, ResourceException> apply(final Connection connection)
+                            throws ResourceException {
+                        final String[] attributes = getLDAPAttributes(requestState, request.getFields());
+                        final SearchRequest searchRequest =
+                                nameStrategy.createSearchRequest(requestState, getBaseDN(requestState), resourceId)
+                                            .addAttribute(attributes);
+                        return connection.searchSingleEntryAsync(searchRequest)
+                                         .thenAsync(postEmptyPatchAsyncFunction(requestState, request),
+                                                    ldapExceptionToResourceException());
+                    }
+                });
+    }
+
+    private AsyncFunction<SearchResultEntry, ResourceResponse, ResourceException> postEmptyPatchAsyncFunction(
+            final RequestState requestState, final PatchRequest request) {
+        return new AsyncFunction<SearchResultEntry, ResourceResponse, ResourceException>() {
+            @Override
+            public Promise<ResourceResponse, ResourceException> apply(SearchResultEntry entry)
+                    throws ResourceException {
+                try {
+                    // Fail if there is a version mismatch.
+                    ensureMVCCVersionMatches(entry, request.getRevision());
+                    return adaptEntry(requestState, entry);
+                } catch (final Exception e) {
+                    return Promises.newExceptionPromise(asResourceException(e));
+                }
+            }
+        };
+    }
+
+    @Override
+    public Promise<QueryResponse, ResourceException> queryCollection(
+            final Context context, final QueryRequest request, final QueryResourceHandler resourceHandler) {
+        final RequestState requestState = wrap(context);
+
+        return requestState.getConnection()
+                .thenAsync(new AsyncFunction<Connection, QueryResponse, ResourceException>() {
+                    @Override
+                    public Promise<QueryResponse, ResourceException> apply(final Connection connection)
+                            throws ResourceException {
+                        // Calculate the filter (this may require the connection).
+                        return getLDAPFilter(requestState, request.getQueryFilter())
+                                            .thenAsync(runQuery(request, resourceHandler, requestState, connection));
+                    }
+                })
+                .thenFinally(close(requestState));
+    }
+
+    private Promise<Filter, ResourceException> getLDAPFilter(
+            final RequestState requestState, final QueryFilter<JsonPointer> queryFilter) {
+        final QueryFilterVisitor<Promise<Filter, ResourceException>, Void, JsonPointer> visitor =
+                new QueryFilterVisitor<Promise<Filter, ResourceException>, Void, JsonPointer>() {
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitAndFilter(final Void unused,
+                            final List<QueryFilter<JsonPointer>> subFilters) {
+                        final List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
+                        for (final QueryFilter<JsonPointer> subFilter : subFilters) {
+                            promises.add(subFilter.accept(this, unused));
+                        }
+
+                        return Promises.when(promises).then(new Function<List<Filter>, Filter, ResourceException>() {
+                            @Override
+                            public Filter apply(final List<Filter> value) {
+                                // Check for unmapped filter components and optimize.
+                                final Iterator<Filter> i = value.iterator();
+                                while (i.hasNext()) {
+                                    final Filter f = i.next();
+                                    if (f == alwaysFalse()) {
+                                        return alwaysFalse();
+                                    } else if (f == alwaysTrue()) {
+                                        i.remove();
+                                    }
+                                }
+                                switch (value.size()) {
+                                case 0:
+                                    return alwaysTrue();
+                                case 1:
+                                    return value.get(0);
+                                default:
+                                    return Filter.and(value);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitBooleanLiteralFilter(
+                            final Void unused, final boolean value) {
+                        return Promises.newResultPromise(toFilter(value));
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitContainsFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.CONTAINS, null, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitEqualsFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.EQUAL_TO, null, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitExtendedMatchFilter(final Void unused,
+                            final JsonPointer field, final String operator, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.EXTENDED, operator, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitGreaterThanFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.GREATER_THAN, null, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitGreaterThanOrEqualToFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(requestState, new JsonPointer(), field,
+                                FilterType.GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitLessThanFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.LESS_THAN, null, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitLessThanOrEqualToFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(requestState, new JsonPointer(), field,
+                                FilterType.LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitNotFilter(
+                            final Void unused, final QueryFilter<JsonPointer> subFilter) {
+                        return subFilter.accept(this, unused).then(new Function<Filter, Filter, ResourceException>() {
+                            @Override
+                            public Filter apply(final Filter value) {
+                                if (value == null || value == alwaysFalse()) {
+                                    return alwaysTrue();
+                                } else if (value == alwaysTrue()) {
+                                    return alwaysFalse();
+                                } else {
+                                    return Filter.not(value);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitOrFilter(final Void unused,
+                            final List<QueryFilter<JsonPointer>> subFilters) {
+                        final List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
+                        for (final QueryFilter<JsonPointer> subFilter : subFilters) {
+                            promises.add(subFilter.accept(this, unused));
+                        }
+
+                        return Promises.when(promises).then(new Function<List<Filter>, Filter, ResourceException>() {
+                            @Override
+                            public Filter apply(final List<Filter> value) {
+                                // Check for unmapped filter components and optimize.
+                                final Iterator<Filter> i = value.iterator();
+                                while (i.hasNext()) {
+                                    final Filter f = i.next();
+                                    if (f == alwaysFalse()) {
+                                        i.remove();
+                                    } else if (f == alwaysTrue()) {
+                                        return alwaysTrue();
+                                    }
+                                }
+                                switch (value.size()) {
+                                case 0:
+                                    return alwaysFalse();
+                                case 1:
+                                    return value.get(0);
+                                default:
+                                    return Filter.or(value);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitPresentFilter(
+                            final Void unused, final JsonPointer field) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.PRESENT, null, null);
+                    }
+
+                    @Override
+                    public Promise<Filter, ResourceException> visitStartsWithFilter(
+                            final Void unused, final JsonPointer field, final Object valueAssertion) {
+                        return attributeMapper.getLDAPFilter(
+                                requestState, new JsonPointer(), field, FilterType.STARTS_WITH, null, valueAssertion);
+                    }
+
+                };
+        // Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
+        return queryFilter.accept(visitor, null);
+    }
+
+    private AsyncFunction<Filter, QueryResponse, ResourceException> runQuery(final QueryRequest request,
+            final QueryResourceHandler resourceHandler, final RequestState requestState, final Connection connection) {
+        return new AsyncFunction<Filter, QueryResponse, ResourceException>() {
+            /**
+             * The following fields are guarded by sequenceLock. In addition,
+             * the sequenceLock ensures that we send one JSON resource at a time
+             * back to the client.
+             */
+            private final Object sequenceLock = new Object();
+            private String cookie;
+            private ResourceException pendingResult;
+            private int pendingResourceCount;
+            private boolean resultSent;
+            private int totalResourceCount;
+
+            @Override
+            public Promise<QueryResponse, ResourceException> apply(final Filter ldapFilter) {
+                if (ldapFilter == null || ldapFilter == alwaysFalse()) {
+                    // Avoid performing a search if the filter could not be mapped or if it will never match.
+                    return Promises.newResultPromise(Responses.newQueryResponse());
+                }
+                final PromiseImpl<QueryResponse, ResourceException> promise = PromiseImpl.create();
+                // Perform the search.
+                final String[] attributes = getLDAPAttributes(requestState, request.getFields());
+                final Filter searchFilter = ldapFilter == Filter.alwaysTrue() ? Filter.objectClassPresent()
+                                                                              : ldapFilter;
+                final SearchRequest searchRequest = newSearchRequest(
+                        getBaseDN(requestState), SearchScope.SINGLE_LEVEL, searchFilter, attributes);
+
+                // Add the page results control. We can support the page offset by
+                // reading the next offset pages, or offset x page size resources.
+                final int pageResultStartIndex;
+                final int pageSize = request.getPageSize();
+                if (request.getPageSize() > 0) {
+                    final int pageResultEndIndex;
+                    if (request.getPagedResultsOffset() > 0) {
+                        pageResultStartIndex = request.getPagedResultsOffset() * pageSize;
+                        pageResultEndIndex = pageResultStartIndex + pageSize;
+                    } else {
+                        pageResultStartIndex = 0;
+                        pageResultEndIndex = pageSize;
+                    }
+                    final ByteString cookie = request.getPagedResultsCookie() != null
+                            ? ByteString.valueOfBase64(request.getPagedResultsCookie()) : ByteString.empty();
+                    final SimplePagedResultsControl control =
+                            SimplePagedResultsControl.newControl(true, pageResultEndIndex, cookie);
+                    searchRequest.addControl(control);
+                } else {
+                    pageResultStartIndex = 0;
+                }
+
+                connection.searchAsync(searchRequest, new SearchResultHandler() {
+                    @Override
+                    public boolean handleEntry(final SearchResultEntry entry) {
+                        // Search result entries will be returned before the search result/error so the only reason
+                        // pendingResult will be non-null is if a mapping error has occurred.
+                        synchronized (sequenceLock) {
+                            if (pendingResult != null) {
+                                return false;
+                            }
+                            if (totalResourceCount++ < pageResultStartIndex) {
+                                // Haven't reached paged results threshold yet.
+                                return true;
+                            }
+                            pendingResourceCount++;
+                        }
+
+                        /*
+                         * FIXME: secondary asynchronous searches will complete in a non-deterministic order and
+                         * may cause the JSON resources to be returned in a different order to the order in which
+                         * the primary LDAP search results were received. This is benign at the moment, but will
+                         * need resolving when we implement server side sorting. A possible fix will be to use a
+                         * queue of pending resources (promises?). However, the queue cannot be unbounded in case
+                         * it grows very large, but it cannot be bounded either since that could cause a deadlock
+                         * between rest2ldap and the LDAP server (imagine the case where the server has a single
+                         * worker thread which is occupied processing the primary search).
+                         * The best solution is probably to process the primary search results in batches using
+                         * the paged results control.
+                         */
+                        final String id = nameStrategy.getResourceId(requestState, entry);
+                        final String revision = getRevisionFromEntry(entry);
+                        attributeMapper.read(requestState, new JsonPointer(), entry)
+                                       .thenOnResult(new ResultHandler<JsonValue>() {
+                                           @Override
+                                           public void handleResult(final JsonValue result) {
+                                               synchronized (sequenceLock) {
+                                                   pendingResourceCount--;
+                                                   if (!resultSent) {
+                                                       resourceHandler.handleResource(
+                                                               Responses.newResourceResponse(id, revision, result));
+                                                   }
+                                                   completeIfNecessary(promise);
+                                               }
+                                           }
+                                       }).thenOnException(new ExceptionHandler<ResourceException>() {
+                                           @Override
+                                           public void handleException(ResourceException exception) {
+                                               synchronized (sequenceLock) {
+                                                   pendingResourceCount--;
+                                                   completeIfNecessary(exception, promise);
+                                               }
+                                           }
+                                       });
+                        return true;
+                    }
+
+                    @Override
+                    public boolean handleReference(final SearchResultReference reference) {
+                        // TODO: should this be classed as an error since
+                        // rest2ldap assumes entries are all colocated?
+                        return true;
+                    }
+
+                }).thenOnResult(new ResultHandler<Result>() {
+                    @Override
+                    public void handleResult(Result result) {
+                        synchronized (sequenceLock) {
+                            if (request.getPageSize() > 0) {
+                                try {
+                                    final SimplePagedResultsControl control =
+                                            result.getControl(SimplePagedResultsControl.DECODER, DECODE_OPTIONS);
+                                    if (control != null && !control.getCookie().isEmpty()) {
+                                        cookie = control.getCookie().toBase64String();
+                                    }
+                                } catch (final DecodeException e) {
+                                    // FIXME: need some logging.
+                                }
+                            }
+                            completeIfNecessary(SUCCESS, promise);
+                        }
+                    }
+                }).thenOnException(new ExceptionHandler<LdapException>() {
+                    @Override
+                    public void handleException(LdapException exception) {
+                        synchronized (sequenceLock) {
+                            completeIfNecessary(asResourceException(exception), promise);
                         }
                     }
                 });
+
+                return promise;
             }
-        });
-    }
 
-    @Override
-    public void readInstance(final ServerContext context, final String resourceId, final ReadRequest request,
-        final ResultHandler<Resource> handler) {
-        final Context c = wrap(context);
-        final ResultHandler<Resource> h = wrap(c, handler);
-
-        // Get connection then perform the search.
-        c.run(h, new Runnable() {
-            @Override
-            public void run() {
-                // Do the search.
-                final String[] attributes = getLDAPAttributes(c, request.getFields());
-                final SearchRequest request =
-                    nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(attributes);
-
-                c.getConnection().searchSingleEntryAsync(request).thenOnResult(
-                    new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
-                        @Override
-                        public void handleResult(final SearchResultEntry entry) {
-                            adaptEntry(c, entry, h);
-                        }
-                    }).thenOnException(new ExceptionHandler<LdapException>() {
-                        @Override
-                        public void handleException(final LdapException exception) {
-                            h.handleError(asResourceException(exception));
-                        }
-                    });
-            };
-        });
-    }
-
-    @Override
-    public void updateInstance(final ServerContext context, final String resourceId, final UpdateRequest request,
-            final ResultHandler<Resource> handler) {
-        /*
-         * Update operations are a bit awkward because there is no direct
-         * mapping to LDAP. We need to convert the update request into an LDAP
-         * modify operation which means reading the current LDAP entry,
-         * generating the new entry content, then comparing the two in order to
-         * obtain a set of changes. We also need to handle read-only fields
-         * correctly: if a read-only field is included with the new resource
-         * then it must match exactly the value of the existing field.
-         */
-        final Context c = wrap(context);
-        final ResultHandler<Resource> h = wrap(c, handler);
-
-        // Get connection then, search for the existing entry, then modify.
-        c.run(h, new Runnable() {
-            @Override
-            public void run() {
-                final String[] attributes = getLDAPAttributes(c, Collections.<JsonPointer> emptyList());
-                final SearchRequest searchRequest = nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
-                        .addAttribute(attributes);
-
-                c.getConnection().searchSingleEntryAsync(searchRequest)
-                        .thenOnResult(new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
-                            @Override
-                            public void handleResult(final SearchResultEntry entry) {
-                                try {
-                                    // Fail-fast if there is a version mismatch.
-                                    ensureMVCCVersionMatches(entry, request.getRevision());
-
-                                    // Create the modify request.
-                                    final ModifyRequest modifyRequest = newModifyRequest(entry.getName());
-                                    if (config.readOnUpdatePolicy() == CONTROLS) {
-                                        final String[] attributes = getLDAPAttributes(c, request.getFields());
-                                        modifyRequest.addControl(PostReadRequestControl.newControl(false, attributes));
-                                    }
-                                    if (config.usePermissiveModify()) {
-                                        modifyRequest.addControl(PermissiveModifyRequestControl.newControl(true));
-                                    }
-                                    addAssertionControl(modifyRequest, request.getRevision());
-
-                                    /*
-                                     * Determine the set of changes that need to be performed.
-                                     */
-                                    attributeMapper.update(c, new JsonPointer(), entry, request.getNewContent(),
-                                            new ResultHandler<List<Modification>>() {
-                                                @Override
-                                                public void handleError(final ResourceException error) {
-                                                    h.handleError(error);
-                                                }
-
-                                                @Override
-                                                public void handleResult(final List<Modification> result) {
-                                                    // Perform the modify operation.
-                                                    if (result.isEmpty()) {
-                                                        /*
-                                                         * No changes to be performed, so just return
-                                                         * the entry that we read.
-                                                         */
-                                                        adaptEntry(c, entry, h);
-                                                    } else {
-                                                        modifyRequest.getModifications().addAll(result);
-                                                        c.getConnection().applyChangeAsync(modifyRequest)
-                                                                .thenOnResult(postUpdateResultHandler(c, h))
-                                                                .thenOnException(postUpdateExceptionHandler(h));
-                                                    }
-                                                }
-                                            });
-                                } catch (final Exception e) {
-                                    h.handleError(asResourceException(e));
-                                }
-                            }
-                        }).thenOnException(new ExceptionHandler<LdapException>() {
-                            @Override
-                            public void handleException(final LdapException exception) {
-                                h.handleError(asResourceException(exception));
-                            }
-                        });
+            /** This method must be invoked with the sequenceLock held. */
+            private void completeIfNecessary(
+                    final ResourceException e, final PromiseImpl<QueryResponse, ResourceException> handler) {
+                if (pendingResult == null) {
+                    pendingResult = e;
+                }
+                completeIfNecessary(handler);
             }
-        });
-    }
 
-    private void adaptEntry(final Context c, final Entry entry, final ResultHandler<Resource> handler) {
-        final String actualResourceId = nameStrategy.getResourceId(c, entry);
-        final String revision = getRevisionFromEntry(entry);
-        attributeMapper.read(c, new JsonPointer(), entry, transform(
-                new Function<JsonValue, Resource, NeverThrowsException>() {
-                    @Override
-                    public Resource apply(final JsonValue value) {
-                        return new Resource(actualResourceId, revision, new JsonValue(value));
+            /**
+             * Close out the query result set if there are no more pending
+             * resources and the LDAP result has been received.
+             * This method must be invoked with the sequenceLock held.
+             */
+            private void completeIfNecessary(final PromiseImpl<QueryResponse, ResourceException> handler) {
+                if (pendingResourceCount == 0 && pendingResult != null && !resultSent) {
+                    if (pendingResult == SUCCESS) {
+                        handler.handleResult(Responses.newQueryResponse(cookie));
+                    } else {
+                        handler.handleException(pendingResult);
                     }
-                }, handler));
+                    resultSent = true;
+                }
+            }
+        };
+    }
+
+    @Override
+    public Promise<ResourceResponse, ResourceException> readInstance(
+            final Context context, final String resourceId, final ReadRequest request) {
+        final RequestState requestState = wrap(context);
+
+        return requestState.getConnection()
+                .thenAsync(new AsyncFunction<Connection, ResourceResponse, ResourceException>() {
+                    @Override
+                    public Promise<ResourceResponse, ResourceException> apply(Connection connection)
+                            throws ResourceException {
+                        // Do the search.
+                        final String[] attributes = getLDAPAttributes(requestState, request.getFields());
+                        final SearchRequest request =
+                                nameStrategy.createSearchRequest(requestState, getBaseDN(requestState), resourceId)
+                                            .addAttribute(attributes);
+
+                        return connection.searchSingleEntryAsync(request)
+                                    .thenAsync(
+                                        new AsyncFunction<SearchResultEntry, ResourceResponse, ResourceException>() {
+                                            public Promise<ResourceResponse, ResourceException> apply(
+                                                    SearchResultEntry entry) throws ResourceException {
+                                                return adaptEntry(requestState, entry);
+                                            }
+                                        },
+                                        ldapExceptionToResourceException());
+                    }
+                })
+                .thenFinally(close(requestState));
+    }
+
+    @Override
+    public Promise<ResourceResponse, ResourceException> updateInstance(
+            final Context context, final String resourceId, final UpdateRequest request) {
+        final RequestState requestState = wrap(context);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
+
+        return requestState.getConnection().thenOnResult(saveConnection(connectionHolder))
+                .thenAsync(new AsyncFunction<Connection, ResourceResponse, ResourceException>() {
+                    @Override
+                    public Promise<ResourceResponse, ResourceException> apply(final Connection connection)
+                            throws ResourceException {
+                        final String[] attributes = getLDAPAttributes(
+                                requestState, Collections.<JsonPointer> emptyList());
+                        final SearchRequest searchRequest = nameStrategy.createSearchRequest(
+                                requestState, getBaseDN(requestState), resourceId).addAttribute(attributes);
+
+                        return connection.searchSingleEntryAsync(searchRequest)
+                                .thenAsync(new AsyncFunction<SearchResultEntry, ResourceResponse, ResourceException>() {
+                                    @Override
+                                    public Promise<ResourceResponse, ResourceException> apply(
+                                            final SearchResultEntry entry) {
+                                        try {
+                                            // Fail-fast if there is a version mismatch.
+                                            ensureMVCCVersionMatches(entry, request.getRevision());
+
+                                            // Create the modify request.
+                                            final ModifyRequest modifyRequest = newModifyRequest(entry.getName());
+                                            if (config.readOnUpdatePolicy() == CONTROLS) {
+                                                final String[] attributes =
+                                                        getLDAPAttributes(requestState, request.getFields());
+                                                modifyRequest.addControl(
+                                                        PostReadRequestControl.newControl(false, attributes));
+                                            }
+                                            if (config.usePermissiveModify()) {
+                                                modifyRequest.addControl(
+                                                        PermissiveModifyRequestControl.newControl(true));
+                                            }
+                                            addAssertionControl(modifyRequest, request.getRevision());
+
+                                            // Determine the set of changes that need to be performed.
+                                            return attributeMapper.update(
+                                                        requestState, new JsonPointer(), entry, request.getContent())
+                                                    .thenAsync(new AsyncFunction<
+                                                            List<Modification>, ResourceResponse, ResourceException>() {
+                                                        @Override
+                                                        public Promise<ResourceResponse, ResourceException> apply(
+                                                                List<Modification> modifications)
+                                                                throws ResourceException {
+                                                            if (modifications.isEmpty()) {
+                                                                // No changes to be performed so just return
+                                                                // the entry that we read.
+                                                                return adaptEntry(requestState, entry);
+                                                            }
+                                                            // Perform the modify operation.
+                                                            modifyRequest.getModifications().addAll(modifications);
+                                                            return connection.applyChangeAsync(modifyRequest).thenAsync(
+                                                                    postUpdateResultAsyncFunction(requestState),
+                                                                    ldapExceptionToResourceException());
+                                                        }
+                                                    });
+                                        } catch (final Exception e) {
+                                            return Promises.newExceptionPromise(asResourceException(e));
+                                        }
+                                    }
+                                }, ldapExceptionToResourceException());
+                    }
+                }).thenFinally(close(requestState));
+    }
+
+    private Promise<ResourceResponse, ResourceException> adaptEntry(
+            final RequestState requestState, final Entry entry) {
+        final String actualResourceId = nameStrategy.getResourceId(requestState, entry);
+        final String revision = getRevisionFromEntry(entry);
+        return attributeMapper.read(requestState, new JsonPointer(), entry)
+                              .then(new Function<JsonValue, ResourceResponse, ResourceException>() {
+                                  @Override
+                                  public ResourceResponse apply(final JsonValue value) {
+                                      return Responses.newResourceResponse(
+                                              actualResourceId, revision, new JsonValue(value));
+                                  }
+                              });
     }
 
     private void addAssertionControl(final ChangeRecord request, final String expectedRevision)
@@ -652,39 +793,39 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         }
     }
 
-    private Runnable doUpdate(final Context c, final String resourceId, final String revision,
-            final ResultHandler<DN> updateHandler) {
-        return new Runnable() {
+    private AsyncFunction<Connection, DN, ResourceException> doUpdateFunction(
+            final RequestState requestState, final String resourceId, final String revision) {
+        return new AsyncFunction<Connection, DN, ResourceException>() {
             @Override
-            public void run() {
+            public Promise<DN, ResourceException> apply(Connection connection) {
                 final String ldapAttribute =
-                        (etagAttribute != null && revision != null) ? etagAttribute.toString()
-                                : "1.1";
+                        (etagAttribute != null && revision != null) ? etagAttribute.toString() : "1.1";
                 final SearchRequest searchRequest =
-                        nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId).addAttribute(
-                                ldapAttribute);
+                        nameStrategy.createSearchRequest(requestState, getBaseDN(requestState), resourceId)
+                                    .addAttribute(ldapAttribute);
                 if (searchRequest.getScope().equals(SearchScope.BASE_OBJECT)) {
                     // There's no point in doing a search because we already know the DN.
-                    updateHandler.handleResult(searchRequest.getName());
+                    return Promises.newResultPromise(searchRequest.getName());
                 } else {
-                    c.getConnection().searchSingleEntryAsync(searchRequest)
-                            .thenOnResult(new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
+                    return connection.searchSingleEntryAsync(searchRequest)
+                            .thenAsync(new AsyncFunction<SearchResultEntry, DN, ResourceException>() {
                                 @Override
-                                public void handleResult(final SearchResultEntry entry) {
+                                public Promise<DN, ResourceException> apply(SearchResultEntry entry)
+                                        throws ResourceException {
                                     try {
                                         // Fail-fast if there is a version mismatch.
                                         ensureMVCCVersionMatches(entry, revision);
-
                                         // Perform update operation.
-                                        updateHandler.handleResult(entry.getName());
+                                        return Promises.newResultPromise(entry.getName());
                                     } catch (final Exception e) {
-                                        updateHandler.handleError(asResourceException(e));
+                                        return Promises.newExceptionPromise(asResourceException(e));
                                     }
                                 }
-                            }).thenOnException(new ExceptionHandler<LdapException>() {
+                            }, new AsyncFunction<LdapException, DN, ResourceException>() {
                                 @Override
-                                public void handleException(final LdapException exception) {
-                                    updateHandler.handleError(asResourceException(exception));
+                                public Promise<DN, ResourceException> apply(LdapException ldapException)
+                                        throws ResourceException {
+                                    return Promises.newExceptionPromise(asResourceException(ldapException));
                                 }
                             });
                 }
@@ -715,7 +856,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         }
     }
 
-    private DN getBaseDN(final Context context) {
+    private DN getBaseDN(final RequestState requestState) {
         return baseDN;
     }
 
@@ -723,274 +864,49 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
      * Determines the set of LDAP attributes to request in an LDAP read (search,
      * post-read), based on the provided list of JSON pointers.
      *
+     * @param requestState
+     *          The request state.
      * @param requestedAttributes
-     *            The list of resource attributes to be read.
+     *          The list of resource attributes to be read.
      * @return The set of LDAP attributes associated with the resource
      *         attributes.
      */
-    private String[] getLDAPAttributes(final Context c,
-            final Collection<JsonPointer> requestedAttributes) {
+    private String[] getLDAPAttributes(
+            final RequestState requestState, final Collection<JsonPointer> requestedAttributes) {
         // Get all the LDAP attributes required by the attribute mappers.
         final Set<String> requestedLDAPAttributes;
         if (requestedAttributes.isEmpty()) {
             // Full read.
             requestedLDAPAttributes = new LinkedHashSet<>();
-            attributeMapper.getLDAPAttributes(c, new JsonPointer(), new JsonPointer(),
+            attributeMapper.getLDAPAttributes(requestState, new JsonPointer(), new JsonPointer(),
                     requestedLDAPAttributes);
         } else {
             // Partial read.
             requestedLDAPAttributes = new LinkedHashSet<>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                attributeMapper.getLDAPAttributes(c, new JsonPointer(), requestedAttribute,
+                attributeMapper.getLDAPAttributes(requestState, new JsonPointer(), requestedAttribute,
                         requestedLDAPAttributes);
             }
         }
 
         // Get the LDAP attributes required by the Etag and name stategies.
-        nameStrategy.getLDAPAttributes(c, requestedLDAPAttributes);
+        nameStrategy.getLDAPAttributes(requestState, requestedLDAPAttributes);
         if (etagAttribute != null) {
             requestedLDAPAttributes.add(etagAttribute.toString());
         }
         return requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
     }
 
-    private void getLDAPFilter(final Context c, final QueryFilter queryFilter, final ResultHandler<Filter> h) {
-        final QueryFilterVisitor<Void, ResultHandler<Filter>> visitor =
-                new QueryFilterVisitor<Void, ResultHandler<Filter>>() {
-                    @Override
-                    public Void visitAndFilter(final ResultHandler<Filter> p, final List<QueryFilter> subFilters) {
-                        List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
-                        for (final QueryFilter subFilter : subFilters) {
-                            final ResultHandlerFromPromise<Filter> handler = new ResultHandlerFromPromise<>();
-                            subFilter.accept(this, handler);
-                            promises.add(handler.promise);
-                        }
-
-                        Promises.when(promises)
-                                .then(new org.forgerock.util.Function<List<Filter>, Filter, ResourceException>() {
-                                    @Override
-                                    public Filter apply(final List<Filter> value) {
-                                        // Check for unmapped filter components and optimize.
-                                        final Iterator<Filter> i = value.iterator();
-                                        while (i.hasNext()) {
-                                            final Filter f = i.next();
-                                            if (f == alwaysFalse()) {
-                                                return alwaysFalse();
-                                            } else if (f == alwaysTrue()) {
-                                                i.remove();
-                                            }
-                                        }
-                                        switch (value.size()) {
-                                        case 0:
-                                            return alwaysTrue();
-                                        case 1:
-                                            return value.get(0);
-                                        default:
-                                            return Filter.and(value);
-                                        }
-                                    }
-                                }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Filter>() {
-                                    @Override
-                                    public void handleResult(Filter result) {
-                                        p.handleResult(result);
-                                    }
-                                }).thenOnException(new ExceptionHandler<ResourceException>() {
-                                    @Override
-                                    public void handleException(ResourceException exception) {
-                                        p.handleError(exception);
-                                    }
-                                });
-
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitBooleanLiteralFilter(final ResultHandler<Filter> p,
-                            final boolean value) {
-                        p.handleResult(toFilter(value));
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitContainsFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.CONTAINS, null, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitEqualsFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.EQUAL_TO, null, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitExtendedMatchFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final String operator,
-                            final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.EXTENDED, operator, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitGreaterThanFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.GREATER_THAN, null, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitGreaterThanOrEqualToFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.GREATER_THAN_OR_EQUAL_TO, null, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitLessThanFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.LESS_THAN, null, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitLessThanOrEqualToFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.LESS_THAN_OR_EQUAL_TO, null, valueAssertion, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitNotFilter(final ResultHandler<Filter> p,
-                            final QueryFilter subFilter) {
-                        subFilter.accept(this, transform(new Function<Filter, Filter, NeverThrowsException>() {
-                            @Override
-                            public Filter apply(final Filter value) {
-                                if (value == null || value == alwaysFalse()) {
-                                    return alwaysTrue();
-                                } else if (value == alwaysTrue()) {
-                                    return alwaysFalse();
-                                } else {
-                                    return Filter.not(value);
-                                }
-                            }
-                        }, p));
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitOrFilter(final ResultHandler<Filter> p, final List<QueryFilter> subFilters) {
-                        List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
-                        for (final QueryFilter subFilter : subFilters) {
-                            final ResultHandlerFromPromise<Filter> handler = new ResultHandlerFromPromise<>();
-                            subFilter.accept(this, handler);
-                            promises.add(handler.promise);
-                        }
-
-                        Promises.when(promises)
-                                .then(new org.forgerock.util.Function<List<Filter>, Filter, ResourceException>() {
-                                    @Override
-                                    public Filter apply(final List<Filter> value) {
-                                        // Check for unmapped filter components and optimize.
-                                        final Iterator<Filter> i = value.iterator();
-                                        while (i.hasNext()) {
-                                            final Filter f = i.next();
-                                            if (f == alwaysFalse()) {
-                                                i.remove();
-                                            } else if (f == alwaysTrue()) {
-                                                return alwaysTrue();
-                                            }
-                                        }
-                                        switch (value.size()) {
-                                        case 0:
-                                            return alwaysFalse();
-                                        case 1:
-                                            return value.get(0);
-                                        default:
-                                            return Filter.or(value);
-                                        }
-                                    }
-                                }).thenOnResult(new org.forgerock.util.promise.ResultHandler<Filter>() {
-                                    @Override
-                                    public void handleResult(Filter result) {
-                                        p.handleResult(result);
-                                    }
-                                }).thenOnException(new ExceptionHandler<ResourceException>() {
-                                    @Override
-                                    public void handleException(ResourceException exception) {
-                                        p.handleError(exception);
-                                    }
-                                });
-
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitPresentFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.PRESENT, null, null, p);
-                        return null;
-                    }
-
-                    @Override
-                    public Void visitStartsWithFilter(final ResultHandler<Filter> p,
-                            final JsonPointer field, final Object valueAssertion) {
-                        attributeMapper.getLDAPFilter(c, new JsonPointer(), field,
-                                FilterType.STARTS_WITH, null, valueAssertion, p);
-                        return null;
-                    }
-
-                };
-        /*
-         * Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
-         */
-        queryFilter.accept(visitor, h);
-    }
-
     private String getRevisionFromEntry(final Entry entry) {
         return etagAttribute != null ? entry.parseAttribute(etagAttribute).asString() : null;
     }
 
-    private org.forgerock.util.promise.ResultHandler<SearchResultEntry> postEmptyPatchResultHandler(
-            final Context c, final PatchRequest request, final ResultHandler<Resource> h) {
-        return new org.forgerock.util.promise.ResultHandler<SearchResultEntry>() {
-            @Override
-            public void handleResult(final SearchResultEntry entry) {
-                try {
-                    // Fail if there is a version mismatch.
-                    ensureMVCCVersionMatches(entry, request.getRevision());
-                    adaptEntry(c, entry, h);
-                } catch (final Exception e) {
-                    h.handleError(asResourceException(e));
-                }
-            }
-        };
-    }
-
-    private ExceptionHandler<LdapException> postEmptyPatchExceptionHandler(final ResultHandler<Resource> h) {
-        return new ExceptionHandler<LdapException>() {
-            @Override
-            public void handleException(final LdapException exception) {
-                h.handleError(asResourceException(exception));
-            }
-        };
-    }
-
-    private org.forgerock.util.promise.ResultHandler<Result> postUpdateResultHandler(
-            final Context c, final ResultHandler<Resource> handler) {
+    private AsyncFunction<Result, ResourceResponse, ResourceException> postUpdateResultAsyncFunction(
+            final RequestState requestState) {
         // The handler which will be invoked for the LDAP add result.
-        return new org.forgerock.util.promise.ResultHandler<Result>() {
+        return new AsyncFunction<Result, ResourceResponse, ResourceException>() {
             @Override
-            public void handleResult(final Result result) {
+            public Promise<ResourceResponse, ResourceException> apply(Result result) throws ResourceException {
                 // FIXME: handle USE_SEARCH policy.
                 Entry entry;
                 try {
@@ -1012,76 +928,45 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     entry = null;
                 }
                 if (entry != null) {
-                    adaptEntry(c, entry, handler);
+                    return adaptEntry(requestState, entry);
                 } else {
-                    final Resource resource = new Resource(null, null, new JsonValue(Collections.emptyMap()));
-                    handler.handleResult(resource);
+                    return Promises.newResultPromise(
+                            Responses.newResourceResponse(null, null, new JsonValue(Collections.emptyMap())));
                 }
             }
-
         };
     }
 
-    private ExceptionHandler<LdapException> postUpdateExceptionHandler(final ResultHandler<Resource> handler) {
+    private AsyncFunction<LdapException, ResourceResponse, ResourceException> ldapExceptionToResourceException() {
         // The handler which will be invoked for the LDAP add result.
-        return new ExceptionHandler<LdapException>() {
+        return new AsyncFunction<LdapException, ResourceResponse, ResourceException>() {
             @Override
-            public void handleException(final LdapException exception) {
-                handler.handleError(asResourceException(exception));
+            public Promise<ResourceResponse, ResourceException> apply(final LdapException ldapException)
+                    throws ResourceException {
+                return Promises.newExceptionPromise(asResourceException(ldapException));
             }
         };
     }
 
-    private QueryResultHandler wrap(final Context c, final QueryResultHandler handler) {
-        return new QueryResultHandler() {
-            @Override
-            public void handleError(final ResourceException error) {
-                try {
-                    handler.handleError(error);
-                } finally {
-                    c.close();
-                }
-            }
+    private RequestState wrap(final Context context) {
+        return new RequestState(config, context);
+    }
 
+    private Runnable close(final RequestState requestState) {
+        return new Runnable() {
             @Override
-            public boolean handleResource(final Resource resource) {
-                return handler.handleResource(resource);
-            }
-
-            @Override
-            public void handleResult(final QueryResult result) {
-                try {
-                    handler.handleResult(result);
-                } finally {
-                    c.close();
-                }
+            public void run() {
+                requestState.close();
             }
         };
     }
 
-    private <V> ResultHandler<V> wrap(final Context c, final ResultHandler<V> handler) {
-        return new ResultHandler<V>() {
+    private ResultHandler<Connection> saveConnection(final AtomicReference<Connection> connectionHolder) {
+        return new ResultHandler<Connection>() {
             @Override
-            public void handleError(final ResourceException error) {
-                try {
-                    handler.handleError(error);
-                } finally {
-                    c.close();
-                }
-            }
-
-            @Override
-            public void handleResult(final V result) {
-                try {
-                    handler.handleResult(result);
-                } finally {
-                    c.close();
-                }
+            public void handleResult(Connection connection) {
+                connectionHolder.set(connection);
             }
         };
-    }
-
-    private Context wrap(final ServerContext context) {
-        return new Context(config, context);
     }
 }

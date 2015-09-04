@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.rest2ldap;
@@ -40,8 +40,8 @@ abstract class NameStrategy {
      * Returns a search request which can be used to obtain the specified REST
      * resource.
      *
-     * @param c
-     *            The context.
+     * @param requestState
+     *            The request state.
      * @param baseDN
      *            The search base DN.
      * @param resourceId
@@ -49,40 +49,40 @@ abstract class NameStrategy {
      * @return A search request which can be used to obtain the specified REST
      *         resource.
      */
-    abstract SearchRequest createSearchRequest(Context c, DN baseDN, String resourceId);
+    abstract SearchRequest createSearchRequest(RequestState requestState, DN baseDN, String resourceId);
 
     /**
      * Adds the name of any LDAP attribute required by this name strategy to the
      * provided set.
      *
-     * @param c
-     *            The context.
+     * @param requestState
+     *            The request state.
      * @param ldapAttributes
      *            The set into which any required LDAP attribute name should be
      *            put.
      */
-    abstract void getLDAPAttributes(Context c, Set<String> ldapAttributes);
+    abstract void getLDAPAttributes(RequestState requestState, Set<String> ldapAttributes);
 
     /**
      * Retrieves the resource ID from the provided LDAP entry. Implementations
      * may use the entry DN as well as any attributes in order to determine the
      * resource ID.
      *
-     * @param c
-     *            The context.
+     * @param requestState
+     *            The request state.
      * @param entry
      *            The LDAP entry from which the resource ID should be obtained.
      * @return The resource ID.
      */
-    abstract String getResourceId(Context c, Entry entry);
+    abstract String getResourceId(RequestState requestState, Entry entry);
 
     /**
      * Sets the resource ID in the provided LDAP entry. Implementations are
      * responsible for setting the entry DN as well as any attributes associated
      * with the resource ID.
      *
-     * @param c
-     *            The context.
+     * @param requestState
+     *            The request state.
      * @param baseDN
      *            The baseDN to use when constructing the entry's DN.
      * @param resourceId
@@ -93,7 +93,7 @@ abstract class NameStrategy {
      * @throws ResourceException
      *             If the resource ID cannot be determined.
      */
-    abstract void setResourceId(Context c, DN baseDN, String resourceId, Entry entry)
+    abstract void setResourceId(RequestState requestState, DN baseDN, String resourceId, Entry entry)
             throws ResourceException;
 
 }

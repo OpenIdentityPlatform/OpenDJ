@@ -17,10 +17,9 @@ package org.forgerock.opendj.rest2ldap;
 
 import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.json.fluent.JsonValue.field;
-import static org.forgerock.json.fluent.JsonValue.json;
-import static org.forgerock.json.fluent.JsonValue.object;
+import static org.forgerock.json.JsonValue.field;
+import static org.forgerock.json.JsonValue.json;
+import static org.forgerock.json.JsonValue.object;
 import static org.forgerock.json.resource.PatchOperation.add;
 import static org.forgerock.json.resource.PatchOperation.increment;
 import static org.forgerock.json.resource.PatchOperation.remove;
@@ -46,22 +45,22 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.NotFoundException;
 import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PreconditionFailedException;
-import org.forgerock.json.resource.QueryFilter;
-import org.forgerock.json.resource.QueryResult;
+import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.Requests;
-import org.forgerock.json.resource.Resource;
+import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
-import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -79,11 +78,10 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
 import org.forgerock.testng.ForgeRockTestCase;
+import org.forgerock.util.query.QueryFilter;
 import org.testng.annotations.Test;
 
-/**
- * Tests that CREST requests are correctly mapped to LDAP.
- */
+/** Tests that CREST requests are correctly mapped to LDAP. */
 @SuppressWarnings({ "javadoc" })
 @Test
 public final class BasicRequestsTest extends ForgeRockTestCase {
@@ -91,39 +89,38 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     // so that we can check that the request handler is returning everything.
     // FIXME: factor out test for re-use as common test suite (e.g. for InMemoryBackend).
 
+    private static final QueryFilter<JsonPointer> NO_FILTER = QueryFilter.alwaysTrue();
+
     @Test
     public void testQueryAll() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new LinkedList<>();
-        final QueryResult result =
-                connection.query(ctx(), Requests.newQueryRequest("").setQueryFilter(
-                        QueryFilter.alwaysTrue()), resources);
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result = connection.query(
+            ctx(), Requests.newQueryRequest("").setQueryFilter(NO_FILTER), resources);
         assertThat(resources).hasSize(5);
         assertThat(result.getPagedResultsCookie()).isNull();
-        assertThat(result.getRemainingPagedResults()).isEqualTo(-1);
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
     }
 
     @Test
     public void testQueryNone() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new LinkedList<>();
-        final QueryResult result =
-                connection.query(ctx(), Requests.newQueryRequest("").setQueryFilter(
-                        QueryFilter.alwaysFalse()), resources);
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result = connection.query(
+            ctx(), Requests.newQueryRequest("").setQueryFilter(QueryFilter.<JsonPointer>alwaysFalse()), resources);
         assertThat(resources).hasSize(0);
         assertThat(result.getPagedResultsCookie()).isNull();
-        assertThat(result.getRemainingPagedResults()).isEqualTo(-1);
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
     }
 
     @Test
     public void testQueryPageResultsCookie() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new ArrayList<>();
+        final List<ResourceResponse> resources = new ArrayList<>();
 
         // Read first page.
-        QueryResult result =
-                connection.query(ctx(), newQueryRequest("")
-                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2), resources);
+        QueryResponse result = connection.query(
+                ctx(), newQueryRequest("").setQueryFilter(NO_FILTER).setPageSize(2), resources);
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(2);
         assertThat(resources.get(0).getId()).isEqualTo("test1");
@@ -133,10 +130,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         resources.clear();
 
         // Read second page.
-        result =
-                connection.query(ctx(), newQueryRequest("")
-                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
-                        .setPagedResultsCookie(cookie), resources);
+        result = connection.query(ctx(),
+                newQueryRequest("").setQueryFilter(NO_FILTER).setPageSize(2).setPagedResultsCookie(cookie), resources);
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(2);
         assertThat(resources.get(0).getId()).isEqualTo("test3");
@@ -146,10 +141,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         resources.clear();
 
         // Read third page.
-        result =
-                connection.query(ctx(), newQueryRequest("")
-                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
-                        .setPagedResultsCookie(cookie), resources);
+        result = connection.query(ctx(),
+                newQueryRequest("").setQueryFilter(NO_FILTER).setPageSize(2).setPagedResultsCookie(cookie), resources);
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("test5");
@@ -158,42 +151,29 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testQueryPageResultsIndexed() throws Exception {
         final Connection connection = newConnection();
-        final List<Resource> resources = new ArrayList<>();
-        QueryResult result =
-                connection.query(ctx(), newQueryRequest("")
-                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
-                        .setPagedResultsOffset(1), resources);
+        final List<ResourceResponse> resources = new ArrayList<>();
+        QueryResponse result = connection.query(ctx(),
+                newQueryRequest("").setQueryFilter(NO_FILTER).setPageSize(2).setPagedResultsOffset(1), resources);
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(2);
         assertThat(resources.get(0).getId()).isEqualTo("test3");
         assertThat(resources.get(1).getId()).isEqualTo("test4");
     }
 
-    @Test
+    @Test(expectedExceptions = NotFoundException.class)
     public void testDelete() throws Exception {
         final Connection connection = newConnection();
-        final Resource resource = connection.delete(ctx(), newDeleteRequest("/test1"));
+        final ResourceResponse resource = connection.delete(ctx(), newDeleteRequest("/test1"));
         checkResourcesAreEqual(resource, getTestUser1(12345));
-        try {
-            connection.read(ctx(), newReadRequest("/test1"));
-            fail("Read succeeded unexpectedly");
-        } catch (final NotFoundException e) {
-            // Expected.
-        }
+        connection.read(ctx(), newReadRequest("/test1"));
     }
 
-    @Test
+    @Test(expectedExceptions = NotFoundException.class)
     public void testDeleteMVCCMatch() throws Exception {
         final Connection connection = newConnection();
-        final Resource resource =
-                connection.delete(ctx(), newDeleteRequest("/test1").setRevision("12345"));
+        final ResourceResponse resource = connection.delete(ctx(), newDeleteRequest("/test1").setRevision("12345"));
         checkResourcesAreEqual(resource, getTestUser1(12345));
-        try {
-            connection.read(ctx(), newReadRequest("/test1"));
-            fail("Read succeeded unexpectedly");
-        } catch (final NotFoundException e) {
-            // Expected.
-        }
+        connection.read(ctx(), newReadRequest("/test1"));
     }
 
     @Test(expectedExceptions = PreconditionFailedException.class)
@@ -211,11 +191,10 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testPatch() throws Exception {
         final Connection connection = newConnection();
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", add("/name/displayName",
-                        "changed")));
+        final ResourceResponse resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("/name/displayName", "changed")));
         checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
     }
 
@@ -223,7 +202,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchEmpty() throws Exception {
         final List<Request> requests = new LinkedList<>();
         final Connection connection = newConnection(requests);
-        final Resource resource1 = connection.patch(ctx(), newPatchRequest("/test1"));
+        final ResourceResponse resource1 = connection.patch(ctx(), newPatchRequest("/test1"));
         checkResourcesAreEqual(resource1, getTestUser1(12345));
 
         /*
@@ -233,7 +212,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(requests).hasSize(1);
         assertThat(requests.get(0)).isInstanceOf(SearchRequest.class);
 
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1(12345));
     }
 
@@ -242,11 +221,11 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final Connection connection = newConnection();
         final JsonValue newContent = getTestUser1(12345);
         newContent.put("description", asList("one", "two"));
-        final Resource resource1 =
+        final ResourceResponse resource1 =
                 connection.patch(ctx(), newPatchRequest("/test1", add("/description", asList("one",
                         "two"))));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
@@ -255,29 +234,25 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final Connection connection = newConnection();
         final JsonValue newContent = getTestUser1(12345);
         newContent.put("description", asList("one", "two"));
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", add("/description/-", "one"),
-                        add("/description/-", "two")));
+        final ResourceResponse resource1 = connection.patch(
+            ctx(), newPatchRequest("/test1", add("/description/-", "one"), add("/description/-", "two")));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
     @Test(expectedExceptions = BadRequestException.class)
     public void testPatchConstantAttribute() throws Exception {
-        final Connection connection = newConnection();
-        connection.patch(ctx(), newPatchRequest("/test1", add("/schemas", asList("junk"))));
+        newConnection().patch(ctx(), newPatchRequest("/test1", add("/schemas", asList("junk"))));
     }
 
     @Test
     public void testPatchDeleteOptionalAttribute() throws Exception {
         final Connection connection = newConnection();
-        connection.patch(ctx(),
-                newPatchRequest("/test1", add("/description", asList("one", "two"))));
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", remove("/description")));
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description", asList("one", "two"))));
+        final ResourceResponse resource1 = connection.patch(ctx(), newPatchRequest("/test1", remove("/description")));
         checkResourcesAreEqual(resource1, getTestUser1(12345));
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1(12345));
     }
 
@@ -288,33 +263,31 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         newContent.put("singleNumber", 100);
         newContent.put("multiNumber", asList(200, 300));
 
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", add("/singleNumber", 0), add(
-                        "/multiNumber", asList(100, 200)), increment("/singleNumber", 100),
-                        increment("/multiNumber", 100)));
+        final ResourceResponse resource1 = connection.patch(ctx(), newPatchRequest("/test1",
+            add("/singleNumber", 0),
+            add("/multiNumber", asList(100, 200)),
+            increment("/singleNumber", 100),
+            increment("/multiNumber", 100)));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
     @Test(expectedExceptions = BadRequestException.class)
     public void testPatchMissingRequiredAttribute() throws Exception {
-        final Connection connection = newConnection();
-        connection.patch(ctx(), newPatchRequest("/test1", remove("/name/surname")));
+        newConnection().patch(ctx(), newPatchRequest("/test1", remove("/name/surname")));
     }
 
     @Test
     public void testPatchModifyOptionalAttribute() throws Exception {
         final Connection connection = newConnection();
-        connection.patch(ctx(),
-                newPatchRequest("/test1", add("/description", asList("one", "two"))));
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", add("/description",
-                        asList("three"))));
+        connection.patch(ctx(), newPatchRequest("/test1", add("/description", asList("one", "two"))));
+        final ResourceResponse resource1 =
+                connection.patch(ctx(), newPatchRequest("/test1", add("/description", asList("three"))));
         final JsonValue newContent = getTestUser1(12345);
         newContent.put("description", asList("one", "two", "three"));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
@@ -340,63 +313,62 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testPatchMVCCMatch() throws Exception {
         final Connection connection = newConnection();
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1",
-                        add("/name/displayName", "changed")).setRevision("12345"));
+        final ResourceResponse resource1 = connection.patch(
+            ctx(), newPatchRequest("/test1", add("/name/displayName", "changed")).setRevision("12345"));
         checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
     }
 
     @Test(expectedExceptions = PreconditionFailedException.class)
     public void testPatchMVCCNoMatch() throws Exception {
         final Connection connection = newConnection();
-        connection.patch(ctx(), newPatchRequest("/test1", add("/name/displayName", "changed"))
-                .setRevision("12346"));
+        connection.patch(ctx(), newPatchRequest("/test1", add("/name/displayName", "changed")).setRevision("12346"));
     }
 
     @Test(expectedExceptions = NotFoundException.class)
     public void testPatchNotFound() throws Exception {
-        final Connection connection = newConnection();
-        connection.patch(ctx(), newPatchRequest("/missing", add("/name/displayName", "changed")));
+        newConnection().patch(ctx(), newPatchRequest("/missing", add("/name/displayName", "changed")));
     }
 
     @Test(expectedExceptions = BadRequestException.class)
     public void testPatchReadOnlyAttribute() throws Exception {
-        final Connection connection = newConnection();
         // Etag is read-only.
-        connection.patch(ctx(), newPatchRequest("/test1", add("_rev", "99999")));
+        newConnection().patch(ctx(), newPatchRequest("/test1", add("_rev", "99999")));
     }
 
     @Test
     public void testPatchReplacePartialObject() throws Exception {
         final Connection connection = newConnection();
-        final JsonValue expected =
-                json(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                        "test1"), field("_rev", "12345"), field("name", object(field("displayName",
-                        "Humpty"), field("surname", "Dumpty")))));
-        final Resource resource1 =
-                connection.patch(ctx(), newPatchRequest("/test1", replace("/name", object(field(
-                        "displayName", "Humpty"), field("surname", "Dumpty")))));
+        final JsonValue expected = json(object(
+            field("schemas", asList("urn:scim:schemas:core:1.0")),
+            field("_id", "test1"),
+            field("_rev", "12345"),
+            field("name", object(field("displayName", "Humpty"),
+                                 field("surname", "Dumpty")))));
+        final ResourceResponse resource1 = connection.patch(ctx(), newPatchRequest("/test1",
+            replace("/name", object(field("displayName", "Humpty"), field("surname", "Dumpty")))));
         checkResourcesAreEqual(resource1, expected);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, expected);
     }
 
     @Test
     public void testPatchReplaceWholeObject() throws Exception {
         final Connection connection = newConnection();
-        final JsonValue newContent =
-                json(object(field("name", object(field("displayName", "Humpty"), field("surname",
-                        "Dumpty")))));
-        final JsonValue expected =
-                json(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                        "test1"), field("_rev", "12345"), field("name", object(field("displayName",
-                        "Humpty"), field("surname", "Dumpty")))));
-        final Resource resource1 =
+        final JsonValue newContent = json(object(
+            field("name", object(field("displayName", "Humpty"),
+                                 field("surname", "Dumpty")))));
+        final JsonValue expected = json(object(
+            field("schemas", asList("urn:scim:schemas:core:1.0")),
+            field("_id", "test1"),
+            field("_rev", "12345"),
+            field("name", object(field("displayName", "Humpty"),
+                                 field("surname", "Dumpty")))));
+        final ResourceResponse resource1 =
                 connection.patch(ctx(), newPatchRequest("/test1", replace("/", newContent)));
         checkResourcesAreEqual(resource1, expected);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, expected);
     }
 
@@ -439,7 +411,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
     @Test
     public void testRead() throws Exception {
-        final Resource resource = newConnection().read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource = newConnection().read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource, getTestUser1(12345));
     }
 
@@ -450,15 +422,14 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
     @Test
     public void testReadSelectAllFields() throws Exception {
-        final Resource resource =
-                newConnection().read(ctx(), newReadRequest("/test1").addField("/"));
+        final ResourceResponse resource = newConnection().read(ctx(), newReadRequest("/test1").addField("/"));
         checkResourcesAreEqual(resource, getTestUser1(12345));
     }
 
     @Test
     public void testReadSelectPartial() throws Exception {
-        final Resource resource =
-                newConnection().read(ctx(), newReadRequest("/test1").addField("/name/surname"));
+        final ResourceResponse resource = newConnection().read(
+            ctx(), newReadRequest("/test1").addField("/name/surname"));
         assertThat(resource.getId()).isEqualTo("test1");
         assertThat(resource.getRevision()).isEqualTo("12345");
         assertThat(resource.getContent().get("_id").asString()).isNull();
@@ -470,8 +441,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     /** Disabled - see CREST-86 (Should JSON resource fields be case insensitive?) */
     @Test(enabled = false)
     public void testReadSelectPartialInsensitive() throws Exception {
-        final Resource resource =
-                newConnection().read(ctx(), newReadRequest("/test1").addField("/name/SURNAME"));
+        final ResourceResponse resource = newConnection().read(
+            ctx(), newReadRequest("/test1").addField("/name/SURNAME"));
         assertThat(resource.getId()).isEqualTo("test1");
         assertThat(resource.getRevision()).isEqualTo("12345");
         assertThat(resource.getContent().get("_id").asString()).isNull();
@@ -483,10 +454,10 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testUpdate() throws Exception {
         final Connection connection = newConnection();
-        final Resource resource1 =
-                connection.update(ctx(), newUpdateRequest("/test1", getTestUser1Updated(12345)));
+        final ResourceResponse resource1 = connection.update(
+            ctx(), newUpdateRequest("/test1", getTestUser1Updated(12345)));
         checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
     }
 
@@ -494,18 +465,15 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testUpdateNoChange() throws Exception {
         final List<Request> requests = new LinkedList<>();
         final Connection connection = newConnection(requests);
-        final Resource resource1 =
-                connection.update(ctx(), newUpdateRequest("/test1", getTestUser1(12345)));
+        final ResourceResponse resource1 = connection.update(ctx(), newUpdateRequest("/test1", getTestUser1(12345)));
 
-        /*
-         * Check that no modify operation was sent (only a single search should
-         * be sent in order to get the current resource).
-         */
+        // Check that no modify operation was sent
+        // (only a single search should be sent in order to get the current resource).
         assertThat(requests).hasSize(1);
         assertThat(requests.get(0)).isInstanceOf(SearchRequest.class);
 
         checkResourcesAreEqual(resource1, getTestUser1(12345));
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1(12345));
     }
 
@@ -514,9 +482,9 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         final Connection connection = newConnection();
         final JsonValue newContent = getTestUser1Updated(12345);
         newContent.put("description", asList("one", "two"));
-        final Resource resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        final ResourceResponse resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
@@ -535,9 +503,9 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         newContent.put("description", asList("one", "two"));
         connection.update(ctx(), newUpdateRequest("/test1", newContent));
         newContent.remove("description");
-        final Resource resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        final ResourceResponse resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
@@ -556,20 +524,19 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         newContent.put("description", asList("one", "two"));
         connection.update(ctx(), newUpdateRequest("/test1", newContent));
         newContent.put("description", asList("three"));
-        final Resource resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
+        final ResourceResponse resource1 = connection.update(ctx(), newUpdateRequest("/test1", newContent));
         checkResourcesAreEqual(resource1, newContent);
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, newContent);
     }
 
     @Test
     public void testUpdateMVCCMatch() throws Exception {
         final Connection connection = newConnection();
-        final Resource resource1 =
-                connection.update(ctx(), newUpdateRequest("/test1", getTestUser1Updated(12345))
-                        .setRevision("12345"));
+        final ResourceResponse resource1 =
+                connection.update(ctx(), newUpdateRequest("/test1", getTestUser1Updated(12345)).setRevision("12345"));
         checkResourcesAreEqual(resource1, getTestUser1Updated(12345));
-        final Resource resource2 = connection.read(ctx(), newReadRequest("/test1"));
+        final ResourceResponse resource2 = connection.read(ctx(), newReadRequest("/test1"));
         checkResourcesAreEqual(resource2, getTestUser1Updated(12345));
     }
 
@@ -643,8 +610,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                         .attribute("multiNumber", simple("multiNumber").decoder(byteStringToInteger())));
     }
 
-    private void checkResourcesAreEqual(final Resource actual, final JsonValue expected) {
-        final Resource expectedResource = asResource(expected);
+    private void checkResourcesAreEqual(final ResourceResponse actual, final JsonValue expected) {
+        final ResourceResponse expectedResource = asResource(expected);
         assertThat(actual.getId()).isEqualTo(expectedResource.getId());
         assertThat(actual.getRevision()).isEqualTo(expectedResource.getRevision());
         assertThat(actual.getContent().getObject()).isEqualTo(
@@ -790,14 +757,20 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     private JsonValue getTestUser1(final int rev) {
-        return content(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                "test1"), field("_rev", String.valueOf(rev)), field("name", object(field(
-                "displayName", "test user 1"), field("surname", "user 1")))));
+        return content(object(
+                field("schemas", asList("urn:scim:schemas:core:1.0")),
+                field("_id", "test1"),
+                field("_rev", String.valueOf(rev)),
+                field("name", object(field("displayName", "test user 1"),
+                                     field("surname", "user 1")))));
     }
 
     private JsonValue getTestUser1Updated(final int rev) {
-        return content(object(field("schemas", asList("urn:scim:schemas:core:1.0")), field("_id",
-                "test1"), field("_rev", String.valueOf(rev)), field("name", object(field(
-                "displayName", "changed"), field("surname", "user 1")))));
+        return content(object(
+                field("schemas", asList("urn:scim:schemas:core:1.0")),
+                field("_id", "test1"),
+                field("_rev", String.valueOf(rev)),
+                field("name", object(field("displayName", "changed"),
+                                     field("surname", "user 1")))));
     }
 }

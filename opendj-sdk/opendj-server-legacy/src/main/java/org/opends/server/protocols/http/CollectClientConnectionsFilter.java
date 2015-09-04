@@ -25,6 +25,7 @@
  */
 package org.opends.server.protocols.http;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -32,67 +33,44 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Collection;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
+import org.forgerock.http.Context;
+import org.forgerock.http.Handler;
+import org.forgerock.http.protocol.Request;
+import org.forgerock.http.protocol.Response;
+import org.forgerock.http.protocol.Status;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.adapter.server3x.Adapters;
+import org.forgerock.opendj.ldap.AddressMask;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
-import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
 import org.forgerock.util.AsyncFunction;
-import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.ResultHandler;
+import org.forgerock.util.promise.Promises;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
-import static org.forgerock.opendj.adapter.server3x.Adapters.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.util.promise.Promises.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * Servlet {@link Filter} that collects information about client connections.
- */
-final class CollectClientConnectionsFilter implements javax.servlet.Filter
+/** Servlet {@link Filter} that collects information about client connections. */
+final class CollectClientConnectionsFilter implements org.forgerock.http.Filter, Closeable
 {
-
-  /** This class holds all the necessary data to complete an HTTP request. */
-  private static final class HTTPRequestContext
-  {
-    private AsyncContext asyncContext;
-    private HttpServletRequest request;
-    private HttpServletResponse response;
-    private FilterChain chain;
-
-    private HTTPClientConnection clientConnection;
-    private Connection connection;
-
-    /** Whether to pretty print the resulting JSON. */
-    private boolean prettyPrint;
-    /** Used for the bind request when credentials are specified. */
-    private String userName;
-    /**
-     * Used for the bind request when credentials are specified. For security
-     * reasons, the password must be discarded as soon as possible after it's
-     * been used.
-     */
-    private String password;
-  }
 
   /** HTTP Header sent by the client with HTTP basic authentication. */
   static final String HTTP_BASIC_AUTH_HEADER = "Authorization";
@@ -118,267 +96,240 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
    *          authentication
    */
   public CollectClientConnectionsFilter(
-      HTTPConnectionHandler connectionHandler,
-      HTTPAuthenticationConfig authenticationConfig)
+      HTTPConnectionHandler connectionHandler, HTTPAuthenticationConfig authenticationConfig)
   {
     this.connectionHandler = connectionHandler;
     this.authConfig = authenticationConfig;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException
+  public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next)
   {
-    // nothing to do
-  }
+    final HTTPClientConnection clientConnection = new HTTPClientConnection(this.connectionHandler, context, request);
+    connectionHandler.addClientConnection(clientConnection);
 
-  /** {@inheritDoc} */
-  @Override
-  public void doFilter(ServletRequest req, ServletResponse resp,
-      FilterChain chain)
-  {
-    final HttpServletRequest request = (HttpServletRequest) req;
-    final HttpServletResponse response = (HttpServletResponse) resp;
-
-    final HTTPRequestContext ctx = new HTTPRequestContext();
-
-    ctx.request = request;
-    ctx.response = new HttpServletResponseWrapper(response)
+    if (connectionHandler.keepStats())
     {
-
-      /** {@inheritDoc} */
-      @Override
-      public void setStatus(int sc)
-      {
-        ctx.clientConnection.log(sc);
-        super.setStatus(sc);
-      }
-
-      /** {@inheritDoc} */
-      @SuppressWarnings("deprecation")
-      @Override
-      public void setStatus(int sc, String sm)
-      {
-        ctx.clientConnection.log(sc);
-        super.setStatus(sc, sm);
-      }
-    };
-    ctx.chain = chain;
-    ctx.prettyPrint =
-        Boolean.parseBoolean(request.getParameter("_prettyPrint"));
-
-    final HTTPClientConnection clientConnection =
-        new HTTPClientConnection(this.connectionHandler, request);
-    this.connectionHandler.addClientConnection(clientConnection);
-
-    ctx.clientConnection = clientConnection;
-
-    if (this.connectionHandler.keepStats()) {
-      this.connectionHandler.getStatTracker().addRequest(
-          ctx.clientConnection.getMethod());
+      connectionHandler.getStatTracker().addRequest(request.getMethod());
     }
 
     try
     {
-      if (!canProcessRequest(request, clientConnection))
+      if (!canProcessRequest(clientConnection))
       {
-        return;
+        return resourceExceptionToPromise(ResourceException.getException(ResourceException.INTERNAL_ERROR));
       }
-      // logs the connect after all the possible disconnect reasons have been
-      // checked.
+      // Logs the connect after all the possible disconnect reasons have been checked.
       logConnect(clientConnection);
-
-      ctx.connection = new SdkConnectionAdapter(clientConnection);
+      final Connection connection = new SdkConnectionAdapter(clientConnection);
 
       final String[] userCredentials = extractUsernamePassword(request);
       if (userCredentials != null && userCredentials.length == 2)
       {
-        ctx.userName = userCredentials[0];
-        ctx.password = userCredentials[1];
-        ctx.asyncContext = getAsyncContext(request);
+        final String userName = userCredentials[0];
+        final String password = userCredentials[1];
 
-        newRootConnection().searchSingleEntryAsync(buildSearchRequest(ctx.userName)).thenAsync(
-            new AsyncFunction<SearchResultEntry, BindResult, LdapException>() {
-              @Override
-              public Promise<BindResult, LdapException> apply(SearchResultEntry resultEntry) throws LdapException
-              {
-                final DN bindDN = resultEntry.getName();
-                if (bindDN == null)
-                {
-                  sendAuthenticationFailure(ctx);
-                  return newExceptionPromise(newLdapException(ResultCode.CANCELLED));
-                }
-                else
-                {
-                  final BindRequest bindRequest =
-                      Requests.newSimpleBindRequest(bindDN.toString(), ctx.password.getBytes(Charset.forName("UTF-8")));
-                  // We are done with the password at this stage,
-                  // wipe it from memory for security reasons
-                  ctx.password = null;
-                  return ctx.connection.bindAsync(bindRequest);
-                }
-              }
-
-            }
-        ).thenOnResult(new ResultHandler<BindResult>() {
-          @Override
-          public void handleResult(BindResult result)
-          {
-            ctx.clientConnection.setAuthUser(ctx.userName);
-            try
-            {
-              doFilter(ctx);
-            }
-            catch (Exception e)
-            {
-              onException(e, ctx);
-            }
-          }
-        }).thenOnException(new ExceptionHandler<LdapException>(){
-          @Override
-          public void handleException(LdapException exception)
-          {
-            final ResultCode rc = exception.getResult().getResultCode();
-            if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
-                || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
-            {
-              // Avoid information leak:
-              // do not hint to the user that it is the username that is invalid
-              sendAuthenticationFailure(ctx);
-            }
-            else
-            {
-              onException(exception, ctx);
-            }
-          }
-        });
+        return Adapters.newRootConnection()
+            .searchSingleEntryAsync(buildSearchRequest(userName))
+            .thenAsync(doBindAfterSearch(context, request, next, userName, password, clientConnection, connection),
+                       returnErrorAfterFailedSearch(clientConnection));
       }
       else if (this.connectionHandler.acceptUnauthenticatedRequests())
       {
-        // use unauthenticated user
-        doFilter(ctx);
+        // Use unauthenticated user
+        return doFilter(context, request, next, connection);
       }
       else
       {
-        sendAuthenticationFailure(ctx);
+        return authenticationFailure(clientConnection);
       }
     }
     catch (Exception e)
     {
-      onException(e, ctx);
+      return asErrorResponse(e, clientConnection);
     }
   }
 
-  private void doFilter(HTTPRequestContext ctx)
-      throws Exception
+  private boolean canProcessRequest(final HTTPClientConnection connection) throws UnknownHostException
   {
-    /*
-     * WARNING: This action triggers 3-4 others: Set the connection for use with
-     * this request on the HttpServletRequest. It will make
-     * Rest2LDAPContextFactory create an AuthenticatedConnectionContext which
-     * will in turn ensure Rest2LDAP uses the supplied Connection object.
-     */
-    ctx.request.setAttribute(
-        Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION, ctx.connection);
+    final InetAddress clientAddr = connection.getRemoteAddress();
 
-    // send the request further down the filter chain or pass to servlet
-    ctx.chain.doFilter(ctx.request, ctx.response);
-  }
-
-  private void sendAuthenticationFailure(HTTPRequestContext ctx)
-  {
-    final int statusCode = HttpServletResponse.SC_UNAUTHORIZED;
-    try
+    // Check to see if the core server rejected the connection (e.g. already too many connections established).
+    if (connection.getConnectionID() < 0)
     {
-      // The user could not be authenticated. Send an HTTP Basic authentication
-      // challenge if HTTP Basic authentication is enabled.
-      ResourceException unauthorizedException =
-          ResourceException.getException(statusCode, "Invalid Credentials");
-      sendErrorReponse(ctx.response, ctx.prettyPrint, unauthorizedException);
-
-      ctx.clientConnection.disconnect(DisconnectReason.INVALID_CREDENTIALS,
-          false, null);
-    }
-    finally
-    {
-      ctx.clientConnection.log(statusCode);
-
-      if (ctx.asyncContext != null)
-      {
-        ctx.asyncContext.complete();
-      }
-    }
-  }
-
-  private void onException(Exception e, HTTPRequestContext ctx)
-  {
-    ResourceException ex = Rest2LDAP.asResourceException(e);
-    try
-    {
-      logger.traceException(e);
-
-      sendErrorReponse(ctx.response, ctx.prettyPrint, ex);
-
-      LocalizableMessage message =
-          INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(ctx.clientConnection
-              .getClientHostPort(), ctx.clientConnection.getServerHostPort(),
-              getExceptionMessage(e));
-      logger.debug(message);
-
-      ctx.clientConnection.disconnect(DisconnectReason.SERVER_ERROR, false,
-          message);
-    }
-    finally
-    {
-      ctx.clientConnection.log(ex.getCode());
-
-      if (ctx.asyncContext != null)
-      {
-        ctx.asyncContext.complete();
-      }
-    }
-  }
-
-  private boolean canProcessRequest(HttpServletRequest request,
-      final HTTPClientConnection clientConnection) throws UnknownHostException
-  {
-    InetAddress clientAddr = InetAddress.getByName(request.getRemoteAddr());
-
-    // Check to see if the core server rejected the
-    // connection (e.g., already too many connections
-    // established).
-    if (clientConnection.getConnectionID() < 0)
-    {
-      clientConnection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
+      connection.disconnect(
+          DisconnectReason.ADMIN_LIMIT_EXCEEDED, true, ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
       return false;
     }
 
-    // Check to see if the client is on the denied list.
-    // If so, then reject it immediately.
-    ConnectionHandlerCfg config = this.connectionHandler.getCurrentConfig();
-    Collection<AddressMask> allowedClients = config.getAllowedClient();
-    Collection<AddressMask> deniedClients = config.getDeniedClient();
+    // Check to see if the client is on the denied list. If so, then reject it immediately.
+    final ConnectionHandlerCfg config = this.connectionHandler.getCurrentConfig();
+    final Collection<AddressMask> deniedClients = config.getDeniedClient();
     if (!deniedClients.isEmpty()
         && AddressMask.matchesAny(deniedClients, clientAddr))
     {
-      clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
-          ERR_CONNHANDLER_DENIED_CLIENT.get(clientConnection
-              .getClientHostPort(), clientConnection.getServerHostPort()));
+      connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
+          ERR_CONNHANDLER_DENIED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
       return false;
     }
-    // Check to see if there is an allowed list and if
-    // there is whether the client is on that list. If
-    // not, then reject the connection.
+
+    // Check to see if there is an allowed list and if there is whether the client is on that list.
+    // If not, then reject the connection.
+    final Collection<AddressMask> allowedClients = config.getAllowedClient();
     if (!allowedClients.isEmpty()
         && !AddressMask.matchesAny(allowedClients, clientAddr))
     {
-      clientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
-          ERR_CONNHANDLER_DISALLOWED_CLIENT.get(clientConnection
-              .getClientHostPort(), clientConnection.getServerHostPort()));
+      connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
+          ERR_CONNHANDLER_DISALLOWED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
       return false;
     }
     return true;
+  }
+
+  private SearchRequest buildSearchRequest(String userName)
+  {
+    // Use configured rights to find the user DN
+    final Filter filter = Filter.format(authConfig.getSearchFilterTemplate(), userName);
+    return Requests.newSearchRequest(
+        authConfig.getSearchBaseDN(), authConfig.getSearchScope(), filter, SchemaConstants.NO_ATTRIBUTES);
+  }
+
+  private AsyncFunction<SearchResultEntry, Response, NeverThrowsException> doBindAfterSearch(
+      final Context context, final Request request, final Handler next, final String userName, final String password,
+      final HTTPClientConnection clientConnection, final Connection connection)
+  {
+    return new AsyncFunction<SearchResultEntry, Response, NeverThrowsException>()
+    {
+      @Override
+      public Promise<Response, NeverThrowsException> apply(final SearchResultEntry resultEntry)
+      {
+        final DN bindDN = resultEntry.getName();
+        if (bindDN == null)
+        {
+          return authenticationFailure(clientConnection);
+        }
+
+        final BindRequest bindRequest =
+            Requests.newSimpleBindRequest(bindDN.toString(), password.getBytes(Charset.forName("UTF-8")));
+        return connection.bindAsync(bindRequest)
+                         .thenAsync(doChain(context, request, next, userName, clientConnection, connection),
+                                    returnErrorAfterFailedBind(clientConnection));
+      }
+    };
+  }
+
+  private AsyncFunction<BindResult, Response, NeverThrowsException> doChain(
+      final Context context, final Request request, final Handler next, final String userName,
+      final HTTPClientConnection clientConnection, final Connection connection)
+  {
+    return new AsyncFunction<BindResult, Response, NeverThrowsException>()
+    {
+      @Override
+      public Promise<Response, NeverThrowsException> apply(BindResult value) throws NeverThrowsException
+      {
+        clientConnection.setAuthUser(userName);
+        try
+        {
+          return doFilter(context, request, next, connection);
+        }
+        catch (Exception e)
+        {
+          return asErrorResponse(e, clientConnection);
+        }
+      }
+    };
+  }
+
+  private Promise<Response, NeverThrowsException> doFilter(
+      final Context context, final Request request, final Handler next, final Connection connection) throws Exception
+  {
+    final Context forwardedContext = new AuthenticatedConnectionContext(context, connection);
+    // Send the request further down the filter chain or pass to servlet
+    return next.handle(forwardedContext, request);
+  }
+
+  private AsyncFunction<? super LdapException, Response, NeverThrowsException> returnErrorAfterFailedSearch(
+      final HTTPClientConnection clientConnection)
+  {
+    return new AsyncFunction<LdapException, Response, NeverThrowsException>()
+    {
+      @Override
+      public Promise<Response, NeverThrowsException> apply(final LdapException exception)
+      {
+        final ResultCode rc = exception.getResult().getResultCode();
+        if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
+         || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
+        {
+          // Avoid information leak:
+          // do not hint to the user that it is the username that is invalid
+          return authenticationFailure(clientConnection);
+        }
+        else
+        {
+          return asErrorResponse(exception, clientConnection);
+        }
+      }
+    };
+  }
+
+  private AsyncFunction<LdapException, Response, NeverThrowsException> returnErrorAfterFailedBind(
+      final HTTPClientConnection clientConnection)
+  {
+    return new AsyncFunction<LdapException, Response, NeverThrowsException>()
+    {
+      @Override
+      public Promise<Response, NeverThrowsException> apply(final LdapException e)
+      {
+        return asErrorResponse(e, clientConnection);
+      }
+    };
+  }
+
+  private Promise<Response, NeverThrowsException> authenticationFailure(final HTTPClientConnection clientConnection)
+  {
+    return asErrorResponse(ResourceException.getException(401, "Invalid Credentials"), clientConnection,
+        DisconnectReason.INVALID_CREDENTIALS, false);
+  }
+
+  private Promise<Response, NeverThrowsException> asErrorResponse(
+      final Throwable t, final HTTPClientConnection clientConnection)
+  {
+    return asErrorResponse(t, clientConnection, DisconnectReason.SERVER_ERROR, true);
+  }
+
+  private Promise<Response, NeverThrowsException> asErrorResponse(final Throwable t,
+      final HTTPClientConnection clientConnection, final DisconnectReason reason, final boolean logError)
+  {
+    final ResourceException ex = Rest2LDAP.asResourceException(t);
+    try
+    {
+      LocalizableMessage message = null;
+      if (logError)
+      {
+        logger.traceException(ex);
+        message = INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(
+            clientConnection.getClientHostPort(), clientConnection.getServerHostPort(), getExceptionMessage(ex));
+        logger.debug(message);
+      }
+      clientConnection.disconnect(reason, false, message);
+    }
+    finally
+    {
+      clientConnection.log(ex.getCode());
+    }
+
+    return resourceExceptionToPromise(ex);
+  }
+
+  Promise<Response, NeverThrowsException> resourceExceptionToPromise(final ResourceException e)
+  {
+    final Response response = new Response().setStatus(Status.valueOf(e.getCode()))
+                                            .setEntity(e.toJsonValue().getObject());
+    if (e.getCode() == 401 && authConfig.isBasicAuthenticationSupported())
+    {
+      response.getHeaders().add("WWW-Authenticate", "Basic realm=\"org.forgerock.opendj\"");
+    }
+    return Promises.newResultPromise(response);
   }
 
   /**
@@ -395,8 +346,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
    * @throws ResourceException
    *           if any error occur
    */
-  String[] extractUsernamePassword(HttpServletRequest request)
-      throws ResourceException
+  String[] extractUsernamePassword(Request request) throws ResourceException
   {
     // TODO Use session to reduce hits with search + bind?
     // Use proxied authorization control for session.
@@ -404,10 +354,8 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     // Security: How can we remove the password held in the request headers?
     if (authConfig.isCustomHeadersAuthenticationSupported())
     {
-      final String userName =
-          request.getHeader(authConfig.getCustomHeaderUsername());
-      final String password =
-          request.getHeader(authConfig.getCustomHeaderPassword());
+      final String userName = request.getHeaders().getFirst(authConfig.getCustomHeaderUsername());
+      final String password = request.getHeaders().getFirst(authConfig.getCustomHeaderPassword());
       if (userName != null && password != null)
       {
         return new String[] { userName, password };
@@ -416,7 +364,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
     if (authConfig.isBasicAuthenticationSupported())
     {
-      String httpBasicAuthHeader = request.getHeader(HTTP_BASIC_AUTH_HEADER);
+      String httpBasicAuthHeader = request.getHeaders().getFirst(HTTP_BASIC_AUTH_HEADER);
       if (httpBasicAuthHeader != null)
       {
         String[] userCredentials = parseUsernamePassword(httpBasicAuthHeader);
@@ -428,77 +376,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     }
 
     return null;
-  }
-
-  /**
-   * Sends an error response back to the client. If the error response is
-   * "Unauthorized", then it will send a challenge for HTTP Basic authentication
-   * if HTTP Basic authentication is enabled.
-   *
-   * @param response
-   *          where to send the Unauthorized status code.
-   * @param prettyPrint
-   *          whether to format the JSON document output
-   * @param re
-   *          the resource exception with the error response content
-   */
-  void sendErrorReponse(HttpServletResponse response, boolean prettyPrint,
-      ResourceException re)
-  {
-    response.setStatus(re.getCode());
-
-    if (re.getCode() == HttpServletResponse.SC_UNAUTHORIZED
-        && authConfig.isBasicAuthenticationSupported())
-    {
-      response.setHeader("WWW-Authenticate",
-          "Basic realm=\"org.forgerock.opendj\"");
-    }
-
-    try
-    {
-      // Send error JSON document out
-      response.setHeader("Content-Type", "application/json");
-      response.getOutputStream().println(toJSON(prettyPrint, re));
-    }
-    catch (IOException ignore)
-    {
-      // nothing else we can do in this case
-      logger.traceException(ignore);
-    }
-  }
-
-  /**
-   * Returns a JSON representation of the {@link ResourceException}.
-   *
-   * @param prettyPrint
-   *          whether to format the resulting JSON document
-   * @param re
-   *          the resource exception to convert to a JSON document
-   * @return a String containing the JSON representation of the
-   *         {@link ResourceException}.
-   */
-  private String toJSON(boolean prettyPrint, ResourceException re)
-  {
-    final String indent = "\n    ";
-    final StringBuilder sb = new StringBuilder();
-    sb.append("{");
-    if (prettyPrint) {
-      sb.append(indent);
-    }
-    sb.append("\"code\": ").append(re.getCode()).append(",");
-    if (prettyPrint) {
-      sb.append(indent);
-    }
-    sb.append("\"message\": \"").append(re.getMessage()).append("\",");
-    if (prettyPrint) {
-      sb.append(indent);
-    }
-    sb.append("\"reason\": \"").append(re.getReason()).append("\"");
-    if (prettyPrint) {
-      sb.append("\n");
-    }
-    sb.append("}");
-    return sb.toString();
   }
 
   /**
@@ -520,12 +397,12 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       // We received authentication info
       // Example received header:
       // "Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-      String base64UserPassword = authHeader.substring("basic".length() + 1);
+      String base64UserCredentials = authHeader.substring("basic".length() + 1);
       try
       {
         // Example usage of base64:
         // Base64("Aladdin:open sesame") = "QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-        String userCredentials = new String(Base64.decode(base64UserPassword));
+        String userCredentials = new String(Base64.decode(base64UserCredentials));
         String[] split = userCredentials.split(":");
         if (split.length == 2)
         {
@@ -540,25 +417,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     return null;
   }
 
-  private AsyncContext getAsyncContext(ServletRequest request)
-  {
-    return request.isAsyncStarted() ? request.getAsyncContext() : request
-        .startAsync();
-  }
-
-  private SearchRequest buildSearchRequest(String userName)
-  {
-    // use configured rights to find the user DN
-    final Filter filter =
-        Filter.format(authConfig.getSearchFilterTemplate(), userName);
-    return Requests.newSearchRequest(authConfig.getSearchBaseDN(), authConfig
-        .getSearchScope(), filter, SchemaConstants.NO_ATTRIBUTES);
-  }
-
-  /** {@inheritDoc} */
   @Override
-  public void destroy()
-  {
-    // nothing to do
-  }
+  public void close() throws IOException {}
 }

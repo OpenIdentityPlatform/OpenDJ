@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2013 ForgeRock AS.
+ * Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -26,15 +26,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.json.fluent.JsonPointer;
-import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.PatchOperation;
-import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.Promises;
 
 /**
  * An attribute mapper which maps a single JSON attribute to a fixed value.
@@ -52,27 +54,25 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void create(final Context c, final JsonPointer path, final JsonValue v,
-            final ResultHandler<List<Attribute>> h) {
+    Promise<List<Attribute>, ResourceException> create(
+            final RequestState requestState, final JsonPointer path, final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
-            h.handleError(new BadRequestException(i18n(
-                    "The request cannot be processed because it attempts to create "
-                            + "the read-only field '%s'", path)));
+            return Promises.<List<Attribute>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
+                    "The request cannot be processed because it attempts to create the read-only field '%s'", path)));
         } else {
-            h.handleResult(Collections.<Attribute> emptyList());
+            return Promises.newResultPromise(Collections.<Attribute> emptyList());
         }
     }
 
     @Override
-    void getLDAPAttributes(final Context c, final JsonPointer path, final JsonPointer subPath,
+    void getLDAPAttributes(final RequestState requestState, final JsonPointer path, final JsonPointer subPath,
             final Set<String> ldapAttributes) {
         // Nothing to do.
     }
 
     @Override
-    void getLDAPFilter(final Context c, final JsonPointer path, final JsonPointer subPath,
-            final FilterType type, final String operator, final Object valueAssertion,
-            final ResultHandler<Filter> h) {
+    Promise<Filter, ResourceException> getLDAPFilter(final RequestState requestState, final JsonPointer path,
+            final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
         final Filter filter;
         final JsonValue subValue = value.get(subPath);
         if (subValue == null) {
@@ -105,32 +105,29 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
             // This attribute mapper is a candidate but it does not match.
             filter = alwaysFalse();
         }
-        h.handleResult(filter);
+        return Promises.newResultPromise(filter);
     }
 
     @Override
-    void patch(final Context c, final JsonPointer path, final PatchOperation operation,
-            final ResultHandler<List<Modification>> h) {
-        h.handleError(new BadRequestException(i18n(
-                "The request cannot be processed because it attempts to patch "
-                        + "the read-only field '%s'", path)));
+    Promise<List<Modification>, ResourceException> patch(final RequestState requestState, final JsonPointer path,
+            final PatchOperation operation) {
+        return Promises.<List<Modification>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
+                "The request cannot be processed because it attempts to patch the read-only field '%s'", path)));
     }
 
     @Override
-    void read(final Context c, final JsonPointer path, final Entry e,
-            final ResultHandler<JsonValue> h) {
-        h.handleResult(value.copy());
+    Promise<JsonValue, ResourceException> read(final RequestState requestState, final JsonPointer path, final Entry e) {
+        return Promises.newResultPromise(value.copy());
     }
 
     @Override
-    void update(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
-            final ResultHandler<List<Modification>> h) {
+    Promise<List<Modification>, ResourceException> update(
+            final RequestState requestState, final JsonPointer path, final Entry e, final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
-            h.handleError(new BadRequestException(i18n(
-                    "The request cannot be processed because it attempts to modify "
-                            + "the read-only field '%s'", path)));
+            return Promises.<List<Modification>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
+                    "The request cannot be processed because it attempts to modify the read-only field '%s'", path)));
         } else {
-            h.handleResult(Collections.<Modification> emptyList());
+            return Promises.newResultPromise(Collections.<Modification> emptyList());
         }
     }
 

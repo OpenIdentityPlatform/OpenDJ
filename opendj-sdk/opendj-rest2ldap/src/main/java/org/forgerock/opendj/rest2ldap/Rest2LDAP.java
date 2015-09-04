@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.forgerock.json.fluent.JsonValue;
-import org.forgerock.json.fluent.JsonValueException;
+import org.forgerock.json.JsonValue;
+import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ResourceException;
@@ -49,11 +49,11 @@ import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.RDN;
@@ -74,7 +74,6 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * collections.
  */
 public final class Rest2LDAP {
-
     /**
      * Indicates whether or not LDAP client connections should use SSL or
      * StartTLS.
@@ -715,23 +714,23 @@ public final class Rest2LDAP {
         }
 
         @Override
-        SearchRequest createSearchRequest(final Context c, final DN baseDN, final String resourceId) {
+        SearchRequest createSearchRequest(final RequestState requestState, final DN baseDN, final String resourceId) {
             return newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, Filter.equality(idAttribute
                     .toString(), resourceId));
         }
 
         @Override
-        void getLDAPAttributes(final Context c, final Set<String> ldapAttributes) {
+        void getLDAPAttributes(final RequestState requestState, final Set<String> ldapAttributes) {
             ldapAttributes.add(idAttribute.toString());
         }
 
         @Override
-        String getResourceId(final Context c, final Entry entry) {
+        String getResourceId(final RequestState requestState, final Entry entry) {
             return entry.parseAttribute(idAttribute).asString();
         }
 
         @Override
-        void setResourceId(final Context c, final DN baseDN, final String resourceId,
+        void setResourceId(final RequestState requestState, final DN baseDN, final String resourceId,
                 final Entry entry) throws ResourceException {
             if (isServerProvided) {
                 if (resourceId != null) {
@@ -756,23 +755,23 @@ public final class Rest2LDAP {
         }
 
         @Override
-        SearchRequest createSearchRequest(final Context c, final DN baseDN, final String resourceId) {
+        SearchRequest createSearchRequest(final RequestState requestState, final DN baseDN, final String resourceId) {
             return newSearchRequest(baseDN.child(rdn(resourceId)), SearchScope.BASE_OBJECT, Filter
                     .objectClassPresent());
         }
 
         @Override
-        void getLDAPAttributes(final Context c, final Set<String> ldapAttributes) {
+        void getLDAPAttributes(final RequestState requestState, final Set<String> ldapAttributes) {
             ldapAttributes.add(attribute.toString());
         }
 
         @Override
-        String getResourceId(final Context c, final Entry entry) {
+        String getResourceId(final RequestState requestState, final Entry entry) {
             return entry.parseAttribute(attribute).asString();
         }
 
         @Override
-        void setResourceId(final Context c, final DN baseDN, final String resourceId,
+        void setResourceId(final RequestState requestState, final DN baseDN, final String resourceId,
                 final Entry entry) throws ResourceException {
             if (resourceId != null) {
                 entry.setName(baseDN.child(rdn(resourceId)));
@@ -985,10 +984,6 @@ public final class Rest2LDAP {
      */
     public static SimpleAttributeMapper simple(final String attribute) {
         return simple(AttributeDescription.valueOf(attribute));
-    }
-
-    private static ConnectionFactory configureConnectionFactory(final JsonValue configuration) {
-        return configureConnectionFactory(configuration, (ClassLoader) null);
     }
 
     private static ConnectionFactory configureConnectionFactory(final JsonValue configuration,

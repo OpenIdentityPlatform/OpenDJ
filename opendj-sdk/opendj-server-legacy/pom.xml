@@ -89,7 +89,7 @@
     <!-- ForgeRock libraries -->
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-rest2ldap-servlet</artifactId>
+      <artifactId>opendj-rest2ldap</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -128,6 +128,28 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>json-resource</artifactId>
+      <version>${forgerockRestVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>json-resource-http</artifactId>
+      <version>${forgerockRestVersion}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.forgerock.http</groupId>
+      <artifactId>chf-http-core</artifactId>
+      <version>${forgerockHttpVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.http</groupId>
+      <artifactId>chf-http-servlet</artifactId>
+      <version>${forgerockHttpVersion}</version>
     </dependency>
 
     <!-- servlet and mail -->

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.json.fluent.JsonPointer;
-import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
-import org.forgerock.json.resource.ResultHandler;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -30,12 +30,15 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.Promise;
 
 import static java.util.Collections.*;
 
 import static org.forgerock.opendj.ldap.Filter.*;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
+import static org.forgerock.util.promise.Promises.newExceptionPromise;
+import static org.forgerock.util.promise.Promises.newResultPromise;
 
 /**
  * An attribute mapper which provides a simple mapping from a JSON value to a
@@ -111,34 +114,33 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    void getLDAPFilter(final Context c, final JsonPointer path, final JsonPointer subPath,
-            final FilterType type, final String operator, final Object valueAssertion,
-            final ResultHandler<Filter> h) {
+    Promise<Filter, ResourceException> getLDAPFilter(final RequestState requestState, final JsonPointer path,
+            final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
         if (subPath.isEmpty()) {
             try {
                 final ByteString va =
                         valueAssertion != null ? encoder().apply(valueAssertion) : null;
-                h.handleResult(toFilter(type, ldapAttributeName.toString(), va));
+                return newResultPromise(toFilter(type, ldapAttributeName.toString(), va));
             } catch (final Exception e) {
                 // Invalid assertion value - bad request.
-                h.handleError(new BadRequestException(i18n(
+                return newExceptionPromise((ResourceException) new BadRequestException(i18n(
                         "The request cannot be processed because it contained an "
-                                + "illegal filter assertion value '%s' for field '%s'", String
-                                .valueOf(valueAssertion), path), e));
+                                + "illegal filter assertion value '%s' for field '%s'",
+                        String.valueOf(valueAssertion), path), e));
             }
         } else {
             // This attribute mapper does not support partial filtering.
-            h.handleResult(alwaysFalse());
+            return newResultPromise(alwaysFalse());
         }
     }
 
     @Override
-    void getNewLDAPAttributes(final Context c, final JsonPointer path,
-            final List<Object> newValues, final ResultHandler<Attribute> h) {
+    Promise<Attribute, ResourceException> getNewLDAPAttributes(
+            final RequestState requestState, final JsonPointer path, final List<Object> newValues) {
         try {
-            h.handleResult(jsonToAttribute(newValues, ldapAttributeName, encoder()));
+            return newResultPromise(jsonToAttribute(newValues, ldapAttributeName, encoder()));
         } catch (final Exception ex) {
-            h.handleError(new BadRequestException(i18n(
+            return newExceptionPromise((ResourceException) new BadRequestException(i18n(
                     "The request cannot be processed because an error occurred while "
                             + "encoding the values for the field '%s': %s", path, ex.getMessage())));
         }
@@ -150,8 +152,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    void read(final Context c, final JsonPointer path, final Entry e,
-            final ResultHandler<JsonValue> h) {
+    Promise<JsonValue, ResourceException> read(final RequestState requestState, final JsonPointer path, final Entry e) {
         try {
             final Object value;
             if (attributeIsSingleValued()) {
@@ -161,16 +162,16 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
             } else {
                 final Set<Object> s =
                         e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJSONValues);
-                value = s.isEmpty() ? null : new ArrayList<Object>(s);
+                value = s.isEmpty() ? null : new ArrayList<>(s);
             }
-            h.handleResult(value != null ? new JsonValue(value) : null);
+            return newResultPromise(value != null ? new JsonValue(value) : null);
         } catch (final Exception ex) {
             // The LDAP attribute could not be decoded.
-            h.handleError(asResourceException(ex));
+            return newExceptionPromise(asResourceException(ex));
         }
     }
 
-    private Function<ByteString, ? extends Object, NeverThrowsException> decoder() {
+    private Function<ByteString, ?, NeverThrowsException> decoder() {
         return decoder == null ? byteStringToJson(ldapAttributeName) : decoder;
     }
 

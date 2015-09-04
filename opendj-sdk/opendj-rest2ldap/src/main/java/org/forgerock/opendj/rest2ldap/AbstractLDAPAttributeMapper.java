@@ -21,7 +21,6 @@ import static org.forgerock.opendj.ldap.Attributes.emptyAttribute;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
-import static org.forgerock.opendj.rest2ldap.Utils.transform;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 
 import java.util.ArrayList;
@@ -29,13 +28,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.json.fluent.JsonPointer;
-import org.forgerock.json.fluent.JsonValue;
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.Entry;
@@ -43,14 +41,14 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.Promises;
 
 /**
  * An abstract LDAP attribute mapper which provides a simple mapping from a JSON
  * value to a single LDAP attribute.
  */
-abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper<T>> extends
-        AttributeMapper {
+abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper<T>> extends AttributeMapper {
     List<Object> defaultJSONValues = emptyList();
     final AttributeDescription ldapAttributeName;
     private boolean isRequired;
@@ -101,25 +99,45 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     }
 
     @Override
-    void create(final Context c, final JsonPointer path, final JsonValue v,
-            final ResultHandler<List<Attribute>> h) {
-        getNewLDAPAttributes(c, path, v, createAttributeHandler(path, h));
+    Promise<List<Attribute>, ResourceException> create(
+            final RequestState requestState, final JsonPointer path, final JsonValue v) {
+        return getNewLDAPAttributes(requestState, path, v).then(
+            new Function<Attribute, List<Attribute>, ResourceException>() {
+                @Override
+                public List<Attribute> apply(Attribute newLDAPAttribute) throws ResourceException {
+                    if (!writabilityPolicy.canCreate(ldapAttributeName)) {
+                        if (!newLDAPAttribute.isEmpty() && !writabilityPolicy.discardWrites()) {
+                            throw new BadRequestException(i18n("The request cannot be processed because it attempts "
+                                    + "to create the read-only field '%s'", path));
+                        }
+                        return Collections.emptyList();
+                    } else if (newLDAPAttribute.isEmpty()) {
+                        if (isRequired) {
+                            throw new BadRequestException(i18n("The request cannot be processed because it attempts "
+                                    + "to remove the required field '%s'", path));
+                        }
+                        return Collections.emptyList();
+                    }
+
+                    return singletonList(newLDAPAttribute);
+                }
+            });
     }
 
     @Override
-    void getLDAPAttributes(final Context c, final JsonPointer path, final JsonPointer subPath,
-            final Set<String> ldapAttributes) {
+    void getLDAPAttributes(final RequestState requestState, final JsonPointer path,
+            final JsonPointer subPath, final Set<String> ldapAttributes) {
         ldapAttributes.add(ldapAttributeName.toString());
     }
 
-    abstract void getNewLDAPAttributes(Context c, JsonPointer path, List<Object> newValues,
-            ResultHandler<Attribute> h);
+    abstract Promise<Attribute, ResourceException> getNewLDAPAttributes(
+                RequestState requestState, JsonPointer path, List<Object> newValues);
 
     abstract T getThis();
 
     @Override
-    void patch(final Context c, final JsonPointer path, final PatchOperation operation,
-            final ResultHandler<List<Modification>> h) {
+    Promise<List<Modification>, ResourceException> patch(
+                final RequestState requestState, final JsonPointer path, final PatchOperation operation) {
         try {
             final JsonPointer field = operation.getField();
             final JsonValue v = operation.getValue();
@@ -235,33 +253,95 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
             if (newValues.isEmpty()) {
                 // Deleting the attribute.
                 if (isRequired) {
-                    h.handleError(new BadRequestException(i18n(
-                            "The request cannot be processed because it attempts to remove "
-                                    + "the required field '%s'", path)));
+                    return Promises.<List<Modification>, ResourceException> newExceptionPromise(
+                            new BadRequestException(i18n(
+                                "The request cannot be processed because it attempts to remove the required field '%s'",
+                                path)));
                 } else {
-                    h.handleResult(singletonList(new Modification(modType,
-                            emptyAttribute(ldapAttributeName))));
+                    return Promises.newResultPromise(
+                        singletonList(new Modification(modType, emptyAttribute(ldapAttributeName))));
                 }
             } else {
-                getNewLDAPAttributes(c, path, newValues, transform(
-                        new Function<Attribute, List<Modification>, NeverThrowsException>() {
+                return getNewLDAPAttributes(requestState, path, newValues)
+                        .then(new Function<Attribute, List<Modification>, ResourceException>() {
                             @Override
                             public List<Modification> apply(final Attribute value) {
                                 return singletonList(new Modification(modType, value));
                             }
-                        }, h));
+                        });
             }
         } catch (final RuntimeException e) {
-            h.handleError(asResourceException(e));
+            return Promises.newExceptionPromise(asResourceException(e));
         } catch (final ResourceException e) {
-            h.handleError(e);
+            return Promises.newExceptionPromise(e);
         }
     }
 
     @Override
-    void update(final Context c, final JsonPointer path, final Entry e, final JsonValue v,
-            final ResultHandler<List<Modification>> h) {
-        getNewLDAPAttributes(c, path, v, updateAttributeHandler(path, e, h));
+    Promise<List<Modification>, ResourceException> update(
+            final RequestState requestState, final JsonPointer path, final Entry e, final JsonValue v) {
+        return getNewLDAPAttributes(requestState, path, v).then(
+            new Function<Attribute, List<Modification>, ResourceException>() {
+                @Override
+                public List<Modification> apply(final Attribute newLDAPAttribute) throws ResourceException {
+                    // Get the existing LDAP attribute.
+                    final Attribute tmp = e.getAttribute(ldapAttributeName);
+                    final Attribute oldLDAPAttribute = tmp != null ? tmp : emptyAttribute(ldapAttributeName);
+                    /*
+                     * If the attribute is read-only then handle the following cases:
+                     * 1) new values are provided and they are the same as the existing values
+                     * 2) no new values are provided.
+                     */
+                    if (!writabilityPolicy.canWrite(ldapAttributeName)) {
+                        if (newLDAPAttribute.isEmpty()
+                                || newLDAPAttribute.equals(oldLDAPAttribute)
+                                || writabilityPolicy.discardWrites()) {
+                            // No change.
+                            return Collections.emptyList();
+                        }
+                        throw new BadRequestException(i18n(
+                            "The request cannot be processed because it attempts to modify the read-only field '%s'",
+                            path));
+                    }
+
+                    if (oldLDAPAttribute.isEmpty() && newLDAPAttribute.isEmpty()) {
+                        // No change.
+                        return Collections.emptyList();
+                    } else if (oldLDAPAttribute.isEmpty()) {
+                        // The attribute is being added.
+                        return singletonList(new Modification(ModificationType.REPLACE, newLDAPAttribute));
+                    } else if (newLDAPAttribute.isEmpty()) {
+                        // The attribute is being deleted - this is not allowed if the attribute is required.
+                        if (isRequired) {
+                            throw new BadRequestException(i18n(
+                                "The request cannot be processed because it attempts to remove the required field '%s'",
+                                path));
+                        }
+                        return singletonList(new Modification(ModificationType.REPLACE, newLDAPAttribute));
+                    } else {
+                        /*
+                         * We could do a replace, but try to save bandwidth and send diffs instead.
+                         * Perform deletes first in case we don't have an appropriate normalizer:
+                         * permissive add(x) followed by delete(x) is destructive, whereas
+                         * delete(x) followed by add(x) is idempotent when adding/removing the same value.
+                         */
+                        final List<Modification> modifications = new ArrayList<>(2);
+
+                        final Attribute deletedValues = new LinkedAttribute(oldLDAPAttribute);
+                        deletedValues.removeAll(newLDAPAttribute);
+                        if (!deletedValues.isEmpty()) {
+                            modifications.add(new Modification(ModificationType.DELETE, deletedValues));
+                        }
+
+                        final Attribute addedValues = new LinkedAttribute(newLDAPAttribute);
+                        addedValues.removeAll(oldLDAPAttribute);
+                        if (!addedValues.isEmpty()) {
+                            modifications.add(new Modification(ModificationType.ADD, addedValues));
+                        }
+                        return modifications;
+                    }
+                }
+            });
     }
 
     private List<Object> asList(final JsonValue v, final List<Object> defaultValues) {
@@ -290,142 +370,21 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
         }
     }
 
-    private ResultHandler<Attribute> createAttributeHandler(final JsonPointer path,
-            final ResultHandler<List<Attribute>> h) {
-        return new ResultHandler<Attribute>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error);
-            }
-
-            @Override
-            public void handleResult(final Attribute newLDAPAttribute) {
-                if (!writabilityPolicy.canCreate(ldapAttributeName)) {
-                    if (newLDAPAttribute.isEmpty() || writabilityPolicy.discardWrites()) {
-                        h.handleResult(Collections.<Attribute> emptyList());
-                    } else {
-                        h.handleError(new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to create "
-                                        + "the read-only field '%s'", path)));
-                    }
-                } else if (newLDAPAttribute.isEmpty()) {
-                    if (isRequired) {
-                        h.handleError(new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to remove "
-                                        + "the required field '%s'", path)));
-                        return;
-                    } else {
-                        h.handleResult(Collections.<Attribute> emptyList());
-                    }
-                } else {
-                    h.handleResult(singletonList(newLDAPAttribute));
-                }
-            }
-        };
-    }
-
-    private void getNewLDAPAttributes(final Context c, final JsonPointer path, final JsonValue v,
-            final ResultHandler<Attribute> attributeHandler) {
+    private Promise<Attribute, ResourceException> getNewLDAPAttributes(
+            final RequestState requestState, final JsonPointer path, final JsonValue v) {
         try {
             // Ensure that the value is of the correct type.
             checkSchema(path, v);
             final List<Object> newValues = asList(v, defaultJSONValues);
             if (newValues.isEmpty()) {
                 // Skip sub-class implementation if there are no values.
-                attributeHandler.handleResult(emptyAttribute(ldapAttributeName));
+                return Promises.newResultPromise(emptyAttribute(ldapAttributeName));
             } else {
-                getNewLDAPAttributes(c, path, newValues, attributeHandler);
+                return getNewLDAPAttributes(requestState, path, newValues);
             }
         } catch (final Exception ex) {
-            attributeHandler.handleError(asResourceException(ex));
+            return Promises.newExceptionPromise(asResourceException(ex));
         }
     }
 
-    private ResultHandler<Attribute> updateAttributeHandler(final JsonPointer path, final Entry e,
-            final ResultHandler<List<Modification>> h) {
-        // Get the existing LDAP attribute.
-        final Attribute tmp = e.getAttribute(ldapAttributeName);
-        final Attribute oldLDAPAttribute = tmp != null ? tmp : emptyAttribute(ldapAttributeName);
-        return new ResultHandler<Attribute>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error);
-            }
-
-            @Override
-            public void handleResult(final Attribute newLDAPAttribute) {
-                /*
-                 * If the attribute is read-only then handle the following
-                 * cases:
-                 *
-                 * 1) new values are provided and they are the same as the
-                 * existing values
-                 *
-                 * 2) no new values are provided.
-                 */
-                if (!writabilityPolicy.canWrite(ldapAttributeName)) {
-                    if (newLDAPAttribute.isEmpty() || newLDAPAttribute.equals(oldLDAPAttribute)
-                            || writabilityPolicy.discardWrites()) {
-                        // No change.
-                        h.handleResult(Collections.<Modification> emptyList());
-                    } else {
-                        h.handleError(new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to modify "
-                                        + "the read-only field '%s'", path)));
-                    }
-                } else {
-                    // Compute the changes to the attribute.
-                    final List<Modification> modifications;
-                    if (oldLDAPAttribute.isEmpty() && newLDAPAttribute.isEmpty()) {
-                        // No change.
-                        modifications = Collections.<Modification> emptyList();
-                    } else if (oldLDAPAttribute.isEmpty()) {
-                        // The attribute is being added.
-                        modifications =
-                                singletonList(new Modification(ModificationType.REPLACE,
-                                        newLDAPAttribute));
-                    } else if (newLDAPAttribute.isEmpty()) {
-                        /*
-                         * The attribute is being deleted - this is not allowed
-                         * if the attribute is required.
-                         */
-                        if (isRequired) {
-                            h.handleError(new BadRequestException(i18n(
-                                    "The request cannot be processed because it attempts to remove "
-                                            + "the required field '%s'", path)));
-                            return;
-                        } else {
-                            modifications =
-                                    singletonList(new Modification(ModificationType.REPLACE,
-                                            newLDAPAttribute));
-                        }
-                    } else {
-                        /*
-                         * We could do a replace, but try to save bandwidth and
-                         * send diffs instead. Perform deletes first in case we
-                         * don't have an appropriate normalizer: permissive
-                         * add(x) followed by delete(x) is destructive, whereas
-                         * delete(x) followed by add(x) is idempotent when
-                         * adding/removing the same value.
-                         */
-                        modifications = new ArrayList<>(2);
-
-                        final Attribute deletedValues = new LinkedAttribute(oldLDAPAttribute);
-                        deletedValues.removeAll(newLDAPAttribute);
-                        if (!deletedValues.isEmpty()) {
-                            modifications.add(new Modification(ModificationType.DELETE,
-                                    deletedValues));
-                        }
-
-                        final Attribute addedValues = new LinkedAttribute(newLDAPAttribute);
-                        addedValues.removeAll(oldLDAPAttribute);
-                        if (!addedValues.isEmpty()) {
-                            modifications.add(new Modification(ModificationType.ADD, addedValues));
-                        }
-                    }
-                    h.handleResult(modifications);
-                }
-            }
-        };
-    }
 }
