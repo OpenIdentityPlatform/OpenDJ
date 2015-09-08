@@ -26,17 +26,19 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.util.Options;
 
 import javax.net.ssl.SSLContext;
 import java.nio.charset.Charset;
@@ -162,13 +164,12 @@ public final class PasswordResetForAD {
      * For SSL the connection factory needs SSL context options. This
      * implementation simply trusts all server certificates.
      */
-    private static LDAPOptions getTrustAllOptions() throws GeneralSecurityException {
-        LDAPOptions lo = new LDAPOptions();
-        SSLContext sslContext =
-                new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
-                        .getSSLContext();
-        lo.setSSLContext(sslContext);
-        return lo;
+    private static Options getTrustAllOptions() throws GeneralSecurityException {
+        Options options = Options.defaultOptions();
+        SSLContext sslContext = new SSLContextBuilder()
+              .setTrustManager(TrustManagers.trustAll()).getSSLContext();
+        options.set(SSL_CONTEXT, sslContext);
+        return options;
     }
 
     /**

@@ -37,13 +37,12 @@ import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -59,6 +58,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
@@ -73,6 +73,7 @@ import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -106,8 +107,8 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     private final AtomicReference<LDAPClientContext> context = new AtomicReference<>();
     private final LDAPListener server = createServer();
     private final InetSocketAddress socketAddress = server.getSocketAddress();
-    private final ConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
-            socketAddress.getPort(), new LDAPOptions().setTimeout(1, TimeUnit.MILLISECONDS));
+    public final ConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
+            socketAddress.getPort(), Options.defaultOptions().set(TIMEOUT_IN_MILLISECONDS, 1L));
     private final ConnectionFactory pool = Connections.newFixedConnectionPool(factory, 10);
     private volatile ServerConnection<Integer> serverConnection;
 
@@ -122,7 +123,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     public void testClientSideConnectTimeout() throws Exception {
         // Use an non-local unreachable network address.
         final ConnectionFactory factory = new LDAPConnectionFactory("10.20.30.40", 1389,
-                new LDAPOptions().setConnectTimeout(1, TimeUnit.MILLISECONDS));
+            Options.defaultOptions().set(CONNECT_TIMEOUT_IN_MILLISECONDS, 1L));
         try {
             for (int i = 0; i < ITERATIONS; i++) {
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
@@ -306,7 +307,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     @Test(expectedExceptions = { ProviderNotFoundException.class },
             expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPConnectionFactoryFailureProviderNotFound() throws Exception {
-        LDAPOptions options = new LDAPOptions().setTransportProvider("unknown");
+        Options options = Options.defaultOptions().set(TRANSPORT_PROVIDER, "unknown");
         InetSocketAddress socketAddress = findFreeSocketAddress();
         LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
                 socketAddress.getPort(), options);
@@ -316,7 +317,8 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testCreateLDAPConnectionFactoryWithCustomClassLoader() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
-        LDAPOptions options = new LDAPOptions().setProviderClassLoader(Thread.currentThread().getContextClassLoader());
+        Options options =
+                Options.defaultOptions().set(PROVIDER_CLASS_LOADER, Thread.currentThread().getContextClassLoader());
         InetSocketAddress socketAddress = findFreeSocketAddress();
         LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
                 socketAddress.getPort(), options);

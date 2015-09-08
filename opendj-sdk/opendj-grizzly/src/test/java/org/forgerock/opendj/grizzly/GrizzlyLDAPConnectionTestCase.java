@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -31,6 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.TIMEOUT_IN_MILLISECONDS;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +39,6 @@ import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.RequestHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
@@ -93,7 +94,8 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
          * triggering the timeout.
          */
         LDAPConnectionFactory factory = new LDAPConnectionFactory(address.getHostName(),
-                address.getPort(), new LDAPOptions().setTimeout(100, TimeUnit.SECONDS));
+                address.getPort(), Options.defaultOptions().set(
+                    TIMEOUT_IN_MILLISECONDS, TimeUnit.SECONDS.toMillis((long) 100)));
         GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnection();
         try {
             SearchRequest request =

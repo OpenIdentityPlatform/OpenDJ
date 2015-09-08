@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -34,6 +34,7 @@ import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.util.Options;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Processor;
 import org.glassfish.grizzly.ThreadCache;
@@ -44,6 +45,8 @@ import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.ssl.SSLFilter;
+
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
 /**
  * Common utility methods.
@@ -184,9 +187,7 @@ final class GrizzlyUtils {
         ThreadCache.putToCache(WRITER_INDEX, writer);
     }
 
-    static void configureConnection(final Connection<?> connection, final boolean tcpNoDelay,
-            final boolean keepAlive, final boolean reuseAddress, final int linger,
-            final LocalizedLogger logger) {
+    static void configureConnection(final Connection<?> connection, final LocalizedLogger logger, Options options) {
         /*
          * Test shows that its much faster with non block writes but risk
          * running out of memory if the server is slow.
@@ -196,6 +197,10 @@ final class GrizzlyUtils {
         // Configure socket options.
         final SocketChannel channel = (SocketChannel) ((TCPNIOConnection) connection).getChannel();
         final Socket socket = channel.socket();
+        final boolean tcpNoDelay = options.get(TCP_NO_DELAY);
+        final boolean keepAlive = options.get(KEEPALIVE);
+        final boolean reuseAddress = options.get(REUSE_ADDRESS);
+        final int linger = options.get(LINGER);
         try {
             socket.setTcpNoDelay(tcpNoDelay);
         } catch (final SocketException e) {

@@ -31,7 +31,6 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,7 +44,6 @@ import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -75,6 +73,7 @@ import org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.ExtendedResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.ResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.SearchResultLdapPromiseImpl;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.filterchain.Filter;
@@ -82,6 +81,8 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
@@ -550,7 +551,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public long handleTimeout(final long currentTime) {
-        final long timeout = factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
+        final long timeout = factory.getLDAPOptions().get(TIMEOUT_IN_MILLISECONDS);
         if (timeout <= 0) {
             return 0;
         }
@@ -609,7 +610,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public long getTimeout() {
-        return factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
+        return factory.getLDAPOptions().get(TIMEOUT_IN_MILLISECONDS);
     }
 
     /**
@@ -712,7 +713,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         return newMsgID;
     }
 
-    LDAPOptions getLDAPOptions() {
+    Options getLDAPOptions() {
         return factory.getLDAPOptions();
     }
 

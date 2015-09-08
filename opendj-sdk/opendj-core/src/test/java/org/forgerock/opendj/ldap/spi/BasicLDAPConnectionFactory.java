@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -30,8 +30,8 @@ import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.Promise;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
@@ -43,24 +43,22 @@ import static org.mockito.Mockito.*;
  */
 public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryImpl {
 
-    private final LDAPOptions options;
+    private final Options options;
     private final String host;
     private final int port;
 
     /**
      * Creates a new LDAP connection factory which does nothing.
-     *
-     * @param host
+     *  @param host
      *            The address of the Directory Server to connect to.
      * @param port
      *            The port of the Directory Server to connect to.
      * @param options
-     *            The LDAP connection options to use when creating connections.
      */
-    public BasicLDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
+    public BasicLDAPConnectionFactory(final String host, final int port, final Options options) {
         this.host = host;
         this.port = port;
-        this.options = new LDAPOptions(options);
+        this.options = Options.copyOf(options);
     }
 
     @Override
@@ -107,7 +105,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
         return getClass().getSimpleName() + "(" + host + ':' + port + ')';
     }
 
-    LDAPOptions getLDAPOptions() {
+    Options getLDAPOptions() {
         return options;
     }
 }

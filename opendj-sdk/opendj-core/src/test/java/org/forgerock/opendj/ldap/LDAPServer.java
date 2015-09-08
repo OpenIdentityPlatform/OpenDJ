@@ -75,9 +75,11 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
+import org.forgerock.util.Options;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 /**
  * A simple ldap server that manages 1000 entries and used for running
@@ -547,9 +549,8 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             return;
         }
         sslContext = new SSLContextBuilder().getSSLContext();
-        listener =
-                new LDAPListener(findFreeSocketAddress(), getInstance(),
-                        new LDAPListenerOptions().setBacklog(4096));
+        listener = new LDAPListener(findFreeSocketAddress(), getInstance(),
+                        Options.defaultOptions().set(BACKLOG, 4096));
         isRunning = true;
     }
 

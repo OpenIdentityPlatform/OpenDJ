@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
 import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +53,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
@@ -64,6 +64,7 @@ import org.forgerock.opendj.ldap.requests.ExternalSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.util.Options;
 
 /**
  * A connection factory designed for use with command line tools.
@@ -413,12 +414,14 @@ public final class ConnectionFactoryProvider {
                         e);
             }
 
-            LDAPOptions options = new LDAPOptions();
+            Options options = Options.defaultOptions();
 
             if (sslContext != null) {
-                options.setSSLContext(sslContext).setUseStartTLS(useStartTLSArg.isPresent());
+                options.set(SSL_CONTEXT, sslContext)
+                    .set(USE_STARTTLS, useStartTLSArg.isPresent());
             }
-            options.setConnectTimeout(getConnectTimeout(), TimeUnit.MILLISECONDS);
+            options.set(CONNECT_TIMEOUT_IN_MILLISECONDS,
+                TimeUnit.MILLISECONDS.toMillis(getConnectTimeout()));
             connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
         }
         return connFactory;

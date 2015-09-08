@@ -31,12 +31,11 @@ import java.net.InetSocketAddress;
 import org.forgerock.opendj.grizzly.GrizzlyLDAPConnectionFactory;
 import org.forgerock.opendj.grizzly.GrizzlyLDAPListener;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
+import org.forgerock.util.Options;
 
 /**
  * Grizzly transport provider implementation.
@@ -44,13 +43,13 @@ import org.forgerock.opendj.ldap.spi.TransportProvider;
 public class GrizzlyTransportProvider implements TransportProvider {
 
     @Override
-    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port, LDAPOptions options) {
+    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port, Options options) {
         return new GrizzlyLDAPConnectionFactory(host, port, options);
     }
 
     @Override
     public LDAPListenerImpl getLDAPListener(InetSocketAddress address,
-            ServerConnectionFactory<LDAPClientContext, Integer> factory, LDAPListenerOptions options)
+            ServerConnectionFactory<LDAPClientContext, Integer> factory, Options options)
             throws IOException {
         return new GrizzlyLDAPListener(address, factory, options);
     }

@@ -21,10 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
+
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,10 +38,10 @@ import javax.net.ssl.TrustManager;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
+import org.forgerock.util.Options;
 
 /**
  * An example client application which performs simple authentication to a
@@ -128,11 +130,11 @@ public final class SimpleAuth {
      * @return SSL context options
      * @throws GeneralSecurityException Could not load the trust store
      */
-    private static LDAPOptions getTrustOptions(final String hostname,
-                                               final String truststore,
-                                               final String storepass)
+    private static Options getTrustOptions(final String hostname,
+                                           final String truststore,
+                                           final String storepass)
             throws GeneralSecurityException {
-        LDAPOptions lo = new LDAPOptions();
+        Options options = Options.defaultOptions();
 
         TrustManager trustManager = null;
         try {
@@ -148,12 +150,12 @@ public final class SimpleAuth {
         if (trustManager != null) {
             SSLContext sslContext = new SSLContextBuilder()
                     .setTrustManager(trustManager).getSSLContext();
-            lo.setSSLContext(sslContext);
+            options.set(SSL_CONTEXT, sslContext);
         }
 
-        lo.setUseStartTLS(useStartTLS);
+        options.set(USE_STARTTLS, useStartTLS);
 
-        return lo;
+        return options;
     }
     // --- JCite trust options ---
 
@@ -200,14 +202,14 @@ public final class SimpleAuth {
      * certificate that is not in the system trust store. To simplify this
      * implementation trusts all server certificates.
      */
-    private static LDAPOptions getTrustAllOptions() throws GeneralSecurityException {
-        LDAPOptions lo = new LDAPOptions();
+    private static Options getTrustAllOptions() throws GeneralSecurityException {
+        Options options = Options.defaultOptions();
         SSLContext sslContext =
                 new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
                         .getSSLContext();
-        lo.setSSLContext(sslContext);
-        lo.setUseStartTLS(useStartTLS);
-        return lo;
+        options.set(SSL_CONTEXT, sslContext);
+        options.set(USE_STARTTLS, useStartTLS);
+        return options;
     }
     // --- JCite trust all ---
 

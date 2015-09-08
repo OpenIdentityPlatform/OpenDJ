@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -30,8 +30,9 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPReaderWriterTestCase;
 import org.forgerock.opendj.io.LDAPWriter;
-import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.util.Options;
 import org.glassfish.grizzly.memory.HeapMemoryManager;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.DECODE_OPTIONS;
 
 /**
  * Tests for LDAPWriter / LDAPReader classes using specific implementations of
@@ -46,8 +47,7 @@ public class GrizzlyLDAPReaderWriterTestCase extends LDAPReaderWriterTestCase {
 
     @Override
     protected LDAPReader<? extends ASN1Reader> getLDAPReader() {
-        return GrizzlyUtils.createReader(new LDAPOptions().getDecodeOptions(),
-                0, new HeapMemoryManager());
+        return GrizzlyUtils.createReader(Options.defaultOptions().get(DECODE_OPTIONS), 0, new HeapMemoryManager());
     }
 
     @Override

@@ -19,6 +19,8 @@ import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -52,7 +54,6 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
@@ -68,6 +69,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.Options;
 
 /**
  * Provides core factory methods and builders for constructing LDAP resource
@@ -1017,8 +1019,7 @@ public final class Rest2LDAP {
         final ConnectionSecurity connectionSecurity =
                 configuration.get("connectionSecurity").defaultTo(ConnectionSecurity.NONE).asEnum(
                         ConnectionSecurity.class);
-        final LDAPOptions options = new LDAPOptions();
-        options.setProviderClassLoader(providerClassLoader);
+        final Options options = Options.defaultOptions().set(PROVIDER_CLASS_LOADER, providerClassLoader);
         if (connectionSecurity != ConnectionSecurity.NONE) {
             try {
                 // Configure SSL.
@@ -1045,8 +1046,9 @@ public final class Rest2LDAP {
                             password != null ? password.toCharArray() : null, type));
                     break;
                 }
-                options.setSSLContext(builder.getSSLContext());
-                options.setUseStartTLS(connectionSecurity == ConnectionSecurity.STARTTLS);
+                options.set(SSL_CONTEXT, builder.getSSLContext());
+                options.set(USE_STARTTLS,
+                    connectionSecurity == ConnectionSecurity.STARTTLS);
             } catch (GeneralSecurityException | IOException e) {
                 // Rethrow as unchecked exception.
                 throw new IllegalArgumentException(e);
@@ -1117,7 +1119,7 @@ public final class Rest2LDAP {
     private static ConnectionFactory parseLDAPServers(final JsonValue config,
             final BindRequest bindRequest, final int connectionPoolSize,
             final int heartBeatIntervalSeconds, final int heartBeatTimeoutMilliSeconds,
-            final LDAPOptions options) {
+            final Options options) {
         final List<ConnectionFactory> servers = new ArrayList<>(config.size());
         for (final JsonValue server : config) {
             final String host = server.get("hostname").required().asString();

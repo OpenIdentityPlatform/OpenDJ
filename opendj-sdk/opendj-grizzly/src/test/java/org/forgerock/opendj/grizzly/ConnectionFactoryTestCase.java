@@ -28,6 +28,7 @@
 package org.forgerock.opendj.grizzly;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -52,7 +53,6 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LDAPServer;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -74,6 +74,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -88,6 +89,7 @@ import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.ENABLED_CIPHER_SUITES;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
@@ -171,14 +173,15 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // LDAPConnectionFactory with startTLS
         SSLContext sslContext =
                 new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
-        LDAPOptions options = new LDAPOptions().setSSLContext(sslContext).setUseStartTLS(true)
-                        .addEnabledCipherSuite(
-                                new String[] { "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
-                                    "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
-                                    "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
-                                    "SSL_DH_anon_WITH_DES_CBC_SHA", "SSL_DH_anon_WITH_RC4_128_MD5",
-                                    "TLS_DH_anon_WITH_AES_128_CBC_SHA",
-                                    "TLS_DH_anon_WITH_AES_256_CBC_SHA" });
+        Options options = Options.defaultOptions().set(ENABLED_CIPHER_SUITES,
+            new ArrayList<String>(Arrays.asList(
+                "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
+                "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
+                "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
+                "SSL_DH_anon_WITH_DES_CBC_SHA",
+                "SSL_DH_anon_WITH_RC4_128_MD5",
+                "TLS_DH_anon_WITH_AES_128_CBC_SHA",
+                "TLS_DH_anon_WITH_AES_256_CBC_SHA")));
         factories[5][0] = new LDAPConnectionFactory(serverAddress.getHostName(), serverAddress.getPort(), options);
 
         // startTLS + SASL confidentiality

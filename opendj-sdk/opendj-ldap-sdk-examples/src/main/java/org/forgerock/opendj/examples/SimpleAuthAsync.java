@@ -27,9 +27,11 @@
 package org.forgerock.opendj.examples;
 
 import static org.forgerock.util.Utils.closeSilently;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.USE_STARTTLS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
+
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
@@ -38,6 +40,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.util.AsyncFunction;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.ResultHandler;
@@ -150,10 +153,10 @@ public final class SimpleAuthAsync {
      * @param storepass     Password for the trust store
      * @return SSL context options if SSL or StartTLS is used.
      */
-    private static LDAPOptions getTrustOptions(final String hostname,
-                                               final String truststore,
-                                               final String storepass) {
-        LDAPOptions lo = new LDAPOptions();
+    private static Options getTrustOptions(final String hostname,
+                                           final String truststore,
+                                           final String storepass) {
+        Options options = Options.defaultOptions();
         if (useSSL || useStartTLS) {
             TrustManager trustManager = null;
             try {
@@ -164,15 +167,15 @@ public final class SimpleAuthAsync {
                 if (trustManager != null) {
                     SSLContext sslContext = new SSLContextBuilder()
                             .setTrustManager(trustManager).getSSLContext();
-                    lo.setSSLContext(sslContext);
+                    options.set(SSL_CONTEXT, sslContext);
                 }
             } catch (Exception e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
             }
-            lo.setUseStartTLS(useStartTLS);
+            options.set(USE_STARTTLS, useStartTLS);
         }
-        return lo;
+        return options;
     }
 
     /**
@@ -187,19 +190,19 @@ public final class SimpleAuthAsync {
      *
      * @return SSL context options to trust all certificates without checking.
      */
-    private static LDAPOptions getTrustAllOptions() {
-        LDAPOptions lo = new LDAPOptions();
+    private static Options getTrustAllOptions() {
+        Options options = Options.defaultOptions();
         try {
             SSLContext sslContext =
                     new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
                             .getSSLContext();
-            lo.setSSLContext(sslContext);
-            lo.setUseStartTLS(useStartTLS);
+            options.set(SSL_CONTEXT, sslContext);
+            options.set(USE_STARTTLS, useStartTLS);
         } catch (GeneralSecurityException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
         }
-        return lo;
+        return options;
     }
 
     private static String  host;

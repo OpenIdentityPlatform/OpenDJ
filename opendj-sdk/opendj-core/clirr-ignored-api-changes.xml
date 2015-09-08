@@ -109,16 +109,16 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
     <differenceType>7005</differenceType>
-    <method>%regex[LDAPConnectionFactory\(java\.net\.SocketAddress(, org\.forgerock\.opendj\.ldap\.LDAPOptions)?\)]</method>
-    <to>%regex[LDAPConnectionFactory\(java\.net\.InetSocketAddress(, org\.forgerock\.opendj\.ldap\.LDAPOptions)?\)]</to>
-    <justification>OPENDJ-1270: Changed constructors to only accept InetSocketAddresses instead of more generic SocketAddress</justification>
+    <method>%regex[LDAPConnectionFactory\(java\.lang\.String(.)*(org\.forgerock\.opendj\.ldap\.LDAPOptions)\)]</method>
+    <to>%regex[LDAPConnectionFactory\(java\.lang\.String(.)*(org\.forgerock\.util\.Options)\)]</to>
+    <justification>OPENDJ-1654: LDAPOptions should be converted in a SchemaOptions style API</justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPListener</className>
     <differenceType>7005</differenceType>
-    <method>%regex[LDAPListener\(java\.net\.SocketAddress, org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</method>
-    <to>%regex[LDAPListener\(java\.net\.InetSocketAddress,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</to>
-    <justification>OPENDJ-1270: Changed constructors to only accept InetSocketAddresses instead of more generic SocketAddress</justification>
+    <method>%regex[LDAPListener\((.*), org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</method>
+    <to>%regex[LDAPListener\((.*)\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.util\.Options)?\)]</to>
+    <justification>OPENDJ-1654: LDAPOptions should be converted in a SchemaOptions style API</justification>
   </difference>
 
   <difference>
@@ -500,5 +500,14 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <differenceType>8001</differenceType>
     <justification>OPENDJ-1666 Update sdk to forgerock-util 2.0.0</justification>
   </difference>
-
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListenerOptions</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1654: LDAPOptions should be converted in a SchemaOptions style API</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPOptions</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1654: LDAPOptions should be converted in a SchemaOptions style API</justification>
+  </difference>
 </differences>

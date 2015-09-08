@@ -32,6 +32,10 @@
  */
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.USE_STARTTLS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
+
+
 import java.security.GeneralSecurityException;
 
 import javax.net.ssl.SSLContext;
@@ -39,12 +43,12 @@ import javax.net.ssl.SSLContext;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.util.Options;
 
 /**
  * An example client application which performs SASL PLAIN authentication to a
@@ -120,13 +124,13 @@ public final class SASLAuth {
      * certificate that is not in the system trust store. To simplify this
      * implementation trusts all server certificates.
      */
-    private static LDAPOptions getTrustAllOptions() throws GeneralSecurityException {
-        LDAPOptions lo = new LDAPOptions();
+    private static Options getTrustAllOptions() throws GeneralSecurityException {
+        Options options = Options.defaultOptions();
         SSLContext sslContext =
                 new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
-        lo.setSSLContext(sslContext);
-        lo.setUseStartTLS(true);
-        return lo;
+        options.set(SSL_CONTEXT, sslContext);
+        options.set(USE_STARTTLS, true);
+        return options;
     }
 
     private static String host;
