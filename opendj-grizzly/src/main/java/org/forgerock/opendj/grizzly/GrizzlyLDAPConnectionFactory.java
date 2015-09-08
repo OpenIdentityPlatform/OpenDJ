@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,7 +38,6 @@ import javax.net.ssl.SSLEngine;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TimeoutChecker;
@@ -47,6 +46,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -62,6 +62,7 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
 
 import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.*;
 import static org.forgerock.opendj.grizzly.GrizzlyUtils.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TimeoutChecker.*;
 
@@ -100,7 +101,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             final GrizzlyLDAPConnection connection = adaptConnection(result);
 
             // Plain connection.
-            if (options.getSSLContext() == null) {
+            if (options.get(SSL_CONTEXT) == null) {
                 thenOnResult(connection);
                 return;
             }
@@ -114,14 +115,14 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                 return;
             }
 
-            if (options.useStartTLS()) {
+            List<String> protocols = options.get(ENABLED_PROTOCOLS);
+            List<String> suites = options.get(ENABLED_CIPHER_SUITES);
+            if (options.get(USE_STARTTLS)) {
                 // Chain StartTLS extended request.
                 final StartTLSExtendedRequest startTLS =
-                        Requests.newStartTLSExtendedRequest(options.getSSLContext());
-                startTLS.addEnabledCipherSuite(options.getEnabledCipherSuites().toArray(
-                    new String[options.getEnabledCipherSuites().size()]));
-                startTLS.addEnabledProtocol(options.getEnabledProtocols().toArray(
-                    new String[options.getEnabledProtocols().size()]));
+                        Requests.newStartTLSExtendedRequest(options.get(SSL_CONTEXT));
+                startTLS.addEnabledCipherSuite(suites.toArray(new String[suites.size()]));
+                startTLS.addEnabledProtocol(protocols.toArray(new String[protocols.size()]));
 
                 connection.extendedRequestAsync(startTLS).thenOnResult(new ResultHandler<ExtendedResult>() {
                     @Override
@@ -137,8 +138,8 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             } else {
                 // Install SSL/TLS layer.
                 try {
-                    connection.startTLS(options.getSSLContext(), options.getEnabledProtocols(),
-                        options.getEnabledCipherSuites(), new EmptyCompletionHandler<SSLEngine>() {
+                    connection.startTLS(options.get(SSL_CONTEXT), protocols, suites,
+                        new EmptyCompletionHandler<SSLEngine>() {
                             @Override
                             public void completed(final SSLEngine result) {
                                 thenOnResult(connection);
@@ -170,8 +171,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
 
         private GrizzlyLDAPConnection adaptConnection(
                 final org.glassfish.grizzly.Connection<?> connection) {
-            configureConnection(connection, options.isTCPNoDelay(), options.isKeepAlive(), options
-                    .isReuseAddress(), options.getLinger(), logger);
+            configureConnection(connection, logger, options);
 
             final GrizzlyLDAPConnection ldapConnection =
                     new GrizzlyLDAPConnection(connection, GrizzlyLDAPConnectionFactory.this);
@@ -222,13 +222,13 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
 
         @Override
         public long getTimeout() {
-            return options.getConnectTimeout(TimeUnit.MILLISECONDS);
+            return options.get(CONNECT_TIMEOUT_IN_MILLISECONDS);
         }
     }
 
     private final LDAPClientFilter clientFilter;
     private final FilterChain defaultFilterChain;
-    private final LDAPOptions options;
+    private final Options options;
     private final String host;
     private final int port;
 
@@ -252,15 +252,14 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      * Creates a new LDAP connection factory based on Grizzly which can be used
      * to create connections to the Directory Server at the provided host and
      * port address using provided connection options.
-     *
-     * @param host
+     *  @param host
      *            The hostname of the Directory Server to connect to.
      * @param port
      *            The port number of the Directory Server to connect to.
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public GrizzlyLDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
+    public GrizzlyLDAPConnectionFactory(final String host, final int port, final Options options) {
         this(host, port, options, null);
     }
 
@@ -269,24 +268,23 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      * to create connections to the Directory Server at the provided host and
      * port address using provided connection options and provided TCP
      * transport.
-     *
-     * @param host
+     *  @param host
      *            The hostname of the Directory Server to connect to.
      * @param port
      *            The port number of the Directory Server to connect to.
      * @param options
-     *            The LDAP connection options to use when creating connections.
+ *            The LDAP connection options to use when creating connections.
      * @param transport
-     *            Grizzly TCP Transport NIO implementation to use for
-     *            connections. If {@code null}, default transport will be used.
+*            Grizzly TCP Transport NIO implementation to use for
+*            connections. If {@code null}, default transport will be used.
      */
-    public GrizzlyLDAPConnectionFactory(final String host, final int port, final LDAPOptions options,
+    public GrizzlyLDAPConnectionFactory(final String host, final int port, final Options options,
                                         TCPNIOTransport transport) {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.host = host;
         this.port = port;
-        this.options = new LDAPOptions(options);
-        this.clientFilter = new LDAPClientFilter(this.options.getDecodeOptions(), 0);
+        this.options = options;
+        this.clientFilter = new LDAPClientFilter(options.get(DECODE_OPTIONS), 0);
         this.defaultFilterChain =
                 buildFilterChain(this.transport.get().getProcessor(), clientFilter);
     }
@@ -342,7 +340,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         return timeoutChecker.get();
     }
 
-    LDAPOptions getLDAPOptions() {
+    Options getLDAPOptions() {
         return options;
     }
 

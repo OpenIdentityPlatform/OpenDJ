@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.LdapResultHandler;
@@ -74,6 +73,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
@@ -842,9 +842,8 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     @Override
     public NextAction handleAccept(final FilterChainContext ctx) throws IOException {
         final Connection<?> connection = ctx.getConnection();
-        LDAPListenerOptions options = listener.getLDAPListenerOptions();
-        configureConnection(connection, options.isTCPNoDelay(), options.isKeepAlive(), options
-                .isReuseAddress(), options.getLinger(), logger);
+        Options options = listener.getLDAPListenerOptions();
+        configureConnection(connection, logger, options);
         try {
             final ClientContextImpl clientContext = new ClientContextImpl(connection);
             final ServerConnection<Integer> serverConn =

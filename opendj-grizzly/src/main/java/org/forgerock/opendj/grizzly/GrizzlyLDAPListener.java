@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.grizzly;
 
 import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -36,9 +37,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
+import org.forgerock.util.Options;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
@@ -56,7 +57,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     private final TCPNIOServerConnection serverConnection;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final InetSocketAddress socketAddress;
-    private final LDAPListenerOptions options;
+    private final Options options;
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -75,7 +76,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      */
     public GrizzlyLDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
+            final Options options) throws IOException {
         this(address, factory, options, null);
     }
 
@@ -100,18 +101,17 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      */
     public GrizzlyLDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options, TCPNIOTransport transport) throws IOException {
+            final Options options, TCPNIOTransport transport) throws IOException {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.connectionFactory = factory;
-        this.options = new LDAPListenerOptions(options);
+        this.options = Options.copyOf(options);
         final LDAPServerFilter serverFilter =
-                new LDAPServerFilter(this, this.options.getDecodeOptions(), this.options
-                        .getMaxRequestSize());
+                new LDAPServerFilter(this, options.get(DECODE_OPTIONS), options.get(MAX_REQUEST_SIZE_BYTES));
         final FilterChain ldapChain =
                 GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
         final TCPNIOBindingHandler bindingHandler =
                 TCPNIOBindingHandler.builder(this.transport.get()).processor(ldapChain).build();
-        this.serverConnection = bindingHandler.bind(address, options.getBacklog());
+        this.serverConnection = bindingHandler.bind(address, options.get(BACKLOG));
 
         /*
          * Get the socket address now, ensuring that the host is the same as the
@@ -156,7 +156,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
         return connectionFactory;
     }
 
-    LDAPListenerOptions getLDAPListenerOptions() {
+    Options getLDAPListenerOptions() {
         return options;
     }
 }

@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.LDAPListener.*;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +46,6 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
@@ -69,6 +70,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.util.Options;
 
 /**
  * This example is based on the {@link Proxy}. This example does no load
@@ -191,8 +193,8 @@ public final class RewriterProxy {
 
         @Override
         public void handleSearch(final RequestContext requestContext, final SearchRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
-            final LdapResultHandler<Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final SearchResultHandler entryHandler, final LdapResultHandler<Result> resultHandler) {
             nextHandler.handleSearch(requestContext, rewrite(request), intermediateResponseHandler,
                 new SearchResultHandler() {
                     @Override
@@ -421,7 +423,7 @@ public final class RewriterProxy {
                 Connections.newServerConnectionFactory(proxyFactory);
 
         // Create listener.
-        final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
+        final Options options = Options.defaultOptions().set(BACKLOG, 4096);
         LDAPListener listener = null;
         try {
             listener = new LDAPListener(localAddress, localPort, connectionHandler, options);

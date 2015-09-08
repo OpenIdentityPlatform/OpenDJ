@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.LDAPListener.BACKLOG;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -37,7 +39,6 @@ import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
@@ -45,6 +46,7 @@ import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
+import org.forgerock.util.Options;
 
 /**
  * An LDAP directory server which exposes data contained in an LDIF file. This
@@ -101,7 +103,7 @@ public final class Server {
         // Create listener.
         LDAPListener listener = null;
         try {
-            final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
+            final Options options = Options.defaultOptions().set(BACKLOG, 4096);
 
             if (keyStoreFileName != null) {
                 // Configure SSL/TLS and enable it when connections are

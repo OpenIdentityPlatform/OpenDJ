@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -36,6 +36,8 @@ import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
+import org.forgerock.util.Option;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 
 /**
@@ -92,7 +94,19 @@ import org.forgerock.util.Reject;
  * }
  * </pre>
  */
-public final class LDAPListener implements Closeable {
+public final class LDAPListener extends CommonLDAPOptions implements Closeable {
+
+    /**
+     * Specifies the maximum queue length for incoming connections requests. If a
+     * connection request arrives when the queue is full, the connection is refused.
+     */
+    public static final Option<Integer> BACKLOG = Option.withDefault(50);
+    /**
+     * Specifies the maximum request size in bytes for incoming LDAP requests.
+     * If an incoming request exceeds the limit then the connection will be aborted by the listener.
+     * Default value is 5MiB.
+     */
+    public static final Option<Integer> MAX_REQUEST_SIZE_BYTES = Option.withDefault(5 * 1024 * 1024);
 
     /**
      * We implement the factory using the pimpl idiom in order have
@@ -122,7 +136,7 @@ public final class LDAPListener implements Closeable {
      */
     public LDAPListener(final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        this(port, factory, new LDAPListenerOptions());
+        this(port, factory, Options.defaultOptions());
     }
 
     /**
@@ -144,11 +158,11 @@ public final class LDAPListener implements Closeable {
      */
     public LDAPListener(final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
+            final Options options) throws IOException {
         Reject.ifNull(factory, options);
         final InetSocketAddress address = new InetSocketAddress(port);
-        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
-                options.getProviderClassLoader());
+        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
+            options.get(PROVIDER_CLASS_LOADER));
         this.impl = provider.getLDAPListener(address, factory, options);
     }
 
@@ -169,7 +183,7 @@ public final class LDAPListener implements Closeable {
      */
     public LDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        this(address, factory, new LDAPListenerOptions());
+        this(address, factory, Options.defaultOptions());
     }
 
     /**
@@ -192,10 +206,10 @@ public final class LDAPListener implements Closeable {
      */
     public LDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
+            final Options options) throws IOException {
         Reject.ifNull(address, factory, options);
-        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
-                options.getProviderClassLoader());
+        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
+            options.get(PROVIDER_CLASS_LOADER));
         this.impl = provider.getLDAPListener(address, factory, options);
     }
 
@@ -218,7 +232,7 @@ public final class LDAPListener implements Closeable {
      */
     public LDAPListener(final String host, final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        this(host, port, factory, new LDAPListenerOptions());
+        this(host, port, factory, Options.defaultOptions());
     }
 
     /**
@@ -243,11 +257,11 @@ public final class LDAPListener implements Closeable {
      */
     public LDAPListener(final String host, final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
+            final Options options) throws IOException {
         Reject.ifNull(host, factory, options);
         final InetSocketAddress address = new InetSocketAddress(host, port);
-        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
-                options.getProviderClassLoader());
+        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
+            options.get(PROVIDER_CLASS_LOADER));
         this.impl = provider.getLDAPListener(address, factory, options);
     }
 
@@ -312,5 +326,4 @@ public final class LDAPListener implements Closeable {
     public String toString() {
         return impl.toString();
     }
-
 }

@@ -21,18 +21,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
 import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.DECODE_OPTIONS;
 
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.Options;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -264,7 +265,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
                     ExtendedRequest<R> request) throws DecodeException, IOException {
                 CancelExtendedRequest cancelRequest =
                         CancelExtendedRequest.DECODER.decodeExtendedRequest(request,
-                                new LDAPOptions().getDecodeOptions());
+                            Options.defaultOptions().get(DECODE_OPTIONS));
                 assertThat(cancelRequest.getOID()).isEqualTo(oidCancel);
                 assertThat(cancelRequest.getRequestID()).isEqualTo(requestID);
             }

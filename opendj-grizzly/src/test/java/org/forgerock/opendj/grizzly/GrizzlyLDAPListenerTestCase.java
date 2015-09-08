@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -41,7 +41,6 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -67,6 +66,7 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.PromiseImpl;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -75,6 +75,7 @@ import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Mockito.*;
 
@@ -240,10 +241,9 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
     @SuppressWarnings("unchecked")
     @Test
     public void testCreateLDAPListenerWithCustomClassLoader() throws Exception {
-        // test no exception is thrown, which means transport provider is
-        // correctly loaded
-        LDAPListenerOptions options = new LDAPListenerOptions().
-                setProviderClassLoader(Thread.currentThread().getContextClassLoader());
+        // test no exception is thrown, which means transport provider is correctly loaded
+        Options options = Options.defaultOptions().set(PROVIDER_CLASS_LOADER,
+                Thread.currentThread().getContextClassLoader());
         LDAPListener listener = new LDAPListener(findFreeSocketAddress(),
                 mock(ServerConnectionFactory.class), options);
         listener.close();
@@ -256,7 +256,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
     @Test(expectedExceptions = { ProviderNotFoundException.class },
         expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPListenerFailureProviderNotFound() throws Exception {
-        LDAPListenerOptions options = new LDAPListenerOptions().setTransportProvider("unknown");
+        Options options = Options.defaultOptions().set(TRANSPORT_PROVIDER, "unknown");
         LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mock(ServerConnectionFactory.class), options);
         listener.close();
     }
@@ -644,7 +644,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
                 new MockServerConnectionFactory(serverConnection);
-        final LDAPListenerOptions options = new LDAPListenerOptions().setMaxRequestSize(2048);
+        final Options options = Options.defaultOptions().set(MAX_REQUEST_SIZE_BYTES, 2048);
         final LDAPListener listener = new LDAPListener(findFreeSocketAddress(), factory, options);
 
         Connection connection = null;

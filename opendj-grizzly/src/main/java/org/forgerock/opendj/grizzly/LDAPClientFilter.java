@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -70,6 +70,7 @@ import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.responses.Responses.*;
 
@@ -367,7 +368,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         private <R extends ExtendedResult> void handleExtendedResult0(
                 final GrizzlyLDAPConnection conn, final ExtendedResultLdapPromiseImpl<R> promise,
                 final ExtendedResult result) throws DecodeException {
-            final R decodedResponse = promise.decodeResult(result, conn.getLDAPOptions().getDecodeOptions());
+            final R decodedResponse = promise.decodeResult(result, conn.getLDAPOptions().get(DECODE_OPTIONS));
 
             if (result.getResultCode() == ResultCode.SUCCESS
                     && promise.getRequest() instanceof StartTLSExtendedRequest) {

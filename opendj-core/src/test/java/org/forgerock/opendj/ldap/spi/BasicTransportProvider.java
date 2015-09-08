@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -29,9 +29,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.util.Options;
 
 /**
  * Provides an basic implementation of a transport provider doing nothing.
@@ -48,18 +47,14 @@ import org.forgerock.opendj.ldap.ServerConnectionFactory;
  */
 public class BasicTransportProvider implements TransportProvider {
 
-    /** {@inheritDoc} */
     @Override
-    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port, LDAPOptions options) {
+    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port, Options options) {
         return new BasicLDAPConnectionFactory(host, port, options);
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDAPListenerImpl getLDAPListener(
-            InetSocketAddress address,
-            ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            LDAPListenerOptions options)
+            InetSocketAddress address, ServerConnectionFactory<LDAPClientContext, Integer> factory, Options options)
             throws IOException {
         return new BasicLDAPListener(address, factory, options);
     }

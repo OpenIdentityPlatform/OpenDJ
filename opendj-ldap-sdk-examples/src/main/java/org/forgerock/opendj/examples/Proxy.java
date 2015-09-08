@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.LDAPListener.*;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,12 +39,12 @@ import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.util.Options;
 
 /**
  * An LDAP load balancing proxy which forwards requests to one or more remote
@@ -133,7 +135,7 @@ public final class Proxy {
 
         // --- JCite listener ---
         // Create listener.
-        final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
+        final Options options = Options.defaultOptions().set(BACKLOG, 4096);
         LDAPListener listener = null;
         try {
             listener = new LDAPListener(localAddress, localPort, connectionHandler, options);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -31,14 +31,74 @@ import static com.forgerock.opendj.util.StaticUtils.getProvider;
 
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
+import org.forgerock.util.Option;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Promise;
+
+import javax.net.ssl.SSLContext;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A factory class which can be used to obtain connections to an LDAP Directory
  * Server.
  */
-public final class LDAPConnectionFactory implements ConnectionFactory {
+public final class LDAPConnectionFactory extends CommonLDAPOptions implements ConnectionFactory {
+
+    /**
+     * Specifies the SSL context which will be used when initiating connections with the Directory Server.
+     * <p>
+     * By default no SSL context will be used, indicating that connections will not be secured.
+     * If an SSL context is set then connections will be secured using either SSL or StartTLS
+     * depending on {@link #USE_STARTTLS}.
+     */
+    public static final Option<SSLContext> SSL_CONTEXT = Option.of(SSLContext.class, null);
+    /**
+     * Specifies whether SSL or StartTLS should be used for securing connections when an SSL context is specified.
+     * <p>
+     * By default SSL will be used in preference to StartTLS.
+     */
+    public static final Option<Boolean> USE_STARTTLS = Option.withDefault(false);
+    /**
+     * Specifies the operation timeout in milliseconds. If a response is not
+     * received from the Directory Server within the timeout period, then the
+     * operation will be abandoned and a {@link TimeoutResultException} error
+     * result returned. A timeout setting of 0 disables operation timeout limits.
+     * <p>
+     * The default operation timeout is 0 (no timeout) and may be configured
+     * using the {@code org.forgerock.opendj.io.timeout} property.
+     */
+    public static final Option<Long> TIMEOUT_IN_MILLISECONDS = Option.of(Long.class,
+        (long) getIntProperty("org.forgerock.opendj.io.timeout", 0));
+    /**
+     * Specifies the connect timeout spcified in milliseconds. If a connection is not established
+     * within the timeout period, then a {@link TimeoutResultException} error result will be returned.
+     * <p>
+     * The default operation timeout is 10 seconds and may be configured using
+     * the {@code org.forgerock.opendj.io.connectTimeout} property.
+     * A timeout setting of 0 causes the OS connect timeout to be used.
+     */
+    public static final Option<Long> CONNECT_TIMEOUT_IN_MILLISECONDS = Option.of(Long.class,
+        (long) getIntProperty("org.forgerock.opendj.io.connectTimeout", 10000));
+    /**
+     * Specifies the cipher suites enabled for secure connections with the Directory Server.
+     * <p>
+     * The suites must be supported by the SSLContext specified by option {@link SSL_CONTEXT}.
+     * Only the suites listed in the parameter are enabled for use.
+     */
+    public static final Option<List<String>> ENABLED_CIPHER_SUITES = Option.withDefault(
+        Collections.<String>emptyList());
+    /**
+     * Specifies the protocol versions enabled for secure connections with the
+     * Directory Server.
+     * <p>
+     * The protocols must be supported by the SSLContext specified by option {@link SSL_CONTEXT}.
+     * Only the protocols listed in the parameter are enabled for use.
+     */
+    public static final Option<List<String>> ENABLED_PROTOCOLS =
+        Option.withDefault(Collections.<String>emptyList());
+
     /**
      * We implement the factory using the pimpl idiom in order to avoid making
      * too many implementation classes public.
@@ -55,17 +115,14 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * connections to the Directory Server at the provided host and port
      * number.
      *
-     * @param host
-     *            The host name.
-     * @param port
-     *            The port number.
-     * @throws NullPointerException
-     *             If {@code host} was {@code null}.
+     * @param host The host name.
+     * @param port The port number.
+     * @throws NullPointerException      If {@code host} was {@code null}.
      * @throws ProviderNotFoundException if no provider is available or if the
-     *             provider requested using options is not found.
+     *                                   provider requested using options is not found.
      */
     public LDAPConnectionFactory(final String host, final int port) {
-        this(host, port, new LDAPOptions());
+        this(host, port, Options.defaultOptions());
     }
 
     /**
@@ -73,21 +130,17 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * connections to the Directory Server at the provided host and port
      * number.
      *
-     * @param host
-     *            The host name.
-     * @param port
-     *            The port number.
-     * @param options
-     *            The LDAP options to use when creating connections.
-     * @throws NullPointerException
-     *             If {@code host} or {@code options} was {@code null}.
+     * @param host    The host name.
+     * @param port    The port number.
+     * @param options The LDAP options to use when creating connections.
+     * @throws NullPointerException      If {@code host} or {@code options} was {@code null}.
      * @throws ProviderNotFoundException if no provider is available or if the
-     *             provider requested using options is not found.
+     *                                   provider requested using options is not found.
      */
-    public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
+    public LDAPConnectionFactory(final String host, final int port, final Options options) {
         Reject.ifNull(host, options);
-        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
-                options.getProviderClassLoader());
+        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
+                options.get(PROVIDER_CLASS_LOADER));
         this.impl = provider.getLDAPConnectionFactory(host, port, options);
     }
 
