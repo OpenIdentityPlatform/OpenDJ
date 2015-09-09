@@ -47,10 +47,11 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.LinkedAttribute;
-import org.forgerock.opendj.ldap.Option;
 import org.forgerock.opendj.ldap.RDN;
-import org.forgerock.util.Reject;
 import org.forgerock.util.Function;
+import org.forgerock.util.Option;
+import org.forgerock.util.Options;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
 
@@ -77,7 +78,7 @@ public final class Schema {
 
         Schema asStrictSchema();
 
-        SchemaOptions getOptions();
+        Options getOptions();
 
         MatchingRule getDefaultMatchingRule();
 
@@ -180,7 +181,7 @@ public final class Schema {
         }
 
         @Override
-        public SchemaOptions getOptions() {
+        public Options getOptions() {
             return strictImpl.getOptions();
         }
 
@@ -419,14 +420,14 @@ public final class Schema {
         private final Map<String, String> name2OIDs;
         private final List<LocalizableMessage> warnings;
         private final String schemaName;
-        private final SchemaOptions options;
+        private final Options options;
         private final Syntax defaultSyntax;
         private final MatchingRule defaultMatchingRule;
         private final Schema strictSchema;
         private final Schema nonStrictSchema;
 
         StrictImpl(final String schemaName,
-                final SchemaOptions options,
+                final Options options,
                 final Syntax defaultSyntax,
                 final MatchingRule defaultMatchingRule,
                 final Map<String, Syntax> numericOID2Syntaxes,
@@ -449,7 +450,7 @@ public final class Schema {
                 final Map<String, String> name2OIDs,
                 final List<LocalizableMessage> warnings) {
             this.schemaName = schemaName;
-            this.options = SchemaOptions.unmodifiable(options);
+            this.options = options;
             this.defaultSyntax = defaultSyntax;
             this.defaultMatchingRule = defaultMatchingRule;
             this.numericOID2Syntaxes = Collections.unmodifiableMap(numericOID2Syntaxes);
@@ -486,7 +487,7 @@ public final class Schema {
         }
 
         @Override
-        public SchemaOptions getOptions() {
+        public Options getOptions() {
             return options;
         }
 
@@ -1460,7 +1461,7 @@ public final class Schema {
         return getOptions().get(option);
     }
 
-    SchemaOptions getOptions() {
+    Options getOptions() {
         return impl.getOptions();
     }
 

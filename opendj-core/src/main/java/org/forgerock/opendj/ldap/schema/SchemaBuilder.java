@@ -65,16 +65,17 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
-import org.forgerock.opendj.ldap.Option;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.DITContentRule.Builder;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
+import org.forgerock.util.Option;
 import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -157,7 +158,7 @@ public final class SchemaBuilder {
     private Map<String, String> name2OIDs;
     private String schemaName;
     private List<LocalizableMessage> warnings;
-    private SchemaOptions options;
+    private Options options;
 
 
     /** A schema which should be copied into this builder on any mutation. */
@@ -1883,7 +1884,7 @@ public final class SchemaBuilder {
         return this;
     }
 
-    SchemaOptions getOptions() {
+    Options getOptions() {
         lazyInitBuilder();
 
         return options;
@@ -2439,7 +2440,7 @@ public final class SchemaBuilder {
     private void lazyInitBuilder() {
         // Lazy initialization.
         if (numericOID2Syntaxes == null) {
-            options = defaultSchemaOptions();
+            options = Options.defaultOptions();
 
             numericOID2Syntaxes = new LinkedHashMap<>();
             numericOID2MatchingRules = new LinkedHashMap<>();
@@ -2467,7 +2468,7 @@ public final class SchemaBuilder {
         if (copyOnWriteSchema != null) {
             // Copy the schema.
             addSchema0(copyOnWriteSchema, true);
-            options = SchemaOptions.copyOf(copyOnWriteSchema.getOptions());
+            options = Options.copyOf(copyOnWriteSchema.getOptions());
             copyOnWriteSchema = null;
         }
     }
