@@ -286,6 +286,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
         final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
 
         boolean isCopied = byteString.copyTo(buffer, decoder);
+        buffer.flip();
 
         assertThat(isCopied).isTrue();
         assertThat(buffer.toString()).isEqualTo(value);
@@ -299,6 +300,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
         final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
 
         boolean isCopied = byteString.copyTo(buffer, decoder);
+        buffer.flip();
 
         assertThat(isCopied).isFalse();
     }
@@ -310,6 +312,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
         ByteBuffer buffer = ByteBuffer.allocate(value.length());
 
         byteString.copyTo(buffer);
+        buffer.flip();
 
         assertSameByteContent(buffer, byteString);
     }

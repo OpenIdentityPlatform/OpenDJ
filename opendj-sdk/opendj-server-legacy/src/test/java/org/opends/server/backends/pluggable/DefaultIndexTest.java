@@ -255,12 +255,6 @@ public class DefaultIndexTest extends DirectoryServerTestCase
     }
 
     @Override
-    public void renameTree(TreeName oldName, TreeName newName)
-    {
-      storage.put(newName, storage.remove(oldName));
-    }
-
-    @Override
     public void deleteTree(TreeName name)
     {
       storage.remove(name);

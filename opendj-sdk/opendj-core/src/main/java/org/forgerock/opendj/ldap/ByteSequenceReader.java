@@ -22,11 +22,14 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.forgerock.opendj.util.PackedLong;
 
 /**
  * An interface for iteratively reading data from a {@link ByteSequence} .
@@ -35,23 +38,17 @@ import java.util.Arrays;
  */
 public final class ByteSequenceReader {
 
-    private static final int[] DECODE_SIZE = new int[256];
-    static {
-        Arrays.fill(DECODE_SIZE, 0, 0x80, 1);
-        Arrays.fill(DECODE_SIZE, 0x80, 0xc0, 2);
-        Arrays.fill(DECODE_SIZE, 0xc0, 0xe0, 3);
-        Arrays.fill(DECODE_SIZE, 0xe0, 0xf0, 4);
-        Arrays.fill(DECODE_SIZE, 0xf0, 0xf8, 5);
-        Arrays.fill(DECODE_SIZE, 0xf8, 0xfc, 6);
-        Arrays.fill(DECODE_SIZE, 0xfc, 0xfe, 7);
-        Arrays.fill(DECODE_SIZE, 0xfe, 0x100, 8);
-    }
-
     /** The current position in the byte sequence. */
     private int pos;
 
     /** The underlying byte sequence. */
     private final ByteSequence sequence;
+
+    /**
+     * The lazily allocated input stream view of this reader. Synchronization is not necessary because the stream is
+     * stateless and race conditions can be tolerated.
+     */
+    private InputStream inputStream;
 
     /**
      * Creates a new byte sequence reader whose source is the provided byte
@@ -329,70 +326,11 @@ public final class ByteSequenceReader {
      *             required to satisfy the request.
      */
     public long getCompactUnsigned() {
-        final int b0 = get();
-        final int size = decodeSize(b0);
-        long value;
-        switch (size) {
-        case 1:
-            value = b2l((byte) b0);
-            break;
-        case 2:
-            value = (b0 & 0x3fL) << 8;
-            value |= b2l(get());
-            break;
-        case 3:
-            value = (b0 & 0x1fL) << 16;
-            value |= b2l(get()) << 8;
-            value |= b2l(get());
-            break;
-        case 4:
-            value = (b0 & 0x0fL) << 24;
-            value |= b2l(get()) << 16;
-            value |= b2l(get()) << 8;
-            value |= b2l(get());
-            break;
-        case 5:
-            value = (b0 & 0x07L) << 32;
-            value |= b2l(get()) << 24;
-            value |= b2l(get()) << 16;
-            value |= b2l(get()) << 8;
-            value |= b2l(get());
-            break;
-        case 6:
-            value = (b0 & 0x03L) << 40;
-            value |= b2l(get()) << 32;
-            value |= b2l(get()) << 24;
-            value |= b2l(get()) << 16;
-            value |= b2l(get()) << 8;
-            value |= b2l(get());
-            break;
-        case 7:
-            value = (b0 & 0x01L) << 48;
-            value |= b2l(get()) << 40;
-            value |= b2l(get()) << 32;
-            value |= b2l(get()) << 24;
-            value |= b2l(get()) << 16;
-            value |= b2l(get()) << 8;
-            value |= b2l(get());
-            break;
-        default:
-            value = b2l(get()) << 48;
-            value |= b2l(get()) << 40;
-            value |= b2l(get()) << 32;
-            value |= b2l(get()) << 24;
-            value |= b2l(get()) << 16;
-            value |= b2l(get()) << 8;
-            value |= b2l(get());
+        try {
+            return PackedLong.readCompactUnsignedLong(asInputStream());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
-        return value;
-    }
-
-    private static long b2l(final byte b) {
-        return b & 0xffL;
-    }
-
-    private static int decodeSize(int b) {
-        return DECODE_SIZE[b & 0xff];
     }
 
     /**
@@ -563,5 +501,20 @@ public final class ByteSequenceReader {
     @Override
     public String toString() {
         return sequence.toString();
+    }
+
+    private InputStream asInputStream() {
+        if (inputStream == null) {
+            inputStream = new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    if (pos >= sequence.length()) {
+                        return -1;
+                    }
+                    return sequence.byteAt(pos++) & 0xFF;
+                }
+            };
+        }
+        return inputStream;
     }
 }

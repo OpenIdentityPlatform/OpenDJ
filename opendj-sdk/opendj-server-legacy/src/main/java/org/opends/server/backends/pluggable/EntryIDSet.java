@@ -426,8 +426,8 @@ final class EntryIDSet implements Iterable<EntryID>
     @Override
     public ByteString encode(EntryIDSet idSet)
     {
-      return ByteString.wrap(append(
-          new ByteStringBuilder(getEstimatedSize(idSet)), idSet).trimToSize().getBackingArray());
+      final ByteStringBuilder builder = new ByteStringBuilder(getEstimatedSize(idSet));
+      return ByteString.wrap(append(builder, idSet).getBackingArray(), 0, builder.length());
     }
 
     @Override
@@ -502,8 +502,8 @@ final class EntryIDSet implements Iterable<EntryID>
     public ByteString encode(EntryIDSet idSet)
     {
       checkNotNull(idSet, "idSet must not be null");
-      ByteStringBuilder builder = new ByteStringBuilder(getEstimatedSize(idSet));
-      return append(builder, idSet).toByteString();
+      final ByteStringBuilder builder = new ByteStringBuilder(getEstimatedSize(idSet));
+      return ByteString.wrap(append(builder, idSet).getBackingArray(), 0, builder.length());
     }
 
     @Override

@@ -1176,6 +1176,7 @@ public final class RDN
             .onUnmappableCharacter(CodingErrorAction.REPORT);
         if (value.copyTo(buffer, decoder))
         {
+          buffer.flip();
           try
           {
             // URL encoding encodes space char as '+' instead of using hex code

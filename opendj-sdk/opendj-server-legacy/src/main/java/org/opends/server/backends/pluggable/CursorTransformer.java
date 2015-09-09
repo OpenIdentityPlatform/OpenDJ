@@ -27,10 +27,13 @@ package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
 
+import java.util.NoSuchElementException;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.SequentialCursor;
 
 /**
  * Transforms the keys and values of a cursor from their original types to others. Typically used for
@@ -83,11 +86,28 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
     return new CursorTransformer<>(input, keyTransformer, valueTransformer);
   }
 
+  static <KI, VI, KO, VO> SequentialCursor<KO, VO> transformKeysAndValues(SequentialCursor<KI, VI> input,
+      Function<KI, KO, ? extends Exception> keyTransformer,
+      ValueTransformer<KI, VI, VO, ? extends Exception> valueTransformer)
+  {
+    // SequentialCursorAdapter constructor never throws
+    return new CursorTransformer<>(new SequentialCursorAdapter<>(input), keyTransformer, valueTransformer);
+  }
+
   @SuppressWarnings("unchecked")
   static <KI, VI, VO> Cursor<KI, VO> transformValues(Cursor<KI, VI> input,
       ValueTransformer<KI, VI, VO, ? extends Exception> valueTransformer)
   {
     return transformKeysAndValues(input, (Function<KI, KI, NeverThrowsException>) NO_TRANSFORM, valueTransformer);
+  }
+
+  @SuppressWarnings("unchecked")
+  static <KI, VI, VO> Cursor<KI, VO> transformValues(SequentialCursor<KI, VI> input,
+      ValueTransformer<KI, VI, VO, ? extends Exception> valueTransformer)
+  {
+    // SequentialCursorAdapter constructor never throws
+    return transformKeysAndValues(new SequentialCursorAdapter<>(input),
+        (Function<KI, KI, NeverThrowsException>) NO_TRANSFORM, valueTransformer);
   }
 
   private CursorTransformer(Cursor<KI, VI> input, Function<KI, KO, ? extends Exception> keyTransformer,
@@ -182,6 +202,71 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
   {
     cachedTransformedKey = null;
     cachedTransformedValue = null;
+  }
+
+  /** Make a {@link SequentialCursor} looks like a {@link Cursor}. */
+  static final class SequentialCursorAdapter<K, V> implements Cursor<K, V>
+  {
+    private final SequentialCursor<K, V> delegate;
+
+    SequentialCursorAdapter(SequentialCursor<K, V> delegate)
+    {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public boolean next()
+    {
+      return delegate.next();
+    }
+
+    @Override
+    public boolean isDefined()
+    {
+      return delegate.isDefined();
+    }
+
+    @Override
+    public K getKey() throws NoSuchElementException
+    {
+      return delegate.getKey();
+    }
+
+    @Override
+    public V getValue() throws NoSuchElementException
+    {
+      return delegate.getValue();
+    }
+
+    @Override
+    public void close()
+    {
+      delegate.close();
+    }
+
+    @Override
+    public boolean positionToKey(ByteSequence key)
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean positionToKeyOrNext(ByteSequence key)
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean positionToLastKey()
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean positionToIndex(int index)
+    {
+      throw new UnsupportedOperationException();
+    }
   }
 
   /**

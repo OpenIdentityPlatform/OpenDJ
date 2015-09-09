@@ -42,16 +42,6 @@ public interface WriteableTransaction extends ReadableTransaction
   void openTree(TreeName name, boolean createOnDemand);
 
   /**
-   * Renames the tree from the old to the new name.
-   *
-   * @param oldName
-   *          the old tree name
-   * @param newName
-   *          the new tree name
-   */
-  void renameTree(TreeName oldName, TreeName newName);
-
-  /**
    * Deletes the tree identified by the provided name.
    *
    * @param name

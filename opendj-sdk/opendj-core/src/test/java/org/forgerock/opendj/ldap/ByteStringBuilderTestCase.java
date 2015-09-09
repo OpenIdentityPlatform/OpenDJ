@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -94,12 +94,17 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @DataProvider
     public Object[][] unsignedLongValues() throws Exception {
         return new Object[][] {
-            { 0 }, { 0x80L }, { 0x81L }, { 0x4000L }, { 0x4001L }, { 0x200000L }, { 0x200001L },
-            { 0x10000000L }, { 0x10000001L }, { 0x800000000L }, { 0x800000001L }, { 0x40000000000L },
-            { 0x40000000001L }, { 0x2000000000000L }, { 0x2000000000001L }, { 0x00FFFFFFFFFFFFFFL }
+            { 0 },
+            { 0x80L }, { 0x81L },
+            { 0x4000L }, { 0x4001L },
+            { 0x200000L }, { 0x200001L },
+            { 0x10000000L }, { 0x10000001L },
+            { 0x800000000L }, { 0x800000001L },
+            { 0x40000000000L }, { 0x40000000001L },
+            { 0x2000000000000L }, { 0x2000000000001L },
+            { 0x00FFFFFFFFFFFFFFL }
         };
     }
-
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadByteBufferLength1() {

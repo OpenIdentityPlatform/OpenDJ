@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
+import org.forgerock.util.Reject;
 import org.opends.server.TestCaseUtils;
 
 import static org.testng.Assert.*;
@@ -82,7 +82,7 @@ public class PackageInfoTestCase
   @DataProvider(name = "adsSourceDirectories")
   public Object[][] getADSSourceDirectories()
   {
-    File adsSourceRoot = new File(sourceRoot, "ads");
+    File adsSourceRoot = new File(sourceRoot, "main/java/org/opends/admin/ads");
     ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(adsSourceRoot, sourceDirs);
 
@@ -182,7 +182,7 @@ public class PackageInfoTestCase
   @DataProvider(name = "guiToolsSourceDirectories")
   public Object[][] getGUIToolsSourceDirectories()
   {
-    File guiToolsSourceRoot = new File(sourceRoot, "guitools");
+    File guiToolsSourceRoot = new File(sourceRoot, "main/java/org/opends/guitools");
     ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(guiToolsSourceRoot, sourceDirs);
 
@@ -207,7 +207,7 @@ public class PackageInfoTestCase
   @DataProvider(name = "quickSetupSourceDirectories")
   public Object[][] getQuickSetupSourceDirectories()
   {
-    File quickSetupSourceRoot = new File(sourceRoot, "quicksetup");
+    File quickSetupSourceRoot = new File(sourceRoot, "main/java/org/opends/quicksetup");
     ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(quickSetupSourceRoot, sourceDirs);
 
@@ -232,7 +232,7 @@ public class PackageInfoTestCase
   @DataProvider(name = "serverSourceDirectories")
   public Object[][] getServerSourceDirectories()
   {
-    File serverSourceRoot = new File(sourceRoot, "server");
+    File serverSourceRoot = new File(sourceRoot, "main/java");
     ArrayList<File> sourceDirs = new ArrayList<>();
     getSourceDirectories(serverSourceRoot, sourceDirs);
 
@@ -259,6 +259,7 @@ public class PackageInfoTestCase
   private void getSourceDirectories(File startingPoint,
                                     ArrayList<File> sourceDirectories)
   {
+    Reject.ifFalse(startingPoint.isDirectory(), startingPoint.getAbsolutePath() + " is not a directory.");
     boolean added = false;
     for (File f : startingPoint.listFiles())
     {

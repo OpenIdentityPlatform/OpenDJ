@@ -40,15 +40,12 @@ import java.nio.charset.CharsetDecoder;
 
 import org.forgerock.util.Reject;
 
+import com.forgerock.opendj.util.PackedLong;
+
 /**
  * A mutable sequence of bytes backed by a byte array.
  */
 public final class ByteStringBuilder implements ByteSequence {
-
-    /**
-     * Maximum value that can be stored with a compacted representation.
-     */
-    public static final long COMPACTED_MAX_VALUE = 0xFFFFFFFFFFFFFFL;
 
     /** Output stream implementation. */
     private final class OutputStreamImpl extends OutputStream {
@@ -159,7 +156,6 @@ public final class ByteStringBuilder implements ByteSequence {
         @Override
         public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
             byteBuffer.put(buffer, subOffset, subLength);
-            byteBuffer.flip();
             return byteBuffer;
         }
 
@@ -603,90 +599,12 @@ public final class ByteStringBuilder implements ByteSequence {
      */
     public ByteStringBuilder appendCompactUnsigned(long value) {
         Reject.ifFalse(value >= 0, "value must be >= 0");
-
-        final int size = getEncodedSize(value);
-        ensureAdditionalCapacity(size);
-        switch (size) {
-        case 1:
-            buffer[length++] = (byte) value;
-            break;
-        case 2:
-            buffer[length++] = (byte) ((value >>> 8) | 0x80L);
-            buffer[length++] = l2b(value);
-            break;
-        case 3:
-            buffer[length++] = (byte) ((value >>> 16) | 0xc0L);
-            buffer[length++] = l2b(value >>> 8);
-            buffer[length++] = l2b(value);
-            break;
-        case 4:
-            buffer[length++] = (byte) ((value >>> 24) | 0xe0L);
-            buffer[length++] = l2b(value >>> 16);
-            buffer[length++] = l2b(value >>> 8);
-            buffer[length++] = l2b(value);
-            break;
-        case 5:
-            buffer[length++] = (byte) ((value >>> 32) | 0xf0L);
-            buffer[length++] = l2b(value >>> 24);
-            buffer[length++] = l2b(value >>> 16);
-            buffer[length++] = l2b(value >>> 8);
-            buffer[length++] = l2b(value);
-            break;
-        case 6:
-            buffer[length++] = (byte) ((value >>> 40) | 0xf8L);
-            buffer[length++] = l2b(value >>> 32);
-            buffer[length++] = l2b(value >>> 24);
-            buffer[length++] = l2b(value >>> 16);
-            buffer[length++] = l2b(value >>> 8);
-            buffer[length++] = l2b(value);
-            break;
-        case 7:
-            buffer[length++] = (byte) ((value >>> 48) | 0xfcL);
-            buffer[length++] = l2b(value >>> 40);
-            buffer[length++] = l2b(value >>> 32);
-            buffer[length++] = l2b(value >>> 24);
-            buffer[length++] = l2b(value >>> 16);
-            buffer[length++] = l2b(value >>> 8);
-            buffer[length++] = l2b(value);
-            break;
-        default:
-            buffer[length++] = (byte) 0xfe;
-            buffer[length++] = l2b(value >>> 48);
-            buffer[length++] = l2b(value >>> 40);
-            buffer[length++] = l2b(value >>> 32);
-            buffer[length++] = l2b(value >>> 24);
-            buffer[length++] = l2b(value >>> 16);
-            buffer[length++] = l2b(value >>> 8);
-            buffer[length++] = l2b(value);
-            break;
+        try {
+            PackedLong.writeCompactUnsigned(asOutputStream(), value);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
         return this;
-    }
-
-    private static int getEncodedSize(long value) {
-        if (value < 0x80L) {
-            return 1;
-        } else if (value < 0x4000L) {
-            return 2;
-        } else if (value < 0x200000L) {
-            return 3;
-        } else if (value < 0x10000000L) {
-            return 4;
-        } else if (value < 0x800000000L) {
-            return 5;
-        } else if (value < 0x40000000000L) {
-            return 6;
-        } else if (value < 0x2000000000000L) {
-            return 7;
-        } else if (value < 0x100000000000000L) {
-            return 8;
-        } else {
-            throw new IllegalArgumentException("value out of range: " + value);
-        }
-    }
-
-    private static byte l2b(long value) {
-        return (byte) (value & 0xffL);
     }
 
     /**
@@ -970,7 +888,6 @@ public final class ByteStringBuilder implements ByteSequence {
     @Override
     public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
         byteBuffer.put(buffer, 0, length);
-        byteBuffer.flip();
         return byteBuffer;
     }
 

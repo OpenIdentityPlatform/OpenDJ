@@ -27,7 +27,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ConfigurationMock.legacyMockCfg;
+import static org.opends.server.ConfigurationMock.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.Random;
@@ -89,11 +89,15 @@ public class ID2CountTest extends DirectoryServerTestCase
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
     storage = new PDBStorage(createBackendCfg(), serverContext);
-    try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
-      importer.createTree(id2CountTreeName);
-    }
-
     storage.open(AccessMode.READ_WRITE);
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        txn.openTree(id2CountTreeName, true);
+      }
+    });
 
     id2Count = new ID2Count(id2CountTreeName);
 

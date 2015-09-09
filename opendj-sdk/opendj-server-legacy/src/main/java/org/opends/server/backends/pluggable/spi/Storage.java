@@ -43,7 +43,6 @@ public interface Storage extends Closeable
 
   /**
    * Starts the import operation.
-   *
    * @return a new Importer object which must be closed to release all resources
    * @throws ConfigException
    *           if there is a problem with the configuration

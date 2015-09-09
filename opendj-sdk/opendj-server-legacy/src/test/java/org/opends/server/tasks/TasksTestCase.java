@@ -173,6 +173,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
     });
   }
 
+  @Test(enabled = false) // This isn't a test method, but TestNG thinks it is.
   public static void waitTaskCompletedSuccessfully(DN taskDN) throws Exception
   {
     Task task = getDoneTask(taskDN);

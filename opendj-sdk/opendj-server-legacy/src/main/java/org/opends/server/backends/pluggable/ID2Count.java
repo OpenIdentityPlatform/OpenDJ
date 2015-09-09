@@ -37,6 +37,8 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 
+import com.forgerock.opendj.util.PackedLong;
+
 /**
  * Store a counter associated to a key. Counter value is sharded amongst multiple keys to allow concurrent
  * update without contention (at the price of a slower read).
@@ -50,7 +52,7 @@ final class ID2Count extends AbstractTree
    */
   private static final long SHARD_COUNT = 4096;
   private static final int LONG_SIZE = Long.SIZE / Byte.SIZE;
-  private static final EntryID TOTAL_COUNT_ENTRY_ID = new EntryID(ByteStringBuilder.COMPACTED_MAX_VALUE);
+  private static final EntryID TOTAL_COUNT_ENTRY_ID = new EntryID(PackedLong.COMPACTED_MAX_VALUE);
 
   ID2Count(TreeName name)
   {
@@ -98,8 +100,9 @@ final class ID2Count extends AbstractTree
       @Override
       public ByteSequence computeNewValue(ByteSequence oldValue)
       {
-        final long currentValue = oldValue != null ? oldValue.asReader().getLong() : 0;
-        return toValue(currentValue + delta);
+        final long currentValue = oldValue == null ? 0 : oldValue.asReader().getLong();
+        final long newValue = currentValue + delta;
+        return newValue == 0 ? null : toValue(newValue);
       }
     });
   }
@@ -118,8 +121,11 @@ final class ID2Count extends AbstractTree
   private void importPut0(Importer importer, EntryID entryID, final long delta)
   {
     Reject.ifNull(importer, "importer must not be null");
-    final ByteSequence shardedKey = getShardedKey(entryID);
-    importer.put(getName(), shardedKey, toValue(delta));
+    if (delta != 0)
+    {
+      final ByteSequence shardedKey = getShardedKey(entryID);
+      importer.put(getName(), shardedKey, toValue(delta));
+    }
   }
 
   private ByteSequence getShardedKey(EntryID entryID)
@@ -139,11 +145,13 @@ final class ID2Count extends AbstractTree
 
   ByteString toValue(final long count)
   {
+    Reject.ifFalse(count != 0, "count must be != 0");
     return ByteString.valueOf(count);
   }
 
   long fromValue(ByteString value)
   {
+    Reject.ifNull(value, "value must not be null");
     return value.toLong();
   }
 

@@ -659,7 +659,6 @@ public final class ByteString implements ByteSequence {
     @Override
     public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
         byteBuffer.put(buffer, offset, length);
-        byteBuffer.flip();
         return byteBuffer;
     }
 
@@ -686,7 +685,6 @@ public final class ByteString implements ByteSequence {
     static boolean copyTo(ByteBuffer inBuffer, CharBuffer outBuffer, CharsetDecoder decoder) {
         final CoderResult result = decoder.decode(inBuffer, outBuffer, true);
         decoder.flush(outBuffer);
-        outBuffer.flip();
         return !result.isError() && !result.isOverflow();
     }
 

@@ -53,7 +53,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
-import org.opends.server.backends.pluggable.ImportSuffixCommand.SuffixImportStrategy;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageInUseException;
@@ -85,6 +84,8 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries locally
@@ -656,6 +657,10 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
   {
+    if (importConfig.appendToExistingData() || importConfig.replaceExistingEntries())
+    {
+      throw new UnsupportedOperationException("append/replace mode is not supported by this backend.");
+    }
     RuntimeInformation.logInfo();
 
     // If the rootContainer is open, the backend is initialized by something else.
@@ -664,33 +669,31 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       throw new DirectoryException(getServerErrorResultCode(), ERR_IMPORT_BACKEND_ONLINE.get());
     }
-    for (DN dn : cfg.getBaseDN())
-    {
-      ImportSuffixCommand importCommand = new ImportSuffixCommand(dn, importConfig);
-      if (importCommand.getSuffixImportStrategy() == SuffixImportStrategy.MERGE_DB_WITH_LDIF)
-      {
-        // fail-fast to avoid ending up in an unrecoverable state for the server
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_IMPORT_UNSUPPORTED_WITH_BRANCH.get());
-      }
-    }
 
     try
     {
-      if (OnDiskMergeBufferImporter.mustClearBackend(importConfig, cfg))
+      try
       {
-        try
+        if (importConfig.clearBackend())
         {
           // clear all files before opening the root container
           storage.removeStorageFiles();
         }
-        catch (Exception e)
-        {
-          throw new DirectoryException(getServerErrorResultCode(), ERR_REMOVE_FAIL.get(e.getMessage()), e);
-        }
       }
-
+      catch (Exception e)
+      {
+        throw new DirectoryException(getServerErrorResultCode(), ERR_REMOVE_FAIL.get(e.getMessage()), e);
+      }
       rootContainer = newRootContainer(AccessMode.READ_WRITE);
-      return getImportStrategy().importLDIF(importConfig, rootContainer, serverContext);
+      try
+      {
+        rootContainer.getStorage().close();
+        return getImportStrategy(serverContext, rootContainer).importLDIF(importConfig);
+      }
+      finally
+      {
+        rootContainer.getStorage().open(AccessMode.READ_WRITE);
+      }
     }
     catch (StorageRuntimeException e)
     {
@@ -703,6 +706,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     catch (OpenDsException | ConfigException e)
     {
       throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
+    }
+    catch (Exception e)
+    {
+      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(StaticUtils
+          .stackTraceToSingleLineString(e, false)), e);
     }
     finally
     {
@@ -727,10 +735,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  private ImportStrategy getImportStrategy() throws DirectoryException
+  private ImportStrategy getImportStrategy(ServerContext serverContext, RootContainer rootContainer)
   {
-    // TODO JNR may call new SuccessiveAddsImportStrategy() depending on configured import strategy
-    return new OnDiskMergeBufferImporter.StrategyImpl(cfg);
+    return new OnDiskMergeImporter.StrategyImpl(serverContext, rootContainer, cfg);
   }
 
   /** {@inheritDoc} */
@@ -803,7 +810,15 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = newRootContainer(AccessMode.READ_WRITE);
       }
-      new OnDiskMergeBufferImporter(rootContainer, rebuildConfig, cfg, serverContext).rebuildIndexes();
+      rootContainer.getStorage().close();
+      try
+      {
+        getImportStrategy(serverContext, rootContainer).rebuildIndex(rebuildConfig);
+      }
+      finally
+      {
+        rootContainer.getStorage().open(AccessMode.READ_WRITE);
+      }
     }
     catch (ExecutionException execEx)
     {
@@ -824,6 +839,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     catch (InitializationException e)
     {
       throw e;
+    }
+    catch (Exception ex)
+    {
+      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(stackTraceToSingleLineString(ex)),
+          ex);
     }
     finally
     {

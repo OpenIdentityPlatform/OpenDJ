@@ -840,6 +840,7 @@ public final class AVA implements Comparable<AVA> {
                 .onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT);
             if (value.copyTo(buffer, decoder)) {
+                buffer.flip();
                 try {
                     // URL encoding encodes space char as '+' instead of using hex code
                     final String val = URLEncoder.encode(buffer.toString(), "UTF-8").replaceAll("\\+", "%20");

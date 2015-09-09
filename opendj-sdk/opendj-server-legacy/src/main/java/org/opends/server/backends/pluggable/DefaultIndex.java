@@ -36,13 +36,11 @@ import java.util.EnumSet;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.util.Reject;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.CursorTransformer.ValueTransformer;
 import org.opends.server.backends.pluggable.EntryIDSet.EntryIDSetCodec;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -144,53 +142,6 @@ class DefaultIndex extends AbstractTree implements Index
   ByteString toValue(ImportIDSet importIDSet)
   {
     return importIDSet.valueToByteString(codec);
-  }
-
-  // TODO JNR rename to importUpsert() ?
-  @Override
-  public final void importPut(Importer importer, ImportIDSet idsToBeAdded) throws StorageRuntimeException
-  {
-    Reject.ifNull(importer, "importer must not be null");
-    Reject.ifNull(idsToBeAdded, "idsToBeAdded must not be null");
-    ByteSequence key = idsToBeAdded.getKey();
-    ByteString value = importer.read(getName(), key);
-    if (value != null)
-    {
-      final EntryIDSet entryIDSet = decodeValue(key, value);
-      final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
-      importIDSet.merge(idsToBeAdded);
-      importer.put(getName(), key, toValue(importIDSet));
-    }
-    else
-    {
-      importer.put(getName(), key, toValue(idsToBeAdded));
-    }
-  }
-
-  @Override
-  public final void importRemove(Importer importer, ImportIDSet idsToBeRemoved) throws StorageRuntimeException
-  {
-    Reject.ifNull(importer, "importer must not be null");
-    Reject.ifNull(idsToBeRemoved, "idsToBeRemoved must not be null");
-    ByteSequence key = idsToBeRemoved.getKey();
-    ByteString value = importer.read(getName(), key);
-    if (value == null)
-    {
-      // Should never happen -- the keys should always be there.
-      throw new IllegalStateException("Expected to have a value associated to key " + key + " for index " + getName());
-    }
-
-    final EntryIDSet entryIDSet = decodeValue(key, value);
-    final ImportIDSet importIDSet = new ImportIDSet(key, entryIDSet, indexEntryLimit);
-    importIDSet.remove(idsToBeRemoved);
-    if (importIDSet.isDefined() && importIDSet.size() == 0)
-    {
-      importer.delete(getName(), key);
-    }
-    else
-    {
-      importer.put(getName(), key, toValue(importIDSet));
-    }
   }
 
   @Override

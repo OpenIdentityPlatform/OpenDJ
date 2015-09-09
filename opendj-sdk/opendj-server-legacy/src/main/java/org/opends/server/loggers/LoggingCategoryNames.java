@@ -86,6 +86,12 @@ class LoggingCategoryNames
     // The category used for messages associated with the JE backend.
     NAMES.put("org.opends.server.backends.jeb", "JEB");
 
+ // The category used for messages associated with the pluggable backend.
+    NAMES.put("org.opends.server.backends.pluggable", "PLUGGABLE");
+
+    // The category used for messages associated with the PDB backend.
+    NAMES.put("org.opends.server.backends.pdb", "PDB");
+
     // The category used for messages associated with generic backends.
     NAMES.put("org.opends.server.backends", "BACKEND");
 

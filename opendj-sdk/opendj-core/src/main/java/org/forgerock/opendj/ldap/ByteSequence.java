@@ -193,7 +193,8 @@ public interface ByteSequence extends Comparable<ByteSequence> {
     ByteStringBuilder copyTo(ByteStringBuilder builder);
 
     /**
-     * Appends the content of this byte sequence to the provided {@link ByteBuffer}.
+     * Appends the content of this byte sequence to the provided {@link ByteBuffer} starting at it's current position.
+     * The position of the buffer is then incremented by the length of this sequence.
      *
      * @param buffer
      *            The buffer to copy to.
@@ -205,8 +206,9 @@ public interface ByteSequence extends Comparable<ByteSequence> {
     ByteBuffer copyTo(ByteBuffer buffer);
 
     /**
-     * Appends the content of this byte sequence decoded using provided charset decoder,
-     * to the provided {@link CharBuffer}.
+     * Appends the content of this byte sequence decoded using provided charset decoder to the provided
+     * {@link CharBuffer} starting at it's current position. The position of charBuffer is then incremented by the
+     * length of this sequence.
      *
      * @param charBuffer
      *            The buffer to copy to, if decoding is successful.
