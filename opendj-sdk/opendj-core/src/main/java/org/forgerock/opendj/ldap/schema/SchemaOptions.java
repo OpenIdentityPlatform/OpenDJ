@@ -21,14 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import java.util.IdentityHashMap;
-import java.util.Map;
-
-import org.forgerock.opendj.ldap.Option;
+import org.forgerock.util.Option;
 
 import static java.util.Collections.*;
 
@@ -136,79 +133,5 @@ public final class SchemaOptions {
      */
     public static final Option<Boolean> STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE = Option.withDefault(false);
 
-    private final Map<Option<?>, Object> options;
-
-    /**
-     * Creates a new set of schema options with default settings.
-     *
-     * @return A new {@link SchemaOptions} with default settings.
-     */
-    static SchemaOptions defaultSchemaOptions() {
-        return new SchemaOptions(new IdentityHashMap<Option<?>, Object>());
-    }
-
-    /**
-     * Creates a new schema options object by copying the provided schema
-     * options. The options names and values will all be copied.
-     *
-     * @param schemaOptions
-     *            The schema options to be copied.
-     * @return A new schema options object created by copying the provided schema
-     *         options.
-     */
-    static SchemaOptions copyOf(SchemaOptions schemaOptions) {
-        return new SchemaOptions(new IdentityHashMap<Option<?>, Object>(schemaOptions.options));
-    }
-
-    /**
-     * Returns an unmodifiable {@link SchemaOptions} copy of this set of options.
-     *
-     * @param schemaOptions
-     *            The schema options to be copied.
-     * @return An unmodifiable {@link SchemaOptions} view of this set of options.
-     */
-    static SchemaOptions unmodifiable(SchemaOptions schemaOptions) {
-        return new SchemaOptions(unmodifiableMap(new IdentityHashMap<Option<?>, Object>(schemaOptions.options)));
-    }
-
-    private SchemaOptions(Map<Option<?>, Object> optionsMap) {
-        this.options = optionsMap;
-    }
-
-    /**
-     * Returns the value to which the specified {@link Option} is mapped, or
-     * {@code null} if this options set contains no mapping for the {@link Option}.
-     *
-     * @param <T>
-     *            The option type.
-     * @param option
-     *            The option whose associated value is to be returned.
-     * @return The value to which the specified option is mapped, or null if
-     *         this options set contains no mapping for the option.
-     */
-    <T> T get(Option<T> option) {
-        return option.getValue(options.get(option));
-    }
-
-    /**
-     * Associates the specified option value with the specified option in this
-     * set of options. (optional operation). If this set of options previously
-     * contained a mapping for the option, the old value is replaced by the
-     * specified value.
-     *
-     * @param <T>
-     *            The option type.
-     * @param option
-     *            Option with which the specified value is to be associated.
-     * @param value
-     *            Value to be associated with the specified option.
-     * @return A reference to this set of options.
-     * @throws UnsupportedOperationException
-     *         If this set of options is read only.
-     */
-    <T> SchemaOptions set(Option<T> option, T value) {
-        options.put(option, value);
-        return this;
-    }
-
+    private SchemaOptions() { }
 }

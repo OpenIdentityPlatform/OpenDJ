@@ -21,14 +21,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
-import org.forgerock.opendj.ldap.Option;
+import org.forgerock.util.Option;
+import org.forgerock.util.Options;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -53,7 +54,8 @@ public class SchemaOptionsTestCase extends AbstractSchemaTestCase {
 
     @Test(dataProvider = "defaultSchemaOptions")
     public void testDefaultSchemaOptions(Option<?> option) {
-        assertThat(new SchemaBuilder().getOptions().get(option)).isEqualTo(option.getValue(null));
+        Options defaultOptions = Options.defaultOptions();
+        assertThat(new SchemaBuilder().getOptions().get(option)).isEqualTo(defaultOptions.get(option));
     }
 
     @Test
@@ -68,13 +70,13 @@ public class SchemaOptionsTestCase extends AbstractSchemaTestCase {
 
     @Test
     public void testSchemaOptionsCopy() {
-        final SchemaOptions copiedOptions = SchemaOptions.copyOf(newSchemaBuilder().getOptions());
+        final Options copiedOptions = Options.copyOf(newSchemaBuilder().getOptions());
         assertThat(copiedOptions.get(TEST_OPTION)).isEqualTo(TEST_OPTION_DEFAULT_VALUE);
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void testAsReadOnlyOptions() {
-        SchemaOptions.unmodifiable(new SchemaBuilder().getOptions()).set(ALLOW_MALFORMED_CERTIFICATES, false);
+        Options.unmodifiableCopyOf(new SchemaBuilder().getOptions()).set(ALLOW_MALFORMED_CERTIFICATES, false);
     }
 
     private SchemaBuilder newSchemaBuilder() {
