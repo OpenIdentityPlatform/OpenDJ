@@ -34,7 +34,6 @@ import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
@@ -43,13 +42,13 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.*;
-import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -605,8 +604,9 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // simulate a DELETE of the attribute values : value3 and value4 at time t2.
     mod = newModification(DELETE, DESCRIPTION, "value3", "value4");
-    List<Modification> mods = replayModify(entry, hist, 2, mod);
-    mod = mods.get(0);
+    List<Modification> mods = newArrayList(mod);
+    replayModifiesAndAssert(entry, hist, 2, mods);
+    assertSame(mod, mods.get(0));
     assertEquals(mod.getAttribute(), Attributes.create(DESCRIPTION, "value3"));
     assertEquals(mod.getModificationType(), DELETE);
 
@@ -639,10 +639,11 @@ public class ModifyConflictTest extends ReplicationTestCase
     List<Modification> mods;
     // simulate a DELETE of the attribute values : value3 and value4 at time t2.
     mod = new Modification(DELETE, values3and4);
-    mods = replayModify(entry, hist, 2, mod);
+    mods = newArrayList(mod);
+    replayModifiesAndAssert(entry, hist, 2, mods);
     entry.applyModifications(mods);
     // check that the MOD is not altered by the replay mechanism.
-    mod = mods.get(0);
+    assertSame(mod, mods.get(0));
     assertEquals(mod.getModificationType(), DELETE);
     assertEquals(mod.getAttribute(), values3and4);
 
@@ -658,9 +659,10 @@ public class ModifyConflictTest extends ReplicationTestCase
     // simulate a REPLACE of the attribute with values : value1, value2, value3
     // at time t1.
     mod = newModification(REPLACE, DESCRIPTION, "value1", "value2", "value3");
-    mods = replayModify(entry, hist, 1, mod);
+    mods = newArrayList(mod);
+    replayModifiesAndAssert(entry, hist, 1, mods);
     entry.applyModifications(mods);
-    mod = mods.get(0);
+    assertSame(mod, mods.get(0));
     // check that value3 has been removed from the MOD-REPLACE because
     // a later operation contains a MOD-DELETE of this value.
     assertEquals(mod.getModificationType(), REPLACE);
@@ -935,7 +937,6 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":000000000000000a000000000000:add:init value");
     assertEquals(hist.encodeAndPurge(), attr);
 
-    Modification mod;
     List<Modification> mods;
     /*
      * Now simulate an add at an earlier date that the previous add. The
@@ -943,8 +944,8 @@ public class ModifyConflictTest extends ReplicationTestCase
      * and that the previous value must be discarded, and therefore
      * turn the add into a replace.
      */
-    mod = newModification(ADD, DISPLAYNAME, "older value");
-    mods = replayModify(entry, hist, 1, mod);
+    mods = newArrayList(newModification(ADD, DISPLAYNAME, "older value"));
+    replayModifiesAndAssert(entry, hist, 1, mods);
     assertEquals(hist.encodeAndPurge(), olderValue);
 
     /*
@@ -958,8 +959,8 @@ public class ModifyConflictTest extends ReplicationTestCase
      * The conflict modify code should detect that there is already a value
      * and skip this change.
      */
-    mod = newModification(ADD, DISPLAYNAME, "new value");
-    mods = replayModify(entry, hist, 2, mod);
+    mods = newArrayList(newModification(ADD, DISPLAYNAME, "new value"));
+    replayModifiesAndAssert(entry, hist, 2, mods);
     assertEquals(hist.encodeAndPurge(), olderValue);
     assertTrue(mods.isEmpty());
   }
@@ -1078,26 +1079,17 @@ public class ModifyConflictTest extends ReplicationTestCase
     List<Attribute> uuidList = Attributes.createAsList(entryuuidAttrType, uuid.toString());
 
     // Add the uuid in the entry
-    Map<AttributeType, List<Attribute>> operationalAttributes = entry.getOperationalAttributes();
-    operationalAttributes.put(entryuuidAttrType, uuidList);
+    entry.getOperationalAttributes().put(entryuuidAttrType, uuidList);
     return entry;
   }
 
   /** Helper function. */
   private void testHistoricalAndFake(Entry entry)
   {
-    // Get the historical uuid associated to the entry
-    // (the one that needs to be tested)
-    String uuid = EntryHistorical.getEntryUUID(entry);
-
-    // Get the Entry uuid in String format
-    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs = entry.getOperationalAttribute(entryuuidAttrType);
-    String retrievedUuid = uuidAttrs.get(0).iterator().next().toString();
-    assertEquals(retrievedUuid, uuid);
-
+    testHistorical(entry);
 
     // Test FakeOperation
+    String uuid = EntryHistorical.getEntryUUID(entry);
     Iterable<FakeOperation> fks = EntryHistorical.generateFakeOperations(entry);
     if (fks.iterator().hasNext())
     {
@@ -1107,8 +1099,8 @@ public class ModifyConflictTest extends ReplicationTestCase
       ReplicationMsg generatedMsg = fk.generateMessage();
       if (generatedMsg instanceof LDAPUpdateMsg)
       {
-        LDAPUpdateMsg new_name = (LDAPUpdateMsg) generatedMsg;
-        assertEquals(new_name.getEntryUUID(), uuid);
+        LDAPUpdateMsg msg = (LDAPUpdateMsg) generatedMsg;
+        assertEquals(msg.getEntryUUID(), uuid);
       }
     }
   }
@@ -1116,7 +1108,8 @@ public class ModifyConflictTest extends ReplicationTestCase
   private void testModify(Entry entry, EntryHistorical hist, int date,
       boolean keepChangeResult, Modification mod) throws DirectoryException
   {
-    List<Modification> mods = replayModify(entry, hist, date, mod);
+    List<Modification> mods = newArrayList(mod);
+    replayModifiesAndAssert(entry, hist, date, mods);
 
     if (keepChangeResult)
     {
@@ -1145,44 +1138,35 @@ public class ModifyConflictTest extends ReplicationTestCase
     hist.replayOperation(modOp, entry);
   }
 
-  private List<Modification> replayModify(Entry entry, EntryHistorical hist, int date, Modification mod)
+  private void replayModifiesAndAssert(Entry entry, EntryHistorical hist, int date, List<Modification> mods)
   {
-    List<Modification> mods = newArrayList(mod);
-    LocalBackendModifyOperation modOp = modifyOperation(entry, date, mods);
-    hist.replayOperation(modOp, entry);
+    replayModifies(entry, hist, date, mods);
 
-    if (mod.getModificationType() == ADD)
+    for (Modification mod : mods)
     {
-      testHistorical(addOperation(entry));
-    }
-    else
-    {
-      testHistoricalAndFake(entry);
+      if (mod.getModificationType() == ADD)
+      {
+        testHistorical(entry);
+      }
+      else
+      {
+        testHistoricalAndFake(entry);
+      }
     }
 
-    /*
-     * Check that the encoding decoding of historical information
-     * works  by encoding decoding and checking that the result is the same
-     * as the initial value.
-     */
+    assertEntryHistoricalEncodingDecoding(entry, hist);
+  }
+
+  /**
+   * Check that the encoding decoding of historical information works by encoding decoding
+   * and checking that the result is the same as the initial value.
+   */
+  private void assertEntryHistoricalEncodingDecoding(Entry entry, EntryHistorical hist)
+  {
     entry.removeAttribute(getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
-
-    return mods;
-  }
-
-  private AttributeType getAttributeType(String attrName)
-  {
-    return DirectoryServer.getSchema().getAttributeType(attrName);
-  }
-
-  private LocalBackendAddOperation addOperation(Entry entry)
-  {
-    AddOperationBasis addOpBasis = new AddOperationBasis(getRootConnection(), 1, 1, null,
-        entry.getName(), entry.getObjectClasses(), entry.getUserAttributes(), entry.getOperationalAttributes());
-    return new LocalBackendAddOperation(addOpBasis);
   }
 
   private LocalBackendModifyOperation modifyOperation(Entry entry, int date, List<Modification> mods)
@@ -1220,20 +1204,25 @@ public class ModifyConflictTest extends ReplicationTestCase
     }
   }
 
-  private void testHistorical(LocalBackendAddOperation addOp)
+  private void testHistorical(Entry entry)
   {
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = EntryHistorical.getEntryUUID(addOp);
+    String uuid = EntryHistorical.getEntryUUID(entry);
 
     // Get the op uuid in String format
-    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(entryuuidAttrType);
-    String retrievedUuid = uuidAttrs.get(0).iterator().next().toString();
+    String retrievedUuid = getEntryUUID(entry);
     assertEquals(retrievedUuid, uuid);
   }
 
-    /**
+  private String getEntryUUID(Entry entry)
+  {
+    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
+    List<Attribute> uuidAttrs = entry.getOperationalAttributes().get(entryuuidAttrType);
+    return uuidAttrs.get(0).iterator().next().toString();
+  }
+
+  /**
    * Test that a single replicated modify operation, that contains a
    * modify-add of a value followed by modify-delete of that value
    * is handled properly.
