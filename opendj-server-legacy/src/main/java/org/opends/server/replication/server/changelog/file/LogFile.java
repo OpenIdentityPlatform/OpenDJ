@@ -371,7 +371,14 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   {
     if (newestRecord == null)
     {
-      newestRecord = getReader().getNewestRecord();
+      try (BlockLogReader<K, V> reader = getReader())
+      {
+        newestRecord = reader.getNewestRecord();
+      }
+      catch (IOException ioe)
+      {
+        throw new ChangelogException(ERR_CHANGELOG_CANNOT_READ_NEWEST_RECORD.get(logfile.getAbsolutePath()), ioe);
+      }
     }
     return newestRecord;
   }
