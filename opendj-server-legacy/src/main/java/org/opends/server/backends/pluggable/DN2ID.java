@@ -29,10 +29,16 @@ package org.opends.server.backends.pluggable;
 import static org.opends.server.backends.pluggable.CursorTransformer.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 
+import java.util.LinkedList;
+import java.util.NoSuchElementException;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.util.Function;
+import org.forgerock.util.promise.NeverThrowsException;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.SequentialCursorDecorator;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
@@ -41,7 +47,6 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
  * This class represents the dn2id index, which has one record
@@ -51,25 +56,18 @@ import org.opends.server.types.DirectoryException;
 @SuppressWarnings("javadoc")
 class DN2ID extends AbstractTree
 {
-  private static final Function<ByteString, Void, DirectoryException> TO_VOID_KEY =
-      new Function<ByteString, Void, DirectoryException>()
-      {
-        @Override
-        public Void apply(ByteString value) throws DirectoryException
-        {
-          return null;
-        }
-      };
+  private static final Function<ByteString, Void, NeverThrowsException> TO_VOID_KEY = Functions.returns(null);
 
-  private static final CursorTransformer.ValueTransformer<ByteString, ByteString, EntryID, Exception> TO_ENTRY_ID =
-      new CursorTransformer.ValueTransformer<ByteString, ByteString, EntryID, Exception>()
-      {
-        @Override
-        public EntryID transform(ByteString key, ByteString value) throws Exception
-        {
-          return new EntryID(value);
-        }
-      };
+  private static final CursorTransformer.ValueTransformer<ByteString, ByteString, EntryID, NeverThrowsException>
+     TO_ENTRY_ID =
+          new CursorTransformer.ValueTransformer<ByteString, ByteString, EntryID, NeverThrowsException>()
+          {
+            @Override
+            public EntryID transform(ByteString key, ByteString value)
+            {
+              return new EntryID(value);
+            }
+          };
 
   private final DN baseDN;
 
@@ -154,6 +152,12 @@ class DN2ID extends AbstractTree
     return value != null ? new EntryID(value) : null;
   }
 
+  <V> SequentialCursor<ByteString, ByteString> openCursor(SequentialCursor<ByteString, ByteString> dn2IdCursor,
+      TreeVisitor<V> treeVisitor)
+  {
+    return new TreeVisitorCursor<>(dn2IdCursor, treeVisitor);
+  }
+
   Cursor<Void, EntryID> openCursor(ReadableTransaction txn, DN dn)
   {
     return transformKeysAndValues(openCursor0(txn, dn), TO_VOID_KEY, TO_ENTRY_ID);
@@ -167,11 +171,11 @@ class DN2ID extends AbstractTree
 
   SequentialCursor<Void, EntryID> openChildrenCursor(ReadableTransaction txn, DN dn)
   {
-    return new ChildrenCursor(openCursor0(txn, dn));
+    return transformKeysAndValues(new ChildrenCursor(openCursor0(txn, dn)), TO_VOID_KEY, TO_ENTRY_ID);
   }
 
   SequentialCursor<Void, EntryID> openSubordinatesCursor(ReadableTransaction txn, DN dn) {
-    return new SubtreeCursor(openCursor0(txn, dn));
+    return transformKeysAndValues(new SubtreeCursor(openCursor0(txn, dn)), TO_VOID_KEY, TO_ENTRY_ID);
   }
 
   /**
@@ -209,7 +213,9 @@ class DN2ID extends AbstractTree
    * Decorator overriding the next() behavior to iterate through children of the entry pointed by the given cursor at
    * creation.
    */
-  private static final class ChildrenCursor extends SequentialCursorForwarding {
+  private static final class ChildrenCursor extends
+      SequentialCursorDecorator<Cursor<ByteString, ByteString>, ByteString, ByteString>
+  {
     private final ByteStringBuilder builder;
     private final ByteString limit;
     private boolean cursorOnParent;
@@ -236,7 +242,7 @@ class DN2ID extends AbstractTree
       return isDefined() && delegate.getKey().compareTo(limit) < 0;
     }
 
-    private ByteStringBuilder nextSibling()
+    private ByteSequence nextSibling()
     {
       return builder.clear().append(delegate.getKey()).append((byte) 0x1);
     }
@@ -246,7 +252,9 @@ class DN2ID extends AbstractTree
    * Decorator overriding the next() behavior to iterate through subordinates of the entry pointed by the given cursor
    * at creation.
    */
-  private static final class SubtreeCursor extends SequentialCursorForwarding {
+  private static final class SubtreeCursor extends
+      SequentialCursorDecorator<Cursor<ByteString, ByteString>, ByteString, ByteString>
+  {
     private final ByteString limit;
 
     SubtreeCursor(Cursor<ByteString, ByteString> delegate)
@@ -262,15 +270,79 @@ class DN2ID extends AbstractTree
     }
   }
 
-  /**
-   * Decorator allowing to partially overrides methods of a given cursor while keeping the default behavior for other
-   * methods.
-   */
-  private static class SequentialCursorForwarding implements SequentialCursor<Void, EntryID> {
-    final Cursor<ByteString, ByteString> delegate;
+  /** Keep track of information during the visit. */
+  private static final class ParentInfo<V>
+  {
+    private final ByteString parentDN;
+    private final V visitorData;
 
-    SequentialCursorForwarding(Cursor<ByteString, ByteString> delegate) {
+    ParentInfo(ByteString parentDN, V visitorData)
+    {
+      this.parentDN = parentDN;
+      this.visitorData = visitorData;
+    }
+  }
+
+  /** Allows to visit dn2id tree without exposing internal encoding. */
+  static interface TreeVisitor<V>
+  {
+    V beginParent(EntryID parentID);
+
+    void onChild(V parent, EntryID childID);
+
+    void endParent(V parent);
+  }
+
+  /** Perform dn2id cursoring to expose parent and children to the {@link TreeVisitor} */
+  private static final class TreeVisitorCursor<V> implements SequentialCursor<ByteString, ByteString>
+  {
+    private final SequentialCursor<ByteString, ByteString> delegate;
+    private final LinkedList<ParentInfo<V>> parentsInfoStack;
+    private final TreeVisitor<V> visitor;
+
+    TreeVisitorCursor(SequentialCursor<ByteString, ByteString> delegate, TreeVisitor<V> visitor)
+    {
       this.delegate = delegate;
+      this.parentsInfoStack = new LinkedList<>();
+      this.visitor = visitor;
+    }
+
+    @Override
+    public boolean next()
+    {
+      if (delegate.next())
+      {
+        final ByteString dn = delegate.getKey();
+        final EntryID entryID = new EntryID(delegate.getValue());
+        popCompleteParents(dn);
+        notifyChild(entryID);
+        pushNewParent(dn, entryID);
+        return true;
+      }
+      popCompleteParents(DN.NULL_DN.toNormalizedByteString());
+      return false;
+    }
+
+    private void pushNewParent(final ByteString dn, final EntryID entryID)
+    {
+      parentsInfoStack.push(new ParentInfo<>(dn, visitor.beginParent(entryID)));
+    }
+
+    private void notifyChild(final EntryID entryID)
+    {
+      if (!parentsInfoStack.isEmpty())
+      {
+        visitor.onChild(parentsInfoStack.peek().visitorData, entryID);
+      }
+    }
+
+    private void popCompleteParents(ByteString dn)
+    {
+      ParentInfo<V> currentParent;
+      while ((currentParent = parentsInfoStack.peek()) != null && !isChild(currentParent.parentDN, dn))
+      {
+        visitor.endParent(parentsInfoStack.pop().visitorData);
+      }
     }
 
     @Override
@@ -280,21 +352,15 @@ class DN2ID extends AbstractTree
     }
 
     @Override
-    public boolean next()
+    public ByteString getKey() throws NoSuchElementException
     {
-      return delegate.next();
+      return delegate.getKey();
     }
 
     @Override
-    public Void getKey()
+    public ByteString getValue() throws NoSuchElementException
     {
-      return null;
-    }
-
-    @Override
-    public EntryID getValue()
-    {
-      return new EntryID(delegate.getValue());
+      return delegate.getValue();
     }
 
     @Override
@@ -303,4 +369,5 @@ class DN2ID extends AbstractTree
       delegate.close();
     }
   }
+
 }

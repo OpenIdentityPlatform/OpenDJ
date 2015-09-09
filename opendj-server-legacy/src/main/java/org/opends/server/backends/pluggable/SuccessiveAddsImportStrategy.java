@@ -26,22 +26,25 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
+import org.opends.server.backends.RebuildConfig;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 
@@ -89,129 +92,130 @@ final class SuccessiveAddsImportStrategy implements ImportStrategy
 
   private static final int IMPORT_PROGRESS_INTERVAL = 10000;
 
+  private final ServerContext serverContext;
+
+  private final RootContainer rootContainer;
+
+  private final PluggableBackendCfg backendCfg;
+
+  SuccessiveAddsImportStrategy(ServerContext serverContext, RootContainer rootContainer, PluggableBackendCfg backendCfg)
+  {
+    this.serverContext = serverContext;
+    this.rootContainer = rootContainer;
+    this.backendCfg = backendCfg;
+  }
+
   /** {@inheritDoc} */
   @Override
-  public LDIFImportResult importLDIF(LDIFImportConfig importConfig, RootContainer rootContainer,
-      ServerContext serverContext) throws DirectoryException
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException, IOException,
+      CanceledOperationException, StorageRuntimeException, InterruptedException
   {
+    ScheduledThreadPoolExecutor timerService = new ScheduledThreadPoolExecutor(1);
     try
     {
-      ScheduledThreadPoolExecutor timerService = new ScheduledThreadPoolExecutor(1);
+      final LDIFReader reader;
       try
       {
-        final LDIFReader reader;
+        reader = new LDIFReader(importConfig);
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_READER.get(stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+      }
+
+      long importCount = 0;
+      final long startTime = System.currentTimeMillis();
+      timerService.scheduleAtFixedRate(new ImportProgress(reader),
+          IMPORT_PROGRESS_INTERVAL, IMPORT_PROGRESS_INTERVAL, TimeUnit.MILLISECONDS);
+      while (true)
+      {
+        final Entry entry;
         try
         {
-          reader = new LDIFReader(importConfig);
+          entry = reader.readEntry();
+          if (entry == null)
+          {
+            break;
+          }
         }
-        catch (Exception e)
+        catch (LDIFException le)
         {
-          LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_READER.get(stackTraceToSingleLineString(e));
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+          if (!le.canContinueReading())
+          {
+            LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_READING_LDIF.get(stackTraceToSingleLineString(le));
+            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, le);
+          }
+          continue;
         }
 
-        long importCount = 0;
-        final long startTime = System.currentTimeMillis();
-        timerService.scheduleAtFixedRate(new ImportProgress(reader),
-            IMPORT_PROGRESS_INTERVAL, IMPORT_PROGRESS_INTERVAL, TimeUnit.MILLISECONDS);
-        while (true)
+        final DN dn = entry.getName();
+        final EntryContainer ec = rootContainer.getEntryContainer(dn);
+        if (ec == null)
         {
-          final Entry entry;
-          try
-          {
-            entry = reader.readEntry();
-            if (entry == null)
-            {
-              break;
-            }
-          }
-          catch (LDIFException le)
-          {
-            if (!le.canContinueReading())
-            {
-              LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_READING_LDIF.get(stackTraceToSingleLineString(le));
-              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, le);
-            }
-            continue;
-          }
-
-          final DN dn = entry.getName();
-          final EntryContainer ec = rootContainer.getEntryContainer(dn);
-          if (ec == null)
-          {
-            final LocalizableMessage m = ERR_LDIF_SKIP.get(dn);
-            logger.error(m);
-            reader.rejectLastEntry(m);
-            continue;
-          }
-
-          try
-          {
-            ec.addEntry(entry, null);
-            importCount++;
-          }
-          catch (DirectoryException e)
-          {
-            switch (e.getResultCode().asEnum())
-            {
-            case ENTRY_ALREADY_EXISTS:
-              if (importConfig.replaceExistingEntries())
-              {
-                final Entry oldEntry = ec.getEntry(entry.getName());
-                ec.replaceEntry(oldEntry, entry, null);
-              }
-              else
-              {
-                reader.rejectLastEntry(WARN_IMPORT_ENTRY_EXISTS.get());
-              }
-              break;
-            case NO_SUCH_OBJECT:
-              reader.rejectLastEntry(ERR_IMPORT_PARENT_NOT_FOUND.get(dn.parent()));
-              break;
-            default:
-              // Not sure why it failed.
-              reader.rejectLastEntry(e.getMessageObject());
-              break;
-            }
-          }
+          final LocalizableMessage m = ERR_LDIF_SKIP.get(dn);
+          logger.error(m);
+          reader.rejectLastEntry(m);
+          continue;
         }
-        final long finishTime = System.currentTimeMillis();
 
-        waitForShutdown(timerService);
-
-        final long importTime = finishTime - startTime;
-        float rate = 0;
-        if (importTime > 0)
+        try
         {
-          rate = 1000f * reader.getEntriesRead() / importTime;
+          ec.addEntry(entry, null);
+          importCount++;
         }
-        logger.info(NOTE_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount, reader.getEntriesIgnored(),
-            reader.getEntriesRejected(), 0, importTime / 1000, rate);
-        return new LDIFImportResult(reader.getEntriesRead(), reader.getEntriesRejected(), reader.getEntriesIgnored());
+        catch (DirectoryException e)
+        {
+          switch (e.getResultCode().asEnum())
+          {
+          case ENTRY_ALREADY_EXISTS:
+            if (importConfig.replaceExistingEntries())
+            {
+              final Entry oldEntry = ec.getEntry(entry.getName());
+              ec.replaceEntry(oldEntry, entry, null);
+            }
+            else
+            {
+              reader.rejectLastEntry(WARN_IMPORT_ENTRY_EXISTS.get());
+            }
+            break;
+          case NO_SUCH_OBJECT:
+            reader.rejectLastEntry(ERR_IMPORT_PARENT_NOT_FOUND.get(dn.parent()));
+            break;
+          default:
+            // Not sure why it failed.
+            reader.rejectLastEntry(e.getMessageObject());
+            break;
+          }
+        }
       }
-      finally
+      final long finishTime = System.currentTimeMillis();
+
+      waitForShutdown(timerService);
+
+      final long importTime = finishTime - startTime;
+      float rate = 0;
+      if (importTime > 0)
       {
-        rootContainer.close();
-
-        // if not already stopped, then stop it
-        waitForShutdown(timerService);
+        rate = 1000f * reader.getEntriesRead() / importTime;
       }
+      logger.info(NOTE_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount, reader.getEntriesIgnored(),
+          reader.getEntriesRejected(), 0, importTime / 1000, rate);
+      return new LDIFImportResult(reader.getEntriesRead(), reader.getEntriesRejected(), reader.getEntriesIgnored());
     }
-    catch (DirectoryException e)
+    finally
     {
-      logger.traceException(e);
-      throw e;
+      rootContainer.close();
+
+      // if not already stopped, then stop it
+      waitForShutdown(timerService);
     }
-    catch (OpenDsException e)
-    {
-      logger.traceException(e);
-      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject());
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()));
-    }
+  }
+
+  @Override
+  public void rebuildIndex(RebuildConfig rebuildConfig) throws Exception
+  {
+    new OnDiskMergeImporter.StrategyImpl(serverContext, rootContainer, backendCfg).rebuildIndex(rebuildConfig);
   }
 
   private void waitForShutdown(ScheduledThreadPoolExecutor timerService) throws InterruptedException

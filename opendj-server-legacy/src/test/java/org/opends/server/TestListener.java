@@ -325,7 +325,11 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onTestFailure(ITestResult tr) {
     super.onTestFailure(tr);
+    reportTestFailed(tr);
+  }
 
+  private void reportTestFailed(ITestResult tr)
+  {
     IClass cls = tr.getTestClass();
     ITestNGMethod method = tr.getMethod();
 
@@ -350,7 +354,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     appendFailureInfo(failureInfo);
 
     failureInfo.append(EOL).append(EOL);
-    originalSystemErr.print(EOL + EOL + EOL + "                 T E S T   F A I L U R E ! ! !" + EOL + EOL);
+    originalSystemErr.print(EOL + EOL + EOL + "                 T E S T   S K I P P E D ! ! !" + EOL + EOL);
     originalSystemErr.print(failureInfo);
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);
 
@@ -364,8 +368,6 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     onTestFinished(tr);
   }
-
-
 
   public static void pauseOnFailure() {
     File tempFile = null;
@@ -408,9 +410,13 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   @Override
-  public void onConfigurationFailure(ITestResult tr) {
+  public void onConfigurationSkip(ITestResult tr) {
     super.onConfigurationFailure(tr);
+    reportConfigurationFailure(tr);
+  }
 
+  private void reportConfigurationFailure(ITestResult tr)
+  {
     IClass cls = tr.getTestClass();
     ITestNGMethod method = tr.getMethod();
 
@@ -427,13 +433,18 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     appendFailureInfo(failureInfo);
 
     failureInfo.append(EOL).append(EOL);
-    originalSystemErr.print(EOL + EOL + EOL + "         C O N F I G U R A T I O N   F A I L U R E ! ! !" + EOL + EOL);
+    originalSystemErr.print(EOL + EOL + EOL + "         C O N F I G U R A T I O N   S K I P ! ! !" + EOL + EOL);
     originalSystemErr.print(failureInfo);
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);
 
     _bufferedTestFailures.append(failureInfo);
   }
 
+  @Override
+  public void onConfigurationFailure(ITestResult tr) {
+    super.onConfigurationFailure(tr);
+    reportConfigurationFailure(tr);
+  }
 
   private String getTestngLessStack(Throwable t) {
     StackTraceElement[] elements = t.getStackTrace();
@@ -460,6 +471,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
           getTestngLessStack(invocation));
     }
 
+    t.printStackTrace();
+
     return buffer.toString();
   }
 
@@ -475,11 +488,11 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     return buffer.toString();
   }
 
-
   @Override
   public void onTestSkipped(ITestResult tr) {
-    super.onTestSkipped(tr);
-    onTestFinished(tr);
+    // Make sure skipped test appear as failure
+    super.onTestFailure(tr);
+    reportTestFailed(tr);
   }
 
   @Override

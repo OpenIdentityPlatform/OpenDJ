@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -135,6 +135,26 @@ public final class Functions {
 
     private static final Function<ByteString, Long, NeverThrowsException> BYTESTRING_TO_LONG = compose(
             byteStringToString(), STRING_TO_LONG);
+
+    /**
+     * Creates a function that returns constant value for any input.
+     *
+     * @param <M>
+     *            The type of input values transformed by this function.
+     * @param <N>
+     *            The type of output values returned by this function.
+     * @param constant
+     *            The constant value for the function to return
+     * @return A function that always returns constant value.
+     */
+    public static <M, N> Function<M, N, NeverThrowsException> returns(final N constant) {
+        return new Function<M, N, NeverThrowsException>() {
+            @Override
+            public N apply(M value) {
+                return constant;
+            }
+        };
+    }
 
     /**
      * Returns the composition of two functions. The result of the first

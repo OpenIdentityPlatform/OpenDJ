@@ -24,9 +24,7 @@
  */
 package org.opends.server.backends.pluggable;
 
-import org.opends.server.core.ServerContext;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
+import org.opends.server.backends.RebuildConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 
@@ -34,21 +32,25 @@ import org.opends.server.types.LDIFImportResult;
 interface ImportStrategy
 {
   /**
-   * Imports information from an LDIF file into the supplied root container.
+   * Imports information from an LDIF file.
    *
    * @param importConfig
    *          The configuration to use when performing the import
-   * @param rootContainer
-   *          The root container where to do the import
-   * @param serverContext
-   *          The server context
    * @return Information about the result of the import processing
-   * @throws DirectoryException
+   * @throws Exception
    *           If a problem occurs while performing the LDIF import
-   * @throws InitializationException
-   *           If a problem occurs while initializing the LDIF import
    * @see {@link Backend#importLDIF(LDIFImportConfig, ServerContext)}
    */
-  LDIFImportResult importLDIF(LDIFImportConfig importConfig, RootContainer rootContainer, ServerContext serverContext)
-      throws DirectoryException, InitializationException;
+  LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws Exception;
+
+  /**
+   * Rebuild indexes.
+   *
+   * @param rebuildConfig
+   *          The configuration to sue when performing the rebuild.
+   * @throws Exception
+   *           If a problem occurs while performing the rebuild.
+   * @see {@link Backend#rebuildIndex(RebuildConfig, ServerContext)}
+   */
+  void rebuildIndex(RebuildConfig rebuildConfig) throws Exception;
 }

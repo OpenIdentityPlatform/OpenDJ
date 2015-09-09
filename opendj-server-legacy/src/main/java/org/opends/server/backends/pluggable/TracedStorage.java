@@ -36,6 +36,7 @@ import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
@@ -63,11 +64,10 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public void createTree(final TreeName name)
+    public void clearTree(final TreeName name)
     {
-      importer.createTree(name);
-      logger.trace("Storage@%s.Importer@%s.createTree(%s, %s)",
-          storageId(), id(), backendId, name);
+      importer.clearTree(name);
+      logger.trace("Storage@%s.Importer@%s.clearTree(%s, %s)", storageId(), id(), backendId, name);
     }
 
     @Override
@@ -88,15 +88,6 @@ final class TracedStorage implements Storage
     }
 
     @Override
-    public boolean delete(TreeName name, ByteSequence key)
-    {
-      final boolean delete = importer.delete(name, key);
-      logger.trace("Storage@%s.Importer@%s.delete(%s, %s, %s) = %b",
-          storageId(), id(), backendId, name, hex(key), delete);
-      return delete;
-    }
-
-    @Override
     public void close()
     {
       importer.close();
@@ -107,6 +98,13 @@ final class TracedStorage implements Storage
     private int id()
     {
       return System.identityHashCode(this);
+    }
+
+    @Override
+    public SequentialCursor<ByteString, ByteString> openCursor(TreeName name)
+    {
+      logger.trace("Storage@%s.Importer@%s.openCursor(%s,%s)", storageId(), id(), backendId, name);
+      return importer.openCursor(name);
     }
   }
 
@@ -221,14 +219,6 @@ final class TracedStorage implements Storage
       logger.trace("Storage@%s.WriteableTransaction@%s.read(%s, %s, %s) = %s",
           storageId(), id(), backendId, name, hex(key), hex(value));
       return value;
-    }
-
-    @Override
-    public void renameTree(final TreeName oldName, final TreeName newName)
-    {
-      txn.renameTree(oldName, newName);
-      logger.trace("Storage@%s.WriteableTransaction@%s.renameTree(%s, %s, %s)",
-          storageId(), id(), backendId, oldName, newName);
     }
 
     @Override
@@ -389,7 +379,7 @@ final class TracedStorage implements Storage
     return results;
   }
 
-  private String hex(final ByteSequence bytes)
+  private static String hex(final ByteSequence bytes)
   {
     return bytes != null ? bytes.toByteString().toHexString() : null;
   }

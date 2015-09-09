@@ -1474,7 +1474,7 @@ public class EntryContainer
 
     // Insert into the indexes, in index configuration order.
     final IndexBuffer indexBuffer = new IndexBuffer();
-    indexInsertEntry(indexBuffer, entry, entryID);
+    insertEntryIntoIndexes(indexBuffer, entry, entryID);
 
     final ByteString encodedEntry = id2entry.encode(entry);
 
@@ -1490,33 +1490,10 @@ public class EntryContainer
             // Check whether the entry already exists.
             if (dn2id.get(txn, entry.getName()) != null)
             {
-              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_ADD_ENTRY_ALREADY_EXISTS.get(
-                  entry.getName()));
+              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
+                  ERR_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName()));
             }
-
-            // Check that the parent entry exists.
-            EntryID parentID = null;
-            if (parentDN != null)
-            {
-              // Check for referral entries above the target.
-              dn2uri.targetEntryReferrals(txn, entry.getName(), null);
-
-              // Read the parent ID from dn2id.
-              parentID = dn2id.get(txn, parentDN);
-              if (parentID == null)
-              {
-                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                    ERR_ADD_NO_SUCH_OBJECT.get(entry.getName()), getMatchedDN(txn, baseDN), null);
-              }
-              id2childrenCount.addDelta(txn, parentID, 1);
-            }
-
-            dn2id.put(txn, entry.getName(), entryID);
-            dn2uri.addEntry(txn, entry);
-            id2entry.put(txn, entryID, encodedEntry);
-
-            indexBuffer.flush(txn);
-
+            addEntry0(entry, parentDN, entryID, indexBuffer, encodedEntry, txn);
             if (addOperation != null)
             {
               // One last check before committing
@@ -1550,6 +1527,39 @@ public class EntryContainer
     {
       entryCache.putEntry(entry, backendID, entryID.longValue());
     }
+  }
+
+  void addEntry0(final Entry entry, final DN parentDN, final EntryID entryID, final IndexBuffer indexBuffer,
+      final ByteString encodedEntry, WriteableTransaction txn) throws DirectoryException
+  {
+    // Check that the parent entry exists.
+    if (parentDN != null)
+    {
+      // Check for referral entries above the target.
+      dn2uri.targetEntryReferrals(txn, entry.getName(), null);
+
+      final EntryID parentID = dn2id.get(txn, parentDN);
+      if (parentID == null)
+      {
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+            ERR_ADD_NO_SUCH_OBJECT.get(entry.getName()), getMatchedDN(txn, baseDN), null);
+      }
+      id2childrenCount.addDelta(txn, parentID, 1);
+    }
+
+    dn2id.put(txn, entry.getName(), entryID);
+    dn2uri.addEntry(txn, entry);
+    id2entry.put(txn, entryID, encodedEntry);
+
+    indexBuffer.flush(txn);
+  }
+
+  void importEntry(WriteableTransaction txn, EntryID entryID, Entry entry) throws DirectoryException,
+      StorageRuntimeException
+  {
+    final IndexBuffer indexBuffer = IndexBuffer.newImportIndexBuffer(txn, entryID);
+    insertEntryIntoIndexes(indexBuffer, entry, entryID);
+    addEntry0(entry, null, entryID, indexBuffer, id2entry.encode(entry), txn);
   }
 
   /**
@@ -1765,7 +1775,7 @@ public class EntryContainer
     }
 
     // Remove from the indexes, in index config order.
-    indexRemoveEntry(indexBuffer, entry, leafID);
+    removeEntryFromIndexes(indexBuffer, entry, leafID);
 
     // Remove the children counter for this entry.
     id2childrenCount.deleteCount(txn, leafID);
@@ -1964,8 +1974,8 @@ public class EntryContainer
             else
             {
               // The most optimal would be to figure out what the modifications were.
-              indexRemoveEntry(indexBuffer, oldEntry, entryID);
-              indexInsertEntry(indexBuffer, newEntry, entryID);
+              removeEntryFromIndexes(indexBuffer, oldEntry, entryID);
+              insertEntryIntoIndexes(indexBuffer, newEntry, entryID);
             }
 
             indexBuffer.flush(txn);
@@ -2256,7 +2266,7 @@ public class EntryContainer
     if (renumbered || modifyDNOperation == null)
     {
       // Reindex the entry with the new ID.
-      indexInsertEntry(buffer, newEntry, newID);
+      insertEntryIntoIndexes(buffer, newEntry, newID);
     }
 
     if(isApexEntryMoved)
@@ -2309,7 +2319,7 @@ public class EntryContainer
     if (!newID.equals(oldID) || modifyDNOperation == null)
     {
       // Reindex the entry with the new ID.
-      indexRemoveEntry(buffer, oldEntry, oldID);
+      removeEntryFromIndexes(buffer, oldEntry, oldID);
     }
     else
     {
@@ -2391,7 +2401,7 @@ public class EntryContainer
       id2childrenCount.deleteCount(txn, oldID);
 
       // Reindex the entry with the new ID.
-      indexRemoveEntry(buffer, oldEntry, oldID);
+      removeEntryFromIndexes(buffer, oldEntry, oldID);
     }
     else if (!modifications.isEmpty())
     {
@@ -2444,7 +2454,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void indexInsertEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
+  private void insertEntryIntoIndexes(IndexBuffer buffer, Entry entry, EntryID entryID)
       throws StorageRuntimeException, DirectoryException
   {
     for (AttributeIndex index : attrIndexMap.values())
@@ -2467,7 +2477,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the storage.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void indexRemoveEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
+  private void removeEntryFromIndexes(IndexBuffer buffer, Entry entry, EntryID entryID)
       throws StorageRuntimeException, DirectoryException
   {
     for (AttributeIndex index : attrIndexMap.values())
@@ -2620,61 +2630,6 @@ public class EntryContainer
   String getTreePrefix()
   {
     return treePrefix;
-  }
-
-  /**
-   * Sets a new tree prefix for this entry container and rename all
-   * existing trees in use by this entry container.
-   *
-   * @param txn the transaction for renaming Trees
-   * @param newBaseDN The new tree prefix to use.
-   * @throws StorageRuntimeException If an error occurs in the storage.
-   */
-  void setTreePrefix(WriteableTransaction txn, final String newBaseDN) throws StorageRuntimeException
-  {
-    final List<Tree> allTrees = listTrees();
-    try
-    {
-      // Rename in transaction.
-      for(Tree tree : allTrees)
-      {
-        TreeName oldName = tree.getName();
-        TreeName newName = oldName.replaceBaseDN(newBaseDN);
-        txn.renameTree(oldName, newName);
-      }
-      // Only rename the containers if the txn succeeded.
-      for (Tree tree : allTrees)
-      {
-        TreeName oldName = tree.getName();
-        TreeName newName = oldName.replaceBaseDN(newBaseDN);
-        tree.setName(newName);
-      }
-    }
-    catch (Exception e)
-    {
-      String msg = e.getMessage();
-      if (msg == null)
-      {
-        msg = stackTraceToSingleLineString(e);
-      }
-      throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
-    }
-    try
-    {
-      for(Tree tree : allTrees)
-      {
-        tree.open(txn, false);
-      }
-    }
-    catch (Exception e)
-    {
-      String msg = e.getMessage();
-      if (msg == null)
-      {
-        msg = stackTraceToSingleLineString(e);
-      }
-      throw new StorageRuntimeException(ERR_UNCHECKED_EXCEPTION.get(msg).toString(), e);
-    }
   }
 
   @Override

@@ -46,6 +46,7 @@ import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
@@ -87,11 +88,15 @@ public class DN2IDTest extends DirectoryServerTestCase
     when(serverContext.getDiskSpaceMonitor()).thenReturn(mock(DiskSpaceMonitor.class));
 
     storage = new PDBStorage(createBackendCfg(), serverContext);
-    try(final org.opends.server.backends.pluggable.spi.Importer importer = storage.startImport()) {
-      importer.createTree(dn2IDTreeName);
-    }
-
     storage.open(AccessMode.READ_WRITE);
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        txn.openTree(dn2IDTreeName, true);
+      }
+    });
 
     baseDN = dn("dc=example, dc=com");
     dn2ID = new DN2ID(dn2IDTreeName, baseDN);

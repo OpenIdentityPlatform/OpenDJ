@@ -36,15 +36,17 @@ import org.forgerock.opendj.ldap.ByteString;
 public interface Importer extends Closeable
 {
   /**
-   * Creates a new tree identified by the provided name.
+   * Clear the tree whose name is provided. Ensure that an empty tree with the given name exists. If the tree already
+   * exists, all the data it contains will be deleted. If not, an empty tree will be created.
    *
-   * @param name
-   *          the tree name
+   * @param treeName name of the tree to clear
    */
-  void createTree(TreeName name);
+  void clearTree(TreeName treeName);
 
   /**
-   * Creates a record with the provided key and value in the tree identified by the provided name.
+   * Creates a record with the provided key and value in the tree identified by the provided name. At the end of this
+   * method, the record is visible by {@link read(TreeName, ByteSequence)} and {@link openCursor(TreeName)} methods of
+   * this instance. The record is guaranteed to be persisted only after {@link #close()}.
    *
    * @param treeName
    *          the tree name
@@ -54,17 +56,6 @@ public interface Importer extends Closeable
    *          the new record's value
    */
   void put(TreeName treeName, ByteSequence key, ByteSequence value);
-
-  /**
-   * Deletes the record with the provided key, in the tree whose name is provided.
-   *
-   * @param treeName
-   *          the tree name
-   * @param key
-   *          the key of the record to delete
-   * @return {@code true} if the record could be deleted, {@code false} otherwise
-   */
-  boolean delete(TreeName treeName, ByteSequence key);
 
   /**
    * Reads the record's value associated to the provided key, in the tree whose name is provided.
@@ -77,7 +68,17 @@ public interface Importer extends Closeable
    */
   ByteString read(TreeName treeName, ByteSequence key);
 
-  /** {@inheritDoc} */
+  /**
+   * Opens a cursor on the tree whose name is provided. Cursors are predictable only if there is no pending
+   * {@link put(TreeName, ByteSequence, ByteSequence)} operations. Indeed, once opened, cursors might not reflect
+   * changes.
+   *
+   * @param treeName
+   *          the tree name
+   * @return a new cursor
+   */
+  SequentialCursor<ByteString, ByteString> openCursor(TreeName treeName);
+
   @Override
   void close();
 }

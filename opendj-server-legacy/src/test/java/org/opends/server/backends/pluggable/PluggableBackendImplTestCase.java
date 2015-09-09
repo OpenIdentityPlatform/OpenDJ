@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.types.Attributes.create;
-import static org.opends.server.types.IndexType.EQUALITY;
+import static org.opends.server.types.IndexType.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -41,14 +41,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Reject;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
@@ -58,7 +63,9 @@ import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
+import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -112,7 +119,16 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   protected String[] ldifTemplate;
   protected int ldifNumberOfEntries;
   protected String backupID;
-  protected String[] backendIndexes = { "sn" };
+  protected Map<String, IndexType[]> backendIndexes = new HashMap<>();
+  {
+    backendIndexes.put("entryUUID", new IndexType[] { IndexType.EQUALITY });
+    backendIndexes.put("cn", new IndexType[] { IndexType.SUBSTRING });
+    backendIndexes.put("sn", new IndexType[] { IndexType.PRESENCE, IndexType.EQUALITY, IndexType.SUBSTRING });
+    backendIndexes.put("uid", new IndexType[] { IndexType.EQUALITY });
+    backendIndexes.put("telephoneNumber", new IndexType[] { IndexType.EQUALITY, IndexType.SUBSTRING });
+    backendIndexes.put("mail", new IndexType[] { IndexType.SUBSTRING });
+  };
+
   protected String[] backendVlvIndexes = { "people" };
 
   private AttributeType modifyAttribute;
@@ -149,13 +165,22 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     when(backendCfg.dn()).thenReturn(testBaseDN);
     when(backendCfg.getBackendId()).thenReturn(backendTestName);
     when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
-    when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes);
+    when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes.keySet().toArray(new String[0]));
     when(backendCfg.listBackendVLVIndexes()).thenReturn(backendVlvIndexes);
 
-    BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
-    when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
-    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType(backendIndexes[0]));
-    when(backendCfg.getBackendIndex(backendIndexes[0])).thenReturn(indexCfg);
+    for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
+    {
+      final String attributeName = index.getKey().toLowerCase();
+      final AttributeType attribute = DirectoryServer.getAttributeType(attributeName);
+      Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
+
+      BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
+      when(indexCfg.getIndexType()).thenReturn(newTreeSet(index.getValue()));
+      when(indexCfg.getAttribute()).thenReturn(attribute);
+      when(indexCfg.getIndexEntryLimit()).thenReturn(4000);
+      when(indexCfg.getSubstringLength()).thenReturn(6);
+      when(backendCfg.getBackendIndex(index.getKey())).thenReturn(indexCfg);
+    }
 
     BackendVLVIndexCfg vlvIndexCfg = mock(BackendVLVIndexCfg.class);
     when(vlvIndexCfg.getName()).thenReturn("people");
@@ -648,7 +673,15 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   {
     assertEquals(backend.getEntryCount(), getTotalNumberOfLDIFEntries());
     assertFalse(backend.isIndexed(modifyAttribute, EQUALITY));
-    assertTrue(backend.isIndexed(DirectoryServer.getAttributeType(backendIndexes[0]), EQUALITY));
+    for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
+    {
+      for (IndexType type : index.getValue())
+      {
+        final AttributeType attributeType = DirectoryServer.getAttributeType(index.getKey().toLowerCase());
+        assertTrue(backend.isIndexed(attributeType,
+            org.opends.server.types.IndexType.valueOf(type.toString().toUpperCase())));
+      }
+    }
   }
 
   private int getTotalNumberOfLDIFEntries()
@@ -900,6 +933,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       importConf.setClearBackend(true);
       importConf.writeRejectedEntries(rejectedEntries);
       importConf.setIncludeBranches(Collections.singleton(testBaseDN));
+      importConf.setSkipDNValidation(true);
+      importConf.setThreadCount(0);
       backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
     }
     assertEquals(rejectedEntries.size(), 0, "No entries should be rejected");
@@ -911,6 +946,142 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(backend.getNumberOfChildren(testBaseDN), 1, "Not enough entries in DIT.");
     /** -2 for baseDn and People entry */
     assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), ldifNumberOfEntries - 2, "Not enough entries in DIT.");
+
+    VerifyConfig config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCompleteIndex("dn2id");
+    for (String indexName : backendIndexes.keySet())
+    {
+      config.addCompleteIndex(indexName);
+    }
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+
+    config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCleanIndex("dn2id");
+    for (String indexName : backendIndexes.keySet())
+    {
+      config.addCleanIndex(indexName);
+    }
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+  }
+
+  @Test(dependsOnMethods = "testImportLDIF")
+  public void testRebuildAllIndex() throws Exception
+  {
+    final EntryContainer entryContainer =  backend.getRootContainer().getEntryContainers().iterator().next();
+
+    // Delete all the indexes
+    backend.getRootContainer().getStorage().write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        entryContainer.getDN2ID().delete(txn);
+        entryContainer.getDN2ID().open(txn, true);
+        entryContainer.getDN2URI().delete(txn);
+        entryContainer.getDN2URI().open(txn, true);
+        entryContainer.getID2ChildrenCount().delete(txn);
+        entryContainer.getID2ChildrenCount().open(txn, true);
+        for(VLVIndex idx : entryContainer.getVLVIndexes())
+        {
+          idx.setTrusted(txn, false);
+          idx.delete(txn);
+          idx.open(txn, true);
+        }
+        for(AttributeIndex attribute : entryContainer.getAttributeIndexes())
+        {
+          for(Index idx : attribute.getNameToIndexes().values())
+          {
+            idx.setTrusted(txn, false);
+            idx.delete(txn);
+            idx.open(txn, true);
+          }
+        }
+      }
+    });
+
+    RebuildConfig rebuildConf = new RebuildConfig();
+    rebuildConf.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    rebuildConf.setRebuildMode(RebuildMode.ALL);
+
+    backend.closeBackend();
+    backend.rebuildBackend(rebuildConf, DirectoryServer.getInstance().getServerContext());
+    backend.openBackend();
+
+    VerifyConfig config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCompleteIndex("dn2id");
+    for (String indexName : backendIndexes.keySet())
+    {
+      config.addCompleteIndex(indexName);
+    }
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+
+
+    config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCleanIndex("dn2id");
+    for (String indexName : backendIndexes.keySet())
+    {
+      config.addCleanIndex(indexName);
+    }
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+  }
+
+  @Test(dependsOnMethods = "testImportLDIF")
+  public void testRebuildDegradedIndex() throws Exception
+  {
+    final EntryContainer entryContainer =  backend.getRootContainer().getEntryContainers().iterator().next();
+
+    final Set<String> dirtyIndexes = new HashSet<>(Arrays.asList(new String[] { "sn", "uid", "telephoneNumber" }));
+    assertThat(backendIndexes.keySet()).containsAll(dirtyIndexes);
+
+    // Delete all the indexes
+    backend.getRootContainer().getStorage().write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        for(AttributeIndex attribute : entryContainer.getAttributeIndexes())
+        {
+          boolean trusted = !dirtyIndexes.contains(attribute.getAttributeType().getNameOrOID());
+          for(Index idx : attribute.getNameToIndexes().values())
+          {
+            idx.setTrusted(txn, trusted);
+          }
+        }
+      }
+    });
+
+    RebuildConfig rebuildConf = new RebuildConfig();
+    rebuildConf.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    rebuildConf.setRebuildMode(RebuildMode.DEGRADED);
+
+    backend.closeBackend();
+    backend.rebuildBackend(rebuildConf, DirectoryServer.getInstance().getServerContext());
+    backend.openBackend();
+
+    VerifyConfig config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCompleteIndex("dn2id");
+    for (String indexName : backendIndexes.keySet())
+    {
+      config.addCompleteIndex(indexName);
+    }
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+
+    config = new VerifyConfig();
+    config.setBaseDN(DN.valueOf("dc=test,dc=com"));
+    config.addCleanIndex("dn2id");
+    for (String indexName : backendIndexes.keySet())
+    {
+      config.addCleanIndex(indexName);
+    }
+    assertThat(backend.verifyBackend(config)).isEqualTo(0);
+
+    // Put back the backend in its original state for the following tests
+//    backend.openBackend();
   }
 
   @Test(dependsOnMethods = "testImportLDIF")

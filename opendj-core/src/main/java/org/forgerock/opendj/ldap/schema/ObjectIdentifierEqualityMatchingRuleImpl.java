@@ -54,7 +54,7 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
             return oidOrName;
         }
         // Do a best effort attempt to normalize names to OIDs.
-        final String lowerCaseName = StaticUtils.toLowerCase(oidOrName.toLowerCase());
+        final String lowerCaseName = StaticUtils.toLowerCase(oidOrName);
         try {
             final String oid = schema.getOIDForName(lowerCaseName);
             if (oid != null) {
