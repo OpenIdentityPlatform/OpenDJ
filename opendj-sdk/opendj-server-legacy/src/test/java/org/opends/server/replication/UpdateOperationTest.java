@@ -30,6 +30,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -45,17 +46,20 @@ import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.*;
+import org.opends.server.util.TestTimer;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static java.util.concurrent.TimeUnit.*;
+
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -66,12 +70,9 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class UpdateOperationTest extends ReplicationTestCase
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * An entry with a entryUUID.
-   */
+  /** An entry with a entryUUID. */
   private Entry personWithUUIDEntry;
   private Entry personWithSecondUniqueID;
 
@@ -85,9 +86,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   private String user1entrysecondUUID;
   private String user1entryUUID;
 
-  /**
-   * A "person" entry.
-   */
+  /** A "person" entry. */
   private Entry personEntry;
   private int replServerPort;
   private String domain1uid;
@@ -103,9 +102,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   private int domainSid = 55;
   private DN baseDN;
 
-  /**
-   * Set up the environment for performing the tests in this Class.
-   */
+  /** Set up the environment for performing the tests in this Class. */
   @BeforeClass
   @Override
   public void setUp() throws Exception
@@ -272,9 +269,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         "dc:domain3");
   }
 
-  /**
-   * Add an entry in the database.
-   */
+  /** Add an entry in the database. */
   private CSN addEntry(Entry entry) throws Exception
   {
     AddOperation addOp = connection.processAdd(entry);
@@ -283,13 +278,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     return OperationContext.getCSN(addOp);
   }
 
-  /**
-   * Delete an entry in the database.
-   */
+  /** Delete an entry in the database. */
   private void delEntry(DN dn) throws Exception
   {
     connection.processDelete(dn);
-    assertNull(getEntry(dn, 1000, true));
+    assertNull(getEntry(dn, 1000, false));
   }
 
   /**
@@ -389,9 +382,8 @@ public class UpdateOperationTest extends ReplicationTestCase
       broker.publish(modMsg);
 
       // Check that the modify has been replayed.
-      boolean found = checkEntryHasAttribute(personWithUUIDEntry.getName(),
-          "telephonenumber", "01 02 45", 10000, true);
-      assertTrue(found, "The first modification was not replayed.");
+      checkEntryHasAttributeValue(personWithUUIDEntry.getName(), "telephonenumber", "01 02 45", 10,
+          "The first modification was not replayed.");
 
       // Simulate loss of heartbeats.
       HeartbeatThread.setHeartbeatsDisabled(true);
@@ -405,9 +397,8 @@ public class UpdateOperationTest extends ReplicationTestCase
       broker.publish(modMsg);
 
       // Check that the modify has been replayed.
-      found = checkEntryHasAttribute(personWithUUIDEntry.getName(),
-          "description", "Description was changed", 10000, true);
-      assertTrue(found, "The second modification was not replayed.");
+      checkEntryHasAttributeValue(personWithUUIDEntry.getName(), "description", "Description was changed", 10,
+          "The second modification was not replayed.");
 
       // Delete the entries to clean the database.
       broker.publish(
@@ -546,7 +537,6 @@ public class UpdateOperationTest extends ReplicationTestCase
     }
   }
 
-
   /**
    * Tests the naming conflict resolution code.
    * In this test, the local server act both as an LDAP server and
@@ -600,9 +590,8 @@ public class UpdateOperationTest extends ReplicationTestCase
     broker.publish(modMsg);
 
     // check that the modify has been applied as if the entry had been renamed.
-    boolean found = checkEntryHasAttribute(personWithUUIDEntry.getName(),
-                           "telephonenumber", "01 02 45", 10000, true);
-      assertTrue(found, "The modification has not been correctly replayed.");
+      checkEntryHasAttributeValue(personWithUUIDEntry.getName(), "telephonenumber", "01 02 45", 10,
+          "The modification has not been correctly replayed.");
     assertEquals(getMonitorDelta(), 1);
       assertConflictAutomaticallyResolved(alertCount);
 
@@ -623,9 +612,8 @@ public class UpdateOperationTest extends ReplicationTestCase
     broker.publish(modMsg);
 
     // check that the modify has been applied.
-    found = checkEntryHasAttribute(personWithUUIDEntry.getName(),
-                           "uid", "AnotherUid", 10000, true);
-      assertTrue(found, "The modification has not been correctly replayed.");
+      checkEntryHasAttributeValue(personWithUUIDEntry.getName(), "uid", "AnotherUid", 10,
+          "The modification has not been correctly replayed.");
     assertEquals(getMonitorDelta(), 1);
 
     /*
@@ -655,9 +643,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     // check that the modify has not been applied
     Thread.sleep(2000);
-    found = checkEntryHasAttribute(personWithUUIDEntry.getName(),
-                           "telephonenumber", "02 01 03 05", 10000, false);
-      assertFalse(found,
+      checkEntryHasNoSuchAttributeValue(personWithUUIDEntry.getName(), "telephonenumber", "02 01 03 05", 10,
           "The modification has been replayed while it should not.");
     assertEquals(getMonitorDelta(), 1);
       assertConflictAutomaticallyResolved(alertCount);
@@ -787,10 +773,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       assertEquals(getMonitorDelta(), 1);
       assertConflictAutomaticallyResolved(alertCount);
 
-
-    /*
-     * same test but by giving a bad entry DN
-     */
+      /* same test but by giving a bad entry DN */
       DN modDN = DN.valueOf("uid=wrong," + baseDN);
     modDnMsg = new ModifyDNMsg(modDN, gen.newCSN(),
         user1entryUUID, null, false, null, "uid=reallynewrdn");
@@ -948,10 +931,8 @@ public class UpdateOperationTest extends ReplicationTestCase
         "The conflicting entries were not created");
 
     // check that the 2 conflicting entries have been correctly marked
-    assertTrue(checkEntryHasAttribute(conflictDomain2dn,
-        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain2dn.toString(), 1000, true));
-    assertTrue(checkEntryHasAttribute(conflictDomain3dn,
-        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain3dn.toString(), 1000, true));
+      checkEntryHasAttributeValue(conflictDomain2dn, DS_SYNC_CONFLICT, domain2dn.toString(), 1, null);
+      checkEntryHasAttributeValue(conflictDomain3dn, DS_SYNC_CONFLICT, domain3dn.toString(), 1, null);
 
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
@@ -1005,8 +986,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       "The conflicting entries were not created");
 
     // check that the entry have been correctly marked as conflicting.
-    assertTrue(checkEntryHasAttribute(conflictDomain2dn,
-        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain2dn.toString(), 1000, true));
+      checkEntryHasAttributeValue(conflictDomain2dn, DS_SYNC_CONFLICT, domain2dn.toString(), 1, null);
 
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
@@ -1031,8 +1011,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       assertConflictAutomaticallyResolved(alertCount);
 
     /*
-     * Check that a conflict is detected when an entry is
-     * moved below an entry that does not exist.
+     * Check that a conflict is detected when an entry is moved below an entry that does not exist.
      */
     updateMonitorCount(baseDN, unresolvedMonitorAttr);
       alertCount = DummyAlertHandler.getAlertCount();
@@ -1047,10 +1026,8 @@ public class UpdateOperationTest extends ReplicationTestCase
       waitForNonZeroMonitorDelta();
 
       // check that the entry have been correctly marked as conflicting.
-      assertTrue(checkEntryHasAttribute(
-          DN.valueOf("uid=new person," + baseDN2),
-          LDAPReplicationDomain.DS_SYNC_CONFLICT,
-          "uid=newrdn," + baseDN2, 1000, true));
+      checkEntryHasAttributeValue(
+          DN.valueOf("uid=new person," + baseDN2), DS_SYNC_CONFLICT, "uid=newrdn," + baseDN2, 1, null);
     }
     finally
     {
@@ -1060,17 +1037,21 @@ public class UpdateOperationTest extends ReplicationTestCase
 
   private void waitForNonZeroMonitorDelta() throws Exception, InterruptedException
   {
-    int count = 0;
-    while (count < 2000 && getMonitorDelta() == 0)
-    {
-      // it is possible that the update has not yet been applied
-      // wait a short time and try again.
-      Thread.sleep(100);
-      count++;
-    }
     // if the monitor counter did not get incremented after 200sec
     // then something got wrong.
-    Assertions.assertThat(count).isLessThan(200);
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(200, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception
+      {
+        assertNotEquals(getMonitorDelta() , 0);
+        return null;
+      }
+    });
   }
 
   /**
@@ -1117,9 +1098,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     setUp();
   }
 
-  /**
-   * Tests done using directly the ReplicationBroker interface.
-   */
+  /** Tests done using directly the ReplicationBroker interface. */
   @Test(enabled=true, dataProvider="assured")
   public void updateOperations(boolean assured) throws Exception
   {
@@ -1194,9 +1173,8 @@ public class UpdateOperationTest extends ReplicationTestCase
       modMsg.setAssured(assured);
       broker.publish(modMsg);
 
-      boolean found = checkEntryHasAttribute(personWithUUIDEntry.getName(),
-          "telephonenumber", "01 02 45", 10000, true);
-      assertTrue(found, "The modification has not been correctly replayed.");
+      checkEntryHasAttributeValue(personWithUUIDEntry.getName(), "telephonenumber", "01 02 45", 10,
+          "The modification has not been correctly replayed.");
 
       // Test that replication is able to add attribute that do
       // not exist in the schema.
@@ -1206,9 +1184,8 @@ public class UpdateOperationTest extends ReplicationTestCase
       modMsg.setAssured(assured);
       broker.publish(modMsg);
 
-      found = checkEntryHasAttribute(
-          personWithUUIDEntry.getName(), "badattribute", "value", 10000, true);
-      assertTrue(found, "The modification has not been correctly replayed.");
+      checkEntryHasAttributeValue(personWithUUIDEntry.getName(), "badattribute", "value", 10,
+          "The modification has not been correctly replayed.");
 
       /*
        * Test the Reception of Modify Dn Msg
@@ -1274,10 +1251,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     throw new RuntimeException("Unhandled type: " + msg.getClass());
   }
 
-  /**
-   * Test case for
-   * [Issue 635] NullPointerException when trying to access non existing entry.
-   */
+  /** Test case for [Issue 635] NullPointerException when trying to access non existing entry. */
   @Test(enabled=true)
   public void deleteNoSuchObject() throws Exception
   {
@@ -1288,11 +1262,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
   }
 
-  /**
-   * Test case for
-   * [Issue 798]  break infinite loop when problems with naming resolution
-   *              conflict.
-   */
+  /** Test case for [Issue 798] break infinite loop when problems with naming resolution conflict. */
   @Test(enabled=true)
   public void infiniteReplayLoop() throws Exception
   {
@@ -1332,7 +1302,7 @@ public class UpdateOperationTest extends ReplicationTestCase
           "userPassword: password",
           "initials: AA");
 
-      long initialCount = getMonitorAttrValue(baseDN, "replayed-updates");
+      final long initialCount = getMonitorAttrValue(baseDN, "replayed-updates");
 
       // Get the UUID of the test entry.
       Entry resultEntry = getEntry(tmp.getName(), 1, true);
@@ -1344,27 +1314,26 @@ public class UpdateOperationTest extends ReplicationTestCase
       try
       {
         // Publish a delete message for this test entry.
-        DeleteMsg delMsg = new DeleteMsg(tmp.getName(), gen.newCSN(), uuid);
-        broker.publish(delMsg);
+        broker.publish(new DeleteMsg(tmp.getName(), gen.newCSN(), uuid));
 
         // Wait for the operation to be replayed.
-        long endTime = System.currentTimeMillis() + 5000;
-        while (getMonitorAttrValue(baseDN, "replayed-updates") == initialCount &&
-             System.currentTimeMillis() < endTime)
+        TestTimer timer = new TestTimer.Builder()
+          .maxSleep(5, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+        timer.repeatUntilSuccess(new Callable<Void>()
         {
-          Thread.sleep(100);
-        }
+          @Override
+          public Void call() throws Exception
+          {
+            assertNotEquals(getMonitorAttrValue(baseDN, "replayed-updates"), initialCount);
+            return null;
+          }
+        });
       }
       finally
       {
         ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreParse");
-      }
-
-      // If the replication replay loop was detected and broken then the
-      // counter will still be updated even though the replay was unsuccessful.
-      if (getMonitorAttrValue(baseDN, "replayed-updates") == initialCount)
-      {
-        fail("Operation was not replayed");
       }
     }
     finally

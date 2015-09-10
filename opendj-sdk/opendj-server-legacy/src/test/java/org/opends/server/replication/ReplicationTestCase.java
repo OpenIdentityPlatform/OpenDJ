@@ -32,13 +32,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
@@ -71,12 +72,17 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -248,33 +254,31 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Check connection of the provided ds to the
-   * replication server. Waits for connection to be ok up to secTimeout seconds
-   * before failing.
+   * Check connection of the provided ds to the replication server. Waits for connection to be ok up
+   * to secTimeout seconds before failing.
    */
-  protected void checkConnection(int secTimeout, ReplicationBroker rb, int rsPort) throws Exception
+  protected void checkConnection(int secTimeout, final ReplicationBroker rb, int rsPort) throws Exception
   {
-    int nSec = 0;
-
-    // Go out of the loop only if connection is verified or if timeout occurs
-    while (true)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(secTimeout, SECONDS)
+      .sleepTimes(1, SECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      if (rb.isConnected())
+      @Override
+      public Void call() throws Exception
       {
-        logger.trace("checkConnection: connection of broker "
-          + rb.getServerId() + " to RS " + rb.getRsGroupId()
-          + " obtained after " + nSec + " seconds.");
-        return;
+        if (rb.isConnected())
+        {
+          logger.trace("checkConnection: connection of broker " + rb.getServerId()
+              + " to RS " + rb.getRsGroupId() + " obtained.");
+          return null;
+        }
+
+        rb.start();
+        return null;
       }
-
-      Thread.sleep(1000);
-      rb.start();
-      nSec++;
-
-      assertTrue(nSec <= secTimeout,
-          "checkConnection: DS " + rb.getServerId() + " is not connected to "
-              + "the RS port " + rsPort + " after " + secTimeout + " seconds.");
-    }
+    });
   }
 
   protected void deleteEntry(DN dn) throws Exception
@@ -372,6 +376,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected void clearChangelogDB(ReplicationServer rs) throws Exception
   {
+    if (rs == null)
+    {
+      return;
+    }
+
     if (replicationDbImplementation == ReplicationDBImplementation.JE)
     {
       ((JEChangelogDB) rs.getChangelogDB()).clearDB();
@@ -418,6 +427,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected void stop(ReplicationBroker... brokers)
   {
+    if (brokers == null)
+    {
+      return;
+    }
     for (ReplicationBroker broker : brokers)
     {
       if (broker != null)
@@ -484,83 +497,91 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @return The monitor value
    * @throws Exception If an error occurs.
    */
-  protected long getMonitorAttrValue(DN baseDN, String attr) throws Exception
+  protected long getMonitorAttrValue(final DN baseDN, final String attr) throws Exception
   {
-    String monitorFilter = "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
-
-    InternalSearchOperation op;
-    int count = 0;
-    do
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(10, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<Long>()
     {
-      if (count++>0)
+      @Override
+      public Long call() throws Exception
       {
-        Thread.sleep(100);
-      }
-      op = connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
-    }
-    while (op.getSearchEntries().isEmpty() && count<100);
-    assertFalse(op.getSearchEntries().isEmpty(), "Could not read monitoring information");
+        String monitorFilter = "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
+        InternalSearchOperation op =
+            connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
+        Assertions.assertThat(op.getSearchEntries()).as("Could not read monitoring information").isNotEmpty();
 
-    SearchResultEntry entry = op.getSearchEntries().getFirst();
-    return entry.parseAttribute(attr).asLong();
+        SearchResultEntry entry = op.getSearchEntries().getFirst();
+        return entry.parseAttribute(attr).asLong();
+      }
+    });
   }
 
-  /**
-   * Check that the entry with the given dn has the given valueString value
-   * for the given attrTypeStr attribute type.
-   */
-  protected boolean checkEntryHasAttribute(DN dn, String attrTypeStr,
-      String valueString, int timeout, boolean hasAttribute) throws Exception
+  protected void checkEntryHasAttributeValue(final DN dn, final String attrTypeStr, final String valueString,
+      int timeoutInSecs, String notFoundErrorMsg) throws Exception
   {
-    boolean found = false;
-    int count = timeout/100;
-    if (count<1)
-    {
-      count=1;
-    }
+    checkEntryHasAttribute(dn, attrTypeStr, valueString, timeoutInSecs, true, notFoundErrorMsg);
+  }
 
-    do
-    {
-      final Entry newEntry = DirectoryServer.getEntry(dn);
-      if (newEntry != null)
-      {
-        List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-        if (tmpAttrList != null && !tmpAttrList.isEmpty())
-        {
-          Attribute tmpAttr = tmpAttrList.get(0);
-          found = tmpAttr.contains(ByteString.valueOf(valueString));
-        }
-      }
+  protected void checkEntryHasNoSuchAttributeValue(final DN dn, final String attrTypeStr, final String valueString,
+      int timeoutInSecs, String foundErrorMsg) throws Exception
+  {
+    checkEntryHasAttribute(dn, attrTypeStr, valueString, timeoutInSecs, false, foundErrorMsg);
+  }
 
-      if (found != hasAttribute)
+  protected boolean checkEntryHasAttribute(final DN dn, final String attrTypeStr, final String valueString,
+      int timeout, final boolean expectedAttributeValueFound) throws Exception
+  {
+    checkEntryHasAttribute(dn, attrTypeStr, valueString, timeout / 1000, expectedAttributeValueFound, null);
+    return expectedAttributeValueFound;
+  }
+
+  private void checkEntryHasAttribute(final DN dn, final String attrTypeStr, final String valueString,
+      int timeoutInSecs, final boolean expectedAttributeValueFound, final String foundMsg) throws Exception
+  {
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(timeoutInSecs, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception
       {
-        Thread.sleep(100);
+        final Entry newEntry = DirectoryServer.getEntry(dn);
+        assertNotNull(newEntry);
+        List<Attribute> attrList = newEntry.getAttribute(attrTypeStr);
+        Assertions.assertThat(attrList).isNotEmpty();
+        Attribute attr = attrList.get(0);
+        boolean foundAttributeValue = attr.contains(ByteString.valueOf(valueString));
+        assertEquals(foundAttributeValue, expectedAttributeValueFound, foundMsg);
+        return null;
       }
-    } while (--count > 0 && found != hasAttribute);
-    return found;
+    });
   }
 
   /**
    * Retrieves an entry from the local Directory Server.
    * @throws Exception When the entry cannot be locked.
    */
-  protected Entry getEntry(DN dn, int timeout, boolean exist) throws Exception
+  protected Entry getEntry(final DN dn, int timeoutInMillis, final boolean exist) throws Exception
   {
-    int count = timeout/200;
-    if (count<1)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(timeoutInMillis, MILLISECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      count=1;
-    }
-    Thread.sleep(50);
-    boolean found = DirectoryServer.entryExists(dn);
-    while (count> 0 && found != exist)
-    {
-      Thread.sleep(200);
-
-      found = DirectoryServer.entryExists(dn);
-      count--;
-    }
-
+      @Override
+      public Void call() throws Exception
+      {
+        assertEquals(DirectoryServer.entryExists(dn), exist);
+        return null;
+      }
+    });
+    
     Entry entry = DirectoryServer.getEntry(dn);
     if (entry != null)
     {
@@ -600,43 +621,34 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected List<Modification> generatemods(String attrName, String attrValue)
   {
     Attribute attr = Attributes.create(attrName, attrValue);
-    List<Modification> mods = new ArrayList<>();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
-    return mods;
+    return newArrayList(new Modification(REPLACE, attr));
   }
 
   /** Utility method to create, run a task and check its result. */
   protected void task(String task) throws Exception
   {
-    Entry taskEntry = TestCaseUtils.addEntry(task);
+    final Entry taskEntry = TestCaseUtils.addEntry(task);
 
     // Wait until the task completes.
-    Entry resultEntry = null;
-    String completionTime = null;
-    long startMillisecs = System.currentTimeMillis();
-    do
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(30, SECONDS)
+      .sleepTimes(20, MILLISECONDS)
+      .toTimer();
+    Entry resultEntry = timer.repeatUntilSuccess(new Callable<Entry>()
     {
-      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
-      InternalSearchOperation searchOperation = connection.processSearch(request);
-      if (searchOperation.getSearchEntries().isEmpty())
+      @Override
+      public Entry call() throws Exception
       {
-        continue;
+        final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
+        InternalSearchOperation searchOperation = connection.processSearch(request);
+        Assertions.assertThat(searchOperation.getSearchEntries()).isNotEmpty();
+        Entry resultEntry = searchOperation.getSearchEntries().get(0);
+        String completionTime = resultEntry.parseAttribute(
+            ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
+        assertNotNull(completionTime, "The task has not completed");
+        return resultEntry;
       }
-      resultEntry = searchOperation.getSearchEntries().get(0);
-      completionTime = resultEntry.parseAttribute(
-          ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
-      if (completionTime == null)
-      {
-        if (System.currentTimeMillis() - startMillisecs > 1000*30)
-        {
-          break;
-        }
-        Thread.sleep(10);
-      }
-    } while (completionTime == null);
-
-    assertNotNull(completionTime, "The task has not completed after 30 seconds.");
+    });
 
     // Check that the task state is as expected.
     String stateString = resultEntry.parseAttribute(
@@ -647,14 +659,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Create a new replication session security object that can be used in
-   * unit tests.
+   * Create a new replication session security object that can be used in unit tests.
    *
    * @return A new replication session security object.
    * @throws ConfigException If an error occurs.
    */
-  protected static ReplSessionSecurity getReplSessionSecurity()
-       throws ConfigException
+  protected static ReplSessionSecurity getReplSessionSecurity() throws ConfigException
   {
     return new ReplSessionSecurity(null, null, null, true);
   }
@@ -704,37 +714,34 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     logger.trace("AddedTask/" + taskEntry.getName());
   }
 
-  protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
+  protected void waitTaskState(final Entry taskEntry, final TaskState expectedTaskState,
       long maxWaitTimeInMillis, LocalizableMessage expectedMessage) throws Exception
   {
-    long startTime = System.currentTimeMillis();
-
-    Entry resultEntry = null;
-    TaskState taskState = null;
-    do
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(maxWaitTimeInMillis, MILLISECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    Entry resultEntry = timer.repeatUntilSuccess(new Callable<Entry>()
     {
-      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
-      InternalSearchOperation searchOperation = connection.processSearch(request);
-      resultEntry = searchOperation.getSearchEntries().getFirst();
+      @Override
+      public Entry call() throws Exception
+      {
+        final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
+        InternalSearchOperation searchOperation = connection.processSearch(request);
+        Entry resultEntry = searchOperation.getSearchEntries().getFirst();
 
-      // Check that the task state is as expected.
-      String stateString = resultEntry.parseAttribute(
-          ATTR_TASK_STATE.toLowerCase()).asString();
-      taskState = TaskState.fromString(stateString);
-
-      Thread.sleep(100);
-    }
-    while (taskState != expectedTaskState
-        && taskState != TaskState.STOPPED_BY_ERROR
-        && taskState != TaskState.COMPLETED_SUCCESSFULLY
-        && System.currentTimeMillis() - startTime < maxWaitTimeInMillis);
+        TaskState taskState = getTaskState(resultEntry);
+        Assertions.assertThat(taskState).isIn(expectedTaskState, STOPPED_BY_ERROR, COMPLETED_SUCCESSFULLY);
+        return resultEntry;
+      }
+    });
 
     // Check that the task contains some log messages.
     Set<String> logMessages = resultEntry.parseAttribute(
         ATTR_TASK_LOG_MESSAGES.toLowerCase()).asSetOfString();
 
-    if (taskState != TaskState.COMPLETED_SUCCESSFULLY
-        && taskState != TaskState.RUNNING)
+    TaskState taskState = getTaskState(resultEntry);
+    if (taskState != COMPLETED_SUCCESSFULLY && taskState != RUNNING)
     {
       assertFalse(logMessages.isEmpty(),
           "No log messages were written to the task entry on a failed task");
@@ -750,8 +757,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
     }
 
-    if (expectedTaskState == TaskState.RUNNING
-        && taskState == TaskState.COMPLETED_SUCCESSFULLY)
+    if (expectedTaskState == RUNNING && taskState == COMPLETED_SUCCESSFULLY)
     {
       // We usually wait the running state after adding the task
       // and if the task is fast enough then it may be already done
@@ -762,6 +768,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       assertEquals(taskState, expectedTaskState, "Task State:" + taskState
           + " Expected task state:" + expectedTaskState);
     }
+  }
+
+  private TaskState getTaskState(Entry resultEntry)
+  {
+    String stateString = resultEntry.parseAttribute(ATTR_TASK_STATE.toLowerCase()).asString();
+    return TaskState.fromString(stateString);
   }
 
   /** Add to the current DB the entries necessary to the test. */
@@ -789,28 +801,25 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @throws Exception if the entry does not exist or does not have
    *                   an entryUUID.
    */
-  protected String getEntryUUID(DN dn) throws Exception
+  protected String getEntryUUID(final DN dn) throws Exception
   {
-    int count = 10;
-    String found = null;
-    while (count > 0 && found == null)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(1, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<String>()
     {
-      Thread.sleep(100);
-
-      Entry newEntry = DirectoryServer.getEntry(dn);
-      if (newEntry != null)
+      @Override
+      public String call() throws Exception
       {
+        Entry newEntry = DirectoryServer.getEntry(dn);
+        assertNotNull(newEntry);
         Attribute attribute = newEntry.getAttribute("entryuuid").get(0);
-        for (ByteString val : attribute)
-        {
-          found = val.toString();
-          break;
-        }
+        String found = attribute.iterator().next().toString();
+        assertNotNull(found, "Entry: " + dn + " Could not be found.");
+        return found;
       }
-      count --;
-    }
-    assertNotNull(found, "Entry: " + dn + " Could not be found.");
-    return found;
+    });
   }
 
   /** Utility method : removes a domain deleting the passed config entry */
@@ -903,25 +912,27 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Performs an internal search, waiting for at most 3 seconds for expected result code and expected
    * number of entries.
    */
-  protected InternalSearchOperation waitForSearchResult(String dn, SearchScope scope, String filter,
-      ResultCode expectedResultCode, int expectedNbEntries) throws Exception
+  protected InternalSearchOperation waitForSearchResult(final String dn, final SearchScope scope, final String filter,
+      final ResultCode expectedResultCode, final int expectedNbEntries) throws Exception
   {
-    InternalSearchOperation searchOp = null;
-    int count = 0;
-    do
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(3, SECONDS)
+      .sleepTimes(10, MILLISECONDS)
+      .toTimer();
+    return timer.repeatUntilSuccess(new Callable<InternalSearchOperation>()
     {
-      Thread.sleep(10);
-      final SearchRequest request = newSearchRequest(dn, scope, filter).addAttribute("*", "+");
-      searchOp = connection.processSearch(request);
-      count++;
-    }
-    while (count < 300
-        && searchOp.getResultCode() != expectedResultCode
-        && searchOp.getSearchEntries().size() != expectedNbEntries);
-
-    final List<SearchResultEntry> entries = searchOp.getSearchEntries();
-    Assertions.assertThat(entries).hasSize(expectedNbEntries);
-    return searchOp;
+      @Override
+      public InternalSearchOperation call() throws Exception
+      {
+        final SearchRequest request = newSearchRequest(dn, scope, filter).addAttribute("*", "+");
+        InternalSearchOperation searchOp = connection.processSearch(request);
+        SoftAssertions softly = new SoftAssertions();
+        softly.assertThat(searchOp.getResultCode()).isEqualTo(expectedResultCode);
+        softly.assertThat(searchOp.getSearchEntries()).hasSize(expectedNbEntries);
+        softly.assertAll();
+        return searchOp;
+      }
+    });
   }
 
   protected static void setReplicationDBImplementation(ReplicationDBImplementation impl)
