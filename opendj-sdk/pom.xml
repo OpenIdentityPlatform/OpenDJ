@@ -115,7 +115,7 @@
     <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
     <slf4jVersion>1.7.5</slf4jVersion>
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
-    <frDocPluginVersion>3.0.0</frDocPluginVersion>
+    <frDocPluginVersion>3.1.0-SNAPSHOT</frDocPluginVersion>
 
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
