@@ -270,8 +270,7 @@ public final class LDIFExportConfig extends OperationConfig
           try
           {
             // Ignore
-            FilePermission.setPermissions(f,
-                new FilePermission(0600));
+            FilePermission.setSafePermissions(f, 0600);
           }
           catch (Exception e)
           {

@@ -441,7 +441,45 @@ public class FilePermission
     return Files.getFileAttributeView(filePath, AclFileAttributeView.class) != null;
   }
 
-
+  /**
+   * Attempts to set the given permissions on the specified file.  If
+   * the underlying platform does not allow the full level of
+   * granularity specified in the permissions, then an attempt will be
+   * made to set them as closely as possible to the provided
+   * permissions, erring on the side of security.
+   *
+   * @param  f  The file to which the permissions should be applied.
+   * @param  p  The permissions to apply to the file.
+   *
+   * @return  <CODE>true</CODE> if the permissions (or the nearest
+   *          equivalent) were successfully applied to the specified
+   *          file, or <CODE>false</CODE> if was not possible to set
+   *          the permissions on the current platform.
+   *
+   * The file is known to exist therefore there is no need for
+   * exists() checks.
+   */
+  public static boolean setSafePermissions(File f, Integer p)
+  {
+    Path filePath = f.toPath();
+    PosixFileAttributeView posix = Files.getFileAttributeView(filePath, PosixFileAttributeView.class);
+    if (posix != null)
+    {
+      StringBuilder posixMode = new StringBuilder();
+      toPOSIXString(new FilePermission(p), posixMode, "", "", "");
+      Set<PosixFilePermission> perms = PosixFilePermissions.fromString(posixMode.toString());
+      try
+      {
+        Files.setPosixFilePermissions(filePath, perms);
+      }
+      catch (Exception ex)
+      {
+        return false;
+      }
+      return true;
+    }
+    return Files.getFileAttributeView(filePath, AclFileAttributeView.class) != null;
+  }
 
   /**
    * Retrieves a three-character string that is the UNIX mode for the
