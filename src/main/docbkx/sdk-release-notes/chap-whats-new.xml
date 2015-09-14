@@ -9,8 +9,7 @@
   ! or send a letter to Creative Commons, 444 Castro Street,
   ! Suite 900, Mountain View, California, 94041, USA.
   !
-  ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,29 +19,88 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2014 ForgeRock AS
+  !      Copyright 2014-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-whats-new'
-  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
-  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-  xsi:schemaLocation='http://docbook.org/ns/docbook
-                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
-  xmlns:xlink='http://www.w3.org/1999/xlink'>
-  <title>What's New in OpenDJ LDAP SDK ${sdkDocTargetVersion}</title>
+        xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xsi:schemaLocation='http://docbook.org/ns/docbook
+                            http://docbook.org/xml/5.0/xsd/docbook.xsd'
+        xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <title>What's New in OpenDJ LDAP SDK ${sdkDocTargetVersion}</title>
+
+ <para>
+  OpenDJ LDAP SDK ${sdkDocTargetVersion} is a maintenance release
+  that resolves a number of issues.
+  It is recommended that you update to this release
+  to take advantage of important functional fixes.
+  ForgeRock customers can contact support for help and further information.
+ </para>
+
+ <para>
+  Before you use the new release, read these release notes.
+ </para>
+
+ <section xml:id="product-enhancements">
+  <title>Product Enhancements</title>
+
+  <itemizedlist>
+   <para>
+    Compared to the OpenDJ LDAP SDK 2.6.9 release,
+    OpenDJ LDAP SDK ${sdkDocTargetVersion} provides these important enhancements.
+   </para>
+
+   <listitem>
+    <para>
+     The PersistentSearchChangeType enum now allows the developer
+     to obtain enum values from the int value representation
+     in order to allow switching on values without having to redefine constants
+     (<link
+      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-2023"
+      xlink:show="new"
+     >OPENDJ-2023</link>).
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     OpenDJ LDAP SDK now provides a <literal>TransactionIdControl</literal>
+     to pass a transaction ID for audit logging in LDAP requests
+     (<link
+      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1926"
+      xlink:show="new"
+     >OPENDJ-1926</link>).
+    </para>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section xml:id="product-documentation">
+  <title>OpenDJ LDAP SDK Documentation</title>
 
   <para>
-   This release provides the following new features and enhancements.
+   You can read the following additional product documentation
+   for OpenDJ LDAP SDK 2.6 online at ForgeRock
+   <link xlink:show="new" xlink:href="${coreDocBase}">BackStage</link>.
   </para>
 
- <!-- List generated at 12:50:26 20140710 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OPENDJ+AND+type+%21%3D+Bug+AND+component+not+in+%28Documentation%2C+QA%29+AND+fixVersion+in+%28%222.6.9-sdk%22%2C+%222.6.8-sdk%22%2C+%222.6.7-sdk%22%2C+%222.6.6-sdk%22%2C+%222.6.5-sdk%22%2C+%222.6.4-sdk%22%2C+%222.6.3-sdk%22%2C+%222.6.2-sdk%22%2C+%222.6.1-sdk%22%29+AND+status+%3D+Resolved&startAt=0&maxResults=500&fields=summary-->
- <itemizedlist>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1508" xlink:show="new">OPENDJ-1508</link>: Allow "=" in malformed attribute options</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1466" xlink:show="new">OPENDJ-1466</link>: Improve initialization of InetSocketAddress in SDK to prevent cached DNS data.</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1152" xlink:show="new">OPENDJ-1152</link>: Provide the ability to debug leaked pooled connections</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1124" xlink:show="new">OPENDJ-1124</link>: Connection.search() return value not mockable</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1112" xlink:show="new">OPENDJ-1112</link>: LoadBalancing connection factories need better diagnostic messages</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1091" xlink:show="new">OPENDJ-1091</link>: Implement a cached connection pool</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033" xlink:show="new">OPENDJ-1033</link>: The Rest2LDAP servlet does not support SSL</para></listitem>
+  <itemizedlist>
+   <listitem>
+    <para>
+     <link xlink:show="new"
+           xlink:href="${coreDocBase}/dev-guide/"><citetitle
+      >OpenDJ 2.6.0 LDAP SDK Developer's Guide</citetitle></link>
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <link xlink:show="new"
+           xlink:href="${sdkJavadocBase}"><citetitle
+      >OpenDJ 2.6.0 LDAP SDK API Specification</citetitle></link>
+    </para>
+   </listitem>
   </itemizedlist>
+ </section>
 </chapter>
