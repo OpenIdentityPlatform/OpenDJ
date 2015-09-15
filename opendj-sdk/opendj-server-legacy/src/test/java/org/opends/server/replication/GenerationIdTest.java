@@ -33,7 +33,7 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -107,9 +107,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private String[] updatedEntries;
   private static int[] replServerPort;
 
-  /**
-   * A makeldif template used to create some test entries.
-   */
+  /** A makeldif template used to create some test entries. */
   private static String diff = "";
   private static String[] template = new String[] {
     "define suffix=" + baseDnStr,
@@ -148,7 +146,6 @@ public class GenerationIdTest extends ReplicationTestCase
     "description: This is the description for {cn} " + diff,
   ""};
 
-
   private void debugInfo(String s)
   {
     logger.error(LocalizableMessage.raw("** TEST **" + s));
@@ -163,9 +160,7 @@ public class GenerationIdTest extends ReplicationTestCase
     debugInfo(message + " " + stackTraceToSingleLineString(e));
   }
 
-  /**
-   * Set up the environment for performing the tests in this Class.
-   */
+  /** Set up the environment for performing the tests in this Class. */
   @Override
   @BeforeClass
   public void setUp() throws Exception
@@ -228,12 +223,9 @@ public class GenerationIdTest extends ReplicationTestCase
     return found;
   }
 
-  /**
-   * Creates entries necessary to the test.
-   */
+  /** Creates entries necessary to the test. */
   private String[] newLDIFEntries()
   {
-
     return new String[]{
         "dn: " + baseDN + "\n"
             + "objectClass: top\n"
@@ -312,7 +304,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
     if (updatedEntries != null)
     {
-      assertEquals(updatedEntries.length, entriesReceived);
+      Assertions.assertThat(updatedEntries).hasSize(entriesReceived);
     }
 
     return entriesReceived;
@@ -353,10 +345,7 @@ public class GenerationIdTest extends ReplicationTestCase
     return replicationServer;
   }
 
-  /**
-   * Create a synchronized suffix in the current server providing the
-   * replication Server.
-   */
+  /** Create a synchronized suffix in the current server providing the replication Server. */
   private void connectServer1ToReplServer(ReplicationServer rs) throws Exception
   {
     debugInfo("Connecting DS1 to replicate to RS" + getRSNumber(rs) + "(" + rs.getServerId() + ")");
@@ -480,15 +469,8 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Entry found <" + baseDN + ">");
 
       AttributeType synchronizationGenIDType = DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-      List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
-      if (attrs != null)
-      {
-        Attribute attr = attrs.get(0);
-        if (attr.size() == 1)
-        {
-          return Long.decode(attr.iterator().next().toString());
-        }
-      }
+      Attribute attr = resultEntry.getExactAttribute(synchronizationGenIDType, new HashSet<String>());
+      return Long.valueOf(attr.iterator().next().toString());
     }
     return -1;
   }
@@ -569,20 +551,14 @@ public class GenerationIdTest extends ReplicationTestCase
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
   }
 
-  /**
-   * Check that the expected number of changes are in the replication server
-   * database.
-   */
+  /** Check that the expected number of changes are in the replication server database. */
   private void checkChangelogSize(int expectedCount) throws Exception
   {
     // TODO : commented this throw because test is executed through a slow test
     //throw new RuntimeException("Dead code. Should we remove this method and the test calling it?");
   }
 
-  /**
-   * SingleRS tests basic features of generationID
-   * with one single Replication Server.
-   */
+  /** SingleRS tests basic features of generationID with one single Replication Server. */
   @Test
   public void testSingleRS() throws Exception
   {
@@ -635,8 +611,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase
           + " Test that the generationId is written in the DB in the root entry on DS1");
       dsGenId = readGenIdFromSuffixRootEntry(true);
-      assertTrue(dsGenId != -1);
-      assertTrue(dsGenId != EMPTY_DN_GENID);
+      Assertions.assertThat(dsGenId).isNotIn(-1, EMPTY_DN_GENID);
 
       debugInfo(testCase + " Test that the generationId is set on RS1");
       rsGenId = replServer1.getGenerationId(baseDN);
@@ -645,15 +620,11 @@ public class GenerationIdTest extends ReplicationTestCase
       //===========================================================
       debugInfo(testCase + " ** TEST ** DS2 connection to RS1 with bad genID");
 
-      broker2 =
-          openReplicationSession(baseDN, server2ID, 100, replServer1
-              .getReplicationPort(), 1000, dsGenId + 1);
+      broker2 = openReplicationSession(server2ID, replServer1, dsGenId + 1);
 
       // ===========================================================
       debugInfo(testCase + " ** TEST ** DS3 connection to RS1 with good genID");
-      broker3 =
-          openReplicationSession(baseDN, server3ID, 100, replServer1
-              .getReplicationPort(), 1000, dsGenId);
+      broker3 = openReplicationSession(server3ID, replServer1, dsGenId);
 
       // ===========================================================
       debugInfo(testCase
@@ -715,13 +686,11 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " ** TEST ** Import with new data set + reset will"+
           " spread a new gen ID on the topology, verify DS1 and RS1");
       debugInfo("Create again broker2");
-      broker2 = openReplicationSession(baseDN,
-          server2ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
+      broker2 = openReplicationSession(server2ID, replServer1, dsGenId);
       assertTrue(broker2.isConnected(), "Broker2 failed to connect to replication server");
 
       debugInfo("Create again broker3");
-      broker3 = openReplicationSession(baseDN,
-          server3ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
+      broker3 = openReplicationSession(server3ID, replServer1, dsGenId);
       assertTrue(broker3.isConnected(), "Broker3 failed to connect to replication server");
 
 
@@ -748,10 +717,12 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("DS1 root entry must contain the new gen ID");
       dsGenId = readGenIdFromSuffixRootEntry(true);
-      assertTrue(dsGenId != -1, "DS is expected to have a new genID computed " +
-          " after on-line import but genId=" + dsGenId);
-      assertTrue(dsGenId != oldGenId, "The new genID after import and reset of genID "
-        + "is expected to be diffrent from previous one");
+      Assertions.assertThat(dsGenId)
+        .as("DS is expected to have a new genID computed after on-line import")
+        .isNotIn(-1);
+      Assertions.assertThat(dsGenId)
+        .as("The new genID after import and reset of genID is expected to be diffrent from previous one")
+        .isNotIn(oldGenId);
 
       debugInfo("RS1 must have the new gen ID");
       rsGenId = replServer1.getGenerationId(baseDN);
@@ -810,13 +781,11 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // Simulates the broker restart at the end of the import
       broker2.stop();
-      broker2 = openReplicationSession(baseDN,
-          server2ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
+      broker2 = openReplicationSession(server2ID, replServer1, dsGenId);
 
       // Simulates the broker restart at the end of the import
       broker3.stop();
-      broker3 = openReplicationSession(baseDN,
-          server3ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
+      broker3 = openReplicationSession(server3ID, replServer1, dsGenId);
 
       debugInfo("Adding reset task to DS1");
       executeTask(createSetGenerationIdTask(null, ""), 20000);
@@ -960,8 +929,7 @@ public class GenerationIdTest extends ReplicationTestCase
       waitForStableGenerationId(genId);
 
       debugInfo("Connecting broker2 to replServer3 with a good genId");
-      broker2 = openReplicationSession(baseDN, server2ID, 100,
-          replServer3.getReplicationPort(), 1000, genId);
+      broker2 = openReplicationSession(server2ID, replServer3, genId);
       Thread.sleep(1000);
 
       debugInfo("Expecting that broker2 is not in bad gen id since it has a correct genId");
@@ -976,8 +944,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting broker3 to replServer1 with a bad genId");
       long badGenId = 1;
-      broker3 = openReplicationSession(baseDN, server3ID, 100,
-          replServer1.getReplicationPort(), 1000, badGenId);
+      broker3 = openReplicationSession(server3ID, replServer1, badGenId);
       Thread.sleep(1000);
 
       debugInfo("Expecting that broker3 is in bad gen id since it has a bad genId");
@@ -1040,9 +1007,7 @@ public class GenerationIdTest extends ReplicationTestCase
     return domain.isDegradedDueToGenerationId(serverId);
   }
 
-  /**
-   * Disconnect broker and remove entries from the local DB.
-   */
+  /** Disconnect broker and remove entries from the local DB. */
   private void postTest() throws Exception
   {
     debugInfo("Post test cleaning.");
@@ -1125,8 +1090,7 @@ public class GenerationIdTest extends ReplicationTestCase
       for (int i=0; i< 5; i++)
       {
         long generationId = 1000+i;
-        broker = openReplicationSession(baseDN, server2ID, 100,
-            replServer1.getReplicationPort(), 1000, generationId);
+        broker = openReplicationSession(server2ID, replServer1, generationId);
         debugInfo(testCase + " Expect genId to be set in memory on the replication " +
           " server side even if not wrote on disk/db since no change occurred.");
         rsGenId = replServer1.getGenerationId(baseDN);
@@ -1141,5 +1105,11 @@ public class GenerationIdTest extends ReplicationTestCase
       postTest();
       debugInfo("Successfully ending " + testCase);
     }
+  }
+
+  protected ReplicationBroker openReplicationSession(int serverId, ReplicationServer replServer, long generationId)
+      throws Exception
+  {
+    return openReplicationSession(baseDN, serverId, 100, replServer.getReplicationPort(), 1000, generationId);
   }
 }
