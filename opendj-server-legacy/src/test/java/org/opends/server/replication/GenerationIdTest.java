@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication;
 
+import static java.util.concurrent.TimeUnit.*;
+
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -37,8 +39,10 @@ import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -67,6 +71,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -368,21 +373,23 @@ public class GenerationIdTest extends ReplicationTestCase
 
       addSynchroServerEntry(synchroServerLdif);
 
-      int waitCo=0;
-      LDAPReplicationDomain doToco=null;
-      while(waitCo<50)
+
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(1, MINUTES)
+        .sleepTimes(200, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new Callable<Void>()
       {
-        doToco = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
-        if (doToco != null && doToco.isConnected())
+        @Override
+        public Void call() throws Exception
         {
-          break;
+          LDAPReplicationDomain doToco = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
+          assertNotNull(doToco);
+          assertTrue(doToco.isConnected(), "not connected");
+          debugInfo("ReplicationDomain: Import/Export is running ? " + doToco.ieRunning());
+          return null;
         }
-        Thread.sleep(waitCo * 200);
-        waitCo++;
-      }
-      assertNotNull(doToco);
-      assertTrue(doToco.isConnected(), "not connected after #attempt="+waitCo);
-      debugInfo("ReplicationDomain: Import/Export is running ? " + doToco.ieRunning());
+      });
     }
   }
 
@@ -432,17 +439,23 @@ public class GenerationIdTest extends ReplicationTestCase
 
       configEntriesToCleanup.remove(synchroServerDN);
 
-      LDAPReplicationDomain replDomainToDis = null;
+
       try
       {
-        int waitCo=0;
-        while(waitCo<30)
+        // check replication domain gets disconnected
+        TestTimer timer = new TestTimer.Builder()
+          .maxSleep(10, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer();
+        timer.repeatUntilSuccess(new Callable<Void>()
         {
-          replDomainToDis = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
-          Thread.sleep(200);
-          waitCo++;
-        }
-        assertNull(replDomainToDis);
+          @Override
+          public Void call() throws Exception
+          {
+            assertNull(LDAPReplicationDomain.retrievesReplicationDomain(baseDN));
+            return null;
+          }
+        });
       }
       catch (DirectoryException e)
       {
@@ -841,21 +854,23 @@ public class GenerationIdTest extends ReplicationTestCase
    * Waits for the connection from server1 to the replication domain to
    * establish itself up automagically.
    */
-  private void waitConnectionToReplicationDomain(DN baseDN, int timeout)
+  private void waitConnectionToReplicationDomain(final DN baseDN, int timeout) throws Exception
   {
-    long start = System.currentTimeMillis();
-    while (System.currentTimeMillis() - start <= timeout)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(timeout, MILLISECONDS)
+      .sleepTimes(50, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
-      if (domain != null && domain.isConnected())
+      @Override
+      public Void call() throws Exception
       {
-        break;
+        LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
+        assertNotNull(domain);
+        assertTrue(domain.isConnected(), "server should have been connected to replication domain" + baseDN);
+        return null;
       }
-    }
-    assertTrue(MultimasterReplication.findDomain(baseDN, null).isConnected(),
-        "After waiting " + (System.currentTimeMillis() - start)
-            + " ms, server should have been connected to replication domain "
-            + baseDN);
+    });
   }
 
   private Entry createSetGenerationIdTask(Long genId, String additionalAttribute) throws Exception
@@ -977,28 +992,30 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  private void waitForStableGenerationId(long expectedGenId) throws Exception
+  private void waitForStableGenerationId(final long expectedGenId) throws Exception
   {
-    int wait = 0;
-    while (wait < 100)
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(10, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      if (replServer1.getGenerationId(baseDN) == expectedGenId
-          && replServer2.getGenerationId(baseDN) == expectedGenId
-          && replServer3.getGenerationId(baseDN) == expectedGenId)
+      @Override
+      public Void call() throws Exception
       {
-        break;
+        assertGenIdEquals(expectedGenId);
+        return null;
       }
-      wait++;
-      Thread.sleep(100);
-    }
-    assertGenIdEquals(expectedGenId);
+    });
   }
 
   private void assertGenIdEquals(long expectedGenId)
   {
-    assertEquals(replServer1.getGenerationId(baseDN), expectedGenId, " in replServer1");
-    assertEquals(replServer2.getGenerationId(baseDN), expectedGenId, " in replServer2");
-    assertEquals(replServer3.getGenerationId(baseDN), expectedGenId, " in replServer3");
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(replServer1.getGenerationId(baseDN)).as("in replServer1").isEqualTo(expectedGenId);
+    softly.assertThat(replServer2.getGenerationId(baseDN)).as("in replServer2").isEqualTo(expectedGenId);
+    softly.assertThat(replServer3.getGenerationId(baseDN)).as("in replServer3").isEqualTo(expectedGenId);
+    softly.assertAll();
   }
 
   private boolean isDegradedDueToGenerationId(ReplicationServer rs, int serverId)
