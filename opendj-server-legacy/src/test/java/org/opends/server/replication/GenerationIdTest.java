@@ -468,9 +468,9 @@ public class GenerationIdTest extends ReplicationTestCase
     return replServerPort[replServerId - replServerId1];
   }
 
-  private long readGenIdFromSuffixRootEntry() throws Exception
+  private long readGenIdFromSuffixRootEntry(boolean shouldExist) throws Exception
   {
-    Entry resultEntry = getEntry(baseDN, 1000, true);
+    Entry resultEntry = getEntry(baseDN, 1000, shouldExist);
     if (resultEntry == null)
     {
       debugInfo("Entry not found <" + baseDN + ">");
@@ -611,7 +611,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo(testCase
           + " Expect genId to be not retrievable from suffix root entry");
-      dsGenId = readGenIdFromSuffixRootEntry();
+      dsGenId = readGenIdFromSuffixRootEntry(false);
       assertEquals(dsGenId,-1);
 
       debugInfo(testCase
@@ -634,7 +634,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo(testCase
           + " Test that the generationId is written in the DB in the root entry on DS1");
-      dsGenId = readGenIdFromSuffixRootEntry();
+      dsGenId = readGenIdFromSuffixRootEntry(true);
       assertTrue(dsGenId != -1);
       assertTrue(dsGenId != EMPTY_DN_GENID);
 
@@ -747,7 +747,7 @@ public class GenerationIdTest extends ReplicationTestCase
               + " to enter the bad gen id status" + csMsg);
 
       debugInfo("DS1 root entry must contain the new gen ID");
-      dsGenId = readGenIdFromSuffixRootEntry();
+      dsGenId = readGenIdFromSuffixRootEntry(true);
       assertTrue(dsGenId != -1, "DS is expected to have a new genID computed " +
           " after on-line import but genId=" + dsGenId);
       assertTrue(dsGenId != oldGenId, "The new genID after import and reset of genID "
@@ -955,7 +955,7 @@ public class GenerationIdTest extends ReplicationTestCase
       connectServer1ToReplServer(replServer2);
 
       debugInfo("Expect genIds to be set in all servers based on the added entries.");
-      genId = readGenIdFromSuffixRootEntry();
+      genId = readGenIdFromSuffixRootEntry(true);
       Assertions.assertThat(genId).isNotEqualTo(-1);
       waitForStableGenerationId(genId);
 
@@ -991,7 +991,7 @@ public class GenerationIdTest extends ReplicationTestCase
       executeTask(createSetGenerationIdTask(null, ""), 20000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
-      genId = readGenIdFromSuffixRootEntry();
+      genId = readGenIdFromSuffixRootEntry(true);
       assertGenIdEquals(genId);
 
       debugInfo("Adding reset task to DS." + genId);
@@ -1084,12 +1084,12 @@ public class GenerationIdTest extends ReplicationTestCase
        * Check : nothing is broken - no generationId generated
        */
       connectServer1ToReplServer(replServer1);
-      assertEquals(readGenIdFromSuffixRootEntry(), -1,
+      assertEquals(readGenIdFromSuffixRootEntry(false), -1,
           "genId attribute should not be retrievable since there are NO entry in the backend");
 
       waitConnectionToReplicationDomain(baseDN, 1000);
       addTestEntriesToDB(updatedEntries);
-      assertEquals(readGenIdFromSuffixRootEntry(), EMPTY_DN_GENID,
+      assertEquals(readGenIdFromSuffixRootEntry(true), EMPTY_DN_GENID,
           "genId attribute should be retrievable since there IS one entry in the backend");
 
       disconnectFromReplServer(replServer1);
@@ -1142,5 +1142,4 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Successfully ending " + testCase);
     }
   }
-
 }
