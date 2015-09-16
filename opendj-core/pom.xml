@@ -182,6 +182,65 @@
         </plugins>
       </reporting>
     </profile>
+
+    <!--
+      Generates consolidated Javadoc covering both LDAP SDK packages
+      and also dependency (and transitive dependency) ForgeRock packages.
+    -->
+    <profile>
+      <id>forgerock-release</id>
+
+      <properties>
+        <javadocTitle>OpenDJ LDAP SDK ${project.version} API</javadocTitle>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>javadoc-jar</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <includeDependencySources>true</includeDependencySources>
+              <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
+              <dependencySourceIncludes>
+                <dependencySourceInclude>org.forgerock.*:*</dependencySourceInclude>
+              </dependencySourceIncludes>
+              <excludePackageNames>com.*:*.internal</excludePackageNames>
+              <groups>
+                <group>
+                  <title>${project.name} Packages</title>
+                  <packages>${project.groupId}*</packages>
+                </group>
+                <group>
+                  <title>ForgeRock Common Packages</title>
+                  <packages>*</packages>
+                </group>
+              </groups>
+              <author>false</author>
+              <doctitle>${javadocTitle}</doctitle>
+              <windowtitle>${javadocTitle}</windowtitle>
+              <header>${javadocTitle}</header>
+              <footer>${javadocTitle}</footer>
+              <bottom>Copyright 2011-${maven.build.timestamp} ForgeRock AS.</bottom>
+              <links>
+                <link>http://docs.oracle.com/javase/7/docs/api/</link>
+                <link>http://www.slf4j.org/apidocs/</link>
+              </links>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <reporting>
