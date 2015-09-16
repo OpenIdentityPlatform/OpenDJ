@@ -1396,7 +1396,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
   /**
-   * Tests {@link Attribute#hasAllOptions(java.util.Collection)}.
+   * Tests {@link Attribute#hasAllOptions(Collection)}.
    *
    * @param testCase
    *          Test case index (useful for debugging).
@@ -1416,19 +1416,20 @@ public class AttributeBuilderTest extends TypesTestCase
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    // Check hasAllOptions().
+    Assert.assertTrue(a.hasAllOptions(null));
     Assert.assertTrue(a.hasAllOptions(Collections.<String> emptySet()));
     Assert.assertTrue(a.hasAllOptions(Arrays.asList(options)));
 
     if (options.length > 1)
     {
-      Assert.assertTrue(a.hasAllOptions(Arrays.asList(options).subList(1,
-          options.length)));
+      Assert.assertTrue(a.hasAllOptions(Arrays.asList(options).subList(1, options.length)));
     }
 
     List<String> tmp = newArrayList(options);
     tmp.add("xxxx");
     Assert.assertFalse(a.hasAllOptions(tmp));
+
+    Assert.assertFalse(a.hasAllOptions(newHashSet("xxxx")));
 
     tmp.clear();
     for (String option : options)

@@ -61,10 +61,10 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param assertionValue
    *          The assertion value for which to make the determination.
-   * @return <CODE>UNDEFINED</CODE> if this attribute does not have
-   *         an approximate matching rule, <CODE>TRUE</CODE> if at
+   * @return {@link ConditionResult#UNDEFINED} if this attribute does not have
+   *         an approximate matching rule, {@link ConditionResult#TRUE} if at
    *         least one value is approximately equal to the provided
-   *         value, or <CODE>false</CODE> otherwise.
+   *         value, or {@link ConditionResult#FALSE} otherwise.
    */
   ConditionResult approximatelyEqualTo(ByteString assertionValue);
 
@@ -73,8 +73,8 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param value
    *          The value for which to make the determination.
-   * @return <CODE>true</CODE> if this attribute has the specified
-   *         value, or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute has the specified
+   *         value, or {@code false} if not.
    */
   boolean contains(ByteString value);
 
@@ -84,8 +84,8 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param values
    *          The set of values for which to make the determination.
-   * @return <CODE>true</CODE> if this attribute contains all the
-   *         values in the provided collection, or <CODE>false</CODE>
+   * @return {@code true} if this attribute contains all the
+   *         values in the provided collection, or {@code false}
    *         if it does not contain at least one of them.
    */
   boolean containsAll(Collection<ByteString> values);
@@ -95,8 +95,8 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param assertionValue
    *          The assertion value for which to make the determination.
-   * @return <CODE>true</CODE> if this attribute matches the specified assertion
-   *         value, or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute matches the specified assertion
+   *         value, or {@code false} if not.
    */
   ConditionResult matchesEqualityAssertion(ByteString assertionValue);
 
@@ -107,9 +107,9 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param o
    *          The object for which to make the determination.
-   * @return <CODE>true</CODE> if the provided object is an
+   * @return {@code true} if the provided object is an
    *         attribute that is equal to this attribute, or
-   *         <CODE>false</CODE> if not.
+   *         {@code false} if not.
    */
   @Override
   boolean equals(Object o);
@@ -152,30 +152,26 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param assertionValue
    *          The assertion value for which to make the determination.
-   * @return <CODE>UNDEFINED</CODE> if this attribute does not have
-   *         an ordering matching rule, <CODE>TRUE</CODE> if at
+   * @return {@link ConditionResult#UNDEFINED} if this attribute does not have
+   *         an ordering matching rule, {@link ConditionResult#TRUE} if at
    *         least one value is greater than or equal to the provided
-   *         assertion value, or <CODE>false</CODE> otherwise.
+   *         assertion value, or {@link ConditionResult#FALSE} otherwise.
    */
   ConditionResult greaterThanOrEqualTo(ByteString assertionValue);
 
   /**
-   * Indicates whether this attribute has all of the options in the
-   * provided collection.
+   * Indicates whether this attribute has all of the options in the provided collection.
    *
    * @param options
-   *          The collection of options for which to make the
-   *          determination (may be <code>null</code>).
-   * @return <CODE>true</CODE> if this attribute has all of the
-   *         specified options, or <CODE>false</CODE> if it does not
-   *         have at least one of them.
+   *          The collection of options for which to make the determination (may be {@code null}).
+   * @return {@code true} if this attribute has all of the specified options,
+   *         or {@code false} if it does not have at least one of them.
    */
   boolean hasAllOptions(Collection<String> options);
 
   /**
    * Retrieves the hash code for this attribute. It will be calculated
-   * as the sum of the hash code for the attribute type and all
-   * values.
+   * as the sum of the hash code for the attribute type and all values.
    *
    * @return The hash code for this attribute.
    */
@@ -187,24 +183,24 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param option
    *          The option for which to make the determination.
-   * @return <CODE>true</CODE> if this attribute has the specified
-   *         option, or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute has the specified option,
+   *         or {@code false} if not.
    */
   boolean hasOption(String option);
 
   /**
    * Indicates whether this attribute has any options at all.
    *
-   * @return <CODE>true</CODE> if this attribute has at least one
-   *         option, or <CODE>false</CODE> if not.
+   * @return {@code true} if this attribute has at least one
+   *         option, or {@code false} if not.
    */
   boolean hasOptions();
 
   /**
-   * Returns <code>true</code> if this attribute contains no
+   * Returns {@code true} if this attribute contains no
    * attribute values.
    *
-   * @return <CODE>true</CODE> if this attribute contains no
+   * @return {@code true} if this attribute contains no
    *         attribute values.
    */
   boolean isEmpty();
@@ -229,7 +225,7 @@ public interface Attribute extends Iterable<ByteString>
    * Returns an iterator over the attribute values in this attribute.
    * The attribute values are returned in the order in which they were
    * added this attribute. The returned iterator does not support
-   * attribute value removals via its <code>remove</code> method.
+   * attribute value removals via {@link Iterator#remove()}.
    *
    * @return An iterator over the attribute values in this attribute.
    */
@@ -242,10 +238,10 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param assertionValue
    *          The assertion value for which to make the determination.
-   * @return <CODE>UNDEFINED</CODE> if this attribute does not have
-   *         an ordering matching rule, <CODE>TRUE</CODE> if at
+   * @return {@link ConditionResult#UNDEFINED} if this attribute does not have
+   *         an ordering matching rule, {@link ConditionResult#TRUE} if at
    *         least one value is less than or equal to the provided
-   *         assertion value, or <CODE>false</CODE> otherwise.
+   *         assertion value, or {@link ConditionResult#FALSE} otherwise.
    */
   ConditionResult lessThanOrEqualTo(ByteString assertionValue);
 
@@ -259,10 +255,10 @@ public interface Attribute extends Iterable<ByteString>
    *          The subAny components to use in the determination.
    * @param subFinal
    *          The subFinal component to use in the determination.
-   * @return <CODE>UNDEFINED</CODE> if this attribute does not have
-   *         a substring matching rule, <CODE>TRUE</CODE> if at
+   * @return {@link ConditionResult#UNDEFINED} if this attribute does not have
+   *         a substring matching rule, {@link ConditionResult#TRUE} if at
    *         least one value matches the provided substring, or
-   *         <CODE>FALSE</CODE> otherwise.
+   *         {@link ConditionResult#FALSE} otherwise.
    */
   ConditionResult matchesSubstring(ByteString subInitial,
       List<ByteString> subAny, ByteString subFinal);
@@ -273,8 +269,8 @@ public interface Attribute extends Iterable<ByteString>
    *
    * @param options
    *          The set of options for which to make the determination
-   *          (may be <code>null</code>).
-   * @return <CODE>true</CODE> if this attribute has exactly the
+   *          (may be {@code null}).
+   * @return {@code true} if this attribute has exactly the
    *         specified set of options.
    */
   boolean optionsEqual(Set<String> options);

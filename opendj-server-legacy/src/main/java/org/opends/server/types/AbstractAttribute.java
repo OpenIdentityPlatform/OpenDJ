@@ -33,8 +33,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 
-import static org.opends.server.util.StaticUtils.*;
-
 /** An abstract base class for implementing new types of {@link Attribute}. */
 @org.opends.server.types.PublicAPI(
     stability = org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -146,27 +144,16 @@ public abstract class AbstractAttribute implements Attribute
   /**
    * {@inheritDoc}
    * <p>
-   * This implementation returns <code>true</code> if the provided
-   * collection of options is <code>null</code> or empty. If the
+   * This implementation returns {@code true} if the provided
+   * collection of options is {@code null} or empty. If the
    * collection is non-empty and this attribute does not have any
-   * options then it returns <code>false</code>. Otherwise, each
-   * option in the provided collection is checked using
-   * {@link #hasOption(String)} and <code>true</code> is
+   * options then it returns {@code false}. Otherwise, {@code true} is
    * returned if all the provided options are present.
    */
   @Override
   public boolean hasAllOptions(Collection<String> options)
   {
-    if (options == null || options.isEmpty())
-    {
-      return true;
-    }
-
-    if (hasOptions())
-    {
-      return hasAllOptions0(options);
-    }
-    return false;
+    return AttributeDescription.containsAllOptions(getOptions(), options);
   }
 
   @Override
@@ -194,24 +181,12 @@ public abstract class AbstractAttribute implements Attribute
    * This implementation calls {@link #getOptions()} to
    * retrieve this attribute's set of options and then compares them
    * one at a time against the provided option. All comparisons are
-   * case insensitive (this is why we iterate through the set of
-   * options, rather than doing a simpler set membership test).
+   * case insensitive.
    */
   @Override
   public boolean hasOption(String option)
   {
-    String noption = toLowerCase(option);
-
-    // Cannot use Set.contains() because the options are not normalized.
-    for (String o : getOptions())
-    {
-      String no = toLowerCase(o);
-      if (no.equals(noption))
-      {
-        return true;
-      }
-    }
-    return false;
+    return AttributeDescription.containsOption(getOptions(), option);
   }
 
   /**
@@ -259,29 +234,12 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public boolean optionsEqual(Set<String> options)
   {
-    if (options == null)
+    if (options != null)
     {
-      return !hasOptions();
+      return getOptions().size() == options.size()
+          && hasAllOptions(options);
     }
-
-    if (getOptions().size() == options.size())
-    {
-      return hasAllOptions0(options);
-    }
-    return false;
-  }
-
-  /** Cannot use Set.containsAll() because the set of options are not normalized. */
-  private boolean hasAllOptions0(Collection<String> options)
-  {
-    for (String option : options)
-    {
-      if (!hasOption(option))
-      {
-        return false;
-      }
-    }
-    return true;
+    return !hasOptions();
   }
 
   @Override
