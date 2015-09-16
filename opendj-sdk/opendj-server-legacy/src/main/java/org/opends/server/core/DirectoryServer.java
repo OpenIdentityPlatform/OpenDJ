@@ -1396,8 +1396,8 @@ public final class DirectoryServer
       // Initialize both subentry manager and group manager
       // for the configuration backend.
       // TODO : why do we initialize these now ? Can't we do them after backend initialization ?
-      subentryManager.performBackendInitializationProcessing(configHandler);
-      groupManager.performBackendInitializationProcessing(configHandler);
+      subentryManager.performBackendPreInitializationProcessing(configHandler);
+      groupManager.performBackendPreInitializationProcessing(configHandler);
 
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
 
@@ -2019,7 +2019,7 @@ public final class DirectoryServer
     // so we need to handle it explicitly.
     // Because subentryManager may depend on the groupManager, let's
     // delay this.
-    // groupManager.performBackendInitializationProcessing(configHandler);
+    // groupManager.performBackendPreInitializationProcessing(configHandler);
   }
 
   /**
@@ -2119,7 +2119,7 @@ public final class DirectoryServer
       // at this point so we need to handle it explicitly here.
       // However, subentryManager may have dependencies on the
       // groupManager. So lets delay the backend initialization until then.
-      // subentryManager.performBackendInitializationProcessing(
+      // subentryManager.performBackendPreInitializationProcessing(
       //        configHandler);
     }
     catch (DirectoryException de)
@@ -6320,6 +6320,11 @@ public final class DirectoryServer
     {
       try
       {
+        for (BackendInitializationListener listener : getBackendInitializationListeners())
+        {
+          listener.performBackendPreFinalizationProcessing(backend);
+        }
+
         // Deregister all the local backend workflow elements that have been
         // registered with the server.
         LocalBackendWorkflowElement.removeAll();
@@ -6327,7 +6332,7 @@ public final class DirectoryServer
         for (BackendInitializationListener listener :
              directoryServer.backendInitializationListeners)
         {
-          listener.performBackendFinalizationProcessing(backend);
+          listener.performBackendPostFinalizationProcessing(backend);
         }
 
         backend.finalizeBackend();

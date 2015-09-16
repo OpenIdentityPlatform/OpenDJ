@@ -64,11 +64,13 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
-import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -109,7 +111,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
  */
 public final class LDAPReplicationDomain extends ReplicationDomain
        implements ConfigurationChangeListener<ReplicationDomainCfg>,
-                  AlertGenerator
+                  AlertGenerator, BackendInitializationListener, ServerShutdownListener
 {
   /**
    * Set of attributes that will return all the user attributes and the
@@ -117,6 +119,26 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private static final Set<String> USER_AND_REPL_OPERATIONAL_ATTRS =
       newHashSet(HISTORICAL_ATTRIBUTE_NAME, ENTRYUUID_ATTRIBUTE_NAME, "*");
+
+  /**
+   * Initializing replication for the domain initiates backend finalization/initialization
+   * This flag prevents the Replication Domain to disable/enable itself when
+   * it is the event initiator
+   */
+  private boolean ignoreBackendInitializationEvent;
+
+  private volatile boolean  serverShutdownRequested;
+
+  @Override
+  public String getShutdownListenerName() {
+    return "LDAPReplicationDomain " + getBaseDN();
+  }
+
+  @Override
+  public void processServerShutdown(LocalizableMessage reason) {
+    serverShutdownRequested = true;
+  }
+
 
   /**
    * This class is used in the session establishment phase
@@ -165,6 +187,35 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         SearchResultReference searchReference) throws DirectoryException
     {
        // Nothing to do.
+    }
+  }
+
+  @Override
+  public void performBackendPreInitializationProcessing(Backend<?> backend) {
+    // Nothing to do
+  }
+
+  @Override
+  public void performBackendPostFinalizationProcessing(Backend<?> backend) {
+    // Nothing to do
+  }
+
+  @Override
+  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+    if (!ignoreBackendInitializationEvent
+            && getBackend().getBackendID().equals(backend.getBackendID())) {
+      enable();
+    }
+  }
+
+  @Override
+  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+    // Do not disable itself during a shutdown
+    // And ignore the event if this replica is the event trigger (e.g. importing).
+    if (!ignoreBackendInitializationEvent
+            && !serverShutdownRequested
+            && getBackend().getBackendID().equals(backend.getBackendID())) {
+      disable();
     }
   }
 
@@ -481,6 +532,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     // register as an AlertGenerator
     DirectoryServer.registerAlertGenerator(this);
+
+    DirectoryServer.registerBackendInitializationListener(this);
+    DirectoryServer.registerShutdownListener(this);
 
     startPublishService();
   }
@@ -2198,6 +2252,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
 
       DirectoryServer.deregisterAlertGenerator(this);
+      DirectoryServer.deregisterBackendInitializationListener(this);
+      DirectoryServer.deregisterShutdownListener(this);
 
       // stop the ReplicationDomain
       disableService();
@@ -3456,6 +3512,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     // Stop saving state
     stateSavingDisabled = true;
 
+    // Prevent the processing of the backend finalisation event as the import will disable the attached backend
+    ignoreBackendInitializationEvent = true;
+
     // FIXME setBackendEnabled should be part of TaskUtils ?
     TaskUtils.disableBackend(backend.getBackendID());
 
@@ -3582,6 +3641,10 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     }
 
     TaskUtils.enableBackend(backend.getBackendID());
+
+    // Restore the processing of backend finalization events.
+    ignoreBackendInitializationEvent = false;
+
   }
 
   /**

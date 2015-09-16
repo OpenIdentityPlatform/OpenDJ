@@ -258,9 +258,8 @@ public class BackendConfigManager implements
 
         for (BackendInitializationListener listener : getBackendInitializationListeners())
         {
-          listener.performBackendInitializationProcessing(backend);
+          listener.performBackendPreInitializationProcessing(backend);
         }
-
 
         // Register the backend with the server.
         try
@@ -275,6 +274,10 @@ public class BackendConfigManager implements
           // FIXME -- Do we need to send an admin alert?
         }
 
+        for (BackendInitializationListener listener : getBackendInitializationListeners())
+        {
+          listener.performBackendPostInitializationProcessing(backend);
+        }
 
         // Put this backend in the hash so that we will be able to find it if it
         // is altered.
@@ -418,11 +421,17 @@ public class BackendConfigManager implements
           // It isn't disabled, so we will do so now and deregister it from the
           // Directory Server.
           registeredBackends.remove(backendDN);
+
+          for (BackendInitializationListener listener : getBackendInitializationListeners())
+          {
+            listener.performBackendPreFinalizationProcessing(backend);
+          }
+
           DirectoryServer.deregisterBackend(backend);
 
           for (BackendInitializationListener listener : getBackendInitializationListeners())
           {
-            listener.performBackendFinalizationProcessing(backend);
+            listener.performBackendPostFinalizationProcessing(backend);
           }
 
           backend.finalizeBackend();
@@ -572,9 +581,8 @@ public class BackendConfigManager implements
 
       for (BackendInitializationListener listener : getBackendInitializationListeners())
       {
-        listener.performBackendInitializationProcessing(backend);
+        listener.performBackendPreInitializationProcessing(backend);
       }
-
 
       // Register the backend with the server.
       try
@@ -595,6 +603,10 @@ public class BackendConfigManager implements
         return ccr;
       }
 
+      for (BackendInitializationListener listener : getBackendInitializationListeners())
+      {
+        listener.performBackendPostInitializationProcessing(backend);
+      }
 
       registeredBackends.put(backendDN, backend);
     }
@@ -792,7 +804,7 @@ public class BackendConfigManager implements
 
     for (BackendInitializationListener listener : getBackendInitializationListeners())
     {
-      listener.performBackendInitializationProcessing(backend);
+      listener.performBackendPreInitializationProcessing(backend);
     }
 
     // At this point, the backend should be online.  Add it as one of the
@@ -813,6 +825,11 @@ public class BackendConfigManager implements
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(message);
       return ccr;
+    }
+
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
+    {
+      listener.performBackendPostInitializationProcessing(backend);
     }
 
     registeredBackends.put(backendDN, backend);
@@ -936,7 +953,19 @@ public class BackendConfigManager implements
       return ccr;
     }
 
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
+    {
+      listener.performBackendPreFinalizationProcessing(backend);
+    }
+
     registeredBackends.remove(backendDN);
+
+    DirectoryServer.deregisterBackend(backend);
+
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
+    {
+      listener.performBackendPostFinalizationProcessing(backend);
+    }
 
     try
     {
@@ -947,12 +976,6 @@ public class BackendConfigManager implements
       logger.traceException(e);
     }
 
-    for (BackendInitializationListener listener : getBackendInitializationListeners())
-    {
-      listener.performBackendFinalizationProcessing(backend);
-    }
-
-    DirectoryServer.deregisterBackend(backend);
     configEntry.removeChangeListener(this);
 
     // Remove the shared lock for this backend.

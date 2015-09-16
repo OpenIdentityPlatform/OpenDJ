@@ -580,7 +580,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * manager.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(Backend<?> backend)
   {
     InternalClientConnection conn = getRootConnection();
 
@@ -671,7 +671,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * instances associated with entries in the provided backend.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(Backend<?> backend)
   {
     lock.writeLock().lock();
     try
@@ -693,6 +693,15 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
+  @Override
+  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+    // Nothing to do.
+  }
+
+  @Override
+  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+    // Nothing to do.
+  }
 
 
   /**
