@@ -198,9 +198,15 @@ import static org.opends.server.util.DynamicConstants.*;
       ObjectName oname = new ObjectName(
           ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME);
       // Check if this MXBean contains Sun's extension
-      if (mbs.isInstanceOf(oname, "com.sun.management.OperatingSystemMXBean")) {
-          // Get platform-specific attribute "TotalPhysicalMemorySize"
-          return (Long) mbs.getAttribute(oname, "TotalPhysicalMemorySize");
+      if (mbs.isInstanceOf(oname, "com.sun.management.OperatingSystemMXBean"))
+      {
+        // Get platform-specific attribute "TotalPhysicalMemorySize"
+        return (Long) mbs.getAttribute(oname, "TotalPhysicalMemorySize");
+      }
+      else if (mbs.isInstanceOf(oname, "com.ibm.lang.management.OperatingSystemMXBean"))
+      {
+        // IBM JVM attribute is named differently
+        return (Long) mbs.getAttribute(oname, "TotalPhysicalMemory");
       }
     }
     catch (Exception ignored)
