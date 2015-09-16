@@ -588,7 +588,7 @@ public class BindOperationBasis
       {
         clientConnection.finishSaslBind();
       }
-      clientConnection.finishBindOrStartTLS();
+      clientConnection.finishBind();
 
       invokePostResponsePlugins(workflowExecuted);
     }

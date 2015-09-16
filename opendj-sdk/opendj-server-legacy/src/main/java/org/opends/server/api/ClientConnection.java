@@ -93,11 +93,18 @@ public abstract class ClientConnection
   protected AtomicBoolean saslBindInProgress;
 
   /**
-   * Indicates if a bind or start TLS request is currently in progress
-   * on this client connection. If so, then no further socket reads
-   * will occur until the request completes.
+   * Indicates if a bind request is currently in progress on this client
+   * connection. If so, then no further socket reads will occur until the
+   * request completes.
    */
-  protected AtomicBoolean bindOrStartTLSInProgress;
+  protected AtomicBoolean bindInProgress;
+
+  /**
+   * Indicates if a Start TLS request is currently in progress on this client
+   * connection. If so, then no further socket reads will occur until the
+   * request completes.
+   */
+  protected AtomicBoolean startTLSInProgress;
 
   /**
    *  Indicates whether any necessary finalization work has been done for this
@@ -139,7 +146,8 @@ public abstract class ClientConnection
     authenticationInfo = new AuthenticationInfo();
     saslAuthState      = null;
     saslBindInProgress = new AtomicBoolean(false);
-    bindOrStartTLSInProgress = new AtomicBoolean(false);
+    bindInProgress     = new AtomicBoolean(false);
+    startTLSInProgress = new AtomicBoolean(false);
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
     idleTimeLimit      = DirectoryServer.getIdleTimeLimit();
@@ -1545,9 +1553,20 @@ public abstract class ClientConnection
    * the socket again. This must be called after processing each
    * bind request in a multistage SASL bind.
    */
-  public void finishBindOrStartTLS()
+  public void finishBind()
   {
-    bindOrStartTLSInProgress.set(false);
+    bindInProgress.set(false);
+  }
+
+  /**
+   * Indicates a bind or start TLS request processing is finished
+   * and the client connection may start processing data read from
+   * the socket again. This must be called after processing each
+   * bind request in a multistage SASL bind.
+   */
+  public void finishStartTLS()
+  {
+    startTLSInProgress.set(false);
   }
 
   /**
