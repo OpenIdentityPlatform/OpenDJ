@@ -82,15 +82,12 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
 
-/**
- * LDAP connection implementation.
- */
+/** LDAP connection implementation. */
 final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection implements TimeoutEventListener {
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs client
