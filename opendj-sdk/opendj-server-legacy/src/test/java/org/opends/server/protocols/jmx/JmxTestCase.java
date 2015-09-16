@@ -26,13 +26,17 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static java.util.concurrent.TimeUnit.*;
+
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
+import org.assertj.core.api.SoftAssertions;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
@@ -41,6 +45,7 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -82,22 +87,24 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
       jmxConnectionHandler = getJmxConnectionHandler(handlers);
     }
     assertNotNull(jmxConnectionHandler);
-
-
     final RmiConnector rmiConnector = jmxConnectionHandler.getRMIConnector();
-    int cnt = 0;
-    while (cnt <= 50 && !isReady(rmiConnector))
+
+    TestTimer timer = new TestTimer.Builder()
+      .maxSleep(20, SECONDS)
+      .sleepTimes(200, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
     {
-      Thread.sleep(200);
-      cnt++;
-    }
-    if (!isReady(rmiConnector))
-    {
-      assertNotNull(rmiConnector.jmxRmiConnectorNoClientCertificate,
-          "jmxRmiConnectorNoClientCertificate should not be null");
-      assertTrue(rmiConnector.jmxRmiConnectorNoClientCertificate.isActive(),
-          "jmxRmiConnectorNoClientCertificate should be active");
-    }
+      @Override
+      public Void call() throws Exception
+      {
+        SoftAssertions softly = new SoftAssertions();
+        softly.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate).isNotNull();
+        softly.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate.isActive()).isTrue();
+        softly.assertAll();
+        return null;
+      }
+    });
     return jmxConnectionHandler;
   }
 
