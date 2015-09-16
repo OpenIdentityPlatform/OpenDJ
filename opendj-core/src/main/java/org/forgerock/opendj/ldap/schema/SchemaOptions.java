@@ -27,8 +27,6 @@ package org.forgerock.opendj.ldap.schema;
 
 import org.forgerock.util.Option;
 
-import static java.util.Collections.*;
-
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /**

@@ -20,7 +20,6 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeT
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -71,15 +70,9 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Options;
 
-/**
- * Provides core factory methods and builders for constructing LDAP resource
- * collections.
- */
+/** Provides core factory methods and builders for constructing LDAP resource collections. */
 public final class Rest2LDAP {
-    /**
-     * Indicates whether or not LDAP client connections should use SSL or
-     * StartTLS.
-     */
+    /** Indicates whether or not LDAP client connections should use SSL or StartTLS. */
     private enum ConnectionSecurity {
         NONE, SSL, STARTTLS
     }
@@ -92,9 +85,7 @@ public final class Rest2LDAP {
         TRUSTALL, JVM, FILE
     }
 
-    /**
-     * A builder for incrementally constructing LDAP resource collections.
-     */
+    /** A builder for incrementally constructing LDAP resource collections. */
     public static final class Builder {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<>();
         private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
@@ -158,8 +149,7 @@ public final class Rest2LDAP {
         }
 
         /**
-         * Sets the base DN beneath which LDAP entries (resources) are to be
-         * found.
+         * Sets the base DN beneath which LDAP entries (resources) are to be found.
          *
          * @param dn
          *            The base DN.
@@ -172,8 +162,7 @@ public final class Rest2LDAP {
         }
 
         /**
-         * Sets the base DN beneath which LDAP entries (resources) are to be
-         * found.
+         * Sets the base DN beneath which LDAP entries (resources) are to be found.
          *
          * @param dn
          *            The base DN.
@@ -745,7 +734,6 @@ public final class Rest2LDAP {
             final String rdnValue = entry.parseAttribute(dnAttribute).asString();
             final RDN rdn = new RDN(dnAttribute.getAttributeType(), rdnValue);
             entry.setName(baseDN.child(rdn));
-
         }
     }
 
@@ -789,7 +777,6 @@ public final class Rest2LDAP {
         private RDN rdn(final String resourceId) {
             return new RDN(attribute.getAttributeType(), resourceId);
         }
-
     }
 
     /**
@@ -878,7 +865,6 @@ public final class Rest2LDAP {
         final JsonValue normalizedConfiguration =
                 normalizeConnectionFactory(configuration, name, 0);
         return configureConnectionFactory(normalizedConfiguration, providerClassLoader);
-
     }
 
     /**
@@ -1150,5 +1136,4 @@ public final class Rest2LDAP {
     private Rest2LDAP() {
         // Prevent instantiation.
     }
-
 }
