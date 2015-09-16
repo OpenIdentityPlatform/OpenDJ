@@ -166,7 +166,7 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
     @Test(dataProvider = "indentAndWrapProvider")
     public void testIndentAndWrap(String text, int wrapColumn, String indent, String expected) {
         final StringBuilder buffer = new StringBuilder();
-        SubCommandArgumentParser.indentAndWrap(indent, wrapColumn, LocalizableMessage.raw(text), buffer);
+        SubCommandArgumentParser.indentAndWrap(indent, buffer, wrapColumn, LocalizableMessage.raw(text));
         Assertions.assertThat(buffer.toString()).isEqualTo(expected);
     }
 }
