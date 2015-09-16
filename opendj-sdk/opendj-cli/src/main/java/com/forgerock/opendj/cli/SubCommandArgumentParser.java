@@ -47,6 +47,7 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.forgerock.opendj.util.OperatingSystem;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
@@ -61,6 +62,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 public class SubCommandArgumentParser extends ArgumentParser {
 
     private static final String INDENT = "    ";
+    private static final int columnAdjust = OperatingSystem.isWindows() ? 1 : 0;
 
     /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
     private final Map<Argument, Collection<SubCommand>> usageGroupArguments = new HashMap<>();
@@ -788,7 +790,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(subCommand.getTrailingArgumentsDisplayName());
         }
         buffer.append(EOL);
-        buffer.append(subCommand.getDescription());
+        wrap(buffer, subCommand.getDescription());
         buffer.append(EOL);
 
         if (!globalArgumentList.isEmpty()) {
@@ -814,22 +816,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
             printLineForShortLongArgument(a, buffer);
 
-            indentAndWrap2(INDENT, a.getDescription(), buffer);
+            indentAndWrap(buffer, INDENT, a.getDescription());
             if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
-                indentAndWrap2(INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()), buffer);
+                indentAndWrap(buffer, INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()));
             }
         }
-    }
-
-    /**
-     * Write one or more lines with the description of the argument. We will indent the description five characters and
-     * try our best to wrap at or before column 79 so it will be friendly to 80-column displays.
-     * <p>
-     * FIXME Try to merge with #indentAndWrap(LocalizableMessage, LocalizableMessage, LocalizableMessageBuilder).
-     */
-    private void indentAndWrap2(String indent, LocalizableMessage text, StringBuilder buffer) {
-        int actualSize = MAX_LINE_WIDTH - indent.length() - 1;
-        indentAndWrap(indent, actualSize, text, buffer);
     }
 
     /**
@@ -943,7 +934,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 }
                 buffer.append(sc.getName());
                 buffer.append(EOL);
-                indentAndWrap(INDENT, sc.getDescription(), buffer);
+                indentAndWrap(buffer, INDENT, sc.getDescription());
                 buffer.append(EOL);
                 isFirst = false;
             }
@@ -1045,22 +1036,29 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         buffer.append(EOL);
 
-        indentAndWrap(INDENT, a.getDescription(), buffer);
+        indentAndWrap(buffer, INDENT, a.getDescription());
         if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
-            indentAndWrap(INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()), buffer);
+            indentAndWrap(buffer, INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()));
         }
+    }
+
+    /** Wraps long lines without indentation */
+    private void wrap(StringBuilder buffer, LocalizableMessage text) {
+        indentAndWrap(buffer, "", text);
     }
 
     /**
      * Write one or more lines with the description of the argument. We will indent the description five characters and
      * try our best to wrap at or before column 79 so it will be friendly to 80-column displays.
+     * <p>
+     * FIXME consider merging with com.forgerock.opendj.cli.Utils#wrapText(String, int, int)
      */
-    private void indentAndWrap(String indent, LocalizableMessage text, StringBuilder buffer) {
-        int actualSize = MAX_LINE_WIDTH - indent.length();
-        indentAndWrap(indent, actualSize, text, buffer);
+    private void indentAndWrap(StringBuilder buffer, String indent, LocalizableMessage text) {
+        int actualSize = MAX_LINE_WIDTH - indent.length() - columnAdjust;
+        indentAndWrap(indent, buffer, actualSize, text);
     }
 
-    static void indentAndWrap(String indent, int actualSize, LocalizableMessage text, StringBuilder buffer) {
+    static void indentAndWrap(String indent, StringBuilder buffer, int actualSize, LocalizableMessage text) {
         if (text.length() <= actualSize) {
             buffer.append(indent);
             buffer.append(text);
