@@ -61,6 +61,8 @@ import org.opends.server.util.TimeThread;
  */
 public class EntryHistorical
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /** Name of the attribute used to store historical information. */
   public static final String HISTORICAL_ATTRIBUTE_NAME = "ds-sync-hist";
   /**
@@ -71,8 +73,6 @@ public class EntryHistorical
   public static final String HISTORICAL = "ds-synch-historical";
   /** Name of the entryuuid attribute. */
   public static final String ENTRYUUID_ATTRIBUTE_NAME = "entryuuid";
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The delay to purge the historical information.
@@ -303,7 +303,7 @@ public class EntryHistorical
 
     // Read from this entryHistorical,
     // Create one empty if none was existing in this entryHistorical.
-    AttributeDescription attrDesc = new AttributeDescription(modAttr);
+    AttributeDescription attrDesc = AttributeDescription.create(modAttr);
     AttrHistorical attrHist = attributesHistorical.get(attrDesc);
     if (attrHist == null)
     {
@@ -350,8 +350,7 @@ public class EntryHistorical
     for (Map.Entry<AttributeDescription, AttrHistorical> mapEntry : attributesHistorical.entrySet())
     {
       AttributeDescription attrDesc = mapEntry.getKey();
-      AttributeType type = attrDesc.attributeType;
-      String optionsString = attrDesc.toOptionsString();
+      String options = attrDesc.toString();
       AttrHistorical attrHist = mapEntry.getValue();
 
       CSN deleteTime = attrHist.getDeleteTime();
@@ -370,7 +369,7 @@ public class EntryHistorical
             // this hist must be purged now, so skip its encoding
             continue;
           }
-          String strValue = encode(DEL, type, optionsString, attrValHist.getValueDeleteTime(), value);
+          String strValue = encode(DEL, options, attrValHist.getValueDeleteTime(), value);
           builder.add(strValue);
         }
         else if (attrValHist.getValueUpdateTime() != null)
@@ -387,18 +386,18 @@ public class EntryHistorical
           // unit tests do not like changing it
           if (attrDel && updateTime == deleteTime && value != null)
           {
-            strValue = encode(REPL, type, optionsString, updateTime, value);
+            strValue = encode(REPL, options, updateTime, value);
             attrDel = false;
           }
           else if (value != null)
           {
-            strValue = encode(ADD, type, optionsString, updateTime, value);
+            strValue = encode(ADD, options, updateTime, value);
           }
           else
           {
             // "add" without any value is suspicious. Tests never go there.
             // Is this used to encode "add" with an empty string?
-            strValue = encode(ADD, type, optionsString, updateTime);
+            strValue = encode(ADD, options, updateTime);
           }
 
           builder.add(strValue);
@@ -412,8 +411,7 @@ public class EntryHistorical
           // this hist must be purged now, so skip its encoding
           continue;
         }
-        String strValue = encode(ATTRDEL, type, optionsString, deleteTime);
-        builder.add(strValue);
+        builder.add(encode(ATTRDEL, options, deleteTime));
       }
     }
 
@@ -445,16 +443,14 @@ public class EntryHistorical
     return needsPurge;
   }
 
-  private String encode(HistAttrModificationKey modKey, AttributeType type,
-      String optionsString, CSN changeTime)
+  private String encode(HistAttrModificationKey modKey, String options, CSN changeTime)
   {
-    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime + ":" + modKey;
+    return options + ":" + changeTime + ":" + modKey;
   }
 
-  private String encode(HistAttrModificationKey modKey, AttributeType type,
-      String optionsString, CSN changeTime, ByteString value)
+  private String encode(HistAttrModificationKey modKey, String options, CSN changeTime, ByteString value)
   {
-    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime + ":" + modKey + ":" + value;
+    return options + ":" + changeTime + ":" + modKey + ":" + value;
   }
 
   /**
@@ -580,7 +576,7 @@ public class EntryHistorical
             AttrHistorical attrInfo = newHistorical.attributesHistorical.get(attrDesc);
             if (attrInfo == null)
             {
-              attrInfo = AttrHistorical.createAttributeHistorical(attrDesc.attributeType);
+              attrInfo = AttrHistorical.createAttributeHistorical(attrDesc.getAttributeType());
               newHistorical.attributesHistorical.put(attrDesc, attrInfo);
             }
             attrInfo.assign(histVal.getHistKey(), histVal.getAttributeValue(), csn);

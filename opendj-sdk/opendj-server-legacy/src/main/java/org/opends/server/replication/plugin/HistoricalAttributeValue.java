@@ -135,7 +135,7 @@ class HistoricalAttributeValue
         isModDN = true;
       }
     }
-    this.attrDesc = attrType != null ? new AttributeDescription(attrType, options) : null;
+    this.attrDesc = attrType != null ? AttributeDescription.create(attrType, options) : null;
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
@@ -157,6 +157,16 @@ class HistoricalAttributeValue
       stringValue = null;
       attributeValue = null;
     }
+  }
+
+  private AttributeType getAttributeType()
+  {
+    return attrDesc != null ? attrDesc.getAttributeType() : null;
+  }
+
+  private Set<String> getOptions()
+  {
+    return attrDesc != null ? attrDesc.getOptions() : Collections.<String> emptySet();
   }
 
   /**
@@ -216,8 +226,8 @@ class HistoricalAttributeValue
    */
   public Modification generateMod()
   {
-    AttributeBuilder builder = new AttributeBuilder(attrDesc.attributeType, attrString);
-    builder.setOptions(attrDesc.options);
+    AttributeBuilder builder = new AttributeBuilder(getAttributeType(), attrString);
+    builder.setOptions(getOptions());
 
     if (histKey != ATTRDEL)
     {
@@ -247,7 +257,7 @@ class HistoricalAttributeValue
    */
   public boolean isADDOperation()
   {
-    return attrDesc.attributeType == null && !isModDN;
+    return getAttributeType() == null && !isModDN;
   }
 
   /**
@@ -258,7 +268,7 @@ class HistoricalAttributeValue
    */
   public boolean isMODDNOperation()
   {
-    return attrDesc.attributeType == null && isModDN;
+    return getAttributeType() == null && isModDN;
   }
 
   @Override
@@ -266,7 +276,7 @@ class HistoricalAttributeValue
   {
     final StringBuilder sb = new StringBuilder();
     sb.append(attrString);
-    for (String option : attrDesc.options)
+    for (String option : getOptions())
     {
       sb.append(";").append(option);
     }
