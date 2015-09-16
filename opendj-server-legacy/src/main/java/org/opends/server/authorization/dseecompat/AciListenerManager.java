@@ -358,7 +358,7 @@ public class AciListenerManager implements
     Map<String, Backend> backendMap = DirectoryServer.getBackends();
     if (backendMap != null) {
       for (Backend backend : backendMap.values()) {
-        performBackendInitializationProcessing(backend);
+        performBackendPreInitializationProcessing(backend);
       }
     }
 
@@ -388,7 +388,7 @@ public class AciListenerManager implements
    * to the ACI list.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(Backend<?> backend)
   {
     // Check to make sure that the backend has a presence index defined
     // for the ACI attribute. If it does not, then log a warning message
@@ -461,11 +461,20 @@ public class AciListenerManager implements
    * backend.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(Backend<?> backend)
   {
     aciList.removeAci(backend);
   }
 
+  @Override
+  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+    // Nothing to do.
+  }
+
+  @Override
+  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+    // nothing to do.
+  }
 
 
   /**

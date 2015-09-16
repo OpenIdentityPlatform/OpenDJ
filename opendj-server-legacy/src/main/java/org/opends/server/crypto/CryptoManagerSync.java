@@ -222,7 +222,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
   /** {@inheritDoc} */
   @Override
-  public void performBackendInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(Backend<?> backend)
   {
     DN[] baseDNs = backend.getBaseDNs();
     if (baseDNs != null)
@@ -239,9 +239,19 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
   /** {@inheritDoc} */
   @Override
-  public void performBackendFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(Backend<?> backend)
   {
     // No implementation required.
+  }
+
+  @Override
+  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+    // Nothing to do.
+  }
+
+  @Override
+  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+    // Nothing to do.
   }
 
   private void handleInternalSearchEntry(SearchResultEntry searchEntry)

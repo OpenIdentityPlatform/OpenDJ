@@ -49,7 +49,27 @@ public interface BackendInitializationListener
    * @param  backend  The backend that has been initialized and is
    *                  about to be put into service.
    */
-  void performBackendInitializationProcessing(Backend<?> backend);
+  void performBackendPreInitializationProcessing(Backend<?> backend);
+
+  /**
+   * Performs any processing that may be required
+   * after the Initialisation cycle has been completed, that is
+   * all listeners have received the initialisation event, and the
+   * backend has been put into service,.
+   *
+   * @param  backend  The backend that has been initialized and has been
+   *                  put into service.
+   */
+  void performBackendPostInitializationProcessing(Backend<?> backend);
+
+  /**
+   * Performs any processing that may be required before starting
+   * the finalisation cycle, that is invoked before any listener receive
+   * the Finalization event.
+   *
+   * @param  backend  The backend that is about to be finalized.
+   */
+  void performBackendPreFinalizationProcessing(Backend<?> backend);
 
   /**
    * Performs any processing that may be required whenever a backend
@@ -59,6 +79,7 @@ public interface BackendInitializationListener
    * @param  backend  The backend that has been taken out of service
    *                  and is about to be finalized.
    */
-  void performBackendFinalizationProcessing(Backend<?> backend);
+  void performBackendPostFinalizationProcessing(Backend<?> backend);
+
 }
 

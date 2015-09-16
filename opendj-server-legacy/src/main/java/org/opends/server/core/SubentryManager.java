@@ -300,7 +300,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * all subentries that it may contain and register them with this manager.
    */
   @Override
-  public void performBackendInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(Backend<?> backend)
   {
     InternalClientConnection conn = getRootConnection();
     SubentriesControl control = new SubentriesControl(true, true);
@@ -611,7 +611,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * all subentries associated with the provided backend.
    */
   @Override
-  public void performBackendFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(Backend<?> backend)
   {
     lock.writeLock().lock();
     try
@@ -692,6 +692,16 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     {
       lock.writeLock().unlock();
     }
+  }
+
+  @Override
+  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+    // Nothing to do.
+  }
+
+  @Override
+  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+    // Nothing to do.
   }
 
   private void doPostAdd(Entry entry)
