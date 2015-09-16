@@ -1537,7 +1537,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   int processDataRead()
   {
-    if (bindOrStartTLSInProgress.get())
+    if (bindInProgress.get() || startTLSInProgress.get())
     {
       // We should wait for the bind or startTLS to finish before
       // reading any more data off the socket.
@@ -1618,12 +1618,17 @@ public final class LDAPClientConnection extends ClientConnection implements
     // terminated.
     try
     {
-      if(bindOrStartTLSInProgress.get() ||
-          (saslBindInProgress.get() &&
-              message.getProtocolOpType() != OP_TYPE_BIND_REQUEST))
+      if (bindInProgress.get())
       {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_ENQUEUE_BIND_IN_PROGRESS.get());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, ERR_ENQUEUE_BIND_IN_PROGRESS.get());
+      }
+      else if (startTLSInProgress.get())
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, ERR_ENQUEUE_STARTTLS_IN_PROGRESS.get());
+      }
+      else if (saslBindInProgress.get() && message.getProtocolOpType() != OP_TYPE_BIND_REQUEST)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, ERR_ENQUEUE_SASLBIND_IN_PROGRESS.get());
       }
 
       boolean result;
@@ -1636,7 +1641,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         result = processAddRequest(message, opControls);
         return result;
       case OP_TYPE_BIND_REQUEST:
-        bindOrStartTLSInProgress.set(true);
+        bindInProgress.set(true);
         if(message.getBindRequestProtocolOp().
             getAuthenticationType() == AuthenticationType.SASL)
         {
@@ -1645,7 +1650,7 @@ public final class LDAPClientConnection extends ClientConnection implements
         result = processBindRequest(message, opControls);
         if(!result)
         {
-          bindOrStartTLSInProgress.set(false);
+          bindInProgress.set(false);
           if(message.getBindRequestProtocolOp().
               getAuthenticationType() == AuthenticationType.SASL)
           {
@@ -1663,14 +1668,14 @@ public final class LDAPClientConnection extends ClientConnection implements
         if(message.getExtendedRequestProtocolOp().getOID().equals(
             OID_START_TLS_REQUEST))
         {
-          bindOrStartTLSInProgress.set(true);
+          startTLSInProgress.set(true);
         }
         result = processExtendedRequest(message, opControls);
         if(!result &&
             message.getExtendedRequestProtocolOp().getOID().equals(
                 OID_START_TLS_REQUEST))
         {
-          bindOrStartTLSInProgress.set(false);
+          startTLSInProgress.set(false);
         }
         return result;
       case OP_TYPE_MODIFY_REQUEST:
@@ -1727,7 +1732,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     {
       // LDAPv2 clients aren't allowed to send controls.
       disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+              ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
       return false;
     }
 
@@ -2594,18 +2599,27 @@ public final class LDAPClientConnection extends ClientConnection implements
 
   /** {@inheritDoc} */
   @Override
-  public void finishBindOrStartTLS()
+  public void finishBind()
+  {
+    if (this.saslPendingProvider != null)
+    {
+      enableSASL();
+    }
+
+    super.finishBind();
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void finishStartTLS()
   {
     if(this.tlsPendingProvider != null)
     {
       enableTLS();
     }
 
-    if (this.saslPendingProvider != null)
-    {
-      enableSASL();
-    }
-
-    super.finishBindOrStartTLS();
+    super.finishStartTLS();
   }
 }

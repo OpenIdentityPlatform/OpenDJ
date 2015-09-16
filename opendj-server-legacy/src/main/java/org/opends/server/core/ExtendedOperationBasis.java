@@ -424,7 +424,7 @@ public class ExtendedOperationBasis
 
       if(requestOID.equals(OID_START_TLS_REQUEST))
       {
-        clientConnection.finishBindOrStartTLS();
+        clientConnection.finishStartTLS();
       }
 
       // Invoke the post-response extended plugins.
