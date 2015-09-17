@@ -36,7 +36,7 @@ import static org.testng.Assert.*;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.Assertions;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
@@ -98,20 +98,12 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
       @Override
       public Void call() throws Exception
       {
-        SoftAssertions softly = new SoftAssertions();
-        softly.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate).isNotNull();
-        softly.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate.isActive()).isTrue();
-        softly.assertAll();
+        Assertions.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate).isNotNull();
+        Assertions.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate.isActive()).isTrue();
         return null;
       }
     });
     return jmxConnectionHandler;
-  }
-
-  private boolean isReady(RmiConnector rmiConnector)
-  {
-    return rmiConnector.jmxRmiConnectorNoClientCertificate != null
-        && rmiConnector.jmxRmiConnectorNoClientCertificate.isActive();
   }
 
   private JmxConnectionHandler getJmxConnectionHandler(List<ConnectionHandler> handlers)
