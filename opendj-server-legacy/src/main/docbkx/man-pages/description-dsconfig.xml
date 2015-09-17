@@ -63,7 +63,9 @@
   then reading from the batch file with the <option>--batchFilePath</option> option
   in script mode.
   Batch files can be useful when you have many <command>dsconfig</command> commands to run
-  and want to avoid starting the JVM and setting up a new connection for each command.
+  and want to avoid starting the JVM for each command.
+  Alternatively, you can read commands from standard input
+  by using the <option>--batch</option> option.
  </para>
 
  <para>
