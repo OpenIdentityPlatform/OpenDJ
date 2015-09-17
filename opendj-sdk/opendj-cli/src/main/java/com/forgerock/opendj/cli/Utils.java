@@ -57,9 +57,7 @@ import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 
-/**
- * This class provides utility functions for all the client side tools.
- */
+/** This class provides utility functions for all the client side tools. */
 public final class Utils {
 
     /** Platform appropriate line separator. */
@@ -71,9 +69,7 @@ public final class Utils {
      */
     public static final String OBFUSCATED_VALUE = "******";
 
-    /**
-     * The maximum number of times we try to confirm.
-     */
+    /** The maximum number of times we try to confirm. */
     public static final int CONFIRMATION_MAX_TRIES = 5;
 
     /**
@@ -97,16 +93,11 @@ public final class Utils {
     private static final String COMMENT_SHELL_UNIX = "# ";
     private static final String COMMENT_BATCH_WINDOWS = "rem ";
 
-    /**
-     * The String used to write comments in a shell (or batch) script.
-     */
+    /** The String used to write comments in a shell (or batch) script. */
     public static final String SHELL_COMMENT_SEPARATOR = OperatingSystem.isWindows() ? COMMENT_BATCH_WINDOWS
             : COMMENT_SHELL_UNIX;
 
-    /**
-     * The column at which to wrap long lines of output in the command-line
-     * tools.
-     */
+    /** The column at which to wrap long lines of output in the command-line tools. */
     public static final int MAX_LINE_WIDTH;
     static {
         int columns = 80;
@@ -304,6 +295,10 @@ public final class Utils {
      * @return The wrapped text.
      */
     public static String wrapText(final String text, int width, final int indent) {
+        if (text == null) {
+            return "";
+        }
+
         // Calculate the real width and indentation padding.
         width -= indent;
         final StringBuilder pb = new StringBuilder();
@@ -313,89 +308,82 @@ public final class Utils {
         final String padding = pb.toString();
 
         final StringBuilder buffer = new StringBuilder();
-        if (text != null) {
-            final StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n", true);
-            while (lineTokenizer.hasMoreTokens()) {
-                final String line = lineTokenizer.nextToken();
-                if ("\r".equals(line) || "\n".equals(line)) {
-                    // It's an end-of-line character, so append it as-is.
-                    buffer.append(line);
-                } else if (line.length() <= width) {
-                    // The line fits in the specified width, so append it as-is.
-                    buffer.append(padding);
-                    buffer.append(line);
-                } else {
-                    // The line doesn't fit in the specified width, so it needs
-                    // to be wrapped. Do so at space boundaries.
-                    StringBuilder lineBuffer = new StringBuilder();
-                    StringBuilder delimBuffer = new StringBuilder();
-                    final StringTokenizer wordTokenizer = new StringTokenizer(line, " ", true);
-                    while (wordTokenizer.hasMoreTokens()) {
-                        final String word = wordTokenizer.nextToken();
-                        if (" ".equals(word)) {
-                            // It's a space, so add it to the delim buffer only
-                            // if the line buffer is not empty.
-                            if (lineBuffer.length() > 0) {
-                                delimBuffer.append(word);
-                            }
-                        } else if (word.length() > width) {
-                            // This is a long word that can't be wrapped, so
-                            // we'll just have to make do.
-                            if (lineBuffer.length() > 0) {
-                                buffer.append(padding);
-                                buffer.append(lineBuffer);
-                                buffer.append(EOL);
-                                lineBuffer = new StringBuilder();
-                            }
-                            buffer.append(padding);
-                            buffer.append(word);
+        final StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n", true);
+        while (lineTokenizer.hasMoreTokens()) {
+            final String line = lineTokenizer.nextToken();
+            if ("\r".equals(line) || "\n".equals(line)) {
+                // It's an end-of-line character, so append it as-is.
+                buffer.append(line);
+            } else if (line.length() <= width) {
+                // The line fits in the specified width, so append it as-is.
+                buffer.append(padding);
+                buffer.append(line);
+            } else {
+                // The line doesn't fit in the specified width, so it needs
+                // to be wrapped. Do so at space boundaries.
+                StringBuilder lineBuffer = new StringBuilder();
+                StringBuilder delimBuffer = new StringBuilder();
+                final StringTokenizer wordTokenizer = new StringTokenizer(line, " ", true);
+                while (wordTokenizer.hasMoreTokens()) {
+                    final String word = wordTokenizer.nextToken();
+                    if (" ".equals(word)) {
+                        // It's a space, so add it to the delim buffer only
+                        // if the line buffer is not empty.
+                        if (lineBuffer.length() > 0) {
+                            delimBuffer.append(word);
+                        }
+                    } else if (word.length() > width) {
+                        // This is a long word that can't be wrapped,
+                        // so we'll just have to make do.
+                        if (lineBuffer.length() > 0) {
+                            buffer.append(padding).append(lineBuffer).append(EOL);
+                            lineBuffer = new StringBuilder();
+                        }
+                        buffer.append(padding);
+                        buffer.append(word);
 
+                        if (wordTokenizer.hasMoreTokens()) {
+                            // The next token must be a space, so remove it.
+                            // If there are still more tokens after that, then append an EOL.
+                            wordTokenizer.nextToken();
                             if (wordTokenizer.hasMoreTokens()) {
-                                // The next token must be a space, so remove it.
-                                // If there are still more tokens after that, then append an EOL.
-                                wordTokenizer.nextToken();
-                                if (wordTokenizer.hasMoreTokens()) {
-                                    buffer.append(EOL);
-                                }
+                                buffer.append(EOL);
                             }
+                        }
+
+                        if (delimBuffer.length() > 0) {
+                            delimBuffer = new StringBuilder();
+                        }
+                    } else {
+                        // It's not a space, so see if we can fit it on the current line.
+                        final int newLineLength =
+                                lineBuffer.length() + delimBuffer.length() + word.length();
+                        if (newLineLength < width) {
+                            // It does fit on the line, so add it.
+                            lineBuffer.append(delimBuffer).append(word);
 
                             if (delimBuffer.length() > 0) {
                                 delimBuffer = new StringBuilder();
                             }
                         } else {
-                            // It's not a space, so see if we can fit it on the
-                            // current line.
-                            final int newLineLength =
-                                    lineBuffer.length() + delimBuffer.length() + word.length();
-                            if (newLineLength < width) {
-                                // It does fit on the line, so add it.
-                                lineBuffer.append(delimBuffer).append(word);
+                            // It doesn't fit on the line, so end the
+                            // current line and start a new one.
+                            buffer.append(padding).append(lineBuffer).append(EOL);
 
-                                if (delimBuffer.length() > 0) {
-                                    delimBuffer = new StringBuilder();
-                                }
-                            } else {
-                                // It doesn't fit on the line, so end the
-                                // current line and start a new one.
-                                buffer.append(padding);
-                                buffer.append(lineBuffer);
-                                buffer.append(EOL);
+                            lineBuffer = new StringBuilder();
+                            lineBuffer.append(word);
 
-                                lineBuffer = new StringBuilder();
-                                lineBuffer.append(word);
-
-                                if (delimBuffer.length() > 0) {
-                                    delimBuffer = new StringBuilder();
-                                }
+                            if (delimBuffer.length() > 0) {
+                                delimBuffer = new StringBuilder();
                             }
                         }
                     }
-
-                    // If there's anything left in the line buffer, then add it
-                    // to the final buffer.
-                    buffer.append(padding);
-                    buffer.append(lineBuffer);
                 }
+
+                // If there's anything left in the line buffer, then add it
+                // to the final buffer.
+                buffer.append(padding);
+                buffer.append(lineBuffer);
             }
         }
         return buffer.toString();
@@ -531,7 +519,6 @@ public final class Utils {
         return parentFile != null && parentFile.canWrite();
     }
 
-
     /** Prevent instantiation. */
     private Utils() {
         // Do nothing.
@@ -600,7 +587,7 @@ public final class Utils {
      * @return The String that can be used to represent a given host name in a LDAP URL.
      */
     public static String getHostNameForLdapUrl(String host) {
-        if (host != null && host.indexOf(":") != -1) {
+        if (host != null && host.contains(":")) {
             // Assume an IPv6 address has been specified and adds the brackets
             // for the URL.
             host = host.trim();
