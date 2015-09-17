@@ -92,6 +92,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.types.AbstractOperation.*;
+import static org.opends.server.types.AccountStatusNotificationType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -130,10 +131,8 @@ public class LocalBackendModifyOperation
 
   /** Indicates whether this modify operation includes a password change. */
   private boolean passwordChanged;
-
   /** Indicates whether the request included the password policy request control. */
   private boolean pwPolicyControlRequested;
-
   /** Indicates whether the password change is a self-change. */
   private boolean selfChange;
 
@@ -145,10 +144,8 @@ public class LocalBackendModifyOperation
 
   /** The DN of the entry to modify. */
   private DN entryDN;
-
   /** The current entry, before any changes are applied. */
   private Entry currentEntry;
-
   /** The modified entry that will be stored in the backend. */
   private Entry modifiedEntry;
 
@@ -157,13 +154,11 @@ public class LocalBackendModifyOperation
 
   /** The post-read request control, if present.*/
   private LDAPPostReadRequestControl postReadRequest;
-
   /** The pre-read request control, if present.*/
   private LDAPPreReadRequestControl preReadRequest;
 
   /** The set of clear-text current passwords (if any were provided).*/
   private List<ByteString> currentPasswords;
-
   /** The set of clear-text new passwords (if any were provided).*/
   private List<ByteString> newPasswords;
 
@@ -172,7 +167,6 @@ public class LocalBackendModifyOperation
 
   /** The password policy error type for this operation. */
   private PasswordPolicyErrorType pwpErrorType;
-
   /** The password policy state for this modify operation. */
   private PasswordPolicyState pwPolicyState;
 
@@ -420,8 +414,7 @@ public class LocalBackendModifyOperation
       final DN authzDN = getAuthorizationDN();
       selfChange = entryDN.equals(authzDN);
 
-      // Check that the authorizing account isn't required to change its
-      // password.
+      // Check that the authorizing account is not required to change its password.
       if (!isInternalOperation()
           && !selfChange
           && getAuthorizationEntry() != null)
@@ -795,13 +788,17 @@ public class LocalBackendModifyOperation
 
       // If the modification is not updating the password attribute,
       // then perform any schema processing.
-      boolean isPassword = pwPolicyState != null
-          && t.equals(pwPolicyState.getAuthenticationPolicy().getPasswordAttribute());
-      if (!isPassword)
+      if (!isPassword(t))
       {
         processInitialSchema(m.getModificationType(), a);
       }
     }
+  }
+
+  private boolean isPassword(AttributeType t)
+  {
+    return pwPolicyState != null
+        && t.equals(pwPolicyState.getAuthenticationPolicy().getPasswordAttribute());
   }
 
   /**
@@ -847,8 +844,7 @@ public class LocalBackendModifyOperation
       for (Modification m : modifications)
       {
         AttributeType t = m.getAttribute().getAttributeType();
-        boolean isPassword = t.equals(authPolicy.getPasswordAttribute());
-        if (isPassword)
+        if (isPassword(t))
         {
           passwordChanged = true;
           if (!selfChange && !clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
@@ -869,12 +865,10 @@ public class LocalBackendModifyOperation
       Attribute     a = m.getAttribute();
       AttributeType t = a.getAttributeType();
 
-
       // If the modification is updating the password attribute, then perform
       // any necessary password policy processing.  This processing should be
       // skipped for synchronization operations.
-      boolean isPassword = t.equals(authPolicy.getPasswordAttribute());
-      if (isPassword)
+      if (isPassword(t))
       {
         if (!isSynchronizationOperation())
         {
@@ -1087,12 +1081,11 @@ public class LocalBackendModifyOperation
    */
   private void processInitialDeletePW(Modification m) throws DirectoryException
   {
-    // Iterate through the password values and see if any of them are
-    // pre-encoded. We will never allow pre-encoded passwords for user
-    // password changes, but we will allow them for administrators.
-    // For each clear-text value, verify that at least one value in the
-    // entry matches and replace the clear-text value with the appropriate
-    // encoded forms.
+    // Iterate through the password values and see if any of them are pre-encoded.
+    // We will never allow pre-encoded passwords for user password changes,
+    // but we will allow them for administrators.
+    // For each clear-text value, verify that at least one value in the entry matches
+    // and replace the clear-text value with the appropriate encoded forms.
     Attribute pwAttr = m.getAttribute();
     AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
     if (pwAttr.isEmpty())
@@ -1702,21 +1695,11 @@ public class LocalBackendModifyOperation
           clientConnection.setMustChangePassword(false);
         }
 
-        LocalizableMessage message = INFO_MODIFY_PASSWORD_CHANGED.get();
-        pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.PASSWORD_CHANGED,
-            modifiedEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
-                 currentPasswords, newPasswords));
+        generateAccountStatusNotificationForPwds(PASSWORD_CHANGED, INFO_MODIFY_PASSWORD_CHANGED.get());
       }
       else
       {
-        LocalizableMessage message = INFO_MODIFY_PASSWORD_RESET.get();
-        pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.PASSWORD_RESET, modifiedEntry,
-            message,
-            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
-                 currentPasswords, newPasswords));
+        generateAccountStatusNotificationForPwds(PASSWORD_RESET, INFO_MODIFY_PASSWORD_RESET.get());
       }
     }
 
@@ -1724,41 +1707,38 @@ public class LocalBackendModifyOperation
     {
       if (isEnabled)
       {
-        LocalizableMessage message = INFO_MODIFY_ACCOUNT_ENABLED.get();
-        pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.ACCOUNT_ENABLED,
-            modifiedEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
-                 null, null));
+        generateAccountStatusNotificationNoPwds(ACCOUNT_ENABLED, INFO_MODIFY_ACCOUNT_ENABLED.get());
       }
       else
       {
-        LocalizableMessage message = INFO_MODIFY_ACCOUNT_DISABLED.get();
-        pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.ACCOUNT_DISABLED,
-            modifiedEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
-                 null, null));
+        generateAccountStatusNotificationNoPwds(ACCOUNT_DISABLED, INFO_MODIFY_ACCOUNT_DISABLED.get());
       }
     }
 
     if (wasLocked)
     {
-      LocalizableMessage message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
-      pwPolicyState.generateAccountStatusNotification(
-          AccountStatusNotificationType.ACCOUNT_UNLOCKED, modifiedEntry,
-          message,
-          AccountStatusNotification.createProperties(pwPolicyState, false, -1,
-               null, null));
+      generateAccountStatusNotificationNoPwds(ACCOUNT_UNLOCKED, INFO_MODIFY_ACCOUNT_UNLOCKED.get());
     }
   }
 
+  private void generateAccountStatusNotificationNoPwds(
+      AccountStatusNotificationType notificationType, LocalizableMessage message)
+  {
+    pwPolicyState.generateAccountStatusNotification(notificationType, modifiedEntry, message,
+        AccountStatusNotification.createProperties(pwPolicyState, false, -1, null, null));
+  }
 
+  private void generateAccountStatusNotificationForPwds(
+      AccountStatusNotificationType notificationType, LocalizableMessage message)
+  {
+    pwPolicyState.generateAccountStatusNotification(notificationType, modifiedEntry, message,
+        AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords));
+  }
 
   /**
    * Handle conflict resolution.
-   * @return  {@code true} if processing should continue for the operation, or
-   *          {@code false} if not.
+   *
+   * @return {@code true} if processing should continue for the operation, or {@code false} if not.
    */
   private boolean handleConflictResolution() {
       for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
