@@ -33,60 +33,54 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/** Tests the AuthPasswordSyntax. */
+/** Tests the AuthPasswordSyntaxImpl. */
+@Test
 @SuppressWarnings("javadoc")
-public class AuthPasswordSyntaxImplTest extends ForgeRockTestCase
-{
-  @DataProvider
-  public Object[][] validEncodedPasswords()
-  {
-    return new Object[][] {
-        { "0$0$0", "0", "0", "0" },
-        { " 0$0$0", "0", "0", "0" },
-        { "0 $0$0", "0", "0", "0" },
-        { "0$ 0$0", "0", "0", "0" },
-        { "0$0 $0", "0", "0", "0" },
-        { "0$0$ 0", "0", "0", "0" },
-        { "0$0$0 ", "0", "0", "0" },
-    };
-  }
+public class AuthPasswordSyntaxImplTest extends ForgeRockTestCase {
 
-  @Test(dataProvider = "validEncodedPasswords")
-  public void decodeValidPassword(String encodedPassword, String expectedScheme, String expectedAuthInfo,
-      String expectedAuthValue) throws Exception
-  {
-    assertThat(AuthPasswordSyntaxImpl.decodeAuthPassword(encodedPassword))
-        .isEqualTo(new String[] {expectedScheme, expectedAuthInfo, expectedAuthValue} );
-  }
-
-  @DataProvider
-  public Object[][] invalidEncodedPasswords()
-  {
-    return new Object[][] {
-        { "", "zero-length scheme element" },
-        { "$", "zero-length scheme element" },
-        { "0$$", "zero-length authInfo element" },
-        { "0$0$", "zero-length authValue element" },
-        { "a", "invalid scheme character" },
-        { "0 #", "illegal character between the scheme and authInfo element" },
-        { "0$0#", "invalid authInfo character" },
-        { "0$0 #", "illegal character between the authInfo and authValue element" },
-        { "0$0$\n", "invalid authValue character" },
-        { "0$0$0$", "invalid trailing character" },
-    };
-  }
-
-  @Test(dataProvider = "invalidEncodedPasswords")
-  public void decodeInvalidPassword(String encodedPassword  , String errorMsg  ) throws Exception
-  {
-    try
-    {
-      AuthPasswordSyntaxImpl.decodeAuthPassword(encodedPassword);
-      Assert.fail("Expected DirectoryException");
+    @DataProvider
+    public Object[][] validEncodedPasswords() {
+        return new Object[][] {
+            { "0$0$0", "0", "0", "0" },
+            { " 0$0$0", "0", "0", "0" },
+            { "0 $0$0", "0", "0", "0" },
+            { "0$ 0$0", "0", "0", "0" },
+            { "0$0 $0", "0", "0", "0" },
+            { "0$0$ 0", "0", "0", "0" },
+            { "0$0$0 ", "0", "0", "0" },
+        };
     }
-    catch (DecodeException e)
-    {
-      assertThat(e.getMessage()).contains(errorMsg);
+
+    @Test(dataProvider = "validEncodedPasswords")
+    public void decodeValidPassword(String encodedPassword, String expectedScheme, String expectedAuthInfo,
+            String expectedAuthValue) throws Exception {
+        assertThat(AuthPasswordSyntaxImpl.decodeAuthPassword(encodedPassword))
+                .isEqualTo(new String[] {expectedScheme, expectedAuthInfo, expectedAuthValue} );
     }
-  }
+
+    @DataProvider
+    public Object[][] invalidEncodedPasswords() {
+        return new Object[][] {
+            { "", "zero-length scheme element" },
+            { "$", "zero-length scheme element" },
+            { "0$$", "zero-length authInfo element" },
+            { "0$0$", "zero-length authValue element" },
+            { "a", "invalid scheme character" },
+            { "0 #", "illegal character between the scheme and authInfo element" },
+            { "0$0#", "invalid authInfo character" },
+            { "0$0 #", "illegal character between the authInfo and authValue element" },
+            { "0$0$\n", "invalid authValue character" },
+            { "0$0$0$", "invalid trailing character" },
+        };
+    }
+
+    @Test(dataProvider = "invalidEncodedPasswords")
+    public void decodeInvalidPassword(String encodedPassword, String errorMsg) throws Exception {
+        try {
+            AuthPasswordSyntaxImpl.decodeAuthPassword(encodedPassword);
+            Assert.fail("Expected DirectoryException");
+        } catch (DecodeException e) {
+            assertThat(e.getMessage()).contains(errorMsg);
+        }
+    }
 }
