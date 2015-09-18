@@ -44,13 +44,10 @@ import org.testng.annotations.Test;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * Test the AuthPasswordEqualityMatchingRule.
- */
+/** Test the AuthPasswordEqualityMatchingRule. */
 @SuppressWarnings("javadoc")
 public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
 {
-
   @DataProvider(name="equalitymatchingrules")
   public Object[][] createEqualityMatchingRuleTest()
   {
@@ -83,9 +80,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
     scheme.initializePasswordStorageScheme(configuration);
 
     ByteString encodedAuthPassword = scheme.encodeAuthPassword(bytePassword);
-    StringBuilder[] authPWComponents =
-         AuthPasswordSyntax.decodeAuthPassword(
-              encodedAuthPassword.toString());
+    String[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(encodedAuthPassword.toString());
 
      return new Object[] {
          AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5 + "$"
@@ -102,14 +97,13 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
       return new Object[][] {
           generateValues("password"),
           {"password", "something else", false},
-          {"password", AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5+"$something$else",
-                      false},
+          {"password", AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5+"$something$else", false},
           {"password", "scheme$something$else", false}
       };
     }
     catch (Exception e)
     {
-      return new Object[][] {};
+      throw new RuntimeException(e);
     }
   }
 
@@ -119,9 +113,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
     getRule().normalizeAttributeValue(ByteString.valueOf(value));
   }
 
-  /**
-   * Test the valuesMatch method used for extensible filters.
-   */
+  /** Test the valuesMatch method used for extensible filters. */
   @Test(dataProvider= "valuesMatch")
   public void testValuesMatch(String value1, String value2, Boolean result) throws Exception
   {
@@ -136,7 +128,6 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
     assertEquals(liveResult, ConditionResult.valueOf(result));
   }
 
-
   private MatchingRule getRule()
   {
     AuthPasswordEqualityMatchingRuleFactory factory = new AuthPasswordEqualityMatchingRuleFactory();
@@ -150,4 +141,3 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
     return factory.getMatchingRules().iterator().next();
   }
 }
-

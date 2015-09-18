@@ -1174,47 +1174,36 @@ public class LocalBackendModifyOperation
     {
       for (ByteString av : attr)
       {
-        if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
+        if (pwPolicyState.passwordIsPreEncoded(av))
         {
-          if (AuthPasswordSyntax.isEncoded(av))
+          if (passwordMatches(val, av))
           {
-            StringBuilder[] components = AuthPasswordSyntax.decodeAuthPassword(av.toString());
-            PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(components[0].toString());
-            if (scheme != null
-                && scheme.authPasswordMatches(val, components[1].toString(), components[2].toString()))
-            {
-              builder.add(av);
-              found = true;
-            }
-          }
-          else if (av.equals(val))
-          {
-            builder.add(val);
+            builder.add(av);
             found = true;
           }
         }
-        else
+        else if (av.equals(val))
         {
-          if (UserPasswordSyntax.isEncoded(av))
-          {
-            String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
-            PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(toLowerCase(components[0]));
-            if (scheme != null
-                && scheme.passwordMatches(val, ByteString.valueOf(components[1])))
-            {
-              builder.add(av);
-              found = true;
-            }
-          }
-          else if (av.equals(val))
-          {
-            builder.add(val);
-            found = true;
-          }
+          builder.add(val);
+          found = true;
         }
       }
     }
     return found;
+  }
+
+  private boolean passwordMatches(ByteString val, ByteString av) throws DirectoryException
+  {
+    if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
+    {
+      String[] components = AuthPasswordSyntax.decodeAuthPassword(av.toString());
+      PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(components[0].toString());
+      return scheme != null && scheme.authPasswordMatches(val, components[1], components[2]);
+    } else {
+      String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
+      PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(toLowerCase(components[0]));
+      return scheme != null && scheme.passwordMatches(val, ByteString.valueOf(components[1]));
+    }
   }
 
   /**

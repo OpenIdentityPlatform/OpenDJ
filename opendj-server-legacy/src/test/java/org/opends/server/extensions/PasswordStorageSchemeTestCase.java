@@ -28,6 +28,9 @@ package org.opends.server.extensions;
 
 import java.util.ArrayList;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
@@ -38,22 +41,17 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/**
- * A set of generic test cases for password storage schemes.
- */
+/** A set of generic test cases for password storage schemes. */
 @SuppressWarnings("javadoc")
 public abstract class PasswordStorageSchemeTestCase
        extends ExtensionsTestCase
@@ -185,12 +183,8 @@ public abstract class PasswordStorageSchemeTestCase
     {
       assertNotNull(scheme.getAuthPasswordSchemeName());
       ByteString encodedAuthPassword = scheme.encodeAuthPassword(plaintext);
-      StringBuilder[] authPWComponents =
-           AuthPasswordSyntax.decodeAuthPassword(
-                encodedAuthPassword.toString());
-      assertTrue(scheme.authPasswordMatches(plaintext,
-                                            authPWComponents[1].toString(),
-                                            authPWComponents[2].toString()));
+      String[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(encodedAuthPassword.toString());
+      assertTrue(scheme.authPasswordMatches(plaintext, authPWComponents[1], authPWComponents[2]));
       assertFalse(scheme.authPasswordMatches(plaintext, ",", "foo"));
       assertFalse(scheme.authPasswordMatches(plaintext, "foo", ","));
     }

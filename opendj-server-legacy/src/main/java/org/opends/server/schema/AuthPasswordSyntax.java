@@ -37,7 +37,6 @@ import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.DirectoryException;
 
-
 /**
  * This class defines the auth password attribute syntax, which is defined in
  * RFC 3112 and is used to hold authentication information.  Only equality
@@ -58,7 +57,6 @@ public class AuthPasswordSyntax
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Syntax getSDKSyntax(Schema schema)
   {
@@ -110,8 +108,7 @@ public class AuthPasswordSyntax
    * @throws  DirectoryException  If a problem is encountered while attempting
    *                              to decode the value.
    */
-  public static StringBuilder[] decodeAuthPassword(String authPasswordValue)
-         throws DirectoryException
+  public static String[] decodeAuthPassword(String authPasswordValue) throws DirectoryException
   {
     // Create placeholders for the values to return.
     StringBuilder scheme    = new StringBuilder();
@@ -335,11 +332,11 @@ readAuthInfo:
 
 
     // If we've gotten here, then everything must be OK.
-    return new StringBuilder[]
+    return new String[]
     {
-      scheme,
-      authInfo,
-      authValue
+      scheme.toString(),
+      authInfo.toString(),
+      authValue.toString()
     };
   }
 
@@ -354,10 +351,7 @@ readAuthInfo:
    */
   public static boolean isEncoded(ByteSequence value)
   {
-    // FIXME -- Make this more efficient, and don't use exceptions for flow
-    // control.
-
-
+    // FIXME -- Make this more efficient, and don't use exceptions for flow control.
     try
     {
       decodeAuthPassword(value.toString());

@@ -269,13 +269,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    *
    * @throws  DirectoryException  If the password could not be decoded.
    */
-  private PasswordStorageScheme<?> getPasswordStorageScheme(ByteString v)
-      throws DirectoryException
+  private PasswordStorageScheme<?> getPasswordStorageScheme(ByteString v) throws DirectoryException
   {
     if (passwordPolicy.isAuthPasswordSyntax())
     {
-      StringBuilder[] pwComps = AuthPasswordSyntax.decodeAuthPassword(v.toString());
-      return DirectoryServer.getAuthPasswordStorageScheme(pwComps[0].toString());
+      String[] pwComps = AuthPasswordSyntax.decodeAuthPassword(v.toString());
+      return DirectoryServer.getAuthPasswordStorageScheme(pwComps[0]);
     }
     else
     {
@@ -283,7 +282,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return DirectoryServer.getPasswordStorageScheme(pwComps[0]);
     }
   }
-
 
   @Override
   public PasswordPolicy getAuthenticationPolicy()
@@ -2146,18 +2144,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     for (Attribute a : attrList)
     {
-      boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
-
       for (ByteString v : a)
       {
         try
         {
-          StringBuilder[] pwComponents = getPwComponents(usesAuthPasswordSyntax, v);
+          String[] pwComponents = getPwComponents(v);
 
-          String schemeName = pwComponents[0].toString();
-          PasswordStorageScheme<?> scheme = usesAuthPasswordSyntax
-              ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
-              : DirectoryServer.getPasswordStorageScheme(schemeName);
+          String schemeName = pwComponents[0];
+          PasswordStorageScheme<?> scheme = getPasswordStorageScheme(schemeName);
           if (scheme == null)
           {
             if (logger.isTraceEnabled())
@@ -2171,10 +2165,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
           if (scheme.isReversible())
           {
-            ByteString clearValue = usesAuthPasswordSyntax
-                         ? scheme.getAuthPasswordPlaintextValue(pwComponents[1].toString(), pwComponents[2].toString())
-                         : scheme.getPlaintextValue(ByteString.valueOf(pwComponents[1].toString()));
-            clearPasswords.add(clearValue);
+            clearPasswords.add(getPlaintextValue(scheme, pwComponents));
           }
         }
         catch (Exception e)
@@ -2192,7 +2183,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return clearPasswords;
   }
 
-
+  private ByteString getPlaintextValue(PasswordStorageScheme<?> scheme, String[] pwComponents)
+      throws DirectoryException
+  {
+    return passwordPolicy.isAuthPasswordSyntax()
+        ? scheme.getAuthPasswordPlaintextValue(pwComponents[1], pwComponents[2])
+        : scheme.getPlaintextValue(ByteString.valueOf(pwComponents[1]));
+  }
 
   @Override
   public boolean passwordMatches(ByteString password)
@@ -2211,17 +2208,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     for (Attribute a : attrList)
     {
-      boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
-
       for (ByteString v : a)
       {
         try
         {
-          StringBuilder[] pwComponents = getPwComponents(usesAuthPasswordSyntax, v);
-          String schemeName = pwComponents[0].toString();
-          PasswordStorageScheme<?> scheme = usesAuthPasswordSyntax
-                     ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
-                     : DirectoryServer.getPasswordStorageScheme(schemeName);
+          String[] pwComponents = getPwComponents(v);
+          String schemeName = pwComponents[0];
+          PasswordStorageScheme<?> scheme = getPasswordStorageScheme(schemeName);
           if (scheme == null)
           {
             if (logger.isTraceEnabled())
@@ -2233,10 +2226,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
             continue;
           }
 
-          boolean passwordMatches = usesAuthPasswordSyntax
-              ? scheme.authPasswordMatches(password, pwComponents[1].toString(), pwComponents[2].toString())
-              : scheme.passwordMatches(password, ByteString.valueOf(pwComponents[1].toString()));
-          if (passwordMatches)
+          if (passwordMatches(password, pwComponents, scheme))
           {
             if (logger.isTraceEnabled())
             {
@@ -2271,23 +2261,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    *
    * @return An array of components.
    */
-  private StringBuilder[] getPwComponents(boolean usesAuthPasswordSyntax, ByteString v) throws DirectoryException
+  private String[] getPwComponents(ByteString v) throws DirectoryException
   {
-    if (usesAuthPasswordSyntax)
-    {
-      return AuthPasswordSyntax.decodeAuthPassword(v.toString());
-    }
-
-    String[] userPwComponents = UserPasswordSyntax.decodeUserPassword(v.toString());
-    StringBuilder[] pwComponents = new StringBuilder[userPwComponents.length];
-    for (int i = 0; i < userPwComponents.length; ++i)
-    {
-      pwComponents[i] = new StringBuilder(userPwComponents[i]);
-    }
-    return pwComponents;
+    return passwordPolicy.isAuthPasswordSyntax()
+        ? AuthPasswordSyntax.decodeAuthPassword(v.toString())
+        : UserPasswordSyntax.decodeUserPassword(v.toString());
   }
-
-
 
   /**
    * Indicates whether the provided password value is pre-encoded.
@@ -2298,14 +2277,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public boolean passwordIsPreEncoded(ByteString passwordValue)
   {
-    if (passwordPolicy.isAuthPasswordSyntax())
-    {
-      return AuthPasswordSyntax.isEncoded(passwordValue);
-    }
-    else
-    {
-      return UserPasswordSyntax.isEncoded(passwordValue);
-    }
+    return passwordPolicy.isAuthPasswordSyntax()
+        ? AuthPasswordSyntax.isEncoded(passwordValue)
+        : UserPasswordSyntax.isEncoded(passwordValue);
   }
 
 
@@ -2415,18 +2389,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     LinkedHashSet<ByteString> removedValues = new LinkedHashSet<>();
     LinkedHashSet<ByteString> updatedValues = new LinkedHashSet<>();
 
-    boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
-
     for (Attribute a : attrList)
     {
       for (ByteString v : a) {
         try {
-          StringBuilder[] pwComponents = getPwComponents(usesAuthPasswordSyntax, v);
+          String[] pwComponents = getPwComponents(v);
 
-          String schemeName = pwComponents[0].toString();
-          PasswordStorageScheme<?> scheme = usesAuthPasswordSyntax
-              ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
-              : DirectoryServer.getPasswordStorageScheme(schemeName);
+          String schemeName = pwComponents[0];
+          PasswordStorageScheme<?> scheme = getPasswordStorageScheme(schemeName);
           if (scheme == null) {
             if (logger.isTraceEnabled()) {
               logger.trace("Skipping password value for user %s because the associated storage scheme %s " +
@@ -2435,11 +2405,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
             continue;
           }
 
-          boolean passwordMatches = usesAuthPasswordSyntax
-              ? scheme.authPasswordMatches(password, pwComponents[1].toString(), pwComponents[2].toString())
-              : scheme.passwordMatches(password, ByteString.valueOf(pwComponents[1].toString()));
-
-          if (passwordMatches) {
+          if (passwordMatches(password, pwComponents, scheme))
+          {
             if (passwordPolicy.isDefaultPasswordStorageScheme(schemeName)) {
               existingDefaultSchemes.add(schemeName);
               updatedValues.add(v);
@@ -2473,8 +2440,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         try
         {
-          ByteString encodedPassword =
-              usesAuthPasswordSyntax ? s.encodeAuthPassword(password) : s.encodePasswordWithScheme(password);
+          ByteString encodedPassword = encodePassword(password, s);
           addedValues.add(encodedPassword);
           updatedValues.add(encodedPassword);
         }
@@ -2515,7 +2481,26 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
   }
 
+  private PasswordStorageScheme<?> getPasswordStorageScheme(String schemeName)
+  {
+    return passwordPolicy.isAuthPasswordSyntax()
+        ? DirectoryServer.getAuthPasswordStorageScheme(schemeName)
+        : DirectoryServer.getPasswordStorageScheme(schemeName);
+  }
 
+  private boolean passwordMatches(ByteString password, String[] pwComponents, PasswordStorageScheme<?> scheme)
+  {
+    return passwordPolicy.isAuthPasswordSyntax()
+        ? scheme.authPasswordMatches(password, pwComponents[1], pwComponents[2])
+        : scheme.passwordMatches(password, ByteString.valueOf(pwComponents[1]));
+  }
+
+  private ByteString encodePassword(ByteString password, PasswordStorageScheme<?> s) throws DirectoryException
+  {
+    return passwordPolicy.isAuthPasswordSyntax()
+        ? s.encodeAuthPassword(password)
+        : s.encodePasswordWithScheme(password);
+  }
 
   /**
    * Indicates whether password history information should be maintained for this user.
@@ -2751,9 +2736,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   private boolean encodedAuthPasswordMatches(ByteString password, String encodedAuthPassword) throws DirectoryException
   {
-    StringBuilder[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(encodedAuthPassword);
-    PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(authPWComponents[0].toString());
-    return scheme.authPasswordMatches(password, authPWComponents[1].toString(), authPWComponents[2].toString());
+    String[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(encodedAuthPassword);
+    PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(authPWComponents[0]);
+    return scheme.authPasswordMatches(password, authPWComponents[1], authPWComponents[2]);
   }
 
   private boolean encodedUserPasswordMatches(ByteString password, String encodedUserPassword) throws DirectoryException

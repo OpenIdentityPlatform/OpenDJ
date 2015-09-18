@@ -22,32 +22,27 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
+
+import static org.opends.server.core.DirectoryServer.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.api.PasswordStorageScheme;
 
-import static org.opends.server.core.DirectoryServer.*;
-
-/**
- * This class implements the authPasswordMatch matching rule defined in RFC
- * 3112.
- */
+/** This class implements the authPasswordMatch matching rule defined in RFC 3112. */
 class AuthPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingRuleImpl
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** {@inheritDoc} */
   @Override
   protected ConditionResult valuesMatch(ByteSequence attributeValue, ByteSequence assertionValue)
   {
-    // We must be able to decode the attribute value using the authentication
-    // password syntax.
-    StringBuilder[] authPWComponents;
+    // We must be able to decode the attribute value using the authentication password syntax.
+    String[] authPWComponents;
     try
     {
       authPWComponents = AuthPasswordSyntax.decodeAuthPassword(attributeValue.toString());
@@ -60,18 +55,14 @@ class AuthPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingR
 
     // The first element of the array will be the scheme.
     // Make sure that we support the requested scheme.
-    PasswordStorageScheme<?> storageScheme = getAuthPasswordStorageScheme(authPWComponents[0].toString());
+    PasswordStorageScheme<?> storageScheme = getAuthPasswordStorageScheme(authPWComponents[0]);
     if (storageScheme == null)
     {
       // It's not a scheme that we can support.
       return ConditionResult.FALSE;
     }
-
     // We support the scheme, so make the determination.
-    return ConditionResult.valueOf(
-        storageScheme.authPasswordMatches(assertionValue,
-                                          authPWComponents[1].toString(),
-                                          authPWComponents[2].toString()));
+    return ConditionResult.valueOf(storageScheme.authPasswordMatches(
+        assertionValue, authPWComponents[1], authPWComponents[2]));
   }
-
 }
