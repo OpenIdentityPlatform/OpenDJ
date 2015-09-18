@@ -31,7 +31,6 @@ import static org.opends.server.util.StaticUtils.getFileForPath;
 import java.io.File;
 import java.io.FileReader;
 
-import org.forgerock.http.Context;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
@@ -50,6 +49,7 @@ import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Factory;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;

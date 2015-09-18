@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import org.forgerock.http.Context;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
@@ -39,6 +38,7 @@ import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Factory;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.NeverThrowsException;

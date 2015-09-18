@@ -15,8 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.json.resource.SecurityContext.AUTHZID_DN;
-import static org.forgerock.json.resource.SecurityContext.AUTHZID_ID;
+import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
+import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.opendj.ldap.Connections.uncloseable;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newPlainSASLBindRequest;
@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.http.Context;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
@@ -40,7 +39,6 @@ import org.forgerock.http.protocol.Status;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.json.resource.SecurityContext;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -58,6 +56,8 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.services.context.Context;
+import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
