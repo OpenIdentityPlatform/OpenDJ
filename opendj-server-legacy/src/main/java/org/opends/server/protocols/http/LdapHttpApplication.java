@@ -30,7 +30,6 @@ import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.Map;
 
 import org.forgerock.http.Context;
 import org.forgerock.http.Handler;
@@ -117,7 +116,7 @@ class LdapHttpApplication implements HttpApplication
     try
     {
       final File configFile = getFileForPath(connectionHandler.getCurrentConfig().getConfigFile());
-      final Map<String, Object> jsonElems = Json.readJsonLenient(new FileReader(configFile));
+      final Object jsonElems = Json.readJsonLenient(new FileReader(configFile));
       final JsonValue configuration = new JsonValue(jsonElems).recordKeyAccesses();
       handler = new LdapHttpHandler(configuration);
       filter = new CollectClientConnectionsFilter(connectionHandler, getAuthenticationConfig(configuration));
