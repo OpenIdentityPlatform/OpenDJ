@@ -22,16 +22,17 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_NAME;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
@@ -41,6 +42,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * matching will be allowed by default.
  */
 final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
+
     /**
      * Decodes the provided authentication password value into its component parts.
      *
@@ -51,25 +53,116 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
      * @throws DecodeException
      *             If a problem is encountered while attempting to decode the value.
      */
-    static String[] decodeAuthPassword(final String authPasswordValue)
-            throws DecodeException {
-        // Create placeholders for the values to return.
-        final StringBuilder scheme = new StringBuilder();
-        final StringBuilder authInfo = new StringBuilder();
-        final StringBuilder authValue = new StringBuilder();
-
+    static String[] decodeAuthPassword(final String authPasswordValue) throws DecodeException {
         // First, ignore any leading whitespace.
         final int length = authPasswordValue.length();
         int pos = 0;
-        while (pos < length && authPasswordValue.charAt(pos) == ' ') {
-            pos++;
-        }
+        pos = readSpaces(authPasswordValue, pos);
 
         // The next set of characters will be the scheme, which must consist
         // only of digits, uppercase alphabetic characters, dash, period,
         // slash, and underscore characters. It must be immediately followed
         // by one or more spaces or a dollar sign.
-    readScheme:
+        final StringBuilder scheme = new StringBuilder();
+        pos = readScheme(authPasswordValue, scheme, pos);
+        // The scheme must consist of at least one character.
+        if (scheme.length() == 0) {
+            throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get());
+        }
+
+        pos = readSpaces(authPasswordValue, pos);
+        throwIfEndReached(authPasswordValue, length, pos, ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR);
+        pos++;
+        pos = readSpaces(authPasswordValue, pos);
+
+        // The next component must be the authInfo element, containing only
+        // printable characters other than the dollar sign and space character.
+        final StringBuilder authInfo = new StringBuilder();
+        pos = readAuthInfo(authPasswordValue, authInfo, pos);
+        // The authInfo element must consist of at least one character.
+        if (scheme.length() == 0) {
+            throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get());
+        }
+
+        pos = readSpaces(authPasswordValue, pos);
+        throwIfEndReached(authPasswordValue, length, pos, ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR);
+        pos++;
+        pos = readSpaces(authPasswordValue, pos);
+
+        // The final component must be the authValue element, containing
+        // only printable characters other than the dollar sign and space character.
+        final StringBuilder authValue = new StringBuilder();
+        pos = readAuthValue(authPasswordValue, length, pos, authValue);
+        // The authValue element must consist of at least one character.
+        if (scheme.length() == 0) {
+            throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get());
+        }
+
+        // The only characters remaining must be whitespace.
+        while (pos < length) {
+            final char c = authPasswordValue.charAt(pos);
+            if (c == ' ') {
+                pos++;
+            } else {
+                throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos));
+            }
+        }
+
+        return new String[] { scheme.toString(), authInfo.toString(), authValue.toString() };
+    }
+
+    private static int readAuthValue(final String authPasswordValue, final int length, int pos,
+        final StringBuilder authValue) throws DecodeException
+    {
+      while (pos < length) {
+          final char c = authPasswordValue.charAt(pos);
+          if (c == ' ' || c == '$') {
+              break;
+          } else if (PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
+              authValue.append(c);
+              pos++;
+          } else {
+              throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos));
+          }
+      }
+      return pos;
+    }
+
+    private static void throwIfEndReached(final String authPasswordValue, final int length, int pos, final Arg0 message)
+            throws DecodeException {
+        if (pos >= length || authPasswordValue.charAt(pos) != '$') {
+            throw DecodeException.error(message.get());
+        }
+    }
+
+    private static int readAuthInfo(final String authPasswordValue, final StringBuilder authInfo, int pos)
+            throws DecodeException {
+        final int length = authPasswordValue.length();
+        while (pos < length) {
+            final char c = authPasswordValue.charAt(pos);
+            if (c == ' ' || c == '$') {
+                break;
+            } else if (PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
+                authInfo.append(c);
+                pos++;
+            } else {
+                throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos));
+            }
+        }
+        return pos;
+    }
+
+    private static int readSpaces(final String authPasswordValue, int pos) {
+        final int length = authPasswordValue.length();
+        while (pos < length && authPasswordValue.charAt(pos) == ' ') {
+            pos++;
+        }
+        return pos;
+    }
+
+    private static int readScheme(final String authPasswordValue, final StringBuilder scheme, int pos)
+            throws DecodeException {
+        final int length = authPasswordValue.length();
         while (pos < length) {
             final char c = authPasswordValue.charAt(pos);
 
@@ -119,120 +212,16 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
                 break;
             case ' ':
             case '$':
-                break readScheme;
+                return pos;
             default:
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
-                throw DecodeException.error(message);
+                throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos));
             }
         }
-
-        // The scheme must consist of at least one character.
-        if (scheme.length() == 0) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
-            throw DecodeException.error(message);
-        }
-
-        // Ignore any spaces before the dollar sign separator. Then read the
-        // dollar sign and ignore any trailing spaces.
-        while (pos < length && authPasswordValue.charAt(pos) == ' ') {
-            pos++;
-        }
-
-        if (pos < length && authPasswordValue.charAt(pos) == '$') {
-            pos++;
-        } else {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
-            throw DecodeException.error(message);
-        }
-
-        while (pos < length && authPasswordValue.charAt(pos) == ' ') {
-            pos++;
-        }
-
-        // The next component must be the authInfo element, containing only
-        // printable characters other than the dollar sign and space
-        // character.
-    readAuthInfo:
-        while (pos < length) {
-            final char c = authPasswordValue.charAt(pos);
-            if (c == ' ' || c == '$') {
-                break readAuthInfo;
-            } else if (PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-                authInfo.append(c);
-                pos++;
-            } else {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos);
-                throw DecodeException.error(message);
-            }
-        }
-
-        // The authInfo element must consist of at least one character.
-        if (scheme.length() == 0) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
-            throw DecodeException.error(message);
-        }
-
-        // Ignore any spaces before the dollar sign separator. Then read the
-        // dollar sign and ignore any trailing spaces.
-        while (pos < length && authPasswordValue.charAt(pos) == ' ') {
-            pos++;
-        }
-
-        if (pos < length && authPasswordValue.charAt(pos) == '$') {
-            pos++;
-        } else {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
-            throw DecodeException.error(message);
-        }
-
-        while (pos < length && authPasswordValue.charAt(pos) == ' ') {
-            pos++;
-        }
-
-        // The final component must be the authValue element, containing
-        // only printable characters other than the dollar sign and space
-        // character.
-        while (pos < length) {
-            final char c = authPasswordValue.charAt(pos);
-            if (c == ' ' || c == '$') {
-                break;
-            } else if (PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-                authValue.append(c);
-                pos++;
-            } else {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos);
-                throw DecodeException.error(message);
-            }
-        }
-
-        // The authValue element must consist of at least one character.
-        if (scheme.length() == 0) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
-            throw DecodeException.error(message);
-        }
-
-        // The only characters remaining must be whitespace.
-        while (pos < length) {
-            final char c = authPasswordValue.charAt(pos);
-            if (c == ' ') {
-                pos++;
-            } else {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
-                throw DecodeException.error(message);
-            }
-        }
-
-        // If we've gotten here, then everything must be OK.
-        return new String[] { scheme.toString(), authInfo.toString(), authValue.toString() };
+        return pos;
     }
 
     /**
-     * Indicates whether the provided value is encoded using the auth password
-     * syntax.
+     * Indicates whether the provided value is encoded using the auth password syntax.
      *
      * @param value
      *            The value for which to make the determination.
@@ -240,9 +229,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
      *         auth password syntax, or <CODE>false</CODE> if not.
      */
     static boolean isEncoded(final ByteSequence value) {
-        // FIXME -- Make this more efficient, and don't use exceptions for
-        // flow control.
-
+        // FIXME -- Make this more efficient, and don't use exceptions for flow control.
         try {
             decodeAuthPassword(value.toString());
             return true;
@@ -256,14 +243,17 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_AUTH_PASSWORD_EXACT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_AUTH_PASSWORD_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         try {
