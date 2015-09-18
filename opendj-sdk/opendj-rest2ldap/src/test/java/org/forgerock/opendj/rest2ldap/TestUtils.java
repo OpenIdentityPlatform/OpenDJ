@@ -20,11 +20,11 @@ import static org.forgerock.json.JsonValue.json;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.forgerock.http.context.RootContext;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.Responses;
+import org.forgerock.services.context.RootContext;
 
 /** Unit test utility methods, including fluent methods for creating JSON objects. */
 public final class TestUtils {

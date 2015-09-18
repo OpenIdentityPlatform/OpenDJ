@@ -17,9 +17,9 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Utils.*;
 
-import org.forgerock.http.Context;
-import org.forgerock.http.context.AbstractContext;
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.services.context.AbstractContext;
+import org.forgerock.services.context.Context;
 
 /**
  * A {@link Context} containing a cached pre-authenticated LDAP connection which

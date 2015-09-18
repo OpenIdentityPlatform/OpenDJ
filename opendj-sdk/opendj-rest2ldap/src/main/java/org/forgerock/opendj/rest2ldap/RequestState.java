@@ -21,10 +21,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
-import org.forgerock.http.Context;
 import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.json.resource.SecurityContext;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
@@ -54,6 +52,8 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.services.context.Context;
+import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -238,7 +238,7 @@ final class RequestState implements Closeable {
                 try {
                     final SecurityContext securityContext = context.asContext(SecurityContext.class);
                     final String authzId = config.getProxiedAuthorizationTemplate().formatAsAuthzId(
-                            securityContext.getAuthorizationId(), config.schema());
+                            securityContext.getAuthorization(), config.schema());
                     proxiedAuthzControl = ProxiedAuthV2RequestControl.newControl(authzId);
                 } catch (final ResourceException e) {
                     return Promises.newExceptionPromise(e);
