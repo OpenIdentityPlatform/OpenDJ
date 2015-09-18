@@ -65,7 +65,6 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
         // by one or more spaces or a dollar sign.
         final StringBuilder scheme = new StringBuilder();
         pos = readScheme(authPasswordValue, scheme, pos);
-        // The scheme must consist of at least one character.
         if (scheme.length() == 0) {
             throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get());
         }
@@ -79,8 +78,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
         // printable characters other than the dollar sign and space character.
         final StringBuilder authInfo = new StringBuilder();
         pos = readAuthInfo(authPasswordValue, authInfo, pos);
-        // The authInfo element must consist of at least one character.
-        if (scheme.length() == 0) {
+        if (authInfo.length() == 0) {
             throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get());
         }
 
@@ -93,8 +91,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
         // only printable characters other than the dollar sign and space character.
         final StringBuilder authValue = new StringBuilder();
         pos = readAuthValue(authPasswordValue, length, pos, authValue);
-        // The authValue element must consist of at least one character.
-        if (scheme.length() == 0) {
+        if (authValue.length() == 0) {
             throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get());
         }
 

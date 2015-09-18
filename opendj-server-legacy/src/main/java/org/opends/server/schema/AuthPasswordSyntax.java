@@ -97,14 +97,13 @@ public class AuthPasswordSyntax
   }
 
   /**
-   * Decodes the provided authentication password value into its component
-   * parts.
+   * Decodes the provided authentication password value into its component parts.
+   * <p>
+   * FIXME this is a duplicate of {@link org.forgerock.opendj.ldap.schema.AuthPasswordSyntaxImplTest}
    *
    * @param  authPasswordValue  The authentication password value to be decoded.
-   *
    * @return  A three-element array, containing the scheme, authInfo, and
    *          authValue components of the given string, in that order.
-   *
    * @throws  DirectoryException  If a problem is encountered while attempting
    *                              to decode the value.
    */
@@ -249,7 +248,7 @@ readAuthInfo:
 
 
     // The authInfo element must consist of at least one character.
-    if (scheme.length() == 0)
+    if (authInfo.length() == 0)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
       throw new DirectoryException(
@@ -306,7 +305,7 @@ readAuthInfo:
 
 
     // The authValue element must consist of at least one character.
-    if (scheme.length() == 0)
+    if (authValue.length() == 0)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
       throw new DirectoryException(
