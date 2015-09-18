@@ -109,20 +109,19 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
     }
 
     private static int readAuthValue(final String authPasswordValue, final int length, int pos,
-        final StringBuilder authValue) throws DecodeException
-    {
-      while (pos < length) {
-          final char c = authPasswordValue.charAt(pos);
-          if (c == ' ' || c == '$') {
-              break;
-          } else if (PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-              authValue.append(c);
-              pos++;
-          } else {
-              throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos));
-          }
-      }
-      return pos;
+            final StringBuilder authValue) throws DecodeException {
+        while (pos < length) {
+            final char c = authPasswordValue.charAt(pos);
+            if (c == ' ' || c == '$') {
+                break;
+            } else if (PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
+                authValue.append(c);
+                pos++;
+            } else {
+                throw DecodeException.error(ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos));
+            }
+        }
+        return pos;
     }
 
     private static void throwIfEndReached(final String authPasswordValue, final int length, int pos, final Arg0 message)
