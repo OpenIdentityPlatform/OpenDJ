@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -42,18 +42,16 @@ import org.forgerock.opendj.ldap.DecodeException;
  */
 final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
     /**
-     * Decodes the provided authentication password value into its component
-     * parts.
+     * Decodes the provided authentication password value into its component parts.
      *
      * @param authPasswordValue
      *            The authentication password value to be decoded.
      * @return A three-element array, containing the scheme, authInfo, and
      *         authValue components of the given string, in that order.
      * @throws DecodeException
-     *             If a problem is encountered while attempting to decode the
-     *             value.
+     *             If a problem is encountered while attempting to decode the value.
      */
-    static StringBuilder[] decodeAuthPassword(final String authPasswordValue)
+    static String[] decodeAuthPassword(final String authPasswordValue)
             throws DecodeException {
         // Create placeholders for the values to return.
         final StringBuilder scheme = new StringBuilder();
@@ -229,7 +227,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl {
         }
 
         // If we've gotten here, then everything must be OK.
-        return new StringBuilder[] { scheme, authInfo, authValue };
+        return new String[] { scheme.toString(), authInfo.toString(), authValue.toString() };
     }
 
     /**

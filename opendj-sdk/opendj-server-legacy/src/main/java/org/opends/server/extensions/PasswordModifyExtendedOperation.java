@@ -689,60 +689,26 @@ public class PasswordModifyExtendedOperation
         // Remove all existing encoded values that match the old password.
         Set<ByteString> existingValues = pwPolicyState.getPasswordValues();
         Set<ByteString> deleteValues = new LinkedHashSet<>(existingValues.size());
-        if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
-        {
-          for (ByteString v : existingValues)
-          {
-            try
-            {
-              StringBuilder[] components = AuthPasswordSyntax.decodeAuthPassword(v.toString());
-              PasswordStorageScheme<?> scheme =
-                   DirectoryServer.getAuthPasswordStorageScheme(components[0].toString());
-              if (scheme == null)
-              {
-                // The password is encoded using an unknown scheme.  Remove it from the user's entry.
-                deleteValues.add(v);
-              }
-              else if (scheme.authPasswordMatches(oldPassword, components[1].toString(), components[2].toString()))
-              {
-                deleteValues.add(v);
-              }
-            }
-            catch (DirectoryException de)
-            {
-              logger.traceException(de);
 
-              // We couldn't decode the provided password value, so remove it from the user's entry.
+        for (ByteString v : existingValues)
+        {
+          try
+          {
+            String[] components = decodePassword(pwPolicyState, v.toString());
+            PasswordStorageScheme<?> scheme = getPasswordStorageScheme(pwPolicyState, components[0]);
+            if (// The password is encoded using an unknown scheme.  Remove it from the user's entry.
+                scheme == null
+                || passwordMatches(pwPolicyState, scheme, oldPassword, components))
+            {
               deleteValues.add(v);
             }
           }
-        }
-        else
-        {
-          for (ByteString v : existingValues)
+          catch (DirectoryException de)
           {
-            try
-            {
-              String[] components = UserPasswordSyntax.decodeUserPassword(v.toString());
-              PasswordStorageScheme<?> scheme =
-                   DirectoryServer.getPasswordStorageScheme(toLowerCase(components[0]));
-              if (scheme == null)
-              {
-                // The password is encoded using an unknown scheme.  Remove it from the user's entry.
-                deleteValues.add(v);
-              }
-              else if (scheme.passwordMatches(oldPassword, ByteString.valueOf(components[1])))
-              {
-                deleteValues.add(v);
-              }
-            }
-            catch (DirectoryException de)
-            {
-              logger.traceException(de);
+            logger.traceException(de);
 
-              // We couldn't decode the provided password value, so remove it from the user's entry.
-              deleteValues.add(v);
-            }
+            // We couldn't decode the provided password value, so remove it from the user's entry.
+            deleteValues.add(v);
           }
         }
 
@@ -895,6 +861,28 @@ public class PasswordModifyExtendedOperation
         userLock.unlock();
       }
     }
+  }
+
+  private String[] decodePassword(PasswordPolicyState pwPolicyState, String encodedPassword) throws DirectoryException
+  {
+    return pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax()
+        ? AuthPasswordSyntax.decodeAuthPassword(encodedPassword)
+        : UserPasswordSyntax.decodeUserPassword(encodedPassword);
+  }
+
+  private PasswordStorageScheme<?> getPasswordStorageScheme(PasswordPolicyState pwPolicyState, String scheme)
+  {
+    return pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax()
+        ? DirectoryServer.getAuthPasswordStorageScheme(scheme)
+        : DirectoryServer.getPasswordStorageScheme(toLowerCase(scheme));
+  }
+
+  private boolean passwordMatches(
+      PasswordPolicyState pwPolicyState, PasswordStorageScheme<?> scheme, ByteString oldPassword, String[] components)
+  {
+    return pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax()
+        ? scheme.authPasswordMatches(oldPassword, components[1], components[2])
+        : scheme.passwordMatches(oldPassword, ByteString.valueOf(components[1]));
   }
 
   private boolean isSelfChange(ByteString userIdentity, Entry requestorEntry, DN userDN, ByteString oldPassword)

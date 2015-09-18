@@ -469,17 +469,10 @@ public class EncodePassword
       // comparison.  Otherwise, the user must have provided the storage scheme.
       if (authPasswordSyntax.isPresent())
       {
-        String scheme;
-        String authInfo;
-        String authValue;
-
+        String[] authPWElements;
         try
         {
-          StringBuilder[] authPWElements =
-               AuthPasswordSyntax.decodeAuthPassword(encodedPW.toString());
-          scheme    = authPWElements[0].toString();
-          authInfo  = authPWElements[1].toString();
-          authValue = authPWElements[2].toString();
+          authPWElements = AuthPasswordSyntax.decodeAuthPassword(encodedPW.toString());
         }
         catch (DirectoryException de)
         {
@@ -491,6 +484,10 @@ public class EncodePassword
           printWrappedText(err, ERR_ENCPW_INVALID_ENCODED_AUTHPW.get(e));
           return OPERATIONS_ERROR;
         }
+
+        String scheme = authPWElements[0];
+        String authInfo = authPWElements[1];
+        String authValue = authPWElements[2];
 
         PasswordStorageScheme storageScheme =
              DirectoryServer.getAuthPasswordStorageScheme(scheme);

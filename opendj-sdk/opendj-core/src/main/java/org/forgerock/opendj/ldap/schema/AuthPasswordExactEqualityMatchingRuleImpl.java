@@ -32,12 +32,8 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
-/**
- * This class implements the authPasswordMatch matching rule defined in RFC
- * 3112.
- */
+/** This class implements the authPasswordMatch matching rule defined in RFC 3112. */
 final class AuthPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
-
     AuthPasswordExactEqualityMatchingRuleImpl() {
         super(EMR_AUTH_PASSWORD_EXACT_NAME);
     }
@@ -45,12 +41,10 @@ final class AuthPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMa
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
-        final StringBuilder[] authPWComponents =
-                AuthPasswordSyntaxImpl.decodeAuthPassword(value.toString());
+        final String[] authPWComponents = AuthPasswordSyntaxImpl.decodeAuthPassword(value.toString());
 
-        final StringBuilder normalizedValue =
-                new StringBuilder(2 + authPWComponents[0].length() + authPWComponents[1].length()
-                        + authPWComponents[2].length());
+        final StringBuilder normalizedValue = new StringBuilder(
+            2 + authPWComponents[0].length() + authPWComponents[1].length() + authPWComponents[2].length());
         normalizedValue.append(authPWComponents[0]);
         normalizedValue.append('$');
         normalizedValue.append(authPWComponents[1]);
