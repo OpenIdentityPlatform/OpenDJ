@@ -27,14 +27,14 @@ package org.opends.server.schema;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.forgerock.testng.ForgeRockTestCase;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /** Tests the AuthPasswordSyntax. */
 @SuppressWarnings("javadoc")
-public class AuthPasswordSyntaxTest extends ForgeRockTestCase
+public class AuthPasswordSyntaxTest extends DirectoryServerTestCase
 {
   @DataProvider
   public Object[][] validEncodedPasswords()
