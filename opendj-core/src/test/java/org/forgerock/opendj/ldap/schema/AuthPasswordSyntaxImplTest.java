@@ -55,7 +55,7 @@ public class AuthPasswordSyntaxImplTest extends ForgeRockTestCase {
     public void decodeValidPassword(String encodedPassword, String expectedScheme, String expectedAuthInfo,
             String expectedAuthValue) throws Exception {
         assertThat(AuthPasswordSyntaxImpl.decodeAuthPassword(encodedPassword))
-                .isEqualTo(new String[] {expectedScheme, expectedAuthInfo, expectedAuthValue} );
+                .isEqualTo(new String[] {expectedScheme, expectedAuthInfo, expectedAuthValue});
     }
 
     @DataProvider
