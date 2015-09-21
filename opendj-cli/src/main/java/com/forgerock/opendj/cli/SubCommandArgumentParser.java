@@ -62,7 +62,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 public class SubCommandArgumentParser extends ArgumentParser {
 
     private static final String INDENT = "    ";
-    private static final int columnAdjust = OperatingSystem.isWindows() ? 1 : 0;
+    private static final int COLUMN_ADJUST = OperatingSystem.isWindows() ? 1 : 0;
 
     /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
     private final Map<Argument, Collection<SubCommand>> usageGroupArguments = new HashMap<>();
@@ -1042,7 +1042,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
     }
 
-    /** Wraps long lines without indentation */
+    /** Wraps long lines without indentation. */
     private void wrap(StringBuilder buffer, LocalizableMessage text) {
         indentAndWrap(buffer, "", text);
     }
@@ -1054,7 +1054,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * FIXME consider merging with com.forgerock.opendj.cli.Utils#wrapText(String, int, int)
      */
     private void indentAndWrap(StringBuilder buffer, String indent, LocalizableMessage text) {
-        int actualSize = MAX_LINE_WIDTH - indent.length() - columnAdjust;
+        int actualSize = MAX_LINE_WIDTH - indent.length() - COLUMN_ADJUST;
         indentAndWrap(indent, buffer, actualSize, text);
     }
 
