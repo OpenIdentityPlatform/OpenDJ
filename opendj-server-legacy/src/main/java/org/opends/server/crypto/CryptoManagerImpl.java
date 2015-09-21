@@ -280,8 +280,6 @@ public class CryptoManagerImpl
     config.addChangeListener(this);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        CryptoManagerCfg cfg,
@@ -410,8 +408,6 @@ public class CryptoManagerImpl
     return isAcceptable;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(CryptoManagerCfg cfg)
   {
@@ -485,28 +481,25 @@ public class CryptoManagerImpl
               .addAttribute(requestedAttribute);
           InternalSearchOperation searchOp = icc.processSearch(request);
           for (Entry e : searchOp.getSearchEntries()) {
-            /* attribute ds-cfg-public-key-certificate is a MUST in
-               the schema */
+            // attribute ds-cfg-public-key-certificate is a MUST in the schema
             certificate = e.parseAttribute(
                 ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE).asByteString().toByteArray();
           }
           break;
         }
         catch (DirectoryException ex) {
-          if (0 == i
-                  && ResultCode.NO_SUCH_OBJECT == ex.getResultCode()){
-            final Entry entry = new Entry(entryDN, null, null, null);
-            entry.addObjectClass(DirectoryServer.getTopObjectClass());
-            entry.addObjectClass(ocCertRequest);
-            AddOperation addOperation = icc.processAdd(entry);
-            if (ResultCode.SUCCESS != addOperation.getResultCode()) {
-              throw new DirectoryException(
-                      addOperation.getResultCode(),
-                      ERR_CRYPTOMGR_FAILED_TO_INITIATE_INSTANCE_KEY_GENERATION.get(entry.getName()));
-            }
-          }
-          else {
+          if (0 != i || ex.getResultCode() != ResultCode.NO_SUCH_OBJECT) {
             throw ex;
+          }
+
+          final Entry entry = new Entry(entryDN, null, null, null);
+          entry.addObjectClass(DirectoryServer.getTopObjectClass());
+          entry.addObjectClass(ocCertRequest);
+          AddOperation addOperation = icc.processAdd(entry);
+          if (ResultCode.SUCCESS != addOperation.getResultCode()) {
+            throw new DirectoryException(
+                addOperation.getResultCode(),
+                ERR_CRYPTOMGR_FAILED_TO_INITIATE_INSTANCE_KEY_GENERATION.get(entry.getName()));
           }
         }
       }
@@ -575,10 +568,8 @@ public class CryptoManagerImpl
          md.digest(instanceKeyCertificate));
   }
 
-
   /**
-   Publishes the instance key entry in ADS, if it does not already
-   exist.
+   Publishes the instance key entry in ADS, if it does not already exist.
 
    @throws CryptoManagerException In case there is a problem
    searching for the entry, or, if necessary, adding it.
@@ -1041,18 +1032,8 @@ public class CryptoManagerImpl
       Set<String> symmetricKeys =
           entry.parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
 
-      // Find the symmetric key value that was wrapped using
-      // our instance key.
-      SecretKey secretKey = null;
-      for (String symmetricKey : symmetricKeys)
-      {
-        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        if (secretKey != null)
-        {
-          break;
-        }
-      }
-
+      // Find the symmetric key value that was wrapped using our instance key.
+      SecretKey secretKey = decodeSymmetricKeyAttribute(symmetricKeys);
       if (null != secretKey) {
         CipherKeyEntry.importCipherKeyEntry(this, keyID, transformation,
                 secretKey, keyLengthBits, ivLengthBits, isCompromised);
@@ -1070,16 +1051,7 @@ public class CryptoManagerImpl
       CipherKeyEntry.importCipherKeyEntry(this, keyID, transformation,
               secretKey, keyLengthBits, ivLengthBits, isCompromised);
 
-      // Write the value to the entry.
-      InternalClientConnection internalConnection = getRootConnection();
-      Attribute attribute = Attributes.create(ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
-      List<Modification> modifications = newArrayList(new Modification(ModificationType.ADD, attribute, false));
-      ModifyOperation internalModify = internalConnection.processModify(entry.getName(), modifications);
-      if (internalModify.getResultCode() != ResultCode.SUCCESS)
-      {
-        throw new CryptoManagerException(
-                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(entry.getName()));
-      }
+      writeValueToEntry(entry, symmetricKey);
     }
     catch (CryptoManagerException e)
     {
@@ -1092,6 +1064,19 @@ public class CryptoManagerImpl
               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
                       entry.getName(), ex.getMessage()), ex);
     }
+  }
+
+  private SecretKey decodeSymmetricKeyAttribute(Set<String> symmetricKeys) throws CryptoManagerException
+  {
+    for (String symmetricKey : symmetricKeys)
+    {
+      SecretKey secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+      if (secretKey != null)
+      {
+        return secretKey;
+      }
+    }
+    return null;
   }
 
 
@@ -1132,50 +1117,24 @@ public class CryptoManagerImpl
       Set<String> symmetricKeys =
           entry.parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
 
-      // Find the symmetric key value that was wrapped using our
-      // instance key.
-      SecretKey secretKey = null;
-      for (String symmetricKey : symmetricKeys)
+      SecretKey secretKey = decodeSymmetricKeyAttribute(symmetricKeys);
+      if (secretKey != null)
       {
-        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        if (secretKey != null)
-        {
-          break;
-        }
+        MacKeyEntry.importMacKeyEntry(this, keyID, algorithm, secretKey, keyLengthBits, isCompromised);
+        return;
       }
 
-      if (secretKey == null)
+      // Request the value from another server.
+      String symmetricKey = getSymmetricKey(symmetricKeys);
+      if (symmetricKey == null)
       {
-        // Request the value from another server.
-        String symmetricKey = getSymmetricKey(symmetricKeys);
-        if (symmetricKey == null)
-        {
-          throw new CryptoManagerException(
-               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(entry.getName()));
-        }
-        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
-                                      secretKey, keyLengthBits,
-                                      isCompromised);
+        throw new CryptoManagerException(
+             ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(entry.getName()));
+      }
+      secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+      MacKeyEntry.importMacKeyEntry(this, keyID, algorithm, secretKey, keyLengthBits, isCompromised);
 
-        // Write the value to the entry.
-        Attribute attribute = Attributes.create(ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
-        List<Modification> modifications = newArrayList(
-            new Modification(ModificationType.ADD, attribute, false));
-        ModifyOperation internalModify =
-             getRootConnection().processModify(entry.getName(), modifications);
-        if (internalModify.getResultCode() != ResultCode.SUCCESS)
-        {
-          throw new CryptoManagerException(
-               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(entry.getName()));
-        }
-      }
-      else
-      {
-        MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
-                                      secretKey, keyLengthBits,
-                                      isCompromised);
-      }
+      writeValueToEntry(entry, symmetricKey);
     }
     catch (CryptoManagerException e)
     {
@@ -1190,6 +1149,16 @@ public class CryptoManagerImpl
     }
   }
 
+  private void writeValueToEntry(Entry entry, String symmetricKey) throws CryptoManagerException
+  {
+    Attribute attribute = Attributes.create(ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
+    List<Modification> modifications = newArrayList(new Modification(ModificationType.ADD, attribute));
+    ModifyOperation internalModify = getRootConnection().processModify(entry.getName(), modifications);
+    if (internalModify.getResultCode() != ResultCode.SUCCESS)
+    {
+      throw new CryptoManagerException(ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(entry.getName()));
+    }
+  }
 
   /**
    * This class implements a utility interface to the unique
@@ -1201,9 +1170,7 @@ public class CryptoManagerImpl
    */
   private static class KeyEntryID
   {
-    /**
-     *  Constructs a KeyEntryID using a new unique identifier.
-     */
+    /** Constructs a KeyEntryID using a new unique identifier. */
     public KeyEntryID() {
       fValue = UUID.randomUUID();
     }
@@ -1227,11 +1194,9 @@ public class CryptoManagerImpl
     }
 
     /**
-     * Constructs a {@code KeyEntryID} from its {@code String}
-     * representation.
+     * Constructs a {@code KeyEntryID} from its {@code String} representation.
      *
-     * @param  keyEntryID The {@code String} reprentation of a
-     * {@code KeyEntryID}.
+     * @param  keyEntryID The {@code String} representation of a {@code KeyEntryID}.
      *
      * @throws  CryptoManagerException  If the argument does
      * not conform to the {@code KeyEntryID} string syntax.
@@ -1395,7 +1360,7 @@ public class CryptoManagerImpl
     /**
      Construct an instance of {@code SecretKeyEntry} using the specified
      parameters. This constructor would typically be used for key entries
-     imported from ADS, for which the full set of paramters is known.
+     imported from ADS, for which the full set of parameters is known.
      <p>
      Note the relationship between the secret key data array length and the
      secret key length parameter described in {@link SecretKeyEntry}
@@ -1578,49 +1543,19 @@ public class CryptoManagerImpl
       ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
       ocMap.put(ocCipherKey, OC_CRYPTO_CIPHER_KEY);
 
-      // Create the operational and user attributes.
-      LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
-      LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
-
-      // Add the key ID attribute.
+      // Create the user attributes.
+      LinkedHashMap<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();
       userAttrs.put(attrKeyID, Attributes.createAsList(attrKeyID, distinguishedValue));
-
-      // Add the transformation name attribute.
       putSingleValueAttribute(userAttrs, attrTransformation, keyEntry.getType());
-
-      // Add the init vector length attribute.
       putSingleValueAttribute(userAttrs, attrInitVectorLength,
           String.valueOf(keyEntry.getIVLengthBits()));
-
-      // Add the key length attribute.
       putSingleValueAttribute(userAttrs, attrKeyLength,
           String.valueOf(keyEntry.getKeyLengthBits()));
-
-
-      // Get the trusted certificates.
-      Map<String, byte[]> trustedCerts =
-           cryptoManager.getTrustedCertificates();
-
-      // Need to add our own instance certificate.
-      byte[] instanceKeyCertificate =
-         CryptoManagerImpl.getInstanceKeyCertificateFromLocalTruststore();
-      trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
-                       instanceKeyCertificate);
-
-      // Add the symmetric key attribute.
-      AttributeBuilder builder = new AttributeBuilder(attrSymmetricKey);
-      for (Map.Entry<String, byte[]> mapEntry : trustedCerts.entrySet())
-      {
-        String symmetricKey = cryptoManager.encodeSymmetricKeyAttribute(
-            mapEntry.getKey(), mapEntry.getValue(), keyEntry.getSecretKey());
-
-        builder.add(symmetricKey);
-      }
-      userAttrs.put(attrSymmetricKey, builder.toAttributeList());
+      userAttrs.put(attrSymmetricKey, buildSymetricKeyAttributes(cryptoManager, keyEntry.getSecretKey()));
 
       // Create the entry.
+      LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
-
       AddOperation addOperation = getRootConnection().processAdd(entry);
       if (addOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -1630,36 +1565,24 @@ public class CryptoManagerImpl
       }
     }
 
-
     /**
      * Initializes a secret key entry from the supplied parameters,
-     * validates it, and registers it in the supplied map. The
-     * anticipated use of this method is to import a key entry from
-     * ADS.
+     * validates it, and registers it in the supplied map.
+     * The anticipated use of this method is to import a key entry from ADS.
      *
      * @param cryptoManager  The CryptoManager instance.
-     *
      * @param keyIDString  The key identifier.
-     *
-     * @param transformation  The cipher transformation for which the
-     * key entry was produced.
-     *
+     * @param transformation The cipher transformation for which the key entry was produced.
      * @param secretKey  The cipher key.
-     *
-     * @param secretKeyLengthBits  The length of the cipher key in
-     * bits.
-     *
+     * @param secretKeyLengthBits The length of the cipher key in bits.
      * @param ivLengthBits  The length of the initialization vector,
      * which will be zero in the case of any stream cipher algorithm,
      * any block cipher algorithm for which the transformation mode
      * does not use an initialization vector, and any HMAC algorithm.
-     *
      * @param isCompromised  Mark the key as compromised, so that it
      * will not subsequently be used for encryption. The key entry
      * must be maintained in order to decrypt existing ciphertext.
-     *
      * @return  The key entry, if one was successfully produced.
-     *
      * @throws CryptoManagerException  In case of an error in the
      * parameters used to initialize or validate the key entry.
      */
@@ -1681,12 +1604,11 @@ public class CryptoManagerImpl
       CipherKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
       if (null != keyEntry) {
         // Paranoiac check to ensure exact type match.
-        if (! (keyEntry.getType().equals(transformation)
-                && keyEntry.getKeyLengthBits() == secretKeyLengthBits
-                && keyEntry.getIVLengthBits() == ivLengthBits)) {
-               throw new CryptoManagerException(
-                    ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FIELD_MISMATCH.get(
-                         keyIDString));
+        if (!keyEntry.getType().equals(transformation)
+            || keyEntry.getKeyLengthBits() != secretKeyLengthBits
+            || keyEntry.getIVLengthBits() != ivLengthBits) {
+          throw new CryptoManagerException(
+                    ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FIELD_MISMATCH.get(keyIDString));
         }
         // Allow transition to compromised.
         if (isCompromised && !keyEntry.isCompromised()) {
@@ -1708,8 +1630,7 @@ public class CryptoManagerImpl
       getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
 
       // Cache new entry.
-      cryptoManager.cipherKeyEntryCache.put(keyEntry.getKeyID(),
-              keyEntry);
+      cryptoManager.cipherKeyEntryCache.put(keyEntry.getKeyID(), keyEntry);
 
       return keyEntry;
     }
@@ -1725,10 +1646,8 @@ public class CryptoManagerImpl
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
-     *
      * @param transformation  The cipher transformation for which the
      * key was produced.
-     *
      * @param keyLengthBits  The cipher key length in bits.
      *
      * @return  The key entry corresponding to the parameters, or
@@ -1741,7 +1660,6 @@ public class CryptoManagerImpl
       Reject.ifNull(cryptoManager, transformation);
       Reject.ifFalse(0 < keyLengthBits);
 
-      CipherKeyEntry keyEntry = null;
       // search for an existing key that satisfies the request
       for (Map.Entry<KeyEntryID, CipherKeyEntry> i
               : cryptoManager.cipherKeyEntryCache.entrySet()) {
@@ -1749,12 +1667,10 @@ public class CryptoManagerImpl
         if (! entry.isCompromised()
                 && entry.getType().equals(transformation)
                 && entry.getKeyLengthBits() == keyLengthBits) {
-          keyEntry = entry;
-          break;
+          return entry;
         }
       }
-
-      return keyEntry;
+      return null;
     }
 
 
@@ -1776,7 +1692,6 @@ public class CryptoManagerImpl
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
-     *
      * @param keyID  The key identifier.
      *
      * @return  The key entry associated with the key identifier, or
@@ -1836,7 +1751,7 @@ public class CryptoManagerImpl
     /**
      * Construct an instance of CipherKeyEntry using the specified
      * parameters. This constructor would typically be used for key
-     * entries imported from ADS, for which the full set of paramters
+     * entries imported from ADS, for which the full set of parameters
      * is known, and for a newly generated key entry, for which the
      * initialization vector length might not yet be known, but which
      * must be set prior to using the key.
@@ -1849,8 +1764,7 @@ public class CryptoManagerImpl
      *
      * @param secretKey  The cipher key.
      *
-     * @param secretKeyLengthBits  The length of the secret key in
-     * bits.
+     * @param secretKeyLengthBits  The length of the secret key in bits.
      *
      * @param ivLengthBits  The length in bits of a mandatory
      * initialization vector or 0 if none is required. Set this
@@ -1897,7 +1811,7 @@ public class CryptoManagerImpl
      * size, or 0 for a stream cipher or a block cipher mode that does
      * not use an initialization vector (e.g., ECB).
      *
-     * @param ivLengthBits The initiazliation vector length in bits.
+     * @param ivLengthBits The initialization vector length in bits.
      */
     private void setIVLengthBits(int ivLengthBits) {
       Reject.ifFalse(-1 == fIVLengthBits && 0 <= ivLengthBits);
@@ -1935,7 +1849,7 @@ public class CryptoManagerImpl
    * @param mode  Either Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE.
    *
    * @param initializationVector  For Cipher.DECRYPT_MODE, supply
-   * the initialzation vector used in the corresponding encryption
+   * the initialization vector used in the corresponding encryption
    * cipher, or {@code null} if none.
    *
    * @return  The initialized cipher object.
@@ -2099,46 +2013,16 @@ public class CryptoManagerImpl
       ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
       ocMap.put(ocMacKey, OC_CRYPTO_MAC_KEY);
 
-      // Create the operational and user attributes.
-      LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
-      LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
-
-      // Add the key ID attribute.
+      // Create the user attributes.
+      LinkedHashMap<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();
       userAttrs.put(attrKeyID, Attributes.createAsList(attrKeyID, distinguishedValue));
-
-      // Add the mac algorithm name attribute.
       putSingleValueAttribute(userAttrs, attrMacAlgorithm, keyEntry.getType());
-
-      // Add the key length attribute.
       putSingleValueAttribute(userAttrs, attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()));
-
-      // Get the trusted certificates.
-      Map<String, byte[]> trustedCerts = cryptoManager.getTrustedCertificates();
-
-      // Need to add our own instance certificate.
-      byte[] instanceKeyCertificate =
-         CryptoManagerImpl.getInstanceKeyCertificateFromLocalTruststore();
-      trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
-                       instanceKeyCertificate);
-
-      // Add the symmetric key attribute.
-      AttributeBuilder builder = new AttributeBuilder(attrSymmetricKey);
-      for (Map.Entry<String, byte[]> mapEntry :
-           trustedCerts.entrySet())
-      {
-        String symmetricKey =
-             cryptoManager.encodeSymmetricKeyAttribute(
-                  mapEntry.getKey(),
-                  mapEntry.getValue(),
-                  keyEntry.getSecretKey());
-        builder.add(symmetricKey);
-      }
-
-      userAttrs.put(attrSymmetricKey, builder.toAttributeList());
+      userAttrs.put(attrSymmetricKey, buildSymetricKeyAttributes(cryptoManager, keyEntry.getSecretKey()));
 
       // Create the entry.
+      LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
-
       AddOperation addOperation = getRootConnection().processAdd(entry);
       if (addOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -2150,28 +2034,19 @@ public class CryptoManagerImpl
 
     /**
      * Initializes a secret key entry from the supplied parameters,
-     * validates it, and registers it in the supplied map. The
-     * anticipated use of this method is to import a key entry from
-     * ADS.
+     * validates it, and registers it in the supplied map.
+     * The anticipated use of this method is to import a key entry from ADS.
      *
      * @param cryptoManager  The CryptoManager instance.
-     *
      * @param keyIDString  The key identifier.
-     *
      * @param algorithm  The name of the MAC algorithm for which the
      * key entry is to be produced.
-     *
      * @param secretKey  The MAC key.
-     *
-     * @param secretKeyLengthBits  The length of the secret key in
-     * bits.
-     *
-     * @param isCompromised  Mark the key as compromised, so that it
+     * @param secretKeyLengthBits The length of the secret key in bits.
+     * @param isCompromised Mark the key as compromised, so that it
      * will not subsequently be used for new data. The key entry
      * must be maintained in order to verify existing signatures.
-     *
-     * @return  The key entry, if one was successfully produced.
-     *
+     * @return The key entry, if one was successfully produced.
      * @throws CryptoManagerException  In case of an error in the
      * parameters used to initialize or validate the key entry.
      */
@@ -2229,10 +2104,7 @@ public class CryptoManagerImpl
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
-     *
-     * @param algorithm  The MAC algorithm for which the key was
-     * produced.
-     *
+     * @param algorithm  The MAC algorithm for which the key was produced.
      * @param keyLengthBits  The MAC key length in bits.
      *
      * @return  The key entry corresponding to the parameters, or
@@ -2245,7 +2117,6 @@ public class CryptoManagerImpl
       Reject.ifNull(cryptoManager, algorithm);
       Reject.ifFalse(0 < keyLengthBits);
 
-      MacKeyEntry keyEntry = null;
       // search for an existing key that satisfies the request
       for (Map.Entry<KeyEntryID, MacKeyEntry> i
               : cryptoManager.macKeyEntryCache.entrySet()) {
@@ -2253,12 +2124,10 @@ public class CryptoManagerImpl
         if (! entry.isCompromised()
                 && entry.getType().equals(algorithm)
                 && entry.getKeyLengthBits() == keyLengthBits) {
-          keyEntry = entry;
-          break;
+          return entry;
         }
       }
-
-      return keyEntry;
+      return null;
     }
 
 
@@ -2280,7 +2149,6 @@ public class CryptoManagerImpl
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
-     *
      * @param keyID  The key identifier.
      *
      * @return  The key entry associated with the key identifier, or
@@ -2321,19 +2189,13 @@ public class CryptoManagerImpl
     /**
      * Construct an instance of MacKeyEntry using the specified
      * parameters. This constructor would typically be used for key
-     * entries imported from ADS, for which the full set of paramters
-     * is known.
+     * entries imported from ADS, for which the full set of parameters is known.
      *
-     * @param keyID  The unique identifier of this MAC algorithm/key
-     * pair.
-     *
+     * @param keyID  The unique identifier of this MAC algorithm/key pair.
      * @param algorithm  The name of the MAC algorithm for which the
      * key entry is to be produced.
-     *
      * @param secretKey  The MAC key.
-     *
-     * @param secretKeyLengthBits  The length of the secret key in
-     * bits.
+     * @param secretKeyLengthBits  The length of the secret key in bits.
      *
      * @param isCompromised {@code false} if the key may be used
      * for signing, or {@code true} if the key is being retained only
@@ -2364,6 +2226,24 @@ public class CryptoManagerImpl
     private final String fType;
   }
 
+  private static List<Attribute> buildSymetricKeyAttributes(CryptoManagerImpl cryptoManager, SecretKey secretKey)
+      throws CryptoManagerException
+  {
+    Map<String, byte[]> trustedCerts = cryptoManager.getTrustedCertificates();
+
+    // Need to add our own instance certificate.
+    byte[] instanceKeyCertificate = CryptoManagerImpl.getInstanceKeyCertificateFromLocalTruststore();
+    trustedCerts.put(getInstanceKeyID(instanceKeyCertificate), instanceKeyCertificate);
+
+    AttributeBuilder builder = new AttributeBuilder(attrSymmetricKey);
+    for (Map.Entry<String, byte[]> mapEntry : trustedCerts.entrySet())
+    {
+      String symmetricKey =
+          cryptoManager.encodeSymmetricKeyAttribute(mapEntry.getKey(), mapEntry.getValue(), secretKey);
+      builder.add(symmetricKey);
+    }
+    return builder.toAttributeList();
+  }
 
   /**
    * This method produces an initialized MAC engine based on the
@@ -2404,16 +2284,12 @@ public class CryptoManagerImpl
     return mac;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public String getPreferredMessageDigestAlgorithm()
   {
     return preferredDigestAlgorithm;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public MessageDigest getPreferredMessageDigest()
          throws NoSuchAlgorithmException
@@ -2421,8 +2297,6 @@ public class CryptoManagerImpl
     return MessageDigest.getInstance(preferredDigestAlgorithm);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public MessageDigest getMessageDigest(String digestAlgorithm)
          throws NoSuchAlgorithmException
@@ -2430,8 +2304,6 @@ public class CryptoManagerImpl
     return MessageDigest.getInstance(digestAlgorithm);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] digest(byte[] data)
          throws NoSuchAlgorithmException
@@ -2440,8 +2312,6 @@ public class CryptoManagerImpl
                 digest(data);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] digest(String digestAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
@@ -2449,8 +2319,6 @@ public class CryptoManagerImpl
     return MessageDigest.getInstance(digestAlgorithm).digest(data);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] digest(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
@@ -2473,8 +2341,6 @@ public class CryptoManagerImpl
     return digest.digest();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] digest(String digestAlgorithm,
                        InputStream inputStream)
@@ -2497,8 +2363,6 @@ public class CryptoManagerImpl
     return digest.digest();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public String getMacEngineKeyEntryID()
           throws CryptoManagerException
@@ -2507,8 +2371,6 @@ public class CryptoManagerImpl
             preferredMACAlgorithmKeyLengthBits);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public String getMacEngineKeyEntryID(final String macAlgorithm,
                                        final int keyLengthBits)
@@ -2525,8 +2387,6 @@ public class CryptoManagerImpl
     return keyEntry.getKeyID().getStringValue();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public Mac getMacEngine(String keyEntryID)
           throws CryptoManagerException
@@ -2536,8 +2396,6 @@ public class CryptoManagerImpl
     return keyEntry != null ? getMacEngine(keyEntry) : null;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] encrypt(byte[] data)
          throws GeneralSecurityException, CryptoManagerException
@@ -2546,8 +2404,6 @@ public class CryptoManagerImpl
             preferredCipherTransformationKeyLengthBits, data);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] encrypt(String cipherTransformation,
                         int keyLengthBits,
@@ -2584,8 +2440,6 @@ public class CryptoManagerImpl
     return cipherText;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public CipherOutputStream getCipherOutputStream(
           OutputStream outputStream) throws CryptoManagerException
@@ -2594,8 +2448,6 @@ public class CryptoManagerImpl
             preferredCipherTransformationKeyLengthBits, outputStream);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public CipherOutputStream getCipherOutputStream(
           String cipherTransformation, int keyLengthBits,
@@ -2630,8 +2482,6 @@ public class CryptoManagerImpl
     return new CipherOutputStream(outputStream, cipher);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public byte[] decrypt(byte[] data)
          throws GeneralSecurityException,
@@ -2710,8 +2560,6 @@ public class CryptoManagerImpl
     }
   }
 
-
- /** {@inheritDoc} */
   @Override
   public CipherInputStream getCipherInputStream(
           InputStream inputStream) throws CryptoManagerException
@@ -2743,8 +2591,7 @@ public class CryptoManagerImpl
            ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
                    "stream underflow"));
       }
-      keyEntry = CipherKeyEntry.getKeyEntry(this,
-              new KeyEntryID(keyID));
+      keyEntry = CipherKeyEntry.getKeyEntry(this, new KeyEntryID(keyID));
       if (null == keyEntry) {
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_DECRYPT_UNKNOWN_KEY_IDENTIFIER.get());
@@ -2768,8 +2615,6 @@ public class CryptoManagerImpl
             getCipher(keyEntry, Cipher.DECRYPT_MODE, iv));
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public int compress(byte[] src, int srcOff, int srcLen,
                       byte[] dst, int dstOff, int dstLen)
@@ -2796,8 +2641,6 @@ public class CryptoManagerImpl
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public int uncompress(byte[] src, int srcOff, int srcLen,
                         byte[] dst, int dstOff, int dstLen)
@@ -2831,8 +2674,6 @@ public class CryptoManagerImpl
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public SSLContext getSslContext(String componentName, SortedSet<String> sslCertNicknames) throws ConfigException
   {
@@ -2870,29 +2711,24 @@ public class CryptoManagerImpl
     return sslContext;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getSslCertNicknames()
   {
     return sslCertNicknames;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSslEncryption()
   {
     return sslEncryption;
   }
 
-  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getSslProtocols()
   {
     return sslProtocols;
   }
 
-  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getSslCipherSuites()
   {
