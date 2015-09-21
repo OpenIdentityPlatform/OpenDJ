@@ -755,7 +755,7 @@ public class LocalBackendModifyOperation
 
       // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
       // this is an internal operation or is related to synchronization in some way.
-      final boolean isInternalOrSynchro = isInternalOperation() || isSynchronizationOperation() || m.isInternal();
+      final boolean isInternalOrSynchro = isInternalOrSynchro(m);
       if (t.isNoUserModification() && !isInternalOrSynchro)
       {
         throw newDirectoryException(currentEntry,
@@ -793,6 +793,11 @@ public class LocalBackendModifyOperation
         processInitialSchema(m.getModificationType(), a);
       }
     }
+  }
+
+  private boolean isInternalOrSynchro(Modification m)
+  {
+    return isInternalOperation() || m.isInternal() || isSynchronizationOperation();
   }
 
   private boolean isPassword(AttributeType t)
@@ -953,6 +958,12 @@ public class LocalBackendModifyOperation
         }
 
         processInitialSchema(m.getModificationType(), a);
+      }
+      else if (!isInternalOrSynchro(m)
+          && t.equals(getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_DISABLED)))
+      {
+        enabledStateChanged = true;
+        isEnabled = pwPolicyState != null && !pwPolicyState.isDisabled();
       }
     }
   }
