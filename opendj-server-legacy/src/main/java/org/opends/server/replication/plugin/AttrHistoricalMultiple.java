@@ -228,90 +228,92 @@ public class AttrHistoricalMultiple extends AttrHistorical
   public boolean replayOperation(Iterator<Modification> modsIterator, CSN csn,
       Entry modifiedEntry, Modification m)
   {
+    if (csn.isNewerThanOrEqualTo(getLastUpdateTime())
+        && m.getModificationType() == ModificationType.REPLACE)
+    {
+      processLocalOrNonConflictModification(csn, m);
+      return false;// the attribute was not modified more recently
+    }
     // We are replaying an operation that was already done
     // on another master server and this operation has a potential
     // conflict with some more recent operations on this same entry
     // we need to take the more complex path to solve them
-    if (CSN.compare(csn, getLastUpdateTime()) < 0 ||
-        m.getModificationType() != ModificationType.REPLACE)
-    {
-      // the attribute was modified after this change -> conflict
+    return replayPotentialConflictModification(modsIterator, csn, modifiedEntry, m);
+  }
 
-      switch (m.getModificationType().asEnum())
+  private boolean replayPotentialConflictModification(Iterator<Modification> modsIterator, CSN csn,
+      Entry modifiedEntry, Modification m)
+  {
+    // the attribute was modified after this change -> conflict
+    switch (m.getModificationType().asEnum())
+    {
+    case DELETE:
+      if (csn.isOlderThan(getDeleteTime()))
       {
-      case DELETE:
-        if (csn.isOlderThan(getDeleteTime()))
-        {
-          /* this delete is already obsoleted by a more recent delete
-           * skip this mod
-           */
-          modsIterator.remove();
-          return true;
-        }
-
-        if (!processDeleteConflict(csn, m, modifiedEntry))
-        {
-          modsIterator.remove();
-          return true;
-        }
-        return false;
-
-      case ADD:
-        if (!processAddConflict(csn, m))
-        {
-          modsIterator.remove();
-          return true;
-        }
-        return false;
-
-      case REPLACE:
-        if (csn.isOlderThan(getDeleteTime()))
-        {
-          /* this replace is already obsoleted by a more recent delete
-           * skip this mod
-           */
-          modsIterator.remove();
-          return true;
-        }
-
-        /* save the values that are added by the replace operation into addedValues
-         * first process the replace as a delete operation
-         * -> this generates a list of values that should be kept
-         * then process the addedValues as if they were coming from an add
-         * -> this generates the list of values that needs to be added
-         * concatenate the 2 generated lists into a replace
+        /* this delete is already obsoleted by a more recent delete
+         * skip this mod
          */
-        boolean conflict = false;
-        Attribute addedValues = m.getAttribute();
-        m.setAttribute(new AttributeBuilder(addedValues, true).toAttribute());
-
-        processDeleteConflict(csn, m, modifiedEntry);
-        Attribute keptValues = m.getAttribute();
-
-        m.setAttribute(addedValues);
-        if (!processAddConflict(csn, m))
-        {
-          modsIterator.remove();
-          conflict = true;
-        }
-
-        AttributeBuilder builder = new AttributeBuilder(keptValues);
-        builder.addAll(m.getAttribute());
-        m.setAttribute(builder.toAttribute());
-        return conflict;
-
-      case INCREMENT:
-        // TODO : FILL ME
-        return false;
-
-      default:
-        return false;
+        modsIterator.remove();
+        return true;
       }
-    }
-    else
-    {
-      processLocalOrNonConflictModification(csn, m);
-      return false;// the attribute was not modified more recently
+
+      if (!processDeleteConflict(csn, m, modifiedEntry))
+      {
+        modsIterator.remove();
+        return true;
+      }
+      return false;
+
+    case ADD:
+      if (!processAddConflict(csn, m))
+      {
+        modsIterator.remove();
+        return true;
+      }
+      return false;
+
+    case REPLACE:
+      if (csn.isOlderThan(getDeleteTime()))
+      {
+        /* this replace is already obsoleted by a more recent delete
+         * skip this mod
+         */
+        modsIterator.remove();
+        return true;
+      }
+
+      /* save the values that are added by the replace operation into addedValues
+       * first process the replace as a delete operation
+       * -> this generates a list of values that should be kept
+       * then process the addedValues as if they were coming from an add
+       * -> this generates the list of values that needs to be added
+       * concatenate the 2 generated lists into a replace
+       */
+      boolean conflict = false;
+      Attribute addedValues = m.getAttribute();
+      m.setAttribute(new AttributeBuilder(addedValues, true).toAttribute());
+
+      processDeleteConflict(csn, m, modifiedEntry);
+      Attribute keptValues = m.getAttribute();
+
+      m.setAttribute(addedValues);
+      if (!processAddConflict(csn, m))
+      {
+        modsIterator.remove();
+        conflict = true;
+      }
+
+      AttributeBuilder builder = new AttributeBuilder(keptValues);
+      builder.addAll(m.getAttribute());
+      m.setAttribute(builder.toAttribute());
+      return conflict;
+
+    case INCREMENT:
+      // TODO : FILL ME
+      return false;
+
+    default:
+      return false;
     }
   }
 
