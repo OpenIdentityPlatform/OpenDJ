@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.server.util;
-
-
 
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +36,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -52,8 +51,6 @@ import org.forgerock.util.Reject;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.CERTANDKEYGEN_PROVIDER;
-
-
 
 /**
  * Provides a wrapper class that collects all of the JVM vendor and JDK version
@@ -246,7 +243,7 @@ public final class Platform
     private static boolean classExists(final String className)
     {
       try {
-        Class clazz = Class.forName(className);
+        Class.forName(className);
         return true;
       } catch (ClassNotFoundException | ClassCastException e) {
         return false;
@@ -289,7 +286,6 @@ public final class Platform
       try
       {
         CertificateFactory cf = CertificateFactory.getInstance("X509");
-        InputStream inStream = new FileInputStream(certPath);
         if (ks == null)
         {
           ks = KeyStore.getInstance(ksType);
@@ -302,20 +298,20 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
         else if (!ks.containsAlias(alias)
-            || ks
-                .entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class))
+            || ks.entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class))
         {
-          trustedCert(alias, cf, ks, inStream);
+          try (InputStream inStream = new FileInputStream(certPath)) {
+            trustedCert(alias, cf, ks, inStream);
+          }
         }
         else
         {
           LocalizableMessage msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
           throw new KeyStoreException(msg.toString());
         }
-        FileOutputStream fileOutStream = new FileOutputStream(ksPath);
-        ks.store(fileOutStream, pwd);
-        fileOutStream.close();
-        inStream.close();
+        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
+          ks.store(fileOutStream, pwd);
+        }
       }
       catch (Exception e)
       {
@@ -342,34 +338,52 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
 
-        try (final FileOutputStream fileOutStream = new FileOutputStream(ksPath))
-        {
-            final Object keypair = certKeyGenCons.newInstance(keyType.keyAlgorithm, keyType.signatureAlgorithm);
-
-            final Method certAndKeyGenGenerate = certKeyGenClass.getMethod(GENERATE_METHOD, int.class);
-            certAndKeyGenGenerate.invoke(keypair, keyType.keySize);
-
-            final Method certAndKeyGetPrivateKey = certKeyGenClass.getMethod(GET_PRIVATE_KEY_METHOD);
-            final Certificate[] certificateChain = new Certificate[1];
-            final Method getSelfCertificate =
-                certKeyGenClass.getMethod(GET_SELFSIGNED_CERT_METHOD, X500NameClass, long.class);
-
-            final int days = validity * SEC_IN_DAY;
-            final Object subject = X500NameCons.newInstance(dn);
-            certificateChain[0] = (Certificate) getSelfCertificate.invoke(keypair, subject, days);
-            ks.setKeyEntry(alias , (PrivateKey) certAndKeyGetPrivateKey.invoke(keypair), pwd, certificateChain);
-
-            ks.store(fileOutStream, pwd);
+        final Object keypair = newKeyPair(keyType);
+        final Object subject = newX500Name(dn);
+        generate(keypair, keyType.keySize);
+        final PrivateKey privateKey = getPrivateKey(keypair);
+        final Certificate[] certificateChain = new Certificate[] {
+          getSelfCertificate(keypair, subject, validity * SEC_IN_DAY)
+        };
+        ks.setKeyEntry(alias, privateKey, pwd, certificateChain);
+        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
+          ks.store(fileOutStream, pwd);
         }
+        return ks;
       }
       catch (Exception e)
       {
         throw new KeyStoreException(ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e.getMessage()).toString(), e);
       }
-      return ks;
     }
 
+    private static Object newKeyPair(KeyType keyType) throws Exception
+    {
+      return certKeyGenCons.newInstance(keyType.keyAlgorithm, keyType.signatureAlgorithm);
+    }
 
+    private static Object newX500Name(String dn) throws Exception
+    {
+      return X500NameCons.newInstance(dn);
+    }
+
+    private static void generate(Object keypair, int keySize) throws Exception
+    {
+      Method certAndKeyGenGenerate = certKeyGenClass.getMethod(GENERATE_METHOD, int.class);
+      certAndKeyGenGenerate.invoke(keypair, keySize);
+    }
+
+    private static PrivateKey getPrivateKey(Object keypair) throws Exception
+    {
+      Method certAndKeyGetPrivateKey = certKeyGenClass.getMethod(GET_PRIVATE_KEY_METHOD);
+      return (PrivateKey) certAndKeyGetPrivateKey.invoke(keypair);
+    }
+
+    private static Certificate getSelfCertificate(Object keypair, Object subject, int days) throws Exception
+    {
+      Method getSelfCertificate = certKeyGenClass.getMethod(GET_SELFSIGNED_CERT_METHOD, X500NameClass, long.class);
+      return (Certificate) getSelfCertificate.invoke(keypair, subject, days);
+    }
 
     /**
      * Generate a x509 certificate from the input stream. Verification is done
