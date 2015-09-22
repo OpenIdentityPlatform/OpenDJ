@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -187,81 +187,27 @@ public class BackendConfigManager implements
 
 
         // If this backend is a configuration manager, then we don't want to do
-        // any more with it because the configuration will have already been
-        // started.
+        // any more with it because the configuration will have already been started.
         if (backend instanceof ConfigHandler)
         {
           continue;
         }
 
-        WritabilityMode writabilityMode = toWritabilityMode(backendCfg.getWritabilityMode());
-
         // Set the backend ID and writability mode for this backend.
         backend.setBackendID(backendID);
-        backend.setWritabilityMode(writabilityMode);
+        backend.setWritabilityMode(toWritabilityMode(backendCfg.getWritabilityMode()));
 
 
-        // Acquire a shared lock on this backend.  This will prevent operations
-        // like LDIF import or restore from occurring while the backend is
-        // active.
-        try
+        ConfigChangeResult ccr = new ConfigChangeResult();
+        if (!acquireSharedLock(backend, backendID, ccr)
+            || !initializeBackend(backend, backendCfg, ccr))
         {
-          String lockFile = LockFileManager.getBackendLockFileName(backend);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
-          {
-            logger.error(ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK, backendID, failureReason);
-            // FIXME -- Do we need to send an admin alert?
-            continue;
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-          logger.error(ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e));
-          // FIXME -- Do we need to send an admin alert?
+          logger.error(ccr.getMessages().get(0));
           continue;
         }
 
+        onBackendPreInitialization(backend);
 
-        // Perform the necessary initialization for the backend entry.
-        try
-        {
-          initializeBackend(backend, backendCfg);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-          logger.error(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE, className, backendDN, stackTraceToSingleLineString(e));
-
-          try
-          {
-            String lockFile = LockFileManager.getBackendLockFileName(backend);
-            StringBuilder failureReason = new StringBuilder();
-            if (! LockFileManager.releaseLock(lockFile, failureReason))
-            {
-              logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
-              // FIXME -- Do we need to send an admin alert?
-            }
-          }
-          catch (Exception e2)
-          {
-            logger.traceException(e2);
-
-            logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
-            // FIXME -- Do we need to send an admin alert?
-          }
-
-          continue;
-        }
-
-
-        for (BackendInitializationListener listener : getBackendInitializationListeners())
-        {
-          listener.performBackendPreInitializationProcessing(backend);
-        }
-
-        // Register the backend with the server.
         try
         {
           DirectoryServer.registerBackend(backend);
@@ -274,15 +220,10 @@ public class BackendConfigManager implements
           // FIXME -- Do we need to send an admin alert?
         }
 
-        for (BackendInitializationListener listener : getBackendInitializationListeners())
-        {
-          listener.performBackendPostInitializationProcessing(backend);
-        }
+        onBackendPostInitialization(backend);
 
-        // Put this backend in the hash so that we will be able to find it if it
-        // is altered.
+        // Put this backend in the hash so that we will be able to find it if it is altered
         registeredBackends.put(backendDN, backend);
-
       }
       else
       {
@@ -292,8 +233,80 @@ public class BackendConfigManager implements
     }
   }
 
+  private void onBackendPreInitialization(Backend<? extends BackendCfg> backend)
+  {
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
+    {
+      listener.performBackendPreInitializationProcessing(backend);
+    }
+  }
 
-  /** {@inheritDoc} */
+  private void onBackendPostInitialization(Backend<? extends BackendCfg> backend)
+  {
+    for (BackendInitializationListener listener : getBackendInitializationListeners())
+    {
+      listener.performBackendPostInitializationProcessing(backend);
+    }
+  }
+
+  /**
+   * Acquire a shared lock on this backend. This will prevent operations like LDIF import or restore
+   * from occurring while the backend is active.
+   */
+  private boolean acquireSharedLock(Backend<?> backend, String backendID, final ConfigChangeResult ccr)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (!LockFileManager.acquireSharedLock(lockFile, failureReason))
+      {
+        cannotAcquireLock(backendID, ccr, failureReason);
+        return false;
+      }
+      return true;
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+
+      cannotAcquireLock(backendID, ccr, stackTraceToSingleLineString(e));
+      return false;
+    }
+  }
+
+  private void cannotAcquireLock(String backendID, final ConfigChangeResult ccr, CharSequence failureReason)
+  {
+    LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID, failureReason);
+    logger.error(message);
+
+    // FIXME -- Do we need to send an admin alert?
+    ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+    ccr.setAdminActionRequired(true);
+    ccr.addMessage(message);
+  }
+
+  private void releaseSharedLock(Backend<?> backend, String backendID)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
+        // FIXME -- Do we need to send an admin alert?
+      }
+    }
+    catch (Exception e2)
+    {
+      logger.traceException(e2);
+
+      logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
+      // FIXME -- Do we need to send an admin alert?
+    }
+  }
+
   @Override
   public boolean isConfigurationChangeAcceptable(
        BackendCfg configEntry,
@@ -391,8 +404,6 @@ public class BackendConfigManager implements
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
@@ -540,49 +551,13 @@ public class BackendConfigManager implements
       backend.setBackendID(backendID);
       backend.setWritabilityMode(writabilityMode);
 
-
-      // Acquire a shared lock on this backend.  This will prevent operations
-      // like LDIF import or restore from occurring while the backend is active.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
-        {
-          LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID,failureReason);
-          logger.error(message);
-          // FIXME -- Do we need to send an admin alert?
-
-          ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-          ccr.setAdminActionRequired(true);
-          ccr.addMessage(message);
-          return ccr;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID,
-            stackTraceToSingleLineString(e));
-        logger.error(message);
-        // FIXME -- Do we need to send an admin alert?
-
-        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(message);
-        return ccr;
-      }
-
-      if (!initializeBackend(backend, cfg, ccr))
+      if (!acquireSharedLock(backend, backendID, ccr)
+          || !initializeBackend(backend, cfg, ccr))
       {
         return ccr;
       }
 
-      for (BackendInitializationListener listener : getBackendInitializationListeners())
-      {
-        listener.performBackendPreInitializationProcessing(backend);
-      }
+      onBackendPreInitialization(backend);
 
       // Register the backend with the server.
       try
@@ -603,10 +578,7 @@ public class BackendConfigManager implements
         return ccr;
       }
 
-      for (BackendInitializationListener listener : getBackendInitializationListeners())
-      {
-        listener.performBackendPostInitializationProcessing(backend);
-      }
+      onBackendPostInitialization(backend);
 
       registeredBackends.put(backendDN, backend);
     }
@@ -618,8 +590,6 @@ public class BackendConfigManager implements
     return ccr;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
        BackendCfg configEntry,
@@ -690,20 +660,15 @@ public class BackendConfigManager implements
     return backend.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(BackendCfg cfg)
   {
     DN                backendDN           = cfg.dn();
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Register as a change listener for this backend entry so that we will
     // be notified of any changes that may be made to it.
     cfg.addChangeListener(this);
-
 
     // See if the entry contains an attribute that indicates whether the backend should be enabled.
     // If it does not, or if it is not set to "true", then skip it.
@@ -731,8 +696,6 @@ public class BackendConfigManager implements
     }
 
 
-    WritabilityMode writabilityMode = toWritabilityMode(cfg.getWritabilityMode());
-
     // See if the entry contains an attribute that specifies the class name
     // for the backend implementation.  If it does, then load it and make sure
     // that it's a valid backend implementation.  There is no such attribute,
@@ -758,54 +721,16 @@ public class BackendConfigManager implements
 
     // Set the backend ID and writability mode for this backend.
     backend.setBackendID(backendID);
-    backend.setWritabilityMode(writabilityMode);
+    backend.setWritabilityMode(toWritabilityMode(cfg.getWritabilityMode()));
 
 
-    // Acquire a shared lock on this backend.  This will prevent operations
-    // like LDIF import or restore from occurring while the backend is active.
-    try
-    {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-      if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
-      {
-        LocalizableMessage message =
-            ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(backendID, failureReason);
-        logger.error(message);
-        // FIXME -- Do we need to send an admin alert?
-
-        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(message);
-        return ccr;
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_ACQUIRE_SHARED_LOCK.get(
-          backendID, stackTraceToSingleLineString(e));
-      logger.error(message);
-      // FIXME -- Do we need to send an admin alert?
-
-      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-      ccr.setAdminActionRequired(true);
-      ccr.addMessage(message);
-      return ccr;
-    }
-
-
-    // Perform the necessary initialization for the backend entry.
-    if (!initializeBackend(backend, cfg, ccr))
+    if (!acquireSharedLock(backend, backendID, ccr)
+        || !initializeBackend(backend, cfg, ccr))
     {
       return ccr;
     }
 
-    for (BackendInitializationListener listener : getBackendInitializationListeners())
-    {
-      listener.performBackendPreInitializationProcessing(backend);
-    }
+    onBackendPreInitialization(backend);
 
     // At this point, the backend should be online.  Add it as one of the
     // registered backends for this backend config manager.
@@ -827,10 +752,7 @@ public class BackendConfigManager implements
       return ccr;
     }
 
-    for (BackendInitializationListener listener : getBackendInitializationListeners())
-    {
-      listener.performBackendPostInitializationProcessing(backend);
-    }
+    onBackendPostInitialization(backend);
 
     registeredBackends.put(backendDN, backend);
     return ccr;
@@ -841,6 +763,7 @@ public class BackendConfigManager implements
     try
     {
       initializeBackend(backend, cfg);
+      return true;
     }
     catch (Exception e)
     {
@@ -850,28 +773,9 @@ public class BackendConfigManager implements
       ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
           cfg.getJavaClass(), cfg.dn(), stackTraceToSingleLineString(e)));
 
-      String backendID = cfg.getBackendId();
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
-          // FIXME -- Do we need to send an admin alert?
-        }
-      }
-      catch (Exception e2)
-      {
-        logger.traceException(e2);
-
-        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
-        // FIXME -- Do we need to send an admin alert?
-      }
-
+      releaseSharedLock(backend, cfg.getBackendId());
       return false;
     }
-    return true;
   }
 
   @SuppressWarnings("unchecked")
@@ -895,8 +799,6 @@ public class BackendConfigManager implements
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
        BackendCfg configEntry,
@@ -927,8 +829,6 @@ public class BackendConfigManager implements
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(BackendCfg configEntry)
   {
@@ -959,7 +859,6 @@ public class BackendConfigManager implements
     }
 
     registeredBackends.remove(backendDN);
-
     DirectoryServer.deregisterBackend(backend);
 
     for (BackendInitializationListener listener : getBackendInitializationListeners())
@@ -978,24 +877,7 @@ public class BackendConfigManager implements
 
     configEntry.removeChangeListener(this);
 
-    // Remove the shared lock for this backend.
-    try
-    {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-      if (! LockFileManager.releaseLock(lockFile, failureReason))
-      {
-        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend.getBackendID(), failureReason);
-        // FIXME -- Do we need to send an admin alert?
-      }
-    }
-    catch (Exception e2)
-    {
-      logger.traceException(e2);
-      logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend
-          .getBackendID(), stackTraceToSingleLineString(e2));
-      // FIXME -- Do we need to send an admin alert?
-    }
+    releaseSharedLock(backend, backend.getBackendID());
 
     return ccr;
   }
