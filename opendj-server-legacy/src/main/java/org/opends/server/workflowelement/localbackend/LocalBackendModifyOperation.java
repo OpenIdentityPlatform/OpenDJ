@@ -96,10 +96,7 @@ import static org.opends.server.types.AccountStatusNotificationType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * This class defines an operation used to modify an entry in a local backend
- * of the Directory Server.
- */
+/** This class defines an operation used to modify an entry in a local backend of the Directory Server. */
 public class LocalBackendModifyOperation
        extends ModifyOperationWrapper
        implements PreOperationModifyOperation, PostOperationModifyOperation,
@@ -845,31 +842,7 @@ public class LocalBackendModifyOperation
       numPasswords = 0;
     }
 
-
-    // If it's not an internal or synchronization operation, then iterate
-    // through the set of modifications to see if a password is included in the
-    // changes.  If so, then add the appropriate state changes to the set of
-    // modifications.
-    // FIXME, should this loop be merged with the next loop?
-    if (!isInternalOperation() && !isSynchronizationOperation())
-    {
-      for (Modification m : modifications)
-      {
-        AttributeType t = m.getAttribute().getAttributeType();
-        if (isPassword(t))
-        {
-          passwordChanged = true;
-          if (!selfChange && !clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
-          {
-            pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-            throw new DirectoryException(
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
-          }
-          break;
-        }
-      }
-    }
+    passwordChanged = !isInternalOperation() && !isSynchronizationOperation() && isModifyingPassword();
 
 
     for (Modification m : modifications)
@@ -885,64 +858,15 @@ public class LocalBackendModifyOperation
         if (!isSynchronizationOperation())
         {
           // If the attribute contains any options and new values are going to
-          // be added, then reject it. Passwords will not be allowed to have
-          // options. Skipped for internal operations.
+          // be added, then reject it. Passwords will not be allowed to have options.
           if (!isInternalOperation())
           {
-            if (a.hasOptions())
-            {
-              switch (m.getModificationType().asEnum())
-              {
-              case REPLACE:
-                if (!a.isEmpty())
-                {
-                  throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                      ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
-                }
-                // Allow delete operations to clean up after import.
-                break;
-              case ADD:
-                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
-              default:
-                // Allow delete operations to clean up after import.
-                break;
-              }
-            }
-
-            // If it's a self change, then see if that's allowed.
-            if (selfChange && !authPolicy.isAllowUserPasswordChanges())
-            {
-              pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                  ERR_MODIFY_NO_USER_PW_CHANGES.get());
-            }
-
-
-            // If we require secure password changes, then makes sure it's a
-            // secure communication channel.
-            if (authPolicy.isRequireSecurePasswordChanges()
-                && !clientConnection.isSecure())
-            {
-              pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-              throw new DirectoryException(ResultCode.CONFIDENTIALITY_REQUIRED,
-                  ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
-            }
-
-
-            // If it's a self change and it's not been long enough since the
-            // previous change, then reject it.
-            if (selfChange && pwPolicyState.isWithinMinimumAge())
-            {
-              pwpErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                  ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
-            }
+            validatePasswordModification(m, authPolicy);
           }
 
           // Check to see whether this will adding, deleting, or replacing
-          // password values (increment doesn't make any sense for passwords).
-          // Then perform the appropriate type of processing for that kind of modification.
+          // password values (increment doesn't make any sense for passwords),
+          // then add the appropriate state changes for that kind of modification.
           switch (m.getModificationType().asEnum())
           {
           case ADD:
@@ -972,6 +896,80 @@ public class LocalBackendModifyOperation
         enabledStateChanged = true;
         isEnabled = pwPolicyState != null && !pwPolicyState.isDisabled();
       }
+    }
+  }
+
+  private boolean isModifyingPassword() throws DirectoryException
+  {
+    for (Modification m : modifications)
+    {
+      AttributeType t = m.getAttribute().getAttributeType();
+      if (isPassword(t))
+      {
+        if (!selfChange && !clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
+        {
+          pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+          throw new DirectoryException(
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void validatePasswordModification(Modification m, PasswordPolicy authPolicy) throws DirectoryException
+  {
+    Attribute a = m.getAttribute();
+    if (a.hasOptions())
+    {
+      switch (m.getModificationType().asEnum())
+      {
+      case REPLACE:
+        if (!a.isEmpty())
+        {
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+        }
+        // Allow delete operations to clean up after import.
+        break;
+      case ADD:
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+      default:
+        // Allow delete operations to clean up after import.
+        break;
+      }
+    }
+
+    // If it's a self change, then see if that's allowed.
+    if (selfChange && !authPolicy.isAllowUserPasswordChanges())
+    {
+      pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_MODIFY_NO_USER_PW_CHANGES.get());
+    }
+
+
+    // If we require secure password changes, then makes sure it's a
+    // secure communication channel.
+    if (authPolicy.isRequireSecurePasswordChanges()
+        && !clientConnection.isSecure())
+    {
+      pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+      throw new DirectoryException(ResultCode.CONFIDENTIALITY_REQUIRED,
+          ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
+    }
+
+
+    // If it's a self change and it's not been long enough since the
+    // previous change, then reject it.
+    if (selfChange && pwPolicyState.isWithinMinimumAge())
+    {
+      pwpErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
     }
   }
 
@@ -1273,7 +1271,7 @@ public class LocalBackendModifyOperation
 
   private boolean mustCheckSchema()
   {
-    return DirectoryServer.checkSchema() && !isSynchronizationOperation();
+    return !isSynchronizationOperation() && DirectoryServer.checkSchema();
   }
 
   /**
