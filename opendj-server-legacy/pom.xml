@@ -428,7 +428,6 @@
                 <messageFile>org/opends/messages/backend.properties</messageFile>
                 <messageFile>org/opends/messages/config.properties</messageFile>
                 <messageFile>org/opends/messages/core.properties</messageFile>
-                <messageFile>org/opends/messages/dsconfig.properties</messageFile>
                 <messageFile>org/opends/messages/extension.properties</messageFile>
                 <messageFile>org/opends/messages/external.properties</messageFile>
                 <messageFile>org/opends/messages/logger.properties</messageFile>
