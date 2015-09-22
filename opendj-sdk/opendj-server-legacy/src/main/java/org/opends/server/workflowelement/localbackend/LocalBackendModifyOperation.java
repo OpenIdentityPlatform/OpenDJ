@@ -184,7 +184,14 @@ public class LocalBackendModifyOperation
     LocalBackendWorkflowElement.attachLocalOperation (modify, this);
   }
 
-
+  /**
+   * Returns whether authentication for this user is managed locally
+   * or via Pass-Through Authentication.
+   */
+  private boolean isAuthnManagedLocally()
+  {
+    return pwPolicyState != null;
+  }
 
   /**
    * Retrieves the current entry before any modifications are applied.  This
@@ -819,9 +826,9 @@ public class LocalBackendModifyOperation
     isEnabled = true;
     enabledStateChanged = false;
 
-    if (pwPolicyState == null)
+    if (!isAuthnManagedLocally())
     {
-      // Account not managed locally so nothing to do.
+      // nothing to do.
       return;
     }
 
@@ -1560,8 +1567,7 @@ public class LocalBackendModifyOperation
   public void performAdditionalPasswordChangedProcessing()
          throws DirectoryException
   {
-    if (!passwordChanged
-        || pwPolicyState == null) // Account not managed locally
+    if (!isAuthnManagedLocally() || !passwordChanged)
     {
       // Nothing to do.
       return;
@@ -1673,15 +1679,9 @@ public class LocalBackendModifyOperation
    */
   private void handleAccountStatusNotifications()
   {
-    if (pwPolicyState == null)
+    if (!isAuthnManagedLocally())
     {
-      // Account not managed locally, so nothing to do.
-      return;
-    }
-
-    if (!passwordChanged && !enabledStateChanged && !wasLocked)
-    {
-      // Account managed locally, but unchanged, so nothing to do.
+      // nothing to do.
       return;
     }
 
