@@ -26,7 +26,6 @@
  */
 package org.opends.server.extensions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -36,21 +35,32 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
 import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
-import org.opends.server.core.*;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -861,10 +871,9 @@ public class PasswordModifyExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
     addDefaultTestEntry();
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
 
     String[] args =
@@ -881,7 +890,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -901,10 +910,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
     /* Make sure preEncoded passwords are rejected */
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
-    applyPwdPolicyMods(conn, dnStr, attr, "false");
+    applyPwdPolicyMods(dnStr, attr, "false");
 
     String[] args =
     {
@@ -936,10 +944,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
     /* Make sure preEncoded passwords are rejected. This should be the default, so we will not restore config after */
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
-    applyPwdPolicyMods(conn, dnStr, attr, "false");
+    applyPwdPolicyMods(dnStr, attr, "false");
 
     String[] args =
     {
@@ -1028,10 +1035,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-user-password-changes";
-    applyPwdPolicyMods(conn, dnStr, attr, "false");
+    applyPwdPolicyMods(dnStr, attr, "false");
 
     String[] args =
     {
@@ -1046,7 +1052,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "true");
+      applyPwdPolicyMods(dnStr, attr, "true");
     }
   }
 
@@ -1066,10 +1072,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-user-password-changes";
-    applyPwdPolicyMods(conn, dnStr, attr, "false");
+    applyPwdPolicyMods(dnStr, attr, "false");
 
     String[] args =
     {
@@ -1085,7 +1090,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 53);
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "true");
+      applyPwdPolicyMods(dnStr, attr, "true");
     }
   }
 
@@ -1104,10 +1109,9 @@ public class PasswordModifyExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
     addDefaultTestEntry();
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-password-change-requires-current-password";
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
 
     String[] args =
@@ -1125,7 +1129,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     } finally {
       // Reset to default configuration
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -1145,10 +1149,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-authentication";
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
 
     String[] args =
@@ -1165,7 +1168,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
     } finally {
       // Reset to default configuration
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -1185,10 +1188,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-password-changes";
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
 
     String[] args =
@@ -1204,7 +1206,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -1224,10 +1226,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-password-changes";
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
 
     String[] args =
@@ -1246,7 +1247,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
     } finally {
       // Reset to default configuration
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -1265,10 +1266,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-min-password-age";
-    applyPwdPolicyMods(conn, dnStr, attr, "24 hours");
+    applyPwdPolicyMods(dnStr, attr, "24 hours");
 
     String[] args =
     {
@@ -1283,7 +1283,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "0 seconds");
+      applyPwdPolicyMods(dnStr, attr, "0 seconds");
     }
   }
 
@@ -1302,10 +1302,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-min-password-age";
-    applyPwdPolicyMods(conn, dnStr, attr, "24 hours");
+    applyPwdPolicyMods(dnStr, attr, "24 hours");
 
     String[] args =
     {
@@ -1321,7 +1320,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 53);
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "0 seconds");
+      applyPwdPolicyMods(dnStr, attr, "0 seconds");
     }
   }
 
@@ -1340,16 +1339,15 @@ public class PasswordModifyExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
     Entry userEntry = addDefaultTestEntry();
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr1 = "ds-cfg-max-password-age";
-    applyPwdPolicyMods(conn, dnStr, attr1, "90 days");
+    applyPwdPolicyMods(dnStr, attr1, "90 days");
 
     String attr2 = "ds-cfg-expire-passwords-without-warning";
-    applyPwdPolicyMods(conn, dnStr, attr2, "true");
+    applyPwdPolicyMods(dnStr, attr2, "true");
 
     try {
-      setPasswordChangedTime(conn, userEntry);
+      setPasswordChangedTime(userEntry);
 
       String[] args =
       {
@@ -1363,8 +1361,8 @@ public class PasswordModifyExtendedOperationTestCase
 
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr1, "0 seconds");
-      applyPwdPolicyMods(conn, dnStr, attr2, "false");
+      applyPwdPolicyMods(dnStr, attr1, "0 seconds");
+      applyPwdPolicyMods(dnStr, attr2, "false");
     }
   }
 
@@ -1382,19 +1380,18 @@ public class PasswordModifyExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
     Entry userEntry = addDefaultTestEntry();
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr1 = "ds-cfg-max-password-age";
-    applyPwdPolicyMods(conn, dnStr, attr1, "90 days");
+    applyPwdPolicyMods(dnStr, attr1, "90 days");
 
     String attr2 = "ds-cfg-expire-passwords-without-warning";
-    applyPwdPolicyMods(conn, dnStr, attr2, "true");
+    applyPwdPolicyMods(dnStr, attr2, "true");
 
     String attr3 = "ds-cfg-allow-expired-password-changes";
-    applyPwdPolicyMods(conn, dnStr, attr3, "true");
+    applyPwdPolicyMods(dnStr, attr3, "true");
 
     try {
-      setPasswordChangedTime(conn, userEntry);
+      setPasswordChangedTime(userEntry);
 
       String[] args =
       {
@@ -1409,9 +1406,9 @@ public class PasswordModifyExtendedOperationTestCase
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
     }
     finally {
-      applyPwdPolicyMods(conn, dnStr, attr1, "0 seconds");
-      applyPwdPolicyMods(conn, dnStr, attr2, "false");
-      applyPwdPolicyMods(conn, dnStr, attr3, "false");
+      applyPwdPolicyMods(dnStr, attr1, "0 seconds");
+      applyPwdPolicyMods(dnStr, attr2, "false");
+      applyPwdPolicyMods(dnStr, attr3, "false");
     }
   }
 
@@ -1430,10 +1427,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
-    applyPwdPolicyMods(conn, dnStr, attr, null);
+    applyPwdPolicyMods(dnStr, attr, null);
 
 
     String[] args =
@@ -1447,7 +1443,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
+      applyPwdPolicyMods(dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
     }
   }
 
@@ -1466,10 +1462,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
-    applyPwdPolicyMods(conn, dnStr, attr, null);
+    applyPwdPolicyMods(dnStr, attr, null);
 
     String[] args =
     {
@@ -1483,7 +1478,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     }
     finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
+      applyPwdPolicyMods(dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
     }
   }
 
@@ -1503,10 +1498,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-validator";
-    applyPwdPolicyMods(conn, dnStr, attr, "cn=Length-Based Password Validator,cn=Password Validators,cn=config");
+    applyPwdPolicyMods(dnStr, attr, "cn=Length-Based Password Validator,cn=Password Validators,cn=config");
 
 
     String[] args =
@@ -1522,7 +1516,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     }
     finally {
-      applyPwdPolicyMods(conn, dnStr, attr, null);
+      applyPwdPolicyMods(dnStr, attr, null);
     }
   }
 
@@ -1542,10 +1536,9 @@ public class PasswordModifyExtendedOperationTestCase
     addDefaultTestEntry();
 
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-validator";
-    applyPwdPolicyMods(conn, dnStr, attr, "cn=Length-Based Password Validator,cn=Password Validators,cn=config");
+    applyPwdPolicyMods(dnStr, attr, "cn=Length-Based Password Validator,cn=Password Validators,cn=config");
 
     String[] args =
     {
@@ -1560,7 +1553,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     }
     finally {
-      applyPwdPolicyMods(conn, dnStr, attr, null);
+      applyPwdPolicyMods(dnStr, attr, null);
     }
   }
 
@@ -1581,8 +1574,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-multiple-password-values";
-    InternalClientConnection conn = getRootConnection();
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1613,7 +1605,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -1630,10 +1622,9 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-multiple-password-values";
-    applyPwdPolicyMods(conn, dnStr, attr, "true");
+    applyPwdPolicyMods(dnStr, attr, "true");
 
     TestCaseUtils.addEntry(
         "dn: uid=test.user,o=test",
@@ -1666,7 +1657,7 @@ public class PasswordModifyExtendedOperationTestCase
     try {
       assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
     } finally {
-      applyPwdPolicyMods(conn, dnStr, attr, "false");
+      applyPwdPolicyMods(dnStr, attr, "false");
     }
   }
 
@@ -1746,10 +1737,9 @@ public class PasswordModifyExtendedOperationTestCase
 
     addDefaultTestEntry();
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    applyPwdPolicyMods(conn, dnStr,
-        "ds-cfg-lockout-failure-count", "3");
+    applyPwdPolicyMods(dnStr, "ds-cfg-lockout-failure-count",
+        "3");
 
     try
     {
@@ -1777,8 +1767,8 @@ public class PasswordModifyExtendedOperationTestCase
       assertNotNull(userEntry);
       assertTrue(userEntry.hasAttribute(authFailureTimesAttr));
     } finally {
-      applyPwdPolicyMods(conn, dnStr,
-          "ds-cfg-lockout-failure-count", "0");
+      applyPwdPolicyMods(dnStr, "ds-cfg-lockout-failure-count",
+          "0");
     }
   }
 
@@ -1797,10 +1787,8 @@ public class PasswordModifyExtendedOperationTestCase
 
     addDefaultTestEntry();
 
-    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    applyPwdPolicyMods(conn, dnStr ,
-        "ds-cfg-password-history-count", "5");
+    applyPwdPolicyMods(dnStr, "ds-cfg-password-history-count" , "5");
 
     try
     {
@@ -1829,8 +1817,8 @@ public class PasswordModifyExtendedOperationTestCase
     }
     finally
     {
-      applyPwdPolicyMods(conn, dnStr,
-          "ds-cfg-password-history-count", "0");
+      applyPwdPolicyMods(dnStr, "ds-cfg-password-history-count",
+          "0");
     }
   }
 
@@ -1857,21 +1845,23 @@ public class PasswordModifyExtendedOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  private void applyPwdPolicyMods(InternalClientConnection conn, String pwPolDN, String attr, String value)
+  private void applyPwdPolicyMods(String pwPolDN, String attr, String value)
       throws DirectoryException
   {
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        value == null ? Attributes.empty(attr) : Attributes.create(attr, value)));
-    ModifyOperation modifyOperation = conn.processModify(DN.valueOf(pwPolDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    List<Modification> mods = newModifications(REPLACE, attr, value);
+    ModifyOperation op = getRootConnection().processModify(DN.valueOf(pwPolDN), mods);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
   }
 
-  private void setPasswordChangedTime(InternalClientConnection conn, Entry userEntry) {
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("pwdchangedtime", "20050101000000.000Z")));
-    ModifyOperation modifyOperation = conn.processModify(userEntry.getName(), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  private void setPasswordChangedTime(Entry userEntry) {
+    List<Modification> mods = newModifications(REPLACE, "pwdchangedtime", "20050101000000.000Z");
+    ModifyOperation op = getRootConnection().processModify(userEntry.getName(), mods);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private List<Modification> newModifications(ModificationType modType, String attrName, String attrValue)
+  {
+    return newArrayList(new Modification(modType,
+        attrValue == null ? Attributes.empty(attrName) : Attributes.create(attrName, attrValue)));
   }
 }
