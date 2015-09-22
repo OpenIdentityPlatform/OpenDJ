@@ -3156,5 +3156,9 @@ public final class ServerConstants
    * Enable overcommit of memory in Old Gen space.
    */
   public static final String ENABLE_MEMORY_OVERCOMMIT = "org.forgerock.opendj.EnableMemoryOvercommit";
+
+  /** System property to use for overriding CertAndKeyGen class location. */
+  public static final String CERTANDKEYGEN_PROVIDER = "org.forgerock.opendj.CertAndKeyGenProvider";
+
 }
 
