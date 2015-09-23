@@ -423,33 +423,18 @@ public class LocalBackendModifyOperation
           && !selfChange
           && getAuthorizationEntry() != null)
       {
-        AuthenticationPolicy authzPolicy =
-            AuthenticationPolicy.forUser(getAuthorizationEntry(), true);
-        if (authzPolicy.isPasswordPolicy())
+        PasswordPolicyState authzState = createPasswordPolicyState(getAuthorizationEntry());
+        if (authzState != null && authzState.mustChangePassword())
         {
-          PasswordPolicyState authzState =
-              (PasswordPolicyState) authzPolicy
-                  .createAuthenticationPolicyState(getAuthorizationEntry());
-          if (authzState.mustChangePassword())
-          {
-            pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-            setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-            appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
-                .get(authzDN != null ? authzDN : "anonymous"));
-            return;
-          }
+          pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get(authzDN != null ? authzDN : "anonymous"));
+          return;
         }
       }
 
       // FIXME -- Need a way to enable debug mode.
-      AuthenticationPolicy policy =
-          AuthenticationPolicy.forUser(currentEntry, true);
-      if (policy.isPasswordPolicy())
-      {
-        pwPolicyState =
-            (PasswordPolicyState) policy
-                .createAuthenticationPolicyState(currentEntry);
-      }
+      pwPolicyState = createPasswordPolicyState(currentEntry);
 
       // Create a duplicate of the entry and apply the changes to it.
       modifiedEntry = currentEntry.duplicate(false);
@@ -459,7 +444,7 @@ public class LocalBackendModifyOperation
         return;
       }
 
-      handleSchemaProcessing();
+      processNonPasswordModifications();
 
       // Check to see if the client has permission to perform the modify.
       // The access control check is not made any earlier because the handler
@@ -488,7 +473,7 @@ public class LocalBackendModifyOperation
         return;
       }
 
-      handleInitialPasswordPolicyProcessing();
+      processPasswordPolicyModifications();
       performAdditionalPasswordChangedProcessing();
 
       if (!passwordChanged && !isInternalOperation() && selfChange
@@ -554,17 +539,12 @@ public class LocalBackendModifyOperation
 
         backend.replaceEntry(currentEntry, modifiedEntry, this);
 
-        // See if we need to generate any account status notifications as a
-        // result of the changes.
-        handleAccountStatusNotifications();
+        generatePwpAccountStatusNotifications();
       }
 
-      // Handle any processing that may be needed for the pre-read and/or
-      // post-read controls.
-      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest,
-          currentEntry);
-      LocalBackendWorkflowElement.addPostReadResponse(this, postReadRequest,
-          modifiedEntry);
+      // Handle any processing that may be needed for the pre-read and/or post-read controls.
+      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest, currentEntry);
+      LocalBackendWorkflowElement.addPostReadResponse(this, postReadRequest, modifiedEntry);
 
       if (!noOp)
       {
@@ -585,6 +565,16 @@ public class LocalBackendModifyOperation
       }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private PasswordPolicyState createPasswordPolicyState(Entry entry) throws DirectoryException
+  {
+    AuthenticationPolicy policy = AuthenticationPolicy.forUser(entry, true);
+    if (policy.isPasswordPolicy())
+    {
+      return (PasswordPolicyState) policy.createAuthenticationPolicyState(entry);
+    }
+    return null;
   }
 
   private AccessControlHandler<?> getAccessControlHandler()
@@ -743,13 +733,7 @@ public class LocalBackendModifyOperation
     }
   }
 
-  /**
-   * Handles schema processing for non-password modifications.
-   *
-   * @throws  DirectoryException  If a problem is encountered that should cause
-   *                              the modify operation to fail.
-   */
-  private void handleSchemaProcessing() throws DirectoryException
+  private void processNonPasswordModifications() throws DirectoryException
   {
     for (Modification m : modifications)
     {
@@ -794,7 +778,7 @@ public class LocalBackendModifyOperation
       // then perform any schema processing.
       if (!isPassword(t))
       {
-        processInitialSchema(m.getModificationType(), a);
+        processModification(m);
       }
     }
   }
@@ -810,13 +794,8 @@ public class LocalBackendModifyOperation
         && t.equals(pwPolicyState.getAuthenticationPolicy().getPasswordAttribute());
   }
 
-  /**
-   * Handles the initial set of password policy  for this modify operation.
-   *
-   * @throws  DirectoryException  If a problem is encountered that should cause
-   *                              the modify operation to fail.
-   */
-  private void handleInitialPasswordPolicyProcessing() throws DirectoryException
+  /** Processes the modifications related to password policy for this modify operation. */
+  private void processPasswordPolicyModifications() throws DirectoryException
   {
     // Declare variables used for password policy state processing.
     currentPasswordProvided = false;
@@ -847,8 +826,7 @@ public class LocalBackendModifyOperation
 
     for (Modification m : modifications)
     {
-      Attribute     a = m.getAttribute();
-      AttributeType t = a.getAttributeType();
+      AttributeType t = m.getAttribute().getAttributeType();
 
       // If the modification is updating the password attribute, then perform
       // any necessary password policy processing.  This processing should be
@@ -863,32 +841,10 @@ public class LocalBackendModifyOperation
           {
             validatePasswordModification(m, authPolicy);
           }
-
-          // Check to see whether this will adding, deleting, or replacing
-          // password values (increment doesn't make any sense for passwords),
-          // then add the appropriate state changes for that kind of modification.
-          switch (m.getModificationType().asEnum())
-          {
-          case ADD:
-          case REPLACE:
-            processInitialAddOrReplacePW(m);
-            break;
-
-          case DELETE:
-            processInitialDeletePW(m);
-            break;
-
-          default:
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
-                    m.getModificationType(), a.getName()));
-          }
-
-          // Password processing may have changed the attribute in this modification.
-          a = m.getAttribute();
+          preProcessPasswordModification(m);
         }
 
-        processInitialSchema(m.getModificationType(), a);
+        processModification(m);
       }
       else if (!isInternalOrSynchro(m)
           && t.equals(getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_DISABLED)))
@@ -899,18 +855,38 @@ public class LocalBackendModifyOperation
     }
   }
 
+  /** Adds the appropriate state changes for the provided modification. */
+  private void preProcessPasswordModification(Modification m) throws DirectoryException
+  {
+    switch (m.getModificationType().asEnum())
+    {
+    case ADD:
+    case REPLACE:
+      preProcessPasswordAddOrReplace(m);
+      break;
+
+    case DELETE:
+      preProcessPasswordDelete(m);
+      break;
+
+    // case INCREMENT does not make any sense for passwords
+    default:
+      Attribute a = m.getAttribute();
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+          ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(m.getModificationType(), a.getName()));
+    }
+  }
+
   private boolean isModifyingPassword() throws DirectoryException
   {
     for (Modification m : modifications)
     {
-      AttributeType t = m.getAttribute().getAttributeType();
-      if (isPassword(t))
+      if (isPassword(m.getAttribute().getAttributeType()))
       {
         if (!selfChange && !clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
         {
           pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-          throw new DirectoryException(
-              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
               ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
         }
         return true;
@@ -974,48 +950,37 @@ public class LocalBackendModifyOperation
   }
 
   /**
-   * Performs the initial schema processing and updates the entry appropriately.
+   * Process the provided modification and updates the entry appropriately.
    *
-   * @param modType
-   *          The modification type to perform
-   * @param attr
-   *          The attribute being operated on.
+   * @param m
+   *          The modification to perform
    * @throws DirectoryException
    *           If a problem occurs that should cause the modify operation to fail.
    */
-  private void processInitialSchema(ModificationType modType, Attribute attr) throws DirectoryException
+  private void processModification(Modification m) throws DirectoryException
   {
-    switch (modType.asEnum())
+    Attribute attr = m.getAttribute();
+    switch (m.getModificationType().asEnum())
     {
     case ADD:
-      processInitialAddSchema(attr);
+      processAddModification(attr);
       break;
 
     case DELETE:
-      processInitialDeleteSchema(attr);
+      processDeleteModification(attr);
       break;
 
     case REPLACE:
-      processInitialReplaceSchema(attr);
+      processReplaceModification(attr);
       break;
 
     case INCREMENT:
-      processInitialIncrementSchema(attr);
+      processIncrementModification(attr);
       break;
     }
   }
 
-  /**
-   * Performs the initial password policy add or replace processing.
-   *
-   * @param m
-   *          The modification involved in the password change.
-   * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
-   */
-  private void processInitialAddOrReplacePW(Modification m)
-      throws DirectoryException
+  private void preProcessPasswordAddOrReplace(Modification m) throws DirectoryException
   {
     Attribute pwAttr = m.getAttribute();
     int passwordsToAdd = pwAttr.size();
@@ -1074,7 +1039,6 @@ public class LocalBackendModifyOperation
         {
           newPasswords = new LinkedList<>();
         }
-
         newPasswords.add(v);
 
         builder.addAll(pwPolicyState.encodePassword(v));
@@ -1084,18 +1048,7 @@ public class LocalBackendModifyOperation
     m.setAttribute(builder.toAttribute());
   }
 
-
-
-  /**
-   * Performs the initial password policy delete processing.
-   *
-   * @param m
-   *          The modification involved in the password change.
-   * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
-   */
-  private void processInitialDeletePW(Modification m) throws DirectoryException
+  private void preProcessPasswordDelete(Modification m) throws DirectoryException
   {
     // Iterate through the password values and see if any of them are pre-encoded.
     // We will never allow pre-encoded passwords for user password changes,
@@ -1103,13 +1056,13 @@ public class LocalBackendModifyOperation
     // For each clear-text value, verify that at least one value in the entry matches
     // and replace the clear-text value with the appropriate encoded forms.
     Attribute pwAttr = m.getAttribute();
-    AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
     if (pwAttr.isEmpty())
     {
       // Removing all current password values.
       numPasswords = 0;
     }
 
+    AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
     for (ByteString v : pwAttr)
     {
       if (pwPolicyState.passwordIsPreEncoded(v))
@@ -1223,17 +1176,14 @@ public class LocalBackendModifyOperation
   }
 
   /**
-   * Performs the initial schema processing for an add modification
-   * and updates the entry appropriately.
+   * Process an add modification and updates the entry appropriately.
    *
    * @param attr
    *          The attribute being added.
    * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
+   *           If a problem occurs that should cause the modify operation to fail.
    */
-  private void processInitialAddSchema(Attribute attr)
-      throws DirectoryException
+  private void processAddModification(Attribute attr) throws DirectoryException
   {
     // Make sure that one or more values have been provided for the attribute.
     if (attr.isEmpty())
@@ -1358,8 +1308,7 @@ public class LocalBackendModifyOperation
             ResultCode.OBJECTCLASS_VIOLATION,
             ERR_ENTRY_ADD_UNKNOWN_OC.get(name, entryDN));
       }
-
-      if (oc.isObsolete())
+      else if (oc.isObsolete())
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -1371,21 +1320,18 @@ public class LocalBackendModifyOperation
 
 
   /**
-   * Performs the initial schema processing for a delete modification
-   * and updates the entry appropriately.
+   * Process a delete modification and updates the entry appropriately.
    *
    * @param attr
    *          The attribute being deleted.
    * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
+   *           If a problem occurs that should cause the modify operation to fail.
    */
-  private void processInitialDeleteSchema(Attribute attr)
-          throws DirectoryException
+  private void processDeleteModification(Attribute attr) throws DirectoryException
   {
-    // Remove the specified attribute values or the entire attribute from the
-    // value.  If there are any specified values that were not present, then
-    // fail.  If the RDN attribute value would be removed, then fail.
+    // Remove the specified attribute values or the entire attribute from the value.
+    // If there are any specified values that were not present, then fail.
+    // If the RDN attribute value would be removed, then fail.
     List<ByteString> missingValues = new LinkedList<>();
     boolean attrExists = modifiedEntry.removeAttribute(attr, missingValues);
 
@@ -1409,8 +1355,7 @@ public class LocalBackendModifyOperation
       {
         String missingValuesStr = Utils.joinAsString(", ", missingValues);
 
-        throw newDirectoryException(currentEntry,
-            ResultCode.NO_SUCH_ATTRIBUTE,
+        throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
             ERR_MODIFY_DELETE_MISSING_VALUES.get(entryDN, attr.getName(), missingValuesStr));
       }
     }
@@ -1424,17 +1369,14 @@ public class LocalBackendModifyOperation
 
 
   /**
-   * Performs the initial schema processing for a replace modification
-   * and updates the entry appropriately.
+   * Process a replace modification and updates the entry appropriately.
    *
    * @param attr
    *          The attribute being replaced.
    * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
+   *           If a problem occurs that should cause the modify operation to fail.
    */
-  private void processInitialReplaceSchema(Attribute attr)
-      throws DirectoryException
+  private void processReplaceModification(Attribute attr) throws DirectoryException
   {
     if (mustCheckSchema())
     {
@@ -1465,17 +1407,14 @@ public class LocalBackendModifyOperation
   }
 
   /**
-   * Performs the initial schema processing for an increment
-   * modification and updates the entry appropriately.
+   * Process an increment modification and updates the entry appropriately.
    *
    * @param attr
    *          The attribute being incremented.
    * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
+   *           If a problem occurs that should cause the modify operation to fail.
    */
-  private void processInitialIncrementSchema(Attribute attr)
-      throws DirectoryException
+  private void processIncrementModification(Attribute attr) throws DirectoryException
   {
     // The specified attribute type must not be an RDN attribute.
     AttributeType t = attr.getAttributeType();
@@ -1492,8 +1431,7 @@ public class LocalBackendModifyOperation
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
           ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(entryDN, attr.getName()));
     }
-
-    if (attr.size() > 1)
+    else if (attr.size() > 1)
     {
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
           ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attr.getName()));
@@ -1552,18 +1490,13 @@ public class LocalBackendModifyOperation
     modifiedEntry.replaceAttribute(builder.toAttribute());
   }
 
-
-
   /**
-   * Performs additional preliminary processing that is required for a
-   * password change.
+   * Performs additional preliminary processing that is required for a password change.
    *
    * @throws DirectoryException
-   *           If a problem occurs that should cause the modify
-   *           operation to fail.
+   *           If a problem occurs that should cause the modify operation to fail.
    */
-  public void performAdditionalPasswordChangedProcessing()
-         throws DirectoryException
+  public void performAdditionalPasswordChangedProcessing() throws DirectoryException
   {
     if (!isAuthnManagedLocally() || !passwordChanged)
     {
@@ -1669,13 +1602,8 @@ public class LocalBackendModifyOperation
     modifiedEntry.applyModifications(pwPolicyState.getModifications());
   }
 
-
-
-  /**
-   * Handles any account status notifications that may be needed as a result of
-   * modify processing.
-   */
-  private void handleAccountStatusNotifications()
+  /** Generate any password policy account status notifications as a result of modify processing. */
+  private void generatePwpAccountStatusNotifications()
   {
     if (!isAuthnManagedLocally())
     {
