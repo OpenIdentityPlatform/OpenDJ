@@ -26,9 +26,12 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
+import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -41,8 +44,11 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
@@ -153,7 +159,7 @@ public class HistoricalTest extends ReplicationTestCase
         "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    ldapmodify(args);
 
     args[9] = TestCaseUtils.createTempFile(
         "dn: uid=user.1," + TEST_ROOT_DN_STRING,
@@ -163,7 +169,7 @@ public class HistoricalTest extends ReplicationTestCase
         "-"
     );
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    ldapmodify(args);
 
     // Read the entry back to get its history operational attribute.
     DN dn = DN.valueOf("uid=user.1," + TEST_ROOT_DN_STRING);
@@ -186,7 +192,7 @@ public class HistoricalTest extends ReplicationTestCase
         "displayName: 3",
         "-"
     );
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    ldapmodify(args);
 
     long testPurgeDelayInMillisec = 1000; // 1 sec
 
@@ -273,24 +279,17 @@ public class HistoricalTest extends ReplicationTestCase
     String entryuuid2 = getEntryValue(dn2, entryuuidType);
 
     long now = System.currentTimeMillis();
-    // A change on a first server.
-    CSN t1 = new CSN(now,  0,  3);
-
-    // A change on a second server.
-    CSN t2 = new CSN(now+1,  0,  4);
+    final int serverId1 = 3;
+    final int serverId2 = 4;
+    CSN t1 = new CSN(now,    0,  serverId1);
+    CSN t2 = new CSN(now+1,  0,  serverId2);
 
     // Simulate the ordering t1:add:A followed by t2:add:B that would
     // happen on one server.
 
     // Replay an add of a value A at time t1 on a first server.
     publishModify(broker, t1, dn1, entryuuid, attrType, "A");
-
-    // It would be nice to avoid these sleeps.
-    // We need to preserve the replay order but the order could be changed
-    // due to the multi-threaded nature of the replication replay.
-    // Putting a sentinel value in the modification is not foolproof since
-    // the operation might not get replayed at all.
-    Thread.sleep(2000);
+    waitUntilEntryValueEquals(dn1, attrType, "A");
 
     // Replay an add of a value B at time t2 on a second server.
     publishModify(broker, t2, dn1, entryuuid, attrType, "B");
@@ -298,33 +297,48 @@ public class HistoricalTest extends ReplicationTestCase
     // Simulate the reverse ordering t2:add:B followed by t1:add:A that
     // would happen on the other server.
 
-    t1 = new CSN(now+3,  0,  3);
-    t2 = new CSN(now+4,  0,  4);
+    t1 = new CSN(now+3,  0,  serverId1);
+    t2 = new CSN(now+4,  0,  serverId2);
 
     publishModify(broker, t2, dn2, entryuuid2, attrType, "B");
-
-    Thread.sleep(2000);
+    waitUntilEntryValueEquals(dn2, attrType, "B");
 
     // Replay an add of a value A at time t1 on a first server.
     publishModify(broker, t1, dn2, entryuuid2, attrType, "A");
 
-    Thread.sleep(2000);
-
     // See how the conflicts were resolved.
     // The two values should be the first value added.
-    assertEquals(getEntryValue(dn1, attrType), "A");
-    assertEquals(getEntryValue(dn2, attrType), "A");
+    waitUntilEntryValueEquals(dn1, attrType, "A");
+    waitUntilEntryValueEquals(dn2, attrType, "A");
 
     TestCaseUtils.deleteEntry(dn1);
     TestCaseUtils.deleteEntry(dn2);
   }
 
-  private String getEntryValue(final DN dn, final AttributeType attrType)
+  private void waitUntilEntryValueEquals(final DN entryDN, final AttributeType attrType, final String expectedValue)
       throws Exception
   {
+    final TestTimer timer = new TestTimer.Builder()
+      .maxSleep(2, SECONDS)
+      .sleepTimes(100, MILLISECONDS)
+      .toTimer();
+    timer.repeatUntilSuccess(new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception
+      {
+        assertEquals(getEntryValue(entryDN, attrType), expectedValue);
+        return null;
+      }
+    });
+  }
+
+  private String getEntryValue(final DN dn, final AttributeType attrType) throws Exception
+  {
     Entry entry = DirectoryServer.getEntry(dn);
-    List<Attribute> attrs = entry.getAttribute(attrType);
-    return attrs.get(0).iterator().next().toString();
+    Attribute attr = entry.getExactAttribute(attrType, Collections.<String> emptySet());
+    Assertions.assertThat(attr).hasSize(1);
+    return attr.iterator().next().toString();
   }
 
   private static void publishModify(ReplicationBroker broker, CSN changeNum,
@@ -485,9 +499,6 @@ public class HistoricalTest extends ReplicationTestCase
   {
     int entryCount = 10;
     addEntriesWithHistorical(1, entryCount);
-    // leave a little delay between adding/modifying test entries
-    // and configuring the purge delay.
-    Thread.sleep(10);
 
     // set the purge delay to 1 minute
     // FIXME could we change this setting to also accept seconds?
@@ -524,7 +535,7 @@ public class HistoricalTest extends ReplicationTestCase
    * @param dnSuffix A suffix to be added to the dn
    * @param entryCnt The number of entries to create
    */
-  private void addEntriesWithHistorical(int dnSuffix, int entryCnt) throws Exception
+  private void addEntriesWithHistorical(final int dnSuffix, final int entryCnt) throws Exception
   {
     for (int i=0; i<entryCnt;i++)
     {
@@ -585,7 +596,7 @@ public class HistoricalTest extends ReplicationTestCase
           "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+      ldapmodify(args);
 
       args[9] = TestCaseUtils.createTempFile(
           sdn,
@@ -595,7 +606,18 @@ public class HistoricalTest extends ReplicationTestCase
           "-"
       );
 
-      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+      ldapmodify(args);
     }
+
+    for (int i = 0; i < entryCnt; i++)
+    {
+      DN dn = DN.valueOf("uid=user" + i + dnSuffix + "," + TEST_ROOT_DN_STRING);
+      getEntry(dn, 1000, true);
+    }
+  }
+
+  private void ldapmodify(String[] args)
+  {
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
   }
 }
