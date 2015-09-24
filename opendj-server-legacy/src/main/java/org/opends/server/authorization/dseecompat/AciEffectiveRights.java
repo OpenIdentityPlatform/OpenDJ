@@ -407,15 +407,11 @@ public class AciEffectiveRights {
       evalInfo.append(rightsString(container, handler, skipCheck, "proxy"));
       addAttrLevelRightsInfo(container, mask, a, retEntry, "proxy");
       //It is possible that only the aclRightsInfo attribute type was requested.
-      //Only add the aclRights information if the aclRights attribute type was
-      //seen.
+      // Only add the aclRights information if the aclRights attribute type was seen.
       if(hasAttrMask(mask, ACL_RIGHTS))  {
-        String typeStr=aclRightsAttributeLevelStr + ";" +
-                a.getNormalizedPrimaryName();
-        AttributeType attributeType = DirectoryServer
-            .getDefaultAttributeType(typeStr);
-        Attribute attr = Attributes.create(attributeType, evalInfo
-            .toString());
+        String typeStr = aclRightsAttributeLevelStr + ";" + a.getNameOrOID();
+        AttributeType attributeType = DirectoryServer.getDefaultAttributeType(typeStr);
+        Attribute attr = Attributes.create(attributeType, evalInfo.toString());
         //It is possible that the user might have specified the same attributes
         //in both the search and the specific attribute part of the control.
         //Only try to add the attribute type if it already hasn't been added.
