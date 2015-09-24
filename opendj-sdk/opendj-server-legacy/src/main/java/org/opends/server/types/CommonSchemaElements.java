@@ -28,8 +28,8 @@ package org.opends.server.types;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -144,19 +144,17 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     this.isObsolete = isObsolete;
 
     // Make sure we have a primary name if possible.
-    if (primaryName == null) {
-      if (names != null && !names.isEmpty()) {
-        this.primaryName = names.iterator().next();
-      } else {
-        this.primaryName = null;
-      }
-    } else {
+    if (primaryName != null) {
       this.primaryName = primaryName;
+    } else if (names != null && !names.isEmpty()) {
+      this.primaryName = names.iterator().next();
+    } else {
+      this.primaryName = null;
     }
-    this.lowerName = toLowerCase(primaryName);
+    this.lowerName = this.primaryName != null ? toLowerCase(this.primaryName) : oid;
 
-    // OPENDJ-1645: oid changes during server bootstrap, so prefer using name if available
-    hashCode = getNameOrOID().hashCode();
+    // OPENDJ-1645: oid changes during server bootstrap, so prefer using lowername if available
+    hashCode = this.lowerName.hashCode();
 
     // Construct the normalized attribute name mapping.
     if (names != null) {
@@ -217,16 +215,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    */
   public final String getPrimaryName() {
     return primaryName;
-  }
-
-  /**
-   * Retrieve the normalized primary name for this schema definition.
-   *
-   * @return Returns the normalized primary name for this attribute
-   *         type, or <code>null</code> if there is no primary name.
-   */
-  public final String getNormalizedPrimaryName() {
-    return lowerName;
   }
 
   /**
@@ -297,11 +285,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return The name or OID for this schema definition.
    */
   public final String getNormalizedPrimaryNameOrOID() {
-    if (lowerName != null) {
-      return lowerName;
-    }
-    // Guaranteed not to be null.
-    return oid;
+    return lowerName;
   }
 
   /**

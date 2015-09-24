@@ -27,28 +27,28 @@
 package org.opends.server.tools.tasks;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.types.Entry;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
-import java.util.Date;
-import java.util.Collections;
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import static org.opends.server.util.ServerConstants.*;
 
@@ -133,12 +133,11 @@ public class TaskEntry {
     // Build a map of non-superior attribute value pairs for display
     Map<AttributeType, List<Attribute>> attrMap = entry.getUserAttributes();
     for (AttributeType type : attrMap.keySet()) {
-      String typeName = type.getNormalizedPrimaryName();
+      String typeName = type.getNameOrOID();
 
       // See if we've handled it already above
       if (!supAttrNames.contains(typeName)) {
-        LocalizableMessage attrTypeName = getAttributeDisplayName(
-                type.getNormalizedPrimaryName());
+        LocalizableMessage attrTypeName = getAttributeDisplayName(typeName);
         List<Attribute> attrList = entry.getUserAttribute(type);
         for (Attribute attr : attrList) {
           for (ByteString av : attr) {

@@ -43,7 +43,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.types.CommonSchemaElements.*;
 
-
 /**
  * This class defines a set of tests for the
  * {@link org.opends.server.types.CommonSchemaElements} class and
@@ -624,34 +623,34 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
 
   /**
    * Check that the
-   * {@link CommonSchemaElements#getNormalizedPrimaryName()} method
+   * {@link CommonSchemaElements#getNormalizedPrimaryNameOrOID()} method
    * returns <code>null</code> when there is no primary name.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public final void testGetNormalizedPrimaryNameDefault()
+  public final void testGetNormalizedPrimaryNameOrOIDDefault()
       throws Exception {
     SchemaDefinitionBuilder builder = getBuilder(null, "1.2.3");
     CommonSchemaElements d = builder.getInstance();
-    Assert.assertNull(d.getNormalizedPrimaryName());
+    Assert.assertEquals(d.getNormalizedPrimaryNameOrOID(), "1.2.3");
   }
 
 
 
   /**
    * Check that the
-   * {@link CommonSchemaElements#getNormalizedPrimaryName()} method.
+   * {@link CommonSchemaElements#getNormalizedPrimaryNameOrOID()} method.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public final void testGetNormalizedPrimaryName() throws Exception {
+  public final void testGetNormalizedPrimaryNameOrOID() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder("testType", "1.2.3");
     CommonSchemaElements d = builder.getInstance();
-    Assert.assertEquals(d.getNormalizedPrimaryName(), "testtype");
+    Assert.assertEquals(d.getNormalizedPrimaryNameOrOID(), "testtype");
   }
 
 

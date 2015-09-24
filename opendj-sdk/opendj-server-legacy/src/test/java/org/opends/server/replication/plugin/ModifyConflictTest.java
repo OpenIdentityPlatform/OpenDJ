@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +54,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -70,8 +72,8 @@ import static org.testng.Assert.*;
 public class ModifyConflictTest extends ReplicationTestCase
 {
   private static final String ORGANIZATION = "organization";
-  private static final String DISPLAYNAME = "displayname";
-  private static final String EMPLOYEENUMBER = "employeenumber";
+  private static final String DISPLAYNAME = "displayName";
+  private static final String EMPLOYEENUMBER = "employeeNumber";
   private static final String DESCRIPTION = "description";
   private static final String SYNCHIST = "ds-sync-hist";
 
@@ -1195,9 +1197,8 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    List<Attribute> attrs = entry.getAttribute(attrName);
-    Attribute attr = attrs.get(0);
-    assertEquals(expectedValues.length, attr.size());
+    Attribute attr = entry.getExactAttribute(getAttributeType(toLowerCase(attrName)), Collections.<String> emptySet());
+    assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {
       attr.contains(ByteString.valueOf(value));

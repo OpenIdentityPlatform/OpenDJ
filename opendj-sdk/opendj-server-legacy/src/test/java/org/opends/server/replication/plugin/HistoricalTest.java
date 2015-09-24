@@ -50,9 +50,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * Tests the Historical class.
- */
+/** Tests the Historical class. */
 @SuppressWarnings("javadoc")
 public class HistoricalTest extends ReplicationTestCase
 {
@@ -332,7 +330,7 @@ public class HistoricalTest extends ReplicationTestCase
   private static void publishModify(ReplicationBroker broker, CSN changeNum,
       DN dn, String entryuuid, AttributeType attrType, String newValue)
   {
-    Attribute attr = Attributes.create(attrType.getNormalizedPrimaryName(), newValue);
+    Attribute attr = Attributes.create(attrType.getNameOrOID(), newValue);
     List<Modification> mods = newArrayList(new Modification(ModificationType.ADD, attr));
     broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }

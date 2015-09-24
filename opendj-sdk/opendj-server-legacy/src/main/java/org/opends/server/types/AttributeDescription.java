@@ -300,7 +300,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
   public String toString()
   {
     final StringBuilder buffer = new StringBuilder();
-    buffer.append(attributeType.getNormalizedPrimaryName());
+    buffer.append(attributeType.getNameOrOID());
     for (String option : options)
     {
       buffer.append(';');

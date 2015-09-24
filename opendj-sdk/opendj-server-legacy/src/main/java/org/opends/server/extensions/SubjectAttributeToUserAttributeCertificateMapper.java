@@ -425,7 +425,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    * possible the original String value is returned.
    *
    * @param   attrName  The attribute name which should be normalized.
-   *
    * @return  The normalized attribute name.
    */
   private static String normalizeAttributeName(String attrName)
@@ -433,10 +432,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     AttributeType attrType = DirectoryServer.getAttributeType(attrName);
     if (attrType != null)
     {
-      String attrNameNormalized = attrType.getNormalizedPrimaryName();
+      String attrNameNormalized = attrType.getNormalizedPrimaryNameOrOID();
       if (attrNameNormalized != null)
       {
-         attrName = attrNameNormalized;
+        return attrNameNormalized;
       }
     }
     return attrName;

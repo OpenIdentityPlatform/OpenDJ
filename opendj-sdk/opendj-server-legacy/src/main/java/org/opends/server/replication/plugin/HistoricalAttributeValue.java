@@ -27,6 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -77,6 +78,7 @@ import org.opends.server.types.Modification;
 class HistoricalAttributeValue
 {
   private final AttributeDescription attrDesc;
+  /** The lowercase attribute string representation. */
   private final String attrString;
   private final ByteString attributeValue;
   private final CSN csn;
@@ -110,12 +112,12 @@ class HistoricalAttributeValue
         options.add(optionsToken[index]);
         index ++;
       }
-      attrString = optionsToken[0];
+      attrString = toLowerCase(optionsToken[0]);
     }
     else
     {
       options = Collections.emptySet();
-      attrString = token[0];
+      attrString = toLowerCase(token[0]);
     }
 
     AttributeType attrType;
