@@ -449,9 +449,8 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
 
     if (o instanceof CommonSchemaElements) {
       CommonSchemaElements other = (CommonSchemaElements) o;
-      return getNameOrOID().equals(other.getNameOrOID());
+      return lowerName.equals(other.lowerName);
     }
-
     return false;
   }
 
