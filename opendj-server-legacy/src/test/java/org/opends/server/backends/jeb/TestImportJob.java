@@ -30,19 +30,30 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
+import org.assertj.core.api.SoftAssertions;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -50,12 +61,27 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class TestImportJob extends JebTestCase
 {
+  static class RejectSkippedEntries
+  {
+    private ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
+    private ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
+
+    private void noSkippedOrRejectedEntries()
+    {
+      SoftAssertions softly = new SoftAssertions();
+      softly.assertThat(rejectedEntries.toString()).isEmpty();
+      softly.assertThat(skippedEntries.toString()).isEmpty();
+      softly.assertAll();
+    }
+  }
+
   private String backendID = "importRoot";
   private File tempDir;
   private String homeDirName;
 
+  private DN importtest1DN;
+  private DN importtestDN;
   private DN[] baseDNs;
-  private Backend<?> backend;
 
   // @formatter:off
   private String top =
@@ -232,6 +258,11 @@ public class TestImportJob extends JebTestCase
       + "description: This is the description for Annalee Bogard.\n";
   // @formatter:on
 
+  private String file(String basename)
+  {
+    return homeDirName + File.separator + basename;
+  }
+
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -245,44 +276,26 @@ public class TestImportJob extends JebTestCase
 
     EnvManager.createHomeDir(homeDirName);
 
-    FileOutputStream ldifFile = new FileOutputStream(homeDirName
-        + File.separator + "top.ldif");
-    PrintStream writer = new PrintStream(ldifFile);
+    writeTo(top, "top.ldif");
+    writeTo(entries1, "entries1.ldif");
+    writeTo(replacement1, "replacement1.ldif");
+    writeTo(skippedEntries, "skipped.ldif");
 
-    writer.println(top);
-    writer.close();
-    ldifFile.close();
-
-    ldifFile = new FileOutputStream(homeDirName + File.separator
-        + "entries1.ldif");
-    writer = new PrintStream(ldifFile);
-
-    writer.println(entries1);
-    writer.close();
-    ldifFile.close();
-
-    ldifFile = new FileOutputStream(homeDirName + File.separator
-        + "replacement1.ldif");
-    writer = new PrintStream(ldifFile);
-
-    writer.println(replacement1);
-    writer.close();
-    ldifFile.close();
-
-    ldifFile = new FileOutputStream(homeDirName + File.separator
-        + "skipped.ldif");
-    writer = new PrintStream(ldifFile);
-
-    writer.println(skippedEntries);
-    writer.close();
-    ldifFile.close();
-
-    baseDNs = new DN[] { DN.valueOf("dc=importtest,dc=com"),
-        DN.valueOf("dc=importtest1,dc=com") };
-
+    importtest1DN = DN.valueOf("dc=importtest1,dc=com");
+    importtestDN = DN.valueOf("dc=importtest,dc=com");
+    baseDNs = new DN[] { importtestDN, importtest1DN };
   }
 
-
+  private void writeTo(String ldif, String baseName) throws IOException, FileNotFoundException
+  {
+    File file = new File(file(baseName));
+    file.deleteOnExit();
+    try (OutputStream ldifFile = new FileOutputStream(file);
+        PrintStream writer = new PrintStream(ldifFile))
+    {
+      writer.println(ldif);
+    }
+  }
 
   @AfterClass
   public void cleanUp() throws Exception
@@ -291,153 +304,78 @@ public class TestImportJob extends JebTestCase
     TestCaseUtils.deleteDirectory(tempDir);
   }
 
-
-  @Test(enabled = true)
+  @Test
   public void testImportAll() throws Exception
   {
     TestCaseUtils.clearJEBackend(backendID);
-    ArrayList<String> fileList = new ArrayList<>();
-    fileList.add(homeDirName + File.separator + "top.ldif");
-    fileList.add(homeDirName + File.separator + "entries1.ldif");
 
-    ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
-    ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
-    LDIFImportConfig importConfig = new LDIFImportConfig(fileList);
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif", "entries1.ldif");
     importConfig.setAppendToExistingData(false);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
-    importConfig.writeRejectedEntries(rejectedEntries);
-    importConfig.writeSkippedEntries(skippedEntries);
 
     importLDIF(importConfig);
+    entries.noSkippedOrRejectedEntries();
 
-    backend = DirectoryServer.getBackend(backendID);
-    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
-    EntryContainer entryContainer;
-
-    assertTrue(rejectedEntries.size() <= 0);
-    assertTrue(skippedEntries.size() <= 0);
-    for (DN baseDN : baseDNs)
-    {
-      entryContainer = rootContainer.getEntryContainer(baseDN);
-      entryContainer.sharedLock.lock();
-      try
-      {
-        assertNotNull(entryContainer);
-
-        if (baseDN.toString().equals("dc=importtest,dc=com"))
-        {
-          assertEquals(entryContainer.getEntryCount(), 5);
-          assertTrue(entryContainer.entryExists(baseDN));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("ou=Others,ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
-
-          VerifyConfig verifyConfig = new VerifyConfig();
-          verifyConfig.setBaseDN(baseDN);
-
-          backend = DirectoryServer.getBackend(backendID);
-          assertEquals(backend.verifyBackend(verifyConfig), 0);
-        }
-        else if (baseDN.toString().equals("dc=importtest1,dc=com"))
-        {
-          assertEquals(entryContainer.getEntryCount(), 3);
-          assertTrue(entryContainer.entryExists(baseDN));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.446,dc=importtest1,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.362,dc=importtest1,dc=com")));
-
-          VerifyConfig verifyConfig = new VerifyConfig();
-          verifyConfig.setBaseDN(baseDN);
-
-          backend = DirectoryServer.getBackend(backendID);
-          assertEquals(backend.verifyBackend(verifyConfig), 0);
-        }
-      }
-      finally
-      {
-        entryContainer.sharedLock.unlock();
-      }
-    }
+    assertImportedData();
   }
-
-
 
   @Test(dependsOnMethods = "testImportAll")
   public void testImportPartial() throws Exception
   {
-    ArrayList<String> fileList = new ArrayList<>();
-    fileList.add(homeDirName + File.separator + "top.ldif");
-    fileList.add(homeDirName + File.separator + "entries1.ldif");
-
     Set<DN> includeBranches = Collections.singleton(DN.valueOf("ou=People,dc=importtest,dc=com"));
     Set<DN> excludeBranches = Collections.singleton(DN.valueOf("ou=Others,ou=People,dc=importtest,dc=com"));
 
-    ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
-    ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
-    LDIFImportConfig importConfig = new LDIFImportConfig(fileList);
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif", "entries1.ldif");
     importConfig.setAppendToExistingData(false);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
-    importConfig.writeRejectedEntries(rejectedEntries);
-    importConfig.writeSkippedEntries(skippedEntries);
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setExcludeBranches(excludeBranches);
 
     importLDIF(importConfig);
 
-    backend = DirectoryServer.getBackend(backendID);
-    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
-    EntryContainer entryContainer;
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(entries.rejectedEntries.toString()).isEmpty();
+    softly.assertThat(entries.skippedEntries.toString()).isNotEmpty();
+    softly.assertAll();
 
-    assertTrue(rejectedEntries.size() <= 0);
+    assertImportedData();
+  }
+
+  private void assertImportedData() throws Exception
+  {
     for (DN baseDN : baseDNs)
     {
-      entryContainer = rootContainer.getEntryContainer(baseDN);
+      EntryContainer entryContainer = getEntryContainer(baseDN);
       entryContainer.sharedLock.lock();
       try
       {
-        assertNotNull(entryContainer);
-
-        if (baseDN.toString().equals("dc=importtest,dc=com"))
+        if (baseDN.equals(importtestDN))
         {
           assertEquals(entryContainer.getEntryCount(), 5);
           assertTrue(entryContainer.entryExists(baseDN));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("ou=Others,ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.valueOf("ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.valueOf("ou=Others,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
 
-          VerifyConfig verifyConfig = new VerifyConfig();
-          verifyConfig.setBaseDN(baseDN);
-
-          backend = DirectoryServer.getBackend(backendID);
-          assertEquals(backend.verifyBackend(verifyConfig), 0);
+          assertEquals(verifyBackend(baseDN), 0);
         }
-        else if (baseDN.toString().equals("dc=importtest1,dc=com"))
+        else if (baseDN.equals(importtest1DN))
         {
           assertEquals(entryContainer.getEntryCount(), 3);
           assertTrue(entryContainer.entryExists(baseDN));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.446,dc=importtest1,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.362,dc=importtest1,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.valueOf("uid=user.446,dc=importtest1,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.valueOf("uid=user.362,dc=importtest1,dc=com")));
 
-          VerifyConfig verifyConfig = new VerifyConfig();
-          verifyConfig.setBaseDN(baseDN);
-
-          backend = DirectoryServer.getBackend(backendID);
-          assertEquals(backend.verifyBackend(verifyConfig), 0);
+          assertEquals(verifyBackend(baseDN), 0);
+        }
+        else
+        {
+          throw new IllegalStateException("No asserts exist for baseDN \"" + baseDN + "\". Please provide some.");
         }
       }
       finally
@@ -447,47 +385,29 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-
-
   @Test(dependsOnMethods = "testImportPartial")
   public void testImportReplaceExisting() throws Exception
   {
-    ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
-    LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
-        + File.separator + "replacement1.ldif");
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "replacement1.ldif");
     importConfig.setAppendToExistingData(true);
     importConfig.setReplaceExistingEntries(true);
     importConfig.setValidateSchema(true);
-    importConfig.writeRejectedEntries(rejectedEntries);
 
     importLDIF(importConfig);
+    entries.noSkippedOrRejectedEntries();
 
-    backend = DirectoryServer.getBackend(backendID);
-    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
-    EntryContainer entryContainer;
-
-    entryContainer = rootContainer.getEntryContainer(DN
-        .valueOf("dc=importtest1,dc=com"));
-    assertNotNull(entryContainer);
-
+    EntryContainer entryContainer = getEntryContainer(importtest1DN);
     entryContainer.sharedLock.lock();
     try
     {
-      assertTrue(rejectedEntries.size() <= 0);
-      Entry entry = entryContainer.getEntry(DN
-          .valueOf("uid=user.446,dc=importtest1,dc=com"));
+      Entry entry = entryContainer.getEntry(DN.valueOf("uid=user.446,dc=importtest1,dc=com"));
       assertNotNull(entry);
 
-      AttributeType attribute = entry.getAttribute("cn").get(0)
-          .getAttributeType();
+      AttributeType attrType = DirectoryServer.getAttributeType("cn");
+      assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Annalee Bogard")));
 
-      assertTrue(entry.hasValue(attribute, null, ByteString.valueOf("Annalee Bogard")));
-
-      VerifyConfig verifyConfig = new VerifyConfig();
-      verifyConfig.setBaseDN(DN.valueOf("dc=importtest1,dc=com"));
-
-      backend = DirectoryServer.getBackend(backendID);
-      assertEquals(backend.verifyBackend(verifyConfig), 0);
+      assertEquals(verifyBackend(importtest1DN), 0);
     }
     finally
     {
@@ -495,132 +415,122 @@ public class TestImportJob extends JebTestCase
     }
   }
 
+  private long verifyBackend(DN baseDN) throws InitializationException, ConfigException, DirectoryException
+  {
+    VerifyConfig verifyConfig = new VerifyConfig();
+    verifyConfig.setBaseDN(baseDN);
 
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    return backend.verifyBackend(verifyConfig);
+  }
 
   @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportNoParent() throws Exception
   {
-    ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
-    LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
-        + File.separator + "replacement1.ldif");
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "replacement1.ldif");
     importConfig.setAppendToExistingData(false);
     importConfig.setReplaceExistingEntries(true);
     importConfig.setValidateSchema(true);
-    importConfig.writeRejectedEntries(rejectedEntries);
 
     importLDIF(importConfig);
 
-    assertTrue(rejectedEntries.toString().contains(
-        "uid=user.446,dc=importtest1,dc=com"));
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(entries.rejectedEntries.toString()).contains("uid=user.446,dc=importtest1,dc=com");
+    softly.assertThat(entries.skippedEntries.toString()).isEmpty();
+    softly.assertAll();
   }
-
 
   @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
     TestCaseUtils.clearJEBackend(backendID);
 
-    LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
-        + File.separator + "top.ldif");
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif");
     importConfig.setAppendToExistingData(false);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
 
     importLDIF(importConfig);
+    entries.noSkippedOrRejectedEntries();
 
-    importConfig = new LDIFImportConfig(homeDirName + File.separator
-        + "entries1.ldif");
+    entries = new RejectSkippedEntries();
+    importConfig = newLDIFImportConfig(entries, "entries1.ldif");
     importConfig.setAppendToExistingData(true);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
 
     importLDIF(importConfig);
+    entries.noSkippedOrRejectedEntries();
 
-    backend = DirectoryServer.getBackend(backendID);
-    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
-    EntryContainer entryContainer;
-
-    for (DN baseDN : baseDNs)
-    {
-      entryContainer = rootContainer.getEntryContainer(baseDN);
-      assertNotNull(entryContainer);
-      entryContainer.sharedLock.lock();
-      try
-      {
-        if (baseDN.toString().equals("dc=importtest,dc=com"))
-        {
-          assertEquals(entryContainer.getEntryCount(), 5);
-          assertTrue(entryContainer.entryExists(baseDN));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.0,ou=People,dc=importtest,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.539,ou=People,dc=importtest,dc=com")));
-        }
-        else if (baseDN.toString().equals("dc=importtest1,dc=com"))
-        {
-          assertEquals(entryContainer.getEntryCount(), 3);
-          assertTrue(entryContainer.entryExists(baseDN));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.446,dc=importtest1,dc=com")));
-          assertTrue(entryContainer.entryExists(DN
-              .valueOf("uid=user.362,dc=importtest1,dc=com")));
-        }
-      }
-      finally
-      {
-        entryContainer.sharedLock.unlock();
-        TaskUtils.enableBackend(backendID);
-      }
-    }
+    assertImportedData();
   }
-
-
 
   @Test(dependsOnMethods = "testImportPartial")
   public void testImportNotReplaceExisting() throws Exception
   {
-    ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
-    LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
-        + File.separator + "replacement1.ldif");
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "replacement1.ldif");
     importConfig.setAppendToExistingData(true);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
-    importConfig.writeRejectedEntries(rejectedEntries);
 
     importLDIF(importConfig);
 
-    assertTrue(rejectedEntries.toString().contains(
-        "uid=user.446,dc=importtest1,dc=com"));
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(entries.rejectedEntries.toString()).contains("uid=user.446,dc=importtest1,dc=com");
+    softly.assertThat(entries.skippedEntries.toString()).isEmpty();
+    softly.assertAll();
   }
-
-
 
   @Test(dependsOnMethods = "testImportPartial")
   public void testImportSkip() throws Exception
   {
     Set<DN> excludeBranches = Collections.singleton(DN.valueOf("dc=skipped,dc=importtest1,dc=com"));
-    ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
-    LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
-        + File.separator + "skipped.ldif");
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "skipped.ldif");
     importConfig.setAppendToExistingData(true);
     importConfig.setReplaceExistingEntries(true);
     importConfig.setValidateSchema(true);
     importConfig.setExcludeBranches(excludeBranches);
-    importConfig.writeSkippedEntries(skippedEntries);
 
     importLDIF(importConfig);
 
-    assertTrue(skippedEntries.toString().contains(
-        "dc=skipped,dc=importtest1,dc=com"));
-    assertTrue(skippedEntries.toString().contains(
-        "uid=user.446,dc=skipped,dc=importtest1,dc=com"));
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(entries.rejectedEntries.toString()).isEmpty();
+    softly.assertThat(entries.skippedEntries.toString()).contains(
+        "dc=skipped,dc=importtest1,dc=com",
+        "uid=user.446,dc=skipped,dc=importtest1,dc=com");
+    softly.assertAll();
+  }
+
+  private EntryContainer getEntryContainer(DN baseDN)
+  {
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
+
+    EntryContainer entryContainer = rootContainer.getEntryContainer(baseDN);
+    assertNotNull(entryContainer);
+    return entryContainer;
+  }
+
+  private LDIFImportConfig newLDIFImportConfig(RejectSkippedEntries entries, String... baseNames)
+  {
+    List<String> ldifFiles = new ArrayList<>(baseNames.length);
+    for (String baseName : baseNames)
+    {
+      ldifFiles.add(file(baseName));
+    }
+    LDIFImportConfig cfg = new LDIFImportConfig(ldifFiles);
+    cfg.writeRejectedEntries(entries.rejectedEntries);
+    cfg.writeSkippedEntries(entries.skippedEntries);
+    return cfg;
   }
 
   private void importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
-    backend = DirectoryServer.getBackend(backendID);
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
     try
     {
