@@ -305,15 +305,82 @@ public class TestImportJob extends JebTestCase
   }
 
   @Test
-  public void testImportAll() throws Exception
+  public void testImportCaseInsensitiveDNs() throws Exception
   {
-    TestCaseUtils.clearJEBackend(backendID);
+    String top2 =
+        "dn: dc=case_insensitive_dns,dc=importtest,dc=com\n"
+      + "objectclass: top\n"
+      + "objectclass: domain\n"
+      + "dc: case_insensitive_dns\n"
+      + "\n"
+      + "dn: ou=People,dc=CASE_INSENSITIVE_DNS,dc=importtest,dc=com\n"
+      + "objectclass: top\n"
+      + "objectclass: organizationalUnit\n"
+      + "ou: People\n";
+    writeTo(top2, "top2.ldif");
 
     RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif", "top2.ldif");
+    cleanImport(importConfig);
+
+    importLDIF(importConfig);
+    entries.noSkippedOrRejectedEntries();
+  }
+
+  @Test
+  public void testImportDNsWithInteger() throws Exception
+  {
+    String entryWithIntegerInDN =
+        "dn: photo=#04020001,ou=People,dc=importtest,dc=com\n"
+      + "objectClass: top\n"
+      + "objectClass: person\n"
+      + "objectClass: organizationalPerson\n"
+      + "objectClass: inetOrgPerson\n"
+      + "givenName: Aaccf\n"
+      + "sn: Amar\n"
+      + "cn: Aaccf Amar\n"
+      + "initials: AQA\n"
+      + "employeeNumber: 0\n"
+      + "uid: user.0\n"
+      + "mail: user.0@example.com\n"
+      + "userPassword: password\n"
+      + "telephoneNumber: 380-535-2354\n"
+      + "homePhone: 707-626-3913\n"
+      + "pager: 456-345-7750\n"
+      + "mobile: 366-674-7274\n"
+      + "street: 99262 Eleventh Street\n"
+      + "l: Salem\n"
+      + "st: NM\n"
+      + "postalCode: 36530\n"
+      + "postalAddress: Aaccf Amar$99262 Eleventh Street$Salem, NM  36530\n"
+      + "description: This is the description for Aaccf Amar.\n";
+    writeTo(entryWithIntegerInDN, "entryWithIntegerInDN.ldif");
+
+    RejectSkippedEntries entries = new RejectSkippedEntries();
+    LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif", "entryWithIntegerInDN.ldif");
+    cleanImport(importConfig);
+
+    importLDIF(importConfig);
+    entries.noSkippedOrRejectedEntries();
+
+    EntryContainer entryContainer = getEntryContainer(importtestDN);
+    entryContainer.sharedLock.lock();
+    try
+    {
+      assertTrue(entryContainer.entryExists(DN.valueOf("photo=#04020001,ou=People,dc=importtest,dc=com")));
+    }
+    finally
+    {
+      entryContainer.sharedLock.unlock();
+    }
+  }
+
+  @Test(dependsOnMethods = { "testImportCaseInsensitiveDNs", "testImportDNsWithInteger" })
+  public void testImportAll() throws Exception
+  {
+    RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif", "entries1.ldif");
-    importConfig.setAppendToExistingData(false);
-    importConfig.setReplaceExistingEntries(false);
-    importConfig.setValidateSchema(true);
+    cleanImport(importConfig);
 
     importLDIF(importConfig);
     entries.noSkippedOrRejectedEntries();
@@ -444,13 +511,9 @@ public class TestImportJob extends JebTestCase
   @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
-    TestCaseUtils.clearJEBackend(backendID);
-
     RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif");
-    importConfig.setAppendToExistingData(false);
-    importConfig.setReplaceExistingEntries(false);
-    importConfig.setValidateSchema(true);
+    cleanImport(importConfig);
 
     importLDIF(importConfig);
     entries.noSkippedOrRejectedEntries();
@@ -526,6 +589,14 @@ public class TestImportJob extends JebTestCase
     cfg.writeRejectedEntries(entries.rejectedEntries);
     cfg.writeSkippedEntries(entries.skippedEntries);
     return cfg;
+  }
+
+  private void cleanImport(LDIFImportConfig importConfig) throws Exception
+  {
+    TestCaseUtils.clearJEBackend(backendID);
+    importConfig.setAppendToExistingData(false);
+    importConfig.setReplaceExistingEntries(false);
+    importConfig.setValidateSchema(true);
   }
 
   private void importLDIF(LDIFImportConfig importConfig) throws DirectoryException
