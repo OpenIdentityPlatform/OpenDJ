@@ -305,7 +305,7 @@ public class TestImportJob extends JebTestCase
   }
 
   @Test
-  public void testImportCaseInsensitiveDNs() throws Exception
+  public void importCaseInsensitiveDNs() throws Exception
   {
     String top2 =
         "dn: dc=case_insensitive_dns,dc=importtest,dc=com\n"
@@ -328,7 +328,7 @@ public class TestImportJob extends JebTestCase
   }
 
   @Test
-  public void testImportDNsWithInteger() throws Exception
+  public void importDNsWithInteger() throws Exception
   {
     String entryWithIntegerInDN =
         "dn: photo=#04020001,ou=People,dc=importtest,dc=com\n"
@@ -375,8 +375,8 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = { "testImportCaseInsensitiveDNs", "testImportDNsWithInteger" })
-  public void testImportAll() throws Exception
+  @Test(dependsOnMethods = { "importCaseInsensitiveDNs", "importDNsWithInteger" })
+  public void importAll() throws Exception
   {
     RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif", "entries1.ldif");
@@ -388,8 +388,8 @@ public class TestImportJob extends JebTestCase
     assertImportedData();
   }
 
-  @Test(dependsOnMethods = "testImportAll")
-  public void testImportPartial() throws Exception
+  @Test(dependsOnMethods = "importAll")
+  public void importPartial() throws Exception
   {
     Set<DN> includeBranches = Collections.singleton(DN.valueOf("ou=People,dc=importtest,dc=com"));
     Set<DN> excludeBranches = Collections.singleton(DN.valueOf("ou=Others,ou=People,dc=importtest,dc=com"));
@@ -452,8 +452,8 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = "testImportPartial")
-  public void testImportReplaceExisting() throws Exception
+  @Test(dependsOnMethods = "importPartial")
+  public void importReplaceExisting() throws Exception
   {
     RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "replacement1.ldif");
@@ -491,8 +491,8 @@ public class TestImportJob extends JebTestCase
     return backend.verifyBackend(verifyConfig);
   }
 
-  @Test(dependsOnMethods = "testImportReplaceExisting")
-  public void testImportNoParent() throws Exception
+  @Test(dependsOnMethods = "importReplaceExisting")
+  public void importNoParent() throws Exception
   {
     RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "replacement1.ldif");
@@ -508,8 +508,8 @@ public class TestImportJob extends JebTestCase
     softly.assertAll();
   }
 
-  @Test(dependsOnMethods = "testImportReplaceExisting")
-  public void testImportAppend() throws Exception
+  @Test(dependsOnMethods = "importReplaceExisting")
+  public void importAppend() throws Exception
   {
     RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "top.ldif");
@@ -530,8 +530,8 @@ public class TestImportJob extends JebTestCase
     assertImportedData();
   }
 
-  @Test(dependsOnMethods = "testImportPartial")
-  public void testImportNotReplaceExisting() throws Exception
+  @Test(dependsOnMethods = "importPartial")
+  public void importNotReplaceExisting() throws Exception
   {
     RejectSkippedEntries entries = new RejectSkippedEntries();
     LDIFImportConfig importConfig = newLDIFImportConfig(entries, "replacement1.ldif");
@@ -547,8 +547,8 @@ public class TestImportJob extends JebTestCase
     softly.assertAll();
   }
 
-  @Test(dependsOnMethods = "testImportPartial")
-  public void testImportSkip() throws Exception
+  @Test(dependsOnMethods = "importPartial")
+  public void importSkip() throws Exception
   {
     Set<DN> excludeBranches = Collections.singleton(DN.valueOf("dc=skipped,dc=importtest1,dc=com"));
     RejectSkippedEntries entries = new RejectSkippedEntries();
