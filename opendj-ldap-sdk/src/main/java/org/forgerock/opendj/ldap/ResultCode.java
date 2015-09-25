@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -704,7 +704,7 @@ public final class ResultCode {
     public static ResultCode valueOf(final int intValue) {
         ResultCode resultCode = null;
 
-        if (intValue >= 0 || intValue < ELEMENTS.length) {
+        if (0 <= intValue && intValue < ELEMENTS.length) {
             resultCode = ELEMENTS[intValue];
         }
 
