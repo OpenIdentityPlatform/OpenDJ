@@ -4187,12 +4187,10 @@ final class Importer implements DiskSpaceMonitorHandler
     private boolean insert(DN dn, DatabaseEntry val, DatabaseEntry key)
         throws JebException
     {
-      // Use a compact representation for key
-      byte[] dnBytesForKey = dn.toNormalizedByteString().toByteArray();
-      key.setData(hashCode(dnBytesForKey));
+      byte[] dnBytes = dn.toNormalizedByteString().toByteArray();
+      key.setData(hashCode(dnBytes));
 
-      // Use a reversible representation for value
-      byte[] dnBytesForValue = StaticUtils.getBytes(dn.toString());
+      byte[] dnBytesForValue = dnBytes;
       int len = PackedInteger.getWriteIntLength(dnBytesForValue.length);
       byte[] dataBytes = new byte[dnBytesForValue.length + len];
       int pos = PackedInteger.writeInt(dataBytes, 0, dnBytesForValue.length);
@@ -4280,15 +4278,14 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       Cursor cursor = null;
       DatabaseEntry key = new DatabaseEntry();
-      byte[] dnBytesForKey = dn.toNormalizedByteString().toByteArray();
-      key.setData(hashCode(dnBytesForKey));
+      byte[] dnBytes = dn.toNormalizedByteString().toByteArray();
+      key.setData(hashCode(dnBytes));
       try
       {
         cursor = dnCache.openCursor(null, CursorConfig.DEFAULT);
         DatabaseEntry dns = new DatabaseEntry();
         OperationStatus status = cursor.getSearchKey(key, dns, LockMode.DEFAULT);
-        byte[] dnBytesForValue = StaticUtils.getBytes(dn.toString());
-        return status == OperationStatus.SUCCESS && isDNMatched(dns.getData(), dnBytesForValue);
+        return status == OperationStatus.SUCCESS && isDNMatched(dns.getData(), dnBytes);
       }
       finally
       {

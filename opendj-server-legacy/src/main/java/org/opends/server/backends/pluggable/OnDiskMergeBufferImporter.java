@@ -3407,7 +3407,7 @@ final class OnDiskMergeBufferImporter
       // Use a compact representation for key
       // and a reversible representation for value
       final ByteString key = fnv1AHashCode(dn);
-      final ByteString dnValue = ByteString.valueOf(dn);
+      final ByteString dnValue = dn.toNormalizedByteString();
 
       return insert(key, dnValue);
     }
@@ -3511,7 +3511,7 @@ final class OnDiskMergeBufferImporter
             final ByteString key = fnv1AHashCode(dn);
             final ByteString existingDns = txn.read(dnCache, key);
 
-            return containsDN(existingDns, ByteString.valueOf(dn));
+            return containsDN(existingDns, dn.toNormalizedByteString());
           }
         });
       }
