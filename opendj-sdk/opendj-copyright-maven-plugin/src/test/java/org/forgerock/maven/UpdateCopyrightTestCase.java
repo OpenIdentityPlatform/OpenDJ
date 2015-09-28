@@ -98,13 +98,13 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
             int nbLinesToSkip, int numberSpacesIndentation, String newPortionCopyrightString,
             String newCopyrightStartString, String copyrightEndToken, String newCopyrightOwnerStr) throws Exception {
         List<String> testFilePaths = new LinkedList<>();
-        List<String> updatedTestFilePaths = new LinkedList<>();
+        List<File> updatedTestFilePaths = new LinkedList<>();
 
         File[] changedFiles = new File(RESOURCE_DIR, testCaseFolderPath)
             .listFiles(new FilenameExtensionFilter(".txt"));
         for (File file : changedFiles) {
             testFilePaths.add(file.getAbsolutePath());
-            updatedTestFilePaths.add(file.getPath() + ".tmp");
+            updatedTestFilePaths.add(new File(file.getPath() + ".tmp"));
         }
 
         UpdateCopyrightMojo spyMojo = spy(new UpdateCopyrightMojo());

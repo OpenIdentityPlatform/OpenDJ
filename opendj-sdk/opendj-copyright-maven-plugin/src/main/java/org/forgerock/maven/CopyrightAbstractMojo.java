@@ -25,12 +25,13 @@
  */
 package org.forgerock.maven;
 
-import static org.forgerock.util.Utils.*;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -45,15 +46,26 @@ import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFile;
 import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.ScmFileStatus;
+import org.apache.maven.scm.ScmResult;
+import org.apache.maven.scm.ScmVersion;
+import org.apache.maven.scm.command.diff.DiffScmResult;
 import org.apache.maven.scm.command.status.StatusScmResult;
+import org.apache.maven.scm.log.ScmLogDispatcher;
+import org.apache.maven.scm.log.ScmLogger;
 import org.apache.maven.scm.manager.BasicScmManager;
 import org.apache.maven.scm.manager.NoSuchScmProviderException;
 import org.apache.maven.scm.manager.ScmManager;
-import org.apache.maven.scm.provider.ScmProvider;
+import org.apache.maven.scm.provider.ScmProviderRepository;
+import org.apache.maven.scm.provider.git.command.GitCommand;
+import org.apache.maven.scm.provider.git.command.diff.GitDiffConsumer;
 import org.apache.maven.scm.provider.git.gitexe.GitExeScmProvider;
-import org.apache.maven.scm.provider.svn.svnexe.SvnExeScmProvider;
+import org.apache.maven.scm.provider.git.gitexe.command.GitCommandLineUtils;
+import org.apache.maven.scm.provider.git.gitexe.command.diff.GitDiffCommand;
 import org.apache.maven.scm.repository.ScmRepository;
 import org.apache.maven.scm.repository.ScmRepositoryException;
+import org.codehaus.plexus.util.cli.CommandLineUtils;
+import org.codehaus.plexus.util.cli.CommandLineUtils.StringStreamConsumer;
+import org.codehaus.plexus.util.cli.Commandline;
 
 /**
  * Abstract class which is used for both copyright checks and updates.
@@ -71,9 +83,9 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     @Parameter(required = true, defaultValue = "ForgeRock AS")
     private String copyrightOwnerToken;
 
-    /** The path to the root of the Subversion workspace to check. */
+    /** The path to the root of the scm local workspace to check. */
     @Parameter(required = true, defaultValue = "${basedir}")
-    private String scmWorkspaceRoot;
+    private String baseDir;
 
     @Parameter(required = true, defaultValue = "${project.scm.connection}")
     private String scmRepositoryUrl;
@@ -90,6 +102,47 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
 
     private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = new LinkedList<>(Arrays.asList(
                     "/*", "<!--"));
+
+    private static final class CustomGitExeScmProvider extends GitExeScmProvider {
+
+        @Override
+        protected GitCommand getDiffCommand() {
+            return new CustomGitDiffCommand();
+        }
+    }
+
+    private static class CustomGitDiffCommand extends GitDiffCommand implements GitCommand {
+
+        @Override
+        protected DiffScmResult executeDiffCommand(ScmProviderRepository repo, ScmFileSet fileSet,
+                ScmVersion unused, ScmVersion unused2) throws ScmException {
+            final GitDiffConsumer consumer = new GitDiffConsumer(getLogger(), fileSet.getBasedir());
+            final StringStreamConsumer stderr = new CommandLineUtils.StringStreamConsumer();
+            final Commandline cl = GitCommandLineUtils.getBaseGitCommandLine(fileSet.getBasedir(), "diff");
+            cl.addArguments(new String[] { "--no-ext-diff", "--relative", "master...HEAD", "." });
+
+            if (GitCommandLineUtils.execute(cl, consumer, stderr, getLogger()) != 0) {
+                return new DiffScmResult(cl.toString(), "The git-diff command failed.", stderr.getOutput(), false);
+            }
+            return new DiffScmResult(
+                    cl.toString(), consumer.getChangedFiles(), consumer.getDifferences(), consumer.getPatch());
+        }
+
+    }
+
+    private String getLocalScmRootPath(final File basedir) throws ScmException {
+        final Commandline cl = GitCommandLineUtils.getBaseGitCommandLine(basedir, "rev-parse");
+        cl.addArguments(new String[] { "--show-toplevel" });
+
+        final StringStreamConsumer stdout = new CommandLineUtils.StringStreamConsumer();
+        final StringStreamConsumer stderr = new CommandLineUtils.StringStreamConsumer();
+        final ScmLogger dummyLogger = new ScmLogDispatcher();
+
+        final int exitCode = GitCommandLineUtils.execute(cl, stdout, stderr, dummyLogger);
+        return exitCode == 0 ? stdout.getOutput().trim().replace(" ", "%20")
+                             : basedir.getPath();
+    }
+
 
     /** The string representation of the current year. */
     Integer currentYear = Calendar.getInstance().get(Calendar.YEAR);
@@ -109,16 +162,11 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
         if (scmManager == null) {
             scmManager = new BasicScmManager();
             String scmProviderID = getScmProviderID();
-            ScmProvider scmProvider;
-            if ("svn".equals(scmProviderID)) {
-                scmProvider = new SvnExeScmProvider();
-            } else if ("git".equals(scmProviderID)) {
-                scmProvider = new GitExeScmProvider();
-            } else {
-                throw new MojoExecutionException("Unsupported scm provider: " + scmProviderID + " or "
-                        + getIncorrectScmRepositoryUrlMsg());
+            if (!"git".equals(scmProviderID)) {
+                throw new MojoExecutionException(
+                        "Unsupported scm provider: " + scmProviderID + " or " + getIncorrectScmRepositoryUrlMsg());
             }
-            scmManager.setScmProvider(scmProviderID, scmProvider);
+            scmManager.setScmProvider(scmProviderID, new CustomGitExeScmProvider());
         }
 
         return scmManager;
@@ -151,27 +199,28 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
         return scmRepository;
     }
 
-    String getScmWorkspaceRoot() {
-        return scmWorkspaceRoot;
+    String getBaseDir() {
+        return baseDir;
     }
 
-    /** Performs a diff with current working directory state against remote HEAD revision. */
-    List<String> getChangedFiles() throws MojoExecutionException, MojoFailureException  {
+    /**
+     * Performs a diff with current working directory state against remote HEAD revision.
+     * Then do a status to check uncommited changes as well.
+     */
+    List<File> getChangedFiles() throws MojoExecutionException, MojoFailureException  {
         try {
-            ScmFileSet workspaceFileSet = new ScmFileSet(new File(getScmWorkspaceRoot()));
-            StatusScmResult statusResult = getScmManager().status(getScmRepository(), workspaceFileSet);
-            if (!statusResult.isSuccess()) {
-                getLog().error("Impossible to perform scm status command because " + statusResult.getCommandOutput());
-                throw new MojoFailureException("SCM error");
-            }
+            final ScmFileSet workspaceFileSet = new ScmFileSet(new File(getBaseDir()));
+            final DiffScmResult diffMasterHeadResult = getScmManager().diff(
+                    getScmRepository(), workspaceFileSet, null, null);
+            ensureCommandSuccess(diffMasterHeadResult, "diff master...HEAD .");
 
-            List<ScmFile> scmFiles = statusResult.getChangedFiles();
-            List<String> changedFilePaths = new LinkedList<>();
-            for (ScmFile scmFile : scmFiles) {
-                if (scmFile.getStatus() != ScmFileStatus.UNKNOWN) {
-                    changedFilePaths.add(scmFile.getPath());
-                }
-            }
+            final StatusScmResult statusResult = getScmManager().status(getScmRepository(), workspaceFileSet);
+            ensureCommandSuccess(statusResult, "status");
+
+            final List<File> changedFilePaths = new ArrayList<>();
+            addToChangedFiles(diffMasterHeadResult.getChangedFiles(), getBaseDir(), changedFilePaths);
+            final String localScmRootPath = getLocalScmRootPath(new File(getBaseDir()));
+            addToChangedFiles(statusResult.getChangedFiles(), localScmRootPath, changedFilePaths);
 
             return changedFilePaths;
         } catch (ScmException e) {
@@ -180,14 +229,32 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
         }
     }
 
+    private void ensureCommandSuccess(final ScmResult result, final String cmd) throws MojoFailureException {
+        if (!result.isSuccess()) {
+            final String message = "Impossible to perform scm " + cmd + " command because " + result.getCommandOutput();
+            getLog().error(message);
+            throw new MojoFailureException(message);
+        }
+    }
+
+    private void addToChangedFiles(
+            final List<ScmFile> scmChangedFiles, final String rootPath, final List<File> changedFiles) {
+        for (final ScmFile scmFile : scmChangedFiles) {
+            final String scmFilePath = scmFile.getPath();
+            if (scmFile.getStatus() != ScmFileStatus.UNKNOWN && !changedFiles.contains(scmFilePath)) {
+                changedFiles.add(new File(rootPath, scmFilePath));
+            }
+        }
+    }
+
     /** Examines the provided files list to determine whether each changed file copyright is acceptable. */
     void checkCopyrights() throws MojoExecutionException, MojoFailureException {
-        for (String changedFileName : getChangedFiles()) {
-            File changedFile = new File(getScmWorkspaceRoot(), changedFileName);
+        for (final File changedFile : getChangedFiles()) {
             if (!changedFile.exists() || !changedFile.isFile()) {
                 continue;
             }
 
+            final String changedFileName = changedFile.getPath();
             int lastPeriodPos = changedFileName.lastIndexOf('.');
             if (lastPeriodPos > 0) {
                 String extension = changedFileName.substring(lastPeriodPos + 1);
@@ -274,5 +341,4 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     boolean isCommentLine(String line) {
         return getCommentToken(line, true) != null;
     }
-
 }
