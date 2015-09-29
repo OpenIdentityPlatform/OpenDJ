@@ -25,25 +25,26 @@
  */
 package org.opends.server.backends.pdb;
 
+import static org.opends.server.util.StaticUtils.*;
+
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 
-import com.persistit.Management.*;
+import com.persistit.Management.BufferPoolInfo;
+import com.persistit.Management.TreeInfo;
+import com.persistit.Management.VolumeInfo;
 import com.persistit.Management.WrappedRemoteException;
 import com.persistit.Persistit;
 
-/**
- * Monitoring Class for PDB, populating cn=monitor statistics using reflection on objects
- * methods.
- */
+/** Monitoring class for PDB, populating cn=monitor statistics using reflection on objects methods. */
 class PDBMonitor extends MonitorProvider<MonitorProviderCfg>
 {
   private final String name;
@@ -53,13 +54,6 @@ class PDBMonitor extends MonitorProvider<MonitorProviderCfg>
   {
     this.name = name;
     this.db = db;
-  }
-
-  @Override
-  public void initializeMonitorProvider(MonitorProviderCfg configuration) throws ConfigException,
-      InitializationException
-  {
-    return;
   }
 
   @Override
@@ -88,18 +82,18 @@ class PDBMonitor extends MonitorProvider<MonitorProviderCfg>
         for (TreeInfo tree : db.getManagement().getTreeInfoArray(vol.getName()))
         {
           // For the time being, depth is not reported.
-          monitorAttrs.add(Attributes.create("PDBVolumeTree", vol.getName() + tree.getName() +
-              ", traverse=" + tree.getTraverseCounter() +
-              ", fetch=" + tree.getFetchCounter() +
-              ", store=" + tree.getStoreCounter() +
-              ", remove=" + tree.getRemoveCounter()));
+          monitorAttrs.add(Attributes.create("PDBVolumeTree", vol.getName() + tree.getName()
+              + ", traverse=" + tree.getTraverseCounter()
+              + ", fetch=" + tree.getFetchCounter()
+              + ", store=" + tree.getStoreCounter()
+              + ", remove=" + tree.getRemoveCounter()));
         }
       }
       return monitorAttrs;
     }
-    catch (RemoteException re)
+    catch (RemoteException e)
     {
-      return Collections.singletonList(Attributes.create("PDBInfo", re.getStackTrace().toString()));
+      return Collections.singletonList(Attributes.create("PDBInfo", stackTraceToSingleLineString(e)));
     }
   }
 

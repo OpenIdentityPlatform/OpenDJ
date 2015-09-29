@@ -32,6 +32,11 @@ import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * Allows to run an import. For performance reasons, imports are run without transactions.
+ * <p>
+ * Since import is multi threaded, implementations must be thread-safe.
+ * <p>
+ *
+ * @ThreadSafe
  */
 public interface Importer extends Closeable
 {

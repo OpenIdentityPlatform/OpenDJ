@@ -35,27 +35,31 @@ import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.types.DN;
+
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
 
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
 
-/**
- * This class maps JE properties to configuration attributes.
- */
+/** This class maps JE properties to configuration attributes. */
 public class ConfigurableEnvironment
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -109,10 +113,7 @@ public class ConfigurableEnvironment
   public static final String ATTR_DATABASE_LOG_FILE_MAX =
        ConfigConstants.NAME_PREFIX_CFG + "db-log-file-max";
 
-  /**
-   * The name of the attribute which configures the database cache eviction
-   * algorithm.
-   */
+  /** The name of the attribute which configures the database cache eviction algorithm. */
   public static final String ATTR_EVICTOR_LRU_ONLY =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-lru-only";
 
@@ -150,13 +151,9 @@ public class ConfigurableEnvironment
   public static final String ATTR_LOGGING_FILE_HANDLER_ON =
        ConfigConstants.NAME_PREFIX_CFG + "db-logging-file-handler-on";
 
-
-  /**
-   * The name of the attribute which configures the trace logging message level.
-   */
+  /** The name of the attribute which configures the trace logging message level. */
   public static final String ATTR_LOGGING_LEVEL =
        ConfigConstants.NAME_PREFIX_CFG + "db-logging-level";
-
 
   /**
    * The name of the attribute which configures how many bytes are written to
@@ -164,7 +161,6 @@ public class ConfigurableEnvironment
    */
   public static final String ATTR_CHECKPOINTER_BYTES_INTERVAL =
        ConfigConstants.NAME_PREFIX_CFG + "db-checkpointer-bytes-interval";
-
 
   /**
    * The name of the attribute which configures the amount of time between
@@ -174,13 +170,9 @@ public class ConfigurableEnvironment
        ConfigConstants.NAME_PREFIX_CFG +
        "db-checkpointer-wakeup-interval";
 
-
-  /**
-   * The name of the attribute which configures the number of lock tables.
-   */
+  /** The name of the attribute which configures the number of lock tables. */
   public static final String ATTR_NUM_LOCK_TABLES =
        ConfigConstants.NAME_PREFIX_CFG + "db-num-lock-tables";
-
 
   /**
    * The name of the attribute which configures the number threads
@@ -189,36 +181,33 @@ public class ConfigurableEnvironment
   public static final String ATTR_NUM_CLEANER_THREADS =
        ConfigConstants.NAME_PREFIX_CFG + "db-num-cleaner-threads";
 
-  /**
-   * The name of the attribute which configures the size of the file
-   * handle cache.
-   */
+  /** The name of the attribute which configures the size of the file handle cache. */
   public static final String ATTR_LOG_FILECACHE_SIZE =
        ConfigConstants.NAME_PREFIX_CFG + "db-log-filecache-size";
 
-
-  /**
-   * The name of the attribute which may specify any native JE properties.
-   */
+  /** The name of the attribute which may specify any native JE properties. */
   public static final String ATTR_JE_PROPERTY =
        ConfigConstants.NAME_PREFIX_CFG + "je-property";
-
 
   /** A map of JE property names to the corresponding configuration attribute. */
   private static HashMap<String, String> attrMap = new HashMap<>();
   /**
-   * A map of configuration attribute names to the corresponding configuration
-   * object getter method.
+   * A map of configuration attribute names to the corresponding configuration object getter method.
    */
-  private static HashMap<String, Method> methodMap = new HashMap<>();
+  @RemoveOnceLocalDBBackendIsPluggable
+  private static Map<String, Method> localDbMethodMap = new HashMap<>();
+  /** A map of configuration attribute names to the corresponding configuration PropertyDefinition. */
+  @RemoveOnceLocalDBBackendIsPluggable
+  private static Map<String, PropertyDefinition<?>> localDbDefnMap = new HashMap<>();
+
   /**
-   * A map of configuration attribute names to the corresponding configuration
-   * PropertyDefinition.
+   * A map of configuration attribute names to the corresponding configuration object getter method.
    */
-  private static HashMap<String, PropertyDefinition> defnMap = new HashMap<>();
+  private static Map<String, Method> jebMethodMap = new HashMap<>();
+  /** A map of configuration attribute names to the corresponding configuration PropertyDefinition. */
+  private static Map<String, PropertyDefinition<?>> jebDefnMap = new HashMap<>();
 
-
-  /** Pulled from resource/admin/ABBREVIATIONS.xsl.  db is mose common. */
+  /** Pulled from resource/admin/ABBREVIATIONS.xsl. db is mose common. */
   private static final List<String> ABBREVIATIONS = Arrays.asList(new String[]
           {"aci", "ip", "ssl", "dn", "rdn", "jmx", "smtp", "http",
            "https", "ldap", "ldaps", "ldif", "jdbc", "tcp", "tls",
@@ -241,7 +230,6 @@ public class ConfigurableEnvironment
     return buffer.toString();
   }
 
-
   /**
    * Register a JE property and its corresponding configuration attribute.
    *
@@ -255,32 +243,45 @@ public class ConfigurableEnvironment
   {
     // Strip off NAME_PREFIX_CFG.
     String baseName = attrName.substring(7);
-
     String methodBaseName = propNametoCamlCase(baseName);
 
+    registerLocalDbProp(attrName, methodBaseName);
+    registerJebProp(attrName, methodBaseName);
+    attrMap.put(propertyName, attrName);
+  }
+
+  @RemoveOnceLocalDBBackendIsPluggable
+  private static void registerLocalDbProp(String attrName, String methodBaseName) throws Exception
+  {
     Class<LocalDBBackendCfg> configClass = LocalDBBackendCfg.class;
     LocalDBBackendCfgDefn defn = LocalDBBackendCfgDefn.getInstance();
     Class<? extends LocalDBBackendCfgDefn> defClass = defn.getClass();
 
-    PropertyDefinition propDefn =
-         (PropertyDefinition)defClass.getMethod("get" + methodBaseName +
-         "PropertyDefinition").invoke(defn);
+    String propName = "get" + methodBaseName + "PropertyDefinition";
+    PropertyDefinition<?> propDefn = (PropertyDefinition<?>) defClass.getMethod(propName).invoke(defn);
 
-    String methodName;
-    if (propDefn instanceof BooleanPropertyDefinition)
-    {
-      methodName = "is" + methodBaseName;
-    }
-    else
-    {
-      methodName = "get" + methodBaseName;
-    }
+    String methodPrefix = propDefn instanceof BooleanPropertyDefinition ? "is" : "get";
+    String methodName = methodPrefix + methodBaseName;
 
-    defnMap.put(attrName, propDefn);
-    methodMap.put(attrName, configClass.getMethod(methodName));
-    attrMap.put(propertyName, attrName);
+    localDbDefnMap.put(attrName, propDefn);
+    localDbMethodMap.put(attrName, configClass.getMethod(methodName));
   }
 
+  private static void registerJebProp(String attrName, String methodBaseName) throws Exception
+  {
+    Class<JEBackendCfg> configClass = JEBackendCfg.class;
+    JEBackendCfgDefn defn = JEBackendCfgDefn.getInstance();
+    Class<? extends JEBackendCfgDefn> defClass = defn.getClass();
+
+    String propName = "get" + methodBaseName + "PropertyDefinition";
+    PropertyDefinition<?> propDefn = (PropertyDefinition<?>) defClass.getMethod(propName).invoke(defn);
+
+    String methodPrefix = propDefn instanceof BooleanPropertyDefinition ? "is" : "get";
+    String methodName = methodPrefix + methodBaseName;
+
+    jebDefnMap.put(attrName, propDefn);
+    jebMethodMap.put(attrName, configClass.getMethod(methodName));
+  }
 
   /**
    * Get the name of the configuration attribute associated with a JE property.
@@ -295,15 +296,16 @@ public class ConfigurableEnvironment
   /**
    * Get the value of a JE property that is mapped to a configuration attribute.
    * @param cfg The configuration containing the property values.
-   * @param attrName The conriguration attribute type name.
+   * @param attrName The configuration attribute type name.
    * @return The string value of the JE property.
    */
-  private static String getPropertyValue(LocalDBBackendCfg cfg, String attrName)
+  private static String getPropertyValue(BackendCfg cfg, String attrName, ByteString backendId)
   {
     try
     {
-      PropertyDefinition propDefn = defnMap.get(attrName);
-      Method method = methodMap.get(attrName);
+      final boolean isLocalDb = cfg instanceof LocalDBBackendCfg;
+      PropertyDefinition<?> propDefn = (isLocalDb ? localDbDefnMap : jebDefnMap).get(attrName);
+      Method method = (isLocalDb ? localDbMethodMap : jebMethodMap).get(attrName);
 
       if (propDefn instanceof DurationPropertyDefinition)
       {
@@ -329,7 +331,7 @@ public class ConfigurableEnvironment
           value = Integer.valueOf(Math.max(24, cpus * 2));
 
           logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS,
-              cfg.dn().rdn().getAttributeValue(0), (Number) value);
+              backendId, (Number) value);
         }
         else if (attrName.equals(ATTR_NUM_LOCK_TABLES)
             && value == null)
@@ -343,7 +345,7 @@ public class ConfigurableEnvironment
           BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
           value = tmp.nextProbablePrime();
 
-          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES, cfg.dn().rdn().getAttributeValue(0), (Number) value);
+          logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES, backendId, (Number) value);
         }
 
         return String.valueOf(value);
@@ -355,8 +357,6 @@ public class ConfigurableEnvironment
       return "";
     }
   }
-
-
 
   static
   {
@@ -386,8 +386,6 @@ public class ConfigurableEnvironment
       logger.traceException(e);
     }
   }
-
-
 
   /**
    * Create a JE environment configuration with default values.
@@ -435,7 +433,28 @@ public class ConfigurableEnvironment
     return envConfig;
   }
 
+  /**
+   * Parse a configuration associated with a JE environment and create an
+   * environment config from it.
+   *
+   * @param cfg The configuration to be parsed.
+   * @return An environment config instance corresponding to the config entry.
+   * @throws ConfigException If there is an error in the provided configuration
+   * entry.
+   */
+  public static EnvironmentConfig parseConfigEntry(JEBackendCfg cfg) throws ConfigException
+  {
+    validateDbCacheSize(cfg.getDBCacheSize());
 
+    EnvironmentConfig envConfig = defaultConfig();
+    setDurability(envConfig, cfg.isDBTxnNoSync(), cfg.isDBTxnWriteNoSync());
+    setJEProperties(cfg, envConfig, cfg.dn().rdn().getAttributeValue(0));
+    setDBLoggingLevel(envConfig, cfg.getDBLoggingLevel(), cfg.dn(), cfg.isDBLoggingFileHandlerOn());
+
+    // See if there are any native JE properties specified in the config
+    // and if so try to parse, evaluate and set them.
+    return setJEProperties(envConfig, cfg.getJEProperty(), attrMap);
+  }
 
   /**
    * Parse a configuration associated with a JE environment and create an
@@ -446,77 +465,89 @@ public class ConfigurableEnvironment
    * @throws ConfigException If there is an error in the provided configuration
    * entry.
    */
-  public static EnvironmentConfig parseConfigEntry(LocalDBBackendCfg cfg)
-       throws ConfigException
+  @RemoveOnceLocalDBBackendIsPluggable
+  public static EnvironmentConfig parseConfigEntry(LocalDBBackendCfg cfg) throws ConfigException
   {
-    // See if the db cache size setting is valid.
-    if(cfg.getDBCacheSize() != 0)
-    {
-      if (MemoryBudget.getRuntimeMaxMemory() < cfg.getDBCacheSize()) {
-        throw new ConfigException(
-            ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
-                cfg.getDBCacheSize(), MemoryBudget.getRuntimeMaxMemory()));
-      }
-      if (cfg.getDBCacheSize() < MemoryBudget.MIN_MAX_MEMORY_SIZE) {
-        throw new ConfigException(
-            ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
-                cfg.getDBCacheSize(), MemoryBudget.MIN_MAX_MEMORY_SIZE));
-      }
-      MemoryQuota memoryQuota = DirectoryServer.getInstance().getServerContext().getMemoryQuota();
-      if (!memoryQuota.acquireMemory(cfg.getDBCacheSize()))
-      {
-        logger.warn(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
-            cfg.getDBCacheSize(), memoryQuota.getMaxMemory()));
-      }
-    }
+    validateDbCacheSize(cfg.getDBCacheSize());
 
     EnvironmentConfig envConfig = defaultConfig();
-
-    // Durability settings.
-    if (cfg.isDBTxnNoSync() && cfg.isDBTxnWriteNoSync())
-    {
-      throw new ConfigException(
-              ERR_CONFIG_JEB_DURABILITY_CONFLICT.get());
-    }
-    if (cfg.isDBTxnNoSync())
-    {
-      envConfig.setDurability(Durability.COMMIT_NO_SYNC);
-    }
-    if (cfg.isDBTxnWriteNoSync())
-    {
-      envConfig.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
-    }
-
-    // Iterate through the config attributes associated with a JE property.
-    for (Map.Entry<String, String> mapEntry : attrMap.entrySet())
-    {
-      String jeProperty = mapEntry.getKey();
-      String attrName = mapEntry.getValue();
-
-      String value = getPropertyValue(cfg, attrName);
-      envConfig.setConfigParam(jeProperty, value);
-    }
-
-    // Set logging and file handler levels.
-    Logger parent = Logger.getLogger("com.sleepycat.je");
-    try
-    {
-      parent.setLevel(Level.parse(cfg.getDBLoggingLevel()));
-    }
-    catch (Exception e)
-    {
-      throw new ConfigException(ERR_JEB_INVALID_LOGGING_LEVEL.get(cfg.getDBLoggingLevel(), cfg.dn()));
-    }
-
-    final Level level = cfg.isDBLoggingFileHandlerOn() ? Level.ALL : Level.OFF;
-    envConfig.setConfigParam(FILE_LOGGING_LEVEL, level.getName());
+    setDurability(envConfig, cfg.isDBTxnNoSync(), cfg.isDBTxnWriteNoSync());
+    setJEProperties(cfg, envConfig, cfg.dn().rdn().getAttributeValue(0));
+    setDBLoggingLevel(envConfig, cfg.getDBLoggingLevel(), cfg.dn(), cfg.isDBLoggingFileHandlerOn());
 
     // See if there are any native JE properties specified in the config
     // and if so try to parse, evaluate and set them.
     return setJEProperties(envConfig, cfg.getJEProperty(), attrMap);
   }
 
+  private static void validateDbCacheSize(long dbCacheSize) throws ConfigException
+  {
+    if (dbCacheSize != 0)
+    {
+      if (MemoryBudget.getRuntimeMaxMemory() < dbCacheSize)
+      {
+        throw new ConfigException(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+            dbCacheSize, MemoryBudget.getRuntimeMaxMemory()));
+      }
+      if (dbCacheSize < MemoryBudget.MIN_MAX_MEMORY_SIZE)
+      {
+        throw new ConfigException(ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
+            dbCacheSize, MemoryBudget.MIN_MAX_MEMORY_SIZE));
+      }
+      MemoryQuota memoryQuota = DirectoryServer.getInstance().getServerContext().getMemoryQuota();
+      if (!memoryQuota.acquireMemory(dbCacheSize))
+      {
+        logger.warn(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+            dbCacheSize, memoryQuota.getMaxMemory()));
+      }
+    }
+  }
 
+  private static void setDurability(EnvironmentConfig envConfig, boolean dbTxnNoSync, boolean dbTxnWriteNoSync)
+      throws ConfigException
+  {
+    if (dbTxnNoSync && dbTxnWriteNoSync)
+    {
+      throw new ConfigException(ERR_CONFIG_JEB_DURABILITY_CONFLICT.get());
+    }
+    if (dbTxnNoSync)
+    {
+      envConfig.setDurability(Durability.COMMIT_NO_SYNC);
+    }
+    else if (dbTxnWriteNoSync)
+    {
+      envConfig.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
+    }
+  }
+
+  private static void setJEProperties(BackendCfg cfg, EnvironmentConfig envConfig, ByteString backendId)
+  {
+    for (Map.Entry<String, String> mapEntry : attrMap.entrySet())
+    {
+      String jeProperty = mapEntry.getKey();
+      String attrName = mapEntry.getValue();
+
+      String value = getPropertyValue(cfg, attrName, backendId);
+      envConfig.setConfigParam(jeProperty, value);
+    }
+  }
+
+  private static void setDBLoggingLevel(EnvironmentConfig envConfig, String loggingLevel, DN dn,
+      boolean loggingFileHandlerOn) throws ConfigException
+  {
+    Logger parent = Logger.getLogger("com.sleepycat.je");
+    try
+    {
+      parent.setLevel(Level.parse(loggingLevel));
+    }
+    catch (Exception e)
+    {
+      throw new ConfigException(ERR_JEB_INVALID_LOGGING_LEVEL.get(loggingLevel, dn));
+    }
+
+    final Level level = loggingFileHandlerOn ? Level.ALL : Level.OFF;
+    envConfig.setConfigParam(FILE_LOGGING_LEVEL, level.getName());
+  }
 
   /**
    * Parse, validate and set native JE environment properties for
@@ -549,43 +580,36 @@ public class ConfigurableEnvironment
     for (String jeEntry : jeProperties)
     {
       StringTokenizer st = new StringTokenizer(jeEntry, "=");
-      if (st.countTokens() == 2) {
-        String jePropertyName = st.nextToken();
-        String jePropertyValue = st.nextToken();
-        // Check if it is a duplicate.
-        if (uniqueJEProperties.contains(jePropertyName)) {
-          LocalizableMessage message = ERR_CONFIG_JE_DUPLICATE_PROPERTY.get(
-              jePropertyName);
-            throw new ConfigException(message);
+      if (st.countTokens() != 2)
+      {
+        throw new ConfigException(ERR_CONFIG_JE_PROPERTY_INVALID_FORM.get(jeEntry));
+      }
+
+      String jePropertyName = st.nextToken();
+      String jePropertyValue = st.nextToken();
+      // Check if it is a duplicate.
+      if (uniqueJEProperties.contains(jePropertyName)) {
+        throw new ConfigException(ERR_CONFIG_JE_DUPLICATE_PROPERTY.get(jePropertyName));
+      }
+
+      // Set JE property.
+      try {
+        envConfig.setConfigParam(jePropertyName, jePropertyValue);
+        // If this property shadows an existing config attribute.
+        if (configAttrMap.containsKey(jePropertyName)) {
+          LocalizableMessage message = ERR_CONFIG_JE_PROPERTY_SHADOWS_CONFIG.get(
+            jePropertyName, attrMap.get(jePropertyName));
+          throw new ConfigException(message);
         }
-        // Set JE property.
-        try {
-          envConfig.setConfigParam(jePropertyName, jePropertyValue);
-          // If this property shadows an existing config attribute.
-          if (configAttrMap.containsKey(jePropertyName)) {
-            LocalizableMessage message = ERR_CONFIG_JE_PROPERTY_SHADOWS_CONFIG.get(
-              jePropertyName, attrMap.get(jePropertyName));
-            throw new ConfigException(message);
-          }
-          // Add this property to unique set.
-          uniqueJEProperties.add(jePropertyName);
-        } catch(IllegalArgumentException e) {
-          logger.traceException(e);
-          LocalizableMessage message =
-            ERR_CONFIG_JE_PROPERTY_INVALID.get(
-            jeEntry, e.getMessage());
-          throw new ConfigException(message, e.getCause());
-        }
-      } else {
-        LocalizableMessage message =
-          ERR_CONFIG_JE_PROPERTY_INVALID_FORM.get(jeEntry);
-        throw new ConfigException(message);
+        // Add this property to unique set.
+        uniqueJEProperties.add(jePropertyName);
+      } catch(IllegalArgumentException e) {
+        logger.traceException(e);
+        LocalizableMessage message = ERR_CONFIG_JE_PROPERTY_INVALID.get(jeEntry, e.getMessage());
+        throw new ConfigException(message, e.getCause());
       }
     }
 
     return envConfig;
   }
-
-
-
 }

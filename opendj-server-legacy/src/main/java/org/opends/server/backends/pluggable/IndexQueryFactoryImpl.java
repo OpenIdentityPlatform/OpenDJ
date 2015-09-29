@@ -46,7 +46,7 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
- * IndexQuery objects as part of the query of the JEB index.
+ * IndexQuery objects as part of the query to the index.
  */
 final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 {

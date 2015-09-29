@@ -29,6 +29,7 @@ package org.opends.server.backends.pluggable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -49,14 +50,15 @@ import org.opends.server.util.TimeThread;
 class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
 {
   /** Represents the statistical information kept for each search filter. */
-  private static class FilterStats implements Comparable<FilterStats>
+  private static final class FilterStats implements Comparable<FilterStats>
   {
     private volatile LocalizableMessage failureReason = LocalizableMessage.EMPTY;
     private long maxMatchingEntries = -1;
     private final AtomicInteger hits = new AtomicInteger();
 
     @Override
-    public int compareTo(FilterStats that) {
+    public int compareTo(FilterStats that)
+    {
       return this.hits.get() - that.hits.get();
     }
 
@@ -70,9 +72,9 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     {
       this.hits.getAndAdd(hitCount);
       this.failureReason = LocalizableMessage.EMPTY;
-      synchronized(this)
+      synchronized (this)
       {
-        if(matchingEntries > maxMatchingEntries)
+        if (matchingEntries > maxMatchingEntries)
         {
           maxMatchingEntries = matchingEntries;
         }
@@ -82,7 +84,6 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
 
   /** The name of this monitor instance. */
   private final String name;
-
   /** The root container to be monitored. */
   private final RootContainer rootContainer;
 
@@ -107,16 +108,10 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
 
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
-       throws ConfigException, InitializationException
+      throws ConfigException, InitializationException
   {
   }
 
-  /**
-   * Retrieves the name of this monitor provider.  It should be unique among all
-   * monitor providers, including all instances of the same monitor provider.
-   *
-   * @return The name of this monitor provider.
-   */
   @Override
   public String getMonitorInstanceName()
   {
@@ -128,61 +123,69 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
    * returned to the client if the corresponding monitor entry is requested.
    *
    * @return A set of attributes containing monitor data that should be
-   *         returned to the client if the corresponding monitor entry is
-   *         requested.
+   *         returned to the client if the corresponding monitor entry is requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
+    List<Attribute> monitorAttrs = new ArrayList<>();
 
-    AttributeBuilder needReindex = new AttributeBuilder("need-reindex");
-    for(EntryContainer ec : rootContainer.getEntryContainers())
+    AttributeBuilder needReindex = createNeedReindex("need-reindex");
+    if (needReindex.size() > 0)
     {
-      for(Tree tree : ec.listTrees())
+      monitorAttrs.add(needReindex.toAttribute());
+    }
+
+    if (filterUseEnabled)
+    {
+      monitorAttrs.add(createAttribute("filter-use-startTime", startTimeStamp));
+      monitorAttrs.add(createFilterUse("filter-use"));
+      monitorAttrs.add(createAttribute("filter-use-indexed", indexedSearchCount));
+      monitorAttrs.add(createAttribute("filter-use-unindexed", unindexedSearchCount));
+    }
+
+    return monitorAttrs;
+  }
+
+  private AttributeBuilder createNeedReindex(String attrName)
+  {
+    AttributeBuilder needReindex = new AttributeBuilder(attrName);
+    for (EntryContainer ec : rootContainer.getEntryContainers())
+    {
+      for (Tree tree : ec.listTrees())
       {
-        if(tree instanceof Index && !((Index)tree).isTrusted())
+        if (tree instanceof Index && !((Index) tree).isTrusted())
         {
           needReindex.add(tree.getName().toString());
         }
       }
     }
-    if(needReindex.size() > 0)
-    {
-      monitorAttrs.add(needReindex.toAttribute());
-    }
+    return needReindex;
+  }
 
-    if(filterUseEnabled)
-    {
-      monitorAttrs.add(Attributes.create("filter-use-startTime",
-          startTimeStamp));
-      AttributeBuilder builder = new AttributeBuilder("filter-use");
+  private Attribute createFilterUse(String attrName)
+  {
+    AttributeBuilder builder = new AttributeBuilder(attrName);
 
-      StringBuilder stringBuilder = new StringBuilder();
-      synchronized(filterToStats)
+    StringBuilder value = new StringBuilder();
+    synchronized (filterToStats)
+    {
+      for (Map.Entry<SearchFilter, FilterStats> entry : filterToStats.entrySet())
       {
-        for(Map.Entry<SearchFilter, FilterStats> entry :
-            filterToStats.entrySet())
-        {
-          entry.getKey().toString(stringBuilder);
-          stringBuilder.append(" hits:");
-          stringBuilder.append(entry.getValue().hits.get());
-          stringBuilder.append(" maxmatches:");
-          stringBuilder.append(entry.getValue().maxMatchingEntries);
-          stringBuilder.append(" message:");
-          stringBuilder.append(entry.getValue().failureReason);
-          builder.add(stringBuilder.toString());
-          stringBuilder.setLength(0);
-        }
+        entry.getKey().toString(value);
+        value.append(" hits:").append(entry.getValue().hits.get());
+        value.append(" maxmatches:").append(entry.getValue().maxMatchingEntries);
+        value.append(" message:").append(entry.getValue().failureReason);
+        builder.add(value.toString());
+        value.setLength(0);
       }
-      monitorAttrs.add(builder.toAttribute());
-      monitorAttrs.add(Attributes.create("filter-use-indexed",
-          String.valueOf(indexedSearchCount.get())));
-      monitorAttrs.add(Attributes.create("filter-use-unindexed",
-          String.valueOf(unindexedSearchCount.get())));
     }
+    return builder.toAttribute();
+  }
 
-    return monitorAttrs;
+  private Attribute createAttribute(String attrName, Object value)
+  {
+    return Attributes.create(attrName, String.valueOf(value));
   }
 
   /**
@@ -194,17 +197,17 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
    */
   void updateStats(SearchFilter searchFilter, LocalizableMessage failureMessage)
   {
-    if(!filterUseEnabled)
+    if (!filterUseEnabled)
     {
       return;
     }
 
     FilterStats stats;
-    synchronized(filterToStats)
+    synchronized (filterToStats)
     {
       stats = filterToStats.get(searchFilter);
 
-      if(stats != null)
+      if (stats != null)
       {
         stats.update(1, failureMessage);
       }
@@ -228,17 +231,17 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
    */
   void updateStats(SearchFilter searchFilter, long matchingEntries)
   {
-    if(!filterUseEnabled)
+    if (!filterUseEnabled)
     {
       return;
     }
 
     FilterStats stats;
-    synchronized(filterToStats)
+    synchronized (filterToStats)
     {
       stats = filterToStats.get(searchFilter);
 
-      if(stats != null)
+      if (stats != null)
       {
         stats.update(1, matchingEntries);
       }
@@ -259,13 +262,13 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
    */
   void enableFilterUseStats(boolean enabled)
   {
-    if(enabled && !filterUseEnabled)
+    if (enabled && !filterUseEnabled)
     {
       startTimeStamp = TimeThread.getGMTTime();
       indexedSearchCount.set(0);
       unindexedSearchCount.set(0);
     }
-    else if(!enabled)
+    else if (!enabled)
     {
       filterToStats.clear();
     }
@@ -314,16 +317,15 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
 
   private void removeLowestHit()
   {
-    while(!filterToStats.isEmpty() && filterToStats.size() > maxEntries)
+    while (!filterToStats.isEmpty() && filterToStats.size() > maxEntries)
     {
-      Iterator<Map.Entry<SearchFilter, FilterStats>> i =
-          filterToStats.entrySet().iterator();
-      Map.Entry<SearchFilter, FilterStats> lowest = i.next();
+      Iterator<Map.Entry<SearchFilter, FilterStats>> it = filterToStats.entrySet().iterator();
+      Map.Entry<SearchFilter, FilterStats> lowest = it.next();
       Map.Entry<SearchFilter, FilterStats> entry;
-      while(lowest.getValue().hits.get() > 1 && i.hasNext())
+      while (lowest.getValue().hits.get() > 1 && it.hasNext())
       {
-        entry = i.next();
-        if(entry.getValue().hits.get() < lowest.getValue().hits.get())
+        entry = it.next();
+        if (entry.getValue().hits.get() < lowest.getValue().hits.get())
         {
           lowest = entry;
         }
