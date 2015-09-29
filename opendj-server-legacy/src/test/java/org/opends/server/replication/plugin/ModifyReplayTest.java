@@ -54,10 +54,23 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Tests the modify replay logic.
+ * Tests the single valued attribute conflict resolution (part of modify replay).
  * <p>
  * It produces series of changes and replay them out of order by generating all possible
  * permutations. The goal is to end up in the same final state whatever the order.
+ * <p>
+ * The tests are built this way:
+ * <ol>
+ * <li>Start from an entry without (resp. with) an initial value for the targeted single valued
+ * attribute</li>
+ * <li>Replay a "seed" modify operation, that happened at time t1</li>
+ * <li>Then replay any of all the possible operations that could come after, that happened at time
+ * t2</li>
+ * </ol>
+ * All permutations for these sequence of operations are tested.
+ * <p>
+ * The test finally asserts the {@code ds-sync-hist} attribute always end in the same state whatever
+ * the permutation.
  */
 @SuppressWarnings("javadoc")
 public class ModifyReplayTest extends ReplicationTestCase
@@ -74,18 +87,13 @@ public class ModifyReplayTest extends ReplicationTestCase
 
     private Mod(ModificationType modType, int t)
     {
-      this(newModification(modType), t);
+      this(modType, null, t);
     }
 
     private Mod(ModificationType modType, String value, int t)
     {
-      this(newModification(modType, value), t);
-    }
-
-    private Mod(Modification modification, int time)
-    {
-      this.modification = modification;
-      this.time = time;
+      this.modification = newModification(modType, value);
+      this.time = t;
     }
 
     private PreOperationModifyOperation toOperation()
@@ -170,7 +178,7 @@ public class ModifyReplayTest extends ReplicationTestCase
       { mods(new Mod(ADD, "X", 1), new Mod(REPLACE, "Y", 2)),       dsSyncHist(2, ":repl:Y"), },
       { mods(new Mod(ADD, "X", 1), new Mod(REPLACE, 2)),            dsSyncHist(2, ":attrDel"), }
     });
-    // @formatter:off
+    // @formatter:on
   }
 
   @DataProvider
@@ -198,7 +206,7 @@ public class ModifyReplayTest extends ReplicationTestCase
         { mods(new Mod(DELETE, 1), new Mod(REPLACE, "Y", 2)),       dsSyncHist(2, ":repl:Y"), },
         { mods(new Mod(DELETE, 1), new Mod(REPLACE, 2)),            dsSyncHist(2, ":attrDel"), },
     });
-    // @formatter:off
+    // @formatter:on
   }
 
   @DataProvider
@@ -236,7 +244,7 @@ public class ModifyReplayTest extends ReplicationTestCase
         { mods(new Mod(DELETE, 1), new Mod(REPLACE, "Y", 2)),       dsSyncHist(2, ":repl:Y"), },
         { mods(new Mod(DELETE, 1), new Mod(REPLACE, 2)),            dsSyncHist(2, ":attrDel"), },
     });
-    // @formatter:off
+    // @formatter:on
   }
 
   @DataProvider
@@ -264,7 +272,7 @@ public class ModifyReplayTest extends ReplicationTestCase
         { mods(new Mod(REPLACE, 1), new Mod(REPLACE, "Y", 2)),      dsSyncHist(2, ":repl:Y"), },
         { mods(new Mod(REPLACE, 1), new Mod(REPLACE, 2)),           dsSyncHist(2, ":attrDel"), },
     });
-    // @formatter:off
+    // @formatter:on
   }
 
   @DataProvider
@@ -302,38 +310,38 @@ public class ModifyReplayTest extends ReplicationTestCase
         { mods(new Mod(REPLACE, 1), new Mod(REPLACE, "Y", 2)),      dsSyncHist(2, ":repl:Y"), },
         { mods(new Mod(REPLACE, 1), new Mod(REPLACE, 2)),           dsSyncHist(2, ":attrDel"), },
     });
-    // @formatter:off
+    // @formatter:on
   }
 
-  @Test(dataProvider = "add_data", enabled=false)
+  @Test(dataProvider = "add_data", enabled = false)
   public void add_noInitialValue(List<Mod> mods, Attribute expectedDsSyncHist) throws Exception
   {
     noValue(); // also covers the initialValue("X"); case
     replay(mods, expectedDsSyncHist);
   }
 
-  @Test(dataProvider = "delete_noInitialValue_data", enabled=false)
+  @Test(dataProvider = "delete_noInitialValue_data", enabled = false)
   public void delete_noInitialValue(List<Mod> mods, Attribute expectedDsSyncHist) throws Exception
   {
     noValue();
     replay(mods, expectedDsSyncHist);
   }
 
-  @Test(dataProvider = "delete_initialValueX_data", enabled=false)
+  @Test(dataProvider = "delete_initialValueX_data", enabled = false)
   public void delete_initialValueX(List<Mod> mods, Attribute expectedDsSyncHist) throws Exception
   {
     initialValue("X");
     replay(mods, expectedDsSyncHist);
   }
 
-  @Test(dataProvider = "replace_noInitialValue_data", enabled=false)
+  @Test(dataProvider = "replace_noInitialValue_data", enabled = false)
   public void replace_noInitialValue(List<Mod> mods, Attribute expectedDsSyncHist) throws Exception
   {
     noValue();
     replay(mods, expectedDsSyncHist);
   }
 
-  @Test(dataProvider = "replace_initialValueX_data", enabled=false)
+  @Test(dataProvider = "replace_initialValueX_data", enabled = false)
   public void replace_initialValueX(List<Mod> mods, Attribute expectedDsSyncHist) throws Exception
   {
     initialValue("X");
@@ -342,6 +350,7 @@ public class ModifyReplayTest extends ReplicationTestCase
 
   private void noValue() throws Exception
   {
+    // @formatter:off
     entry = TestCaseUtils.makeEntry(
         "dn: uid=test.user",
         "objectClass: top",
@@ -353,6 +362,7 @@ public class ModifyReplayTest extends ReplicationTestCase
         "sn: User",
         "cn: Test User",
         "userPassword: password");
+    // @formatter:on
   }
 
   private void initialValue(String attrValue) throws Exception
@@ -381,19 +391,15 @@ public class ModifyReplayTest extends ReplicationTestCase
     return mods;
   }
 
-  private static Object dsSyncHist(int t, String partialDsSyncHist)
+  private static Attribute dsSyncHist(int t, String partialDsSyncHist)
   {
     String value = ATTRIBUTE_NAME + ":000000000000000000000000000" + t + partialDsSyncHist;
     return Attributes.create(SYNCHIST, value);
   }
 
-  private static Modification newModification(ModificationType modType)
-  {
-    return new Modification(modType, Attributes.empty(ATTRIBUTE_NAME));
-  }
-
   private static Modification newModification(ModificationType modType, String value)
   {
-    return new Modification(modType, Attributes.create(ATTRIBUTE_NAME, value));
+    Attribute attr = value != null ? Attributes.create(ATTRIBUTE_NAME, value) : Attributes.empty(ATTRIBUTE_NAME);
+    return new Modification(modType, attr);
   }
 }
