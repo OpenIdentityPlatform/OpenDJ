@@ -348,6 +348,40 @@ public class ModifyReplayTest extends ReplicationTestCase
     replay(mods, expectedDsSyncHist);
   }
 
+  @Test(enabled = false)
+  public void diffEntries_addThenDel() throws Exception
+  {
+    initialValue("X");
+
+    replaySameTime(newArrayList(newModification(ADD, "Y"), newModification(DELETE, "X")), dsSyncHist(1, ":add:Y"));
+  }
+
+  @Test(enabled = false)
+  public void diffEntries_delThenAdd() throws Exception
+  {
+    initialValue("X");
+
+    replaySameTime(newArrayList(newModification(DELETE, "X"), newModification(ADD, "Y")), dsSyncHist(1, ":add:Y"));
+  }
+
+  private void replaySameTime(List<Modification> mods, Attribute expectedDsSyncHist) throws DirectoryException
+  {
+    final ModifyContext value = new ModifyContext(new CSN(0, 1, 0), null);
+
+    PreOperationModifyOperation op = mock(PreOperationModifyOperation.class);
+    when(op.getModifications()).thenReturn(mods);
+    when(op.getAttachment(eq(OperationContext.SYNCHROCONTEXT))).thenReturn(value);
+
+    EntryHistorical entryHistorical = EntryHistorical.newInstanceFromEntry(entry);
+    entryHistorical.replayOperation(op, entry);
+    entry.applyModification(new Modification(REPLACE, entryHistorical.encodeAndPurge()));
+
+    AttributeType attrType = expectedDsSyncHist.getAttributeType();
+    Attribute actual = entry.getExactAttribute(attrType, Collections.<String> emptySet());
+
+    Assert.assertEquals(actual, expectedDsSyncHist, "wrong final value for ds-sync-hist attribute");
+  }
+
   private void noValue() throws Exception
   {
     // @formatter:off
