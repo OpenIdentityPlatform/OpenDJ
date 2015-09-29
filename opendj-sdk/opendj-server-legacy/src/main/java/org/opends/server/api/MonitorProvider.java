@@ -26,9 +26,12 @@
  */
 package org.opends.server.api;
 
-
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -43,11 +46,9 @@ import static org.opends.server.util.ServerConstants.*;
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that can provide usage,
- * performance, availability, or other kinds of monitor information
- * to clients.
+ * performance, availability, or other kinds of monitor information to clients.
  *
- * @param  <T>  The type of configuration handled by this monitor
- *              provider.
+ * @param  <T>  The type of configuration handled by this monitor provider.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -61,44 +62,35 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
       Executors.newSingleThreadScheduledExecutor(
           new MonitorThreadFactory());
 
-  /**
-   * Thread factory used by the scheduled execution service.
-   */
-  private static final class MonitorThreadFactory implements
-      ThreadFactory
+  /** Thread factory used by the scheduled execution service. */
+  private static final class MonitorThreadFactory implements ThreadFactory
   {
-
-    /** {@inheritDoc} */
+    @Override
     public Thread newThread(Runnable r)
     {
-      Thread t =
-          new DirectoryThread(r, "Monitor Provider State Updater");
+      Thread t = new DirectoryThread(r, "Monitor Provider State Updater");
       t.setDaemon(true);
       return t;
     }
-
   }
 
   private ScheduledFuture<?> scheduledFuture;
 
   /**
-   * Initializes this monitor provider based on the information in the
-   * provided configuration entry.
+   * Initializes this monitor provider based on the information in the provided configuration entry.
    *
-   * @param  configuration  The configuration to use to initialize
-   *                        this monitor provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
+   * @param configuration
+   *          The configuration to use to initialize this monitor provider.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises in the process of performing the initialization.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not related to the server
+   *           configuration.
    */
-  public abstract void initializeMonitorProvider(T configuration)
-         throws ConfigException, InitializationException;
+  public void initializeMonitorProvider(T configuration) throws ConfigException, InitializationException
+  {
+    // here to override
+  }
 
 
 
@@ -176,8 +168,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    */
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryConfig.getObjectClass(OC_EXTENSIBLE_OBJECT_LC,
-                                          true);
+    return DirectoryConfig.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
   }
 
 
@@ -202,10 +193,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
     {
       scheduledFuture.cancel(true);
     }
-
-    scheduledFuture =
-        SCHEDULER.scheduleAtFixedRate(updater, initialDelay,
-            period, unit);
+    scheduledFuture = SCHEDULER.scheduleAtFixedRate(updater, initialDelay, period, unit);
   }
 
 

@@ -111,10 +111,6 @@ public interface Storage extends Closeable
    */
   boolean supportsBackupAndRestore();
 
-  /** {@inheritDoc} */
-  @Override
-  void close();
-
   /**
    * Creates a backup for this storage.
    *
@@ -149,9 +145,12 @@ public interface Storage extends Closeable
   void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException;
 
   /**
-   * TODO JNR.
+   * Lists the trees that exist in this storage.
    *
-   * @return TODO JNR
+   * @return a set of {@link TreeName}s representing the trees that exist in this storage
    */
   Set<TreeName> listTrees();
+
+  @Override
+  void close();
 }

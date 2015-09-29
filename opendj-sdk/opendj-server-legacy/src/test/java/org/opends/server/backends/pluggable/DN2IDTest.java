@@ -27,7 +27,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ConfigurationMock.legacyMockCfg;
+import static org.opends.server.ConfigurationMock.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
@@ -46,7 +46,6 @@ import org.opends.server.admin.std.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;

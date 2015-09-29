@@ -59,7 +59,7 @@ import org.opends.server.types.Privilege;
 
 /**
  * This class provides an implementation of a Directory Server task that can be
- * used to rebuild indexes in the JEB backend..
+ * used to rebuild indexes in a backend.
  */
 public class RebuildTask extends Task
 {

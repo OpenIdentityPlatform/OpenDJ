@@ -37,12 +37,10 @@ import java.io.StringReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-
 /**
  * Unit test to test ACI behavior and Named Subordinate References (RFC 3296).
- * This test needs a jeb backend, the memory backend cannot be used.
+ * This test needs a pluggable backend, the memory backend cannot be used.
  */
-
 public class ReferencesTestCase extends AciTestCase{
   private static String suffix="dc=example,dc=com";
   private static final String level5User="uid=user.5,ou=People," + suffix;
