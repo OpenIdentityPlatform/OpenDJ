@@ -41,13 +41,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedHTTPAccessLogPublisherCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
@@ -100,40 +100,26 @@ public final class TextHTTPAccessLogPublisher extends
   public static TextHTTPAccessLogPublisher getStartupTextHTTPAccessPublisher(
       final TextWriter writer)
   {
-    final TextHTTPAccessLogPublisher startupPublisher =
-      new TextHTTPAccessLogPublisher();
+    final TextHTTPAccessLogPublisher startupPublisher = new TextHTTPAccessLogPublisher();
     startupPublisher.writer = writer;
     return startupPublisher;
   }
-
-
 
   private TextWriter writer;
   private FileBasedHTTPAccessLogPublisherCfg cfg;
   private List<String> logFormatFields;
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
 
-
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      final FileBasedHTTPAccessLogPublisherCfg config)
+  public ConfigChangeResult applyConfigurationChange(final FileBasedHTTPAccessLogPublisherCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    final File logFile = getFileForPath(config.getLogFile());
-    final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
     try
     {
-      final FilePermission perm = FilePermission.decodeUNIXMode(config
-          .getLogFilePermissions());
-
-      final boolean writerAutoFlush = config.isAutoFlush()
-          && !config.isAsynchronous();
-
+      // Determine the writer we are using. If we were writing asynchronously,
+      // we need to modify the underlying writer.
       TextWriter currentWriter;
-      // Determine the writer we are using. If we were writing
-      // asynchronously, we need to modify the underlying writer.
       if (writer instanceof AsynchronousTextWriter)
       {
         currentWriter = ((AsynchronousTextWriter) writer).getWrappedWriter();
@@ -149,64 +135,40 @@ public final class TextHTTPAccessLogPublisher extends
 
       if (currentWriter instanceof MultifileTextWriter)
       {
-        final MultifileTextWriter mfWriter =
-          (MultifileTextWriter) currentWriter;
+        final MultifileTextWriter mfWriter = (MultifileTextWriter) currentWriter;
+        configure(mfWriter, config);
 
-        mfWriter.setNamingPolicy(fnPolicy);
-        mfWriter.setFilePermissions(perm);
-        mfWriter.setAppend(config.isAppend());
-        mfWriter.setAutoFlush(writerAutoFlush);
-        mfWriter.setBufferSize((int) config.getBufferSize());
-        mfWriter.setInterval(config.getTimeInterval());
-
-        mfWriter.removeAllRetentionPolicies();
-        mfWriter.removeAllRotationPolicies();
-
-        for (final DN dn : config.getRotationPolicyDNs())
+        if (config.isAsynchronous())
         {
-          mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+          if (!(writer instanceof AsynchronousTextWriter))
+          {
+            // The asynchronous setting is being turned on.
+            final AsynchronousTextWriter asyncWriter = newAsyncWriter(mfWriter, config);
+            writer = asyncWriter;
+          }
+          if (!(writer instanceof ParallelTextWriter))
+          {
+            // The asynchronous setting is being turned on.
+            final ParallelTextWriter asyncWriter = newParallelWriter(mfWriter, config);
+            writer = asyncWriter;
+          }
         }
-
-        for (final DN dn : config.getRetentionPolicyDNs())
+        else
         {
-          mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
-        }
-
-        if (writer instanceof AsynchronousTextWriter
-            && !config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned off.
-          final AsynchronousTextWriter asyncWriter =
-              (AsynchronousTextWriter) writer;
-          writer = mfWriter;
-          asyncWriter.shutdown(false);
-        }
-
-        if (writer instanceof ParallelTextWriter && !config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned off.
-          final ParallelTextWriter asyncWriter = (ParallelTextWriter) writer;
-          writer = mfWriter;
-          asyncWriter.shutdown(false);
-        }
-
-        if (!(writer instanceof AsynchronousTextWriter)
-            && config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned on.
-          final AsynchronousTextWriter asyncWriter = new AsynchronousTextWriter(
-              "Asynchronous Text Writer for " + config.dn(),
-              config.getQueueSize(), config.isAutoFlush(), mfWriter);
-          writer = asyncWriter;
-        }
-
-        if (!(writer instanceof ParallelTextWriter) && config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned on.
-          final ParallelTextWriter asyncWriter = new ParallelTextWriter(
-              "Parallel Text Writer for " + config.dn(),
-              config.isAutoFlush(), mfWriter);
-          writer = asyncWriter;
+          if (writer instanceof AsynchronousTextWriter)
+          {
+            // The asynchronous setting is being turned off.
+            final AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            writer = mfWriter;
+            asyncWriter.shutdown(false);
+          }
+          if (writer instanceof ParallelTextWriter)
+          {
+            // The asynchronous setting is being turned off.
+            final ParallelTextWriter asyncWriter = (ParallelTextWriter) writer;
+            writer = mfWriter;
+            asyncWriter.shutdown(false);
+          }
         }
 
         if (cfg.isAsynchronous() && config.isAsynchronous()
@@ -242,6 +204,50 @@ public final class TextHTTPAccessLogPublisher extends
     return ccr;
   }
 
+  private void configure(MultifileTextWriter mfWriter, FileBasedHTTPAccessLogPublisherCfg config)
+      throws DirectoryException
+  {
+    final FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+    final boolean writerAutoFlush = config.isAutoFlush() && !config.isAsynchronous();
+
+    final File logFile = getLogFile(config);
+    final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
+
+    mfWriter.setNamingPolicy(fnPolicy);
+    mfWriter.setFilePermissions(perm);
+    mfWriter.setAppend(config.isAppend());
+    mfWriter.setAutoFlush(writerAutoFlush);
+    mfWriter.setBufferSize((int) config.getBufferSize());
+    mfWriter.setInterval(config.getTimeInterval());
+
+    mfWriter.removeAllRetentionPolicies();
+    mfWriter.removeAllRotationPolicies();
+    for (final DN dn : config.getRotationPolicyDNs())
+    {
+      mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+    }
+    for (final DN dn : config.getRetentionPolicyDNs())
+    {
+      mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+    }
+  }
+
+  private File getLogFile(final FileBasedHTTPAccessLogPublisherCfg config)
+  {
+    return getFileForPath(config.getLogFile());
+  }
+
+  private ParallelTextWriter newParallelWriter(MultifileTextWriter mfWriter, FileBasedHTTPAccessLogPublisherCfg config)
+  {
+    String name = "Parallel Text Writer for " + config.dn();
+    return new ParallelTextWriter(name, config.isAutoFlush(), mfWriter);
+  }
+
+  private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedHTTPAccessLogPublisherCfg config)
+  {
+    String name = "Asynchronous Text Writer for " + config.dn();
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+  }
 
   private List<String> extractFieldsOrder(String logFormat)
   {
@@ -296,25 +302,19 @@ public final class TextHTTPAccessLogPublisher extends
     return result;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(
       final FileBasedHTTPAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
-    final File logFile = getFileForPath(cfg.getLogFile());
+    final File logFile = getLogFile(cfg);
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      final FilePermission perm = FilePermission.decodeUNIXMode(cfg
-          .getLogFilePermissions());
-
-      final LogPublisherErrorHandler errorHandler =
-        new LogPublisherErrorHandler(cfg.dn());
-
-      final boolean writerAutoFlush = cfg.isAutoFlush()
-          && !cfg.isAsynchronous();
+      final FilePermission perm = FilePermission.decodeUNIXMode(cfg.getLogFilePermissions());
+      final LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(cfg.dn());
+      final boolean writerAutoFlush = cfg.isAutoFlush() && !cfg.isAsynchronous();
 
       final MultifileTextWriter theWriter = new MultifileTextWriter(
           "Multifile Text Writer for " + cfg.dn(),
@@ -326,7 +326,6 @@ public final class TextHTTPAccessLogPublisher extends
       {
         theWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
-
       for (final DN dn : cfg.getRetentionPolicyDNs())
       {
         theWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
@@ -336,13 +335,11 @@ public final class TextHTTPAccessLogPublisher extends
       {
         if (cfg.getQueueSize() > 0)
         {
-          this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + cfg.dn(),
-              cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
+          this.writer = newAsyncWriter(theWriter, cfg);
         }
         else
         {
-          this.writer = new ParallelTextWriter("Parallel Text Writer for " + cfg.dn(),
-              cfg.isAutoFlush(), theWriter);
+          this.writer = newParallelWriter(theWriter, cfg);
         }
       }
       else
@@ -373,8 +370,6 @@ public final class TextHTTPAccessLogPublisher extends
     cfg.addFileBasedHTTPAccessChangeListener(this);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       final FileBasedHTTPAccessLogPublisherCfg configuration,
@@ -383,8 +378,6 @@ public final class TextHTTPAccessLogPublisher extends
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final FileBasedHTTPAccessLogPublisherCfg config,
@@ -405,12 +398,10 @@ public final class TextHTTPAccessLogPublisher extends
     // Make sure the permission is valid.
     try
     {
-      final FilePermission filePerm = FilePermission.decodeUNIXMode(config
-          .getLogFilePermissions());
+      final FilePermission filePerm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
       if (!filePerm.isOwnerWritable())
       {
-        final LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
-            .getLogFilePermissions());
+        final LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config.getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
       }
@@ -424,8 +415,6 @@ public final class TextHTTPAccessLogPublisher extends
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public final void close()
   {
@@ -437,14 +426,12 @@ public final class TextHTTPAccessLogPublisher extends
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getDN()
   {
     return cfg != null ? cfg.dn() : null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void logRequestInfo(HTTPRequestInfo ri)
   {
@@ -484,8 +471,7 @@ public final class TextHTTPAccessLogPublisher extends
   }
 
   /**
-   * Appends the value to the string builder using the default separator if
-   * needed.
+   * Appends the value to the string builder using the default separator if needed.
    *
    * @param sb
    *          the StringBuilder where to append.
@@ -518,5 +504,4 @@ public final class TextHTTPAccessLogPublisher extends
       sb.append('-');
     }
   }
-
 }

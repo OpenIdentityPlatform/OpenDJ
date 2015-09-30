@@ -32,16 +32,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
 import org.opends.server.api.DirectoryThread;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
@@ -63,9 +63,7 @@ public class TextDebugLogPublisher
                ConfigurationDeleteListener<DebugTargetCfg>
 {
   private static long globalSequenceNumber;
-
   private TextWriter writer;
-
   private FileBasedDebugLogPublisherCfg currentConfig;
 
   /**
@@ -105,7 +103,6 @@ public class TextDebugLogPublisher
     return startupPublisher;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       FileBasedDebugLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -113,7 +110,6 @@ public class TextDebugLogPublisher
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(FileBasedDebugLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -123,14 +119,9 @@ public class TextDebugLogPublisher
 
     try
     {
-      FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-
-      LogPublisherErrorHandler errorHandler =
-          new LogPublisherErrorHandler(config.dn());
-
-      boolean writerAutoFlush =
-          config.isAutoFlush() && !config.isAsynchronous();
+      FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(config.dn());
+      boolean writerAutoFlush = config.isAutoFlush() && !config.isAsynchronous();
 
       MultifileTextWriter writer = new MultifileTextWriter("Multifile Text Writer for " + config.dn(),
                                   config.getTimeInterval(),
@@ -147,7 +138,6 @@ public class TextDebugLogPublisher
       {
         writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
-
       for(DN dn: config.getRetentionPolicyDNs())
       {
         writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
@@ -155,8 +145,7 @@ public class TextDebugLogPublisher
 
       if(config.isAsynchronous())
       {
-        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
-            config.getQueueSize(), config.isAutoFlush(), writer);
+        this.writer = newAsyncWriter(writer, config);
       }
       else
       {
@@ -174,7 +163,6 @@ public class TextDebugLogPublisher
           ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile, config.dn(), e), e);
     }
 
-
     config.addDebugTargetAddListener(this);
     config.addDebugTargetDeleteListener(this);
 
@@ -191,9 +179,6 @@ public class TextDebugLogPublisher
     config.addFileBasedDebugChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedDebugLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -201,17 +186,15 @@ public class TextDebugLogPublisher
     // Make sure the permission is valid.
     try
     {
-      FilePermission filePerm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-      if(!filePerm.isOwnerWritable())
+      FilePermission filePerm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      if (!filePerm.isOwnerWritable())
       {
-        LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
-            config.getLogFilePermissions());
+        LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config.getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
       }
     }
-    catch(DirectoryException e)
+    catch (DirectoryException e)
     {
       unacceptableReasons.add(ERR_CONFIG_LOGGING_MODE_INVALID.get(config.getLogFilePermissions(), e));
       return false;
@@ -220,30 +203,19 @@ public class TextDebugLogPublisher
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      FileBasedDebugLogPublisherCfg config)
+  public ConfigChangeResult applyConfigurationChange(FileBasedDebugLogPublisherCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     addTraceSettings(null, getDefaultSettings(config));
     DebugLogger.updateTracerSettings();
 
-    File logFile = getFileForPath(config.getLogFile());
-    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
-
     try
     {
-      FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-
-      boolean writerAutoFlush =
-          config.isAutoFlush() && !config.isAsynchronous();
-
-      TextWriter currentWriter;
       // Determine the writer we are using. If we were writing asynchronously,
       // we need to modify the underlying writer.
+      TextWriter currentWriter;
       if(writer instanceof AsynchronousTextWriter)
       {
         currentWriter = ((AsynchronousTextWriter)writer).getWrappedWriter();
@@ -256,41 +228,25 @@ public class TextDebugLogPublisher
       if(currentWriter instanceof MultifileTextWriter)
       {
         MultifileTextWriter mfWriter = (MultifileTextWriter)writer;
+        configure(mfWriter, config);
 
-        mfWriter.setNamingPolicy(fnPolicy);
-        mfWriter.setFilePermissions(perm);
-        mfWriter.setAppend(config.isAppend());
-        mfWriter.setAutoFlush(writerAutoFlush);
-        mfWriter.setBufferSize((int)config.getBufferSize());
-        mfWriter.setInterval(config.getTimeInterval());
-
-        mfWriter.removeAllRetentionPolicies();
-        mfWriter.removeAllRotationPolicies();
-
-        for(DN dn : config.getRotationPolicyDNs())
+        if (config.isAsynchronous())
         {
-          mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+          if (!(writer instanceof AsynchronousTextWriter))
+          {
+            // The asynchronous setting is being turned on.
+            writer = newAsyncWriter(mfWriter, config);
+          }
         }
-
-        for(DN dn: config.getRetentionPolicyDNs())
+        else
         {
-          mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
-        }
-
-        if(writer instanceof AsynchronousTextWriter && !config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned off.
-          AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
-          writer = mfWriter;
-          asyncWriter.shutdown(false);
-        }
-
-        if(!(writer instanceof AsynchronousTextWriter) &&
-            config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
-              config.getQueueSize(), config.isAutoFlush(), mfWriter);
+          if (writer instanceof AsynchronousTextWriter)
+          {
+            // The asynchronous setting is being turned off.
+            AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            writer = mfWriter;
+            asyncWriter.shutdown(false);
+          }
         }
 
         if(currentConfig.isAsynchronous() && config.isAsynchronous() &&
@@ -312,6 +268,44 @@ public class TextDebugLogPublisher
     return ccr;
   }
 
+  private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter writer, FileBasedDebugLogPublisherCfg config)
+  {
+    String name = "Asynchronous Text Writer for " + config.dn();
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), writer);
+  }
+
+  private void configure(MultifileTextWriter mfWriter, FileBasedDebugLogPublisherCfg config) throws DirectoryException
+  {
+    FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+    boolean writerAutoFlush = config.isAutoFlush() && !config.isAsynchronous();
+
+    File logFile = getLogFile(config);
+    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
+
+    mfWriter.setNamingPolicy(fnPolicy);
+    mfWriter.setFilePermissions(perm);
+    mfWriter.setAppend(config.isAppend());
+    mfWriter.setAutoFlush(writerAutoFlush);
+    mfWriter.setBufferSize((int)config.getBufferSize());
+    mfWriter.setInterval(config.getTimeInterval());
+
+    mfWriter.removeAllRetentionPolicies();
+    mfWriter.removeAllRotationPolicies();
+    for(DN dn : config.getRotationPolicyDNs())
+    {
+      mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+    }
+    for(DN dn: config.getRetentionPolicyDNs())
+    {
+      mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+    }
+  }
+
+  private File getLogFile(FileBasedDebugLogPublisherCfg config)
+  {
+    return getFileForPath(config.getLogFile());
+  }
+
   private TraceSettings getDefaultSettings(FileBasedDebugLogPublisherCfg config)
   {
     return new TraceSettings(
@@ -322,7 +316,6 @@ public class TextDebugLogPublisher
         config.isDefaultIncludeThrowableCause());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(DebugTargetCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -330,7 +323,6 @@ public class TextDebugLogPublisher
     return !hasTraceSettings(config.getDebugScope());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(DebugTargetCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -339,7 +331,6 @@ public class TextDebugLogPublisher
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(DebugTargetCfg config)
   {
@@ -350,7 +341,6 @@ public class TextDebugLogPublisher
     return new ConfigChangeResult();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(DebugTargetCfg config)
   {
@@ -361,7 +351,6 @@ public class TextDebugLogPublisher
     return new ConfigChangeResult();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void trace(TraceSettings settings, String signature,
       String sourceLocation, String msg, StackTraceElement[] stackTrace)
@@ -375,7 +364,6 @@ public class TextDebugLogPublisher
     publish(signature, sourceLocation, msg, stack);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void traceException(TraceSettings settings, String signature,
       String sourceLocation, String msg, Throwable ex,
@@ -392,7 +380,6 @@ public class TextDebugLogPublisher
     publish(signature, sourceLocation, message, stack);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -403,7 +390,6 @@ public class TextDebugLogPublisher
       currentConfig.removeFileBasedDebugChangeListener(this);
     }
   }
-
 
   /**
    * Publishes a record, optionally performing some "special" work:
@@ -469,7 +455,6 @@ public class TextDebugLogPublisher
     writer.writeRecord(buf.toString());
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

@@ -32,7 +32,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +41,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.LogFormat;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
@@ -51,26 +51,15 @@ import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
-/**
- * This class provides the implementation of the access logger used by the
- * directory server.
- */
+/** This class provides the implementation of the access logger used by the directory server. */
 public final class TextAccessLogPublisher extends
     AbstractTextAccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
     ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
-
-  /**
-   * The category to use when logging responses.
-   */
+  /** The category to use when logging responses. */
   private static final String CATEGORY_RESPONSE = "RES";
-
-  /**
-   * The category to use when logging requests.
-   */
+  /** The category to use when logging requests. */
   private static final String CATEGORY_REQUEST = "REQ";
-
-
 
   /**
    * Returns an instance of the text access log publisher that will print all
@@ -87,14 +76,11 @@ public final class TextAccessLogPublisher extends
   public static TextAccessLogPublisher getStartupTextAccessPublisher(
       final TextWriter writer, final boolean suppressInternal)
   {
-    final TextAccessLogPublisher startupPublisher =
-      new TextAccessLogPublisher();
+    final TextAccessLogPublisher startupPublisher = new TextAccessLogPublisher();
     startupPublisher.writer = writer;
     startupPublisher.buildFilters(suppressInternal);
     return startupPublisher;
   }
-
-
 
   private TextWriter writer;
   private FileBasedAccessLogPublisherCfg cfg;
@@ -102,28 +88,16 @@ public final class TextAccessLogPublisher extends
   private boolean includeControlOIDs;
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
 
-
-
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      final FileBasedAccessLogPublisherCfg config)
+  public ConfigChangeResult applyConfigurationChange(FileBasedAccessLogPublisherCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    final File logFile = getFileForPath(config.getLogFile());
-    final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
     try
     {
-      final FilePermission perm = FilePermission.decodeUNIXMode(config
-          .getLogFilePermissions());
-
-      final boolean writerAutoFlush = config.isAutoFlush()
-          && !config.isAsynchronous();
-
+      // Determine the writer we are using. If we were writing asynchronously,
+      // we need to modify the underlying writer.
       TextWriter currentWriter;
-      // Determine the writer we are using. If we were writing
-      // asynchronously, we need to modify the underlying writer.
       if (writer instanceof AsynchronousTextWriter)
       {
         currentWriter = ((AsynchronousTextWriter) writer).getWrappedWriter();
@@ -139,59 +113,36 @@ public final class TextAccessLogPublisher extends
 
       if (currentWriter instanceof MultifileTextWriter)
       {
-        final MultifileTextWriter mfWriter =
-          (MultifileTextWriter) currentWriter;
+        final MultifileTextWriter mfWriter = (MultifileTextWriter) currentWriter;
+        configure(mfWriter, config);
 
-        mfWriter.setNamingPolicy(fnPolicy);
-        mfWriter.setFilePermissions(perm);
-        mfWriter.setAppend(config.isAppend());
-        mfWriter.setAutoFlush(writerAutoFlush);
-        mfWriter.setBufferSize((int) config.getBufferSize());
-        mfWriter.setInterval(config.getTimeInterval());
-
-        mfWriter.removeAllRetentionPolicies();
-        mfWriter.removeAllRotationPolicies();
-
-        for (final DN dn : config.getRotationPolicyDNs())
-        {
-          mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
-        }
-
-        for (final DN dn : config.getRetentionPolicyDNs())
-        {
-          mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
-        }
-
-        if (writer instanceof AsynchronousTextWriter
-            && !config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned off.
-          final AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
-          writer = mfWriter;
-          asyncWriter.shutdown(false);
-        }
-
-        if (writer instanceof ParallelTextWriter && !config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned off.
-          final ParallelTextWriter asyncWriter = (ParallelTextWriter) writer;
-          writer = mfWriter;
-          asyncWriter.shutdown(false);
-        }
-
-        if (!(writer instanceof AsynchronousTextWriter)
-            && config.isAsynchronous())
+        if (config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
-          config.getQueueSize(), config.isAutoFlush(), mfWriter);
+          if (!(writer instanceof AsynchronousTextWriter))
+          {
+            writer = newAsyncWriter(mfWriter, config);
+          }
+          if (!(writer instanceof ParallelTextWriter))
+          {
+            writer = newParallelWriter(mfWriter, config);
+          }
         }
-
-        if (!(writer instanceof ParallelTextWriter) && config.isAsynchronous())
+        else
         {
-          // The asynchronous setting is being turned on.
-          writer = new ParallelTextWriter("Parallel Text Writer for " + config.dn(),
-              config.isAutoFlush(), mfWriter);
+          // The asynchronous setting is being turned off.
+          if (writer instanceof AsynchronousTextWriter)
+          {
+            final AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            writer = mfWriter;
+            asyncWriter.shutdown(false);
+          }
+          if (writer instanceof ParallelTextWriter)
+          {
+            final ParallelTextWriter asyncWriter = (ParallelTextWriter) writer;
+            writer = mfWriter;
+            asyncWriter.shutdown(false);
+          }
         }
 
         if (cfg.isAsynchronous() && config.isAsynchronous()
@@ -221,26 +172,50 @@ public final class TextAccessLogPublisher extends
     return ccr;
   }
 
+  private void configure(MultifileTextWriter mfWriter, FileBasedAccessLogPublisherCfg config) throws DirectoryException
+  {
+    final FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+    final boolean writerAutoFlush = config.isAutoFlush() && !config.isAsynchronous();
 
+    final File logFile = getLogFile(config);
+    final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
-  /** {@inheritDoc} */
+    mfWriter.setNamingPolicy(fnPolicy);
+    mfWriter.setFilePermissions(perm);
+    mfWriter.setAppend(config.isAppend());
+    mfWriter.setAutoFlush(writerAutoFlush);
+    mfWriter.setBufferSize((int) config.getBufferSize());
+    mfWriter.setInterval(config.getTimeInterval());
+
+    mfWriter.removeAllRetentionPolicies();
+    mfWriter.removeAllRotationPolicies();
+    for (final DN dn : config.getRotationPolicyDNs())
+    {
+      mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+    }
+    for (final DN dn : config.getRetentionPolicyDNs())
+    {
+      mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+    }
+  }
+
+  private File getLogFile(final FileBasedAccessLogPublisherCfg config)
+  {
+    return getFileForPath(config.getLogFile());
+  }
+
   @Override
   public void initializeLogPublisher(final FileBasedAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
-    final File logFile = getFileForPath(cfg.getLogFile());
+    final File logFile = getLogFile(cfg);
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      final FilePermission perm = FilePermission.decodeUNIXMode(cfg
-          .getLogFilePermissions());
-
-      final LogPublisherErrorHandler errorHandler =
-        new LogPublisherErrorHandler(cfg.dn());
-
-      final boolean writerAutoFlush = cfg.isAutoFlush()
-          && !cfg.isAsynchronous();
+      final FilePermission perm = FilePermission.decodeUNIXMode(cfg.getLogFilePermissions());
+      final LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(cfg.dn());
+      final boolean writerAutoFlush = cfg.isAutoFlush() && !cfg.isAsynchronous();
 
       final MultifileTextWriter theWriter = new MultifileTextWriter(
           "Multifile Text Writer for " + cfg.dn(),
@@ -252,7 +227,6 @@ public final class TextAccessLogPublisher extends
       {
         theWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
-
       for (final DN dn : cfg.getRetentionPolicyDNs())
       {
         theWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
@@ -262,14 +236,11 @@ public final class TextAccessLogPublisher extends
       {
         if (cfg.getQueueSize() > 0)
         {
-          this.writer = new AsynchronousTextWriter(
-              "Asynchronous Text Writer for " + cfg.dn(),
-              cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
+          this.writer = newAsyncWriter(theWriter, cfg);
         }
         else
         {
-          this.writer = new ParallelTextWriter("Parallel Text Writer for " + cfg.dn(),
-              cfg.isAutoFlush(), theWriter);
+          this.writer = newParallelWriter(theWriter, cfg);
         }
       }
       else
@@ -286,7 +257,6 @@ public final class TextAccessLogPublisher extends
     {
       throw new InitializationException(
           ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile, cfg.dn(), e), e);
-
     }
 
     initializeFilters(cfg);
@@ -299,9 +269,18 @@ public final class TextAccessLogPublisher extends
     cfg.addFileBasedAccessChangeListener(this);
   }
 
+  private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedAccessLogPublisherCfg config)
+  {
+    String name = "Asynchronous Text Writer for " + config.dn();
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+  }
 
+  private ParallelTextWriter newParallelWriter(MultifileTextWriter mfWriter, FileBasedAccessLogPublisherCfg config)
+  {
+    String name = "Parallel Text Writer for " + config.dn();
+    return new ParallelTextWriter(name, config.isAutoFlush(), mfWriter);
+  }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       final FileBasedAccessLogPublisherCfg configuration,
@@ -311,9 +290,6 @@ public final class TextAccessLogPublisher extends
         && isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final FileBasedAccessLogPublisherCfg config,
@@ -335,12 +311,10 @@ public final class TextAccessLogPublisher extends
     // Make sure the permission is valid.
     try
     {
-      final FilePermission filePerm = FilePermission.decodeUNIXMode(config
-          .getLogFilePermissions());
+      final FilePermission filePerm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
       if (!filePerm.isOwnerWritable())
       {
-        final LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
-            .getLogFilePermissions());
+        final LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config.getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
       }
@@ -354,16 +328,6 @@ public final class TextAccessLogPublisher extends
     return true;
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the abandon
-   * request associated with the provided abandon operation.
-   *
-   * @param abandonOperation
-   *          The abandon operation containing the information to use to log the
-   *          abandon request.
-   */
   @Override
   public void logAbandonRequest(final AbandonOperation abandonOperation)
   {
@@ -378,16 +342,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the result of
-   * the provided abandon operation.
-   *
-   * @param abandonOperation
-   *          The abandon operation containing the information to use to log the
-   *          abandon request.
-   */
   @Override
   public void logAbandonResult(final AbandonOperation abandonOperation)
   {
@@ -403,24 +357,11 @@ public final class TextAccessLogPublisher extends
       appendAbandonRequest(abandonOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, abandonOperation);
-
     logAdditionalLogItems(abandonOperation, buffer);
-
     appendEtime(buffer, abandonOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the add
-   * request associated with the provided add operation.
-   *
-   * @param addOperation
-   *          The add operation containing the information to use to log the add
-   *          request.
-   */
   @Override
   public void logAddRequest(final AddOperation addOperation)
   {
@@ -435,16 +376,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the add
-   * response associated with the provided add operation.
-   *
-   * @param addOperation
-   *          The add operation containing the information to use to log the add
-   *          response.
-   */
   @Override
   public void logAddResponse(final AddOperation addOperation)
   {
@@ -460,27 +391,12 @@ public final class TextAccessLogPublisher extends
       appendAddRequest(addOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, addOperation);
-
     logAdditionalLogItems(addOperation, buffer);
-
-    appendLabelIfNotNull(buffer, "authzDN", addOperation
-        .getProxiedAuthorizationDN());
-
+    appendLabelIfNotNull(buffer, "authzDN", addOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, addOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the bind
-   * request associated with the provided bind operation.
-   *
-   * @param bindOperation
-   *          The bind operation with the information to use to log the bind
-   *          request.
-   */
   @Override
   public void logBindRequest(final BindOperation bindOperation)
   {
@@ -495,16 +411,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the bind
-   * response associated with the provided bind operation.
-   *
-   * @param bindOperation
-   *          The bind operation containing the information to use to log the
-   *          bind response.
-   */
   @Override
   public void logBindResponse(final BindOperation bindOperation)
   {
@@ -524,14 +430,12 @@ public final class TextAccessLogPublisher extends
     final LocalizableMessage failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
     {
-      // this code path is mutually exclusive with the if result code is success
-      // down below
+      // this code path is mutually exclusive with the if result code is success down below
       appendLabel(buffer, "authFailureReason", failureMessage);
       if (bindOperation.getSASLMechanism() != null
           && bindOperation.getSASLAuthUserEntry() != null)
       { // SASL bind and we have successfully found a user entry for auth
-        appendLabel(buffer, "authDN", bindOperation.getSASLAuthUserEntry()
-            .getName());
+        appendLabel(buffer, "authDN", bindOperation.getSASLAuthUserEntry().getName());
       }
       else
       { // SASL bind failed to find user entry for auth or simple bind
@@ -543,8 +447,7 @@ public final class TextAccessLogPublisher extends
 
     if (bindOperation.getResultCode() == ResultCode.SUCCESS)
     {
-      // this code path is mutually exclusive with the if failure message exist
-      // just above
+      // this code path is mutually exclusive with the if failure message that exists just above
       final AuthenticationInfo authInfo = bindOperation.getAuthenticationInfo();
       if (authInfo != null)
       {
@@ -571,16 +474,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the compare
-   * request associated with the provided compare operation.
-   *
-   * @param compareOperation
-   *          The compare operation containing the information to use to log the
-   *          compare request.
-   */
   @Override
   public void logCompareRequest(final CompareOperation compareOperation)
   {
@@ -595,16 +488,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the compare
-   * response associated with the provided compare operation.
-   *
-   * @param compareOperation
-   *          The compare operation containing the information to use to log the
-   *          compare response.
-   */
   @Override
   public void logCompareResponse(final CompareOperation compareOperation)
   {
@@ -620,27 +503,12 @@ public final class TextAccessLogPublisher extends
       appendCompareRequest(compareOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, compareOperation);
-
     logAdditionalLogItems(compareOperation, buffer);
-
-    appendLabelIfNotNull(buffer, "authzDN", compareOperation
-        .getProxiedAuthorizationDN());
-
+    appendLabelIfNotNull(buffer, "authzDN", compareOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, compareOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about a new client
-   * connection that has been established, regardless of whether it will be
-   * immediately terminated.
-   *
-   * @param clientConnection
-   *          The client connection that has been established.
-   */
   @Override
   public void logConnect(final ClientConnection clientConnection)
   {
@@ -651,31 +519,15 @@ public final class TextAccessLogPublisher extends
 
     final long connectionID = clientConnection.getConnectionID();
     final StringBuilder buffer = new StringBuilder(100);
-    buffer.append('[');
-    buffer.append(TimeThread.getUserDefinedTime(timeStampFormat));
-    buffer.append(']');
-    buffer.append(" CONNECT conn=");
-    buffer.append(connectionID);
-    buffer.append(" from=");
-    buffer.append(clientConnection.getClientHostPort());
-    buffer.append(" to=");
-    buffer.append(clientConnection.getServerHostPort());
-    buffer.append(" protocol=");
-    buffer.append(clientConnection.getProtocol());
+    buffer.append('[').append(TimeThread.getUserDefinedTime(timeStampFormat)).append(']');
+    buffer.append(" CONNECT conn=").append(connectionID);
+    buffer.append(" from=").append(clientConnection.getClientHostPort());
+    buffer.append(" to=").append(clientConnection.getServerHostPort());
+    buffer.append(" protocol=").append(clientConnection.getProtocol());
 
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the delete
-   * request associated with the provided delete operation.
-   *
-   * @param deleteOperation
-   *          The delete operation with the information to use to log the delete
-   *          request.
-   */
   @Override
   public void logDeleteRequest(final DeleteOperation deleteOperation)
   {
@@ -690,16 +542,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the delete
-   * response associated with the provided delete operation.
-   *
-   * @param deleteOperation
-   *          The delete operation containing the information to use to log the
-   *          delete response.
-   */
   @Override
   public void logDeleteResponse(final DeleteOperation deleteOperation)
   {
@@ -715,31 +557,12 @@ public final class TextAccessLogPublisher extends
       appendDeleteRequest(deleteOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, deleteOperation);
-
     logAdditionalLogItems(deleteOperation, buffer);
-
-    appendLabelIfNotNull(buffer, "authzDN", deleteOperation
-        .getProxiedAuthorizationDN());
-
+    appendLabelIfNotNull(buffer, "authzDN", deleteOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, deleteOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the
-   * termination of an existing client connection.
-   *
-   * @param clientConnection
-   *          The client connection that has been terminated.
-   * @param disconnectReason
-   *          A generic disconnect reason for the connection termination.
-   * @param message
-   *          A human-readable message that can provide additional information
-   *          about the disconnect.
-   */
   @Override
   public void logDisconnect(final ClientConnection clientConnection,
       final DisconnectReason disconnectReason, final LocalizableMessage message)
@@ -751,27 +574,14 @@ public final class TextAccessLogPublisher extends
 
     final long connectionID = clientConnection.getConnectionID();
     final StringBuilder buffer = new StringBuilder(100);
-    buffer.append('[');
-    buffer.append(TimeThread.getUserDefinedTime(timeStampFormat));
-    buffer.append(']');
-    buffer.append(" DISCONNECT conn=");
-    buffer.append(connectionID);
+    buffer.append('[').append(TimeThread.getUserDefinedTime(timeStampFormat)).append(']');
+    buffer.append(" DISCONNECT conn=").append(connectionID);
     appendLabel(buffer, "reason", disconnectReason);
     appendLabelIfNotNull(buffer, "msg", message);
 
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the extended
-   * request associated with the provided extended operation.
-   *
-   * @param extendedOperation
-   *          The extended operation containing the information to use to log
-   *          the extended request.
-   */
   @Override
   public void logExtendedRequest(final ExtendedOperation extendedOperation)
   {
@@ -786,16 +596,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the extended
-   * response associated with the provided extended operation.
-   *
-   * @param extendedOperation
-   *          The extended operation containing the info to use to log the
-   *          extended response.
-   */
   @Override
   public void logExtendedResponse(final ExtendedOperation extendedOperation)
   {
@@ -824,24 +624,12 @@ public final class TextAccessLogPublisher extends
       appendLabel(buffer, "oid", oid);
     }
     appendResultCodeAndMessage(buffer, extendedOperation);
-
     logAdditionalLogItems(extendedOperation, buffer);
-
     appendEtime(buffer, extendedOperation);
 
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the modify DN
-   * request associated with the provided modify DN operation.
-   *
-   * @param modifyDNOperation
-   *          The modify DN operation containing the info to use to log the
-   *          modify DN request.
-   */
   @Override
   public void logModifyDNRequest(final ModifyDNOperation modifyDNOperation)
   {
@@ -856,16 +644,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the modify DN
-   * response associated with the provided modify DN operation.
-   *
-   * @param modifyDNOperation
-   *          The modify DN operation containing the information to use to log
-   *          the modify DN response.
-   */
   @Override
   public void logModifyDNResponse(final ModifyDNOperation modifyDNOperation)
   {
@@ -881,27 +659,12 @@ public final class TextAccessLogPublisher extends
       appendModifyDNRequest(modifyDNOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, modifyDNOperation);
-
     logAdditionalLogItems(modifyDNOperation, buffer);
-
-    appendLabelIfNotNull(buffer, "authzDN", modifyDNOperation
-        .getProxiedAuthorizationDN());
-
+    appendLabelIfNotNull(buffer, "authzDN", modifyDNOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, modifyDNOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the modify
-   * request associated with the provided modify operation.
-   *
-   * @param modifyOperation
-   *          The modify operation containing the information to use to log the
-   *          modify request.
-   */
   @Override
   public void logModifyRequest(final ModifyOperation modifyOperation)
   {
@@ -916,16 +679,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the modify
-   * response associated with the provided modify operation.
-   *
-   * @param modifyOperation
-   *          The modify operation containing the information to use to log the
-   *          modify response.
-   */
   @Override
   public void logModifyResponse(final ModifyOperation modifyOperation)
   {
@@ -941,27 +694,12 @@ public final class TextAccessLogPublisher extends
       appendModifyRequest(modifyOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, modifyOperation);
-
     logAdditionalLogItems(modifyOperation, buffer);
-
-    appendLabelIfNotNull(buffer, "authzDN", modifyOperation
-        .getProxiedAuthorizationDN());
-
+    appendLabelIfNotNull(buffer, "authzDN", modifyOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, modifyOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the search
-   * request associated with the provided search operation.
-   *
-   * @param searchOperation
-   *          The search operation containing the info to use to log the search
-   *          request.
-   */
   @Override
   public void logSearchRequest(final SearchOperation searchOperation)
   {
@@ -976,16 +714,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the completion
-   * of the provided search operation.
-   *
-   * @param searchOperation
-   *          The search operation containing the information to use to log the
-   *          search result done message.
-   */
   @Override
   public void logSearchResultDone(final SearchOperation searchOperation)
   {
@@ -1001,30 +729,13 @@ public final class TextAccessLogPublisher extends
       appendSearchRequest(searchOperation, buffer);
     }
     appendResultCodeAndMessage(buffer, searchOperation);
-
-    buffer.append(" nentries=");
-    buffer.append(searchOperation.getEntriesSent());
-
+    buffer.append(" nentries=").append(searchOperation.getEntriesSent());
     logAdditionalLogItems(searchOperation, buffer);
-
-    appendLabelIfNotNull(buffer, "authzDN", searchOperation
-        .getProxiedAuthorizationDN());
-
+    appendLabelIfNotNull(buffer, "authzDN", searchOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, searchOperation);
-
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /**
-   * Writes a message to the access logger with information about the unbind
-   * request associated with the provided unbind operation.
-   *
-   * @param unbindOperation
-   *          The unbind operation containing the info to use to log the unbind
-   *          request.
-   */
   @Override
   public void logUnbind(final UnbindOperation unbindOperation)
   {
@@ -1043,9 +754,6 @@ public final class TextAccessLogPublisher extends
     writer.writeRecord(buffer.toString());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   protected void close0()
   {
@@ -1057,10 +765,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendAbandonRequest(final AbandonOperation abandonOperation,
-      final StringBuilder buffer)
+  private void appendAbandonRequest(final AbandonOperation abandonOperation, final StringBuilder buffer)
   {
     buffer.append(" idToAbandon=");
     buffer.append(abandonOperation.getIDToAbandon());
@@ -1071,10 +776,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendAddRequest(final AddOperation addOperation,
-      final StringBuilder buffer)
+  private void appendAddRequest(final AddOperation addOperation, final StringBuilder buffer)
   {
     appendLabel(buffer, "dn", addOperation.getRawEntryDN());
     appendRequestControls(addOperation, buffer);
@@ -1084,10 +786,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendBindRequest(final BindOperation bindOperation,
-      final StringBuilder buffer)
+  private void appendBindRequest(final BindOperation bindOperation, final StringBuilder buffer)
   {
     final String protocolVersion = bindOperation.getProtocolVersion();
     if (protocolVersion != null)
@@ -1102,12 +801,10 @@ public final class TextAccessLogPublisher extends
       buffer.append(" type=SIMPLE");
       break;
     case SASL:
-      buffer.append(" type=SASL mechanism=");
-      buffer.append(bindOperation.getSASLMechanism());
+      buffer.append(" type=SASL mechanism=").append(bindOperation.getSASLMechanism());
       break;
     default:
-      buffer.append(" type=");
-      buffer.append(bindOperation.getAuthenticationType());
+      buffer.append(" type=").append(bindOperation.getAuthenticationType());
       break;
     }
 
@@ -1119,10 +816,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendCompareRequest(final CompareOperation compareOperation,
-      final StringBuilder buffer)
+  private void appendCompareRequest(final CompareOperation compareOperation, final StringBuilder buffer)
   {
     appendLabel(buffer, "dn", compareOperation.getRawEntryDN());
     buffer.append(" attr=");
@@ -1134,10 +828,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendDeleteRequest(final DeleteOperation deleteOperation,
-      final StringBuilder buffer)
+  private void appendDeleteRequest(final DeleteOperation deleteOperation, final StringBuilder buffer)
   {
     appendLabel(buffer, "dn", deleteOperation.getRawEntryDN());
     appendRequestControls(deleteOperation, buffer);
@@ -1147,14 +838,11 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
   private void appendExtendedRequest(final ExtendedOperation extendedOperation,
       final StringBuilder buffer)
   {
     final String oid = extendedOperation.getRequestOID();
-    final ExtendedOperationHandler<?> extOpHandler = DirectoryServer
-        .getExtendedOperationHandler(oid);
+    final ExtendedOperationHandler<?> extOpHandler = DirectoryServer.getExtendedOperationHandler(oid);
     if (extOpHandler != null)
     {
       final String name = extOpHandler.getExtendedOperationName();
@@ -1168,10 +856,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendLabel(final StringBuilder buffer, final String label,
-      final Object obj)
+  private void appendLabel(final StringBuilder buffer, final String label, final Object obj)
   {
     buffer.append(' ').append(label).append("=\"");
     if (obj != null)
@@ -1181,8 +866,7 @@ public final class TextAccessLogPublisher extends
     buffer.append('\"');
   }
 
-  private void appendLabelIfNotNull(final StringBuilder buffer,
-      final String label, final Object obj)
+  private void appendLabelIfNotNull(final StringBuilder buffer, final String label, final Object obj)
   {
     if (obj != null)
     {
@@ -1190,8 +874,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-  private void appendResultCodeAndMessage(StringBuilder buffer,
-      Operation operation)
+  private void appendResultCodeAndMessage(StringBuilder buffer, Operation operation)
   {
     buffer.append(" result=");
     buffer.append(operation.getResultCode().intValue());
@@ -1214,8 +897,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-  private void appendEtime(final StringBuilder buffer,
-      final Operation operation)
+  private void appendEtime(final StringBuilder buffer, final Operation operation)
   {
     buffer.append(" etime=");
     // the server can be configured to log processing time as nanos xor millis
@@ -1228,30 +910,20 @@ public final class TextAccessLogPublisher extends
     buffer.append(etime);
   }
 
-  /**
-   * Appends the common log header information to the provided buffer.
-   */
+  /** Appends the common log header information to the provided buffer. */
   private void appendHeader(final Operation operation, final String opType,
       final String category, final StringBuilder buffer)
   {
-    buffer.append('[');
-    buffer.append(TimeThread.getUserDefinedTime(timeStampFormat));
-    buffer.append("] ");
+    buffer.append('[').append(TimeThread.getUserDefinedTime(timeStampFormat)).append("] ");
     buffer.append(opType);
     if (!isCombinedMode)
     {
-      buffer.append(' ');
-      buffer.append(category);
+      buffer.append(' ').append(category);
     }
-    buffer.append(" conn=");
-    buffer.append(operation.getConnectionID());
-    buffer.append(" op=");
-    buffer.append(operation.getOperationID());
-    buffer.append(" msgID=");
-    buffer.append(operation.getMessageID());
+    buffer.append(" conn=").append(operation.getConnectionID());
+    buffer.append(" op=").append(operation.getOperationID());
+    buffer.append(" msgID=").append(operation.getMessageID());
   }
-
-
 
   private void appendModifyDNRequest(final ModifyDNOperation modifyDNOperation,
       final StringBuilder buffer)
@@ -1269,10 +941,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendModifyRequest(final ModifyOperation modifyOperation,
-      final StringBuilder buffer)
+  private void appendModifyRequest(final ModifyOperation modifyOperation, final StringBuilder buffer)
   {
     appendLabel(buffer, "dn", modifyOperation.getRawEntryDN());
     appendRequestControls(modifyOperation, buffer);
@@ -1282,16 +951,23 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendRequestControls(final Operation operation,
-      final StringBuilder buffer)
+  private void appendRequestControls(final Operation operation, final StringBuilder buffer)
   {
-    if (includeControlOIDs && !operation.getRequestControls().isEmpty())
+    appendControls(buffer, " requestControls=", operation.getRequestControls());
+  }
+
+  private void appendResponseControls(final Operation operation, final StringBuilder buffer)
+  {
+    appendControls(buffer, " responseControls=", operation.getResponseControls());
+  }
+
+  private void appendControls(final StringBuilder buffer, String label, List<Control> controls)
+  {
+    if (includeControlOIDs && !controls.isEmpty())
     {
-      buffer.append(" requestControls=");
+      buffer.append(label);
       boolean isFirst = true;
-      for (final Control control : operation.getRequestControls())
+      for (final Control control : controls)
       {
         if (!isFirst)
         {
@@ -1303,31 +979,7 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  private void appendResponseControls(final Operation operation,
-      final StringBuilder buffer)
-  {
-    if (includeControlOIDs && !operation.getResponseControls().isEmpty())
-    {
-      buffer.append(" responseControls=");
-      boolean isFirst = true;
-      for (final Control control : operation.getResponseControls())
-      {
-        if (!isFirst)
-        {
-          buffer.append(",");
-        }
-        buffer.append(control.getOID());
-        isFirst = false;
-      }
-    }
-  }
-
-
-
-  private void appendSearchRequest(final SearchOperation searchOperation,
-      final StringBuilder buffer)
+  private void appendSearchRequest(final SearchOperation searchOperation, final StringBuilder buffer)
   {
     appendLabel(buffer, "base", searchOperation.getRawBaseDN());
     buffer.append(" scope=");
@@ -1343,15 +995,7 @@ public final class TextAccessLogPublisher extends
     else
     {
       buffer.append("\" attrs=\"");
-
-      final Iterator<String> iterator = attrs.iterator();
-      buffer.append(iterator.next());
-      while (iterator.hasNext())
-      {
-        buffer.append(",");
-        buffer.append(iterator.next());
-      }
-
+      Utils.joinAsString(buffer, ",", attrs);
       buffer.append("\"");
     }
     appendRequestControls(searchOperation, buffer);
@@ -1361,13 +1005,8 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-
-
-  /**
-   * Appends additional log items to the provided builder.
-   */
-  private void logAdditionalLogItems(final Operation operation,
-      final StringBuilder builder)
+  /** Appends additional log items to the provided builder. */
+  private void logAdditionalLogItems(final Operation operation, final StringBuilder builder)
   {
     appendResponseControls(operation, builder);
     for (final AdditionalLogItem item : operation.getAdditionalLogItems())
@@ -1376,5 +1015,4 @@ public final class TextAccessLogPublisher extends
       item.toString(builder);
     }
   }
-
 }
