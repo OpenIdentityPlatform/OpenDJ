@@ -26,8 +26,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static java.util.Locale.ENGLISH;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
@@ -90,9 +88,9 @@ public final class AuthRate extends ConsoleApplication {
             String[] getAdditionalColumns() {
                 invalidCredRecentCount.set(0);
                 if (extraColumn.length != 0) {
-                    final long searchWaitTime = searchWaitRecentTime.getAndSet(0);
-                    extraColumn[0] =
-                            String.format(ENGLISH, "%.1f", ((float) (waitTime - searchWaitTime) / waitTime) * 100.0);
+                    final long searchWaitTimeNs = searchWaitRecentTimeNs.getAndSet(0);
+                    extraColumn[0] = getDivisionResult(
+                            100 * (intervalWaitTimeNs - searchWaitTimeNs), intervalWaitTimeNs, 1, "-");
                 }
                 return extraColumn;
             }
@@ -167,7 +165,7 @@ public final class AuthRate extends ConsoleApplication {
                                 @Override
                                 public Promise<BindResult, LdapException> apply(SearchResultEntry result)
                                         throws LdapException {
-                                    searchWaitRecentTime.getAndAdd(System.nanoTime() - startTime);
+                                    searchWaitRecentTimeNs.getAndAdd(System.nanoTime() - startTime);
                                     if (data == null) {
                                         data = new Object[1];
                                     }
@@ -310,7 +308,7 @@ public final class AuthRate extends ConsoleApplication {
             }
         }
 
-        private final AtomicLong searchWaitRecentTime = new AtomicLong();
+        private final AtomicLong searchWaitRecentTimeNs = new AtomicLong();
         private final AtomicInteger invalidCredRecentCount = new AtomicInteger();
         private String filter;
         private String baseDN;
