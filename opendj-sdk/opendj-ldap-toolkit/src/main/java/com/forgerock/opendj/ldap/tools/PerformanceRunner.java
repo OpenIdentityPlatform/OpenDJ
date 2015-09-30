@@ -68,9 +68,7 @@ import com.forgerock.opendj.cli.MultiColumnPrinter;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.StaticUtils;
 
-/**
- * Benchmark application framework.
- */
+/** Benchmark application framework. */
 abstract class PerformanceRunner implements ConnectionEventListener {
     static final class ResponseTimeBuckets {
         private static final long NS_1_US = NANOSECONDS.convert(1, MICROSECONDS);
@@ -233,33 +231,35 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     }
 
 
-    /**
-     * Statistics thread base implementation.
-     */
+    /** Statistics thread base implementation. */
     class StatsThread extends Thread {
-        private final String[] additionalColumns;
-        private final List<GarbageCollectorMXBean> beans;
-        private final double[] percentiles;
-        private final int numColumns;
-        protected long totalSuccessCount;
+        protected long totalResultCount;
         protected long totalOperationCount;
-        protected long totalFailedCount;
-        protected long totalWaitTime;
-        protected int successCount;
-        protected int operationCount;
-        protected int failedCount;
-        protected long waitTime;
-        protected long lastStatTime;
-        protected long lastGCDuration;
-        protected double recentDuration;
-        protected double averageDuration;
+        protected double totalDurationSec;
+        protected long totalWaitTimeNs;
+
+        protected int intervalSuccessCount;
+        protected int intervalOperationCount;
+        protected int intervalFailedCount;
+        protected double intervalDurationSec;
+        protected long intervalWaitTimeNs;
+
+        protected long lastStatTimeMs;
+        protected long lastGCDurationMs;
+
+        private final int numColumns;
+        private final String[] additionalColumns;
+        private final double[] percentiles;
+        private final List<GarbageCollectorMXBean> gcBeans;
+        private final boolean isScriptFriendly = app.isScriptFriendly();
+        private MultiColumnPrinter printer;
 
         public StatsThread(final String... additionalColumns) {
             super("Stats Thread");
 
             this.additionalColumns = additionalColumns;
             if (!percentilesArgument.isPresent()) {
-                this.percentiles = new double[]{99.9, 99.99, 99.999};
+                this.percentiles = new double[] { 99.9, 99.99, 99.999 };
             } else {
                 this.percentiles = new double[percentilesArgument.getValues().size()];
                 int index = 0;
@@ -270,172 +270,196 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             }
 
             this.numColumns = 5 + this.percentiles.length + additionalColumns.length + (isAsync ? 1 : 0);
-            this.beans = ManagementFactory.getGarbageCollectorMXBeans();
+            this.gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
+        }
+
+        private void printResultsTitle() {
+            if (isScriptFriendly) {
+                printResultsTitleScriptFriendly();
+                return;
+            }
+
+            printer = new MultiColumnPrinter(numColumns, 2, "-", MultiColumnPrinter.RIGHT, app);
+            printer.setTitleAlign(MultiColumnPrinter.RIGHT);
+            printResultTitleHeaders();
+            printResultTitleDetails();
+        }
+
+        private void printResultTitleHeaders() {
+            final String[][] titleHeaders = new String[2][numColumns];
+            for (final String[] titleLine : titleHeaders) {
+                Arrays.fill(titleLine, "");
+            }
+
+            titleHeaders[0][0] = "Throughput";
+            titleHeaders[0][2] = "Response Time";
+
+            titleHeaders[1][0] = "(ops/second)";
+            titleHeaders[1][2] = "(milliseconds)";
+
+            final int[] span = new int[numColumns];
+            span[0] = 2;
+            span[1] = 0;
+            span[2] = 2 + this.percentiles.length;
+            Arrays.fill(span, 3, 4 + this.percentiles.length, 0);
+            Arrays.fill(span, 4 + this.percentiles.length, span.length, 1);
+
+            for (final String[] titleLine : titleHeaders) {
+                printer.addTitle(titleLine, span);
+            }
+        }
+
+        private void printResultTitleDetails() {
+            final String[] titleDetails = new String[numColumns];
+            titleDetails[0] = "recent";
+            titleDetails[1] = "average";
+            titleDetails[2] = "recent";
+            titleDetails[3] = "average";
+            int i = 4;
+            for (double percentile :percentiles) {
+                titleDetails[i++] = percentile + "%";
+            }
+            titleDetails[i++] = "err/sec";
+            if (isAsync) {
+                titleDetails[i++] = "req/res";
+            }
+            for (final String column : additionalColumns) {
+                titleDetails[i++] = column;
+            }
+
+            final int[] span = new int[numColumns];
+            Arrays.fill(span, 1);
+
+            printer.addTitle(titleDetails, span);
+            printer.printTitle();
+        }
+
+        private void printResultsTitleScriptFriendly() {
+            final PrintStream out = app.getOutputStream();
+            out.print("Time (seconds)");
+            out.print(",");
+            out.print("Recent throughput (ops/second)");
+            out.print(",");
+            out.print("Average throughput (ops/second)");
+            out.print(",");
+            out.print("Recent response time (milliseconds)");
+            out.print(",");
+            out.print("Average response time (milliseconds)");
+            for (final double percentile : this.percentiles) {
+                out.print(",");
+                out.print(percentile);
+                out.print("% response time (milliseconds)");
+            }
+            out.print(",");
+            out.print("Errors/second");
+            if (isAsync) {
+                out.print(",");
+                out.print("Requests/response");
+            }
+            for (final String column : additionalColumns) {
+                out.print(",");
+                out.print(column);
+            }
+            out.println();
         }
 
         @Override
         public void run() {
-            final MultiColumnPrinter printer;
+            printResultsTitle();
 
-            if (!app.isScriptFriendly()) {
-                printer = new MultiColumnPrinter(numColumns, 2, "-", MultiColumnPrinter.RIGHT, app);
-                printer.setTitleAlign(MultiColumnPrinter.RIGHT);
+            long totalStatTimeMs = System.currentTimeMillis();
+            long gcDurationMs = getGCDuration();
 
-                String[] title = new String[numColumns];
-                Arrays.fill(title, "");
-                title[0] = "Throughput";
-                title[2] = "Response Time";
-                int[] span = new int[numColumns];
-                span[0] = 2;
-                span[1] = 0;
-                span[2] = 2 + this.percentiles.length;
-                Arrays.fill(span, 3, 4 + this.percentiles.length, 0);
-                Arrays.fill(span, 4 + this.percentiles.length, span.length, 1);
-                printer.addTitle(title, span);
-                title = new String[numColumns];
-                Arrays.fill(title, "");
-                title[0] = "(ops/second)";
-                title[2] = "(milliseconds)";
-                printer.addTitle(title, span);
-                title = new String[numColumns];
-                title[0] = "recent";
-                title[1] = "average";
-                title[2] = "recent";
-                title[3] = "average";
-                int i = 4;
-                for (double percentile :percentiles) {
-                    title[i++] = percentile + "%";
-                }
-                title[i++] = "err/sec";
-                if (isAsync) {
-                    title[i++] = "req/res";
-                }
-                for (final String column : additionalColumns) {
-                    title[i++] = column;
-                }
-                span = new int[numColumns];
-                Arrays.fill(span, 1);
-                printer.addTitle(title, span);
-                printer.printTitle();
-            } else {
-                final PrintStream out = app.getOutputStream();
-                out.print("Time (seconds)");
-                out.print(",");
-                out.print("Recent throughput (ops/second)");
-                out.print(",");
-                out.print("Average throughput (ops/second)");
-                out.print(",");
-                out.print("Recent response time (milliseconds)");
-                out.print(",");
-                out.print("Average response time (milliseconds)");
-                for (final double percentile : this.percentiles) {
-                    out.print(",");
-                    out.print(percentile);
-                    out.print("% response time (milliseconds)");
-                }
-                out.print(",");
-                out.print("Errors/second");
-                if (isAsync) {
-                    out.print(",");
-                    out.print("Requests/response");
-                }
-                for (final String column : additionalColumns) {
-                    out.print(",");
-                    out.print(column);
-                }
-                out.println();
-                printer = null;
-            }
-
-            final long startTime = System.currentTimeMillis();
-            long statTime = startTime;
-            long gcDuration = 0;
-            for (final GarbageCollectorMXBean bean : beans) {
-                gcDuration += bean.getCollectionTime();
-            }
             while (!stopRequested) {
                 try {
                     sleep(statsInterval);
                 } catch (final InterruptedException ie) {
                     // Ignore.
                 }
+                lastStatTimeMs = totalStatTimeMs;
+                totalStatTimeMs = System.currentTimeMillis();
 
-                lastStatTime = statTime;
-                statTime = System.currentTimeMillis();
+                lastGCDurationMs = gcDurationMs;
+                gcDurationMs = getGCDuration();
+                final long gcIntervalDurationMs = gcDurationMs - lastGCDurationMs;
 
-                lastGCDuration = gcDuration;
-                gcDuration = 0;
-                for (final GarbageCollectorMXBean bean : beans) {
-                    gcDuration += bean.getCollectionTime();
-                }
+                computeStatsForInterval(totalStatTimeMs, gcIntervalDurationMs);
+                final long intervalResultCount = intervalSuccessCount + intervalFailedCount;
 
-                operationCount = operationRecentCount.getAndSet(0);
-                successCount = successRecentCount.getAndSet(0);
-                failedCount = failedRecentCount.getAndSet(0);
-                waitTime = waitRecentTime.getAndSet(0);
+                final String[] printableStats = new String[numColumns];
+                printableStats[0] = getDivisionResult(intervalResultCount, intervalDurationSec, 1);
+                printableStats[1] = getDivisionResult(totalResultCount, totalDurationSec, 1);
 
-                final int resultCount = successCount + failedCount;
+                final long intervalWaitTimeMs = NANOSECONDS.toMillis(intervalWaitTimeNs) - gcIntervalDurationMs;
+                printableStats[2] = getDivisionResult(intervalWaitTimeMs, intervalResultCount, 3);
 
-                totalOperationCount += operationCount;
-                totalSuccessCount += successCount;
-                totalFailedCount += failedCount;
-                totalWaitTime += waitTime;
-
-                final long totalResultCount = totalSuccessCount + totalFailedCount;
-
-                recentDuration = statTime - lastStatTime;
-                averageDuration = statTime - startTime;
-                recentDuration -= gcDuration - lastGCDuration;
-                averageDuration -= gcDuration;
-                recentDuration /= 1000.0;
-                averageDuration /= 1000.0;
-
-                final String[] strings = new String[numColumns];
-                strings[0] = String.format(ENGLISH, "%.1f", resultCount / recentDuration);
-                strings[1] = String.format(ENGLISH, "%.1f", totalResultCount / averageDuration);
-
-                if (resultCount > 0) {
-                    strings[2] = String.format(ENGLISH, "%.3f", (waitTime - (gcDuration - lastGCDuration))
-                            / (double) resultCount / 1000000.0);
-                } else {
-                    strings[2] = "-";
-                }
-
-                if (totalResultCount > 0) {
-                    strings[3] = String.format(ENGLISH, "%.3f",
-                            (totalWaitTime - gcDuration) / (double) totalResultCount / 1000000.0);
-                } else {
-                    strings[3] = "-";
-                }
+                final long totalWaitTimeMs = NANOSECONDS.toMillis(totalWaitTimeNs) - gcDurationMs;
+                printableStats[3] = getDivisionResult(totalWaitTimeMs, totalResultCount, 3);
 
                 int i = 4;
-                List<Long> computedPercentiles = eTimesBuckets.getPercentile(percentiles, totalOperationCount);
+                final List<Long> computedPercentiles = eTimesBuckets.getPercentile(percentiles, totalOperationCount);
                 for (int j = computedPercentiles.size() - 1; j >= 0; j--) {
-                    strings[i++] = String.format(ENGLISH, "%.2f", computedPercentiles.get(j) / 1000.0);
+                    printableStats[i++] = getDivisionResult(computedPercentiles.get(j) , 1000.0, 2);
                 }
-                strings[i++] = String.format(ENGLISH, "%.1f", failedCount / recentDuration);
+                printableStats[i++] = getDivisionResult(intervalFailedCount, intervalDurationSec, 1);
                 if (isAsync) {
-                    strings[i++] = resultCount > 0 ? String.format(ENGLISH, "%.1f", (double) operationCount
-                            / resultCount) : "-";
+                    printableStats[i++] = getDivisionResult(intervalOperationCount, intervalResultCount, 1);
                 }
 
                 for (final String column : getAdditionalColumns()) {
-                    strings[i++] = column;
+                    printableStats[i++] = column;
                 }
 
-                if (printer != null) {
-                    printer.printRow(strings);
+                if (isScriptFriendly) {
+                    printScriptFriendlyStats(printableStats);
                 } else {
-                    // Script-friendly.
-                    final PrintStream out = app.getOutputStream();
-                    out.print(averageDuration);
-                    for (final String s : strings) {
-                        out.print(",");
-                        out.print(s);
-                    }
-                    out.println();
+                    printer.printRow(printableStats);
                 }
             }
+        }
+
+        private void computeStatsForInterval(final long statTime, final long gcIntervalDurationMs) {
+            intervalOperationCount = operationRecentCount.getAndSet(0);
+            intervalSuccessCount = successRecentCount.getAndSet(0);
+            intervalFailedCount = failedRecentCount.getAndSet(0);
+            intervalWaitTimeNs = waitRecentTimeNs.getAndSet(0);
+
+            totalOperationCount += intervalOperationCount;
+            totalResultCount += intervalSuccessCount + intervalFailedCount;
+            totalWaitTimeNs += intervalWaitTimeNs;
+
+            final long intervalDurationMs = statTime - lastStatTimeMs;
+            intervalDurationSec = (intervalDurationMs - gcIntervalDurationMs) / 1000.0;
+            totalDurationSec += intervalDurationSec;
+        }
+
+        private long getGCDuration() {
+            long gcDuration = 0;
+            for (final GarbageCollectorMXBean bean : gcBeans) {
+                gcDuration += bean.getCollectionTime();
+            }
+
+            return gcDuration;
+        }
+
+        private String getDivisionResult(final long numerator, final double denominator, final int precision) {
+            return getDivisionResult(numerator, denominator, precision, "-");
+        }
+
+        protected String getDivisionResult(
+                final long numerator, final double denominator, final int precision, final String fallBack) {
+            return denominator > 0 ? String.format(ENGLISH, "%." + precision + "f", numerator / denominator)
+                                   : fallBack;
+        }
+
+        private void printScriptFriendlyStats(String[] printableStats) {
+            final PrintStream out = app.getOutputStream();
+            out.print(String.format(ENGLISH, "%.3f", totalDurationSec));
+            for (final String s : printableStats) {
+                out.print(",");
+                out.print(s);
+            }
+            out.println();
         }
 
         String[] getAdditionalColumns() {
@@ -444,13 +468,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         /** Resets both general and recent statistic indicators. */
         void resetStats() {
-            failedCount = 0;
-            operationCount = 0;
-            successCount = 0;
+            intervalFailedCount = 0;
+            intervalOperationCount = 0;
+            intervalSuccessCount = 0;
             operationRecentCount.set(0);
             successRecentCount.set(0);
             failedRecentCount.set(0);
-            waitRecentTime.set(0);
+            waitRecentTimeNs.set(0);
         }
     }
 
@@ -506,15 +530,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         private void updateStats() {
             if (!isWarmingUp) {
                 final long eTime = System.nanoTime() - currentTime;
-                waitRecentTime.getAndAdd(eTime);
+                waitRecentTimeNs.getAndAdd(eTime);
                 eTimesBuckets.addTimeToInterval(eTime);
             }
         }
     }
 
-    /**
-     * Worker thread base implementation.
-     */
+    /** Worker thread base implementation. */
     abstract class WorkerThread extends Thread {
         private int count;
         private final Connection connection;
@@ -527,15 +549,15 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             this.connectionFactory = connectionFactory;
         }
 
-        public abstract Promise<?, LdapException> performOperation(Connection connection,
-                DataSource[] dataSources, long startTime);
+        public abstract Promise<?, LdapException> performOperation(
+                Connection connection, DataSource[] dataSources, long startTime);
 
         @Override
         public void run() {
             Promise<?, LdapException> promise;
             Connection connection;
-            final double targetTimeInMS = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
-            double sleepTimeInMS = 0;
+            final double targetTimeMs = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
+            double sleepTimeMs = 0;
 
             while (!stopRequested && !localStopRequested
                     && (maxIterations <= 0 || count < maxIterations)) {
@@ -573,8 +595,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     }
                 }
 
-                long start = System.nanoTime();
-                promise = performOperation(connection, dataSources.get(), start);
+                long startTimeNs = System.nanoTime();
+                promise = performOperation(connection, dataSources.get(), startTimeNs);
                 operationRecentCount.getAndIncrement();
                 if (!isAsync) {
                     try {
@@ -597,17 +619,18 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
                 if (targetThroughput > 0) {
                     try {
-                        if (sleepTimeInMS > 1) {
-                            sleep((long) Math.floor(sleepTimeInMS));
+                        if (sleepTimeMs > 1) {
+                            sleep((long) Math.floor(sleepTimeMs));
                         }
                     } catch (final InterruptedException e) {
                         continue;
                     }
 
-                    sleepTimeInMS += targetTimeInMS - (System.nanoTime() - start) / 1000000.0;
-                    if (sleepTimeInMS < -60000) {
+                    sleepTimeMs += targetTimeMs - NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
+                    final long oneMinuteMs = MINUTES.toMillis(1);
+                    if (sleepTimeMs + oneMinuteMs < 0) {
                         // If we fall behind by 60 seconds, just forget about catching up
-                        sleepTimeInMS = -60000;
+                        sleepTimeMs = -oneMinuteMs;
                     }
                 }
             }
@@ -622,7 +645,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private final AtomicInteger operationRecentCount = new AtomicInteger();
     protected final AtomicInteger successRecentCount = new AtomicInteger();
     protected final AtomicInteger failedRecentCount = new AtomicInteger();
-    private final AtomicLong waitRecentTime = new AtomicLong();
+    private final AtomicLong waitRecentTimeNs = new AtomicLong();
     private final ResponseTimeBuckets eTimesBuckets = new ResponseTimeBuckets();
 
 

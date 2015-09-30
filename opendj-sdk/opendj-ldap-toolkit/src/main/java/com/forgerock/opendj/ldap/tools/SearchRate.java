@@ -26,8 +26,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static java.util.Locale.ENGLISH;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
@@ -101,11 +99,7 @@ public final class SearchRate extends ConsoleApplication {
             @Override
             String[] getAdditionalColumns() {
                 final int entryCount = entryRecentCount.getAndSet(0);
-                if (successCount > 0) {
-                    extraColumn[0] = String.format(ENGLISH, "%.1f", (double) entryCount / successCount);
-                } else {
-                    extraColumn[0] = String.format(ENGLISH, "%.1f", 0.0);
-                }
+                extraColumn[0] = getDivisionResult(entryCount, intervalSuccessCount, 1, "0.0");
                 return extraColumn;
             }
         }
