@@ -777,11 +777,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      *            The subcommand for which to display the usage information.
      */
     public void getSubCommandUsage(StringBuilder buffer, SubCommand subCommand) {
-        final String scriptName = getScriptNameOrJava();
         buffer.append(getLocalizableScriptName());
-        buffer.append("  ");
-        buffer.append(scriptName);
-
         buffer.append(" ");
         buffer.append(subCommand.getName());
         buffer.append(" ").append(INFO_SUBCMDPARSER_OPTIONS.get());
@@ -798,7 +794,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(INFO_GLOBAL_OPTIONS.get());
             buffer.append(EOL);
             buffer.append("    ");
-            buffer.append(INFO_GLOBAL_OPTIONS_REFERENCE.get(scriptName));
+            buffer.append(INFO_GLOBAL_OPTIONS_REFERENCE.get(getScriptNameOrJava()));
             buffer.append(EOL);
         }
 
