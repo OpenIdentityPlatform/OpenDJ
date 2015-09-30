@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -47,7 +48,6 @@ import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
@@ -55,9 +55,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
-/**
- * This class provides an implementation of an error log publisher.
- */
+/** This class provides an implementation of an error log publisher. */
 public class TextErrorLogPublisher
     extends ErrorLogPublisher<FileBasedErrorLogPublisherCfg>
     implements ConfigurationChangeListener<FileBasedErrorLogPublisherCfg>
@@ -82,8 +80,6 @@ public class TextErrorLogPublisher
     return startupPublisher;
   }
 
-
-
   /**
    * Returns a new text error log publisher which will print only notices,
    * severe warnings and errors, and fatal errors messages to the provided
@@ -96,8 +92,7 @@ public class TextErrorLogPublisher
    *         severe warnings and errors, and fatal errors messages to the
    *         provided writer.
    */
-  public static TextErrorLogPublisher getServerStartupTextErrorPublisher(
-      TextWriter writer)
+  public static TextErrorLogPublisher getServerStartupTextErrorPublisher(TextWriter writer)
   {
     TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
     startupPublisher.writer = writer;
@@ -106,26 +101,18 @@ public class TextErrorLogPublisher
     return startupPublisher;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(FileBasedErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
-    File logFile = getFileForPath(config.getLogFile());
+    File logFile = getLogFile(config);
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-
-      LogPublisherErrorHandler errorHandler =
-          new LogPublisherErrorHandler(config.dn());
-
-      boolean writerAutoFlush =
-          config.isAutoFlush() && !config.isAsynchronous();
+      FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(config.dn());
+      boolean writerAutoFlush = config.isAutoFlush() && !config.isAsynchronous();
 
       MultifileTextWriter writer = new MultifileTextWriter("Multifile Text Writer for " + config.dn(),
                                   config.getTimeInterval(),
@@ -142,7 +129,6 @@ public class TextErrorLogPublisher
       {
         writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
-
       for(DN dn: config.getRetentionPolicyDNs())
       {
         writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
@@ -150,8 +136,7 @@ public class TextErrorLogPublisher
 
       if(config.isAsynchronous())
       {
-        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
-            config.getQueueSize(), config.isAutoFlush(), writer);
+        this.writer = newAsyncWriter(writer, config);
       }
       else
       {
@@ -224,9 +209,6 @@ public class TextErrorLogPublisher
     config.addFileBasedErrorChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -234,7 +216,6 @@ public class TextErrorLogPublisher
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -290,7 +271,6 @@ public class TextErrorLogPublisher
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(FileBasedErrorLogPublisherCfg config)
   {
@@ -351,18 +331,11 @@ public class TextErrorLogPublisher
       }
     }
 
-    File logFile = getFileForPath(config.getLogFile());
-    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
     try
     {
-      FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-
-      boolean writerAutoFlush =
-          config.isAutoFlush() && !config.isAsynchronous();
-
-      TextWriter currentWriter;
       // Determine the writer we are using. If we were writing asynchronously,
       // we need to modify the underlying writer.
+      TextWriter currentWriter;
       if(writer instanceof AsynchronousTextWriter)
       {
         currentWriter = ((AsynchronousTextWriter)writer).getWrappedWriter();
@@ -375,40 +348,25 @@ public class TextErrorLogPublisher
       if(currentWriter instanceof MultifileTextWriter)
       {
         MultifileTextWriter mfWriter = (MultifileTextWriter)currentWriter;
+        configure(mfWriter, config);
 
-        mfWriter.setNamingPolicy(fnPolicy);
-        mfWriter.setFilePermissions(perm);
-        mfWriter.setAppend(config.isAppend());
-        mfWriter.setAutoFlush(writerAutoFlush);
-        mfWriter.setBufferSize((int)config.getBufferSize());
-        mfWriter.setInterval(config.getTimeInterval());
-
-        mfWriter.removeAllRetentionPolicies();
-        mfWriter.removeAllRotationPolicies();
-
-        for(DN dn : config.getRotationPolicyDNs())
+        if (config.isAsynchronous())
         {
-          mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+          if (!(writer instanceof AsynchronousTextWriter))
+          {
+            // The asynchronous setting is being turned on.
+            writer = newAsyncWriter(mfWriter, config);
+          }
         }
-
-        for(DN dn: config.getRetentionPolicyDNs())
+        else
         {
-          mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
-        }
-
-        if(writer instanceof AsynchronousTextWriter && !config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned off.
-          AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter)writer;
-          writer = mfWriter;
-          asyncWriter.shutdown(false);
-        }
-
-        if (!(writer instanceof AsynchronousTextWriter) && config.isAsynchronous())
-        {
-          // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
-              config.getQueueSize(), config.isAutoFlush(), mfWriter);
+          if (writer instanceof AsynchronousTextWriter)
+          {
+            // The asynchronous setting is being turned off.
+            AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            writer = mfWriter;
+            asyncWriter.shutdown(false);
+          }
         }
 
         if (currentConfig.isAsynchronous()
@@ -431,6 +389,44 @@ public class TextErrorLogPublisher
     return ccr;
   }
 
+  private void configure(MultifileTextWriter mfWriter, FileBasedErrorLogPublisherCfg config) throws DirectoryException
+  {
+    FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+    boolean writerAutoFlush = config.isAutoFlush() && !config.isAsynchronous();
+
+    File logFile = getLogFile(config);
+    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
+
+    mfWriter.setNamingPolicy(fnPolicy);
+    mfWriter.setFilePermissions(perm);
+    mfWriter.setAppend(config.isAppend());
+    mfWriter.setAutoFlush(writerAutoFlush);
+    mfWriter.setBufferSize((int) config.getBufferSize());
+    mfWriter.setInterval(config.getTimeInterval());
+
+    mfWriter.removeAllRetentionPolicies();
+    mfWriter.removeAllRotationPolicies();
+    for (DN dn : config.getRotationPolicyDNs())
+    {
+      mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+    }
+    for (DN dn : config.getRetentionPolicyDNs())
+    {
+      mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+    }
+  }
+
+  private File getLogFile(FileBasedErrorLogPublisherCfg config)
+  {
+    return getFileForPath(config.getLogFile());
+  }
+
+  private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedErrorLogPublisherCfg config)
+  {
+    String name = "Asynchronous Text Writer for " + config.dn();
+    return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
+  }
+
   private void setDefaultSeverities(Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs)
   {
     defaultSeverities.clear();
@@ -451,11 +447,7 @@ public class TextErrorLogPublisher
           defaultSeverities.add(Severity.INFORMATION);
           defaultSeverities.add(Severity.NOTICE);
         }
-        else if (LOG_SEVERITY_NONE.equalsIgnoreCase(defaultSeverity))
-        {
-          // don't add any severity
-        }
-        else
+        else if (!LOG_SEVERITY_NONE.equalsIgnoreCase(defaultSeverity))
         {
           Severity errorSeverity = Severity.parseString(defSev.name());
           if (errorSeverity != null)
@@ -467,7 +459,6 @@ public class TextErrorLogPublisher
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -479,7 +470,6 @@ public class TextErrorLogPublisher
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
   {
@@ -504,7 +494,6 @@ public class TextErrorLogPublisher
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isEnabledFor(String category, Severity severity)
   {
@@ -516,7 +505,6 @@ public class TextErrorLogPublisher
     return severities.contains(severity);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {
@@ -527,4 +515,3 @@ public class TextErrorLogPublisher
     return null;
   }
 }
-
