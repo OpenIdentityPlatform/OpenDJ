@@ -73,7 +73,7 @@ import org.testng.annotations.Test;
  * the permutation.
  */
 @SuppressWarnings("javadoc")
-public class ModifyReplayTest extends ReplicationTestCase
+public class ModifyReplaySingleValuedAttributeTest extends ReplicationTestCase
 {
   private static final String ATTRIBUTE_NAME = "displayName";
   private static final String SYNCHIST = "ds-sync-hist";
