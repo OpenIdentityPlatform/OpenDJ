@@ -32,12 +32,14 @@ import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.SortedSet;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
-import static org.opends.messages.ExtensionMessages.INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS;
+import static org.opends.messages.ExtensionMessages.INFO_MISSING_KEY_TYPE_IN_ALIASES;
 
 /**
  * This class implements an X.509 key manager that will be used to wrap an
@@ -56,8 +58,8 @@ public final class SelectableCertificateKeyManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The alias of the certificate that should be selected from the key manager. */
-  private final String alias;
+  /** The aliases of the certificates that should be selected from the key manager. */
+  private final SortedSet<String> aliases;
 
   /** The key manager that is wrapped by this key manager. */
   private final X509KeyManager keyManager;
@@ -65,40 +67,21 @@ public final class SelectableCertificateKeyManager
   /** Provide additional troubleshooting aid to localize a misconfigured SSL connection. */
   private final String componentName;
 
-
-  /**
-   * Creates a new instance of this key manager that will wrap the provided key
-   * manager and use the certificate with the specified alias.
-   *
-   * @param  keyManager       The key manager to be wrapped by this key manager.
-   * @param  alias            The nickname of the certificate that should be
-   *                          selected for operations involving this key manager.
-   * @param  componentName    Name of the component to which is associated this key manager
-   */
-  public SelectableCertificateKeyManager(X509KeyManager keyManager,
-                                         String alias, String componentName)
+  private SelectableCertificateKeyManager(X509KeyManager keyManager, SortedSet<String> aliases, String componentName)
   {
     super();
-
     this.keyManager = keyManager;
-    this.alias      = alias;
-    this.componentName       = componentName;
+    this.aliases = aliases;
+    this.componentName = componentName;
   }
 
-  /**
-   * Creates a new instance of this key manager that will wrap the provided key
-   * manager and use the certificate with the specified alias.
-   *
-   * @param  keyManager  The key manager to be wrapped by this key manager.
-   * @param  alias       The nickname of the certificate that should be
-   *                     selected for operations involving this key manager.
-   */
-  public SelectableCertificateKeyManager(X509KeyManager keyManager,
-                                         String alias)
+  private SelectableCertificateKeyManager(X509KeyManager keyManager, String alias)
   {
-    this(keyManager, alias, "[unknown]");
+    super();
+    this.keyManager = keyManager;
+    this.aliases = CollectionUtils.newTreeSet(alias);
+    this.componentName = "[unkown]";
   }
-
 
   /**
    * Chooses the alias of the client certificate that should be used based on
@@ -115,28 +98,45 @@ public final class SelectableCertificateKeyManager
    * @return  The alias configured for this key manager, or {@code null} if no
    *          such client certificate is available with that alias.
    */
+  @Override
   public String chooseClientAlias(String[] keyType, Principal[] issuers,
                                   Socket socket)
   {
-    for (String type : keyType)
+    return findClientAlias(keyType, issuers);
+  }
+
+  private String findClientAlias(String keyType[], Principal[] issuers)
+  {
+    for(String type : keyType)
     {
-      String[] clientAliases = keyManager.getClientAliases(type, issuers);
-      if (clientAliases != null)
+      final String clientAlias = findAlias(keyManager.getClientAliases(type, issuers));
+      if ( clientAlias != null )
       {
-        for (String clientAlias : clientAliases)
-        {
-          if (clientAlias.equals(alias))
-          {
-            return alias;
-          }
-        }
+        return clientAlias;
       }
     }
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
+    logger.warn(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
 
-
+  private String findAlias(String[] candidates)
+  {
+    if (candidates == null)
+    {
+      return null;
+    }
+    for (String alias : candidates)
+    {
+      for (String certificateAlias : aliases)
+      {
+        if (certificateAlias.equalsIgnoreCase(alias))
+        {
+          return alias;
+        }
+      }
+    }
+    return null;
+  }
 
   /**
    * Chooses the alias of the client certificate that should be used based on
@@ -157,10 +157,8 @@ public final class SelectableCertificateKeyManager
   public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
                                         SSLEngine engine)
   {
-    return chooseClientAlias(keyType, issuers, null);
+    return findClientAlias(keyType, issuers);
   }
-
-
 
   /**
    * Chooses the alias of the server certificate that should be used based on
@@ -176,26 +174,26 @@ public final class SelectableCertificateKeyManager
    * @return  The alias configured for this key manager, or {@code null} if no
    *          such server certificate is available with that alias.
    */
+  @Override
   public String chooseServerAlias(String keyType, Principal[] issuers,
                                   Socket socket)
   {
-    String[] serverAliases = keyManager.getServerAliases(keyType, issuers);
-    if (serverAliases != null)
-    {
-      for (String serverAlias : serverAliases)
-      {
-        if (serverAlias.equals(alias))
-        {
-          return alias;
-        }
-      }
-    }
-
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
-    return null;
+    return findServerAlias(new String[] { keyType }, issuers);
   }
 
-
+  private String findServerAlias(String keyType[], Principal[] issuers)
+  {
+    for (String type : keyType)
+    {
+      final String serverAlias = findAlias(keyManager.getServerAliases(type, issuers));
+      if (serverAlias != null)
+      {
+        return serverAlias;
+      }
+    }
+    logger.warn(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
+    return null;
+  }
 
   /**
    * Chooses the alias of the server certificate that should be used based on
@@ -218,23 +216,8 @@ public final class SelectableCertificateKeyManager
   public String chooseEngineServerAlias(String keyType, Principal[] issuers,
                                         SSLEngine engine)
   {
-    String[] serverAliases = keyManager.getServerAliases(keyType, issuers);
-    if (serverAliases != null)
-    {
-      for (String serverAlias : serverAliases)
-      {
-        if (serverAlias.equalsIgnoreCase(alias))
-        {
-          return serverAlias;
-        }
-      }
-    }
-
-    logger.warn(INFO_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, componentName, keyType, alias);
-    return null;
-  }
-
-
+    return findServerAlias(new String[] { keyType }, issuers);
+   }
 
   /**
    * Retrieves the certificate chain for the provided alias.
@@ -244,12 +227,11 @@ public final class SelectableCertificateKeyManager
    * @return  The certificate chain for the provided alias, or {@code null} if
    *          no certificate is associated with the provided alias.
    */
+  @Override
   public X509Certificate[] getCertificateChain(String alias)
   {
     return keyManager.getCertificateChain(alias);
   }
-
-
 
   /**
    * Retrieves the set of certificate aliases that may be used for client
@@ -263,12 +245,11 @@ public final class SelectableCertificateKeyManager
    *          authentication with the given public key type and set of issuers,
    *          or {@code null} if there were none.
    */
+  @Override
   public String[] getClientAliases(String keyType, Principal[] issuers)
   {
     return keyManager.getClientAliases(keyType, issuers);
   }
-
-
 
   /**
    * Retrieves the private key for the provided alias.
@@ -278,12 +259,11 @@ public final class SelectableCertificateKeyManager
    * @return  The private key for the provided alias, or {@code null} if no
    *          private key is available for the provided alias.
    */
+  @Override
   public PrivateKey getPrivateKey(String alias)
   {
     return keyManager.getPrivateKey(alias);
   }
-
-
 
   /**
    * Retrieves the set of certificate aliases that may be used for server
@@ -297,33 +277,31 @@ public final class SelectableCertificateKeyManager
    *          authentication with the given public key type and set of issuers,
    *          or {@code null} if there were none.
    */
+  @Override
   public String[] getServerAliases(String keyType, Principal[] issuers)
   {
     return keyManager.getServerAliases(keyType, issuers);
   }
-
-
 
   /**
    * Wraps the provided set of key managers in selectable certificate key
    * managers using the provided alias.
    *
    * @param  keyManagers      The set of key managers to be wrapped.
-   * @param  alias            The alias to use for selecting the desired
+   * @param  aliases          The aliases to use for selecting the desired
    *                          certificate.
    * @param  componentName    Name of the component to which is associated this key manager
    *
    * @return  A key manager array
    */
-  public static X509ExtendedKeyManager[] wrap(KeyManager[] keyManagers,
-                                              String alias, String componentName)
+  public static KeyManager[] wrap(KeyManager[] keyManagers,
+                                  SortedSet<String> aliases, String componentName)
   {
-    X509ExtendedKeyManager[] newKeyManagers =
-         new X509ExtendedKeyManager[keyManagers.length];
+    final KeyManager[] newKeyManagers = new KeyManager[keyManagers.length];
     for (int i=0; i < keyManagers.length; i++)
     {
       newKeyManagers[i] = new SelectableCertificateKeyManager(
-                                   (X509KeyManager) keyManagers[i], alias, componentName);
+                                   (X509KeyManager) keyManagers[i], aliases, componentName);
     }
 
     return newKeyManagers;
@@ -334,12 +312,12 @@ public final class SelectableCertificateKeyManager
    * managers using the provided alias.
    *
    * @param  keyManagers      The set of key managers to be wrapped.
-   * @param  alias            The alias to use for selecting the desired
+   * @param  aliases            The aliases to use for selecting the desired
    *                          certificate.
    *
    * @return  A key manager array
    */
-  public static X509ExtendedKeyManager[] wrap(KeyManager[] keyManagers, String alias) {
-    return wrap(keyManagers, alias, "[unknown]");
+  public static KeyManager[] wrap(KeyManager[] keyManagers, SortedSet<String> aliases) {
+    return wrap(keyManagers, aliases, "[unknown]");
   }
 }

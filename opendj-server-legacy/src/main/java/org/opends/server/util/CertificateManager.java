@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.UtilityMessages.*;
+import org.opends.server.util.Platform.KeyType;
 
 /**
  * This class provides an interface for generating self-signed certificates and
@@ -249,6 +250,7 @@ public final class CertificateManager {
   /**
    * Generates a self-signed certificate using the provided information.
    *
+   * @param  keyType    Specifies the key size, key and signature algorithms.
    * @param  alias      The nickname to use for the certificate in the key
    *                    store.  For the server certificate, it should generally
    *                    be "server-cert".  It must not be {@code null} or empty.
@@ -263,7 +265,7 @@ public final class CertificateManager {
    *                                 positive integer, or the alias is already
    *                                 in the keystore.
    */
-  public void generateSelfSignedCertificate(String alias, String subjectDN,
+  public void generateSelfSignedCertificate(KeyType keyType, String alias, String subjectDN,
                                             int validity)
   throws KeyStoreException, IllegalArgumentException {
     ensureValid(alias, CERT_ALIAS_MSG);
@@ -278,7 +280,7 @@ public final class CertificateManager {
     }
     keyStore = null;
     Platform.generateSelfSignedCertificate(getKeyStore(), keyStoreType,
-        keyStorePath, alias, password, subjectDN, validity);
+        keyStorePath, keyType, alias, password, subjectDN, validity);
   }
 
 

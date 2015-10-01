@@ -36,6 +36,7 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -175,7 +176,7 @@ public final class JmxConnectionHandler extends
   }
 
 
-  private boolean notEqualsNotNull(String o1, String o2)
+  private <T> boolean notEqualsNotNull(T o1, T o2)
   {
     return o1 != null && !o1.equals(o2);
   }
@@ -284,13 +285,13 @@ public final class JmxConnectionHandler extends
 
 
   /**
-   * Retrieves the nickname of the server certificate that should be
+   * Retrieves the nicknames of the server certificates that should be
    * used in conjunction with this JMX connection handler.
    *
-   * @return The nickname of the server certificate that should be
+   * @return The nicknames of the server certificates that should be
    *         used in conjunction with this JMX connection handler.
    */
-  public String getSSLServerCertNickname() {
+  public SortedSet<String> getSSLServerCertNicknames() {
     return currentConfig.getSSLCertNickname();
   }
 

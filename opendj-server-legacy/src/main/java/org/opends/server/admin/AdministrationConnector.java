@@ -63,6 +63,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.Platform.KeyType;
 import org.opends.server.util.SetupUtils;
 
 /**
@@ -329,7 +330,7 @@ public final class AdministrationConnector implements
 
     /** {@inheritDoc} */
     @Override
-    public String getSSLCertNickname()
+    public SortedSet<String> getSSLCertNickname()
     {
       return config.getSSLCertNickname();
     }
@@ -456,7 +457,7 @@ public final class AdministrationConnector implements
       AdministrationConnectorCfg config = root.getAdministrationConnector();
 
       // Check if certificate generation is needed
-      String certAlias = config.getSSLCertNickname();
+      final SortedSet<String> certAliases = config.getSSLCertNickname();
       KeyManagerProviderCfg keyMgrConfig = root.getKeyManagerProvider(config
           .getKeyManagerProvider());
       TrustManagerProviderCfg trustMgrConfig = root
@@ -535,32 +536,39 @@ public final class AdministrationConnector implements
               .getKeyStoreType(), pwd);
       String hostName =
         SetupUtils.getHostNameForCertificate(DirectoryServer.getServerRoot());
-      String subjectDN = "cn="
-          + Rdn.escapeValue(hostName) + ",O="
-          + FRIENDLY_NAME + " Self-Signed Certificate";
-      certManager.generateSelfSignedCertificate(certAlias, subjectDN,
-          ADMIN_CERT_VALIDITY);
 
-      // Export the certificate
+      // Temporary exported certificate's file
       String tempCertPath = getFullPath("config" + File.separator
           + "admin-cert.txt");
-      SetupUtils.exportCertificate(certManager, certAlias, tempCertPath);
 
       // Create a new trust store and import the server certificate
       // into it
       CertificateManager trustManager = new CertificateManager(truststorePath,
           CertificateManager.KEY_STORE_TYPE_JKS, pwd);
-      trustManager.addCertificate(certAlias, new File(tempCertPath));
+      for (String certAlias : certAliases)
+      {
+        final KeyType keyType = KeyType.getTypeOrDefault(certAlias);
+        final String subjectDN =
+            "cn=" + Rdn.escapeValue(hostName) + ",O=" + FRIENDLY_NAME + " " + keyType + " Self-Signed Certificate";
+        certManager.generateSelfSignedCertificate(keyType, certAlias, subjectDN, ADMIN_CERT_VALIDITY);
+
+        SetupUtils.exportCertificate(certManager, certAlias, tempCertPath);
+
+        // import the server certificate into it
+        final File tempCertFile = new File(tempCertPath);
+        trustManager.addCertificate(certAlias, tempCertFile);
+        tempCertFile.delete();
+      }
 
       // Generate a password file
       if (!new File(pinFilePath).exists())
       {
-        FileWriter file = new FileWriter(pinFilePath);
-        PrintWriter out = new PrintWriter(file);
-        out.println(pwd);
-        out.flush();
-        out.close();
-        file.close();
+        try (final FileWriter file = new FileWriter(pinFilePath);
+             final PrintWriter out = new PrintWriter(file))
+        {
+          out.println(pwd);
+          out.flush();
+        }
       }
 
       // Change the password file permission if possible
@@ -578,10 +586,6 @@ public final class AdministrationConnector implements
         // Log a warning that the permissions were not set.
         logger.warn(WARN_ADMIN_SET_PERMISSIONS_FAILED, pinFilePath);
       }
-
-      // Delete the exported certificate
-      File f = new File(tempCertPath);
-      f.delete();
     }
     catch (InitializationException e)
     {

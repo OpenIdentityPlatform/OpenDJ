@@ -381,7 +381,10 @@ public class OfflineInstaller extends Installer
             CertificateManager.KEY_STORE_TYPE_JKS,
             getSelfSignedCertificatePwd());
         try {
-          cm.removeCertificate(SELF_SIGNED_CERT_ALIAS);
+          for (String alias : SELF_SIGNED_CERT_ALIASES)
+          {
+            cm.removeCertificate(alias);
+          }
         } catch (KeyStoreException e) {
           logger.info(LocalizableMessage.raw("Error deleting self signed certification", e));
         }

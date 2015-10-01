@@ -94,19 +94,54 @@ public final class Platform
     IMPL = new DefaultPlatformIMPL();
   }
 
+  /** Key size, key algorithm and signature algorithms used. */
+  public static enum KeyType
+  {
+    /** RSA key algorithm with 2048 bits size and SHA1withRSA signing algorithm. */
+    RSA("rsa", 2048, "SHA1WithRSA"),
 
+    /** Elliptic Curve key algorithm with 233 bits size and SHA1withECDSA signing algorithm. */
+    EC("ec", 233, "SHA1withECDSA");
+
+    /** Default key type used when none can be determined. */
+    public final static KeyType DEFAULT = RSA;
+
+    final String keyAlgorithm;
+    final int keySize;
+    final String signatureAlgorithm;
+
+    private KeyType(String keyAlgorithm, int keySize, String signatureAlgorithm)
+    {
+      this.keySize = keySize;
+      this.keyAlgorithm = keyAlgorithm;
+      this.signatureAlgorithm = signatureAlgorithm;
+    }
+
+    /**
+     * Get a KeyType based on the alias name.
+     *
+     * @param alias
+     *          certificate alias
+     * @return KeyTpe deduced from the alias.
+     */
+    public static KeyType getTypeOrDefault(String alias)
+    {
+      try
+      {
+        return KeyType.valueOf(alias.substring(alias.lastIndexOf('-') + 1).toUpperCase());
+      }
+      catch (Exception e)
+      {
+        return KeyType.DEFAULT;
+      }
+    }
+  }
 
   /**
    * Platform base class. Performs all of the certificate management functions.
    */
   private static abstract class PlatformIMPL
   {
-
-    /** Key size, key algorithm and signature algorithms used. */
-    private static final int KEY_SIZE = 1024;
-    private static final String KEY_ALGORITHM = "rsa";
-    private static final String SIG_ALGORITHM = "SHA1WithRSA";
-
     /** Time values used in validity calculations. */
     private static final int SEC_IN_DAY = 24 * 60 * 60;
 
@@ -272,8 +307,8 @@ public final class Platform
 
 
 
-    private final KeyStore generateSelfSignedCertificate(KeyStore ks,
-        String ksType, String ksPath, String alias, char[] pwd, String dn,
+    private static final KeyStore generateSelfSignedCertificate(KeyStore ks,
+        String ksType, String ksPath, KeyType keyType, String alias, char[] pwd, String dn,
         int validity) throws KeyStoreException
     {
       try
@@ -288,26 +323,26 @@ public final class Platform
           LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
           throw new KeyStoreException(msg.toString());
         }
-        Object keypair = certKeyGenCons.newInstance(KEY_ALGORITHM,
-            SIG_ALGORITHM);
-        Object subject = X500NameCons.newInstance(dn);
-        Method certAndKeyGenGenerate = certKeyGenClass.getMethod(
-            GENERATE_METHOD, int.class);
-        certAndKeyGenGenerate.invoke(keypair, KEY_SIZE);
-        Method certAndKeyGetPrivateKey = certKeyGenClass
-            .getMethod(GET_PRIVATE_KEY_METHOD);
-        PrivateKey privatevKey = (PrivateKey) certAndKeyGetPrivateKey
-            .invoke(keypair);
-        Certificate[] certificateChain = new Certificate[1];
-        Method getSelfCertificate = certKeyGenClass.getMethod(
-            GET_SELFSIGNED_CERT_METHOD, X500NameClass, long.class);
-        int days = validity * SEC_IN_DAY;
-        certificateChain[0] = (Certificate) getSelfCertificate.invoke(keypair,
-            subject, days);
-        ks.setKeyEntry(alias, privatevKey, pwd, certificateChain);
-        FileOutputStream fileOutStream = new FileOutputStream(ksPath);
-        ks.store(fileOutStream, pwd);
-        fileOutStream.close();
+
+        try (final FileOutputStream fileOutStream = new FileOutputStream(ksPath))
+        {
+            final Object keypair = certKeyGenCons.newInstance(keyType.keyAlgorithm, keyType.signatureAlgorithm);
+
+            final Method certAndKeyGenGenerate = certKeyGenClass.getMethod(GENERATE_METHOD, int.class);
+            certAndKeyGenGenerate.invoke(keypair, keyType.keySize);
+
+            final Method certAndKeyGetPrivateKey = certKeyGenClass.getMethod(GET_PRIVATE_KEY_METHOD);
+            final Certificate[] certificateChain = new Certificate[1];
+            final Method getSelfCertificate =
+                certKeyGenClass.getMethod(GET_SELFSIGNED_CERT_METHOD, X500NameClass, long.class);
+
+            final int days = validity * SEC_IN_DAY;
+            final Object subject = X500NameCons.newInstance(dn);
+            certificateChain[0] = (Certificate) getSelfCertificate.invoke(keypair, subject, days);
+            ks.setKeyEntry(alias , (PrivateKey) certAndKeyGetPrivateKey.invoke(keypair), pwd, certificateChain);
+
+            ks.store(fileOutStream, pwd);
+        }
       }
       catch (Exception e)
       {
@@ -485,10 +520,12 @@ public final class Platform
    * @param ks
    *          The keystore to save the certificate in. May be null if it does
    *          not exist.
-   * @param ksType
+   * @param keyType
    *          The keystore type to use if the keystore is created.
    * @param ksPath
    *          The path to the keystore if the keystore is created.
+   * @param ksType
+   *          Specify the key size, key algorithm and signature algorithms used.
    * @param alias
    *          The alias to store the certificate under.
    * @param pwd
@@ -501,11 +538,10 @@ public final class Platform
    *           If the self-signed certificate cannot be generated.
    */
   public static void generateSelfSignedCertificate(KeyStore ks, String ksType,
-      String ksPath, String alias, char[] pwd, String dn, int validity)
+      String ksPath, KeyType keyType, String alias, char[] pwd, String dn, int validity)
       throws KeyStoreException
   {
-    IMPL.generateSelfSignedCertificate(ks, ksType, ksPath, alias, pwd, dn,
-        validity);
+    PlatformIMPL.generateSelfSignedCertificate(ks, ksType, ksPath, keyType, alias, pwd, dn, validity);
   }
 
   /**

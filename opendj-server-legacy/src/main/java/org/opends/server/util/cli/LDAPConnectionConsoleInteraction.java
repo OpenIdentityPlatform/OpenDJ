@@ -54,6 +54,7 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -1309,7 +1310,9 @@ public class LDAPConnectionConsoleInteraction
     {
       copySecureArgsList.certNicknameArg.clearValues();
       copySecureArgsList.certNicknameArg.addValue(state.certifNickname);
-      return new SelectableCertificateKeyManager(akm, state.certifNickname);
+      return SelectableCertificateKeyManager.wrap(
+          new KeyManager[] { akm },
+          CollectionUtils.newTreeSet(state.certifNickname))[0];
     }
     return akm;
   }

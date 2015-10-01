@@ -45,6 +45,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.extensions.BlindTrustManagerProvider;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
@@ -123,8 +124,7 @@ public class SSLConnectionFactory
 
         if (clientAlias != null)
         {
-          keyManagers = SelectableCertificateKeyManager.wrap(keyManagers,
-                                                             clientAlias);
+          keyManagers = SelectableCertificateKeyManager.wrap(keyManagers, CollectionUtils.newTreeSet(clientAlias));
         }
       }
 

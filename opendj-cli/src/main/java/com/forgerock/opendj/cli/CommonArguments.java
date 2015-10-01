@@ -1301,7 +1301,7 @@ public final class CommonArguments {
      */
     public static StringArgument getCertNickName() throws ArgumentException {
         return new StringArgument(OPTION_LONG_CERT_NICKNAME.toLowerCase(), OPTION_SHORT_CERT_NICKNAME,
-                OPTION_LONG_CERT_NICKNAME, false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
+                OPTION_LONG_CERT_NICKNAME, false, true, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
                 OPTION_LONG_CERT_NICKNAME, INFO_ARGUMENT_DESCRIPTION_CERT_NICKNAME.get());
     }
 

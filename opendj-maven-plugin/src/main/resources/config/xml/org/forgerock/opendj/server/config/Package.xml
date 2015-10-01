@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
-  !      Portions Copyright 2011-2013 ForgeRock AS
+  !      Portions Copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:package name="org.forgerock.opendj.server.config"
   xmlns:adm="http://opendj.forgerock.org/admin"
@@ -80,7 +80,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="ssl-cert-nickname">
+  <adm:property name="ssl-cert-nickname" multi-valued="true">
     <adm:TODO>Need a better default description.</adm:TODO>
     <adm:synopsis>
       Specifies the nickname (also called the alias) of the certificate
