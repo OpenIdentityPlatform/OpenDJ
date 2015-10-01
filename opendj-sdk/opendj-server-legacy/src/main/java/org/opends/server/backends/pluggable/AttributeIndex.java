@@ -100,7 +100,6 @@ class AttributeIndex
       this.indexType = indexType;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -675,7 +674,6 @@ class AttributeIndex
     return getName();
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized boolean isConfigurationChangeAcceptable(
       BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -731,7 +729,6 @@ class AttributeIndex
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized ConfigChangeResult applyConfigurationChange(final BackendIndexCfg newConfiguration)
   {

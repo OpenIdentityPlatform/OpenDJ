@@ -48,7 +48,6 @@ import org.opends.server.util.TimeThread;
  */
 class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
 {
-
   /** Represents the statistical information kept for each search filter. */
   private static class FilterStats implements Comparable<FilterStats>
   {
@@ -106,7 +105,6 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     this.rootContainer = rootContainer;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
        throws ConfigException, InitializationException
@@ -187,7 +185,6 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     return monitorAttrs;
   }
 
-
   /**
    * Updates the index filter statistics with this latest search filter
    * and the reason why an index was not used.
@@ -206,7 +203,6 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     synchronized(filterToStats)
     {
       stats = filterToStats.get(searchFilter);
-
 
       if(stats != null)
       {
@@ -241,7 +237,6 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     synchronized(filterToStats)
     {
       stats = filterToStats.get(searchFilter);
-
 
       if(stats != null)
       {
@@ -299,9 +294,7 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     this.maxEntries = maxEntries;
   }
 
-  /**
-   * Updates the statistics counter to include an indexed search.
-   */
+  /** Updates the statistics counter to include an indexed search. */
   void updateIndexedSearchCount()
   {
     if (filterUseEnabled)
@@ -310,9 +303,7 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  /**
-   * Updates the statistics counter to include an unindexed search.
-   */
+  /** Updates the statistics counter to include an unindexed search. */
   void updateUnindexedSearchCount()
   {
     if (filterUseEnabled)

@@ -52,9 +52,7 @@ abstract class AbstractTree implements Tree, Comparable<Tree>
     open0(txn);
   }
 
-  /**
-   * Override in order to perform any additional initialization after the index has opened.
-   */
+  /** Override in order to perform any additional initialization after the index has opened. */
   void open0(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Do nothing by default.
@@ -95,5 +93,4 @@ abstract class AbstractTree implements Tree, Comparable<Tree>
   {
     return name.compareTo(o.getName());
   }
-
 }

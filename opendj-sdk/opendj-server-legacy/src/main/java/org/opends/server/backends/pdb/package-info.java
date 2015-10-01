@@ -23,7 +23,6 @@
  *
  *      Copyright 2014-2015 ForgeRock AS
  */
-
 /**
  * Contains the code for the Directory Server backend that uses Persistit
  * as the repository for storing entry and index information.

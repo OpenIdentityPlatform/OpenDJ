@@ -51,7 +51,6 @@ import org.opends.server.types.DirectoryException;
 @SuppressWarnings("javadoc")
 class IndexBuffer
 {
-
   /** Internal interface for IndexBuffer implementor. */
   private interface IndexBufferImplementor
   {
@@ -74,7 +73,6 @@ class IndexBuffer
    */
   private static final class DefaultIndexBuffer implements IndexBufferImplementor
   {
-
     /**
      * The buffered records stored as a map from the record key to the buffered value for that key for each index.
      * <p>
@@ -351,5 +349,4 @@ class IndexBuffer
   {
     impl.remove(index, key, entryID);
   }
-
 }

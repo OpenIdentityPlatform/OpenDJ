@@ -23,7 +23,6 @@
  *
  *      Copyright 2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pdb;
 
 import java.util.List;
@@ -35,9 +34,7 @@ import org.opends.server.backends.pluggable.BackendImpl;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.core.ServerContext;
 
-/**
- * Class defined in the configuration for this backend type.
- */
+/** Class defined in the configuration for this backend type. */
 public final class PDBBackend extends BackendImpl<PDBBackendCfg>
 {
   @Override

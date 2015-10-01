@@ -27,8 +27,8 @@ package org.opends.server.backends.pluggable;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.util.Reject;
 import org.forgerock.util.Function;
+import org.forgerock.util.Reject;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -175,11 +175,11 @@ final class ID2Count extends AbstractTree
     return counterValue;
   }
 
-  private static final ByteSequence getKeyFromEntryID(EntryID entryID) {
+  private static ByteSequence getKeyFromEntryID(EntryID entryID) {
     return new ByteStringBuilder(LONG_SIZE).appendCompactUnsigned(entryID.longValue());
   }
 
-  private static final ByteSequence getKeyFromEntryIDAndBucket(EntryID entryID, long bucket) {
+  private static ByteSequence getKeyFromEntryIDAndBucket(EntryID entryID, long bucket) {
     return new ByteStringBuilder(LONG_SIZE + LONG_SIZE).appendCompactUnsigned(entryID.longValue())
         .appendCompactUnsigned(bucket);
   }

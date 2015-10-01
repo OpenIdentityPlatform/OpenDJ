@@ -400,7 +400,6 @@ public class EntryContainer
       }
       return ccr;
     }
-
   }
 
   /** A read write lock to handle schema changes and bulk changes. */
@@ -1118,9 +1117,7 @@ public class EntryContainer
         dn2uri.checkTargetForReferral(baseEntry, searchScope);
       }
 
-      /*
-       * The base entry is only included for whole subtree search.
-       */
+      /* The base entry is only included for whole subtree search. */
       if (searchScope == SearchScope.WHOLE_SUBTREE
           && searchOperation.getFilter().matchesEntry(baseEntry))
       {
@@ -2149,7 +2146,6 @@ public class EntryContainer
             Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
             try
             {
-
               // Step forward until we pass the ending value.
               boolean success = cursor.positionToKeyOrNext(suffix);
               while (success && cursor.getKey().compareTo(end) < 0)
@@ -2789,7 +2785,6 @@ public class EntryContainer
     }
   }
 
-
   /**
    * Finds an existing entry whose DN is the closest ancestor of a given baseDN.
    *
@@ -2836,7 +2831,6 @@ public class EntryContainer
     }
     return false;
   }
-
 
   /**
    * Fetch the base Entry of the EntryContainer.

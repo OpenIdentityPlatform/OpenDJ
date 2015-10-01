@@ -36,11 +36,7 @@ import org.opends.server.types.DN;
  */
 public interface SuffixContainer extends Closeable
 {
-
-  /**
-   * The name of the index associating normalized DNs to ids. LDAP DNs uniquely
-   * identify entries.
-   */
+  /** The name of the index associating normalized DNs to ids. LDAP DNs uniquely identify entries. */
   String DN2ID_INDEX_NAME = "dn2id";
   /** The name of the index associating normalized DNs to URIs. */
   String DN2URI_INDEX_NAME = "dn2uri";
@@ -55,10 +51,7 @@ public interface SuffixContainer extends Closeable
    * its children, i.e. its immediate children.
    */
   String ID2CHILDREN_INDEX_NAME = "id2children";
-  /**
-   * The name of the index associating an entry id to the number of immediate
-   * children below it.
-   */
+  /** The name of the index associating an entry id to the number of immediate children below it. */
   String ID2CHILDREN_COUNT_NAME = "id2childrencount";
   /**
    * The name of the index associating an entry id to the entry id set of all

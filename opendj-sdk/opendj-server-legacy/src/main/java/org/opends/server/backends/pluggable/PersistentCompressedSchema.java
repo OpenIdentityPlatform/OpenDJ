@@ -77,8 +77,6 @@ final class PersistentCompressedSchema extends CompressedSchema
   private final ByteStringBuilder storeObjectClassesWriterBuffer = new ByteStringBuilder();
   private final ASN1Writer storeObjectClassesWriter = ASN1.getWriter(storeObjectClassesWriterBuffer);
 
-
-
   /**
    * Creates a new instance of this compressed schema manager.
    *
@@ -101,7 +99,6 @@ final class PersistentCompressedSchema extends CompressedSchema
     load(txn, accessMode.isWriteable());
   }
 
-  /** {@inheritDoc} */
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,
       final String attributeName, final Collection<String> attributeOptions)
@@ -125,9 +122,6 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   protected void storeObjectClasses(final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames) throws DirectoryException
@@ -148,7 +142,6 @@ final class PersistentCompressedSchema extends CompressedSchema
       // TODO: Shouldn't happen but should log a message
     }
   }
-
 
   private void load(WriteableTransaction txn, boolean shouldCreate)
       throws StorageRuntimeException, InitializationException
@@ -239,5 +232,4 @@ final class PersistentCompressedSchema extends CompressedSchema
           ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }
-
 }

@@ -34,9 +34,7 @@ import java.util.Collection;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.util.Utils;
 
-/**
- * This class represents a Backend Query.
- */
+/** This class represents a Backend Query. */
 @org.opends.server.types.PublicAPI(
     stability = org.opends.server.types.StabilityLevel.VOLATILE,
     mayInstantiate = false,
@@ -115,10 +113,7 @@ abstract class IndexQuery
     }
   }
 
-  /**
-   * This class creates an intersection IndexQuery from a collection of
-   * IndexQuery objects.
-   */
+  /** This class creates an intersection IndexQuery from a collection of IndexQuery objects. */
   private static final class IntersectionIndexQuery extends IndexQuery
   {
     /** Collection of IndexQuery objects. */

@@ -50,9 +50,8 @@ import org.opends.server.backends.pluggable.spi.SequentialCursor;
  */
 final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
 {
-
   /**
-   * Allow to transform a cursor value given the key and the original value
+   * Allow to transform a cursor value given the key and the original value.
    * @param <KI> Original type of the cursor's key
    * @param <VI> Original type of the cursor's value
    * @param <VO> New transformed type of the value
@@ -269,9 +268,7 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
     }
   }
 
-  /**
-   * Runtime exception for problems happening during the transformation
-   */
+  /** Runtime exception for problems happening during the transformation. */
   @SuppressWarnings("serial")
   private static class TransformationException extends RuntimeException
   {

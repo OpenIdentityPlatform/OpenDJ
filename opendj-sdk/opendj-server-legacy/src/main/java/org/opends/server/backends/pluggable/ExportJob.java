@@ -46,32 +46,21 @@ import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 
-/**
- * Export a backend to LDIF.
- */
+/** Export a backend to LDIF. */
 class ExportJob
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * The requested LDIF export configuration.
-   */
+  /** The requested LDIF export configuration. */
   private final LDIFExportConfig exportConfig;
 
-  /**
-   * The number of milliseconds between job progress reports.
-   */
+  /** The number of milliseconds between job progress reports. */
   private final long progressInterval = 10000;
 
-  /**
-   * The current number of entries exported.
-   */
+  /** The current number of entries exported. */
   private long exportedCount;
 
-  /**
-   * The current number of entries skipped.
-   */
+  /** The current number of entries skipped. */
   private long skippedCount;
 
   /**
@@ -166,7 +155,6 @@ class ExportJob
     {
       timer.cancel();
     }
-
 
     long finishTime = System.currentTimeMillis();
     long totalTime = finishTime - startTime;
@@ -263,33 +251,22 @@ class ExportJob
     }
   }
 
-  /**
-   * This class reports progress of the export job at fixed intervals.
-   */
+  /** This class reports progress of the export job at fixed intervals. */
   private class ProgressTask extends TimerTask
   {
-    /**
-     * The number of entries that had been exported at the time of the
-     * previous progress report.
-     */
+    /** The number of entries that had been exported at the time of the previous progress report. */
     private long previousCount;
 
-    /**
-     * The time in milliseconds of the previous progress report.
-     */
+    /** The time in milliseconds of the previous progress report. */
     private long previousTime;
 
-    /**
-     * Create a new export progress task.
-     */
+    /** Create a new export progress task. */
     public ProgressTask()
     {
       previousTime = System.currentTimeMillis();
     }
 
-    /**
-     * The action to be performed by this timer task.
-     */
+    /** The action to be performed by this timer task. */
     @Override
     public void run()
     {
@@ -311,5 +288,4 @@ class ExportJob
       previousTime = latestTime;
     }
   }
-
 }

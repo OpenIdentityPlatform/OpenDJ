@@ -52,9 +52,7 @@ class IndexFilter
    */
   private static final int FILTER_CANDIDATE_THRESHOLD = 10;
 
-  /**
-   * Limit on the number of entry IDs that may be retrieved by cursoring through an index.
-   */
+  /** Limit on the number of entry IDs that may be retrieved by cursoring through an index. */
   static final int CURSOR_ENTRY_LIMIT = 100000;
 
   /** The entry container holding the attribute indexes. */

@@ -31,12 +31,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DN;
 
-/**
- * Handles the disk representation of LDAP data.
- */
+/** Handles the disk representation of LDAP data. */
 public class DnKeyFormat
 {
-
   /** The format version used by this class to encode and decode a ByteString. */
   static final byte FORMAT_VERSION = 0x01;
 
