@@ -76,7 +76,7 @@
       Singleton configuration definition instance.
     -->
     <xsl:value-of
-      select="concat('  // The singleton configuration definition instance.&#xa;',
+      select="concat('  /** The singleton configuration definition instance. */&#xa;',
                      '  private static final ',
                      $this-java-class ,
                      'CfgDefn INSTANCE = new ', $this-java-class, 'CfgDefn();&#xa;')" />
@@ -380,7 +380,7 @@
       Private instance.
     -->
     <xsl:value-of
-      select="concat('    // Private implementation.&#xa;',
+      select="concat('    /** Private implementation. */&#xa;',
                      '    private ManagedObject&lt;? extends ',
                      $this-java-class,
                      'CfgClient&gt; impl;&#xa;')" />
@@ -391,7 +391,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    // Private constructor.&#xa;',
+      select="concat('    /** Private constructor. */&#xa;',
                      '    private ',
                      $this-java-class,
                      'CfgClientImpl(&#xa;',
@@ -498,7 +498,7 @@
       Private instance.
     -->
     <xsl:value-of
-      select="concat('    // Private implementation.&#xa;',
+      select="concat('    /** Private implementation. */&#xa;',
                      '    private ServerManagedObject&lt;? extends ', $this-java-class, 'Cfg&gt; impl;&#xa;')" />
     <!--
       Private members for each property.
@@ -507,7 +507,7 @@
       <xsl:sort select="@name" />
       <xsl:text>&#xa;</xsl:text>
       <xsl:value-of
-        select="concat('    // The value of the &quot;', @name, '&quot; property.&#xa;')" />
+        select="concat('    /** The value of the &quot;', @name, '&quot; property. */&#xa;')" />
       <xsl:value-of select="'    private final '" />
       <xsl:choose>
         <xsl:when test="string(@multi-valued) != 'true'">
@@ -551,7 +551,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    // Private constructor.&#xa;',
+      select="concat('    /** Private constructor. */&#xa;',
                      '    private ',
                      $this-java-class,
                      'CfgServerImpl(ServerManagedObject&lt;? extends ', $this-java-class, 'Cfg&gt; impl) {&#xa;',
@@ -672,9 +672,9 @@
       </xsl:choose>
     </xsl:variable>
     <xsl:value-of
-      select="concat('  // The &quot;',
+      select="concat('  /** The &quot;',
                      @name,
-                     '&quot; property definition.&#xa;',
+                     '&quot; property definition. */&#xa;',
                      '  private static final ', $pdtype, ' PD_', $java-prop-name, ';&#xa;')" />
   </xsl:template>
   <!--
@@ -696,7 +696,7 @@
       <xsl:call-template name="get-property-java-type" />
     </xsl:variable>
     <xsl:value-of
-      select="concat('  // Build the &quot;', @name, '&quot; property definition.&#xa;',
+      select="concat('  /** Build the &quot;', @name, '&quot; property definition. */&#xa;',
                                  '  static {&#xa;')" />
     <xsl:choose>
       <xsl:when test="string-length($generic-type) != 0">
@@ -848,9 +848,9 @@
       </xsl:call-template>
     </xsl:variable>
     <xsl:value-of
-      select="concat('  // The &quot;',
+      select="concat('  /** The &quot;',
                      $relation-name,
-                     '&quot; relation definition.&#xa;',
+                     '&quot; relation definition. */&#xa;',
                      '  private static final ')" />
     <xsl:choose>
       <xsl:when test="adm:one-to-one">
@@ -1670,12 +1670,12 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="'    // String representation of the value.&#xa;'" />
+      select="'    /** String representation of the value. */&#xa;'" />
     <xsl:value-of select="'    private final String name;&#xa;'" />
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
-    <xsl:value-of select="'    // Private constructor.&#xa;'" />
+    <xsl:value-of select="'    /** Private constructor. */&#xa;'" />
     <xsl:value-of select="'    private '" />
     <xsl:call-template name="name-to-java">
       <xsl:with-param name="value" select="@name" />
