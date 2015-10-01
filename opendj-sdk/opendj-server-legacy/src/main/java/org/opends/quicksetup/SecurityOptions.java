@@ -40,6 +40,8 @@ public class SecurityOptions
 
   /** Alias of a self-signed certificate. */
   public static final String SELF_SIGNED_CERT_ALIAS = "server-cert";
+  /** Alias of a self-signed certificate using elliptic curve. */
+  public static final String SELF_SIGNED_EC_CERT_ALIAS = SELF_SIGNED_CERT_ALIAS + "-ec";
 
   /**
    * The different type of security options that we can have.

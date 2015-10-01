@@ -32,6 +32,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
+import java.util.SortedSet;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLSocketFactory;
@@ -279,26 +280,19 @@ public class RmiConnector
         // SERVER SIDE
         // ---------------------
         // Get a Server socket factory
-        KeyManager[] keyManagers;
         KeyManagerProvider provider = DirectoryServer
             .getKeyManagerProvider(jmxConnectionHandler
                 .getKeyManagerProviderDN());
+        final KeyManager[] keyManagers;
         if (provider == null) {
           keyManagers = new NullKeyManagerProvider().getKeyManagers();
         }
         else
         {
-          String nickname = jmxConnectionHandler.getSSLServerCertNickname();
-          if (nickname == null)
-          {
-            keyManagers = provider.getKeyManagers();
-          }
-          else
-          {
-            keyManagers =
-                 SelectableCertificateKeyManager.wrap(provider.getKeyManagers(),
-                                                      nickname);
-          }
+          final SortedSet<String> nicknames = jmxConnectionHandler.getSSLServerCertNicknames();
+          keyManagers = nicknames == null
+              ? provider.getKeyManagers()
+              : SelectableCertificateKeyManager.wrap(provider.getKeyManagers(), nicknames);
         }
 
         SSLContext ctx = SSLContext.getInstance("TLSv1");

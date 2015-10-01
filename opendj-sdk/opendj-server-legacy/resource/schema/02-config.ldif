@@ -549,7 +549,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.91
   NAME 'ds-cfg-ssl-cert-nickname'
   EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.92
   NAME 'ds-cfg-strict-format'

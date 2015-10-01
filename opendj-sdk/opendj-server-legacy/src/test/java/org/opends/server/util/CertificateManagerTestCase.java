@@ -35,9 +35,11 @@ import java.security.cert.Certificate;
 import java.util.Arrays;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.Platform.KeyType;
 
 import static org.testng.Assert.*;
 
@@ -65,35 +67,24 @@ public class CertificateManagerTestCase
   /**
    * The path to a JKS key store file.
    */
-  public static final String JKS_KEY_STORE_PATH =
-       System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-       BUILD_ROOT + File.separator + "build") +
-       File.separator + "unit-tests" + File.separator +
-       "package-instance" +
-       File.separator + "config" + File.separator + "server.keystore";
+  public static final String JKS_KEY_STORE_PATH = TestCaseUtils.getUnitTestRootPath()
+       + File.separator + "package-instance" + File.separator + "config" + File.separator + "server.keystore";
 
 
 
   /**
    * The path to a PKCS#12 key store file.
    */
-  public static final String PKCS12_KEY_STORE_PATH =
-       System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-       BUILD_ROOT + File.separator + "build") +
-       File.separator + "unit-tests" + File.separator +
-       "package-instance" +
-       File.separator + "config" + File.separator + "server-cert.p12";
+  public static final String PKCS12_KEY_STORE_PATH = TestCaseUtils.getUnitTestRootPath()
+       + File.separator + "package-instance" + File.separator + "config" + File.separator + "server-cert.p12";
 
 
 
   /**
    * The path to the unit test working directory.
    */
-  public static final String TEST_DIR =
-       System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-       BUILD_ROOT + File.separator + "build") +
-       File.separator + "unit-tests" + File.separator +
-       "package-instance";
+  public static final String TEST_DIR = TestCaseUtils.getUnitTestRootPath()
+       + File.separator + "package-instance";
 
 
 
@@ -109,7 +100,13 @@ public class CertificateManagerTestCase
     TestCaseUtils.startServer();
   }
 
-
+  @DataProvider(name="keyTypes")
+  public Object[][] keyTypes() {
+    return new Object[][] {
+      { KeyType.EC },
+      { KeyType.RSA }
+    };
+  }
 
   /**
    * Tests the CertificateManager constructor using a null argument for the key
@@ -614,8 +611,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateNullAlias()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateNullAlias(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -628,7 +625,7 @@ public class CertificateManagerTestCase
 
     try
     {
-      certManager.generateSelfSignedCertificate(null, "CN=Test,O=test", 365);
+      certManager.generateSelfSignedCertificate(keyType, null, "CN=Test,O=test", 365);
       fail("Expected an NPE due to a null alias");
     } catch (NullPointerException npe) {}
   }
@@ -641,8 +638,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateEmptyAlias()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateEmptyAlias(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -655,7 +652,7 @@ public class CertificateManagerTestCase
 
     try
     {
-      certManager.generateSelfSignedCertificate("", "CN=Test,O=test", 365);
+      certManager.generateSelfSignedCertificate(keyType, "", "CN=Test,O=test", 365);
       fail("Expected an NPE due to an empty alias");
     } catch (NullPointerException npe) {}
   }
@@ -668,8 +665,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateAliasInUse()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateAliasInUse(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -682,7 +679,7 @@ public class CertificateManagerTestCase
 
     try
     {
-      certManager.generateSelfSignedCertificate("server-cert", "CN=Test,O=test",
+      certManager.generateSelfSignedCertificate(keyType, "server-cert", "CN=Test,O=test",
                                                 365);
       fail("Expected an illegal argument exception to a duplicate alias");
     } catch (IllegalArgumentException iae) {}
@@ -696,8 +693,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateNullSubject()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateNullSubject(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -710,7 +707,7 @@ public class CertificateManagerTestCase
 
     try
     {
-      certManager.generateSelfSignedCertificate("test-cert", null, 365);
+      certManager.generateSelfSignedCertificate(keyType, "test-cert", null, 365);
       fail("Expected an NPE due to a null subject");
     } catch (NullPointerException npe) {}
   }
@@ -723,8 +720,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateEmptySubject()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateEmptySubject(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -737,7 +734,7 @@ public class CertificateManagerTestCase
 
     try
     {
-      certManager.generateSelfSignedCertificate("test-cert", "", 365);
+      certManager.generateSelfSignedCertificate(keyType, "test-cert", "", 365);
       fail("Expected an NPE due to an empty subject");
     } catch (NullPointerException npe) {}
   }
@@ -750,8 +747,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateInvalidSubject()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateInvalidSubject(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -768,7 +765,7 @@ public class CertificateManagerTestCase
          new CertificateManager(path.getAbsolutePath(), "JKS", "password");
     try
     {
-      certManager.generateSelfSignedCertificate("test-cert", "invalid", 365);
+      certManager.generateSelfSignedCertificate(keyType, "test-cert", "invalid", 365);
       fail("Expected a key store exception due to an invalid subject");
     } catch (KeyStoreException cse) {}
     path.delete();
@@ -782,8 +779,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateInvalidValidity()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateInvalidValidity(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -796,7 +793,7 @@ public class CertificateManagerTestCase
 
     try
     {
-      certManager.generateSelfSignedCertificate("test-cert", "CN=Test,o=test",
+      certManager.generateSelfSignedCertificate(keyType, "test-cert", "CN=Test,o=test",
                                                 0);
       fail("Expected an illegal argument exception due to an invalid validity");
     } catch (IllegalArgumentException iae) {}
@@ -809,8 +806,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test
-  public void testGenerateSelfSignedCertificateJKS()
+  @Test(dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificateJKS(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -825,7 +822,7 @@ public class CertificateManagerTestCase
 
     CertificateManager certManager =
          new CertificateManager(path.getAbsolutePath(), "JKS", "password");
-    certManager.generateSelfSignedCertificate("test-cert", "CN=Test,o=test",
+    certManager.generateSelfSignedCertificate(keyType, "test-cert", "CN=Test,o=test",
                                               365);
     assertTrue(certManager.aliasInUse("test-cert"));
     path.delete();
@@ -839,8 +836,8 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test(groups="slow")
-  public void testGenerateSelfSignedCertificatePKCS12()
+  @Test(groups="slow", dataProvider="keyTypes")
+  public void testGenerateSelfSignedCertificatePKCS12(KeyType keyType)
          throws Exception
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -855,7 +852,7 @@ public class CertificateManagerTestCase
 
     CertificateManager certManager =
          new CertificateManager(path.getAbsolutePath(), "PKCS12", "password");
-    certManager.generateSelfSignedCertificate("test-cert", "CN=Test,o=test",
+    certManager.generateSelfSignedCertificate(keyType, "test-cert", "CN=Test,o=test",
                                               365);
     assertTrue(certManager.aliasInUse("test-cert"));
     path.delete();

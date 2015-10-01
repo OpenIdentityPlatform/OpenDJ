@@ -1422,21 +1422,29 @@ public final class LDAPConnectionHandler extends
         disableAndWarnIfUseSSL(config);
       }
 
-      String alias = config.getSSLCertNickname();
-      KeyManager[] keyManagers;
-      if (alias == null)
+      final SortedSet<String> aliases = new TreeSet<>(config.getSSLCertNickname());
+      final KeyManager[] keyManagers;
+      if (aliases.isEmpty())
       {
         keyManagers = keyManagerProvider.getKeyManagers();
       }
       else
       {
-        if (!keyManagerProvider.containsKeyWithAlias(alias))
+        final Iterator<String> it = aliases.iterator();
+        while (it.hasNext())
         {
-          logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, alias, friendlyName);
+          if (!keyManagerProvider.containsKeyWithAlias(it.next()))
+          {
+            logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, aliases, friendlyName);
+            it.remove();
+          }
+        }
+
+        if (aliases.isEmpty())
+        {
           disableAndWarnIfUseSSL(config);
         }
-        keyManagers = SelectableCertificateKeyManager.wrap(
-            keyManagerProvider.getKeyManagers(), alias, friendlyName);
+        keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases, friendlyName);
       }
 
       DN trustMgrDN = config.getTrustManagerProviderDN();
@@ -1461,8 +1469,6 @@ public final class LDAPConnectionHandler extends
       throw new DirectoryException(resCode, message, e);
     }
   }
-
-
 
   /**
    * Enqueue a connection finalizer which will be invoked after a short delay.

@@ -40,12 +40,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -873,33 +876,43 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     DN keyMgrDN = config.getKeyManagerProviderDN();
     KeyManagerProvider<?> keyManagerProvider = DirectoryServer.getKeyManagerProvider(keyMgrDN);
-    if (keyManagerProvider == null) {
+    if (keyManagerProvider == null)
+    {
       logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
       logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
       keyManagerProvider = new NullKeyManagerProvider();
       enabled = false;
     }
-    else if (! keyManagerProvider.containsAtLeastOneKey())
+    else if (!keyManagerProvider.containsAtLeastOneKey())
     {
       logger.error(ERR_INVALID_KEYSTORE, friendlyName);
       logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
       enabled = false;
     }
 
-    String alias = config.getSSLCertNickname();
-    KeyManager[] keyManagers;
-    if (alias == null)
+    final SortedSet<String> aliases = new TreeSet<>(config.getSSLCertNickname());
+    final KeyManager[] keyManagers;
+    if (aliases.isEmpty())
     {
       keyManagers = keyManagerProvider.getKeyManagers();
     }
     else
     {
-      if (! keyManagerProvider.containsKeyWithAlias(alias)) {
-        logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, alias, friendlyName);
+      final Iterator<String> it = aliases.iterator();
+      while (it.hasNext())
+      {
+        if (!keyManagerProvider.containsKeyWithAlias(it.next()))
+        {
+          logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, aliases, friendlyName);
+          it.remove();
+        }
+      }
+      if (aliases.isEmpty())
+      {
         logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
         enabled = false;
       }
-      keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), alias);
+      keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases);
     }
 
     DN trustMgrDN = config.getTrustManagerProviderDN();

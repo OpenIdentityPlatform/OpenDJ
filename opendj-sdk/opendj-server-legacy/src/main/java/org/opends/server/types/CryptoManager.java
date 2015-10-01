@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -400,20 +400,19 @@ import java.util.SortedSet;
    * Create an SSL context that may be used for communication to
    * another ADS component.
    *
-   * @param sslCertNickname The name of the local certificate to use,
-   *                        or null if none is specified.
+   * @param sslCertNicknames The names of the local certificates to use,
+   *                         or null if none is specified.
    * @return A new SSL Context.
    * @throws ConfigException If the context
    * could not be created.
    */
-  SSLContext getSslContext(String sslCertNickname)
-       throws ConfigException;
+  SSLContext getSslContext(SortedSet<String> sslCertNicknames) throws ConfigException;
 
   /**
-   * Get the name of the local certificate to use for SSL.
-   * @return The name of the local certificate to use for SSL.
+   * Get the names of the local certificates to use for SSL.
+   * @return The names of the local certificates to use for SSL.
    */
-  String getSslCertNickname();
+  SortedSet<String> getSslCertNicknames();
 
   /**
    * Determine whether SSL encryption is enabled.

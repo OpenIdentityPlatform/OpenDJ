@@ -81,6 +81,7 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.Platform.KeyType;
 
 /**
  * This class defines a backend used to provide an LDAP view of public keys
@@ -1030,30 +1031,19 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
-    KeyStore keyStore;
-    FileInputStream inputStream = null;
-    try
+    final KeyStore keyStore;
+    try (final FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
     {
       keyStore = KeyStore.getInstance(trustStoreType);
-
-      inputStream =
-           new FileInputStream(getFileForPath(trustStoreFile));
       keyStore.load(inputStream, trustStorePIN);
     }
     catch (Exception e)
     {
-      logger.traceException(e);
-
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
-    finally
-    {
-      close(inputStream);
-    }
-
 
     try
     {
@@ -1216,9 +1206,11 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       {
         try
         {
+          final KeyType keyType = KeyType.getTypeOrDefault(certAlias);
           certificateManager.generateSelfSignedCertificate(
+             keyType,
              certAlias,
-             getADSCertificateSubjectDN(),
+             getADSCertificateSubjectDN(keyType),
              getADSCertificateValidity());
         }
         catch (Exception e)
@@ -1362,12 +1354,10 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
    * @throws java.net.UnknownHostException If the server host name could not be
    *                                       determined.
    */
-  private static String getADSCertificateSubjectDN()
-       throws UnknownHostException
+  private static String getADSCertificateSubjectDN(KeyType keyType) throws UnknownHostException
   {
-    String hostName =
-      SetupUtils.getHostNameForCertificate(DirectoryServer.getServerRoot());
-    return "cn=" + Rdn.escapeValue(hostName) + ",O=OpenDJ Certificate";
+    final String hostName = SetupUtils.getHostNameForCertificate(DirectoryServer.getServerRoot());
+    return "cn=" + Rdn.escapeValue(hostName) + ",O=OpenDJ " + keyType + " Certificate";
   }
 
   /**
@@ -1439,13 +1429,12 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public static void createPINFile(String path, String pin)
        throws IOException
   {
-    FileWriter file = new FileWriter(path);
-    PrintWriter out = new PrintWriter(file);
-
-    out.println(pin);
-
-    out.flush();
-    out.close();
+    try (final FileWriter file = new FileWriter(path);
+         final PrintWriter out = new PrintWriter(file))
+    {
+      out.println(pin);
+      out.flush();
+    }
 
     try {
       if (!FilePermission.setPermissions(new File(path),
@@ -1468,36 +1457,40 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   private void generateInstanceCertificateIfAbsent()
        throws InitializationException
   {
-    String certAlias = ADS_CERTIFICATE_ALIAS;
+    final String certAliases[] = { ADS_CERTIFICATE_ALIAS, ADS_CERTIFICATE_EC_ALIAS };
 
-    try
+    for (String certAlias : certAliases)
     {
-      if (certificateManager.aliasInUse(certAlias))
+      try
       {
-        return;
+        if (certificateManager.aliasInUse(certAlias))
+        {
+          continue;
+        }
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
+            certAlias, trustStoreFile, getExceptionMessage(e));
+       throw new InitializationException(message, e);
+      }
+
+      try
+      {
+        final KeyType keyType = KeyType.getTypeOrDefault(certAlias);
+        certificateManager.generateSelfSignedCertificate(
+            keyType,
+            certAlias,
+            getADSCertificateSubjectDN(keyType),
+            getADSCertificateValidity());
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
+            certAlias, trustStoreFile, getExceptionMessage(e));
+       throw new InitializationException(message, e);
       }
     }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
-           certAlias, trustStoreFile, getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
-
-    try
-    {
-      certificateManager.generateSelfSignedCertificate(
-           certAlias,
-           getADSCertificateSubjectDN(),
-           getADSCertificateValidity());
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
-           certAlias, trustStoreFile, getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
-
   }
 }
 

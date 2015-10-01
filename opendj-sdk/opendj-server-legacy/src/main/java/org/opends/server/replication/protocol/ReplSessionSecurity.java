@@ -60,9 +60,9 @@ public final class ReplSessionSecurity
   private final boolean sslEncryption;
 
   /**
-   * The name of the local certificate to use, or null if none is specified.
+   * The names of the local certificates to use, or null if none is specified.
    */
-  private final String sslCertNickname;
+  private final SortedSet<String> sslCertNicknames;
 
   /**
    * The set of enabled SSL protocols, or null for the default set.
@@ -86,7 +86,7 @@ public final class ReplSessionSecurity
   public ReplSessionSecurity() throws ConfigException
   {
     // Currently use global settings from the crypto manager.
-    this(DirectoryConfig.getCryptoManager().getSslCertNickname(),
+    this(DirectoryConfig.getCryptoManager().getSslCertNicknames(),
         DirectoryConfig.getCryptoManager().getSslProtocols(),
         DirectoryConfig.getCryptoManager().getSslCipherSuites(),
         DirectoryConfig.getCryptoManager().isSslEncryption());
@@ -98,8 +98,8 @@ public final class ReplSessionSecurity
    * Create a ReplSessionSecurity instance from the supplied configuration
    * values.
    *
-   * @param sslCertNickname
-   *          The name of the local certificate to use, or null if none is
+   * @param sslCertNicknames
+   *          The names of the local certificates to use, or null if none is
    *          specified.
    * @param sslProtocols
    *          The protocols that should be enabled, or null if the default
@@ -112,7 +112,7 @@ public final class ReplSessionSecurity
    * @throws ConfigException
    *           If the supplied configuration was not valid.
    */
-  public ReplSessionSecurity(final String sslCertNickname,
+  public ReplSessionSecurity(final SortedSet<String> sslCertNicknames,
       final SortedSet<String> sslProtocols,
       final SortedSet<String> sslCipherSuites,
       final boolean sslEncryption) throws ConfigException
@@ -138,7 +138,7 @@ public final class ReplSessionSecurity
     }
 
     this.sslEncryption = sslEncryption;
-    this.sslCertNickname = sslCertNickname;
+    this.sslCertNicknames = sslCertNicknames;
   }
 
 
@@ -169,8 +169,7 @@ public final class ReplSessionSecurity
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
       final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      final SSLContext sslContext = cryptoManager
-          .getSslContext(sslCertNickname);
+      final SSLContext sslContext = cryptoManager.getSslContext(sslCertNicknames);
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(
@@ -232,8 +231,7 @@ public final class ReplSessionSecurity
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
       final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      final SSLContext sslContext = cryptoManager
-          .getSslContext(sslCertNickname);
+      final SSLContext sslContext = cryptoManager.getSslContext(sslCertNicknames);
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(

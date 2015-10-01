@@ -49,7 +49,6 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -209,8 +208,8 @@ public class CryptoManagerImpl
   // TODO: Move the following configuration to replication configuration.
   // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2473
 
-  /** The name of the local certificate to use for SSL. */
-  private final String sslCertNickname;
+  /** The names of the local certificates to use for SSL. */
+  private final SortedSet<String> sslCertNicknames;
 
   /** Whether replication sessions use SSL encryption. */
   private final boolean sslEncryption;
@@ -296,7 +295,7 @@ public class CryptoManagerImpl
     applyConfigurationChange(config);
 
     // Secure replication related...
-    sslCertNickname = config.getSSLCertNickname();
+    sslCertNicknames = config.getSSLCertNickname();
     sslEncryption   = config.isSSLEncryption();
     sslProtocols    = config.getSSLProtocol();
     sslCipherSuites = config.getSSLCipherSuite();
@@ -2868,7 +2867,7 @@ public class CryptoManagerImpl
 
   /** {@inheritDoc} */
   @Override
-  public SSLContext getSslContext(String sslCertNickname)
+  public SSLContext getSslContext(SortedSet<String> sslCertNicknames)
        throws ConfigException
   {
     SSLContext sslContext;
@@ -2881,16 +2880,16 @@ public class CryptoManagerImpl
 
       sslContext = SSLContext.getInstance("TLS");
 
-      if (sslCertNickname == null)
+      if (sslCertNicknames == null)
       {
         sslContext.init(keyManagers, trustManagers, null);
       }
       else
       {
-        X509ExtendedKeyManager[] extendedKeyManagers =
+        KeyManager[] extendedKeyManagers =
              SelectableCertificateKeyManager.wrap(
                   keyManagers,
-                  sslCertNickname);
+                  sslCertNicknames);
         sslContext.init(extendedKeyManagers, trustManagers, null);
       }
     }
@@ -2910,9 +2909,9 @@ public class CryptoManagerImpl
 
   /** {@inheritDoc} */
   @Override
-  public String getSslCertNickname()
+  public SortedSet<String> getSslCertNicknames()
   {
-    return sslCertNickname;
+    return sslCertNicknames;
   }
 
   /** {@inheritDoc} */

@@ -135,6 +135,7 @@ import org.opends.server.util.CertificateManager;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.Platform.KeyType;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -221,8 +222,10 @@ public abstract class Installer extends GuiApplication
   /** A static String that contains the class name of ConfigFileHandler. */
   protected static final String DEFAULT_CONFIG_CLASS_NAME = "org.opends.server.extensions.ConfigFileHandler";
 
-  /** Alias of a self-signed certificate. */
-  protected static final String SELF_SIGNED_CERT_ALIAS = SecurityOptions.SELF_SIGNED_CERT_ALIAS;
+  /** Aliases of self-signed certificates. */
+  protected static final String SELF_SIGNED_CERT_ALIASES[] = new String[] {
+    SecurityOptions.SELF_SIGNED_CERT_ALIAS,
+    SecurityOptions.SELF_SIGNED_EC_CERT_ALIAS };
 
   /**
    * The threshold in minutes used to know whether we must display a warning
@@ -983,10 +986,14 @@ public abstract class Installer extends GuiApplication
         String pwd = getSelfSignedCertificatePwd();
         final CertificateManager certManager =
             new CertificateManager(getSelfSignedKeystorePath(), CertificateManager.KEY_STORE_TYPE_JKS, pwd);
-        certManager.generateSelfSignedCertificate(SELF_SIGNED_CERT_ALIAS, getSelfSignedCertificateSubjectDN(),
-            getSelfSignedCertificateValidity());
-        SetupUtils.exportCertificate(certManager, SELF_SIGNED_CERT_ALIAS, getTemporaryCertificatePath());
-        configureTrustStore(CertificateManager.KEY_STORE_TYPE_JKS, SELF_SIGNED_CERT_ALIAS, pwd);
+        for (String alias : SELF_SIGNED_CERT_ALIASES)
+        {
+          final KeyType keyType = KeyType.getTypeOrDefault(alias);
+          certManager.generateSelfSignedCertificate(keyType, alias, getSelfSignedCertificateSubjectDN(keyType),
+              getSelfSignedCertificateValidity());
+          SetupUtils.exportCertificate(certManager, alias, getTemporaryCertificatePath());
+          configureTrustStore(CertificateManager.KEY_STORE_TYPE_JKS, alias, pwd);
+        }
         break;
 
       case JKS:
@@ -1040,7 +1047,7 @@ public abstract class Installer extends GuiApplication
   private void configureTrustStore(final String type, final String keyStoreAlias, final String password)
       throws Exception
   {
-    final String alias = keyStoreAlias != null ? keyStoreAlias : SELF_SIGNED_CERT_ALIAS;
+    final String alias = keyStoreAlias != null ? keyStoreAlias : SELF_SIGNED_CERT_ALIASES[0];
     final CertificateManager trustMgr = new CertificateManager(getTrustManagerPath(), type, password);
     trustMgr.addCertificate(alias, new File(getTemporaryCertificatePath()));
 
@@ -3891,9 +3898,9 @@ public abstract class Installer extends GuiApplication
    *
    * @return the Subject DN to be used to generate the self-signed certificate.
    */
-  private String getSelfSignedCertificateSubjectDN()
+  private String getSelfSignedCertificateSubjectDN(KeyType keyType)
   {
-    return "cn=" + Rdn.escapeValue(getUserData().getHostName()) + ",O=OpenDJ Self-Signed Certificate";
+    return "cn=" + Rdn.escapeValue(getUserData().getHostName()) + ",O=OpenDJ " + keyType + " Self-Signed Certificate";
   }
 
   /**
