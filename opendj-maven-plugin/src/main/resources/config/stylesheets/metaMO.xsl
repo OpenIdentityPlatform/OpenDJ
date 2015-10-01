@@ -469,7 +469,13 @@
                      '      impl.commit();&#xa;',
                      '    }&#xa;')" />
     <xsl:text>&#xa;</xsl:text>
-    <xsl:value-of select="'  }&#xa;'" />
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>    /** {@inheritDoc} */&#xa;</xsl:text>
+    <xsl:text>    public String toString() {&#xa;</xsl:text>
+    <xsl:text>      return impl.toString();&#xa;</xsl:text>
+    <xsl:text>    }&#xa;</xsl:text>
+    <xsl:text>  }&#xa;</xsl:text>
   </xsl:template>
   <!--
     Generate managed object server class implementation.
@@ -631,7 +637,13 @@
                      '      return impl.getDN();&#xa;',
                      '    }&#xa;')" />
     <xsl:text>&#xa;</xsl:text>
-    <xsl:value-of select="'  }&#xa;'" />
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>    /** {@inheritDoc} */&#xa;</xsl:text>
+    <xsl:text>    public String toString() {&#xa;</xsl:text>
+    <xsl:text>      return impl.toString();&#xa;</xsl:text>
+    <xsl:text>    }&#xa;</xsl:text>
+    <xsl:text>  }&#xa;</xsl:text>
   </xsl:template>
   <!--
     Generate a property definition constructor.
