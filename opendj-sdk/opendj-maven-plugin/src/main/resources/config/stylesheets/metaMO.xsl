@@ -153,7 +153,7 @@
       <xsl:call-template name="generate-relation-constructor" />
     </xsl:for-each>
     <!--
-      Register any optins associated with this managed object definition.
+      Register any options associated with this managed object definition.
     -->
     <xsl:if test="$this-is-advanced or $this-is-hidden">
       <xsl:text>&#xa;</xsl:text>
@@ -276,9 +276,7 @@
         Generate configuration client factory method.
       -->
       <xsl:value-of
-        select="concat('  /**&#xa;',
-                       '   * {@inheritDoc}&#xa;',
-                       '   */&#xa;',
+        select="concat('  /** {@inheritDoc} */&#xa;',
                        '  public ',
                        $this-java-class,
                        'CfgClient createClientConfiguration(&#xa;',
@@ -296,9 +294,7 @@
         Generate configuration server factory method.
       -->
       <xsl:value-of
-        select="concat('  /**&#xa;',
-                       '   * {@inheritDoc}&#xa;',
-                       '   */&#xa;',
+        select="concat('  /** {@inheritDoc} */&#xa;',
                        '  public ',
                        $this-java-class,
                        'Cfg createServerConfiguration(&#xa;',
@@ -314,9 +310,7 @@
         Generate configuration server class getter..
       -->
       <xsl:value-of
-        select="concat('  /**&#xa;',
-                       '   * {@inheritDoc}&#xa;',
-                       '   */&#xa;',
+        select="concat('  /** {@inheritDoc} */&#xa;',
                        '  public Class&lt;',
                        $this-java-class,
                        'Cfg&gt; getServerConfigurationClass() {&#xa;',
@@ -434,9 +428,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+      select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public ManagedObjectDefinition&lt;? extends ', $this-java-class,'CfgClient, ? extends ', $this-java-class,'Cfg&gt; definition() {&#xa;',
                      '      return INSTANCE;&#xa;',
                      '    }&#xa;')" />
@@ -447,9 +439,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+      select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public PropertyProvider properties() {&#xa;',
                      '      return impl;&#xa;',
                      '    }&#xa;')" />
@@ -460,9 +450,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+      select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public void commit() throws ManagedObjectAlreadyExistsException,&#xa;',
                      '        MissingMandatoryPropertiesException, ConcurrentModificationException,&#xa;',
                      '        OperationRejectedException, LdapException {&#xa;',
@@ -617,9 +605,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+      select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public Class&lt;? extends ', $this-java-class,'Cfg&gt; configurationClass() {&#xa;',
                      '      return ', $this-java-class, 'Cfg.class;&#xa;',
                      '    }&#xa;')" />
@@ -630,9 +616,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+      select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public DN dn() {&#xa;',
                      '      return impl.getDN();&#xa;',
                      '    }&#xa;')" />
@@ -1197,9 +1181,7 @@
     <xsl:choose>
       <xsl:when test="adm:one-to-one">
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                          '        throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                          '        ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
@@ -1209,9 +1191,7 @@
       </xsl:when>
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public boolean has', $java-relation-name, '() throws ConcurrentModificationException,&#xa;',
                          '        LdapException {&#xa;',
                          '      return impl.hasChild(INSTANCE.get', $java-relation-name,'RelationDefinition());&#xa;',
@@ -1220,9 +1200,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                          '        throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                          '        ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
@@ -1233,9 +1211,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
                          '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;PropertyException&gt; exceptions) {&#xa;',
                          '      return impl.createChild(INSTANCE.get', $java-relation-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
@@ -1244,9 +1220,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void remove', $java-relation-name, '()&#xa;',
                          '        throws ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
                          '        OperationRejectedException, LdapException {&#xa;',
@@ -1262,9 +1236,7 @@
           </xsl:call-template>
         </xsl:variable>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public String[] list', $java-relation-plural-name, '() throws ConcurrentModificationException,&#xa;',
                          '        LdapException {&#xa;',
                          '      return impl.listChildren(INSTANCE.get', $java-relation-plural-name,'RelationDefinition());&#xa;',
@@ -1273,9 +1245,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public ', $java-class-name, 'CfgClient get', $java-relation-name, '(String name)&#xa;',
                          '        throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                          '        ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
@@ -1288,9 +1258,7 @@
         <xsl:choose>
           <xsl:when test="string(adm:one-to-many/@unique) != 'true'">
             <xsl:value-of
-              select="concat('    /**&#xa;',
-                             '     * {@inheritDoc}&#xa;',
-                             '     */&#xa;',
+              select="concat('    /** {@inheritDoc} */&#xa;',
                              '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
                              '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;PropertyException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
                              '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
@@ -1299,9 +1267,7 @@
           <xsl:when test="string(adm:one-to-many/@unique) = 'true'">
             <!--  Unique one-to-many children are named implicitly by their definition -->
             <xsl:value-of
-              select="concat('    /**&#xa;',
-                             '     * {@inheritDoc}&#xa;',
-                             '     */&#xa;',
+              select="concat('    /** {@inheritDoc} */&#xa;',
                              '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
                              '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;PropertyException&gt; exceptions) {&#xa;',
                              '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
@@ -1312,9 +1278,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void remove', $java-relation-name, '(String name)&#xa;',
                          '        throws ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
                          '        OperationRejectedException, LdapException {&#xa;',
@@ -1347,9 +1311,7 @@
     <xsl:choose>
       <xsl:when test="adm:one-to-one">
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public ', $java-class-name, 'Cfg get',
                          $java-relation-name, '() throws ConfigException {&#xa;',
                          '      return impl.getChild(INSTANCE.get', $java-relation-name, 'RelationDefinition()).getConfiguration();&#xa;',
@@ -1357,9 +1319,7 @@
       </xsl:when>
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public boolean has',
                          $java-relation-name, '() {&#xa;',
                          '      return impl.hasChild(INSTANCE.get', $java-relation-name, 'RelationDefinition());&#xa;',
@@ -1368,9 +1328,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public ', $java-class-name, 'Cfg get',
                          $java-relation-name, '() throws ConfigException {&#xa;',
                          '      return impl.getChild(INSTANCE.get', $java-relation-name, 'RelationDefinition()).getConfiguration();&#xa;',
@@ -1379,9 +1337,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void add', $java-relation-name, 'AddListener(&#xa;',
                          '        ConfigurationAddListener&lt;', $java-class-name,'Cfg&gt; listener) throws ConfigException {&#xa;',
                          '      impl.registerAddListener(INSTANCE.get', $java-relation-name, 'RelationDefinition(), listener);&#xa;',
@@ -1390,9 +1346,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void remove', $java-relation-name, 'AddListener(&#xa;',
                          '        ConfigurationAddListener&lt;', $java-class-name,'Cfg&gt; listener) {&#xa;',
                          '      impl.deregisterAddListener(INSTANCE.get', $java-relation-name, 'RelationDefinition(), listener);&#xa;',
@@ -1401,9 +1355,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void add', $java-relation-name, 'DeleteListener(&#xa;',
                          '        ConfigurationDeleteListener&lt;', $java-class-name,'Cfg&gt; listener) throws ConfigException {&#xa;',
                          '      impl.registerDeleteListener(INSTANCE.get', $java-relation-name, 'RelationDefinition(), listener);&#xa;',
@@ -1412,9 +1364,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void remove', $java-relation-name, 'DeleteListener(&#xa;',
                          '        ConfigurationDeleteListener&lt;', $java-class-name,'Cfg&gt; listener) {&#xa;',
                          '      impl.deregisterDeleteListener(INSTANCE.get', $java-relation-name, 'RelationDefinition(), listener);&#xa;',
@@ -1429,9 +1379,7 @@
           </xsl:call-template>
         </xsl:variable>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public String[] list',
                          $java-relation-plural-name, '() {&#xa;',
                          '      return impl.listChildren(INSTANCE.get', $java-relation-plural-name,'RelationDefinition());&#xa;',
@@ -1440,9 +1388,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public ', $java-class-name, 'Cfg get',
                          $java-relation-name, '(String name) throws ConfigException {&#xa;',
                          '      return impl.getChild(INSTANCE.get', $java-relation-plural-name, 'RelationDefinition(), name).getConfiguration();&#xa;',
@@ -1451,9 +1397,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void add', $java-relation-name, 'AddListener(&#xa;',
                          '        ConfigurationAddListener&lt;', $java-class-name,'Cfg&gt; listener) throws ConfigException {&#xa;',
                          '      impl.registerAddListener(INSTANCE.get', $java-relation-plural-name, 'RelationDefinition(), listener);&#xa;',
@@ -1462,9 +1406,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void remove', $java-relation-name, 'AddListener(&#xa;',
                          '        ConfigurationAddListener&lt;', $java-class-name,'Cfg&gt; listener) {&#xa;',
                          '      impl.deregisterAddListener(INSTANCE.get', $java-relation-plural-name, 'RelationDefinition(), listener);&#xa;',
@@ -1473,9 +1415,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void add', $java-relation-name, 'DeleteListener(&#xa;',
                          '        ConfigurationDeleteListener&lt;', $java-class-name,'Cfg&gt; listener) throws ConfigException {&#xa;',
                          '      impl.registerDeleteListener(INSTANCE.get', $java-relation-plural-name, 'RelationDefinition(), listener);&#xa;',
@@ -1484,9 +1424,7 @@
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:value-of
-          select="concat('    /**&#xa;',
-                         '     * {@inheritDoc}&#xa;',
-                         '     */&#xa;',
+          select="concat('    /** {@inheritDoc} */&#xa;',
                          '    public void remove', $java-relation-name, 'DeleteListener(&#xa;',
                          '        ConfigurationDeleteListener&lt;', $java-class-name,'Cfg&gt; listener) {&#xa;',
                          '      impl.deregisterDeleteListener(INSTANCE.get', $java-relation-plural-name, 'RelationDefinition(), listener);&#xa;',
@@ -1564,9 +1502,7 @@
       </xsl:call-template>
     </xsl:variable>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;')" />
+      select="concat('    /** {@inheritDoc} */&#xa;')" />
     <xsl:value-of
       select="concat('    public void add', $short-java-class, 'ChangeListener(&#xa;',
                      '        ConfigurationChangeListener&lt;',$java-class,'Cfg&gt; listener) {&#xa;',
@@ -1576,9 +1512,7 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;')" />
+      select="concat('    /** {@inheritDoc} */&#xa;')" />
     <xsl:value-of
       select="concat('    public void remove', $short-java-class, 'ChangeListener(&#xa;',
                      '        ConfigurationChangeListener&lt;',$java-class,'Cfg&gt; listener) {&#xa;',
@@ -1685,9 +1619,7 @@
                      '&#xa;',
                      '&#xa;',
                      '&#xa;',
-                     '    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+                     '    /** {@inheritDoc} */&#xa;',
                      '    public String toString() { return name; }&#xa;')" />
     <xsl:text>&#xa;</xsl:text>
     <xsl:value-of select="'  }&#xa;'" />
