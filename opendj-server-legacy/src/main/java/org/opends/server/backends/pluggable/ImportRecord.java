@@ -29,12 +29,9 @@ import static org.opends.server.util.StaticUtils.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
-/**
- * Record for import composed of a byte sequence key and an indexID.
- */
+/** Record for import composed of a byte sequence key and an indexID. */
 final class ImportRecord implements Comparable<ImportRecord>
 {
-
   /**
    * The record overhead. In addition to entryID, key length and key bytes, the record overhead
    * includes the INS/DEL bit + indexID
@@ -145,7 +142,6 @@ final class ImportRecord implements Comparable<ImportRecord>
     return result;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

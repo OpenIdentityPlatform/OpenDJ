@@ -23,7 +23,6 @@
  *
  *      Copyright 2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pdb;
 
 import java.lang.reflect.Method;

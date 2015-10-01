@@ -72,7 +72,6 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     this.attributeIndex = attributeIndex;
   }
 
-  /** {@inheritDoc} */
   @Override
   public IndexQuery createExactMatchQuery(final String indexID, final ByteSequence key)
   {
@@ -110,7 +109,6 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
       };
   }
 
-  /** {@inheritDoc} */
   @Override
   public IndexQuery createRangeMatchQuery(final String indexID, final ByteSequence lowerBound,
       final ByteSequence upperBound, final boolean includeLowerBound, final boolean includeUpperBound)
@@ -240,14 +238,12 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
       };
   }
 
-  /** {@inheritDoc} */
   @Override
   public IndexQuery createIntersectionQuery(Collection<IndexQuery> subqueries)
   {
     return IndexQuery.createIntersectionIndexQuery(subqueries);
   }
 
-  /** {@inheritDoc} */
   @Override
   public IndexQuery createUnionQuery(Collection<IndexQuery> subqueries)
   {
@@ -312,7 +308,6 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public IndexingOptions getIndexingOptions()
   {

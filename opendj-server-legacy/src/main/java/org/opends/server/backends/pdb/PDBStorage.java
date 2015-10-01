@@ -408,7 +408,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   /** Common interface for internal WriteableTransaction implementations. */
   private interface StorageImpl extends WriteableTransaction, Closeable {
-
   }
 
   /** PersistIt implementation of the {@link WriteableTransaction} interface. */
@@ -614,7 +613,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   /** PersistIt read-only implementation of {@link StorageImpl} interface. */
   private final class ReadOnlyStorageImpl implements StorageImpl {
-
     private final WriteableStorageImpl delegate;
 
     ReadOnlyStorageImpl(WriteableStorageImpl delegate)
@@ -777,7 +775,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return dbCfg;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -812,7 +809,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return dbCfg.getBufferPoolMap().get(BUFFER_SIZE);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void open(AccessMode accessMode) throws ConfigException, StorageRuntimeException
   {
@@ -856,7 +852,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public <T> T read(final ReadOperation<T> operation) throws Exception
   {
@@ -897,7 +892,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Importer startImport() throws ConfigException, StorageRuntimeException
   {
@@ -922,7 +916,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return mangled.toString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void write(final WriteOperation operation) throws Exception
   {
@@ -1013,7 +1006,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     public boolean accept(File file)
     {
       String name = file.getName();
-      return name.equals(VOLUME_NAME) || name.matches(JOURNAL_NAME + "\\.\\d+$");
+      return VOLUME_NAME.equals(name) || name.matches(JOURNAL_NAME + "\\.\\d+$");
     }
   };
 
@@ -1172,7 +1165,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(PDBBackendCfg newCfg,
       List<LocalizableMessage> unacceptableReasons)
@@ -1324,7 +1316,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(PDBBackendCfg cfg)
   {
@@ -1423,7 +1414,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       logger.traceException(e);
       throw new StorageRuntimeException(ERR_REMOVE_FAIL.get(e.getMessage()).toString(), e);
     }
-
   }
 
   @Override
@@ -1432,7 +1422,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return storageStatus;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void diskFullThresholdReached(File directory, long thresholdInBytes) {
     storageStatus = StorageStatus.unusable(
@@ -1440,7 +1429,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         thresholdInBytes, config.getBackendId()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void diskLowThresholdReached(File directory, long thresholdInBytes) {
     storageStatus = StorageStatus.lockedDown(
@@ -1448,10 +1436,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         thresholdInBytes, config.getBackendId()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void diskSpaceRestored(File directory, long lowThresholdInBytes, long fullThresholdInBytes) {
     storageStatus = StorageStatus.working();
   }
 }
-

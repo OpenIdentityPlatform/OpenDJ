@@ -48,7 +48,6 @@ import org.opends.server.util.StaticUtils;
  */
 class State extends AbstractTree
 {
-
   /**
    * Use COMPACTED serialization for new indexes.
    * @see {@link EntryIDSet.EntryIDSetCompactCodec}
@@ -64,9 +63,7 @@ class State extends AbstractTree
   {
     TRUSTED(0x01),
 
-    /**
-     * Use compact encoding for indexes' ID storage.
-     */
+    /** Use compact encoding for indexes' ID storage. */
     COMPACTED(0x02);
 
     static final EnumSet<IndexFlag> ALL_FLAGS = EnumSet.allOf(IndexFlag.class);
@@ -158,7 +155,6 @@ class State extends AbstractTree
     }
     return ByteString.valueOf(new byte[] { value });
   }
-
 
   /**
    * Ensure that the specified flags are not set for the given index

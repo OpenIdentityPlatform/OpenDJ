@@ -90,10 +90,7 @@ class ID2Entry extends AbstractTree
     return codec;
   }
 
-  /**
-   * A cached set of ByteStringBuilder buffers and ASN1Writer used to encode
-   * entries.
-   */
+  /** A cached set of ByteStringBuilder buffers and ASN1Writer used to encode entries. */
   private static final class EntryCodec
   {
     /** The ASN1 tag for the ByteString type. */

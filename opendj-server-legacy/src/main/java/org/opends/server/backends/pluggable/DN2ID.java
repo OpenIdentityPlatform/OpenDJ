@@ -293,7 +293,7 @@ class DN2ID extends AbstractTree
     void endParent(V parent);
   }
 
-  /** Perform dn2id cursoring to expose parent and children to the {@link TreeVisitor} */
+  /** Perform dn2id cursoring to expose parent and children to the {@link TreeVisitor}. */
   private static final class TreeVisitorCursor<V> implements SequentialCursor<ByteString, ByteString>
   {
     private final SequentialCursor<ByteString, ByteString> delegate;
@@ -369,5 +369,4 @@ class DN2ID extends AbstractTree
       delegate.close();
     }
   }
-
 }

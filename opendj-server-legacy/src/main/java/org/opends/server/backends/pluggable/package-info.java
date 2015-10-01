@@ -23,10 +23,7 @@
  *
  *      Copyright 2014 ForgeRock AS
  */
-
-/**
- * Contains the code for implementing Directory Server pluggable storage backends.
- */
+/** Contains the code for implementing Directory Server pluggable storage backends. */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.backends.pluggable;

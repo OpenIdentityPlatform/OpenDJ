@@ -138,7 +138,6 @@ import sun.misc.Unsafe;
  */
 final class OnDiskMergeImporter
 {
-
   private static final String DEFAULT_TMP_DIR = "import-tmp";
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -189,7 +188,6 @@ final class OnDiskMergeImporter
       logger.info(NOTE_IMPORT_LDIF_DB_MEM_BUF_INFO, DB_CACHE_SIZE, bufferSize);
       logger.info(NOTE_IMPORT_STARTING, DirectoryServer.getVersionString(), BUILD_ID, REVISION);
       logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
-
 
       final long startTime = System.currentTimeMillis();
       final OnDiskMergeImporter importer;
@@ -298,7 +296,7 @@ final class OnDiskMergeImporter
       logger.info(NOTE_REBUILD_FINAL_STATUS, importer.getImportedCount(), totalTime / 1000, rate);
     }
 
-    private final static Set<String> selectIndexesToRebuild(EntryContainer entryContainer, RebuildConfig rebuildConfig,
+    private static final Set<String> selectIndexesToRebuild(EntryContainer entryContainer, RebuildConfig rebuildConfig,
         long totalEntries)
     {
       final SelectIndexName selector = new SelectIndexName();
@@ -393,7 +391,7 @@ final class OnDiskMergeImporter
   /** Source of LDAP {@link Entry}s to process. */
   private interface Source
   {
-    /** Process {@link Entry}s extracted from a {@link Source} */
+    /** Process {@link Entry}s extracted from a {@link Source}. */
     interface EntryProcessor
     {
       void processEntry(EntryContainer container, EntryID entryID, Entry entry) throws Exception;
@@ -681,10 +679,9 @@ final class OnDiskMergeImporter
   private static final int MAX_BUFFER_SIZE = 2 * MB;
   /** Min size of phase one buffer. */
   private static final int MIN_BUFFER_SIZE = 4 * KB;
-  /** DB cache size to use during import */
+  /** DB cache size to use during import. */
   private static final int DB_CACHE_SIZE = 4 * MB;
-  /** DB cache size to use during import */
-  /** Required free memory for this importer */
+  /** Required free memory for this importer. */
   private static final int REQUIRED_FREE_MEMORY = 50 * MB;
   /** LDIF reader. */
   /** Map of DNs to Suffix objects. */
@@ -867,7 +864,7 @@ final class OnDiskMergeImporter
           id2count, newCollector(entryContainer, id2count.getName()), dn2idAlreadyImported);
     }
 
-    final static Callable<Void> newFlushTask(final Chunk chunk)
+    static final Callable<Void> newFlushTask(final Chunk chunk)
     {
       return new Callable<Void>()
       {
@@ -1486,7 +1483,7 @@ final class OnDiskMergeImporter
 
           private Integer getOffsetAtPosition(int pos)
           {
-            return (int) buffer.readInt(pos);
+            return buffer.readInt(pos);
           }
 
           @Override
@@ -1533,7 +1530,7 @@ final class OnDiskMergeImporter
         bufferPool.release(buffer);
       }
 
-      /** Cursor of the in-memory chunk */
+      /** Cursor of the in-memory chunk. */
       private final class InMemorySortedChunkCursor implements MeteredCursor<ByteString, ByteString>
       {
         private ByteString key;
@@ -2445,7 +2442,7 @@ final class OnDiskMergeImporter
     return results;
   }
 
-  /** Regularly report progress statistics from the registered list of {@link ProgressMetric} */
+  /** Regularly report progress statistics from the registered list of {@link ProgressMetric}. */
   private static final class PhaseTwoProgressReporter implements Runnable, Closeable
   {
     private static final String PHASE2_REPORTER_THREAD_NAME = "PHASE2-REPORTER-%d";
@@ -2515,15 +2512,15 @@ final class OnDiskMergeImporter
   /** Buffer used by {@link InMemorySortedChunk} to store and sort data. */
   private interface Buffer extends Closeable
   {
-    void writeInt(final int position, final int value);
+    void writeInt(int position, int value);
 
-    int readInt(final int position);
+    int readInt(int position);
 
-    long readCompactUnsignedLong(final int position);
+    long readCompactUnsignedLong(int position);
 
     ByteString readByteString(int position, int length);
 
-    int writeCompactUnsignedLong(final int position, long value);
+    int writeCompactUnsignedLong(int position, long value);
 
     void writeByteSequence(int position, ByteSequence data);
 
@@ -3453,8 +3450,8 @@ final class OnDiskMergeImporter
     }
   }
 
-  /** Adapter allowing to use an {@link Importer} as a {@link WriteableTransaction} */
-  private final static class ImporterToWriteableTransactionAdapter implements WriteableTransaction
+  /** Adapter allowing to use an {@link Importer} as a {@link WriteableTransaction}. */
+  private static final class ImporterToWriteableTransactionAdapter implements WriteableTransaction
   {
     private final Importer importer;
 
@@ -3527,5 +3524,4 @@ final class OnDiskMergeImporter
       throw new UnsupportedOperationException();
     }
   }
-
 }

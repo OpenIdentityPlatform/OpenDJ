@@ -105,7 +105,6 @@ final class SuccessiveAddsImportStrategy implements ImportStrategy
     this.backendCfg = backendCfg;
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException, IOException,
       CanceledOperationException, StorageRuntimeException, InterruptedException

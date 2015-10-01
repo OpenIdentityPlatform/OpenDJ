@@ -28,13 +28,9 @@ package org.opends.server.backends.pluggable;
 
 import java.util.Comparator;
 
-/**
- * This comparator is used to sort trees in order of priority
- * for preloading into the cache.
- */
+/** This comparator is used to sort trees in order of priority for preloading into the cache. */
 class TreePreloadComparator implements Comparator<Tree>
 {
-
   /**
    * Calculate the relative priority of a tree for preloading.
    *
@@ -68,7 +64,7 @@ class TreePreloadComparator implements Comparator<Tree>
    * @return a negative integer, zero, or a positive integer as the
    *         first argument is less than, equal to, or greater than the
    *         second.
-   **/
+   */
   @Override
   public int compare(Tree tree1, Tree tree2)
   {

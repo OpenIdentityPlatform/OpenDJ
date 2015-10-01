@@ -436,16 +436,12 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     return new EntryID(nextEntryID.getAndIncrement());
   }
 
-  /**
-   * Resets the next entry ID counter to zero. This should only be used after
-   * clearing all trees.
-   */
+  /** Resets the next entry ID counter to zero. This should only be used after clearing all trees. */
   public void resetNextEntryID()
   {
     nextEntryID.set(1);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(PluggableBackendCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -454,7 +450,6 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(PluggableBackendCfg configuration)
   {
