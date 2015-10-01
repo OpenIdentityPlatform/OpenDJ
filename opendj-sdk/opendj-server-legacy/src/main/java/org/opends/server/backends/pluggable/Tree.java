@@ -76,11 +76,4 @@ interface Tree
    * @return name for this tree.
    */
   TreeName getName();
-
-  /**
-   * Set the name to use for this tree.
-   *
-   * @param name The name to use for this tree.
-   */
-  void setName(TreeName name);
 }

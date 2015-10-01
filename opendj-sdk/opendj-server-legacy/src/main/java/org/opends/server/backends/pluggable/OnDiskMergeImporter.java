@@ -698,7 +698,7 @@ final class OnDiskMergeImporter
     this.importStrategy = importStrategy;
   }
 
-  public void doImport(final Source source) throws Exception
+  private void doImport(final Source source) throws Exception
   {
     final long phaseOneStartTime = System.currentTimeMillis();
     final PhaseOneWriteableTransaction transaction = new PhaseOneWriteableTransaction(importStrategy);
@@ -1629,7 +1629,7 @@ final class OnDiskMergeImporter
       private final long startOffset;
       private long size;
       private MappedByteBuffer mmapBuffer;
-      private OutputStream mmapBufferOS = new OutputStream()
+      private final OutputStream mmapBufferOS = new OutputStream()
       {
         @Override
         public void write(int arg0) throws IOException
@@ -2555,7 +2555,7 @@ final class OnDiskMergeImporter
         }
     }
 
-    static boolean supportOffHeap()
+    private static boolean supportOffHeap()
     {
       return unsafe != null;
     }
@@ -2575,7 +2575,7 @@ final class OnDiskMergeImporter
       return bufferSize;
     }
 
-    public Buffer get()
+    private Buffer get()
     {
       try
       {

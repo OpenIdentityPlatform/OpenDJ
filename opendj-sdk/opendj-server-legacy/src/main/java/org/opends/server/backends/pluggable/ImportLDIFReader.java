@@ -64,7 +64,7 @@ final class ImportLDIFReader extends LDIFReader
     private final EntryID entryID;
     private final EntryContainer entryContainer;
 
-    EntryInformation(Entry entry, EntryID entryID, EntryContainer entryContainer)
+    private EntryInformation(Entry entry, EntryID entryID, EntryContainer entryContainer)
     {
       this.entry = entry;
       this.entryID = entryID;

@@ -684,16 +684,8 @@ class DN2URI extends AbstractTree
     return new SearchResultReference(URIList);
   }
 
-  ByteString toKey(DN dn)
+  private ByteString toKey(DN dn)
   {
     return DnKeyFormat.dnToDNKey(dn, prefixRDNComponents);
-  }
-
-  ByteSequence toValue(DN dn, Entry entry)
-  {
-    // FIXME JNR This is not very efficient:
-    // getReferralsURL() converts from bytestring into string
-    // and the code down below then does the reverse
-    return encode(dn, entry.getReferralURLs());
   }
 }

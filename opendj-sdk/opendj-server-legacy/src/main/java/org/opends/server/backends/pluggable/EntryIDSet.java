@@ -886,12 +886,6 @@ final class EntryIDSet implements Iterable<EntryID>
     return concreteImpl.getRange();
   }
 
-  static long addWithoutOverflow(long a, long b) {
-    // a and b must be > 0
-    final long result = a + b;
-    return result >= 0 ? result : Long.MAX_VALUE;
-  }
-
   private static long[] mergeOverlappingEntryIDSet(long set1[], long set2[])
   {
     final long[] a, b;
