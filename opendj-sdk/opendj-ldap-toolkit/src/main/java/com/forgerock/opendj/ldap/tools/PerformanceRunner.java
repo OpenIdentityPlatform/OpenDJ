@@ -387,6 +387,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 final long intervalResultCount = intervalSuccessCount + intervalFailedCount;
 
                 final String[] printableStats = new String[numColumns];
+                Arrays.fill(printableStats, "-");
                 printableStats[0] = getDivisionResult(intervalResultCount, intervalDurationSec, 1);
                 printableStats[1] = getDivisionResult(totalResultCount, totalDurationSec, 1);
 
@@ -401,6 +402,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 for (int j = computedPercentiles.size() - 1; j >= 0; j--) {
                     printableStats[i++] = getDivisionResult(computedPercentiles.get(j) , 1000.0, 2);
                 }
+                i = 4 + percentiles.length;
                 printableStats[i++] = getDivisionResult(intervalFailedCount, intervalDurationSec, 1);
                 if (isAsync) {
                     printableStats[i++] = getDivisionResult(intervalOperationCount, intervalResultCount, 1);
