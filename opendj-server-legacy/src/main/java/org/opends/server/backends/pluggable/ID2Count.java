@@ -134,15 +134,6 @@ final class ID2Count extends AbstractTree
     return getKeyFromEntryIDAndBucket(entryID, bucket);
   }
 
-  ByteSequence toKey(EntryID entryID)
-  {
-    if (entryID == null)
-    {
-      entryID = TOTAL_COUNT_ENTRY_ID;
-    }
-    return getShardedKey(entryID);
-  }
-
   ByteString toValue(final long count)
   {
     Reject.ifFalse(count != 0, "count must be != 0");

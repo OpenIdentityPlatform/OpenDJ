@@ -1526,7 +1526,7 @@ public class EntryContainer
     }
   }
 
-  void addEntry0(final Entry entry, final DN parentDN, final EntryID entryID, final IndexBuffer indexBuffer,
+  private void addEntry0(final Entry entry, final DN parentDN, final EntryID entryID, final IndexBuffer indexBuffer,
       final ByteString encodedEntry, WriteableTransaction txn) throws DirectoryException
   {
     // Check that the parent entry exists.
@@ -2760,29 +2760,6 @@ public class EntryContainer
 
     allTrees.addAll(vlvIndexMap.values());
     return allTrees;
-  }
-
-  /**
-   * Clear the contents for a tree from disk.
-   *
-   * @param txn a non null transaction
-   * @param tree The tree to clear.
-   * @throws StorageRuntimeException if a storage error occurs.
-   */
-  void clearTree(WriteableTransaction txn, Tree tree) throws StorageRuntimeException
-  {
-    try
-    {
-      tree.delete(txn);
-    }
-    finally
-    {
-      tree.open(txn, true);
-    }
-    if(logger.isTraceEnabled())
-    {
-      logger.trace("Cleared the tree %s", tree.getName());
-    }
   }
 
   /**

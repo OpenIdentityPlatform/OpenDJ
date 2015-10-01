@@ -84,17 +84,7 @@ public final class TreeName implements Comparable<TreeName>
     return indexId;
   }
 
-  /**
-   * Returns a new tree name object created by replacing the baseDN of the current object.
-   *
-   * @param newBaseDN
-   *          the new base DN that replaces the existing base DN
-   * @return a new tree name object with the provided the base DN
-   */
-  public TreeName replaceBaseDN(String newBaseDN)
-  {
-    return new TreeName(newBaseDN, indexId);
-  }
+
 
   /** {@inheritDoc} */
   @Override

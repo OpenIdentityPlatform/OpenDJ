@@ -32,7 +32,7 @@ public enum AccessMode {
   /** Constant used to open the Storage in read-write mode; implies trees will be created if not already present. */
   READ_WRITE(true);
 
-  private boolean readWrite;
+  private final boolean readWrite;
 
   AccessMode(boolean update)
   {

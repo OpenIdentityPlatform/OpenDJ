@@ -38,7 +38,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 abstract class AbstractTree implements Tree, Comparable<Tree>
 {
   /** The name of the tree within the entryContainer. */
-  private TreeName name;
+  private final TreeName name;
 
   AbstractTree(final TreeName name)
   {
@@ -74,12 +74,6 @@ abstract class AbstractTree implements Tree, Comparable<Tree>
   public final TreeName getName()
   {
     return name;
-  }
-
-  @Override
-  public final void setName(TreeName name)
-  {
-    this.name = name;
   }
 
   @Override

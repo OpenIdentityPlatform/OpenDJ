@@ -52,7 +52,6 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * is a byte array, and is constructed from some normalized form of an attribute value (or fragment
  * of a value) appearing in the entry.
  */
-@SuppressWarnings("javadoc")
 class DefaultIndex extends AbstractTree implements Index
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -129,19 +128,9 @@ class DefaultIndex extends AbstractTree implements Index
     return codec.decode(key, value);
   }
 
-  ByteString toValue(EntryID entryID)
-  {
-    return codec.encode(newDefinedSet(entryID.longValue()));
-  }
-
   ByteString toValue(EntryIDSet entryIDSet)
   {
     return codec.encode(entryIDSet);
-  }
-
-  ByteString toValue(ImportIDSet importIDSet)
-  {
-    return importIDSet.valueToByteString(codec);
   }
 
   @Override
