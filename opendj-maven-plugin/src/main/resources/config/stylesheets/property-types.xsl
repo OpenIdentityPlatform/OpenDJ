@@ -403,9 +403,7 @@
       </xsl:call-template>
     </xsl:variable>
     <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+      select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public ')" />
     <xsl:choose>
       <xsl:when test="string(@multi-valued) != 'true'">
@@ -586,9 +584,7 @@
         </xsl:call-template>
       </xsl:variable>
       <xsl:value-of
-        select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
+        select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public void set',
                      $java-prop-name ,
                      '(')" />
