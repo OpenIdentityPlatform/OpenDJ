@@ -232,9 +232,19 @@ public class TextDebugLogPublisher
 
         if (config.isAsynchronous())
         {
-          if (!(writer instanceof AsynchronousTextWriter))
+          if (writer instanceof AsynchronousTextWriter)
           {
-            // The asynchronous setting is being turned on.
+            if (hasAsyncConfigChanged(config))
+            {
+              // reinstantiate
+              final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
+              writer = newAsyncWriter(mfWriter, config);
+              previousWriter.shutdown(false);
+            }
+          }
+          else
+          {
+            // turn async text writer on
             writer = newAsyncWriter(mfWriter, config);
           }
         }
@@ -242,10 +252,10 @@ public class TextDebugLogPublisher
         {
           if (writer instanceof AsynchronousTextWriter)
           {
-            // The asynchronous setting is being turned off.
-            AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            // asynchronous is being turned off, remove async text writers.
+            final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
             writer = mfWriter;
-            asyncWriter.shutdown(false);
+            previousWriter.shutdown(false);
           }
         }
 
@@ -304,6 +314,13 @@ public class TextDebugLogPublisher
   private File getLogFile(FileBasedDebugLogPublisherCfg config)
   {
     return getFileForPath(config.getLogFile());
+  }
+
+  private boolean hasAsyncConfigChanged(FileBasedDebugLogPublisherCfg newConfig)
+  {
+    return !currentConfig.dn().equals(newConfig.dn())
+        && currentConfig.isAutoFlush() != newConfig.isAutoFlush()
+        && currentConfig.getQueueSize() != newConfig.getQueueSize();
   }
 
   private TraceSettings getDefaultSettings(FileBasedDebugLogPublisherCfg config)

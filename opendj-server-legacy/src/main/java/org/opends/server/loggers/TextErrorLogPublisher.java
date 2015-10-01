@@ -352,9 +352,19 @@ public class TextErrorLogPublisher
 
         if (config.isAsynchronous())
         {
-          if (!(writer instanceof AsynchronousTextWriter))
+          if (writer instanceof AsynchronousTextWriter)
           {
-            // The asynchronous setting is being turned on.
+            if (hasAsyncConfigChanged(config))
+            {
+              // reinstantiate
+              final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
+              writer = newAsyncWriter(mfWriter, config);
+              previousWriter.shutdown(false);
+            }
+          }
+          else
+          {
+            // turn async text writer on
             writer = newAsyncWriter(mfWriter, config);
           }
         }
@@ -362,15 +372,14 @@ public class TextErrorLogPublisher
         {
           if (writer instanceof AsynchronousTextWriter)
           {
-            // The asynchronous setting is being turned off.
-            AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            // asynchronous is being turned off, remove async text writers.
+            final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
             writer = mfWriter;
-            asyncWriter.shutdown(false);
+            previousWriter.shutdown(false);
           }
         }
 
-        if (currentConfig.isAsynchronous()
-            && config.isAsynchronous()
+        if (currentConfig.isAsynchronous() && config.isAsynchronous()
             && currentConfig.getQueueSize() != config.getQueueSize())
         {
           ccr.setAdminActionRequired(true);
@@ -419,6 +428,13 @@ public class TextErrorLogPublisher
   private File getLogFile(FileBasedErrorLogPublisherCfg config)
   {
     return getFileForPath(config.getLogFile());
+  }
+
+  private boolean hasAsyncConfigChanged(FileBasedErrorLogPublisherCfg newConfig)
+  {
+    return !currentConfig.dn().equals(newConfig.dn())
+        && currentConfig.isAutoFlush() != newConfig.isAutoFlush()
+        && currentConfig.getQueueSize() != newConfig.getQueueSize();
   }
 
   private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedErrorLogPublisherCfg config)

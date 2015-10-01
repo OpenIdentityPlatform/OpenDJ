@@ -82,9 +82,19 @@ public final class TextAuditLogPublisher extends
 
         if (config.isAsynchronous())
         {
-          if (!(writer instanceof AsynchronousTextWriter))
+          if (writer instanceof AsynchronousTextWriter)
           {
-            // The asynchronous setting is being turned on.
+            if (hasAsyncConfigChanged(config))
+            {
+              // reinstantiate
+              final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
+              writer = newAsyncWriter(mfWriter, config);
+              previousWriter.shutdown(false);
+            }
+          }
+          else
+          {
+            // turn async text writer on
             writer = newAsyncWriter(mfWriter, config);
           }
         }
@@ -92,10 +102,10 @@ public final class TextAuditLogPublisher extends
         {
           if (writer instanceof AsynchronousTextWriter)
           {
-            // The asynchronous setting is being turned off.
-            AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
+            // asynchronous is being turned off, remove async text writers.
+            final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
             writer = mfWriter;
-            asyncWriter.shutdown(false);
+            previousWriter.shutdown(false);
           }
         }
 
@@ -148,6 +158,13 @@ public final class TextAuditLogPublisher extends
   private File getLogFile(final FileBasedAuditLogPublisherCfg config)
   {
     return getFileForPath(config.getLogFile());
+  }
+
+  private boolean hasAsyncConfigChanged(FileBasedAuditLogPublisherCfg newConfig)
+  {
+    return !cfg.dn().equals(newConfig.dn())
+        && cfg.isAutoFlush() != newConfig.isAutoFlush()
+        && cfg.getQueueSize() != newConfig.getQueueSize();
   }
 
   @Override
