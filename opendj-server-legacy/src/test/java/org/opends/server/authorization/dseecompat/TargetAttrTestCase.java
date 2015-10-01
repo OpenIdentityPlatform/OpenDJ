@@ -122,9 +122,42 @@ public class TargetAttrTestCase extends AciTestCase {
           "allow (search, read) " +
           "userattr=\"l#Austin\";)";
 
+  private static final
+  String controlAci = "(targetcontrol=\"1.3.6.1.1.13.1\")" +
+          "(version 3.0;acl \"use pre-read control\";" +
+          "allow (read) " +
+          "userdn=\"ldap:///anyone\";)";
+
+  private static final String user3ForbiddenUserAttr = "sn";
+  private static final String user3ForbiddenOperationalAttr = "createTimestamp";
+  private static final String user3AllowedUserAttr = "uid";
+  private static final String user3AllowedOperationalAttr = "ds-privilege-name";
+  private static final String user3WritableAttr = "description";
+
+    private static final
+  String selfWriteAci = "(targetattr=\"" + user3WritableAttr + "\")" +
+          "(version 3.0;acl \"self write description\";" +
+          "allow (write) " +
+          "userdn=\"ldap:///self\";)";
+
+  private static final
+  String selfDenyAttrReadAci = "(targetattr=\"" + user3ForbiddenUserAttr + "||" +
+          user3ForbiddenOperationalAttr + "\")" +
+          "(version 3.0;acl \"self deny attribute reads\";" +
+          "deny (read,search) " +
+          "userdn=\"ldap:///self\";)";
+
+  private static final
+  String selfReadAllAttrsAci = "(targetattr=\"*||+\")" +
+          "(version 3.0; acl \"self read/search all attributes\";" +
+          "allow (read,search) " +
+          "userdn=\"ldap:///self\";)";
+
   @BeforeClass
   public void setupClass() throws Exception {
     deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    String aciLdif3 = makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN, controlAci, selfWriteAci);
+    LDIFModify(aciLdif3, DIR_MGR_DN, PWD);
     addEntries("o=test");
   }
 
@@ -214,6 +247,57 @@ public class TargetAttrTestCase extends AciTestCase {
     assertFalse(attrMap2.containsKey("sn"));
     assertFalse(attrMap2.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
+  }
+
+  /**
+   * Test targetattr behaviour with modify and pre-read controls
+   *
+   * @throws Exception  If a test result is unexpected.
+   */
+  @Test
+  public void testTargetAttrPreRead() throws Exception {
+    String aciLdif=makeAddLDIF("aci", user3,
+            controlAci, selfWriteAci, selfDenyAttrReadAci, selfReadAllAttrsAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+
+    // sanity check that search does not return the forbidden attributes
+    String searchResults =
+            LDAPSearchParams(user3, PWD, null, null, null, user3, filter, "+ *");
+    assertNotEquals(searchResults, "");
+    Map<String, String> attrMap = getAttrMap(searchResults);
+    assertFalse(attrMap.containsKey(user3ForbiddenUserAttr));
+    assertFalse(attrMap.containsKey(user3ForbiddenOperationalAttr));
+    assertTrue(attrMap.containsKey(user3AllowedUserAttr));
+
+    // check we can't pre-read the forbidden user attribute
+    String modifyLdif1 = makeAddLDIF(user3WritableAttr, user3, "don't care 1");
+    String modifyResults1 = preReadModify(user3, PWD, modifyLdif1, user3ForbiddenUserAttr);
+    assertNotEquals(modifyResults1, "");
+    Map<String, String> modifyMap1 = getAttrMap(modifyResults1, true);
+    assertFalse(modifyMap1.containsKey(user3ForbiddenUserAttr));
+
+    // check we can't pre-read the forbidden operational attribute
+    String modifyLdif2 = makeAddLDIF(user3WritableAttr, user3, "don't care 2");
+    String modifyResults2 = preReadModify(user3, PWD, modifyLdif2, user3ForbiddenOperationalAttr);
+    assertNotEquals(modifyResults2, "");
+    Map<String, String> modifyMap2 = getAttrMap(modifyResults2, true);
+    assertFalse(modifyMap2.containsKey(user3ForbiddenOperationalAttr));
+
+    // check we can pre-read the allowed user attribute
+    String modifyLdif3 = makeAddLDIF(user3WritableAttr, user3, "don't care 3");
+    String modifyResults3 = preReadModify(user3, PWD, modifyLdif3, user3AllowedUserAttr);
+    assertNotEquals(modifyResults3, "");
+    Map<String, String> modifyMap3 = getAttrMap(modifyResults3, true);
+    assertTrue(modifyMap3.containsKey(user3AllowedUserAttr));
+
+    // check we can pre-read the allowed operational attribute
+    String modifyLdif4 = makeAddLDIF(user3WritableAttr, user3, "don't care 4");
+    String modifyResults4 = preReadModify(user3, PWD, modifyLdif4, user3AllowedOperationalAttr);
+    assertNotEquals(modifyResults4, "");
+    Map<String, String> modifyMap4 = getAttrMap(modifyResults4, true);
+    assertTrue(modifyMap4.containsKey(user3AllowedOperationalAttr));
+
+    deleteAttrFromEntry(user3, "aci");
   }
 
   /**
