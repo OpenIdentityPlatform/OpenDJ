@@ -403,7 +403,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     printableStats[i++] = getDivisionResult(computedPercentiles.get(j) , 1000.0, 2);
                 }
                 i = 4 + percentiles.length;
-                printableStats[i++] = getDivisionResult(intervalFailedCount, intervalDurationSec, 1);
+                printableStats[i++] = intervalFailedCount == 0
+                                      ? "0.0"
+                                      : getDivisionResult(intervalFailedCount, intervalDurationSec, 1);
                 if (isAsync) {
                     printableStats[i++] = getDivisionResult(intervalOperationCount, intervalResultCount, 1);
                 }
