@@ -118,30 +118,72 @@ public final class TextAccessLogPublisher extends
 
         if (config.isAsynchronous())
         {
-          // The asynchronous setting is being turned on.
-          if (!(writer instanceof AsynchronousTextWriter))
+          if (useAsyncWriter(config))
           {
-            writer = newAsyncWriter(mfWriter, config);
+            if (writer instanceof AsynchronousTextWriter)
+            {
+              if (hasAsyncConfigChanged(config))
+              {
+                // reinstantiate
+                final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
+                writer = newAsyncWriter(mfWriter, config);
+                previousWriter.shutdown(false);
+              }
+            }
+            else if (writer instanceof ParallelTextWriter)
+            {
+              // convert parallel to async
+              final ParallelTextWriter previousWriter = (ParallelTextWriter) writer;
+              writer = newAsyncWriter(mfWriter, config);
+              previousWriter.shutdown(false);
+            }
+            else
+            {
+              // turn async text writer on
+              writer = newAsyncWriter(mfWriter, config);
+            }
           }
-          if (!(writer instanceof ParallelTextWriter))
+          else
           {
-            writer = newParallelWriter(mfWriter, config);
+            if (writer instanceof AsynchronousTextWriter)
+            {
+              // convert async to parallel
+              final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
+              writer = newParallelWriter(mfWriter, config);
+              previousWriter.shutdown(false);
+            }
+            else if (writer instanceof ParallelTextWriter)
+            {
+              if (hasParallelConfigChanged(config))
+              {
+                // reinstantiate
+                final ParallelTextWriter previousWriter = (ParallelTextWriter) writer;
+                writer = newParallelWriter(mfWriter, config);
+                previousWriter.shutdown(false);
+              }
+            }
+            else
+            {
+              // turn parallel text writer on
+              writer = newParallelWriter(mfWriter, config);
+            }
           }
         }
         else
         {
-          // The asynchronous setting is being turned off.
-          if (writer instanceof AsynchronousTextWriter)
-          {
-            final AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter) writer;
-            writer = mfWriter;
-            asyncWriter.shutdown(false);
-          }
           if (writer instanceof ParallelTextWriter)
           {
-            final ParallelTextWriter asyncWriter = (ParallelTextWriter) writer;
+            // asynchronous is being turned off, remove parallel text writers.
+            final ParallelTextWriter previousWriter = (ParallelTextWriter) writer;
             writer = mfWriter;
-            asyncWriter.shutdown(false);
+            previousWriter.shutdown(false);
+          }
+          else if (writer instanceof AsynchronousTextWriter)
+          {
+            // asynchronous is being turned off, remove async text writers.
+            final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
+            writer = mfWriter;
+            previousWriter.shutdown(false);
           }
         }
 
@@ -234,7 +276,7 @@ public final class TextAccessLogPublisher extends
 
       if (cfg.isAsynchronous())
       {
-        if (cfg.getQueueSize() > 0)
+        if (useAsyncWriter(cfg))
         {
           this.writer = newAsyncWriter(theWriter, cfg);
         }
@@ -267,6 +309,21 @@ public final class TextAccessLogPublisher extends
     timeStampFormat = cfg.getLogRecordTimeFormat();
 
     cfg.addFileBasedAccessChangeListener(this);
+  }
+
+  private boolean useAsyncWriter(FileBasedAccessLogPublisherCfg config)
+  {
+    return config.getQueueSize() > 0;
+  }
+
+  private boolean hasAsyncConfigChanged(FileBasedAccessLogPublisherCfg newConfig)
+  {
+    return hasParallelConfigChanged(newConfig) && cfg.getQueueSize() != newConfig.getQueueSize();
+  }
+
+  private boolean hasParallelConfigChanged(FileBasedAccessLogPublisherCfg newConfig)
+  {
+    return !cfg.dn().equals(newConfig.dn()) && cfg.isAutoFlush() != newConfig.isAutoFlush();
   }
 
   private AsynchronousTextWriter newAsyncWriter(MultifileTextWriter mfWriter, FileBasedAccessLogPublisherCfg config)
