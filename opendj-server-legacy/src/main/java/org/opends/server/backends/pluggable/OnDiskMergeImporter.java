@@ -847,7 +847,7 @@ final class OnDiskMergeImporter
     final Callable<Void> newChunkCopierTask(TreeName treeName, final Chunk chunk,
         PhaseTwoProgressReporter progressReporter)
     {
-      return new CleanImportTask(progressReporter, chunk, treeName, importer);
+      return new ChunkCopierTask(progressReporter, chunk, treeName, importer);
     }
 
     final Callable<Void> newDN2IDImporterTask(TreeName treeName, final Chunk chunk,
@@ -901,7 +901,6 @@ final class OnDiskMergeImporter
     {
       if (isID2Entry(treeName))
       {
-        importer.clearTree(treeName);
         return new MostlyOrderedChunk(asChunk(treeName, importer));
       }
       return newExternalSortChunk(treeName);
@@ -945,12 +944,10 @@ final class OnDiskMergeImporter
     {
       if (isID2Entry(treeName))
       {
-        importer.clearTree(treeName);
         return new MostlyOrderedChunk(asChunk(treeName, importer));
       }
       else if (isDN2ID(treeName))
       {
-        importer.clearTree(treeName);
         return asChunk(treeName, importer);
       }
       return newExternalSortChunk(treeName);
@@ -2024,18 +2021,15 @@ final class OnDiskMergeImporter
     return new ImporterToChunkAdapter(treeName, importer);
   }
 
-  /**
-   * Task to copy one {@link Chunk} into a database tree through an {@link Importer}. The specified tree is cleaned
-   * before receiving the data contained in the {@link Chunk}.
-   */
-  private static final class CleanImportTask implements Callable<Void>
+  /** Task to copy one {@link Chunk} into a database tree through an {@link Importer}. */
+  private static final class ChunkCopierTask implements Callable<Void>
   {
     private final PhaseTwoProgressReporter reporter;
     private final TreeName treeName;
     private final Importer destination;
     private final Chunk source;
 
-    CleanImportTask(PhaseTwoProgressReporter reporter, Chunk source, TreeName treeName, Importer destination)
+    ChunkCopierTask(PhaseTwoProgressReporter reporter, Chunk source, TreeName treeName, Importer destination)
     {
       this.source = source;
       this.treeName = treeName;
@@ -2046,7 +2040,6 @@ final class OnDiskMergeImporter
     @Override
     public Void call()
     {
-      destination.clearTree(treeName);
       try (final SequentialCursor<ByteString, ByteString> sourceCursor = trackCursorProgress(reporter, source.flip()))
       {
         copyIntoChunk(sourceCursor, asChunk(treeName, destination));
@@ -2116,7 +2109,7 @@ final class OnDiskMergeImporter
       // -1 because baseDN is not counted
       id2count.importPutTotalCount(asImporter(id2CountChunk), Math.max(0, totalNumberOfEntries - 1));
 
-      new CleanImportTask(reporter, id2CountChunk, id2count.getName(), importer).call();
+      new ChunkCopierTask(reporter, id2CountChunk, id2count.getName(), importer).call();
       return null;
     }
 
