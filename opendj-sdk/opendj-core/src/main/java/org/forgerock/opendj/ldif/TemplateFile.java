@@ -92,7 +92,7 @@ import org.forgerock.util.Utils;
 final class TemplateFile {
 
     /** Default resource path used if no resource path is provided. */
-    private static final File DEFAULT_RESOURCES_PATH = new File("org/forgerock/opendj/ldif");
+    private static final String DEFAULT_RESOURCES_PATH = "org/forgerock/opendj/ldif";
 
     /** Default template path used if no template file is provided. */
     private static final String DEFAULT_TEMPLATE_PATH = "example.template";
@@ -1219,8 +1219,8 @@ final class TemplateFile {
             }
             if (reader == null) {
                 // try to find in default resources provided
-                final InputStream stream = TemplateFile.class.getClassLoader().getResourceAsStream(
-                        new File(DEFAULT_RESOURCES_PATH, filePath).getPath());
+                final InputStream stream = TemplateFile.class.getClassLoader()
+                        .getResourceAsStream(DEFAULT_RESOURCES_PATH + "/" + filePath);
                 if (stream != null) {
                     reader = new BufferedReader(new InputStreamReader(stream));
                 }
