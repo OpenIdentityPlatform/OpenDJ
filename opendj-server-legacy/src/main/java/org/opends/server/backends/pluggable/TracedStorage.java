@@ -50,7 +50,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 
 /** Decorates a {@link Storage} with additional trace logging. */
-@SuppressWarnings("javadoc")
 final class TracedStorage implements Storage
 {
   /** Decorates an {@link Importer} with additional trace logging. */

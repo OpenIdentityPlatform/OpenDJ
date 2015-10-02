@@ -48,7 +48,6 @@ import org.opends.server.types.DirectoryException;
  * the same transaction. The transaction may be null if it is known
  * that there are no other concurrent updates to the index.
  */
-@SuppressWarnings("javadoc")
 class IndexBuffer
 {
   /** Internal interface for IndexBuffer implementor. */
