@@ -109,7 +109,8 @@ class State extends AbstractTree
   /**
    * Ensure that the specified flags are set for the given index
    * @param txn a non null transaction
-   * @param index The index storing the trusted state info.
+   * @param indexTreeName The index storing the trusted state info.
+   * @param flags The flags to add to the provided index
    * @return true if the flags have been updated
    * @throws NullPointerException if txn, index or flags is null
    * @throws StorageRuntimeException If an error occurs in the storage.
@@ -159,7 +160,8 @@ class State extends AbstractTree
   /**
    * Ensure that the specified flags are not set for the given index
    * @param txn a non null transaction
-   * @param index The index storing the trusted state info.
+   * @param indexTreeName The index storing the trusted state info.
+   * @param flags The flags to remove from the provided index
    * @throws NullPointerException if txn, index or flags is null
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
@@ -184,7 +186,7 @@ class State extends AbstractTree
    * Remove a record from the entry tree.
    *
    * @param txn a non null transaction
-   * @param index The index storing the trusted state info.
+   * @param indexTreeName The index storing the trusted state info.
    * @return true if the entry was removed, false if it was not.
    * @throws NullPointerException if txn, index is null
    * @throws StorageRuntimeException If an error occurs in the storage.

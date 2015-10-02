@@ -71,9 +71,7 @@ import org.opends.server.util.StaticUtils;
  * by the ordering matching rule.  If these could be guaranteed to be identical
  * then we would not need a separate ordering index.
  */
-@SuppressWarnings("javadoc")
-class AttributeIndex
-    implements ConfigurationChangeListener<BackendIndexCfg>, Closeable
+class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

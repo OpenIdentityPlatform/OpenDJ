@@ -43,7 +43,6 @@ import com.forgerock.opendj.util.PackedLong;
  * Store a counter associated to a key. Counter value is sharded amongst multiple keys to allow concurrent
  * update without contention (at the price of a slower read).
  */
-@SuppressWarnings("javadoc")
 final class ID2Count extends AbstractTree
 {
   /**

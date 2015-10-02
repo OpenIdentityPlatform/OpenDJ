@@ -27,6 +27,7 @@ package org.opends.server.backends.pdb;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
+
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
@@ -104,7 +105,6 @@ import com.persistit.exception.TreeNotFoundException;
 import com.persistit.mxbeans.CheckpointManagerMXBean;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
-@SuppressWarnings("javadoc")
 public final class PDBStorage implements Storage, Backupable, ConfigurationChangeListener<PDBBackendCfg>,
   DiskSpaceMonitorHandler
 {

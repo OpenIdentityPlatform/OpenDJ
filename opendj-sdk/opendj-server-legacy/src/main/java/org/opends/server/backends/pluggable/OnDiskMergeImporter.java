@@ -824,16 +824,6 @@ final class OnDiskMergeImporter
       visitIndexes(entryContainer, new TrustModifier(importer, true));
     }
 
-    final Set<EntryContainer> extractEntryContainers(Collection<TreeName> treeNames)
-    {
-      final Set<EntryContainer> containers = new HashSet<>();
-      for(TreeName treeName : treeNames)
-      {
-        containers.add(entryContainers.get(treeName.getBaseDN()));
-      }
-      return containers;
-    }
-
     final void clearEntryContainerTrees(EntryContainer entryContainer)
     {
       for(Tree tree : entryContainer.listTrees())
@@ -1198,8 +1188,8 @@ final class OnDiskMergeImporter
 
   /**
    * Chunk implementations are a data storage with an optional limited capacity. Chunk are typically used by first
-   * adding data to the storage using {@link put(ByteSequence, ByteSequence)} later on data can be sequentially accessed
-   * using {@link flip()}.
+   * adding data to the storage using {@link #put(ByteSequence, ByteSequence)} later on data can be sequentially accessed
+   * using {@link #flip()}.
    */
   interface Chunk
   {
@@ -1235,8 +1225,9 @@ final class OnDiskMergeImporter
    * Store and sort data into multiple chunks. Thanks to the chunk rolling mechanism, this chunk can sort and store an
    * unlimited amount of data. This class uses double-buffering: data are firstly stored in a
    * {@link InMemorySortedChunk} which, once full, will be asynchronously sorted and copied into a
-   * {@link FileRegionChunk}. Duplicate keys are reduced by a {@link Collector}. {@link #put(ByteSequence,
-   * ByteSequence))} is thread-safe. This class is used in phase-one. There is one {@link ExternalSortChunk} per
+   * {@link FileRegionChunk}. Duplicate keys are reduced by a {@link Collector}.
+   * {@link #put(ByteSequence, ByteSequence))} is thread-safe.
+   * This class is used in phase-one. There is one {@link ExternalSortChunk} per
    * database tree, shared across all phase-one importer threads, in charge of storing/sorting records.
    */
   static final class ExternalSortChunk implements Chunk
@@ -2264,6 +2255,7 @@ final class OnDiskMergeImporter
     @Override
     public void close()
     {
+      // nothing to do
     }
   }
 
@@ -2394,6 +2386,7 @@ final class OnDiskMergeImporter
         @Override
         public void close()
         {
+          // nothing to do
         }
 
         @Override
