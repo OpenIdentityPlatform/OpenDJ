@@ -1188,8 +1188,8 @@ final class OnDiskMergeImporter
 
   /**
    * Chunk implementations are a data storage with an optional limited capacity. Chunk are typically used by first
-   * adding data to the storage using {@link #put(ByteSequence, ByteSequence)} later on data can be sequentially accessed
-   * using {@link #flip()}.
+   * adding data to the storage using {@link #put(ByteSequence, ByteSequence)} later on data can be sequentially
+   * accessed using {@link #flip()}.
    */
   interface Chunk
   {
