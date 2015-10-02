@@ -267,7 +267,7 @@ final class OnDiskMergeImporter
         if (rebuildConfig.isClearDegradedState())
         {
           visitIndexes(entryContainer, new SpecificIndexFilter(new TrustModifier(dbStorage, true), indexesToRebuild));
-          logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
+          logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, indexesToRebuild);
           return;
         }
 
