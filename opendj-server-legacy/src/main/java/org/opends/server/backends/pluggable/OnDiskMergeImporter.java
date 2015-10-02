@@ -271,6 +271,12 @@ final class OnDiskMergeImporter
           return;
         }
 
+        if (indexesToRebuild.isEmpty())
+        {
+          // Early exit in case there is no index to rebuild.
+          return;
+        }
+
         final int threadCount = Runtime.getRuntime().availableProcessors();
         final int nbBuffer = 2 * indexesToRebuild.size() * threadCount;
         final int bufferSize = computeBufferSize(nbBuffer, availableMemory);
