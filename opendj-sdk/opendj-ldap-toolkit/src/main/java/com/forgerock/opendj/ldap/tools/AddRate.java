@@ -508,8 +508,12 @@ public class AddRate extends ConsoleApplication {
         }
 
         final String templatePath = argParser.getTrailingArguments().get(0);
-        runner.generator =
-            MakeLDIF.createGenerator(templatePath, resourcePathArg, randomSeedArg, constantsArg, false, this);
+        runner.generator = MakeLDIF.createGenerator(
+                templatePath, resourcePathArg, randomSeedArg, constantsArg, false, this);
+        if (runner.generator == null) {
+            // Error message has already been logged.
+            return ResultCode.OPERATIONS_ERROR.intValue();
+        }
         Runtime.getRuntime().addShutdownHook(runner.newPurgerThread());
 
         return runner.run(connectionFactory);
