@@ -373,7 +373,7 @@ final class TemplateFile {
                 // Use the template file directory as resource path
                 final File file = getFile(templateFilename);
                 if (file != null) {
-                    resourcePath = file.getParentFile().getAbsolutePath();
+                    resourcePath = file.getCanonicalFile().getParentFile().getAbsolutePath();
                 }
             }
             final List<String> fileLines = readLines(templateReader);
