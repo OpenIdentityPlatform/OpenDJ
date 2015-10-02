@@ -113,6 +113,7 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -265,7 +266,7 @@ final class OnDiskMergeImporter
         final Set<String> indexesToRebuild = selectIndexesToRebuild(entryContainer, rebuildConfig, totalEntries);
         if (rebuildConfig.isClearDegradedState())
         {
-          visitIndexes(entryContainer, visitOnly(indexesToRebuild, setTrust(true, dbStorage)));
+          visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(true, dbStorage)));
           logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, indexesToRebuild);
           return;
         }
@@ -316,10 +317,10 @@ final class OnDiskMergeImporter
         logger.info(NOTE_REBUILD_DEGRADED_START, totalEntries);
         break;
       case USER_DEFINED:
-        visitIndexes(entryContainer, visitOnly(rebuildConfig.getRebuildList(), selector));
+        visitIndexes(entryContainer, visitOnlyAttributesOrIndexes(rebuildConfig.getRebuildList(), selector));
         if (!rebuildConfig.isClearDegradedState())
         {
-          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", rebuildConfig.getRebuildList()), totalEntries);
+          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", selector.getSelectedIndexNames()), totalEntries);
         }
         break;
       default:
@@ -1033,14 +1034,14 @@ final class OnDiskMergeImporter
     @Override
     void beforeImport(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, visitOnly(indexesToRebuild, setTrust(false, importer)));
-      visitIndexes(entryContainer, visitOnly(indexesToRebuild, clearDatabase(importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(false, importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, clearDatabase(importer)));
     }
 
     @Override
     void afterImport(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, visitOnly(indexesToRebuild, setTrust(true, importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(true, importer)));
     }
 
     @Override
@@ -3232,41 +3233,30 @@ final class OnDiskMergeImporter
     {
       for (MatchingRuleIndex index : attribute.getNameToIndexes().values())
       {
-        visitor.visitIndex(index);
-        visitor.visitIndexTree(index);
+        visitor.visitAttributeIndex(attribute.getAttributeType(), index);
         nbVisited++;
       }
     }
     for (VLVIndex index : entryContainer.getVLVIndexes())
     {
-      visitor.visitIndex(index);
-      visitor.visitIndexTree(index);
+      visitor.visitVLVIndex(index);
       nbVisited++;
     }
-    visitor.visitIndexTree(entryContainer.getDN2ID());
-    visitor.visitIndexTree(entryContainer.getDN2URI());
+    visitor.visitSystemIndex(entryContainer.getDN2ID());
+    visitor.visitSystemIndex(entryContainer.getID2ChildrenCount());
+    visitor.visitSystemIndex(entryContainer.getDN2URI());
     nbVisited += 2;
     return nbVisited;
   }
 
   /** Visitor pattern allowing to process all type of indexes. */
-  private static abstract class IndexVisitor
+  private interface IndexVisitor
   {
-    void visitIndex(DefaultIndex index)
-    {
-    }
+    void visitAttributeIndex(AttributeType attribute, DefaultIndex index);
 
-    void visitIndex(VLVIndex index)
-    {
-    }
+    void visitVLVIndex(VLVIndex index);
 
-    void visitSystemIndex(Tree index)
-    {
-    }
-
-    void visitIndexTree(Tree tree)
-    {
-    }
+    void visitSystemIndex(Tree index);
   }
 
   private static final IndexVisitor setTrust(boolean trustValue, Importer importer)
@@ -3275,7 +3265,7 @@ final class OnDiskMergeImporter
   }
 
   /** Update the trust state of the visited indexes. */
-  private static final class TrustModifier extends IndexVisitor
+  private static final class TrustModifier implements IndexVisitor
   {
     private final WriteableTransaction txn;
     private final boolean trustValue;
@@ -3287,15 +3277,21 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitIndex(DefaultIndex index)
+    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
     {
       index.setTrusted(txn, trustValue);
     }
 
     @Override
-    public void visitIndex(VLVIndex index)
+    public void visitVLVIndex(VLVIndex index)
     {
       index.setTrusted(txn, trustValue);
+    }
+
+    @Override
+    public void visitSystemIndex(Tree index)
+    {
+      // System indexes don't have trust status
     }
   }
 
@@ -3305,7 +3301,7 @@ final class OnDiskMergeImporter
   }
 
   /** Delete & recreate the database of the visited indexes. */
-  private static final class ClearDatabase extends IndexVisitor
+  private static final class ClearDatabase implements IndexVisitor
   {
     private final Importer importer;
 
@@ -3315,7 +3311,24 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitIndexTree(Tree index)
+    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    {
+      clearTree(index);
+    }
+
+    @Override
+    public void visitVLVIndex(VLVIndex index)
+    {
+      clearTree(index);
+    }
+
+    @Override
+    public void visitSystemIndex(Tree index)
+    {
+      clearTree(index);
+    }
+
+    private void clearTree(Tree index)
     {
       importer.clearTree(index.getName());
     }
@@ -3327,7 +3340,7 @@ final class OnDiskMergeImporter
   }
 
   /** Visit indexes which are in a degraded state. */
-  private static final class DegradedIndexFilter extends IndexVisitor
+  private static final class DegradedIndexFilter implements IndexVisitor
   {
     private final IndexVisitor delegate;
 
@@ -3337,28 +3350,32 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitIndex(DefaultIndex index)
+    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
     {
       if (!index.isTrusted())
       {
-        delegate.visitIndexTree(index);
-        delegate.visitIndex(index);
+        delegate.visitAttributeIndex(attribute, index);
       }
     }
 
     @Override
-    public void visitIndex(VLVIndex index)
+    public void visitVLVIndex(VLVIndex index)
     {
       if (!index.isTrusted())
       {
-        delegate.visitIndexTree(index);
-        delegate.visitIndex(index);
+        delegate.visitVLVIndex(index);
       }
+    }
+
+    @Override
+    public void visitSystemIndex(Tree index)
+    {
+      // System indexes don't have trust status
     }
   }
 
   /** Maintain a list containing the names of the visited indexes. */
-  private static final class SelectIndexName extends IndexVisitor
+  private static final class SelectIndexName implements IndexVisitor
   {
     private final Set<String> indexNames;
 
@@ -3373,67 +3390,89 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitIndexTree(Tree index)
+    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    {
+      addIndex(index);
+    }
+
+    @Override
+    public void visitVLVIndex(VLVIndex index)
+    {
+      addIndex(index);
+    }
+
+    @Override
+    public void visitSystemIndex(Tree index)
+    {
+      addIndex(index);
+    }
+
+    private void addIndex(Tree index)
     {
       indexNames.add(index.getName().getIndexId());
     }
   }
 
-  private static final IndexVisitor visitOnly(Collection<String> indexNames, IndexVisitor delegate)
+  private static final IndexVisitor visitOnlyIndexes(Collection<String> indexNames, IndexVisitor delegate)
   {
-    return new SpecificIndexFilter(delegate, indexNames);
+    return new SpecificIndexFilter(delegate, indexNames, false);
+  }
+
+  private static final IndexVisitor visitOnlyAttributesOrIndexes(Collection<String> indexOrAttributeNames,
+      IndexVisitor delegate)
+  {
+    return new SpecificIndexFilter(delegate, indexOrAttributeNames, true);
   }
 
   /** Visit indexes only if their name match one contained in a list. */
-  private static final class SpecificIndexFilter extends IndexVisitor
+  private static final class SpecificIndexFilter implements IndexVisitor
   {
     private final IndexVisitor delegate;
     private final Collection<String> indexNames;
+    private final boolean includeAttributeNames;
 
-    SpecificIndexFilter(IndexVisitor delegate, Collection<String> indexNames)
+    SpecificIndexFilter(IndexVisitor delegate, Collection<String> names, boolean includeAttributeNames)
     {
       this.delegate = delegate;
-      this.indexNames = new HashSet<>(indexNames.size());
-      for(String indexName : indexNames)
+      this.includeAttributeNames = includeAttributeNames;
+      this.indexNames = new HashSet<>(names.size());
+      for(String indexName : names)
       {
         this.indexNames.add(indexName.toLowerCase());
       }
     }
 
     @Override
-    public void visitIndex(DefaultIndex index)
+    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
     {
-      if (indexNames.contains(index.getName().getIndexId()))
+      if (indexIncluded(index)
+          || (includeAttributeNames && indexNames.contains(attribute.getNameOrOID().toLowerCase())))
       {
-        delegate.visitIndex(index);
+        delegate.visitAttributeIndex(attribute, index);
       }
     }
 
     @Override
-    public void visitIndex(VLVIndex index)
+    public void visitVLVIndex(VLVIndex index)
     {
-      if (indexNames.contains(index.getName().getIndexId()))
+      if (indexIncluded(index))
       {
-        delegate.visitIndex(index);
+        delegate.visitVLVIndex(index);
       }
     }
 
     @Override
     public void visitSystemIndex(Tree index)
     {
-      if (indexNames.contains(index.getName().getIndexId()))
+      if (indexIncluded(index))
       {
         delegate.visitSystemIndex(index);
       }
     }
 
-    @Override
-    public void visitIndexTree(Tree index)
+    private boolean indexIncluded(Tree index)
     {
-      if (indexNames.contains(index.getName().getIndexId()))
-      {
-        delegate.visitIndexTree(index);
-      }
+      return indexNames.contains(index.getName().getIndexId().toLowerCase());
     }
   }
 
