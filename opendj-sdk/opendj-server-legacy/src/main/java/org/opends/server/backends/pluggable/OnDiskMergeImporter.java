@@ -261,12 +261,11 @@ final class OnDiskMergeImporter
       try (final Importer dbStorage = rootContainer.getStorage().startImport())
       {
         final EntryContainer entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
-        final long totalEntries =
-            entryContainer.getID2Entry().getRecordCount(new ImporterToWriteableTransactionAdapter(dbStorage));
+        final long totalEntries = entryContainer.getID2Entry().getRecordCount(asWriteableTransaction(dbStorage));
         final Set<String> indexesToRebuild = selectIndexesToRebuild(entryContainer, rebuildConfig, totalEntries);
         if (rebuildConfig.isClearDegradedState())
         {
-          visitIndexes(entryContainer, new SpecificIndexFilter(new TrustModifier(dbStorage, true), indexesToRebuild));
+          visitIndexes(entryContainer, visitOnly(indexesToRebuild, setTrust(true, dbStorage)));
           logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, indexesToRebuild);
           return;
         }
@@ -313,15 +312,18 @@ final class OnDiskMergeImporter
         logger.info(NOTE_REBUILD_ALL_START, totalEntries);
         break;
       case DEGRADED:
-        visitIndexes(entryContainer, new DegradedIndexFilter(selector));
+        visitIndexes(entryContainer, visitOnlyDegraded(selector));
         logger.info(NOTE_REBUILD_DEGRADED_START, totalEntries);
         break;
       case USER_DEFINED:
-        visitIndexes(entryContainer, new SpecificIndexFilter(selector, rebuildConfig.getRebuildList()));
-        if (!rebuildConfig.isClearDegradedState()) {
-            logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", rebuildConfig.getRebuildList()), totalEntries);
+        visitIndexes(entryContainer, visitOnly(rebuildConfig.getRebuildList(), selector));
+        if (!rebuildConfig.isClearDegradedState())
+        {
+          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", rebuildConfig.getRebuildList()), totalEntries);
         }
         break;
+      default:
+        throw new UnsupportedOperationException("Unsupported rebuild mode " + rebuildConfig.getRebuildMode());
       }
       return selector.getSelectedIndexNames();
     }
@@ -826,14 +828,14 @@ final class OnDiskMergeImporter
     void beforeImport(EntryContainer entryContainer)
     {
       clearEntryContainerTrees(entryContainer);
-      visitIndexes(entryContainer, new TrustModifier(importer, false));
+      visitIndexes(entryContainer, setTrust(false, importer));
     }
 
     abstract Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk chunk, PhaseTwoProgressReporter progressReporter);
 
     void afterImport(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, new TrustModifier(importer, true));
+      visitIndexes(entryContainer, setTrust(true, importer));
     }
 
     final void clearEntryContainerTrees(EntryContainer entryContainer)
@@ -1015,36 +1017,36 @@ final class OnDiskMergeImporter
   /** Import only a specific indexes list while ignoring everything else. */
   private static final class RebuildIndexStrategy extends AbstractTwoPhaseImportStrategy
   {
-    private final Set<String> indexNames;
+    private final Set<String> indexesToRebuild;
 
     RebuildIndexStrategy(Collection<EntryContainer> entryContainers, Importer importer, File tempDir,
         BufferPool bufferPool, Executor sorter, Collection<String> indexNames)
     {
       super(entryContainers, importer, tempDir, bufferPool, sorter);
-      this.indexNames = new HashSet<>(indexNames.size());
+      this.indexesToRebuild = new HashSet<>(indexNames.size());
       for(String indexName : indexNames)
       {
-        this.indexNames.add(indexName.toLowerCase());
+        this.indexesToRebuild.add(indexName.toLowerCase());
       }
     }
 
     @Override
     void beforeImport(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, new SpecificIndexFilter(new TrustModifier(importer, false), indexNames));
-      visitIndexes(entryContainer, new SpecificIndexFilter(new ClearDatabase(importer), indexNames));
+      visitIndexes(entryContainer, visitOnly(indexesToRebuild, setTrust(false, importer)));
+      visitIndexes(entryContainer, visitOnly(indexesToRebuild, clearDatabase(importer)));
     }
 
     @Override
     void afterImport(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, new SpecificIndexFilter(new TrustModifier(importer, true), indexNames));
+      visitIndexes(entryContainer, visitOnly(indexesToRebuild, setTrust(true, importer)));
     }
 
     @Override
     public Chunk newChunk(TreeName treeName) throws Exception
     {
-      if (indexNames.contains(treeName.getIndexId().toLowerCase()))
+      if (indexesToRebuild.contains(treeName.getIndexId().toLowerCase()))
       {
         return newExternalSortChunk(treeName);
       }
@@ -1055,7 +1057,7 @@ final class OnDiskMergeImporter
     @Override
     public Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk chunk, PhaseTwoProgressReporter progressReporter)
     {
-      if (indexNames.contains(treeName.getIndexId().toLowerCase()))
+      if (indexesToRebuild.contains(treeName.getIndexId().toLowerCase()))
       {
         if (isDN2ID(treeName))
         {
@@ -3267,6 +3269,11 @@ final class OnDiskMergeImporter
     }
   }
 
+  private static final IndexVisitor setTrust(boolean trustValue, Importer importer)
+  {
+    return new TrustModifier(importer, trustValue);
+  }
+
   /** Update the trust state of the visited indexes. */
   private static final class TrustModifier extends IndexVisitor
   {
@@ -3275,7 +3282,7 @@ final class OnDiskMergeImporter
 
     TrustModifier(Importer importer, boolean trustValue)
     {
-      this.txn = new ImporterToWriteableTransactionAdapter(importer);
+      this.txn = asWriteableTransaction(importer);
       this.trustValue = trustValue;
     }
 
@@ -3290,6 +3297,11 @@ final class OnDiskMergeImporter
     {
       index.setTrusted(txn, trustValue);
     }
+  }
+
+  private static IndexVisitor clearDatabase(Importer importer)
+  {
+    return new ClearDatabase(importer);
   }
 
   /** Delete & recreate the database of the visited indexes. */
@@ -3307,6 +3319,11 @@ final class OnDiskMergeImporter
     {
       importer.clearTree(index.getName());
     }
+  }
+
+  private static IndexVisitor visitOnlyDegraded(IndexVisitor delegate)
+  {
+    return new DegradedIndexFilter(delegate);
   }
 
   /** Visit indexes which are in a degraded state. */
@@ -3360,6 +3377,11 @@ final class OnDiskMergeImporter
     {
       indexNames.add(index.getName().getIndexId());
     }
+  }
+
+  private static final IndexVisitor visitOnly(Collection<String> indexNames, IndexVisitor delegate)
+  {
+    return new SpecificIndexFilter(delegate, indexNames);
   }
 
   /** Visit indexes only if their name match one contained in a list. */
@@ -3446,6 +3468,11 @@ final class OnDiskMergeImporter
     {
       cache.put(object, null);
     }
+  }
+
+  private static WriteableTransaction asWriteableTransaction(Importer importer)
+  {
+    return new ImporterToWriteableTransactionAdapter(importer);
   }
 
   /** Adapter allowing to use an {@link Importer} as a {@link WriteableTransaction}. */
