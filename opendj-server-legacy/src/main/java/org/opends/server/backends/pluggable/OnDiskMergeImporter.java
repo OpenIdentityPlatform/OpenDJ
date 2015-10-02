@@ -719,8 +719,14 @@ final class OnDiskMergeImporter
           final CountDownLatch newLatch = new CountDownLatch(1);
           if (importedContainers.putIfAbsent(container, newLatch) == null)
           {
-            importStrategy.beforeImport(container);
-            newLatch.countDown();
+            try
+            {
+              importStrategy.beforeImport(container);
+            }
+            finally
+            {
+              newLatch.countDown();
+            }
           }
           latch = importedContainers.get(container);
         }
