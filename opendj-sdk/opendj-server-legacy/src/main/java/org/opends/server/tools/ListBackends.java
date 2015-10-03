@@ -345,14 +345,14 @@ public class ListBackends
         String id = baseToIDMap.get(dn);
         if (id == null)
         {
-          out.println(INFO_LISTBACKENDS_NOT_BASE_DN.get(dn));
+          err.println(INFO_LISTBACKENDS_NOT_BASE_DN.get(dn));
 
           DN parentDN = dn.parent();
           while (true)
           {
             if (parentDN == null)
             {
-              out.println(INFO_LISTBACKENDS_NO_BACKEND_FOR_DN.get(dn));
+              err.println(INFO_LISTBACKENDS_NO_BACKEND_FOR_DN.get(dn));
               invalidDn = true;
               break;
             }
