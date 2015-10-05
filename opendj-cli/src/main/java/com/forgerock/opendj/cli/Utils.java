@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -610,7 +610,7 @@ public final class Utils {
      *            The message to print.
      */
     public static void printWrappedText(final PrintStream stream, final String message) {
-        if (stream != null && message != null) {
+        if (stream != null && message != null && !message.isEmpty()) {
             stream.println(wrapText(message, MAX_LINE_WIDTH));
         }
     }
