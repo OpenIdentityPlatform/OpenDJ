@@ -326,6 +326,12 @@ final class OnDiskMergeImporter
       default:
         throw new UnsupportedOperationException("Unsupported rebuild mode " + rebuildConfig.getRebuildMode());
       }
+      final Set<String> indexesToRebuild = selector.getSelectedIndexNames();
+      if (indexesToRebuild.contains(SuffixContainer.DN2ID_INDEX_NAME))
+      {
+        // Always rebuild id2childrencount with dn2id.
+        indexesToRebuild.add(SuffixContainer.ID2CHILDREN_COUNT_NAME);
+      }
       return selector.getSelectedIndexNames();
     }
 
