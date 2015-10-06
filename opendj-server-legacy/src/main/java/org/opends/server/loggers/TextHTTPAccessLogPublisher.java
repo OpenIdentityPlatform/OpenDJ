@@ -124,10 +124,6 @@ public final class TextHTTPAccessLogPublisher extends
       {
         currentWriter = ((AsynchronousTextWriter) writer).getWrappedWriter();
       }
-      else if (writer instanceof ParallelTextWriter)
-      {
-        currentWriter = ((ParallelTextWriter) writer).getWrappedWriter();
-      }
       else
       {
         currentWriter = writer;
@@ -140,67 +136,25 @@ public final class TextHTTPAccessLogPublisher extends
 
         if (config.isAsynchronous())
         {
-          if (useAsyncWriter(config))
+          if (writer instanceof AsynchronousTextWriter)
           {
-            if (writer instanceof AsynchronousTextWriter)
+            if (hasAsyncConfigChanged(config))
             {
-              if (hasAsyncConfigChanged(config))
-              {
-                // reinstantiate
-                final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
-                writer = newAsyncWriter(mfWriter, config);
-                previousWriter.shutdown(false);
-              }
-            }
-            else if (writer instanceof ParallelTextWriter)
-            {
-              // convert parallel to async
-              final ParallelTextWriter previousWriter = (ParallelTextWriter) writer;
+              // reinstantiate
+              final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
               writer = newAsyncWriter(mfWriter, config);
               previousWriter.shutdown(false);
-            }
-            else
-            {
-              // turn async text writer on
-              writer = newAsyncWriter(mfWriter, config);
             }
           }
           else
           {
-            if (writer instanceof AsynchronousTextWriter)
-            {
-              // convert async to parallel
-              final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
-              writer = newParallelWriter(mfWriter, config);
-              previousWriter.shutdown(false);
-            }
-            else if (writer instanceof ParallelTextWriter)
-            {
-              if (hasParallelConfigChanged(config))
-              {
-                // reinstantiate
-                final ParallelTextWriter previousWriter = (ParallelTextWriter) writer;
-                writer = newParallelWriter(mfWriter, config);
-                previousWriter.shutdown(false);
-              }
-            }
-            else
-            {
-              // turn parallel text writer on
-              writer = newParallelWriter(mfWriter, config);
-            }
+            // turn async text writer on
+            writer = newAsyncWriter(mfWriter, config);
           }
         }
         else
         {
-          if (writer instanceof ParallelTextWriter)
-          {
-            // asynchronous is being turned off, remove parallel text writers.
-            final ParallelTextWriter previousWriter = (ParallelTextWriter) writer;
-            writer = mfWriter;
-            previousWriter.shutdown(false);
-          }
-          else if (writer instanceof AsynchronousTextWriter)
+          if (writer instanceof AsynchronousTextWriter)
           {
             // asynchronous is being turned off, remove async text writers.
             final AsynchronousTextWriter previousWriter = (AsynchronousTextWriter) writer;
@@ -275,11 +229,6 @@ public final class TextHTTPAccessLogPublisher extends
     return getFileForPath(config.getLogFile());
   }
 
-  private boolean useAsyncWriter(FileBasedHTTPAccessLogPublisherCfg config)
-  {
-    return config.getQueueSize() > 0;
-  }
-
   private boolean hasAsyncConfigChanged(FileBasedHTTPAccessLogPublisherCfg newConfig)
   {
     return hasParallelConfigChanged(newConfig) && cfg.getQueueSize() != newConfig.getQueueSize();
@@ -294,12 +243,6 @@ public final class TextHTTPAccessLogPublisher extends
   {
     String name = "Asynchronous Text Writer for " + config.dn();
     return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
-  }
-
-  private ParallelTextWriter newParallelWriter(MultifileTextWriter mfWriter, FileBasedHTTPAccessLogPublisherCfg config)
-  {
-    String name = "Parallel Text Writer for " + config.dn();
-    return new ParallelTextWriter(name, config.isAutoFlush(), mfWriter);
   }
 
   private List<String> extractFieldsOrder(String logFormat)
@@ -386,14 +329,7 @@ public final class TextHTTPAccessLogPublisher extends
 
       if (cfg.isAsynchronous())
       {
-        if (useAsyncWriter(cfg))
-        {
-          this.writer = newAsyncWriter(theWriter, cfg);
-        }
-        else
-        {
-          this.writer = newParallelWriter(theWriter, cfg);
-        }
+        this.writer = newAsyncWriter(theWriter, cfg);
       }
       else
       {

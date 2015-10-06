@@ -74,27 +74,13 @@
       The maximum number of log records that can be stored in the
       asynchronous queue.
     </adm:synopsis>
-    <adm:description>
-      Setting the queue size to zero activates parallel log writer
-      implementation which has no queue size limit and as such the
-      parallel log writer should only be used on a very well tuned
-      server configuration to avoid potential out of memory errors.
-    </adm:description>
-    <adm:requires-admin-action>
-      <adm:other>
-        <adm:synopsis>
-          The <adm:user-friendly-name /> must be restarted if this property
-          is changed and the asynchronous property is set to true.
-        </adm:synopsis>
-      </adm:other>
-    </adm:requires-admin-action>
-        <adm:default-behavior>
+    <adm:default-behavior>
       <adm:defined>
         <adm:value>5000</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0" />
+      <adm:integer lower-limit="1" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
