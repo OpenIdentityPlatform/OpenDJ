@@ -742,10 +742,11 @@ public final class DSConfig extends ConsoleApplication {
     public static final String GENERIC_TYPE = "generic";
 
     /**
-     * Prints the provided error message if the provided application is
-     * interactive, throws a {@link ClientException} with provided error code
-     * and message otherwise.
+     * Prints the provided error message if the provided application is interactive,
+     * throws a {@link ClientException} with provided error code and message otherwise.
      *
+     * @param <T>
+     *            The generic type parameter of the returned {@link MenuResult}
      * @param app
      *            The console application where the message should be printed.
      * @param msg
@@ -758,13 +759,12 @@ public final class DSConfig extends ConsoleApplication {
      */
     static <T> MenuResult<T> interactivePrintOrThrowError(ConsoleApplication app,
         LocalizableMessage msg, ReturnCode errorCode) throws ClientException {
-        if (app.isInteractive()) {
-            app.errPrintln();
-            app.errPrintln(msg);
-            return MenuResult.cancel();
-        } else {
+        if (!app.isInteractive()) {
             throw new ClientException(errorCode, msg);
         }
+        app.errPrintln();
+        app.errPrintln(msg);
+        return MenuResult.cancel();
     }
 
     private long sessionStartTime;
@@ -1110,31 +1110,28 @@ public final class DSConfig extends ConsoleApplication {
             return ReturnCode.CONFLICTING_ARGS.get();
         }
 
-        // Handle batch file if any
-        if (batchArgument.isPresent() || batchFileArgument.isPresent()) {
-            handleBatch(args);
-            return ReturnCode.SUCCESS.get();
-        }
+        try {
+            // Handle batch file if any
+            if (batchArgument.isPresent() || batchFileArgument.isPresent()) {
+                handleBatch(args);
+                return ReturnCode.SUCCESS.get();
+            }
 
-        int retCode = 0;
-        hasSubCommand = parser.getSubCommand() != null;
-        if (!hasSubCommand) {
-            if (isInteractive()) {
+            hasSubCommand = parser.getSubCommand() != null;
+            if (hasSubCommand) {
+                // Retrieve the sub-command implementation and run it.
+                return runSubCommand(handlers.get(parser.getSubCommand()));
+            } else if (isInteractive()) {
                 // Top-level interactive mode.
-                retCode = runInteractiveMode();
+                return runInteractiveMode();
             } else {
                 parser.displayMessageAndUsageReference(
-                        getErrStream(), ERR_ERROR_PARSING_ARGS.get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get()));
-                retCode = ReturnCode.ERROR_USER_DATA.get();
+                    getErrStream(), ERR_ERROR_PARSING_ARGS.get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get()));
+                return ReturnCode.ERROR_USER_DATA.get();
             }
-        } else {
-            // Retrieve the sub-command implementation and run it.
-            retCode = runSubCommand(handlers.get(parser.getSubCommand()));
+        } finally {
+            factory.close();
         }
-
-        factory.close();
-
-        return retCode;
     }
 
     private void checkForConflictingArguments() throws ArgumentException {
@@ -1437,9 +1434,9 @@ public final class DSConfig extends ConsoleApplication {
                     // command is split into several lines
                     command += line.substring(0, line.length() - 1);
                     continue;
-                } else {
-                    command += line;
                 }
+
+                command += line;
                 command = command.trim();
                 // string between quotes support
                 command = replaceSpacesInQuotes(command);
