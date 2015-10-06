@@ -1444,7 +1444,7 @@ public final class DSConfig extends ConsoleApplication {
                 command = command.replace("\\ ", "##");
 
                 String displayCommand = command.replace("\\ ", " ");
-                errPrintln(LocalizableMessage.raw(displayCommand));
+                println(LocalizableMessage.raw(displayCommand));
 
                 // Append initial arguments to the file line
                 final String[] allArgsArray = buildCommandArgs(initialArgs, command);
@@ -1452,7 +1452,7 @@ public final class DSConfig extends ConsoleApplication {
                 if (exitCode != ReturnCode.SUCCESS.get()) {
                     System.exit(filterExitCode(exitCode));
                 }
-                errPrintln();
+                println();
                 // reset command
                 command = "";
             }
