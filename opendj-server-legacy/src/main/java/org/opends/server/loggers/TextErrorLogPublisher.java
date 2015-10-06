@@ -156,14 +156,30 @@ public class TextErrorLogPublisher
 
     setDefaultSeverities(config.getDefaultSeverity());
 
-    for(String overrideSeverity : config.getOverrideSeverity())
+    ConfigChangeResult ccr = new ConfigChangeResult();
+    setDefinedSeverities(config, ccr);
+    if (!ccr.getMessages().isEmpty())
     {
-      if(overrideSeverity != null)
+      throw new ConfigException(ccr.getMessages().iterator().next());
+    }
+
+    currentConfig = config;
+
+    config.addFileBasedErrorChangeListener(this);
+  }
+
+  private void setDefinedSeverities(FileBasedErrorLogPublisherCfg config, final ConfigChangeResult ccr)
+  {
+    for (String overrideSeverity : config.getOverrideSeverity())
+    {
+      if (overrideSeverity != null)
       {
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          throw new ConfigException(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
+          return;
         }
 
         String category = overrideSeverity.substring(0, equalPos);
@@ -178,10 +194,7 @@ public class TextErrorLogPublisher
             severityName = severityName.replace("-", "_").toUpperCase();
             if (LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
             {
-              severities.add(Severity.ERROR);
-              severities.add(Severity.WARNING);
-              severities.add(Severity.NOTICE);
-              severities.add(Severity.INFORMATION);
+              addAllSeverities(severities);
             }
             else
             {
@@ -191,7 +204,9 @@ public class TextErrorLogPublisher
               }
               catch (Exception e)
               {
-                throw new ConfigException(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
+                ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+                ccr.addMessage(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
+                return;
               }
             }
           }
@@ -199,14 +214,12 @@ public class TextErrorLogPublisher
         }
         catch (Exception e)
         {
-          throw new ConfigException(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
+          return;
         }
       }
     }
-
-    currentConfig = config;
-
-    config.addFileBasedErrorChangeListener(this);
   }
 
   @Override
@@ -279,57 +292,7 @@ public class TextErrorLogPublisher
     setDefaultSeverities(config.getDefaultSeverity());
 
     definedSeverities.clear();
-    for(String overrideSeverity : config.getOverrideSeverity())
-    {
-      if(overrideSeverity != null)
-      {
-        int equalPos = overrideSeverity.indexOf('=');
-        if (equalPos < 0)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
-        } else
-        {
-          String category = overrideSeverity.substring(0, equalPos);
-          category = category.replace("-", "_").toUpperCase();
-          try
-          {
-            Set<Severity> severities = new HashSet<>();
-            StringTokenizer sevTokenizer =
-              new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
-            while (sevTokenizer.hasMoreElements())
-            {
-              String severityName = sevTokenizer.nextToken();
-              severityName = severityName.replace("-", "_").toUpperCase();
-              if(LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
-              {
-                severities.add(Severity.ERROR);
-                severities.add(Severity.INFORMATION);
-                severities.add(Severity.WARNING);
-                severities.add(Severity.NOTICE);
-              }
-              else
-              {
-                try
-                {
-                  severities.add(Severity.parseString(severityName));
-                }
-                catch(Exception e)
-                {
-                  throw new ConfigException(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
-                }
-              }
-            }
-            definedSeverities.put(category, severities);
-          }
-          catch(Exception e)
-          {
-            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-            ccr.addMessage(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
-          }
-        }
-      }
-    }
+    setDefinedSeverities(config, ccr);
 
     try
     {
@@ -458,10 +421,7 @@ public class TextErrorLogPublisher
         String defaultSeverity = defSev.toString();
         if (LOG_SEVERITY_ALL.equalsIgnoreCase(defaultSeverity))
         {
-          defaultSeverities.add(Severity.ERROR);
-          defaultSeverities.add(Severity.WARNING);
-          defaultSeverities.add(Severity.INFORMATION);
-          defaultSeverities.add(Severity.NOTICE);
+          addAllSeverities(defaultSeverities);
         }
         else if (!LOG_SEVERITY_NONE.equalsIgnoreCase(defaultSeverity))
         {
@@ -473,6 +433,14 @@ public class TextErrorLogPublisher
         }
       }
     }
+  }
+
+  private void addAllSeverities(Set<Severity> severities)
+  {
+    severities.add(Severity.ERROR);
+    severities.add(Severity.WARNING);
+    severities.add(Severity.INFORMATION);
+    severities.add(Severity.NOTICE);
   }
 
   @Override
