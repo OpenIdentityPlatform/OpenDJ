@@ -131,19 +131,15 @@ import com.forgerock.opendj.cli.VersionHandler;
  * This class provides a command-line tool which enables administrators to configure the Directory Server.
  */
 public final class DSConfig extends ConsoleApplication {
-
     /**
      * This class provides additional information about subcommands for generated reference documentation.
      */
     private final class DSConfigSubCommandUsageHandler implements SubCommandUsageHandler {
-
         /** Marker to open a DocBook XML paragraph. */
         private String op = "<para>";
-
         /** Marker to close a DocBook XML paragraph. */
         private String cp = "</para>";
 
-        /** {@inheritDoc} */
         @Override
         public String getArgumentAdditionalInfo(SubCommand sc, Argument a, String nameOption) {
             StringBuilder sb = new StringBuilder();
@@ -160,7 +156,7 @@ public final class DSConfig extends ConsoleApplication {
             return sb.toString();
         }
 
-        private boolean isHidden(AbstractManagedObjectDefinition defn) {
+        private boolean isHidden(AbstractManagedObjectDefinition<?, ?> defn) {
             return defn == null || defn.hasOption(ManagedObjectOption.HIDDEN);
         }
 
@@ -210,7 +206,6 @@ public final class DSConfig extends ConsoleApplication {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getProperties(SubCommand sc) {
             final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
@@ -251,7 +246,6 @@ public final class DSConfig extends ConsoleApplication {
         private boolean isHidden(RelationDefinition defn) {
             return defn == null || defn.hasOption(RelationOption.HIDDEN);
         }
-
 
         private List<AbstractManagedObjectDefinition<?, ?>> getLeafChildren(
                 AbstractManagedObjectDefinition<?, ?> defn) {
@@ -392,7 +386,7 @@ public final class DSConfig extends ConsoleApplication {
             } else if (defaultBehavior instanceof DefinedDefaultBehaviorProvider) {
                 DefinedDefaultBehaviorProvider<?> behavior = (DefinedDefaultBehaviorProvider<?>) defaultBehavior;
                 final Collection<String> defaultValues = behavior.getDefaultValues();
-                if (defaultValues.size() == 0) {
+                if (defaultValues.isEmpty()) {
                     b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR_NONE.get()).append(cp).append(EOL);
                 } else if (defaultValues.size() == 1) {
                     b.append(op).append(REF_DSCFG_DEFAULT_BEHAVIOR.get(defaultValues.iterator().next()))
@@ -602,7 +596,6 @@ public final class DSConfig extends ConsoleApplication {
 
     /** A menu call-back which runs a sub-command interactively. */
     private class SubCommandHandlerMenuCallback implements MenuCallback<Integer> {
-
         /** The sub-command handler. */
         private final SubCommandHandler handler;
 
@@ -616,7 +609,6 @@ public final class DSConfig extends ConsoleApplication {
             this.handler = handler;
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Integer> invoke(ConsoleApplication app) throws ClientException {
             try {
@@ -643,7 +635,6 @@ public final class DSConfig extends ConsoleApplication {
 
     /** The interactive mode sub-menu implementation. */
     private class SubMenuCallback implements MenuCallback<Integer> {
-
         /** The menu. */
         private final Menu<Integer> menu;
 
@@ -720,7 +711,6 @@ public final class DSConfig extends ConsoleApplication {
                 : singularMsg.get(userFriendlyName);
         }
 
-        /** {@inheritDoc} */
         @Override
         public final MenuResult<Integer> invoke(ConsoleApplication app) throws ClientException {
             try {
@@ -823,67 +813,48 @@ public final class DSConfig extends ConsoleApplication {
         return app.run(args);
     }
 
-    /** The argument which should be used to request advanced mode. */
-    private BooleanArgument advancedModeArgument;
-
-    /**
-     * The factory which the application should use to retrieve its management context.
-     */
+    /** The factory which the application should use to retrieve its management context. */
     private LDAPManagementContextFactory factory;
 
-    /**
-     * Flag indicating whether or not the global arguments have already been initialized.
-     */
+    /** Flag indicating whether or not the global arguments have already been initialized. */
     private boolean globalArgumentsInitialized;
 
     /** The sub-command handler factory. */
     private SubCommandHandlerFactory handlerFactory;
-
     /** Mapping of sub-commands to their implementations. */
     private final Map<SubCommand, SubCommandHandler> handlers = new HashMap<>();
-
     /** Indicates whether or not a sub-command was provided. */
     private boolean hasSubCommand = true;
+
+    /** The command-line argument parser. */
+    private final SubCommandArgumentParser parser;
+
+    /** The argument which should be used to request advanced mode. */
+    private BooleanArgument advancedModeArgument;
+    /** The argument which should be used to request non interactive behavior. */
+    private BooleanArgument noPromptArgument;
+    /** The argument that the user must set to display the equivalent non-interactive mode argument. */
+    private BooleanArgument displayEquivalentArgument;
+    /** The argument that allows the user to dump the equivalent non-interactive command to a file. */
+    private StringArgument equivalentCommandFileArgument;
+
+    /** The argument which should be used to request quiet output. */
+    private BooleanArgument quietArgument;
+    /** The argument which should be used to request script-friendly output. */
+    private BooleanArgument scriptFriendlyArgument;
+    /** The argument which should be used to request usage information. */
+    private BooleanArgument showUsageArgument;
+    /** The argument which should be used to request verbose output. */
+    private BooleanArgument verboseArgument;
 
     /** The argument which should be used to read dsconfig commands from standard input. */
     private BooleanArgument batchArgument;
     /** The argument which should be used to read dsconfig commands from a file. */
     private StringArgument batchFileArgument;
 
-    /** The argument which should be used to request non interactive behavior. */
-    private BooleanArgument noPromptArgument;
-
-    /**
-     * The argument that the user must set to display the equivalent non-interactive mode argument.
-     */
-    private BooleanArgument displayEquivalentArgument;
-
-    /**
-     * The argument that allows the user to dump the equivalent non-interactive command to a file.
-     */
-    private StringArgument equivalentCommandFileArgument;
-
-    /** The command-line argument parser. */
-    private final SubCommandArgumentParser parser;
-
-    /** The argument which should be used to request quiet output. */
-    private BooleanArgument quietArgument;
-
-    /** The argument which should be used to request script-friendly output. */
-    private BooleanArgument scriptFriendlyArgument;
-
-    /** The argument which should be used to request usage information. */
-    private BooleanArgument showUsageArgument;
-
-    /** The argument which should be used to request verbose output. */
-    private BooleanArgument verboseArgument;
-
     /** The argument which should be used to indicate the properties file. */
     private StringArgument propertiesFileArgument;
-
-    /**
-     * The argument which should be used to indicate that we will not look for properties file.
-     */
+    /** The argument which should be used to indicate that we will not look for properties file. */
     private BooleanArgument noPropertiesFileArgument;
 
     /**
@@ -927,37 +898,31 @@ public final class DSConfig extends ConsoleApplication {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAdvancedMode() {
         return advancedModeArgument.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return !noPromptArgument.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isMenuDrivenMode() {
         return !hasSubCommand;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isQuiet() {
         return quietArgument.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendlyArgument.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verboseArgument.isPresent();
@@ -971,7 +936,6 @@ public final class DSConfig extends ConsoleApplication {
      */
     private void initializeGlobalArguments() throws ArgumentException {
         if (!globalArgumentsInitialized) {
-
             verboseArgument = CommonArguments.getVerbose();
             quietArgument = CommonArguments.getQuiet();
             scriptFriendlyArgument = CommonArguments.getScriptFriendly();
@@ -1096,7 +1060,6 @@ public final class DSConfig extends ConsoleApplication {
      *         problem during the configuration processing.
      */
     private int run(String[] args) {
-
         // Register global arguments and sub-commands.
         try {
             initializeGlobalArguments();
@@ -1202,7 +1165,6 @@ public final class DSConfig extends ConsoleApplication {
 
     /** Run the top-level interactive console. */
     private int runInteractiveMode() {
-
         ConsoleApplication app = this;
 
         // Build menu structure.
@@ -1483,7 +1445,6 @@ public final class DSConfig extends ConsoleApplication {
                 command = replaceSpacesInQuotes(command);
                 // "\ " support
                 command = command.replace("\\ ", "##");
-
 
                 String displayCommand = command.replace("\\ ", " ");
                 errPrintln(LocalizableMessage.raw(displayCommand));
