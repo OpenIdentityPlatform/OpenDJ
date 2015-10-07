@@ -944,4 +944,9 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
             return false;
         }
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

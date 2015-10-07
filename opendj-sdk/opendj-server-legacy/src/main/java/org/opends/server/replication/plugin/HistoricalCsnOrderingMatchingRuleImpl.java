@@ -69,6 +69,12 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     {
       return ORDERING_ID;
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key)
+    {
+      return key.toString();
+    }
   }
 
   /** {@inheritDoc} */

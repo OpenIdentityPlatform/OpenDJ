@@ -731,11 +731,21 @@ public final class StaticUtils {
      *         representation.
      */
     public static char byteToASCII(final byte b) {
-        if (b >= 32 && b <= 126) {
+        if (isPrintable(b)) {
             return (char) b;
         }
-
         return ' ';
+    }
+
+    /**
+     * Returns whether the byte is a printable ASCII character.
+     *
+     * @param b
+     *          The byte for which to determine whether it is printable ASCII
+     * @return true if the byte is a printable ASCII character
+     */
+    public static boolean isPrintable(final byte b) {
+        return 32 <= b && b <= 126;
     }
 
     /** Prevent instantiation. */

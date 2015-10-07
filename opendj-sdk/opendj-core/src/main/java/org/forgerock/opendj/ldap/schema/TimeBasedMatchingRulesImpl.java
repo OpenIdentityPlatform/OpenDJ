@@ -533,9 +533,9 @@ final class TimeBasedMatchingRulesImpl {
          * Decomposes an attribute value into a set of partial date and time
          * index keys.
          *
-         * @param attValue
+         * @param attributeValue
          *            The normalized attribute value
-         * @param set
+         * @param keys
          *            A set into which the keys will be inserted.
          */
         private void timeKeys(ByteSequence attributeValue, Collection<ByteString> keys) {
@@ -582,6 +582,11 @@ final class TimeBasedMatchingRulesImpl {
         @Override
         public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) {
             matchingRule.timeKeys(value, keys);
+        }
+
+        @Override
+        public String keyToHumanReadableString(ByteSequence key) {
+            return key.toByteString().toHexString();
         }
 
         /** {@inheritDoc} */

@@ -54,4 +54,9 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractEqualityMa
             throw DecodeException.error(e.getMessageObject());
         }
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

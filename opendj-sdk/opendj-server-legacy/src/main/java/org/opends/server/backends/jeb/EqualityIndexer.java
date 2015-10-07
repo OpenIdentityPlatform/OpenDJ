@@ -72,4 +72,9 @@ public class EqualityIndexer implements Indexer
     keys.add(equalityRule.normalizeAttributeValue(value));
   }
 
+  @Override
+  public String keyToHumanReadableString(ByteSequence key)
+  {
+    return key.toString();
+  }
 }

@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 
 import static org.forgerock.opendj.ldap.Assertion.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * This class implements a default equality or approximate matching rule that
@@ -84,9 +85,18 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         }
 
         @Override
+        public String keyToHumanReadableString(ByteSequence key) {
+            return AbstractMatchingRuleImpl.this.keyToHumanReadableString(key);
+        }
+
+        @Override
         public String getIndexID() {
             return indexID;
         }
+    }
+
+    String keyToHumanReadableString(ByteSequence key) {
+        return key.toByteString().toHexString();
     }
 
     @Override

@@ -69,4 +69,9 @@ final class UserPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMa
             return value.toByteString();
         }
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }
