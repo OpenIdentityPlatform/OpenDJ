@@ -251,6 +251,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             }
         }
 
+        @Override
+        public String keyToHumanReadableString(ByteSequence key) {
+            return AbstractSubstringMatchingRuleImpl.this.keyToHumanReadableString(key);
+        }
+
         /** {@inheritDoc} */
         @Override
         public String getIndexID() {
@@ -268,6 +273,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
     AbstractSubstringMatchingRuleImpl(String substringIndexId, String equalityIndexId) {
         this.substringIndexId = substringIndexId;
         this.equalityIndexId = equalityIndexId;
+    }
+
+    @Override
+    String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
     }
 
     /** {@inheritDoc} */

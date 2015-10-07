@@ -61,6 +61,12 @@ abstract class AbstractPasswordEqualityMatchingRuleImpl implements MatchingRuleI
     }
 
     @Override
+    public String keyToHumanReadableString(ByteSequence key)
+    {
+      return key.toString();
+    }
+
+    @Override
     public String getIndexID()
     {
       return EQUALITY_ID;

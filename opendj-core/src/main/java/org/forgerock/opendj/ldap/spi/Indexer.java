@@ -64,4 +64,15 @@ public interface Indexer {
      */
     void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException;
 
+    /**
+     * Returns a human readable representation of the key.
+     * Does a best effort conversion from an index key to a string that can be printed, as
+     * used by the diagnostic tools, which are the only users of the method.
+     * It is not necessary for the resulting string to exactly match the value it was
+     * generated from.
+     *
+     * @param key the byte string for the index key.
+     * @return a human readable representation of the key
+     */
+    String keyToHumanReadableString(ByteSequence key);
 }

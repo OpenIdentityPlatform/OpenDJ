@@ -91,4 +91,9 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
         // Grab the substring between the start pos and the current pos
         return ByteString.valueOf(string);
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

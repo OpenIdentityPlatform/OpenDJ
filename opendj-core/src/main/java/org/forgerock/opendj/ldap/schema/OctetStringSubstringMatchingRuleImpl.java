@@ -45,4 +45,9 @@ final class OctetStringSubstringMatchingRuleImpl extends AbstractSubstringMatchi
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();
     }
+
+    @Override
+    String keyToHumanReadableString(ByteSequence key) {
+        return key.toByteString().toHexString();
+    }
 }

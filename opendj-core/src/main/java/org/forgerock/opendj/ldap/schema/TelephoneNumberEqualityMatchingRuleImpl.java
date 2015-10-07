@@ -61,4 +61,9 @@ final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractEqualityMatc
 
         return ByteString.valueOf(buffer);
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

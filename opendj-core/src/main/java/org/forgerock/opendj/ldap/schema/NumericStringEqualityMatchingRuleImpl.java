@@ -45,4 +45,9 @@ final class NumericStringEqualityMatchingRuleImpl extends AbstractEqualityMatchi
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeNumericStringAttributeValue(value);
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

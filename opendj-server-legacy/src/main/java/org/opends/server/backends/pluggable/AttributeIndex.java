@@ -203,6 +203,12 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
 
     @Override
+    public String keyToHumanReadableString(ByteSequence key)
+    {
+      return "PRESENCE";
+    }
+
+    @Override
     public String getIndexID()
     {
       return IndexType.PRESENCE.toString();

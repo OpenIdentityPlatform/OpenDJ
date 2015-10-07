@@ -124,4 +124,9 @@ final class UUIDEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImp
 
         return ByteString.valueOf(builder);
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

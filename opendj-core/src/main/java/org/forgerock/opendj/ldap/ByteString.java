@@ -793,7 +793,7 @@ public final class ByteString implements ByteSequence {
 
     /**
      * Returns a string representation of the contents of this byte sequence
-     * using hexadecimal characters and a percent prefix (#) before each char.
+     * using hexadecimal characters and a percent prefix (%) before each char.
      *
      * @return A string representation of the contents of this byte sequence
      *         using percent + hexadecimal characters.

@@ -48,4 +48,9 @@ final class CaseExactIA5EqualityMatchingRuleImpl extends AbstractEqualityMatchin
             throws DecodeException {
         return SchemaUtils.normalizeIA5StringAttributeValue(value, TRIM, NO_CASE_FOLD);
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }

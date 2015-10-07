@@ -46,4 +46,9 @@ final class CaseExactEqualityMatchingRuleImpl extends AbstractEqualityMatchingRu
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeStringAttributeValue(value, TRIM, NO_CASE_FOLD);
     }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key) {
+        return key.toString();
+    }
 }
