@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.replication.common.CSN;
 
 import static org.forgerock.opendj.ldap.Assertion.*;
 import static org.opends.messages.ReplicationMessages.*;
@@ -73,7 +74,12 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     @Override
     public String keyToHumanReadableString(ByteSequence key)
     {
-      return key.toString();
+      ByteStringBuilder bsb = new ByteStringBuilder();
+      bsb.append(key.subSequence(2, 10));
+      bsb.append(key.subSequence(0, 2));
+      bsb.append(key.subSequence(10, 14));
+      CSN csn = CSN.valueOf(bsb.toByteString());
+      return csn.toStringUI();
     }
   }
 

@@ -209,6 +209,31 @@ class DN2ID extends AbstractTree
     return nbSeparator == 1;
   }
 
+  @Override
+  public String keyToString(ByteString key)
+  {
+    return key.length() > 0 ? keyToDNString(key) : baseDN.toString();
+  }
+
+  @Override
+  public String valueToString(ByteString value)
+  {
+    return new EntryID(value).toString();
+  }
+
+  @Override
+  public ByteString generateKey(String key)
+  {
+    try
+    {
+      return toKey(DN.valueOf(key));
+    }
+    catch (Exception e)
+    {
+      return ByteString.valueOf(key.getBytes());
+    }
+  }
+
   /**
    * Decorator overriding the next() behavior to iterate through children of the entry pointed by the given cursor at
    * creation.

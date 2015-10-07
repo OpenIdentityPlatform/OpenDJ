@@ -25,10 +25,11 @@
 package org.opends.server.backends.pluggable;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.util.Function;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -143,6 +144,28 @@ final class ID2Count extends AbstractTree
   {
     Reject.ifNull(value, "value must not be null");
     return value.toLong();
+  }
+
+  @Override
+  public String keyToString(ByteString key)
+  {
+    ByteSequenceReader keyReader = key.asReader();
+    long keyID = keyReader.getCompactUnsigned();
+    long shardBucket = keyReader.getCompactUnsigned();
+    return (keyID == TOTAL_COUNT_ENTRY_ID.longValue() ? "Total Children Count" : keyID) + "#" + shardBucket;
+  }
+
+  @Override
+  public String valueToString(ByteString value)
+  {
+    return String.valueOf(fromValue(value));
+  }
+
+  @Override
+  public ByteString generateKey(String data)
+  {
+    EntryID entryID = new EntryID(Long.parseLong(data));
+    return entryID.toByteString();
   }
 
   /**

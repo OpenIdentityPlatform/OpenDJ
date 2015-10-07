@@ -63,6 +63,9 @@
   <xinclude:include href="man-backup.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
+  <xinclude:include href="man-backendtool.xml">
+   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
+  </xinclude:include>
   <xinclude:include href="man-base64.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>

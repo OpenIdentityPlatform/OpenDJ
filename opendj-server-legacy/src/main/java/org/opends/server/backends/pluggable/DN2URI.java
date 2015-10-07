@@ -419,6 +419,31 @@ class DN2URI extends AbstractTree
     }
   }
 
+  @Override
+  public String keyToString(ByteString key)
+  {
+    return key.toString();
+  }
+
+  @Override public String valueToString(ByteString value)
+  {
+    final Map.Entry<DN, List<String>> dnAndUris = decode(value);
+    return dnAndUris.getValue().toString();
+  }
+
+  @Override
+  public ByteString generateKey(String key)
+  {
+    try
+    {
+      return toKey(DN.valueOf(key));
+    }
+    catch (DirectoryException e)
+    {
+      return ByteString.empty();
+    }
+  }
+
   /**
    * Checks whether the target of an operation is a referral entry and throws
    * a Directory referral exception if it is.

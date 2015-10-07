@@ -188,6 +188,27 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         }
       }
     }
+
+    @Override
+    public String keyToString(ByteString key)
+    {
+      return indexer.keyToHumanReadableString(key);
+    }
+
+    @Override
+    public ByteString generateKey(String key)
+    {
+      try
+      {
+        SortedSet<ByteString> keys = new TreeSet<>();
+        indexer.createKeys(Schema.getDefaultSchema(), ByteString.valueOf(key.getBytes()), keys);
+        return keys.first();
+      }
+      catch (DecodeException e)
+      {
+        return super.generateKey(key);
+      }
+    }
   }
 
   /** The key bytes used for the presence index as a {@link ByteString}. */

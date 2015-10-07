@@ -443,6 +443,29 @@ public final class ByteString implements ByteSequence {
         }
     }
 
+    /**
+     * Returns a 7-bit ASCII string representation.
+     * Non-ASCII characters will be expanded to percent (%) hexadecimal value.
+     * @return a 7-bit ASCII string representation
+     */
+    public String toASCIIString() {
+        if (length == 0) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            byte b = buffer[offset + i];
+            if (StaticUtils.isPrintable(b)) {
+                sb.append((char) b);
+            } else {
+                sb.append('%');
+                sb.append(StaticUtils.byteToHex(b));
+            }
+        }
+        return sb.toString();
+    }
+
     private static byte hexToByte(final String value, final char c1, final char c2) {
         byte b;
         switch (c1) {

@@ -109,6 +109,23 @@ class DefaultIndex extends AbstractTree implements Index
   }
 
   @Override
+  public String valueToString(ByteString value)
+  {
+    StringBuilder sb = new StringBuilder();
+    final EntryIDSet eIDSet = decodeValue(ByteString.empty(), value);
+    eIDSet.toString(sb);
+    if (eIDSet.isDefined())
+    {
+      for(EntryID entryID : eIDSet)
+      {
+        sb.append(" ");
+        sb.append(entryID);
+      }
+    }
+    return sb.toString();
+  }
+
+  @Override
   public final Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn)
   {
     checkNotNull(txn, "txn must not be null");

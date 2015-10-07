@@ -1583,6 +1583,15 @@
                     </tool>
 
                     <tool>
+                      <name>backendtool</name>
+                      <application>org.opends.server.backends.pluggable.BackendTool</application>
+                      <trailingSectionPaths>
+                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                        <trailingSectionPath>backendtool-examples.xml</trailingSectionPath>
+                      </trailingSectionPaths>
+                    </tool>
+
+                    <tool>
                      <name>dbtest</name>
                      <application>org.opends.server.backends.jeb.DBTest</application>
                      <trailingSectionPaths>
