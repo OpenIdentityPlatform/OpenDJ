@@ -2616,16 +2616,12 @@ public final class DN implements Comparable<DN>, Serializable
     {
       return "";
     }
-
     StringBuilder buffer = new StringBuilder();
-    buffer.append(rdnComponents[0].toNormalizedUrlSafeString());
-
-    for (int i=1; i < rdnComponents.length; i++)
+    buffer.append(rdnComponents[numComponents - 1].toNormalizedUrlSafeString());
+    for (int i = numComponents - 2; i >= 0; i--)
     {
-      buffer.append(',');
-      buffer.append(rdnComponents[i].toNormalizedUrlSafeString());
+      buffer.append(',').append(rdnComponents[i].toNormalizedUrlSafeString());
     }
-
     return buffer.toString();
   }
 

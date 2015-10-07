@@ -66,38 +66,38 @@ public class TestDN extends TypesTestCase {
         { "DC=COM", "dc=com", "DC=COM" },
         { "dc = com", "dc=com", "dc=com" },
         { " dc = com ", "dc=com", "dc=com" },
-        { "dc=example,dc=com", "dc=example,dc=com", "dc=example,dc=com" },
-        { "dc=example, dc=com", "dc=example,dc=com", "dc=example,dc=com" },
-        { "dc=example ,dc=com", "dc=example,dc=com", "dc=example,dc=com" },
-        { "dc =example , dc  =   com", "dc=example,dc=com", "dc=example,dc=com" },
+        { "dc=example,dc=com", "dc=com,dc=example", "dc=example,dc=com" },
+        { "dc=example, dc=com", "dc=com,dc=example", "dc=example,dc=com" },
+        { "dc=example ,dc=com", "dc=com,dc=example", "dc=example,dc=com" },
+        { "dc =example , dc  =   com", "dc=com,dc=example", "dc=example,dc=com" },
         { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
-            "cn=doe+givenname=john,ou=people,dc=example,dc=com",
+            "dc=com,dc=example,ou=people,cn=doe+givenname=john",
             "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
         { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
-            "givenname=john%2Bcn%3Ddoe,ou=people,dc=example,dc=com",
+            "dc=com,dc=example,ou=people,givenname=john%2Bcn%3Ddoe",
             "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
         { "cn=Doe\\, John,ou=People,dc=example,dc=com",
-            "cn=doe%2C%20john,ou=people,dc=example,dc=com",
+            "dc=com,dc=example,ou=people,cn=doe%2C%20john",
             "cn=Doe\\, John,ou=People,dc=example,dc=com" },
         { "UID=jsmith,DC=example,DC=net",
-            "uid=jsmith,dc=example,dc=net",
+            "dc=net,dc=example,uid=jsmith",
             "UID=jsmith,DC=example,DC=net" },
         { "OU=Sales+CN=J. Smith,DC=example,DC=net",
-            "cn=j.%20smith+ou=sales,dc=example,dc=net",
+            "dc=net,dc=example,cn=j.%20smith+ou=sales",
             "OU=Sales+CN=J. Smith,DC=example,DC=net" },
         { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
-            "cn=james%20%22jim%22%20smith%2C%20iii,dc=example,dc=net",
+            "dc=net,dc=example,cn=james%20%22jim%22%20smith%2C%20iii",
             "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net" },
         { "CN=John Smith\\2C III,DC=example,DC=net",
-            "cn=john%20smith%2C%20iii,dc=example,dc=net",
+            "dc=net,dc=example,cn=john%20smith%2C%20iii",
             "CN=John Smith\\, III,DC=example,DC=net" },
         { "CN=\\23John Smith\\20,DC=example,DC=net",
-            "cn=%23john%20smith,dc=example,dc=net",
+            "dc=net,dc=example,cn=%23john%20smith",
             "CN=\\#John Smith\\ ,DC=example,DC=net" },
         { "CN=Before\\0dAfter,DC=example,DC=net",
              //\0d is a hex representation of Carriage return. It is mapped
              //to a SPACE as defined in the MAP ( RFC 4518)
-            "cn=before%20after,dc=example,dc=net",
+            "dc=net,dc=example,cn=before%20after",
             "CN=Before\\0dAfter,DC=example,DC=net" },
         { "1.3.6.1.4.1.1466.0=#04024869",
              //Unicode codepoints from 0000-0008 are mapped to nothing.
@@ -107,13 +107,13 @@ public class TestDN extends TypesTestCase {
         { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc%CC%8Cic%CC%81",
             "CN=Lu\u010di\u0107" },
         { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
-            "ou=%E5%96%B6%E6%A5%AD%E9%83%A8,o=airius",
+            "o=airius,ou=%E5%96%B6%E6%A5%AD%E9%83%A8",
             "ou=\u55b6\u696d\u90e8,o=Airius" },
-        { "photo=\\ john \\ ,dc=com", "photo=%20john%20%20,dc=com",
+        { "photo=\\ john \\ ,dc=com", "dc=com,photo=%20john%20%20",
             "photo=\\ john \\ ,dc=com" },
         { "AB-global=", "ab-global=", "AB-global=" },
         { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
-            "cn=j.%20smith+ou=sales,dc=example,dc=net",
+            "dc=net,dc=example,cn=j.%20smith+ou=sales",
             "OU=Sales+CN=J. Smith,DC=example,DC=net" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",
@@ -121,7 +121,7 @@ public class TestDN extends TypesTestCase {
             "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "O=\"Sue, Grabbit and Runn\",C=US",
-            "o=sue%2C%20grabbit%20and%20runn,c=us",
+            "c=us,o=sue%2C%20grabbit%20and%20runn",
             "O=Sue\\, Grabbit and Runn,C=US" }, };
   }
 
@@ -355,9 +355,9 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf("dc=example,dc=com");
 
     assertEquals(dn.toNormalizedByteString(),
-        new ByteStringBuilder().append("dc=com").append(DN.NORMALIZED_RDN_SEPARATOR).append("dc=example")
-        .toByteString());
-    assertEquals(dn.toNormalizedUrlSafeString(), "dc=example,dc=com");
+        new ByteStringBuilder().append("dc=com").append(DN.NORMALIZED_RDN_SEPARATOR)
+                               .append("dc=example").toByteString());
+    assertEquals(dn.toNormalizedUrlSafeString(), "dc=com,dc=example");
   }
 
 
