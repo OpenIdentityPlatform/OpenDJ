@@ -143,18 +143,14 @@ public class EntryContainer
   /** The vlv index configuration manager. */
   private final VLVIndexCfgManager vlvIndexCfgManager;
 
-  /** ID of the backend to which this entry container belongs. */
-  private final String backendID;
-
-  /** The root container in which this entryContainer belongs. */
-  private final RootContainer rootContainer;
-
-  /** The baseDN this entry container is responsible for. */
-  private final DN baseDN;
-
   /** The backend configuration. */
   private PluggableBackendCfg config;
-
+  /** ID of the backend to which this entry container belongs. */
+  private final String backendID;
+  /** The baseDN this entry container is responsible for. */
+  private final DN baseDN;
+  /** The root container in which this entryContainer belongs. */
+  private final RootContainer rootContainer;
   /** The tree storage. */
   private final Storage storage;
 
@@ -171,7 +167,6 @@ public class EntryContainer
 
   /** The set of attribute indexes. */
   private final Map<AttributeType, AttributeIndex> attrIndexMap = new HashMap<>();
-
   /** The set of VLV (Virtual List View) indexes. */
   private final Map<String, VLVIndex> vlvIndexMap = new HashMap<>();
 
@@ -282,8 +277,7 @@ public class EntryContainer
   ConfigurationDeleteListener<BackendVLVIndexCfg>
   {
     @Override
-    public boolean isConfigurationAddAcceptable(
-        BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+    public boolean isConfigurationAddAcceptable(BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       try
       {
@@ -303,18 +297,11 @@ public class EntryContainer
       {
         try
         {
-          if(sortAttrs[i].startsWith("-"))
+          ascending[i] = !sortAttrs[i].startsWith("-");
+
+          if (sortAttrs[i].startsWith("-") || sortAttrs[i].startsWith("+"))
           {
-            ascending[i] = false;
             sortAttrs[i] = sortAttrs[i].substring(1);
-          }
-          else
-          {
-            ascending[i] = true;
-            if(sortAttrs[i].startsWith("+"))
-            {
-              sortAttrs[i] = sortAttrs[i].substring(1);
-            }
           }
         }
         catch(Exception e)
@@ -323,8 +310,7 @@ public class EntryContainer
           return false;
         }
 
-        AttributeType attrType =
-          DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+        AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
           unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));
@@ -462,10 +448,8 @@ public class EntryContainer
     boolean shouldCreate = accessMode.isWriteable();
     try
     {
-      DataConfig entryDataConfig =
-        new DataConfig(config.isEntriesCompressed(),
-            config.isCompactEncoding(),
-            rootContainer.getCompressedSchema());
+      DataConfig entryDataConfig = new DataConfig(
+          config.isEntriesCompressed(), config.isCompactEncoding(), rootContainer.getCompressedSchema());
 
       id2entry = new ID2Entry(getIndexName(ID2ENTRY_TREE_NAME), entryDataConfig);
       id2entry.open(txn, shouldCreate);
@@ -739,7 +723,7 @@ public class EntryContainer
              * sortKeyResponseControl in the searchResultDone message, and not
              * send back any search result entries.
              */
-            searchOperation.addResponseControl(new ServerSideSortResponseControl(NO_SUCH_ATTRIBUTE, null));
+            searchOperation.addResponseControl(newServerSideSortControl(NO_SUCH_ATTRIBUTE));
             searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
             return null;
           }
@@ -812,15 +796,14 @@ public class EntryContainer
                 entryIDSet = vlvIndex.evaluate(txn, searchOperation, sortRequest, vlvRequest, debugBuffer);
                 if (entryIDSet != null)
                 {
-                  searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
+                  searchOperation.addResponseControl(newServerSideSortControl(SUCCESS));
                   candidatesAreInScope = true;
                   break;
                 }
               }
               catch (DirectoryException de)
               {
-                searchOperation.addResponseControl(new ServerSideSortResponseControl(de.getResultCode().intValue(),
-                    null));
+                searchOperation.addResponseControl(newServerSideSortControl(de.getResultCode().intValue()));
 
                 if (sortRequest.isCritical())
                 {
@@ -874,7 +857,7 @@ public class EntryContainer
                 entryIDSet = sort(txn, entryIDSet, searchOperation, sortRequest.getSortOrder(), vlvRequest);
                 if (sortRequest.containsSortKeys())
                 {
-                  searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
+                  searchOperation.addResponseControl(newServerSideSortControl(SUCCESS));
                 }
                 else
                 {
@@ -885,13 +868,12 @@ public class EntryContainer
                    * include the sortKeyResponseControl in the searchResultDone
                    * message.
                    */
-                  searchOperation.addResponseControl(new ServerSideSortResponseControl(NO_SUCH_ATTRIBUTE, null));
+                  searchOperation.addResponseControl(newServerSideSortControl(NO_SUCH_ATTRIBUTE));
                 }
               }
               catch (DirectoryException de)
               {
-                searchOperation.addResponseControl(new ServerSideSortResponseControl(de.getResultCode().intValue(),
-                    null));
+                searchOperation.addResponseControl(newServerSideSortControl(de.getResultCode().intValue()));
 
                 if (sortRequest.isCritical())
                 {
@@ -915,12 +897,12 @@ public class EntryContainer
 
           if (entryIDSet.isDefined())
           {
-            rootContainer.getMonitorProvider().updateIndexedSearchCount();
+            rootContainer.getMonitorProvider().incrementIndexedSearchCount();
             searchIndexed(txn, entryIDSet, candidatesAreInScope, searchOperation, pageRequest);
           }
           else
           {
-            rootContainer.getMonitorProvider().updateUnindexedSearchCount();
+            rootContainer.getMonitorProvider().incrementUnindexedSearchCount();
 
             searchOperation.addAdditionalLogItem(keyOnly(getClass(), "unindexed"));
 
@@ -940,7 +922,7 @@ public class EntryContainer
             {
               // FIXME -- Add support for sorting unindexed searches using indexes
               // like DSEE currently does.
-              searchOperation.addResponseControl(new ServerSideSortResponseControl(UNWILLING_TO_PERFORM, null));
+              searchOperation.addResponseControl(newServerSideSortControl(UNWILLING_TO_PERFORM));
 
               if (sortRequest.isCritical())
               {
@@ -952,6 +934,11 @@ public class EntryContainer
             searchNotIndexed(txn, searchOperation, pageRequest);
           }
           return null;
+        }
+
+        private ServerSideSortResponseControl newServerSideSortControl(int resultCode)
+        {
+          return new ServerSideSortResponseControl(resultCode, null);
         }
 
         private EntryIDSet getIDSetFromScope(final ReadableTransaction txn, DN aBaseDN, SearchScope searchScope,
@@ -2351,8 +2338,7 @@ public class EntryContainer
     //          plugins that make changes to subordinate entries and therefore
     //          provide an unmodifiable list for the modifications element.
     // FIXME -- This will need to be updated appropriately if we decided that
-    //          these plugins should be invoked for synchronization
-    //          operations.
+    //          these plugins should be invoked for synchronization operations.
     if (modifyDNOperation != null && !modifyDNOperation.isSynchronizationOperation())
     {
       SubordinateModifyDN pluginResult =
@@ -2377,11 +2363,9 @@ public class EntryContainer
       }
     }
 
-    // Remove the old DN from dn2id.
     dn2id.remove(txn, oldDN);
 
-    // Remove old ID from id2entry and put the new entry
-    // (old entry with new DN) in id2entry.
+    // Remove old ID from id2entry and put the new entry (old entry with new DN) in id2entry.
     if (!newID.equals(oldID))
     {
       id2entry.remove(txn, oldID);
@@ -2554,11 +2538,9 @@ public class EntryContainer
   }
 
   /**
-   * Determine whether the provided operation has the ManageDsaIT request
-   * control.
+   * Determine whether the provided operation has the ManageDsaIT request control.
    * @param operation The operation for which the determination is to be made.
-   * @return true if the operation has the ManageDsaIT request control, or false
-   * if not.
+   * @return true if the operation has the ManageDsaIT request control, or false if not.
    */
   private static boolean isManageDsaITOperation(Operation operation)
   {
@@ -2584,8 +2566,7 @@ public class EntryContainer
    * closed before calling this method.
    *
    * @param txn a non null transaction
-   * @throws StorageRuntimeException If an error occurs while removing the entry
-   *                           container.
+   * @throws StorageRuntimeException If an error occurs while removing the entry container.
    */
   void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
@@ -2606,9 +2587,10 @@ public class EntryContainer
   {
     if(tree == state)
     {
-      // The state tree can not be removed individually.
+      // The state tree cannot be removed individually.
       return;
     }
+
     tree.delete(txn);
     if(tree instanceof Index)
     {

@@ -34,13 +34,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;
 
@@ -104,12 +102,6 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
   {
     this.name = name;
     this.rootContainer = rootContainer;
-  }
-
-  @Override
-  public void initializeMonitorProvider(MonitorProviderCfg configuration)
-      throws ConfigException, InitializationException
-  {
   }
 
   @Override
@@ -297,8 +289,8 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     this.maxEntries = maxEntries;
   }
 
-  /** Updates the statistics counter to include an indexed search. */
-  void updateIndexedSearchCount()
+  /** Increments the statistics counter to include an indexed search. */
+  void incrementIndexedSearchCount()
   {
     if (filterUseEnabled)
     {
@@ -306,8 +298,8 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  /** Updates the statistics counter to include an unindexed search. */
-  void updateUnindexedSearchCount()
+  /** Increments the statistics counter to include an unindexed search. */
+  void incrementUnindexedSearchCount()
   {
     if (filterUseEnabled)
     {
