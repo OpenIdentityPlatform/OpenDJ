@@ -383,10 +383,6 @@ public final class Upgrade
         deleteConfigEntry(INFO_UPGRADE_TASK_11339_SUMMARY.get(),
             "dn: cn=Extensions,cn=config"));
 
-    /** See OPENDJ-1637 */
-    register("2.8.0",
-        rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
-
     /** See OPENDJ-1701 */
     register("2.8.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_11476_SUMMARY.get(),
@@ -406,6 +402,49 @@ public final class Upgrade
     /** See OPENDJ-1322 and OPENDJ-1067 */
     register("2.7.0",
         rerunJavaPropertiesTool(INFO_UPGRADE_TASK_9206_SUMMARY.get()));
+
+    register("3.0.0",
+        migrateLocalDBBackendsToJEBackends(),
+        modifyConfigEntry(INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_2.get(),
+            "(objectClass=ds-cfg-local-db-backend)",
+            "replace: objectClass",
+            "objectClass: top",
+            "objectClass: ds-cfg-backend",
+            "objectClass: ds-cfg-pluggable-backend",
+            "objectClass: ds-cfg-je-backend",
+            "-",
+            "replace: ds-cfg-java-class",
+            "ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend",
+            "-",
+            "delete: ds-cfg-import-thread-count",
+            "-",
+            "delete: ds-cfg-import-queue-size",
+            "-",
+            "delete: ds-cfg-subordinate-indexes-enabled",
+            "-"),
+        modifyConfigEntry(INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_3.get(),
+            "(objectClass=ds-cfg-local-db-index)",
+            "replace: objectClass",
+            "objectClass: top",
+            "objectClass: ds-cfg-backend-index",
+            "-"),
+        modifyConfigEntry(INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_4.get(),
+            "(objectClass=ds-cfg-local-db-vlv-index)",
+            "replace: objectClass",
+            "objectClass: top",
+            "objectClass: ds-cfg-backend-vlv-index",
+            "-",
+            "delete: ds-cfg-max-block-size",
+            "-"));
+
+    /**
+     * Rebuild all indexes when upgrading to 3.0.0.
+     *
+     * 1) matching rules have changed in 2.8.0 and again in 3.0.0- see OPENDJ-1637
+     * 2) JE backend has been migrated to pluggable architecture.
+     */
+    register("3.0.0",
+        rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
@@ -485,26 +524,26 @@ public final class Upgrade
       return;
     }
 
-    /*
-     * Let tasks interact with the user in order to obtain user's selection.
-     */
-    context.notify(INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
-    for (final UpgradeTask task : tasks)
-    {
-      task.prepare(context);
-    }
-
-    // Starts upgrade
-    final int userResponse = context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
-    if (userResponse == ConfirmationCallback.NO)
-    {
-      final LocalizableMessage message = INFO_UPGRADE_ABORTED_BY_USER.get();
-      context.notify(message, WARNING);
-      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
-    }
-
     try
     {
+      /*
+       * Let tasks interact with the user in order to obtain user's selection.
+       */
+      context.notify(INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
+      for (final UpgradeTask task : tasks)
+      {
+        task.prepare(context);
+      }
+
+      // Starts upgrade
+      final int userResponse = context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
+      if (userResponse == ConfirmationCallback.NO)
+      {
+        final LocalizableMessage message = INFO_UPGRADE_ABORTED_BY_USER.get();
+        context.notify(message, WARNING);
+        throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
+      }
+
       /*
        * Perform the upgrade tasks.
        */
