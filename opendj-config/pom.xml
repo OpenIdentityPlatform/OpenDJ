@@ -85,23 +85,23 @@
   <build>
     <plugins>
       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <executions>
-            <execution>
-              <goals>
-                <goal>test-jar</goal>
-              </goals>
-              <configuration>
-                 <includes>
-                    <!-- Classes to have mocks with configuration defaults -->
-                    <include>**/ConfigurationMock.class</include>
-                    <include>**/ConfigurationMock$*.class</include>
-                 </includes>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <!-- Classes to have mocks with configuration defaults -->
+                <include>**/ConfigurationMock.class</include>
+                <include>**/ConfigurationMock$*.class</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
