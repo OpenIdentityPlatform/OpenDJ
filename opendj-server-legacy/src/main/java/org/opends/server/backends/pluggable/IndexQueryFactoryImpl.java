@@ -27,8 +27,8 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSet;
-import static org.opends.server.backends.pluggable.EntryIDSet.newUndefinedSetWithKey;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.backends.pluggable.IndexFilter.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.forgerock.util.Utils;
 import org.opends.server.backends.pluggable.AttributeIndex.IndexFilterType;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -50,9 +51,109 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
  */
 final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 {
+  /**
+   * This class creates a Null IndexQuery. It is used when there is no
+   * record in the index. It may also be used when the index contains
+   * all the records but an empty EntryIDSet should be returned as part
+   * of the optimization.
+   */
+  private static final class NullIndexQuery implements IndexQuery
+  {
+    @Override
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
+    {
+      return newUndefinedSet();
+    }
+
+    @Override
+    public String toString()
+    {
+      return "Null";
+    }
+  }
+
+  /** This class creates an intersection IndexQuery from a collection of IndexQuery objects. */
+  private static final class IntersectionIndexQuery implements IndexQuery
+  {
+    /** Collection of IndexQuery objects. */
+    private final Collection<IndexQuery> subIndexQueries;
+
+    /**
+     * Creates an instance of IntersectionIndexQuery.
+     *
+     * @param subIndexQueries
+     *          Collection of IndexQuery objects.
+     */
+    private IntersectionIndexQuery(Collection<IndexQuery> subIndexQueries)
+    {
+      this.subIndexQueries = subIndexQueries;
+    }
+
+    @Override
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
+    {
+      final EntryIDSet entryIDs = newUndefinedSet();
+      for (IndexQuery query : subIndexQueries)
+      {
+        entryIDs.retainAll(query.evaluate(debugMessage, indexNameOut));
+        if (isBelowFilterThreshold(entryIDs))
+        {
+          break;
+        }
+      }
+      return entryIDs;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "Intersection(" + SEPARATOR + Utils.joinAsString(SEPARATOR, subIndexQueries) + ")";
+    }
+  }
+
+  /** This class creates a union of IndexQuery objects. */
+  private static final class UnionIndexQuery implements IndexQuery
+  {
+    /** Collection containing IndexQuery objects. */
+    private final Collection<IndexQuery> subIndexQueries;
+
+    /**
+     * Creates an instance of UnionIndexQuery.
+     *
+     * @param subIndexQueries
+     *          The Collection of IndexQuery objects.
+     */
+    private UnionIndexQuery(Collection<IndexQuery> subIndexQueries)
+    {
+      this.subIndexQueries = subIndexQueries;
+    }
+
+    @Override
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
+    {
+      final EntryIDSet entryIDs = newDefinedSet();
+      for (IndexQuery query : subIndexQueries)
+      {
+        entryIDs.addAll(query.evaluate(debugMessage, indexNameOut));
+        if (entryIDs.isDefined() && entryIDs.size() >= CURSOR_ENTRY_LIMIT)
+        {
+          break;
+        }
+      }
+      return entryIDs;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "Union(" + SEPARATOR + Utils.joinAsString(SEPARATOR, subIndexQueries) + ")";
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final String PRESENCE_INDEX_KEY = "presence";
+  private static final String SEPARATOR = "\n  ";
 
   private final ReadableTransaction txn;
   /** The Map containing the string type identifier and the corresponding index. */
@@ -241,13 +342,13 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
   @Override
   public IndexQuery createIntersectionQuery(Collection<IndexQuery> subqueries)
   {
-    return IndexQuery.createIntersectionIndexQuery(subqueries);
+    return new IntersectionIndexQuery(subqueries);
   }
 
   @Override
   public IndexQuery createUnionQuery(Collection<IndexQuery> subqueries)
   {
-    return IndexQuery.createUnionIndexQuery(subqueries);
+    return new UnionIndexQuery(subqueries);
   }
 
   /**
@@ -312,5 +413,15 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
   public IndexingOptions getIndexingOptions()
   {
     return attributeIndex.getIndexingOptions();
+  }
+
+  /**
+   * Creates an empty IndexQuery object.
+   *
+   * @return A NullIndexQuery object.
+   */
+  static IndexQuery createNullIndexQuery()
+  {
+    return new NullIndexQuery();
   }
 }

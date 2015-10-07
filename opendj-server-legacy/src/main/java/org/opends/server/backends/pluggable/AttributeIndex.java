@@ -907,7 +907,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         monitor.updateStats(filter,
             INFO_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(matchRuleOID, config.getAttribute().getNameOrOID()));
       }
-      return IndexQuery.createNullIndexQuery().evaluate(null, null);
+      return IndexQueryFactoryImpl.createNullIndexQuery().evaluate(null, null);
     }
 
     try
@@ -947,7 +947,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     catch (DecodeException e)
     {
       logger.traceException(e);
-      return IndexQuery.createNullIndexQuery().evaluate(null, null);
+      return IndexQueryFactoryImpl.createNullIndexQuery().evaluate(null, null);
     }
   }
 
