@@ -491,7 +491,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    *          filter usage statistics.
    * @return The candidate entry IDs that might contain the filter assertion value.
    */
-  private EntryIDSet evaluateIndexQuery(IndexQuery indexQuery, String indexName, SearchFilter filter,
+  private static EntryIDSet evaluateIndexQuery(IndexQuery indexQuery, String indexName, SearchFilter filter,
       StringBuilder debugBuffer, BackendMonitor monitor)
   {
     // FIXME equivalent code exists in evaluateExtensibleFilter()
@@ -501,15 +501,15 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
     if (debugBuffer != null)
     {
-      appendDebugIndexInformation(debugBuffer, config.getAttribute(), indexName);
-      appendDebugUnindexedInformation(debugBuffer, indexNameOut);
+      appendDebugIndexInformation(debugBuffer, filter.getAttributeType(), indexName);
+      appendDebugUnindexedInformation(debugBuffer, filter.getAttributeType(), indexNameOut);
     }
 
     updateStats(monitor, filter, results, debugMessage);
     return results;
   }
 
-  private void updateStats(BackendMonitor monitor, SearchFilter filter, EntryIDSet idSet,
+  private static void updateStats(BackendMonitor monitor, SearchFilter filter, EntryIDSet idSet,
       LocalizableMessageBuilder debugMessage)
   {
     if (monitor.isFilterUseEnabled())
@@ -532,22 +532,24 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * @param debugBuffer the current debugsearchindex buffer
    * @param indexName the name of the index type
    */
-  private void appendDebugUnindexedInformation(StringBuilder debugBuffer, StringBuilder indexName)
+  private static void appendDebugUnindexedInformation(StringBuilder debugBuffer, AttributeType attrType,
+      StringBuilder indexName)
   {
     if (indexName.length() > 0)
     {
       debugBuffer.append(newUndefinedSet());
-      appendDebugIndexInformation(debugBuffer, config.getAttribute(), indexName);
+      appendDebugIndexInformation(debugBuffer, attrType, indexName);
     }
   }
 
-  private void appendDebugIndexInformation(StringBuilder debugBuffer, AttributeType attrType, CharSequence indexName)
+  private static void appendDebugIndexInformation(StringBuilder debugBuffer, AttributeType attrType,
+      CharSequence indexName)
   {
     String attrNameOrOID = attrType.getNameOrOID();
     debugBuffer.append("[INDEX:").append(attrNameOrOID).append(".").append(indexName).append("]");
   }
 
-  private void appendDebugIndexesInformation(StringBuilder debugBuffer, AttributeType attrType,
+  private static void appendDebugIndexesInformation(StringBuilder debugBuffer, AttributeType attrType,
       Collection<? extends Indexer> indexers)
   {
     final String attrNameOrOID = attrType.getNameOrOID();
@@ -580,7 +582,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    *          filter usage statistics.
    * @return The candidate entry IDs that might contain match both filters.
    */
-  EntryIDSet evaluateBoundedRange(IndexQueryFactory<IndexQuery> indexQueryFactory,
+  static EntryIDSet evaluateBoundedRange(IndexQueryFactory<IndexQuery> indexQueryFactory,
       SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer, BackendMonitor monitor)
   {
     // TODO : this implementation is not optimal
@@ -603,7 +605,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     return results1;
   }
 
-  private EntryIDSet evaluate(IndexQueryFactory<IndexQuery> indexQueryFactory, SearchFilter filter,
+  private static EntryIDSet evaluate(IndexQueryFactory<IndexQuery> indexQueryFactory, SearchFilter filter,
       StringBuilder debugBuffer, BackendMonitor monitor)
   {
     boolean isLessOrEqual = filter.getFilterType() == FilterType.LESS_OR_EQUAL;
@@ -625,7 +627,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter type.
    */
-  EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
+  static EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
       SearchFilter filter, StringBuilder debugBuffer, BackendMonitor monitor)
   {
     try
@@ -640,8 +642,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
-  private IndexQuery getIndexQuery(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
-      SearchFilter filter) throws DecodeException
+  private static IndexQuery getIndexQuery(IndexQueryFactory<IndexQuery> indexQueryFactory,
+      IndexFilterType indexFilterType, SearchFilter filter) throws DecodeException
   {
     MatchingRule rule;
     Assertion assertion;
@@ -939,7 +941,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       if (debugBuffer != null)
       {
         appendDebugIndexesInformation(debugBuffer, filter.getAttributeType(), rule.createIndexers(indexingOptions));
-        appendDebugUnindexedInformation(debugBuffer, indexNameOut);
+        appendDebugUnindexedInformation(debugBuffer, filter.getAttributeType(), indexNameOut);
       }
 
       updateStats(monitor, filter, results, debugMessage);
