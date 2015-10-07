@@ -244,7 +244,6 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
     Collection<Indexer> indexers = new ArrayList<>();
     for(IndexType indexType : config.getIndexType()) {
-      MatchingRule rule;
       switch (indexType)
       {
       case PRESENCE:
@@ -255,36 +254,27 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
             getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), indexingOptions));
         break;
       case APPROXIMATE:
-        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getApproximateMatchingRule());
-        indexers.addAll(rule.createIndexers(indexingOptions));
-        break;
       case EQUALITY:
-        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getEqualityMatchingRule());
-        indexers.addAll(rule.createIndexers(indexingOptions));
-        break;
       case ORDERING:
-        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getOrderingMatchingRule());
-        indexers.addAll(rule.createIndexers(indexingOptions));
-        break;
       case SUBSTRING:
-        rule = throwIfNoMatchingRule(attributeType, indexType, attributeType.getSubstringMatchingRule());
+        MatchingRule rule = getMatchingRule(indexType, attributeType);
+        throwIfNoMatchingRule(attributeType, indexType, rule);
         indexers.addAll(rule.createIndexers(indexingOptions));
         break;
       default:
-       throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType.toString()));
+       throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
       }
     }
     return buildIndexesForIndexers(entryContainer, attributeType, state, indexEntryLimit, indexers);
   }
 
-  private static MatchingRule throwIfNoMatchingRule(AttributeType attributeType, IndexType type, MatchingRule rule)
+  private static void throwIfNoMatchingRule(AttributeType attributeType, IndexType indexType, MatchingRule rule)
       throws ConfigException
   {
     if (rule == null)
     {
-      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, type.toString()));
+      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
     }
-    return rule;
   }
 
   private static Map<String, MatchingRuleIndex> buildIndexesForIndexers(EntryContainer entryContainer,
@@ -305,17 +295,17 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   private static Collection<Indexer> getExtensibleIndexers(AttributeType attributeType, Set<String> extensibleRules,
       IndexingOptions options) throws ConfigException
   {
+    IndexType indexType = IndexType.EXTENSIBLE;
     if (extensibleRules == null || extensibleRules.isEmpty())
     {
-      throw new ConfigException(
-          ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, IndexType.EXTENSIBLE.toString()));
+      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
     }
 
     final Collection<Indexer> indexers = new ArrayList<>();
     for (final String ruleName : extensibleRules)
     {
       final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-      throwIfNoMatchingRule(attributeType, IndexType.EXTENSIBLE, rule);
+      throwIfNoMatchingRule(attributeType, indexType, rule);
       indexers.addAll(rule.createIndexers(options));
     }
 
@@ -554,9 +544,18 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   {
     final String attrNameOrOID = attrType.getNameOrOID();
     debugBuffer.append("[INDEX:");
+    boolean isFirst = true;
     for (Indexer indexer : indexers)
     {
-      debugBuffer.append(" ").append(attrNameOrOID).append(".").append(indexer.getIndexID());
+      if (isFirst)
+      {
+        isFirst = false;
+      }
+      else
+      {
+        debugBuffer.append(" ");
+      }
+      debugBuffer.append(attrNameOrOID).append(".").append(indexer.getIndexID());
     }
     debugBuffer.append("]");
   }
@@ -697,21 +696,23 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   public synchronized boolean isConfigurationChangeAcceptable(
       BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    if (!isIndexAcceptable(cfg, IndexType.EQUALITY, unacceptableReasons)
-        || !isIndexAcceptable(cfg, IndexType.SUBSTRING, unacceptableReasons)
-        || !isIndexAcceptable(cfg, IndexType.ORDERING, unacceptableReasons)
-        || !isIndexAcceptable(cfg, IndexType.APPROXIMATE, unacceptableReasons))
-    {
-      return false;
-    }
+    return isIndexAcceptable(cfg, IndexType.EQUALITY, unacceptableReasons)
+        && isIndexAcceptable(cfg, IndexType.SUBSTRING, unacceptableReasons)
+        && isIndexAcceptable(cfg, IndexType.ORDERING, unacceptableReasons)
+        && isIndexAcceptable(cfg, IndexType.APPROXIMATE, unacceptableReasons)
+        && isExtensibleIndexAcceptable(cfg, unacceptableReasons);
+  }
 
+  private boolean isExtensibleIndexAcceptable(BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    IndexType indexType = IndexType.EXTENSIBLE;
     AttributeType attrType = cfg.getAttribute();
-    if (cfg.getIndexType().contains(IndexType.EXTENSIBLE))
+    if (cfg.getIndexType().contains(indexType))
     {
       Set<String> newRules = cfg.getIndexExtensibleMatchingRule();
       if (newRules == null || newRules.isEmpty())
       {
-        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "extensible"));
+        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType));
         return false;
       }
     }
@@ -722,8 +723,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       List<LocalizableMessage> unacceptableReasons)
   {
     final AttributeType attrType = cfg.getAttribute();
-    if (cfg.getIndexType().contains(indexType)
-        && getMatchingRule(indexType, attrType) == null)
+    if (cfg.getIndexType().contains(indexType) && getMatchingRule(indexType, attrType) == null)
     {
       unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType));
       return false;
