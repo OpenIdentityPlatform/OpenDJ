@@ -70,27 +70,23 @@ import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 
 /**
- * This class implements /dev/null like backend for development and
- * testing. The following behaviors of this backend implementation
- * should be noted:
+ * This class implements /dev/null like backend for development and testing.
+ * The following behaviors of this backend implementation should be noted:
  * <ul>
  * <li>All read operations return success but no data.
  * <li>All write operations return success but do nothing.
  * <li>Bind operations fail with invalid credentials.
  * <li>Compare operations are only possible on objectclass and return
- * true for the following objeclasses only: top, nullbackendobject,
+ * true for the following objectClasses only: top, nullbackendobject,
  * extensibleobject. Otherwise comparison result is false or comparison
  * fails altogether.
  * <li>Controls are supported although this implementation does not
  * provide any specific emulation for controls. Generally known request
- * controls are accepted and default response controls returned where
- * applicable.
+ * controls are accepted and default response controls returned where applicable.
  * <li>Searches within this backend are always considered indexed.
  * <li>Backend Import is supported by iterating over ldif reader on a
- * single thread and issuing add operations which essentially do nothing
- * at all.
- * <li>Backend Export is supported but does nothing producing an empty
- * ldif.
+ * single thread and issuing add operations which essentially do nothing at all.
+ * <li>Backend Export is supported but does nothing producing an empty ldif.
  * <li>Backend Backup and Restore are not supported.
  * </ul>
  * This backend implementation is for development and testing only, does
@@ -100,8 +96,6 @@ import org.opends.server.util.LDIFWriter;
 public class NullBackend extends Backend<BackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
 
   /** The base DNs for this backend. */
   private DN[] baseDNs;
@@ -119,8 +113,6 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** The map of null entry object classes. */
   private Map<ObjectClass,String> objectClasses;
-
-
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -145,20 +137,16 @@ public class NullBackend extends Backend<BackendCfg>
     this.baseDNs = baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(BackendCfg config, ServerContext serverContext) throws ConfigException
   {
     if (config != null)
     {
       BackendCfg cfg = config;
-      DN[] cfgBaseDNs = new DN[cfg.getBaseDN().size()];
-      cfg.getBaseDN().toArray(cfgBaseDNs);
-      setBaseDNs(cfgBaseDNs);
+      setBaseDNs(cfg.getBaseDN().toArray(new DN[cfg.getBaseDN().size()]));
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized void openBackend() throws ConfigException, InitializationException
   {
@@ -176,8 +164,7 @@ public class NullBackend extends Backend<BackendCfg>
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(
-            dn, getExceptionMessage(e));
+        LocalizableMessage message = ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(dn, getExceptionMessage(e));
         throw new InitializationException(message, e);
       }
     }
@@ -212,7 +199,6 @@ public class NullBackend extends Backend<BackendCfg>
     objectClasses.put(extOC, extOCName);
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized void closeBackend()
   {
@@ -229,21 +215,18 @@ public class NullBackend extends Backend<BackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
     return -1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -251,109 +234,86 @@ public class NullBackend extends Backend<BackendCfg>
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConditionResult hasSubordinates(DN entryDN)
-         throws DirectoryException
+  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   {
     return new Entry(null, objectClasses, null, null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean entryExists(DN entryDN)
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void addEntry(Entry entry, AddOperation addOperation)
-         throws DirectoryException
+  public void addEntry(Entry entry, AddOperation addOperation) throws DirectoryException
   {
     return;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
-         throws DirectoryException
+  public void deleteEntry(DN entryDN, DeleteOperation deleteOperation) throws DirectoryException
   {
     return;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
-      ModifyOperation modifyOperation) throws DirectoryException
+  public void replaceEntry(Entry oldEntry, Entry newEntry, ModifyOperation modifyOperation) throws DirectoryException
   {
     return;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void renameEntry(DN currentDN, Entry entry,
-    ModifyDNOperation modifyDNOperation)
-         throws DirectoryException
+  public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation) throws DirectoryException
   {
     return;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void search(SearchOperation searchOperation)
-         throws DirectoryException
+  public void search(SearchOperation searchOperation) throws DirectoryException
   {
     PagedResultsControl pageRequest =
         searchOperation.getRequestControl(PagedResultsControl.DECODER);
 
     if (pageRequest != null) {
       // Indicate no more pages.
-      PagedResultsControl control;
-      control =
+      PagedResultsControl control =
           new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
-
-    return;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
@@ -368,44 +328,24 @@ public class NullBackend extends Backend<BackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void exportLDIF(LDIFExportConfig exportConfig)
-         throws DirectoryException
+  public void exportLDIF(LDIFExportConfig exportConfig) throws DirectoryException
   {
-    LDIFWriter ldifWriter;
-
-    try {
-      ldifWriter = new LDIFWriter(exportConfig);
+    try (LDIFWriter ldifWriter = new LDIFWriter(exportConfig))
+    {
+      // just create it to see if it fails
     } catch (Exception e) {
       logger.traceException(e);
 
-      LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-        message);
+      throw newDirectoryException(e);
     }
-
-    close(ldifWriter);
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
   {
-    LDIFReader reader;
-    try
-    {
-      reader = new LDIFReader(importConfig);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-    try
+    try (LDIFReader reader = getReader(importConfig))
     {
       while (true)
       {
@@ -420,16 +360,11 @@ public class NullBackend extends Backend<BackendCfg>
         }
         catch (LDIFException le)
         {
-          if (! le.canContinueReading())
-          {
-            LocalizableMessage message = LocalizableMessage.raw(le.getMessage());
-            throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(),message);
-          }
-          else
+          if (le.canContinueReading())
           {
             continue;
           }
+          throw newDirectoryException(le);
         }
 
         try
@@ -452,41 +387,49 @@ public class NullBackend extends Backend<BackendCfg>
     }
     catch (Exception e)
     {
-      LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      throw newDirectoryException(e);
     }
-    finally
+  }
+
+  private DirectoryException newDirectoryException(Exception e)
+  {
+    LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
+    return new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+  }
+
+  private LDIFReader getReader(LDIFImportConfig importConfig) throws DirectoryException
+  {
+    try
     {
-      reader.close();
+      return new LDIFReader(importConfig);
+    }
+    catch (Exception e)
+    {
+      throw newDirectoryException(e);
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void createBackup(BackupConfig backupConfig)
-         throws DirectoryException
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    LocalizableMessage message = LocalizableMessage.raw("The null backend does not support backup operation");
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw unwillingToPerformOperation("backup");
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void removeBackup(BackupDirectory backupDirectory,
-                           String backupID)
-         throws DirectoryException
+  public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
-    LocalizableMessage message = LocalizableMessage.raw("The null backend does not support remove backup operation");
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw unwillingToPerformOperation("remove backup");
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig restoreConfig)
-         throws DirectoryException
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
-    LocalizableMessage message = LocalizableMessage.raw("The null backend does not support restore operation");
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw unwillingToPerformOperation("restore");
+  }
+
+  private DirectoryException unwillingToPerformOperation(String operationName)
+  {
+    String msg = "The null backend does not support " + operationName + " operation";
+    return new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, LocalizableMessage.raw(msg));
   }
 }
