@@ -316,7 +316,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     @Override
     public void clearTree(TreeName treeName)
     {
-      env.truncateDatabase(null, mangleTreeName(treeName), false);
+      env.truncateDatabase(null, toDatabaseName(treeName), false);
     }
 
     @Override
@@ -488,7 +488,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         synchronized (trees)
         {
           trees.remove(treeName);
-          env.removeDatabase(txn, mangleTreeName(treeName));
+          env.removeDatabase(txn, toDatabaseName(treeName));
         }
       }
       catch (DatabaseNotFoundException e)
@@ -609,7 +609,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         tree = trees.get(treeName);
         if (tree == null)
         {
-          tree = env.openDatabase(txn, mangleTreeName(treeName), dbConfig());
+          tree = env.openDatabase(txn, toDatabaseName(treeName), dbConfig());
           trees.put(treeName, tree);
         }
       }
@@ -757,21 +757,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     return new ImporterImpl();
   }
 
-  private static String mangleTreeName(final TreeName treeName)
+  private static String toDatabaseName(final TreeName treeName)
   {
-    StringBuilder mangled = new StringBuilder();
-    String name = treeName.toString();
-
-    for (int idx = 0; idx < name.length(); idx++)
-    {
-      char ch = name.charAt(idx);
-      if (ch == '=' || ch == ',')
-      {
-        ch = '_';
-      }
-      mangled.append(ch);
-    }
-    return mangled.toString();
+    return treeName.toString();
   }
 
   @Override
