@@ -44,6 +44,7 @@ import org.opends.server.backends.pluggable.AttributeIndex.IndexFilterType;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.types.AttributeType;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
@@ -186,19 +187,12 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           final Index index = attributeIndex.getNameToIndexes().get(indexID);
           if (index == null)
           {
-            if(debugMessage != null)
-            {
-              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
-                  attributeIndex.getAttributeType().getNameOrOID()));
-            }
+            appendDisabledIndexType(debugMessage, indexID, attributeIndex.getAttributeType());
             return createMatchAllQuery().evaluate(debugMessage, indexNameOut);
           }
 
           final EntryIDSet entrySet = index.get(txn, key);
-          if (debugMessage != null && !entrySet.isDefined())
-          {
-            updateStatsUndefinedResults(debugMessage, index);
-          }
+          updateStatsForUndefinedResults(debugMessage, entrySet, index);
           return entrySet;
         }
 
@@ -222,19 +216,12 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
         final Index index = attributeIndex.getNameToIndexes().get(indexID);
         if (index == null)
         {
-          if (debugMessage != null)
-          {
-            debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
-                  attributeIndex.getAttributeType().getNameOrOID()));
-          }
+          appendDisabledIndexType(debugMessage, indexID, attributeIndex.getAttributeType());
           return createMatchAllQuery().evaluate(debugMessage, indexNameOut);
         }
 
         final EntryIDSet entrySet = readRange(index, txn, lowerBound, upperBound, includeLowerBound, includeUpperBound);
-        if (debugMessage != null && !entrySet.isDefined())
-        {
-          updateStatsUndefinedResults(debugMessage, index);
-        }
+        updateStatsForUndefinedResults(debugMessage, entrySet, index);
         return entrySet;
       }
 
@@ -369,19 +356,12 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           final Index index = attributeIndex.getNameToIndexes().get(indexID);
           if (index == null)
           {
-            if(debugMessage != null)
-            {
-              debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID,
-                  attributeIndex.getAttributeType().getNameOrOID()));
-            }
+            appendDisabledIndexType(debugMessage, indexID, attributeIndex.getAttributeType());
             return newUndefinedSet();
           }
 
           final EntryIDSet entrySet = index.get(txn, AttributeIndex.PRESENCE_KEY);
-          if (debugMessage != null && !entrySet.isDefined())
-          {
-            updateStatsUndefinedResults(debugMessage, index);
-          }
+          updateStatsForUndefinedResults(debugMessage, entrySet, index);
           if (indexNameOut != null)
           {
             indexNameOut.append(IndexFilterType.PRESENCE);
@@ -397,15 +377,28 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
       };
   }
 
-  private static void updateStatsUndefinedResults(LocalizableMessageBuilder debugMessage, Index index)
+  private static void appendDisabledIndexType(LocalizableMessageBuilder debugMessage, String indexID,
+      AttributeType attrType)
   {
-    if (!index.isTrusted())
+    if (debugMessage != null)
     {
-      debugMessage.append(INFO_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
+      debugMessage.append(INFO_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, attrType.getNameOrOID()));
     }
-    else
+  }
+
+  private static void updateStatsForUndefinedResults(
+      LocalizableMessageBuilder debugMessage, EntryIDSet idSet, Index index)
+  {
+    if (debugMessage != null && !idSet.isDefined())
     {
-      debugMessage.append(INFO_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
+      if (!index.isTrusted())
+      {
+        debugMessage.append(INFO_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
+      }
+      else
+      {
+        debugMessage.append(INFO_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
+      }
     }
   }
 

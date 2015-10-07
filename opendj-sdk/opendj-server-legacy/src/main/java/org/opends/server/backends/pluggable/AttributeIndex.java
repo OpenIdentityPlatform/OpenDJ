@@ -489,34 +489,40 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * @param monitor
    *          The backend monitor provider that will keep index
    *          filter usage statistics.
-   * @return The candidate entry IDs that might contain the filter assertion
-   *         value.
+   * @return The candidate entry IDs that might contain the filter assertion value.
    */
   private EntryIDSet evaluateIndexQuery(IndexQuery indexQuery, String indexName, SearchFilter filter,
       StringBuilder debugBuffer, BackendMonitor monitor)
   {
+    // FIXME equivalent code exists in evaluateExtensibleFilter()
     LocalizableMessageBuilder debugMessage = monitor.isFilterUseEnabled() ? new LocalizableMessageBuilder() : null;
     StringBuilder indexNameOut = debugBuffer == null ? null : new StringBuilder();
     EntryIDSet results = indexQuery.evaluate(debugMessage, indexNameOut);
 
     if (debugBuffer != null)
     {
-      appendDebugIndexInformation(debugBuffer, indexName);
+      appendDebugIndexInformation(debugBuffer, config.getAttribute(), indexName);
       appendDebugUnindexedInformation(debugBuffer, indexNameOut);
     }
 
+    updateStats(monitor, filter, results, debugMessage);
+    return results;
+  }
+
+  private void updateStats(BackendMonitor monitor, SearchFilter filter, EntryIDSet idSet,
+      LocalizableMessageBuilder debugMessage)
+  {
     if (monitor.isFilterUseEnabled())
     {
-      if (results.isDefined())
+      if (idSet.isDefined())
       {
-        monitor.updateStats(filter, results.size());
+        monitor.updateStats(filter, idSet.size());
       }
       else
       {
         monitor.updateStats(filter, debugMessage.toMessage());
       }
     }
-    return results;
   }
 
   /**
@@ -524,20 +530,33 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    * an auxiliary index type during index query.
    *
    * @param debugBuffer the current debugsearchindex buffer
-   * @param indexNameOut the name of the index type
+   * @param indexName the name of the index type
    */
-  private void appendDebugUnindexedInformation(StringBuilder debugBuffer, StringBuilder indexNameOut)
+  private void appendDebugUnindexedInformation(StringBuilder debugBuffer, StringBuilder indexName)
   {
-    if (indexNameOut.length() > 0)
+    if (indexName.length() > 0)
     {
       debugBuffer.append(newUndefinedSet());
-      appendDebugIndexInformation(debugBuffer, indexNameOut.toString());
+      appendDebugIndexInformation(debugBuffer, config.getAttribute(), indexName);
     }
   }
 
-  private void appendDebugIndexInformation(final StringBuilder debugBuffer, final String infos)
+  private void appendDebugIndexInformation(StringBuilder debugBuffer, AttributeType attrType, CharSequence indexName)
   {
-    debugBuffer.append("[INDEX:").append(config.getAttribute().getNameOrOID()).append(".").append(infos).append("]");
+    String attrNameOrOID = attrType.getNameOrOID();
+    debugBuffer.append("[INDEX:").append(attrNameOrOID).append(".").append(indexName).append("]");
+  }
+
+  private void appendDebugIndexesInformation(StringBuilder debugBuffer, AttributeType attrType,
+      Collection<? extends Indexer> indexers)
+  {
+    final String attrNameOrOID = attrType.getNameOrOID();
+    debugBuffer.append("[INDEX:");
+    for (Indexer indexer : indexers)
+    {
+      debugBuffer.append(" ").append(attrNameOrOID).append(".").append(indexer.getIndexID());
+    }
+    debugBuffer.append("]");
   }
 
   /**
@@ -877,8 +896,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    *                     to this search.
    * @param monitor The backend monitor provider that will keep
    *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain the filter
-   *         assertion value.
+   * @return The candidate entry IDs that might contain the filter assertion value.
    */
   EntryIDSet evaluateExtensibleFilter(IndexQueryFactory<IndexQuery> indexQueryFactory,
       SearchFilter filter, StringBuilder debugBuffer, BackendMonitor monitor)
@@ -912,6 +930,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
     try
     {
+      // FIXME equivalent code exists in evaluateIndexQuery()
       final IndexQuery indexQuery = rule.getAssertion(filter.getAssertionValue()).createIndexQuery(indexQueryFactory);
       LocalizableMessageBuilder debugMessage = monitor.isFilterUseEnabled() ? new LocalizableMessageBuilder() : null;
       StringBuilder indexNameOut = debugBuffer == null ? null : new StringBuilder();
@@ -919,29 +938,11 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
       if (debugBuffer != null)
       {
-        debugBuffer.append("[INDEX:");
-        for (Indexer indexer : rule.createIndexers(indexingOptions))
-        {
-            debugBuffer.append(" ")
-              .append(filter.getAttributeType().getNameOrOID())
-              .append(".")
-              .append(indexer.getIndexID());
-        }
-        debugBuffer.append("]");
+        appendDebugIndexesInformation(debugBuffer, filter.getAttributeType(), rule.createIndexers(indexingOptions));
         appendDebugUnindexedInformation(debugBuffer, indexNameOut);
       }
 
-      if (monitor.isFilterUseEnabled())
-      {
-        if (results.isDefined())
-        {
-          monitor.updateStats(filter, results.size());
-        }
-        else
-        {
-          monitor.updateStats(filter, debugMessage.toMessage());
-        }
-      }
+      updateStats(monitor, filter, results, debugMessage);
       return results;
     }
     catch (DecodeException e)
