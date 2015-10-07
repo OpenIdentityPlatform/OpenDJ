@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -76,4 +77,30 @@ interface Tree
    * @return name for this tree.
    */
   TreeName getName();
+
+  /**
+   * Returns a printable, semantically meaningful if possible, representation of a Tree key.
+   *
+   * @param key a key as used by the Tree
+   * @return a printable, semantically meaningful if possible, representation of a Tree key.
+   */
+  String keyToString(ByteString key);
+
+  /**
+   * Returns a printable, semantically meaningful if possible, representation of a Tree key.
+   *
+   * @param value a key as used by the Tree
+   * @return a printable, semantically meaningful if possible, representation of a Tree key.
+   */
+  String valueToString(ByteString value);
+
+  /**
+   * Returns a key given a string representation of a value.
+   * Since the key is typically used for cursoring, out of many possible keys only one is needed,
+   * potentially the lowest key.
+   *
+   * @param key the specified key as a string
+   * @return a key given a string representation of a value
+   */
+  ByteString generateKey(String key);
 }

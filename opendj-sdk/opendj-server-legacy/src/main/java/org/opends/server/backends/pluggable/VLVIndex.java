@@ -848,6 +848,18 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     builder.append(separator);
   }
 
+  @Override
+  public String keyToString(ByteString key)
+  {
+    return String.valueOf(decodeEntryIDFromVLVKey(key));
+  }
+
+  @Override
+  public String valueToString(ByteString value)
+  {
+    return "N/A";
+  }
+
   void closeAndDelete(WriteableTransaction txn)
   {
     close();

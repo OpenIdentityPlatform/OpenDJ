@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
@@ -87,4 +88,23 @@ abstract class AbstractTree implements Tree, Comparable<Tree>
   {
     return name.compareTo(o.getName());
   }
+
+  @Override
+  public String keyToString(ByteString key)
+  {
+    return key.toString();
+  }
+
+  @Override
+  public String valueToString(ByteString value)
+  {
+    return value.toString();
+  }
+
+  @Override
+  public ByteString generateKey(String key)
+  {
+    return ByteString.valueOf(key.getBytes());
+  }
 }
+

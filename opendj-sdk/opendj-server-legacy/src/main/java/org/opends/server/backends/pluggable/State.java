@@ -27,6 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
+import static org.forgerock.util.Utils.joinAsString;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,7 +51,7 @@ class State extends AbstractTree
 {
   /**
    * Use COMPACTED serialization for new indexes.
-   * @see {@link EntryIDSet.EntryIDSetCompactCodec}
+   * @see {@link EntryIDSet.EntryIDSetCodecV2}
    */
   private static final Collection<IndexFlag> DEFAULT_FLAGS = Collections.unmodifiableCollection(Arrays
       .asList(IndexFlag.COMPACTED));
@@ -180,6 +181,12 @@ class State extends AbstractTree
         return encodeFlags(currentFlags);
       }
     });
+  }
+
+  @Override
+  public String valueToString(ByteString value)
+  {
+    return joinAsString(" ", decodeFlagsOrGetDefault(value));
   }
 
   /**

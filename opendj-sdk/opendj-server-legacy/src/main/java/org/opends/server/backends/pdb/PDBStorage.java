@@ -697,7 +697,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private Exchange getNewExchange(final TreeName treeName, final boolean create) throws PersistitException
   {
-    return db.getExchange(volume, mangleTreeName(treeName), create);
+    return db.getExchange(volume, treeName.toString(), create);
   }
 
   private StorageImpl newStorageImpl() {
@@ -892,23 +892,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   {
     open0(buildImportConfiguration());
     return new ImporterImpl();
-  }
-
-  private static String mangleTreeName(final TreeName treeName)
-  {
-    String name = treeName.toString();
-
-    StringBuilder mangled = new StringBuilder(name.length());
-    for (int idx = 0; idx < name.length(); idx++)
-    {
-      char ch = name.charAt(idx);
-      if (ch == '=' || ch == ',')
-      {
-        ch = '_';
-      }
-      mangled.append(ch);
-    }
-    return mangled.toString();
   }
 
   @Override
@@ -1129,7 +1112,10 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       final Set<TreeName> results = new HashSet<>(treeNames.length);
       for (String treeName : treeNames)
       {
-        results.add(TreeName.valueOf(treeName));
+        if (!treeName.equals("_classIndex"))
+        {
+          results.add(TreeName.valueOf(treeName));
+        }
       }
       return results;
     }

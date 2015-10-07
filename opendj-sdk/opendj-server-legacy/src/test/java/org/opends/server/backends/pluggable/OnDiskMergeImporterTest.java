@@ -127,7 +127,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   @SuppressWarnings(value = { "unchecked", "resource" })
   public void testAddLongCollector()
   {
-    final ID2Count id2count = new ID2Count(TreeName.valueOf("dummy/dummy"));
+    final ID2Count id2count = new ID2Count(TreeName.valueOf("/dummy/dummy"));
     final MeteredCursor<String, ByteString> source = cursorOf(
         Pair.of("key1", id2count.toValue(10)),
         Pair.of("key1", id2count.toValue(20)),

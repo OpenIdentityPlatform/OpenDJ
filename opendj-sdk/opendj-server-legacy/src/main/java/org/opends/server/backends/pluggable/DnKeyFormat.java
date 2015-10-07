@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.opendj.ldap.DN.normalizedToASCII;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -58,7 +60,7 @@ public class DnKeyFormat
     // and find the first unescaped NORMALIZED_RDN_SEPARATOR
     for (int i = dnKey.length() - 1; i >= 0; i--)
     {
-      if (dnKey.byteAt(i) == DN.NORMALIZED_RDN_SEPARATOR && i - 1 >= 0 && dnKey.byteAt(i - 1) != DN.NORMALIZED_ESC_BYTE)
+      if (positionIsRDNSeparator(dnKey, i))
       {
         return i;
       }
@@ -84,6 +86,22 @@ public class DnKeyFormat
         dn.getRDN(i).toNormalizedByteString(builder);
     }
     return builder.toByteString();
+  }
+
+  /**
+   * Returns a best effort conversion from key to a human readable DN.
+   * @param key the index key
+   * @return a best effort conversion from key to a human readable DN.
+   */
+  static String keyToDNString(ByteString key)
+  {
+    return normalizedToASCII(key);
+  }
+
+  private static boolean positionIsRDNSeparator(ByteSequence key, int index)
+  {
+    return index > 0
+        && key.byteAt(index) == DN.NORMALIZED_RDN_SEPARATOR && key.byteAt(index - 1) != DN.NORMALIZED_ESC_BYTE;
   }
 
   static ByteStringBuilder beforeKey(final ByteSequence key)

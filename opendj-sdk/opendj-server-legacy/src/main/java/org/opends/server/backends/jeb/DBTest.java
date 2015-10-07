@@ -85,7 +85,7 @@ import com.sleepycat.je.OperationStatus;
 
 /**
  * This program provides a utility that may be used to debug a JE backend. This
- * tool provides the ability list various containers in the backend as well as
+ * tool provides the ability to list various containers in the backend as well as
  * dump the contents of database containers. This will be
  * a process that is intended to run separate from Directory Server and not
  * internally within the server process (e.g., via the tasks interface).
@@ -248,11 +248,11 @@ public class DBTest
 
 
       sub = new SubCommand(parser, "list-entry-containers",
-                    INFO_DESCRIPTION_DBTEST_SUBCMD_LIST_ENTRY_CONTAINERS.get());
+                    INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_ENTRY_CONTAINERS.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                             INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BACKEND_ID.get());
       sub.addArgument(backendID);
 
 
@@ -261,13 +261,13 @@ public class DBTest
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                             INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BACKEND_ID.get());
       sub.addArgument(backendID);
       baseDN =
           new StringArgument("basedn", 'b', "baseDN", false,
                              false, true, INFO_BASEDN_PLACEHOLDER.get(), null,
                              null,
-                             INFO_DESCRIPTION_DBTEST_BASE_DN.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BASE_DN.get());
       sub.addArgument(baseDN);
 
 
@@ -276,71 +276,71 @@ public class DBTest
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                             INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BACKEND_ID.get());
       sub.addArgument(backendID);
       baseDN =
           new StringArgument("basedn", 'b', "baseDN", true,
                              false, true, INFO_BASEDN_PLACEHOLDER.get(), null,
                              null,
-                             INFO_DESCRIPTION_DBTEST_BASE_DN.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BASE_DN.get());
       sub.addArgument(baseDN);
       databaseName =
           new StringArgument("databasename", 'd', "databaseName", true,
                              false, true, INFO_DATABASE_NAME_PLACEHOLDER.get(),
                              null, null,
-                             INFO_DESCRIPTION_DBTEST_DATABASE_NAME.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_INDEX_NAME.get());
       sub.addArgument(databaseName);
       skipDecode =
           new BooleanArgument("skipdecode", 'p', "skipDecode",
-                              INFO_DESCRIPTION_DBTEST_SKIP_DECODE.get());
+                              INFO_DESCRIPTION_BACKEND_DEBUG_SKIP_DECODE.get());
       sub.addArgument(skipDecode);
       statsOnly =
           new BooleanArgument("statsonly", 'q', "statsOnly",
-                              INFO_DESCRIPTION_DBTEST_STATS_ONLY.get());
+                              INFO_DESCRIPTION_BACKEND_DEBUG_STATS_ONLY.get());
       sub.addArgument(statsOnly);
       maxKeyValue = new StringArgument("maxkeyvalue", 'K', "maxKeyValue", false,
                                        false, true,
                                        INFO_MAX_KEY_VALUE_PLACEHOLDER.get(),
                                        null, null,
-                                   INFO_DESCRIPTION_DBTEST_MAX_KEY_VALUE.get());
+                                   INFO_DESCRIPTION_BACKEND_DEBUG_MAX_KEY_VALUE.get());
       sub.addArgument(maxKeyValue);
       minKeyValue = new StringArgument("minkeyvalue", 'k', "minKeyValue", false,
                                        false, true,
                                        INFO_MIN_KEY_VALUE_PLACEHOLDER.get(),
                                        null,
                                        null,
-                                   INFO_DESCRIPTION_DBTEST_MIN_KEY_VALUE.get());
+                                   INFO_DESCRIPTION_BACKEND_DEBUG_MIN_KEY_VALUE.get());
       sub.addArgument(minKeyValue);
       maxDataSize = new IntegerArgument("maxdatasize", 'S', "maxDataSize",
                                         false, false, true,
                                         INFO_MAX_DATA_SIZE_PLACEHOLDER.get(),
                                         -1,
                                         null,
-                                   INFO_DESCRIPTION_DBTEST_MAX_DATA_SIZE.get());
+                                   INFO_DESCRIPTION_BACKEND_DEBUG_MAX_DATA_SIZE.get());
       sub.addArgument(maxDataSize);
       minDataSize = new IntegerArgument("mindatasize", 's', "minDataSize",
                                         false, false, true,
                                         INFO_MIN_DATA_SIZE_PLACEHOLDER.get(),
                                         -1,
                                         null,
-                                   INFO_DESCRIPTION_DBTEST_MIN_DATA_SIZE.get());
+                                   INFO_DESCRIPTION_BACKEND_DEBUG_MIN_DATA_SIZE.get());
       sub.addArgument(minDataSize);
 
 
       sub = new SubCommand(parser, "list-index-status",
-                        INFO_DESCRIPTION_DBTEST_SUBCMD_LIST_INDEX_STATUS.get());
+                        INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_INDEX_STATUS.get());
       sub.setDocDescriptionSupplement(
               SUPPLEMENT_DESCRIPTION_DBTEST_SUBCMD_LIST_INDEX_STATUS.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                             INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BACKEND_ID.get());
       sub.addArgument(backendID);
       baseDN =
           new StringArgument("basedn", 'b', "baseDN", true,
                              true, true, INFO_BASEDN_PLACEHOLDER.get(), null,
                              null,
-                             INFO_DESCRIPTION_DBTEST_BASE_DN.get());
+                             INFO_DESCRIPTION_BACKEND_DEBUG_BASE_DN.get());
       sub.addArgument(baseDN);
 
       subCommandsInitialized = true;
@@ -489,7 +489,7 @@ public class DBTest
     // Make sure that we have a sub-command.
     if (parser.getSubCommand() == null)
     {
-      parser.displayMessageAndUsageReference(err, ERR_DBTEST_MISSING_SUBCOMMAND.get());
+      parser.displayMessageAndUsageReference(err, ERR_BACKEND_DEBUG_MISSING_SUBCOMMAND.get());
       return 1;
     }
 
@@ -541,7 +541,7 @@ public class DBTest
     // Create a table of their properties.
     TableBuilder builder = new TableBuilder();
 
-    builder.appendHeading(INFO_LABEL_DBTEST_BACKEND_ID.get());
+    builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_BACKEND_ID.get());
     builder.appendHeading(INFO_LABEL_DBTEST_DB_DIRECTORY.get());
 
     for(Map.Entry<LocalDBBackendCfg, BackendImpl> backend :
@@ -575,13 +575,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -603,9 +603,9 @@ public class DBTest
       TableBuilder builder = new TableBuilder();
       int count = 0;
 
-      builder.appendHeading(INFO_LABEL_DBTEST_BASE_DN.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_BASE_DN.get());
       builder.appendHeading(INFO_LABEL_DBTEST_JE_DATABASE_PREFIX.get());
-      builder.appendHeading(INFO_LABEL_DBTEST_ENTRY_COUNT.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_ENTRY_COUNT.get());
 
       for(EntryContainer ec : rc.getEntryContainers())
       {
@@ -651,7 +651,7 @@ public class DBTest
       }
       catch(DirectoryException de)
       {
-        printWrappedText(err, ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(), getExceptionMessage(de)));
+        printWrappedText(err, ERR_BACKEND_DEBUG_DECODE_BASE_DN.get(baseDN.getValue(), getExceptionMessage(de)));
         return 1;
       }
     }
@@ -663,13 +663,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -695,14 +695,14 @@ public class DBTest
       builder.appendHeading(INFO_LABEL_DBTEST_DATABASE_NAME.get());
       builder.appendHeading(INFO_LABEL_DBTEST_DATABASE_TYPE.get());
       builder.appendHeading(INFO_LABEL_DBTEST_JE_DATABASE_NAME.get());
-      builder.appendHeading(INFO_LABEL_DBTEST_ENTRY_COUNT.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_ENTRY_COUNT.get());
 
       if(base != null)
       {
         EntryContainer ec = rc.getEntryContainer(base);
         if(ec == null)
         {
-          printWrappedText(err, ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
+          printWrappedText(err, ERR_BACKEND_DEBUG_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
           return 1;
         }
 
@@ -773,12 +773,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (!LockFileManager.releaseLock(lockFile, failureReason))
       {
-        printWrappedText(err, WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printWrappedText(err, WARN_BACKEND_DEBUG_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
       }
     }
     catch (Exception e)
     {
-      printWrappedText(err, WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printWrappedText(err, WARN_BACKEND_DEBUG_CANNOT_UNLOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e)));
     }
   }
 
@@ -804,7 +805,7 @@ public class DBTest
         return null;
       }
     }
-    printWrappedText(err, ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID));
+    printWrappedText(err, ERR_BACKEND_DEBUG_NO_BACKENDS_FOR_ID.get(backendID));
     return null;
   }
 
@@ -825,7 +826,7 @@ public class DBTest
       }
       catch(DirectoryException de)
       {
-        printWrappedText(err, ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(), getExceptionMessage(de)));
+        printWrappedText(err, ERR_BACKEND_DEBUG_DECODE_BASE_DN.get(baseDN.getValue(), getExceptionMessage(de)));
         return 1;
       }
     }
@@ -837,13 +838,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -866,11 +867,11 @@ public class DBTest
       TableBuilder builder = new TableBuilder();
       int count = 0;
 
-      builder.appendHeading(INFO_LABEL_DBTEST_INDEX_NAME.get());
-      builder.appendHeading(INFO_LABEL_DBTEST_INDEX_TYPE.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_NAME.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_TYPE.get());
       builder.appendHeading(INFO_LABEL_DBTEST_JE_DATABASE_NAME.get());
-      builder.appendHeading(INFO_LABEL_DBTEST_INDEX_STATUS.get());
-      builder.appendHeading(INFO_LABEL_DBTEST_JE_RECORD_COUNT.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_STATUS.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
       builder.appendHeading(
           INFO_LABEL_DBTEST_INDEX_UNDEFINED_RECORD_COUNT.get());
       builder.appendHeading(LocalizableMessage.raw("95%"));
@@ -881,7 +882,7 @@ public class DBTest
       EntryContainer ec = rc.getEntryContainer(base);
       if(ec == null)
       {
-        printWrappedText(err, ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
+        printWrappedText(err, ERR_BACKEND_DEBUG_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
         return 1;
       }
 
@@ -1023,7 +1024,7 @@ public class DBTest
     }
     catch(DirectoryException de)
     {
-      printWrappedText(err, ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(), getExceptionMessage(de)));
+      printWrappedText(err, ERR_BACKEND_DEBUG_DECODE_BASE_DN.get(baseDN.getValue(), getExceptionMessage(de)));
       return 1;
     }
 
@@ -1034,13 +1035,13 @@ public class DBTest
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
+        printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
         return 1;
       }
     }
     catch (Exception e)
     {
-      printWrappedText(err, ERR_DBTEST_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+      printWrappedText(err, ERR_BACKEND_DEBUG_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
       return 1;
     }
 
@@ -1061,7 +1062,7 @@ public class DBTest
       EntryContainer ec = rc.getEntryContainer(base);
       if(ec == null)
       {
-        printWrappedText(err, ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
+        printWrappedText(err, ERR_BACKEND_DEBUG_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
         return 1;
       }
 

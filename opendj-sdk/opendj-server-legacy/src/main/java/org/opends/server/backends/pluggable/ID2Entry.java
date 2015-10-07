@@ -376,13 +376,13 @@ class ID2Entry extends AbstractTree
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
   public boolean containsEntryID(ReadableTransaction txn, EntryID entryID)
- {
+  {
     checkNotNull(txn, "txn must not be null");
     checkNotNull(entryID, "entryID must not be null");
     try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName())) {
       return cursor.positionToKey(entryID.toByteString());
     }
- }
+  }
 
   private Entry get0(EntryID entryID, ByteString value) throws DirectoryException
   {
@@ -413,5 +413,31 @@ class ID2Entry extends AbstractTree
   void setDataConfig(DataConfig dataConfig)
   {
     this.dataConfig = dataConfig;
+  }
+
+  @Override
+  public String keyToString(ByteString key)
+  {
+    return new EntryID(key).toString();
+  }
+
+  @Override
+  public String valueToString(ByteString value)
+  {
+    try
+    {
+      return "\n" + get0(new EntryID(-1), value).toString();
+    }
+    catch (Exception e)
+    {
+      return e.getMessage();
+    }
+  }
+
+  @Override
+  public ByteString generateKey(String data)
+  {
+    EntryID entryID = new EntryID(Long.parseLong(data));
+    return entryID.toByteString();
   }
 }

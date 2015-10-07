@@ -1006,8 +1006,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
    *                                   that is not related to the server
    *                                   configuration.
    */
-  private final RootContainer getReadOnlyRootContainer()
-      throws ConfigException, InitializationException
+  RootContainer getReadOnlyRootContainer() throws ConfigException, InitializationException
   {
     return newRootContainer(AccessMode.READ_ONLY);
   }

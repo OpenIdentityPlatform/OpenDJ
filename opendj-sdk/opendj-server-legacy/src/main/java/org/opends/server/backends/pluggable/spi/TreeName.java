@@ -25,6 +25,8 @@
  */
 package org.opends.server.backends.pluggable.spi;
 
+import org.forgerock.util.Reject;
+
 /**
  * Represents the name of a tree (key-value store) in a database.
  * A tree name is made of the baseDN it is part of, and the identifier of the index it represents.
@@ -60,8 +62,11 @@ public final class TreeName implements Comparable<TreeName>
    */
   public static TreeName valueOf(String treeName)
   {
-    final String[] split = treeName.split("/");
-    return new TreeName(split[0], split[1]);
+    int lastSlash = treeName.lastIndexOf('/');
+    Reject.ifTrue(lastSlash < 2 || treeName.charAt(0) != '/', "TreeName is not of the form /<name>/<name>");
+    String baseDN = treeName.substring(1, lastSlash);
+    String indexId = treeName.substring(lastSlash + 1);
+    return new TreeName(baseDN, indexId);
   }
 
   /**
