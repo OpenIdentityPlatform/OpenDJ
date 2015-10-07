@@ -29,8 +29,8 @@ import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.backends.pluggable.spi.StorageUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -74,6 +74,7 @@ import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
+import org.opends.server.backends.pluggable.spi.StorageUtils;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
@@ -85,7 +86,6 @@ import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.FilePermission;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
 
@@ -730,7 +730,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public PDBStorage(final PDBBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     this.serverContext = serverContext;
-    backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
+    backendDirectory = getBackendDirectory(cfg);
     config = cfg;
     cfg.addPDBChangeListener(this);
   }
@@ -818,7 +818,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private void open0(final Configuration dbCfg) throws ConfigException
   {
-    setupStorageFiles();
+    setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
     try
     {
       if (db != null)
@@ -844,12 +844,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     {
       throw new StorageRuntimeException(e);
     }
-    diskMonitor.registerMonitoredDirectory(
-        config.getBackendId() + " backend",
-        getDirectory(),
-        config.getDiskLowThreshold(),
-        config.getDiskFullThreshold(),
-        this);
+    registerMonitoredDirectory(config);
   }
 
   @Override
@@ -901,9 +896,9 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private static String mangleTreeName(final TreeName treeName)
   {
-    StringBuilder mangled = new StringBuilder();
     String name = treeName.toString();
 
+    StringBuilder mangled = new StringBuilder(name.length());
     for (int idx = 0; idx < name.length(); idx++)
     {
       char ch = name.charAt(idx);
@@ -966,8 +961,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public File getDirectory()
   {
-    File parentDir = getFileForPath(config.getDBDirectory());
-    return new File(parentDir, config.getBackendId());
+    return getBackendDirectory(config);
+  }
+
+  private static File getBackendDirectory(PDBBackendCfg cfg)
+  {
+    return getDBDirectory(cfg.getDBDirectory(), cfg.getBackendId());
   }
 
   @Override
@@ -1184,7 +1183,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
    * Checks newly created backend has a valid configuration.
    * @param cfg the new configuration
    * @param unacceptableReasons the list of accumulated errors and their messages
-   * @param context TODO
+   * @param context the server context
    * @return true if newly created backend has a valid configuration
    */
   static boolean isConfigurationAcceptable(PDBBackendCfg cfg, List<LocalizableMessage> unacceptableReasons,
@@ -1213,107 +1212,16 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     List<LocalizableMessage> unacceptableReasons)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    File parentDirectory = getFileForPath(cfg.getDBDirectory());
-    File newBackendDirectory = new File(parentDirectory, cfg.getBackendId());
+    File newBackendDirectory = getBackendDirectory(cfg);
 
     checkDBDirExistsOrCanCreate(newBackendDirectory, ccr, true);
-    checkDBDirPermissions(cfg, ccr);
+    checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
     if (!ccr.getMessages().isEmpty())
     {
       unacceptableReasons.addAll(ccr.getMessages());
       return false;
     }
     return true;
-  }
-
-  /**
-   * Checks a directory exists or can actually be created.
-   *
-   * @param backendDir the directory to check for
-   * @param ccr the list of reasons to return upstream or null if called from setupStorage()
-   * @param cleanup true if the directory should be deleted after creation
-   */
-  private static void checkDBDirExistsOrCanCreate(File backendDir, ConfigChangeResult ccr, boolean cleanup)
-  {
-    if (!backendDir.exists())
-    {
-      if(!backendDir.mkdirs())
-      {
-        addErrorMessage(ccr, ERR_CREATE_FAIL.get(backendDir.getPath()));
-      }
-      if (cleanup)
-      {
-        backendDir.delete();
-      }
-    }
-    else if (!backendDir.isDirectory())
-    {
-      addErrorMessage(ccr, ERR_DIRECTORY_INVALID.get(backendDir.getPath()));
-    }
-  }
-
-  /**
-   * Returns false if directory permissions in the configuration are invalid. Otherwise returns the
-   * same value as it was passed in.
-   *
-   * @param cfg a (possibly new) backend configuration
-   * @param ccr the current list of change results
-   * @throws forwards a file exception
-   */
-  private static void checkDBDirPermissions(PDBBackendCfg cfg, ConfigChangeResult ccr)
-  {
-    try
-    {
-      FilePermission backendPermission = decodeDBDirPermissions(cfg);
-      // Make sure the mode will allow the server itself access to the database
-      if(!backendPermission.isOwnerWritable() ||
-          !backendPermission.isOwnerReadable() ||
-          !backendPermission.isOwnerExecutable())
-      {
-        addErrorMessage(ccr, ERR_CONFIG_BACKEND_INSANE_MODE.get(cfg.getDBDirectoryPermissions()));
-      }
-    }
-    catch(ConfigException ce)
-    {
-      addErrorMessage(ccr, ce.getMessageObject());
-    }
-  }
-
-  /**
-   * Sets files permissions on the backend directory.
-   *
-   * @param backendDir the directory to setup
-   * @param curCfg a backend configuration
-   */
-  private void setDBDirPermissions(PDBBackendCfg curCfg, File backendDir) throws ConfigException
-  {
-    FilePermission backendPermission = decodeDBDirPermissions(curCfg);
-
-    // Get the backend database backendDirectory permissions and apply
-    try
-    {
-      if(!FilePermission.setPermissions(backendDir, backendPermission))
-      {
-        logger.warn(WARN_UNABLE_SET_PERMISSIONS, backendPermission, backendDir);
-      }
-    }
-    catch(Exception e)
-    {
-      // Log an warning that the permissions were not set.
-      logger.warn(WARN_SET_PERMISSIONS_FAILED, backendDir, e);
-    }
-  }
-
-  private static FilePermission decodeDBDirPermissions(PDBBackendCfg curCfg) throws ConfigException
-  {
-    try
-    {
-      return FilePermission.decodeUNIXMode(curCfg.getDBDirectoryPermissions());
-    }
-    catch (Exception e)
-    {
-      throw new ConfigException(ERR_CONFIG_BACKEND_MODE_INVALID.get(curCfg.dn()));
-    }
   }
 
   @Override
@@ -1323,8 +1231,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
     try
     {
-      File parentDirectory = getFileForPath(cfg.getDBDirectory());
-      File newBackendDirectory = new File(parentDirectory, cfg.getBackendId());
+      File newBackendDirectory = getBackendDirectory(cfg);
 
       // Create the directory if it doesn't exist.
       if(!cfg.getDBDirectory().equals(config.getDBDirectory()))
@@ -1342,20 +1249,19 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
           || !cfg.getDBDirectory().equals(config.getDBDirectory()))
       {
-        checkDBDirPermissions(cfg, ccr);
+        checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
         if (!ccr.getMessages().isEmpty())
         {
           return ccr;
         }
 
-        setDBDirPermissions(cfg, newBackendDirectory);
+        setDBDirPermissions(newBackendDirectory, cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
+        if (!ccr.getMessages().isEmpty())
+        {
+          return ccr;
+        }
       }
-      diskMonitor.registerMonitoredDirectory(
-        config.getBackendId() + " backend",
-        getDirectory(),
-        cfg.getDiskLowThreshold(),
-        cfg.getDiskFullThreshold(),
-        this);
+      registerMonitoredDirectory(cfg);
       config = cfg;
     }
     catch (Exception e)
@@ -1365,55 +1271,20 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return ccr;
   }
 
-  private static void addErrorMessage(final ConfigChangeResult ccr, LocalizableMessage message)
+  private void registerMonitoredDirectory(PDBBackendCfg cfg)
   {
-    ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-    ccr.addMessage(message);
-  }
-
-  private void setupStorageFiles() throws ConfigException
-  {
-    ConfigChangeResult ccr = new ConfigChangeResult();
-
-    checkDBDirExistsOrCanCreate(backendDirectory, ccr, false);
-    if (!ccr.getMessages().isEmpty())
-    {
-      throw new ConfigException(ccr.getMessages().get(0));
-    }
-    checkDBDirPermissions(config, ccr);
-    if (!ccr.getMessages().isEmpty())
-    {
-      throw new ConfigException(ccr.getMessages().get(0));
-    }
-    setDBDirPermissions(config, backendDirectory);
+    diskMonitor.registerMonitoredDirectory(
+      cfg.getBackendId() + " backend",
+      getDirectory(),
+      cfg.getDiskLowThreshold(),
+      cfg.getDiskFullThreshold(),
+      this);
   }
 
   @Override
   public void removeStorageFiles() throws StorageRuntimeException
   {
-    if (!backendDirectory.exists())
-    {
-      return;
-    }
-
-    if (!backendDirectory.isDirectory())
-    {
-      throw new StorageRuntimeException(ERR_DIRECTORY_INVALID.get(backendDirectory.getPath()).toString());
-    }
-
-    try
-    {
-      File[] files = backendDirectory.listFiles();
-      for (File f : files)
-      {
-        f.delete();
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      throw new StorageRuntimeException(ERR_REMOVE_FAIL.get(e.getMessage()).toString(), e);
-    }
+    StorageUtils.removeStorageFiles(backendDirectory);
   }
 
   @Override
@@ -1424,16 +1295,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   @Override
   public void diskFullThresholdReached(File directory, long thresholdInBytes) {
-    storageStatus = StorageStatus.unusable(
-        WARN_DISK_SPACE_FULL_THRESHOLD_CROSSED.get(directory.getFreeSpace(), directory.getAbsolutePath(),
-        thresholdInBytes, config.getBackendId()));
+    storageStatus = statusWhenDiskSpaceFull(directory, thresholdInBytes, config.getBackendId());
   }
 
   @Override
   public void diskLowThresholdReached(File directory, long thresholdInBytes) {
-    storageStatus = StorageStatus.lockedDown(
-        WARN_DISK_SPACE_LOW_THRESHOLD_CROSSED.get(directory.getFreeSpace(), directory.getAbsolutePath(),
-        thresholdInBytes, config.getBackendId()));
+    storageStatus = statusWhenDiskSpaceLow(directory, thresholdInBytes, config.getBackendId());
   }
 
   @Override
