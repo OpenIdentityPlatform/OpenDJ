@@ -34,8 +34,8 @@
    <question>What is OpenDJ?</question>
    <answer>
     <p>
-     OpenDJ comprises of an open source directory server, client tools, and
-     an LDAP SDK. All modules are 100% Java based and require Java 1.6.
+     OpenDJ includes an open source directory server, client tools, and
+     an LDAP SDK. All modules are 100% Java-based and require Java 7.
     </p>
     <p>
      OpenDJ is a downstream build of the OpenDS project, with a different
@@ -60,10 +60,9 @@
    What hardware and software do I need?</question>
    <answer>
     <p>
-      At minimum, you need Java 6. If you have Java WebStart configured, you
-      can install OpenDJ server starting with a single click in your web
-      browser. For hardware, you can do an evaluation install on a netbook
-      by default using 256 MB free RAM and less than 100 MB free disk space.
+      At minimum, you need Java 7.
+      For hardware, you can do an evaluation install with less than 1 GB free RAM
+      and 300 MB free disk space.
       How much hardware you need for deployment depends on your requirements.
     </p>
    </answer>
@@ -72,9 +71,9 @@
    <question>Is OpenDJ free?</question>
    <answer>
     <p>
-      You can freely download, evaluate, deploy, even build your own version
-      of OpenDJ software. The license is <a
-      href="http://www.opensource.org/licenses/cddl1">CDDL</a>.
+      OpenDJ is an open source project and as such you can freely download, evaluate,
+      modify the source code, even build your own version of OpenDJ software.
+      The license is <a href="http://www.opensource.org/licenses/cddl1">CDDL</a>.
     </p>
    </answer>
   </faq>
@@ -82,12 +81,19 @@
    <question>Which version of OpenDJ should I use?</question>
    <answer>
     <p>
-      Download the latest stable version from the
-      <a href="http://www.forgerock.org/opendj.html">download
-      page</a>. You can also get the latest nightly build there. If you want
-      to roll your own, check out the <a
-      href="https://wikis.forgerock.org/confluence/display/OPENDJ/Guide+to+OpenDJ+Subversion"
-      >Guide to OpenDJ Subversion</a>.
+      For production systems, consider using a ForgeRock enterprise release.
+      Enterprise releases are thoroughly validated builds
+      for ForgeRock customers who run OpenDJ in production deployments,
+      and for those who want to try or test with release builds.
+      Enterprise releases are available at the ForgeRock
+      <a href="https://backstage.forgerock.com">BackStage</a> site.
+    </p>
+
+    <p>
+      To test the very latest updates to OpenDJ code,
+      get a nightly build or build OpenDJ yourself from source code.
+      Nightly builds are available at the
+      <a href="https://forgerock.org/opendj/">OpenDJ community site</a>.
     </p>
    </answer>
   </faq>
@@ -95,12 +101,19 @@
    <question>How can I find out more about OpenDJ?</question>
    <answer>
     <p>
-      Sign up for the <a
-      href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
-      mailing list</a>. <a href="https://sso.forgerock.com/openam/UI/Login">Join
-      the project</a>.
-      Visit the <a href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home"
-      >OpenDJ Wiki documentation</a>. Chat on irc.freenode.net #opendj.
+      Visit the <a href="https://forgerock.org/opendj/">OpenDJ community site</a>
+      for a variety of resources, including links to the forum and mailing list.
+    </p>
+
+    <p>
+      Visit the <a href="https://wikis.forgerock.org/confluence/display/opendj/Home">OpenDJ wiki</a>.
+    </p>
+
+    <p>
+      Find documentation for release builds at the ForgeRock
+      <a href="https://backstage.forgerock.com">BackStage</a> site.
+      Also read the <a href="./docs.html">draft documentation</a>
+      for the very latest updates, especially if you are trying a nightly build.
     </p>
    </answer>
   </faq>
