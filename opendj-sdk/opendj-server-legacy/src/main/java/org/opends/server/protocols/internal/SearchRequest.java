@@ -41,12 +41,10 @@ import org.opends.server.types.SearchFilter;
 /**
  * Search request implementation.
  *
- * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl
+ * @see org.forgerock.opendj.ldap.requests.SearchRequest
  */
 public final class SearchRequest extends AbstractRequestImpl {
-    /**
-     * Use a LinkedHashSet to return the attributes in the same order as requested by the user.
-     */
+    /** Use a LinkedHashSet to return the attributes in the same order as requested by the user. */
     private final Set<String> attributes = new LinkedHashSet<>();
     private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;
     private SearchFilter filter;
@@ -78,7 +76,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * @param attributeDescriptions
      *          the attribute descriptions
      * @return the current object
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#addAttribute(String...)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#addAttribute(String...)
      */
     public SearchRequest addAttribute(final String... attributeDescriptions) {
         for (final String attributeDescription : attributeDescriptions) {
@@ -88,7 +86,7 @@ public final class SearchRequest extends AbstractRequestImpl {
     }
 
     /**
-     * To be added to {@link org.forgerock.opendj.ldap.requests.SearchRequestImpl}?
+     * To be added to {@link org.forgerock.opendj.ldap.requests.SearchRequest}?
      *
      * @param attributeDescriptions
      *          the attribute descriptions
@@ -105,7 +103,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the attributes
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getAttributes()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getAttributes()
      */
     public Set<String> getAttributes() {
         return attributes;
@@ -115,7 +113,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the dereference aliases policy
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getDereferenceAliasesPolicy()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getDereferenceAliasesPolicy()
      */
     public DereferenceAliasesPolicy getDereferenceAliasesPolicy() {
         return dereferenceAliasesPolicy;
@@ -125,7 +123,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the search filter
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getFilter()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getFilter()
      */
     public SearchFilter getFilter() {
         return filter;
@@ -135,7 +133,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the DN
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getName()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getName()
      */
     public DN getName() {
         return name;
@@ -145,7 +143,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the search scope
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getScope()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getScope()
      */
     public SearchScope getScope() {
         return scope;
@@ -155,7 +153,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the size limit
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getSizeLimit()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getSizeLimit()
      */
     public int getSizeLimit() {
         return sizeLimit;
@@ -165,7 +163,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return is single entry search
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#isSingleEntrySearch()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#isSingleEntrySearch()
      */
     public boolean isSingleEntrySearch() {
         return sizeLimit == 1 || SearchScope.BASE_OBJECT.equals(scope);
@@ -175,7 +173,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the time limit
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#getTimeLimit()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#getTimeLimit()
      */
     public int getTimeLimit() {
         return timeLimit;
@@ -185,7 +183,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * To be removed.
      *
      * @return the types only
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#isTypesOnly()
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#isTypesOnly()
      */
     public boolean isTypesOnly() {
         return typesOnly;
@@ -196,7 +194,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param policy the dereference aliases policy
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setDereferenceAliasesPolicy(DereferenceAliasesPolicy)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setDereferenceAliasesPolicy(DereferenceAliasesPolicy)
      */
     public SearchRequest setDereferenceAliasesPolicy(final DereferenceAliasesPolicy policy) {
         Reject.ifNull(policy);
@@ -210,7 +208,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param filter the search filter
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setFilter(org.forgerock.opendj.ldap.Filter)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setFilter(org.forgerock.opendj.ldap.Filter)
      */
     public SearchRequest setFilter(final SearchFilter filter) {
         Reject.ifNull(filter);
@@ -225,7 +223,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * @param filter the search filter
      * @return the current request
      * @throws DirectoryException if problem occurs
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setFilter(String)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setFilter(String)
      */
     public SearchRequest setFilter(final String filter) throws DirectoryException {
         this.filter = SearchFilter.createFilterFromString(filter);
@@ -237,7 +235,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param dn the dn
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setName(org.forgerock.opendj.ldap.DN)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setName(org.forgerock.opendj.ldap.DN)
      */
     public SearchRequest setName(final DN dn) {
         Reject.ifNull(dn);
@@ -252,7 +250,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      * @param dn the dn
      * @return the current request
      * @throws DirectoryException if problem occurs
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setName(String)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setName(String)
      */
     public SearchRequest setName(final String dn) throws DirectoryException {
         Reject.ifNull(dn);
@@ -266,7 +264,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param scope the search scope
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setScope(SearchScope)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setScope(SearchScope)
      */
     public SearchRequest setScope(final SearchScope scope) {
         Reject.ifNull(scope);
@@ -280,7 +278,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param limit the size limit
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setSizeLimit(int)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setSizeLimit(int)
      */
     public SearchRequest setSizeLimit(final int limit) {
         Reject.ifFalse(limit >= 0, "negative size limit");
@@ -294,7 +292,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param limit the time limit
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setTimeLimit(int)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setTimeLimit(int)
      */
     public SearchRequest setTimeLimit(final int limit) {
         Reject.ifFalse(limit >= 0, "negative time limit");
@@ -308,51 +306,47 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param typesOnly the types only
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequestImpl#setTypesOnly(boolean)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setTypesOnly(boolean)
      */
     public SearchRequest setTypesOnly(final boolean typesOnly) {
         this.typesOnly = typesOnly;
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SearchRequest addControl(Control control) {
         super.addControl(control);
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SearchRequest addControl(Collection<Control> controls) {
         super.addControl(controls);
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("SearchRequest(name=");
-        builder.append(getName());
-        builder.append(", scope=");
-        builder.append(getScope());
-        builder.append(", dereferenceAliasesPolicy=");
-        builder.append(getDereferenceAliasesPolicy());
-        builder.append(", sizeLimit=");
-        builder.append(getSizeLimit());
-        builder.append(", timeLimit=");
-        builder.append(getTimeLimit());
-        builder.append(", typesOnly=");
-        builder.append(isTypesOnly());
-        builder.append(", filter=");
-        builder.append(getFilter());
-        builder.append(", attributes=");
-        builder.append(getAttributes());
-        builder.append(", controls=");
-        builder.append(getControls());
-        builder.append(")");
-        return builder.toString();
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName());
+        sb.append("(name=").append(getName());
+        sb.append(", scope=").append(getScope());
+        sb.append(", filter=").append(getFilter());
+        sb.append(", dereferenceAliasesPolicy=").append(getDereferenceAliasesPolicy());
+        if (getSizeLimit()!=0) {
+          sb.append(", sizeLimit=").append(getSizeLimit());
+        }
+        if (getTimeLimit()!=0) {
+          sb.append(", timeLimit=").append(getTimeLimit());
+        }
+        sb.append(", typesOnly=").append(isTypesOnly());
+        if (!getAttributes().isEmpty()) {
+          sb.append(", attributes=").append(getAttributes());
+        }
+        if (!getControls().isEmpty()) {
+          sb.append(", controls=").append(getControls());
+        }
+        sb.append(")");
+        return sb.toString();
     }
-
 }
