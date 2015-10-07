@@ -25,32 +25,49 @@
  */
 package org.opends.server.tools.upgrade;
 
+import static javax.security.auth.callback.ConfirmationCallback.NO;
+import static javax.security.auth.callback.ConfirmationCallback.YES;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.upgrade.FileManager.copy;
+import static org.opends.server.tools.upgrade.Installation.CURRENT_CONFIG_FILE_NAME;
+import static org.opends.server.tools.upgrade.UpgradeUtils.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldif.EntryReader;
+import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
+import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
-
-import static javax.security.auth.callback.ConfirmationCallback.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.upgrade.FileManager.*;
-import static org.opends.server.tools.upgrade.Installation.*;
-import static org.opends.server.tools.upgrade.UpgradeUtils.*;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
 
 /**
  * Factory methods for create new upgrade tasks.
@@ -638,7 +655,7 @@ public final class UpgradeTasks
          * the post upgrade tasks succeed and a message is printed in the
          * upgrade log file.
          */
-        final List<String> backends = UpgradeUtils.getLocalBackendsFromConfig();
+        final List<String> backends = UpgradeUtils.getIndexedBackendsFromConfig();
         if (!backends.isEmpty())
         {
           for (final String be : backends)
@@ -797,6 +814,201 @@ public final class UpgradeTasks
         }
       }
     };
+  }
+
+  /**
+   * Creates an upgrade task which is responsible for preparing local-db backend JE databases for a full rebuild once
+   * they have been converted to pluggable JE backends.
+   *
+   * @return An upgrade task which is responsible for preparing local-db backend JE databases.
+   */
+  public static UpgradeTask migrateLocalDBBackendsToJEBackends() {
+    return new AbstractUpgradeTask() {
+      /** Properties of JE backends to be migrated. */
+      class Backend {
+        final String id;
+        final boolean isEnabled;
+        final Set<DN> baseDNs;
+        final File envDir;
+        final Map<String, String> renamedDbs = new HashMap<>();
+
+        private Backend(Entry config) {
+          id = config.parseAttribute("ds-cfg-backend-id").asString();
+          isEnabled = config.parseAttribute("ds-cfg-enabled").asBoolean(false);
+          baseDNs = config.parseAttribute("ds-cfg-base-dn").asSetOfDN();
+          String dbDirectory = config.parseAttribute("ds-cfg-db-directory").asString();
+          File backendParentDirectory = new File(dbDirectory);
+          if (!backendParentDirectory.isAbsolute()) {
+            backendParentDirectory = new File(getInstancePath(), dbDirectory);
+          }
+          envDir = new File(backendParentDirectory, id);
+          for (String db : Arrays.asList("compressed_attributes", "compressed_object_classes")) {
+            renamedDbs.put(db, new TreeName("compressed_schema", db).toString());
+          }
+          for (DN baseDN : baseDNs) {
+            renamedDbs.put(oldName(baseDN), newName(baseDN));
+          }
+        }
+      }
+
+      private final List<Backend> backends = new LinkedList<>();
+
+      /**
+       * Finds all the existing JE backends and determines if they can be migrated or not. It will not be possible to
+       * migrate a JE backend if the id2entry database name cannot easily be determined, which may happen because
+       * matching rules have changed significantly in 3.0.0.
+       */
+      @Override
+      public void prepare(final UpgradeContext context) throws ClientException {
+        // Requires answer from the user.
+        if (context.confirmYN(INFO_UPGRADE_TASK_MIGRATE_JE_DESCRIPTION.get(), NO) != YES) {
+          throw new ClientException(ReturnCode.ERROR_USER_CANCELLED,
+                                    INFO_UPGRADE_TASK_MIGRATE_JE_CANCELLED.get());
+        }
+
+        final SearchRequest sr = Requests.newSearchRequest("", SearchScope.WHOLE_SUBTREE,
+                                                           "(objectclass=ds-cfg-local-db-backend)");
+        try (final EntryReader entryReader = searchConfigFile(sr)) {
+          // Abort the upgrade if there are JE backends but no JE library.
+          if (entryReader.hasNext() && !isJeLibraryAvailable()) {
+            throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, INFO_UPGRADE_TASK_MIGRATE_JE_NO_JE_LIB.get());
+          }
+          while (entryReader.hasNext()) {
+            Backend backend = new Backend(entryReader.readEntry());
+            if (backend.isEnabled) {
+              abortIfBackendCannotBeMigrated(backend);
+            }
+            backends.add(backend);
+          }
+        } catch (IOException e) {
+          throw new ClientException(ReturnCode.APPLICATION_ERROR,
+                                    INFO_UPGRADE_TASK_MIGRATE_JE_CONFIG_READ_FAIL.get(), e);
+        }
+      }
+
+      private void abortIfBackendCannotBeMigrated(final Backend backend) throws ClientException {
+        Set<String> existingDatabases = JEHelper.listDatabases(backend.envDir);
+        for (DN baseDN : backend.baseDNs) {
+          final String oldName = oldName(baseDN);
+          if (!existingDatabases.contains(oldName)) {
+            throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION,
+                                      INFO_UPGRADE_TASK_MIGRATE_JE_UGLY_DN.get(backend.id, baseDN));
+          }
+        }
+      }
+
+      /**
+       * Renames the compressed schema indexes and id2entry in a 2.x environment to
+       * the naming scheme used in 3.0.0. Before 3.0.0 JE databases were named as follows:
+       *
+       * 1) normalize the base DN
+       * 2) replace all non-alphanumeric characters with '_'
+       * 3) append '_'
+       * 4) append the index name.
+       *
+       * For example, id2entry in the base DN dc=white space,dc=com would be named
+       * dc_white_space_dc_com_id2entry. In 3.0.0 JE databases are named as follows:
+       *
+       * 1) normalize the base DN and URL encode it (' '  are converted to %20)
+       * 2) format as '/' + URL encoded base DN + '/' + index name.
+       *
+       * The matching rules in 3.0.0 are not compatible with previous versions, so we need
+       * to do a best effort attempt to figure out the old database name from a given base DN.
+       */
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException {
+        if (!isJeLibraryAvailable()) {
+          return;
+        }
+
+        for (Backend backend : backends) {
+          if (backend.isEnabled) {
+            ProgressNotificationCallback pnc = new ProgressNotificationCallback(
+                    0, INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_1.get(backend.id), 0);
+            context.notifyProgress(pnc);
+            try {
+              JEHelper.migrateDatabases(backend.envDir, backend.renamedDbs);
+              context.notifyProgress(pnc.setProgress(100));
+            } catch (ClientException e) {
+              manageTaskException(context, e.getMessageObject(), pnc);
+            }
+          } else {
+            // Skip backends which have been disabled.
+            final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
+                    0, INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_5.get(backend.id), 0);
+            context.notifyProgress(pnc);
+            context.notifyProgress(pnc.setProgress(100));
+          }
+        }
+      }
+
+      private boolean isJeLibraryAvailable() {
+        try {
+          Class.forName("com.sleepycat.je.Environment");
+          return true;
+        } catch (Exception e) {
+          return false;
+        }
+      }
+
+      private String newName(final DN baseDN) {
+        return new TreeName(baseDN.toNormalizedUrlSafeString(), "id2entry").toString();
+      }
+
+      private String oldName(final DN baseDN) {
+        String s = baseDN.toString();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+          char c = s.charAt(i);
+          builder.append(Character.isLetterOrDigit(c) ? c : '_');
+        }
+        builder.append("_id2entry");
+        return builder.toString();
+      }
+    };
+  }
+
+  /** This inner classes causes JE to be lazily linked and prevents runtime errors if JE is not in the classpath. */
+  static final class JEHelper {
+    private static ClientException clientException(final File backendDirectory, final DatabaseException e) {
+      logger.error(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
+      return new ClientException(ReturnCode.CONSTRAINT_VIOLATION,
+                                 INFO_UPGRADE_TASK_MIGRATE_JE_ENV_UNREADABLE.get(backendDirectory), e);
+    }
+
+    static Set<String> listDatabases(final File backendDirectory) throws ClientException {
+      try (Environment je = new Environment(backendDirectory, null)) {
+        Set<String> databases = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        databases.addAll(je.getDatabaseNames());
+        return databases;
+      } catch (DatabaseException e) {
+        throw clientException(backendDirectory, e);
+      }
+    }
+
+    static void migrateDatabases(final File envDir, final Map<String, String> renamedDbs) throws ClientException {
+      EnvironmentConfig config = new EnvironmentConfig().setTransactional(true);
+      try (Environment je = new Environment(envDir, config)) {
+        final Transaction txn = je.beginTransaction(null, new TransactionConfig());
+        try {
+          for (String dbName : je.getDatabaseNames()) {
+            String newDbName = renamedDbs.get(dbName);
+            if (newDbName != null) {
+              // id2entry or compressed schema should be kept
+              je.renameDatabase(txn, dbName, newDbName);
+            } else {
+              // This index will need rebuilding
+              je.removeDatabase(txn, dbName);
+            }
+          }
+          txn.commit();
+        } finally {
+          txn.abort();
+        }
+      } catch (DatabaseException e) {
+        throw JEHelper.clientException(envDir, e);
+      }
+    }
   }
 
   private static void displayChangeCount(final String fileName,

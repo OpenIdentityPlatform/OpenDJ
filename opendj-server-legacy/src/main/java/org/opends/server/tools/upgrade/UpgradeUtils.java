@@ -371,42 +371,33 @@ final class UpgradeUtils
    *
    * @return A backend list.
    */
-  static List<String> getLocalBackendsFromConfig()
+  static List<String> getIndexedBackendsFromConfig()
   {
-    final Schema schema = getUpgradeSchema();
-
+    final SearchRequest sr = Requests.newSearchRequest("", SearchScope.WHOLE_SUBTREE,
+            "(&(objectclass=ds-cfg-pluggable-backend)(ds-cfg-enabled=true))",
+            "ds-cfg-base-dn");
     final List<String> listBackends = new LinkedList<>();
-    LDIFEntryReader entryReader = null;
-    try
+    try (final EntryReader entryReader = searchConfigFile(sr))
     {
-      entryReader =
-          new LDIFEntryReader(new FileInputStream(new File(configDirectory,
-              CURRENT_CONFIG_FILE_NAME))).setSchema(schema);
-
-      final SearchRequest sr =
-          Requests.newSearchRequest("", SearchScope.WHOLE_SUBTREE,
-              "(&(objectclass=ds-cfg-local-db-backend)(ds-cfg-enabled=true))",
-              "ds-cfg-base-dn");
-
-      final EntryReader resultReader = LDIF.search(entryReader, sr, schema);
-
-      while (resultReader.hasNext())
+      while (entryReader.hasNext())
       {
-        final Entry entry = resultReader.readEntry();
-        listBackends.add(entry.getAttribute("ds-cfg-base-dn")
-            .firstValueAsString());
+        final Entry entry = entryReader.readEntry();
+        listBackends.addAll(entry.parseAttribute("ds-cfg-base-dn").asSetOfString());
       }
     }
     catch (Exception ex)
     {
       logger.error(LocalizableMessage.raw(ex.getMessage()));
     }
-    finally
-    {
-      StaticUtils.close(entryReader);
-    }
-
     return listBackends;
+  }
+
+  static EntryReader searchConfigFile(final SearchRequest sr) throws FileNotFoundException
+  {
+    final Schema schema = getUpgradeSchema();
+    final File configFile = new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
+    final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)).setSchema(schema);
+    return LDIF.search(entryReader, sr, schema);
   }
 
   /**
