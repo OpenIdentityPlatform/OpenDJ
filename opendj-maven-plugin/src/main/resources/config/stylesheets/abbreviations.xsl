@@ -54,8 +54,7 @@
               or $value = 'des' or $value = 'aes' or $value = 'rc4'
               or $value = 'db' or $value = 'snmp' or $value = 'qos'
               or $value = 'ecl' or $value = 'ttl' or $value = 'jpeg'
-              or $value = 'pbkdf2' or $value = 'pkcs5s2'
-              or $value = 'je' or $value = 'pdb'
+              or $value = 'pbkdf2' or $value = 'pkcs5s2' or $value = 'pdb'
              "/>
   </xsl:template>
 </xsl:stylesheet>
