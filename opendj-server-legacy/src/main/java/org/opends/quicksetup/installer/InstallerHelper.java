@@ -22,16 +22,17 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
-
 package org.opends.quicksetup.installer;
-
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.Installation.*;
+import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.server.types.ExistingFileBehavior.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -65,7 +66,6 @@ import org.opends.messages.CoreMessages;
 import org.opends.messages.ReplicationMessages;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.UserData;
@@ -95,8 +95,6 @@ import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
@@ -120,6 +118,7 @@ public class InstallerHelper {
 
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
   private static final long ONE_MEGABYTE = 1024L * 1024;
+
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
    * @param args the arguments to be passed to ConfigureDS.configMain.
@@ -148,10 +147,7 @@ public class InstallerHelper {
   public int invokeImportLDIF(final Application application, String[] args) throws IOException, InterruptedException
   {
     final File installPath = new File(application.getInstallationPath());
-    final File binPath = new File(installPath, isWindows() ? Installation.WINDOWS_BINARIES_PATH_RELATIVE
-                                                           : Installation.UNIX_BINARIES_PATH_RELATIVE);
-    final File importLDIFPath = new File(binPath, isWindows() ? Installation.WINDOWS_IMPORT_LDIF
-                                                              : Installation.UNIX_IMPORT_LDIF);
+    final File importLDIFPath = getImportPath(installPath);
 
     final ArrayList<String> argList = new ArrayList<>();
     argList.add(Utils.getScriptPath(importLDIFPath.getAbsolutePath()));
@@ -203,6 +199,21 @@ public class InstallerHelper {
         closeProcessStream(process.getOutputStream(), "output");
       }
     }
+  }
+
+  private File getImportPath(final File installPath)
+  {
+    if (isWindows())
+    {
+      return buildImportPath(installPath, WINDOWS_BINARIES_PATH_RELATIVE, WINDOWS_IMPORT_LDIF);
+    }
+    return buildImportPath(installPath, UNIX_BINARIES_PATH_RELATIVE, UNIX_IMPORT_LDIF);
+  }
+
+  private File buildImportPath(final File installPath, String binDir, String importLdif)
+  {
+    final File binPath = new File(installPath, binDir);
+    return new File(binPath, importLdif);
   }
 
   private void closeProcessStream(final Closeable stream, final String streamName)
@@ -287,18 +298,10 @@ public class InstallerHelper {
           failedMsg, ioe);
     }
 
-    try
-    {
-      LDIFExportConfig exportConfig = new LDIFExportConfig(
-          ldifFile.getAbsolutePath(), ExistingFileBehavior.OVERWRITE);
-
-      LDIFWriter writer = new LDIFWriter(exportConfig);
-
+    LDIFExportConfig exportConfig = new LDIFExportConfig(ldifFile.getAbsolutePath(), OVERWRITE);
+    try (LDIFWriter writer = new LDIFWriter(exportConfig)) {
       DN dn = DN.valueOf(baseDn);
-      Entry entry = StaticUtils.createEntry(dn);
-
-      writer.writeEntry(entry);
-      writer.close();
+      writer.writeEntry(StaticUtils.createEntry(dn));
     } catch (DirectoryException | LDIFException | IOException de) {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR,
@@ -611,7 +614,7 @@ public class InstallerHelper {
         {
           int domainId = getReplicationId(usedServerIds);
           usedServerIds.add(domainId);
-          domainName = getDomainName(domainNames, domainId, dn);
+          domainName = getDomainName(domainNames, dn);
           domain = sync.createReplicationDomain(
               ReplicationDomainCfgDefn.getInstance(), domainName,
               new ArrayList<PropertyException>());
@@ -857,12 +860,10 @@ public class InstallerHelper {
   /**
    * Returns the name to be used for a new replication domain.
    * @param existingDomains the existing domains names.
-   * @param newDomainId the new domain replication id.
    * @param baseDN the base DN of the domain.
    * @return the name to be used for a new replication domain.
    */
-  public static String getDomainName(String[] existingDomains, int newDomainId,
-      String baseDN)
+  public static String getDomainName(String[] existingDomains, String baseDN)
   {
     String domainName = baseDN;
     boolean nameExists = true;
@@ -961,7 +962,7 @@ public class InstallerHelper {
       otherProperties.put("default.java-home", javaHome);
     }
 
-    writeSetOpenDSJavaHome(installPath, javaHome, args, otherProperties);
+    writeSetOpenDSJavaHome(installPath, args, otherProperties);
   }
 
   private void putBooleanPropertyFrom(
@@ -1068,19 +1069,13 @@ public class InstallerHelper {
 
   private Properties getJavaPropertiesFileContents(String propertiesFile) throws IOException
   {
-    FileInputStream fs = null;
     Properties fileProperties = new Properties();
-    try
+    try (FileInputStream fs = new FileInputStream(propertiesFile))
     {
-      fs = new FileInputStream(propertiesFile);
       fileProperties.load(fs);
     }
     catch (Throwable t)
     { /* do nothing */
-    }
-    finally
-    {
-      StaticUtils.close(fs);
     }
     return fileProperties;
   }
@@ -1088,8 +1083,8 @@ public class InstallerHelper {
   private String getPropertiesFileName(String installPath)
   {
     String configDir = Utils.getPath(
-        Utils.getInstancePathFromInstallPath(installPath), Installation.CONFIG_PATH_RELATIVE);
-    return Utils.getPath(configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+        Utils.getInstancePathFromInstallPath(installPath), CONFIG_PATH_RELATIVE);
+    return Utils.getPath(configDir, DEFAULT_JAVA_PROPERTIES_FILE);
   }
 
   /**
@@ -1099,8 +1094,6 @@ public class InstallerHelper {
    *
    * @param installPath
    *          the install path of the server.
-   * @param javaHome
-   *          the java home to be used.
    * @param arguments
    *          a Map containing as key the name of the script and as value, the
    *          java arguments to be set for the script.
@@ -1109,43 +1102,43 @@ public class InstallerHelper {
    * @throws IOException
    *           if an error occurred writing the file.
    */
-  private void writeSetOpenDSJavaHome(String installPath, String javaHome, Map<String, JavaArguments> arguments,
+  private void writeSetOpenDSJavaHome(String installPath, Map<String, JavaArguments> arguments,
       Map<String, String> otherProperties) throws IOException
   {
     String propertiesFile = getPropertiesFileName(installPath);
     List<String> commentLines = getJavaPropertiesFileComments(propertiesFile);
-    BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile, false));
-
-    for (String line: commentLines)
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile, false)))
     {
-      writer.write(line);
-      writer.newLine();
-    }
+      for (String line: commentLines)
+      {
+        writer.write(line);
+        writer.newLine();
+      }
 
-    for (String key : otherProperties.keySet())
-    {
-      writer.write(key + "=" + otherProperties.get(key));
-      writer.newLine();
-    }
+      for (String key : otherProperties.keySet())
+      {
+        writer.write(key + "=" + otherProperties.get(key));
+        writer.newLine();
+      }
 
-    for (String scriptName : arguments.keySet())
-    {
-      String argument = arguments.get(scriptName).getStringArguments();
-      writer.newLine();
-      writer.write(getJavaArgPropertyForScript(scriptName) + "=" + argument);
+      for (String scriptName : arguments.keySet())
+      {
+        String argument = arguments.get(scriptName).getStringArguments();
+        writer.newLine();
+        writer.write(getJavaArgPropertyForScript(scriptName) + "=" + argument);
+      }
     }
-    writer.close();
 
     String libDir = Utils.getPath(
-        Utils.getInstancePathFromInstallPath(installPath), Installation.LIBRARIES_PATH_RELATIVE);
+        Utils.getInstancePathFromInstallPath(installPath), LIBRARIES_PATH_RELATIVE);
     // Create directory if it doesn't exist yet
     File fLib = new File(libDir);
     if (!fLib.exists())
     {
       fLib.mkdir();
     }
-    final String destinationFile = Utils.getPath(libDir, isWindows() ? Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS
-                                                                     : Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
+    final String destinationFile = Utils.getPath(libDir, isWindows() ? SET_JAVA_PROPERTIES_FILE_WINDOWS
+                                                                     : SET_JAVA_PROPERTIES_FILE_UNIX);
     // Launch the script
     int returnValue = JavaPropertiesTool.mainCLI(
         "--propertiesFile", propertiesFile, "--destinationFile", destinationFile, "--quiet");

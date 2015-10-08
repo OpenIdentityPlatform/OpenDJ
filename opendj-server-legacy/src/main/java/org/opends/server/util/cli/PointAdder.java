@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
@@ -32,9 +32,7 @@ import org.opends.quicksetup.util.ProgressMessageFormatter;
 
 import com.forgerock.opendj.cli.ConsoleApplication;
 
-/**
- * Class used to add points periodically to the end of the output.
- */
+/** Class used to add points periodically to the end of the output. */
 public class PointAdder implements Runnable
 {
   private final ConsoleApplication app;
@@ -42,13 +40,9 @@ public class PointAdder implements Runnable
   private boolean stopPointAdder;
   private boolean pointAdderStopped;
   private long periodTime = DEFAULT_PERIOD_TIME;
-  private final boolean isError;
   private final ProgressMessageFormatter formatter;
 
-
-  /**
-   * The default period time used to write points in the output.
-   */
+  /** The default period time used to write points in the output. */
   public static final long DEFAULT_PERIOD_TIME = 3000;
 
   /**
@@ -60,8 +54,7 @@ public class PointAdder implements Runnable
    */
   public PointAdder(ConsoleApplication app)
   {
-    this(app, DEFAULT_PERIOD_TIME, false,
-        new PlainTextProgressMessageFormatter());
+    this(app, DEFAULT_PERIOD_TIME, new PlainTextProgressMessageFormatter());
   }
 
   /**
@@ -71,26 +64,17 @@ public class PointAdder implements Runnable
    *          The console application to be used.
    * @param periodTime
    *          The time between printing two points.
-   * @param isError
-   *          Whether the points must be printed in error stream or output
-   *          stream.
    * @param formatter
    *          The text formatter.
    */
-  public PointAdder(ConsoleApplication app,
-      long periodTime, boolean isError,
-      ProgressMessageFormatter formatter)
+  public PointAdder(ConsoleApplication app, long periodTime, ProgressMessageFormatter formatter)
   {
     this.app = app;
     this.periodTime = periodTime;
-    this.isError = isError;
     this.formatter = formatter;
   }
 
-  /**
-   * Starts the PointAdder: points are added at the end of the logs
-   * periodically.
-   */
+  /** Starts the PointAdder: points are added at the end of the logs periodically. */
   public void start()
   {
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
@@ -104,10 +88,7 @@ public class PointAdder implements Runnable
     t.start();
   }
 
-  /**
-   * Stops the PointAdder: points are no longer added at the end of the logs
-   * periodically.
-   */
+  /** Stops the PointAdder: points are no longer added at the end of the logs periodically. */
   public synchronized void stop()
   {
     stopPointAdder = true;
@@ -125,7 +106,7 @@ public class PointAdder implements Runnable
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void run()
   {
     while (!stopPointAdder)

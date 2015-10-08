@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -137,15 +137,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     cliArg = CommonArguments.getCLI();
     addArgument(cliArg);
 
-    String defaultProgName;
-    if (isWindows())
-    {
-      defaultProgName = Installation.WINDOWS_SETUP_FILE_NAME;
-    }
-    else
-    {
-      defaultProgName = Installation.UNIX_SETUP_FILE_NAME;
-    }
+    String defaultProgName = Installation.getSetupFileName();
     progNameArg = new StringArgument(
         "programName".toLowerCase(), 'P', "programName", false,
         false, true, INFO_PROGRAM_NAME_PLACEHOLDER.get(), defaultProgName,

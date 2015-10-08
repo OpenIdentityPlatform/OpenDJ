@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
@@ -31,7 +31,6 @@ import java.io.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.*;
-import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isUnix;
@@ -42,38 +41,24 @@ import static com.forgerock.opendj.util.OperatingSystem.isUnix;
  * interesting events.
  */
 public class FileManager {
-
-  /**
-   * Describes the approach taken to deleting a file or directory.
-   */
+  /** Describes the approach taken to deleting a file or directory. */
   public enum DeletionPolicy {
-
-    /**
-     * Delete the file or directory immediately.
-     */
+    /** Delete the file or directory immediately. */
     DELETE_IMMEDIATELY,
-
-    /**
-     * Mark the file or directory for deletion after the JVM has exited.
-     */
+    /** Mark the file or directory for deletion after the JVM has exited. */
     DELETE_ON_EXIT,
-
     /**
      * First try to delete the file immediately.  If the deletion was
-     * unsuccessful mark the file for deleteion when the JVM has
-     * existed.
+     * unsuccessful mark the file for deletion when the JVM has existed.
      */
     DELETE_ON_EXIT_IF_UNSUCCESSFUL
-
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private Application application;
 
-  /**
-   * Creates a new file manager.
-   */
+  /** Creates a new file manager. */
   public FileManager() {
     // do nothing;
   }
@@ -115,12 +100,10 @@ public class FileManager {
   /**
    * Renames the source file to the target file.  If the target file exists
    * it is first deleted.  The rename and delete operation return values
-   * are checked for success and if unsuccessful, this method throws an
-   * exception.
+   * are checked for success and if unsuccessful, this method throws an exception.
    *
    * @param fileToRename The file to rename.
-   * @param target       The file to which <code>fileToRename</code> will be
-   *                     moved.
+   * @param target       The file to which <code>fileToRename</code> will be moved.
    * @throws ApplicationException If a problem occurs while attempting to rename
    *                     the file.  On the Windows platform, this typically
    *                     indicates that the file is in use by this or another
@@ -146,15 +129,13 @@ public class FileManager {
     }
   }
 
-
   /**
    * Move a file.
    * @param object File to move
    * @param newParent File representing new parent directory
    * @throws ApplicationException if something goes wrong
    */
-  public void move(File object, File newParent)
-          throws ApplicationException
+  public void move(File object, File newParent) throws ApplicationException
   {
     move(object, newParent, null);
   }
@@ -163,8 +144,7 @@ public class FileManager {
    * Move a file.
    * @param object File to move
    * @param newParent File representing new parent directory
-   * @param filter that will be asked whether or not the operation should be
-   *        performed
+   * @param filter that will be asked whether or not the operation should be performed
    * @throws ApplicationException if something goes wrong
    */
   public void move(File object, File newParent, FileFilter filter)
@@ -190,8 +170,7 @@ public class FileManager {
   /**
    * Deletes a single file or directory.
    * @param object File to delete
-   * @param filter that will be asked whether or not the operation should be
-   *        performed
+   * @param filter that will be asked whether or not the operation should be performed
    * @throws ApplicationException if something goes wrong
    */
   public void delete(File object, FileFilter filter)
@@ -319,8 +298,7 @@ public class FileManager {
   public void copyRecursively(File objectFile, File destDir,
                               FileFilter filter, boolean overwrite)
           throws ApplicationException {
-    operateRecursively(new CopyOperation(objectFile, destDir, overwrite),
-            filter);
+    operateRecursively(new CopyOperation(objectFile, destDir, overwrite), filter);
   }
 
  /**
@@ -329,13 +307,13 @@ public class FileManager {
   * @param f1 file to compare
   * @param f2 file to compare
   * @return boolean where true indicates that two files differ
-  * @throws IOException if there is a problem reading the files' conents
+  * @throws IOException if there is a problem reading the files' contents
   */
  public boolean filesDiffer(File f1, File f2) throws IOException {
    boolean differ = false;
-   FileReader fr1 = new FileReader(f1);
-   FileReader fr2 = new FileReader(f2);
-   try {
+    try (FileReader fr1 = new FileReader(f1);
+        FileReader fr2 = new FileReader(f2))
+    {
      boolean done = false;
      while (!differ && !done) {
        int c1 = fr1.read();
@@ -343,9 +321,6 @@ public class FileManager {
        differ = c1 != c2;
        done = c1 == -1 || c2 == -1;
      }
-   } finally {
-     fr1.close();
-     fr2.close();
    }
    return differ;
  }
@@ -388,11 +363,8 @@ public class FileManager {
     }
   }
 
-  /**
-   * A file operation.
-   */
+  /** A file operation. */
   private abstract class FileOperation {
-
     private File objectFile;
 
     /**
@@ -423,14 +395,10 @@ public class FileManager {
      * @throws ApplicationException if there is a problem.
      */
     public abstract void apply() throws ApplicationException;
-
   }
 
-  /**
-   * A copy operation.
-   */
+  /** A copy operation. */
   private class CopyOperation extends FileOperation {
-
     private File destination;
 
     private boolean overwrite;
@@ -447,7 +415,6 @@ public class FileManager {
       this.overwrite = overwrite;
     }
 
-    /** {@inheritDoc} */
     @Override
     public FileOperation copyForChild(File child) {
       return new CopyOperation(child, destination, overwrite);
@@ -462,7 +429,6 @@ public class FileManager {
       return this.destination;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();
@@ -471,14 +437,13 @@ public class FileManager {
           destination.mkdirs();
         }
       } else {
-
         // If overwriting and the destination exists then kill it
         if (destination.exists() && overwrite) {
           deleteRecursively(destination);
         }
 
         if (!destination.exists()) {
-          if (Utils.insureParentsExist(destination)) {
+          if (Utils.ensureParentsExist(destination)) {
             if (application != null && application.isVerbose()) {
               application.notifyListeners(application.getFormattedWithPoints(
                       INFO_PROGRESS_COPYING_FILE.get(
@@ -488,11 +453,9 @@ public class FileManager {
             logger.info(LocalizableMessage.raw("copying file '" +
                     objectFile.getAbsolutePath() + "' to '" +
                     destination.getAbsolutePath() + "'"));
-            FileInputStream fis = null;
-            FileOutputStream fos = null;
-            try {
-              fis = new FileInputStream(objectFile);
-              fos = new FileOutputStream(destination);
+            try (FileInputStream fis = new FileInputStream(objectFile);
+                FileOutputStream fos = new FileOutputStream(destination))
+            {
               byte[] buf = new byte[1024];
               int i;
               while ((i = fis.read(buf)) != -1) {
@@ -509,7 +472,6 @@ public class FileManager {
                 application.notifyListeners(
                         application.getFormattedDoneWithLineBreak());
               }
-
             } catch (Exception e) {
               LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
                       objectFile.getAbsolutePath(),
@@ -517,8 +479,6 @@ public class FileManager {
               throw new ApplicationException(
                       ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                       errMsg, null);
-            } finally {
-              StaticUtils.close(fis, fos);
             }
           } else {
             LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
@@ -542,14 +502,10 @@ public class FileManager {
         }
       }
     }
-
   }
 
-  /**
-   * A delete operation.
-   */
+  /** A delete operation. */
   private class DeleteOperation extends FileOperation {
-
     private DeletionPolicy deletionPolicy;
 
     /**
@@ -564,13 +520,11 @@ public class FileManager {
       this.deletionPolicy = deletionPolicy;
     }
 
-    /** {@inheritDoc} */
     @Override
     public FileOperation copyForChild(File child) {
       return new DeleteOperation(child, deletionPolicy);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void apply() throws ApplicationException {
       File file = getObjectFile();
@@ -638,30 +592,25 @@ public class FileManager {
     }
   }
 
-  /**
-   * A delete operation.
-   */
+  /** A delete operation. */
   private class MoveOperation extends FileOperation {
-
     File destination;
 
     /**
      * Creates a delete operation.
      * @param objectFile to delete
-     * @param newParent Filr where <code>objectFile</code> will be copied.
+     * @param newParent File where <code>objectFile</code> will be copied.
      */
     public MoveOperation(File objectFile, File newParent) {
       super(objectFile);
       this.destination = new File(newParent, objectFile.getName());
     }
 
-    /** {@inheritDoc} */
     @Override
     public FileOperation copyForChild(File child) {
       return new MoveOperation(child, destination);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();
@@ -676,5 +625,4 @@ public class FileManager {
       }
     }
   }
-
 }

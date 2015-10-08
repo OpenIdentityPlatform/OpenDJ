@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.quicksetup;
 
@@ -52,7 +52,6 @@ import org.opends.server.util.SetupUtils;
  */
 public final class Installation
 {
-
   /** Relative path to bootstrap OpenDJ jar file. */
   public static final String OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH = "lib/bootstrap.jar";
   /** Relative path to bootstrap-client OpenDJ jar file. */
@@ -136,10 +135,7 @@ public final class Installation
   /** The Windows import LDIF batch file name. */
   public static final String WINDOWS_IMPORT_LDIF = "import-ldif.bat";
 
-  /**
-   * Name of the file kept in the history directory containing logs of upgrade
-   * and reversions.
-   */
+  /** Name of the file kept in the history directory containing logs of upgrade and reversions. */
   public static final String HISTORY_LOG_FILE_NAME = "log";
   /** The default java properties file. */
   public static final String DEFAULT_JAVA_PROPERTIES_FILE = "java.properties";
@@ -219,11 +215,7 @@ public final class Installation
     }
   }
 
-
-
   private static Installation local;
-
-
 
   /**
    * Obtains the installation by reading the classpath of the running JVM to
@@ -235,7 +227,6 @@ public final class Installation
   {
     if (local == null)
     {
-
       // This allows testing of configuration components when the OpenDJ.jar
       // in the classpath does not necessarily point to the server's
       String installRoot = System.getProperty("org.opends.quicksetup.Root");
@@ -255,8 +246,6 @@ public final class Installation
     return local;
   }
 
-
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private File rootDirectory;
@@ -270,7 +259,6 @@ public final class Installation
   private BuildInformation buildInformation;
   private BuildInformation instanceInformation;
 
-
   /**
    * Creates a new instance from a root directory specified as a string.
    *
@@ -283,8 +271,6 @@ public final class Installation
   {
     this(new File(rootDirectory), new File(instanceRootDirectory));
   }
-
-
 
   /**
    * Creates a new instance from a root directory specified as a File.
@@ -300,8 +286,6 @@ public final class Installation
     setInstanceDirectory(instanceDirectory);
   }
 
-
-
   /**
    * Gets the top level directory of an OpenDJ installation.
    *
@@ -312,8 +296,6 @@ public final class Installation
   {
     return this.rootDirectory;
   }
-
-
 
   /**
    * Gets the top level directory of an OpenDJ instance.
@@ -326,8 +308,6 @@ public final class Installation
     return this.instanceDirectory;
   }
 
-
-
   /**
    * Sets the root directory of this installation.
    *
@@ -336,7 +316,6 @@ public final class Installation
    */
   public void setRootDirectory(File rootDirectory)
   {
-
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
     // before the actual bits have been laid down on the file system.
@@ -358,8 +337,6 @@ public final class Installation
       }
     }
   }
-
-
 
   /**
    * Sets the root directory of this instance.
@@ -391,8 +368,6 @@ public final class Installation
     }
   }
 
-
-
   /**
    * Indicates whether or not this installation appears to be an actual OpenDJ
    * installation.
@@ -415,8 +390,6 @@ public final class Installation
     }
   }
 
-
-
   /**
    * Creates a string explaining why this is not a legitimate OpenDJ
    * installation. Null if this is in fact a valid installation.
@@ -437,8 +410,6 @@ public final class Installation
     }
   }
 
-
-
   /**
    * Gets the Configuration object representing this file. The current
    * configuration is stored in config/config.ldif.
@@ -453,8 +424,6 @@ public final class Installation
     }
     return configuration;
   }
-
-
 
   /**
    * Gets the Configuration object representing this file. The base
@@ -473,8 +442,6 @@ public final class Installation
     return baseConfiguration;
   }
 
-
-
   /**
    * Gets the current status of this installation.
    *
@@ -489,8 +456,6 @@ public final class Installation
     return status;
   }
 
-
-
   /**
    * Returns the path to the libraries.
    *
@@ -500,8 +465,6 @@ public final class Installation
   {
     return new File(getRootDirectory(), LIBRARIES_PATH_RELATIVE);
   }
-
-
 
   /**
    * Returns the path to the resources directory.
@@ -513,8 +476,6 @@ public final class Installation
     return new File(getRootDirectory(), RESOURCES_PATH_RELATIVE);
   }
 
-
-
   /**
    * Returns the path to the classes directory.
    *
@@ -524,8 +485,6 @@ public final class Installation
   {
     return new File(getRootDirectory(), CLASSES_PATH_RELATIVE);
   }
-
-
 
   /**
    * Creates a File object representing config/upgrade/schema.ldif.current which
@@ -538,8 +497,6 @@ public final class Installation
   {
     return new File(getConfigurationUpgradeDirectory(), "schema.ldif.current");
   }
-
-
 
   /**
    * Creates a File object representing config/upgrade/schema.ldif.current which
@@ -555,8 +512,6 @@ public final class Installation
     return new File(getConfigurationUpgradeDirectory(), "schema.ldif." + getInstanceVCSRevision());
   }
 
-
-
   /**
    * Creates a File object representing config/upgrade/schema.ldif.current which
    * the server creates the first time it starts if there are schema
@@ -571,8 +526,6 @@ public final class Installation
     return new File(getConfigurationUpgradeDirectory(), BASE_CONFIG_FILE_PREFIX + getInstanceVCSRevision());
   }
 
-
-
   /**
    * Gets the VCS revision of the build.
    *
@@ -584,8 +537,6 @@ public final class Installation
   {
     return getBuildInformation().getRevision();
   }
-
-
 
   /**
    * Gets the VCS revision of the instance.
@@ -599,8 +550,6 @@ public final class Installation
     return getInstanceBuildInformation().getRevision();
   }
 
-
-
   /**
    * Returns the path to the configuration file of the directory server. Note
    * that this method assumes that this code is being run locally.
@@ -611,8 +560,6 @@ public final class Installation
   {
     return new File(getConfigurationDirectory(), CURRENT_CONFIG_FILE_NAME);
   }
-
-
 
   /**
    * Returns the relative path of the directory containing the binaries/scripts
@@ -627,8 +574,6 @@ public final class Installation
     return new File(getRootDirectory(), binDir);
   }
 
-
-
   /**
    * Returns the path to the database files under the install path.
    *
@@ -638,8 +583,6 @@ public final class Installation
   {
     return new File(getInstanceDirectory(), DATABASES_PATH_RELATIVE);
   }
-
-
 
   /**
    * Returns the path to the backup files under the install path.
@@ -651,8 +594,6 @@ public final class Installation
     return new File(getInstanceDirectory(), BACKUPS_PATH_RELATIVE);
   }
 
-
-
   /**
    * Returns the path to the config files under the install path.
    *
@@ -662,8 +603,6 @@ public final class Installation
   {
     return new File(getInstanceDirectory(), CONFIG_PATH_RELATIVE);
   }
-
-
 
   /**
    * Returns the path to the log files under the install path.
@@ -675,8 +614,6 @@ public final class Installation
     return new File(getInstanceDirectory(), LOGS_PATH_RELATIVE);
   }
 
-
-
   /**
    * Returns the directory where the lock files are stored.
    *
@@ -686,8 +623,6 @@ public final class Installation
   {
     return new File(getInstanceDirectory(), LOCKS_PATH_RELATIVE);
   }
-
-
 
   /**
    * Gets the directory used to store the template configuration.
@@ -699,8 +634,6 @@ public final class Installation
     return new File(getRootDirectory(), TEMPLATE_RELATIVE_PATH);
   }
 
-
-
   /**
    * Gets the directory used to store files temporarily.
    *
@@ -711,8 +644,6 @@ public final class Installation
     return new File(getInstanceDirectory(), TMP_PATH_RELATIVE);
   }
 
-
-
   /**
    * Returns the directory where the lock files are stored.
    *
@@ -722,8 +653,6 @@ public final class Installation
   {
     return new File(getInstanceDirectory(), HISTORY_PATH_RELATIVE);
   }
-
-
 
   /**
    * Creates a new directory in the history directory appropriate for backing up
@@ -749,8 +678,6 @@ public final class Installation
     return backupDirectory;
   }
 
-
-
   /**
    * Gets the log file where the history of upgrades and reversions is kept.
    *
@@ -760,8 +687,6 @@ public final class Installation
   {
     return new File(getHistoryDirectory(), HISTORY_LOG_FILE_NAME);
   }
-
-
 
   /**
    * Gets the directory config/upgrade.
@@ -773,8 +698,6 @@ public final class Installation
     return new File(getConfigurationDirectory(), UPGRADE_PATH);
   }
 
-
-
   /**
    * Gets the directory where the upgrader stores files temporarily.
    *
@@ -784,8 +707,6 @@ public final class Installation
   {
     return new File(getTemporaryDirectory(), UPGRADE_PATH);
   }
-
-
 
   /**
    * Gets the file for invoking a particular command appropriate for the current
@@ -801,8 +722,6 @@ public final class Installation
     return new File(getBinariesDirectory(), filename);
   }
 
-
-
   /**
    * Gets the file responsible for stopping the server appropriate for the
    * current operating system.
@@ -811,11 +730,8 @@ public final class Installation
    */
   public File getServerStartCommandFile()
   {
-    String startFileName = isWindows() ? WINDOWS_START_FILE_NAME : UNIX_START_FILE_NAME;
-    return new File(getBinariesDirectory(), startFileName);
+    return getCommandFile(UNIX_START_FILE_NAME);
   }
-
-
 
   /**
    * Gets the file responsible for stopping the server appropriate for the
@@ -825,11 +741,18 @@ public final class Installation
    */
   public File getServerStopCommandFile()
   {
-    String stopFileName = isWindows() ? WINDOWS_STOP_FILE_NAME : UNIX_STOP_FILE_NAME;
-    return new File(getBinariesDirectory(), stopFileName);
+    return getCommandFile(UNIX_STOP_FILE_NAME);
   }
 
-
+  /**
+   * Returns the setup file name to use with the current operating system.
+   *
+   * @return the setup file name to use with the current operating system.
+   */
+  public static String getSetupFileName()
+  {
+    return isWindows() ? WINDOWS_SETUP_FILE_NAME : UNIX_SETUP_FILE_NAME;
+  }
 
   /**
    * Returns the 'ldif' directory.
@@ -841,8 +764,6 @@ public final class Installation
     return new File(getRootDirectory(), LDIFS_PATH_RELATIVE);
   }
 
-
-
   /**
    * Returns the path to the quicksetup jar file.
    *
@@ -852,8 +773,6 @@ public final class Installation
   {
     return new File(getLibrariesDirectory(), "quicksetup.jar");
   }
-
-
 
   /**
    * Returns the path to the opends jar file.
@@ -865,8 +784,6 @@ public final class Installation
     return new File(getLibrariesDirectory(), "OpenDJ.jar");
   }
 
-
-
   /**
    * Returns the path to the uninstall.bat file.
    *
@@ -877,8 +794,6 @@ public final class Installation
     return new File(getRootDirectory(), "uninstall.bat");
   }
 
-
-
   /**
    * Gets the control panel command file appropriate for the current operating
    * system.
@@ -887,22 +802,13 @@ public final class Installation
    */
   public File getControlPanelCommandFile()
   {
-    if (isWindows())
-    {
-      return new File(getBinariesDirectory(), WINDOWS_CONTROLPANEL_FILE_NAME);
-    }
-    else if (isMacOS())
+    if (isMacOS())
     {
       String binDir = getRootDirectory() + File.separator + MAC_APPLICATIONS_PATH_RELATIVE;
       return new File(binDir, MAC_CONTROLPANEL_FILE_NAME);
     }
-    else
-    {
-      return new File(getBinariesDirectory(), UNIX_CONTROLPANEL_FILE_NAME);
-    }
+    return getCommandFile(UNIX_CONTROLPANEL_FILE_NAME);
   }
-
-
 
    /**
    * Gets information about the build that was used to produce the bits for this
@@ -916,8 +822,6 @@ public final class Installation
   {
     return getBuildInformation(true);
   }
-
-
 
   /**
    * Gets information about the build that was used to produce the bits for this
@@ -963,8 +867,6 @@ public final class Installation
     return buildInformation;
   }
 
-
-
   /**
    * Gets information about the build that was used to produce the instance.
    *
@@ -974,8 +876,6 @@ public final class Installation
   {
     return getInstanceBuildInformation(true);
   }
-
-
 
   /**
    * Gets information about the build that was used to produce the instance.
@@ -999,8 +899,7 @@ public final class Installation
           // Read the first line and close the file.
           try (BufferedReader reader = new BufferedReader(new FileReader(bif)))
           {
-            String line = reader.readLine();
-            instanceInformation = BuildInformation.fromBuildString(line);
+            instanceInformation = BuildInformation.fromBuildString(reader.readLine());
           }
         }
         else

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  *      Portions Copyright 2012 profiq s.r.o.
  */
 package org.opends.server.tools.dsreplication;
@@ -6963,8 +6963,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       int domainId = InstallerHelper.getReplicationId(usedReplicationDomainIds);
       usedReplicationDomainIds.add(domainId);
-      String domainName =
-          InstallerHelper.getDomainName(domainNames, domainId, baseDN);
+      String domainName = InstallerHelper.getDomainName(domainNames, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
           new ArrayList<PropertyException>());
@@ -6983,8 +6982,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (!areReplicationServersEqual(servers, replicationServers))
       {
-        domain.setReplicationServer(mergeReplicationServers(replicationServers,
-            servers));
+        domain.setReplicationServer(mergeReplicationServers(replicationServers, servers));
         mustCommit = true;
       }
     }

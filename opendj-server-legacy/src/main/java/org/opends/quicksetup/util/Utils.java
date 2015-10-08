@@ -22,18 +22,18 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.quicksetup.util;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Installation.*;
 import static org.opends.server.util.DynamicConstants.*;
-
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -102,9 +102,7 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ClientException;
 
-/**
- * This class provides some static convenience methods of different nature.
- */
+/** This class provides some static convenience methods of different nature. */
 public class Utils
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -169,17 +167,8 @@ public class Utils
     try
     {
       List<String> args = new ArrayList<>();
-      String script;
-      String libPath = Utils.getPath(installPath, Installation.LIBRARIES_PATH_RELATIVE);
-      if (isWindows())
-      {
-        script = Utils.getScriptPath(Utils.getPath(libPath, Installation.SCRIPT_UTIL_FILE_WINDOWS));
-      }
-      else
-      {
-        script = Utils.getScriptPath(Utils.getPath(libPath, Installation.SCRIPT_UTIL_FILE_UNIX));
-      }
-      args.add(script);
+      args.add(getScript(installPath));
+
       ProcessBuilder pb = new ProcessBuilder(args);
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDJ_JAVA_HOME, javaHome);
@@ -244,9 +233,15 @@ public class Utils
     return supported;
   }
 
+  private static String getScript(String installPath)
+  {
+    String libPath = Utils.getPath(installPath, Installation.LIBRARIES_PATH_RELATIVE);
+    String scriptUtilFileUnix = isWindows() ? SCRIPT_UTIL_FILE_WINDOWS : SCRIPT_UTIL_FILE_UNIX;
+    return Utils.getScriptPath(Utils.getPath(libPath, scriptUtilFileUnix));
+  }
+
   /**
-   * Creates a new file attempting to create the parent directories if
-   * necessary.
+   * Creates a new file attempting to create the parent directories if necessary.
    *
    * @param f
    *          File to create
@@ -256,7 +251,6 @@ public class Utils
    */
   public static boolean createFile(File f) throws IOException
   {
-    boolean success = false;
     if (f != null)
     {
       File parent = f.getParentFile();
@@ -264,9 +258,9 @@ public class Utils
       {
         parent.mkdirs();
       }
-      success = f.createNewFile();
+      return f.createNewFile();
     }
-    return success;
+    return false;
   }
 
   /**
@@ -307,7 +301,6 @@ public class Utils
    */
   public static String getPath(File f)
   {
-    String path = null;
     if (f != null)
     {
       try
@@ -325,9 +318,9 @@ public class Utils
          * file: reporting the error is not necessary.
          */
       }
-      path = f.toString();
+      return f.toString();
     }
-    return path;
+    return null;
   }
 
   /**
@@ -371,14 +364,9 @@ public class Utils
    */
   public static boolean parentDirectoryExists(String path)
   {
-    boolean parentExists = false;
     File f = new File(path);
     File parentFile = f.getParentFile();
-    if (parentFile != null)
-    {
-      parentExists = parentFile.isDirectory();
-    }
-    return parentExists;
+    return parentFile != null && parentFile.isDirectory();
   }
 
   /**
@@ -392,8 +380,7 @@ public class Utils
    */
   public static boolean fileExists(String path)
   {
-    File f = new File(path);
-    return f.isFile();
+    return new File(path).isFile();
   }
 
   /**
@@ -449,19 +436,16 @@ public class Utils
    */
   public static boolean areDnsEqual(String dn1, String dn2)
   {
-    boolean areDnsEqual = false;
     try
     {
       LdapName name1 = new LdapName(dn1);
       LdapName name2 = new LdapName(dn2);
-      areDnsEqual = name1.equals(name2);
+      return name1.equals(name2);
     }
     catch (Exception ex)
     {
-      // do nothing
+      return false;
     }
-
-    return areDnsEqual;
   }
 
   /**
@@ -472,15 +456,10 @@ public class Utils
    * @return boolean indicating whether or not the input <code>f</code> has a
    *         parent after this method is invoked.
    */
-  public static boolean insureParentsExist(File f)
+  public static boolean ensureParentsExist(File f)
   {
     final File parent = f.getParentFile();
-    final boolean b = parent.exists();
-    if (!b)
-    {
-      return parent.mkdirs();
-    }
-    return b;
+    return parent.exists() || parent.mkdirs();
   }
 
   /**
@@ -510,16 +489,11 @@ public class Utils
    */
   public static boolean createDirectory(File f) throws IOException
   {
-    boolean directoryCreated;
-    if (!f.exists())
+    if (f.exists())
     {
-      directoryCreated = f.mkdirs();
+      return f.isDirectory();
     }
-    else
-    {
-      directoryCreated = f.isDirectory();
-    }
-    return directoryCreated;
+    return f.mkdirs();
   }
 
   /**
@@ -737,7 +711,7 @@ public class Utils
    * @throws InterruptedException
    *           if the Runtime.exec method is interrupted.
    */
-  public static int setPermissionsUnix(ArrayList<String> paths, String permissions) throws IOException,
+  public static int setPermissionsUnix(List<String> paths, String permissions) throws IOException,
       InterruptedException
   {
     String[] args = new String[paths.size() + 2];
@@ -768,10 +742,7 @@ public class Utils
    */
   public static int setPermissionsUnix(String path, String permissions) throws IOException, InterruptedException
   {
-    String[] args = new String[3];
-    args[0] = "chmod";
-    args[1] = permissions;
-    args[2] = path;
+    String[] args = new String[] { "chmod", permissions, path };
     Process p = Runtime.getRuntime().exec(args);
     return p.waitFor();
   }
@@ -1096,7 +1067,6 @@ public class Utils
       }
       if (len > maxll)
       {
-
         // First see if there are any tags that would cause a
         // natural break in the line.  If so start line break
         // point evaluation from that point.
@@ -1162,7 +1132,6 @@ public class Utils
   {
     if (s != null)
     {
-
       // This is not a comprehensive solution but addresses the few tags
       // that we have in Resources.properties at the moment.
       // Note that the following might strip out more than is intended for non-tags
@@ -1316,32 +1285,26 @@ public class Utils
     StringBuilder buffer = new StringBuilder();
     for (int i = 0; i < rawString.length(); i++)
     {
-      char c = rawString.charAt(i);
-      switch (c)
-      {
-      case '<':
-        buffer.append("&lt;");
-        break;
-
-      case '>':
-        buffer.append("&gt;");
-        break;
-
-      case '&':
-        buffer.append("&amp;");
-        break;
-
-      case '"':
-        buffer.append("&quot;");
-        break;
-
-      default:
-        buffer.append(c);
-        break;
-      }
+      escapeChar(buffer, rawString.charAt(i));
     }
-
     return buffer.toString();
+  }
+
+  private static StringBuilder escapeChar(StringBuilder buffer, char c)
+  {
+    switch (c)
+    {
+    case '<':
+      return buffer.append("&lt;");
+    case '>':
+      return buffer.append("&gt;");
+    case '&':
+      return buffer.append("&amp;");
+    case '"':
+      return buffer.append("&quot;");
+    default:
+      return buffer.append(c);
+    }
   }
 
   /**
@@ -1355,19 +1318,22 @@ public class Utils
    */
   public static String getHtml(String text)
   {
-    StringBuilder buffer = new StringBuilder();
-    if (text != null)
+    if (text == null)
     {
-      text = text.replaceAll("\r\n", "\n");
-      String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
-      for (int i = 0; i < lines.length; i++)
+      return "";
+    }
+
+    text = text.replaceAll("\r\n", "\n");
+
+    StringBuilder buffer = new StringBuilder();
+    String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
+    for (int i = 0; i < lines.length; i++)
+    {
+      if (i != 0)
       {
-        if (i != 0)
-        {
-          buffer.append(Constants.HTML_LINE_BREAK);
-        }
-        buffer.append(escapeHtml(lines[i]));
+        buffer.append(Constants.HTML_LINE_BREAK);
       }
+      buffer.append(escapeHtml(lines[i]));
     }
     return buffer.toString();
   }
@@ -1385,7 +1351,7 @@ public class Utils
    * @param defaultValue
    *          the default value.
    * @param valueClass
-   *          the class of the parametrized value.
+   *          the class of the parameterized value.
    * @return the customized object.
    */
   public static <T> T getCustomizedObject(String fieldName, T defaultValue, Class<T> valueClass)
@@ -1467,30 +1433,8 @@ public class Utils
 
     if (createSuffix)
     {
-      LocalizableMessage arg2;
       NewSuffixOptions options = userInstallData.getNewSuffixOptions();
-
-      switch (options.getType())
-      {
-      case CREATE_BASE_ENTRY:
-        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(options.getBaseDns().getFirst());
-        break;
-
-      case LEAVE_DATABASE_EMPTY:
-        arg2 = INFO_REVIEW_LEAVE_DATABASE_EMPTY_LABEL.get();
-        break;
-
-      case IMPORT_FROM_LDIF_FILE:
-        arg2 = INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPaths().getFirst());
-        break;
-
-      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(options.getNumberEntries());
-        break;
-
-      default:
-        throw new IllegalArgumentException("Unknown type: " + options.getType());
-      }
+      LocalizableMessage arg2 = toArg2(options);
 
       if (options.getBaseDns().isEmpty())
       {
@@ -1525,6 +1469,23 @@ public class Utils
     }
 
     return msg.toString();
+  }
+
+  private static LocalizableMessage toArg2(NewSuffixOptions options)
+  {
+    switch (options.getType())
+    {
+    case CREATE_BASE_ENTRY:
+      return INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(options.getBaseDns().getFirst());
+    case LEAVE_DATABASE_EMPTY:
+      return INFO_REVIEW_LEAVE_DATABASE_EMPTY_LABEL.get();
+    case IMPORT_FROM_LDIF_FILE:
+      return INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPaths().getFirst());
+    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+      return INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(options.getNumberEntries());
+    default:
+      throw new IllegalArgumentException("Unknown type: " + options.getType());
+    }
   }
 
   /**
@@ -1576,33 +1537,7 @@ public class Utils
       {
         buf.append("\n");
       }
-      LocalizableMessage certMsg;
-      switch (ops.getCertificateType())
-      {
-      case SELF_SIGNED_CERTIFICATE:
-        certMsg = INFO_SELF_SIGNED_CERTIFICATE.get();
-        break;
-
-      case JKS:
-        certMsg = INFO_JKS_CERTIFICATE.get();
-        break;
-
-      case JCEKS:
-        certMsg = INFO_JCEKS_CERTIFICATE.get();
-        break;
-
-      case PKCS11:
-        certMsg = INFO_PKCS11_CERTIFICATE.get();
-        break;
-
-      case PKCS12:
-        certMsg = INFO_PKCS12_CERTIFICATE.get();
-        break;
-
-      default:
-        throw new IllegalStateException("Unknown certificate options type: " + ops.getCertificateType());
-      }
-      buf.append(certMsg);
+      buf.append(toCertMsg(ops));
     }
 
     if (html)
@@ -1612,6 +1547,25 @@ public class Utils
     else
     {
       return buf.toString();
+    }
+  }
+
+  private static LocalizableMessage toCertMsg(SecurityOptions ops)
+  {
+    switch (ops.getCertificateType())
+    {
+    case SELF_SIGNED_CERTIFICATE:
+      return INFO_SELF_SIGNED_CERTIFICATE.get();
+    case JKS:
+      return INFO_JKS_CERTIFICATE.get();
+    case JCEKS:
+      return INFO_JCEKS_CERTIFICATE.get();
+    case PKCS11:
+      return INFO_PKCS11_CERTIFICATE.get();
+    case PKCS12:
+      return INFO_PKCS12_CERTIFICATE.get();
+    default:
+      throw new IllegalStateException("Unknown certificate options type: " + ops.getCertificateType());
     }
   }
 
@@ -1706,7 +1660,7 @@ public class Utils
   public static List<String> getSetupEquivalentCommandLine(final UserData userData)
   {
     List<String> cmdLine = new ArrayList<>();
-    cmdLine.add(getInstallDir(userData) + getSetupFilename());
+    cmdLine.add(getInstallDir(userData) + getSetupFileName());
     cmdLine.add("--cli");
 
     final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType =
@@ -1805,11 +1759,6 @@ public class Utils
     cmdLine.add("--noPropertiesFile");
 
     return cmdLine;
-  }
-
-  private static String getSetupFilename()
-  {
-    return isWindows() ? Installation.WINDOWS_SETUP_FILE_NAME : Installation.UNIX_SETUP_FILE_NAME;
   }
 
   private static List<String> getSecurityOptionSetupEquivalentCmdLine(final UserData userData)
@@ -1955,19 +1904,15 @@ public class Utils
    */
   private static String getCommandLinePath(UserData userData, String scriptBasicName)
   {
-    String cmdLineName;
+    String installDir = getInstallDir(userData);
     if (isWindows())
     {
-      cmdLineName =
-          getInstallDir(userData) + Installation.WINDOWS_BINARIES_PATH_RELATIVE + File.separatorChar + scriptBasicName
-              + ".bat";
+      return installDir + WINDOWS_BINARIES_PATH_RELATIVE + File.separatorChar + scriptBasicName + ".bat";
     }
     else
     {
-      cmdLineName =
-          getInstallDir(userData) + Installation.UNIX_BINARIES_PATH_RELATIVE + File.separatorChar + scriptBasicName;
+      return installDir + UNIX_BINARIES_PATH_RELATIVE + File.separatorChar + scriptBasicName;
     }
-    return cmdLineName;
   }
 
   private static String installDir;

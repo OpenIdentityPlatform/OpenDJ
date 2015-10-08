@@ -22,30 +22,30 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.quicksetup.installer;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.File;
 
-import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.ReturnCode;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.CliApplication;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.InstallDS;
 import org.opends.server.tools.InstallDSArgumentParser;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.ServerConstants;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 
@@ -84,22 +84,14 @@ public class SetupLauncher extends Launcher {
    */
   public SetupLauncher(String[] args) {
     super(args);
-    String scriptName;
-    if (isWindows()) {
-      scriptName = Installation.WINDOWS_SETUP_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_SETUP_FILE_NAME;
-    }
-    if (System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME) == null)
+    if (System.getProperty(PROPERTY_SCRIPT_NAME) == null)
     {
-      System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+      System.setProperty(PROPERTY_SCRIPT_NAME, Installation.getSetupFileName());
     }
     initializeParser();
   }
 
-  /**
-   * Initialize the contents of the argument parser.
-   */
+  /** Initialize the contents of the argument parser. */
   protected void initializeParser()
   {
     argParser = new InstallDSArgumentParser(InstallDS.class.getName());
@@ -114,7 +106,7 @@ public class SetupLauncher extends Launcher {
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void launch() {
     try
     {
@@ -169,12 +161,12 @@ public class SetupLauncher extends Launcher {
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ArgumentParser getArgumentParser() {
     return this.argParser;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void guiLaunchFailed(String logFileName) {
     if (logFileName != null)
     {
@@ -187,26 +179,26 @@ public class SetupLauncher extends Launcher {
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void willLaunchGui() {
     System.out.println(INFO_SETUP_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             OfflineInstaller.class.getName());
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
         INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
         LocalizableMessage.class);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected CliApplication createCliApplication() {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean isCli() {
     return argParser.isCli();
   }

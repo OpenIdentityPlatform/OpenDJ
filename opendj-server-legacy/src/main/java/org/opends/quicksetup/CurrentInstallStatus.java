@@ -22,22 +22,20 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -98,9 +96,7 @@ public class CurrentInstallStatus
           buf.append(Constants.LINE_SEPARATOR);
           buf.append("- ").append(msg);
         }
-        String cmd = isWindows() ?
-            Installation.WINDOWS_SETUP_FILE_NAME :
-              Installation.UNIX_SETUP_FILE_NAME;
+        String cmd = Installation.getSetupFileName();
         installationMsg = INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf);
       }
       else
@@ -166,8 +162,6 @@ public class CurrentInstallStatus
     }
   }
 
-
-
   /**
    * Indicates whether there are database files under this installation.
    *
@@ -180,8 +174,6 @@ public class CurrentInstallStatus
     File[] children = dbDir.listFiles();
     return children != null && children.length > 0;
   }
-
-
 
   /**
    * Indicates whether there are config files under this installation.

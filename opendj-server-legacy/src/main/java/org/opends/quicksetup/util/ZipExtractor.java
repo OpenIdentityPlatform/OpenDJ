@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -179,7 +180,7 @@ public class ZipExtractor {
      * these files.  This is done this way to group the number of calls to
      * Runtime.exec (which is required to update the file system permissions).
      */
-    Map<String, ArrayList<String>> permissions = new HashMap<>();
+    Map<String, List<String>> permissions = new HashMap<>();
     permissions.put(getProtectedDirectoryPermissionUnix(), newArrayList(destDir));
     try {
       if(application != null) {
@@ -226,7 +227,7 @@ public class ZipExtractor {
       if (isUnix()) {
         // Change the permissions for UNIX systems
         for (String perm : permissions.keySet()) {
-          ArrayList<String> paths = permissions.get(perm);
+          List<String> paths = permissions.get(perm);
           try {
             int result = Utils.setPermissionsUnix(paths, perm);
             if (result != 0) {
@@ -259,7 +260,7 @@ public class ZipExtractor {
     */
   private void copyZipEntry(ZipEntry entry, File destination,
       ZipInputStream is, int ratioBeforeCompleted,
-      int ratioWhenCompleted, Map<String, ArrayList<String>> permissions)
+      int ratioWhenCompleted, Map<String, List<String>> permissions)
       throws IOException
   {
     if (application != null) {
@@ -276,43 +277,41 @@ public class ZipExtractor {
       }
     }
     logger.info(LocalizableMessage.raw("extracting " + Utils.getPath(destination)));
-    if (Utils.insureParentsExist(destination))
-    {
-      if (entry.isDirectory())
-      {
-        String perm = getDirectoryFileSystemPermissions(destination);
-        ArrayList<String> list = permissions.get(perm);
-        if (list == null)
-        {
-          list = new ArrayList<>();
-        }
-        list.add(Utils.getPath(destination));
-        permissions.put(perm, list);
 
-        if (!Utils.createDirectory(destination))
-        {
-          throw new IOException("Could not create path: " + destination);
-        }
-      } else
+    if (!Utils.ensureParentsExist(destination))
+    {
+      throw new IOException("Could not create parent path: " + destination);
+    }
+
+    if (entry.isDirectory())
+    {
+      String perm = getDirectoryFileSystemPermissions(destination);
+      addPermission(destination, permissions, perm);
+      if (!Utils.createDirectory(destination))
       {
-        String perm = Utils.getFileSystemPermissions(destination);
-        ArrayList<String> list = permissions.get(perm);
-        if (list == null)
-        {
-          list = new ArrayList<>();
-        }
-        list.add(Utils.getPath(destination));
-        permissions.put(perm, list);
-        Utils.createFile(destination, is);
+        throw new IOException("Could not create path: " + destination);
       }
     } else
     {
-      throw new IOException("Could not create parent path: " + destination);
+      String perm = Utils.getFileSystemPermissions(destination);
+      addPermission(destination, permissions, perm);
+      Utils.createFile(destination, is);
     }
     if (application != null && application.isVerbose())
     {
       application.notifyListenersDone(ratioWhenCompleted);
     }
+  }
+
+  private void addPermission(File destination, Map<String, List<String>> permissions, String perm)
+  {
+    List<String> list = permissions.get(perm);
+    if (list == null)
+    {
+      list = new ArrayList<>();
+      permissions.put(perm, list);
+    }
+    list.add(Utils.getPath(destination));
   }
 
   /**
