@@ -64,9 +64,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/branches/b2.6-sdk</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/branches/b2.6-sdk</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/branches/b2.6-sdk</developerConnection>
+    <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj/browse?at=refs%2Fheads%2Fsdk%2F2.6</url>
+    <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj.git</connection>
+    <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj.git</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
