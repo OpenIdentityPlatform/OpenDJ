@@ -47,13 +47,14 @@
    The following bugs were fixed in this release.
   </para>
 
-  <!-- List generated at 16:10:54 20150914 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+%28fixVersion+in+%28%222.6.10-sdk%22%2C+%222.6.11-sdk%22%29%29+AND+component+not+in+%28Documentation%2C+QA%29+AND+labels+%3D+release-notes+AND+NOT+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ%22%2C+%22is+backported+by%22%29%29+OR+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ+AND+fixVersion+in+%28%272.6.10-sdk%27%2C+%272.6.11-sdk%27%29+AND+resolution+%3D+Fixed+AND+type+%3D+Bug%22%2C+%27is+a+backport+of%27%29%29&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 18:24:31 20151008 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+%28fixVersion+in+%28%222.6.10-sdk%22%2C+%222.6.11-sdk%22%29%29+AND+component+not+in+%28Documentation%2C+QA%29+AND+labels+%3D+release-notes+AND+NOT+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ%22%2C+%22is+backported+by%22%29%29+OR+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ+AND+fixVersion+in+%28%272.6.10-sdk%27%2C+%272.6.11-sdk%27%29+AND+resolution+%3D+Fixed+AND+type+%3D+Bug%22%2C+%27is+a+backport+of%27%29%29&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-2299" xlink:show="new">OPENDJ-2299</link>: ResultCode.valueOf throw java.lang.IndexOutOfBoundsException if the value is not in [0,16655[</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-2240" xlink:show="new">OPENDJ-2240</link>: AttributeTypes parser mishandles characters after usage field</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1909" xlink:show="new">OPENDJ-1909</link>: diffEntries implements an add+delete but should be delete+add</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1597" xlink:show="new">OPENDJ-1597</link>: newOffsetControl passes 'offset' and 'contentCount' to the constructor in the incorrect order</para></listitem>
   </itemizedlist>
-  <!-- Issue count: 3 -->
+  <!-- Issue count: 4 -->
  </section>
 
  <section xml:id="limitations">
