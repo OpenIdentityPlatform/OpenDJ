@@ -317,6 +317,19 @@ public class LocalBackendModifyOperation
     }
   }
 
+  private boolean invokePreModifyPlugins() throws CanceledOperationException
+  {
+    if (!isSynchronizationOperation())
+    {
+      preOperationPluginsExecuted = true;
+      if (!processOperationResult(this, getPluginConfigManager().invokePreOperationModifyPlugins(this)))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private void invokePostModifyPlugins()
   {
     if (isSynchronizationOperation())
@@ -391,19 +404,13 @@ public class LocalBackendModifyOperation
       final DN authzDN = getAuthorizationDN();
       selfChange = entryDN.equals(authzDN);
 
-      // Check that the authorizing account is not required to change its password.
-      if (!isInternalOperation()
-          && !selfChange
-          && getAuthorizationEntry() != null)
+      // Should the authorizing account change its password?
+      if (mustChangePassword(selfChange, getAuthorizationEntry()))
       {
-        PasswordPolicyState authzState = createPasswordPolicyState(getAuthorizationEntry());
-        if (authzState != null && authzState.mustChangePassword())
-        {
-          pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get(authzDN != null ? authzDN : "anonymous"));
-          return;
-        }
+        pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+        setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get(authzDN != null ? authzDN : "anonymous"));
+        return;
       }
 
       // FIXME -- Need a way to enable debug mode.
@@ -423,26 +430,13 @@ public class LocalBackendModifyOperation
       // The access control check is not made any earlier because the handler
       // needs access to the modified entry.
 
-      // FIXME: for now assume that this will check all permissions
-      // pertinent to the operation. This includes proxy authorization
-      // and any other controls specified.
+      // FIXME: for now assume that this will check all permissions pertinent to the operation.
+      // This includes proxy authorization and any other controls specified.
 
       // FIXME: earlier checks to see if the entry already exists may have
       // already exposed sensitive information to the client.
-      try
+      if (!operationIsAllowed())
       {
-        if (!getAccessControlHandler().isAllowed(this))
-        {
-          setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
-              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-              ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
-          return;
-        }
-      }
-      catch (DirectoryException e)
-      {
-        setResultCode(e.getResultCode());
-        appendErrorMessage(e.getMessageObject());
         return;
       }
 
@@ -451,8 +445,7 @@ public class LocalBackendModifyOperation
         processPasswordPolicyModifications();
         performAdditionalPasswordChangedProcessing();
 
-        if (!isInternalOperation()
-            && selfChange && !passwordChanged && pwPolicyState.mustChangePassword())
+        if (currentUserMustChangePassword())
         {
           // The user did not attempt to change their password.
           pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
@@ -476,15 +469,9 @@ public class LocalBackendModifyOperation
 
       checkIfCanceled(false);
 
-      // If the operation is not a synchronization operation,
-      // Invoke the pre-operation modify plugins.
-      if (!isSynchronizationOperation())
+      if (!invokePreModifyPlugins())
       {
-        preOperationPluginsExecuted = true;
-        if (!processOperationResult(this, getPluginConfigManager().invokePreOperationModifyPlugins(this)))
-        {
-          return;
-        }
+        return;
       }
 
       // Actually perform the modify operation. This should also include
@@ -542,6 +529,43 @@ public class LocalBackendModifyOperation
       }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private boolean operationIsAllowed()
+  {
+    try
+    {
+      if (!getAccessControlHandler().isAllowed(this))
+      {
+        setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
+            ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(entryDN));
+        return false;
+      }
+      return true;
+    }
+    catch (DirectoryException e)
+    {
+      setResultCode(e.getResultCode());
+      appendErrorMessage(e.getMessageObject());
+      return false;
+    }
+  }
+
+  private boolean currentUserMustChangePassword()
+  {
+    return !isInternalOperation() && selfChange && !passwordChanged && pwPolicyState.mustChangePassword();
+  }
+
+  private boolean mustChangePassword(boolean selfChange, Entry authzEntry) throws DirectoryException
+  {
+    return !isInternalOperation() && !selfChange && authzEntry != null && mustChangePassword(authzEntry);
+  }
+
+  private boolean mustChangePassword(Entry authzEntry) throws DirectoryException
+  {
+    PasswordPolicyState authzState = createPasswordPolicyState(authzEntry);
+    return authzState != null && authzState.mustChangePassword();
   }
 
   private PasswordPolicyState createPasswordPolicyState(Entry entry) throws DirectoryException
