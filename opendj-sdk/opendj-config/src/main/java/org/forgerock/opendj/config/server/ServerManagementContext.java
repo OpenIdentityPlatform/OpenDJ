@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.config.server;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 import static org.forgerock.opendj.config.PropertyException.defaultBehaviorException;
 import static org.forgerock.opendj.config.PropertyException.propertyIsSingleValuedException;

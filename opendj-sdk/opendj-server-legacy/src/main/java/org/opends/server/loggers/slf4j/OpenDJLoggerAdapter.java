@@ -21,13 +21,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
-package org.opends.server.loggers;
+package org.opends.server.loggers.slf4j;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedMarker;
 import org.opends.messages.Severity;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.DebugTracer;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.LoggingCategoryNames;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 

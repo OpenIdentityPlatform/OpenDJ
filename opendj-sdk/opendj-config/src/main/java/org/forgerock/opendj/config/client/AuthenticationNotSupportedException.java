@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 
 /**
  * This exception is thrown when the particular flavor of authentication

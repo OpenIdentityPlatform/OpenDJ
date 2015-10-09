@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.config.client;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;

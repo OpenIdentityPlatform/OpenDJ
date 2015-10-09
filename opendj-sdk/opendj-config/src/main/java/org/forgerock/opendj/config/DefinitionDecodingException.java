@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 

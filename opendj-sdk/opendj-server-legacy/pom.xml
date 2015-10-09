@@ -759,7 +759,7 @@
               <finalName>opendj-slf4j-adapter</finalName>
               <includes>
                 <include>**/org/slf4j/**</include>
-                <include>**/org/opends/server/loggers/OpenDJLogger*</include>
+                <include>**/org/opends/server/loggers/slf4j/**</include>
               </includes>
             </configuration>
           </execution>
@@ -971,7 +971,7 @@
                 <exclude>**/*_zh_CN.properties</exclude>
                 <exclude>**/*_zh_TW.properties</exclude>
                 <exclude>org/slf4j/**</exclude>
-                <exclude>org/opends/server/loggers/OpenDJLogger*</exclude>
+                <exclude>org/opends/server/loggers/slf4j/OpenDJLogger*</exclude>
                 <exclude>org/opends/server/backends/jeb/**</exclude>
                 <exclude>org/opends/server/replication/server/changelog/je/**</exclude>
               </excludes>

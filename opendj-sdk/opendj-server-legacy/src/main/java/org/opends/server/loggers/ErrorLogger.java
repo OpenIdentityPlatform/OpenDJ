@@ -107,7 +107,7 @@ public class ErrorLogger extends AbstractLogger
    * @param exception
    *          The exception to be logged. May be {@code null}.
    */
-  static void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
+  public static void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
   {
     for (ErrorLogPublisher<?> publisher : loggerStorage.getLogPublishers())
     {
@@ -136,7 +136,7 @@ public class ErrorLogger extends AbstractLogger
    *          The severity of logging event.
    * @return {@code true} if logger is enabled
    */
-  static boolean isEnabledFor(String category, Severity severity)
+  public static boolean isEnabledFor(String category, Severity severity)
   {
     if (Thread.currentThread() instanceof DirectoryThread)
     {

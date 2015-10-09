@@ -26,8 +26,8 @@
  */
 package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
-import static com.forgerock.opendj.ldap.ExtensionMessages.NOTE_LOG_EXTENSION_INFORMATION;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.ExtensionMessages.NOTE_LOG_EXTENSION_INFORMATION;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -61,7 +61,7 @@ import org.forgerock.util.Reject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.forgerock.opendj.ldap.AdminMessages;
+import com.forgerock.opendj.ldap.config.AdminMessages;
 
 /**
  * This class is responsible for managing the configuration framework including:
