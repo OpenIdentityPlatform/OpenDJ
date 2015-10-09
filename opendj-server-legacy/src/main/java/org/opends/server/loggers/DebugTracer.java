@@ -39,8 +39,16 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  * Logging is always done at a level basis, with debug log messages
  * exceeding the trace threshold being traced, others being discarded.
  */
-class DebugTracer
+public class DebugTracer
 {
+  /**
+   *  We have to harcode this value because we cannot import
+   *  org.opends.server.loggers.slf4j.OpenDJLoggerAdapter(.class.getName())
+   *  to avoid OSGI split package issues.
+   *  See OPENDJ-2226.
+   */
+  private static final String OPENDJ_LOGGER_ADAPTER_CLASS_NAME = "org.opends.server.loggers.slf4j.OpenDJLoggerAdapter";
+
   /** The class this aspect traces. */
   private String className;
 
@@ -96,7 +104,7 @@ class DebugTracer
    * @param msg
    *          message to log.
    */
-  void trace(String msg)
+  public void trace(String msg)
   {
     traceException(msg, null);
   }
@@ -109,7 +117,7 @@ class DebugTracer
    * @param exception
    *          the exception caught. May be {@code null}.
    */
-  void traceException(String msg, Throwable exception)
+  public void traceException(String msg, Throwable exception)
   {
     StackTraceElement[] stackTrace = null;
     StackTraceElement[] filteredStackTrace = null;
@@ -206,7 +214,7 @@ class DebugTracer
    *
    * @return {@code true} if logging is enabled, false otherwise.
    */
-  boolean enabled()
+  public boolean enabled()
   {
     for (PublisherSettings settings : publisherSettings)
     {
@@ -290,7 +298,7 @@ class DebugTracer
     String name = trace.getClassName();
     return name.startsWith(Thread.class.getName())
         || name.startsWith(DebugTracer.class.getName())
-        || name.startsWith(OpenDJLoggerAdapter.class.getName())
+        || name.startsWith(OPENDJ_LOGGER_ADAPTER_CLASS_NAME)
         || name.startsWith(LocalizedLogger.class.getName());
   }
 

@@ -26,10 +26,7 @@
  */
 package org.forgerock.opendj.config.dsconfig;
 
-import static com.forgerock.opendj.ldap.ConfigMessages.ERR_BUILDVERSION_MISMATCH;
-import static com.forgerock.opendj.ldap.ConfigMessages.ERR_BUILDVERSION_MALFORMED;
-import static com.forgerock.opendj.ldap.ConfigMessages.ERR_BUILDVERSION_NOT_FOUND;
-import static com.forgerock.opendj.ldap.ConfigMessages.ERR_CONFIGVERSION_NOT_FOUND;
+import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;

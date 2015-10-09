@@ -115,7 +115,7 @@ public class DebugLogger extends AbstractLogger
    *
    * @return True if debug logging is enabled. False otherwise.
    */
-  static boolean debugEnabled()
+  public static boolean debugEnabled()
   {
     return enabled;
   }
@@ -137,7 +137,7 @@ public class DebugLogger extends AbstractLogger
    * @return The tracer for the provided class or null if there are
    *         no tracers registered.
    */
-  static DebugTracer getTracer(final String className)
+  public static DebugTracer getTracer(final String className)
   {
     DebugTracer tracer = classTracers.get(className);
     if (tracer == null)

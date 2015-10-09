@@ -36,7 +36,7 @@ import java.util.TreeMap;
  * to get the corresponding simplified category name if it exists, eg "CORE". If
  * no simplified category name exist, the classname is used as a category name.
  */
-class LoggingCategoryNames
+public class LoggingCategoryNames
 {
   /**
    * Contains mapping from class names (or package names) to category names. In
@@ -142,7 +142,7 @@ class LoggingCategoryNames
    * @return the simple category name, or the provided className if no matching
    *         simple category name is found
    */
-  static String getCategoryName(final String className)
+  public static String getCategoryName(final String className)
   {
     final Entry<String, String> entry = NAMES.floorEntry(className);
     if (entry != null && className.startsWith(entry.getKey()))

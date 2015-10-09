@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -31,7 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.ldap.DN;
 
-import com.forgerock.opendj.ldap.AdminMessages;
+import com.forgerock.opendj.ldap.config.AdminMessages;
 
 /**
  * A utility class for converting admin exceptions to config exceptions.

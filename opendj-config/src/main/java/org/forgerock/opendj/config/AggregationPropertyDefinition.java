@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import org.forgerock.util.Reject;

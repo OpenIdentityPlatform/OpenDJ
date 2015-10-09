@@ -22,16 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.AdminMessages.ERR_DEFAULT_BEHAVIOR_PROPERTY_EXCEPTION;
-import static com.forgerock.opendj.ldap.AdminMessages.ERR_ILLEGAL_PROPERTY_VALUE_EXCEPTION;
-import static com.forgerock.opendj.ldap.AdminMessages.ERR_PROPERTY_IS_MANDATORY_EXCEPTION;
-import static com.forgerock.opendj.ldap.AdminMessages.ERR_PROPERTY_IS_READ_ONLY_EXCEPTION;
-import static com.forgerock.opendj.ldap.AdminMessages.ERR_PROPERTY_IS_SINGLE_VALUED_EXCEPTION;
-import static com.forgerock.opendj.ldap.AdminMessages.ERR_UNKNOWN_PROPERTY_DEFINITION_EXCEPTION;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;

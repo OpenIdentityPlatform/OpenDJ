@@ -21,28 +21,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Copyright 2015 ForgeRock AS
  */
-package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.config.AdminMessages.*;
-
-/**
- * A managed object could not be created because there is an existing managed
- * object with the same name.
- */
-public final class ManagedObjectAlreadyExistsException extends OperationsException {
-
-    /**
-     * Version ID required by serializable classes.
-     */
-    private static final long serialVersionUID = -2344653674171609366L;
-
-    /**
-     * Create a managed object already exists exception.
-     */
-    public ManagedObjectAlreadyExistsException() {
-        super(ERR_MANAGED_OBJECT_ALREADY_EXISTS_EXCEPTION.get());
-    }
-}
+/** Contains classes exported in opendj-slf4j-adapter osgi bundle. */
+package org.opends.server.loggers.slf4j;

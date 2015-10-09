@@ -113,10 +113,10 @@
             </goals>
             <configuration>
               <messageFiles>
-                <messageFile>com/forgerock/opendj/ldap/admin.properties</messageFile>
-                <messageFile>com/forgerock/opendj/ldap/config.properties</messageFile>
-                <messageFile>com/forgerock/opendj/ldap/extension.properties</messageFile>
-                <messageFile>com/forgerock/opendj/ldap/protocol.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/config/admin.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/config/config.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/config/extension.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/config/protocol.properties</messageFile>
                 <messageFile>com/forgerock/opendj/dsconfig/dsconfig.properties</messageFile>
               </messageFiles>
             </configuration>

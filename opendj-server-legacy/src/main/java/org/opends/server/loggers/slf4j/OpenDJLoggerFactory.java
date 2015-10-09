@@ -23,7 +23,7 @@
  *
  *      Copyright 2014-2015 ForgeRock AS.
  */
-package org.opends.server.loggers;
+package org.opends.server.loggers.slf4j;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

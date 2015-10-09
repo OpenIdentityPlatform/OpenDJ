@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.config.server;
 
-import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.AdminMessages.*;
 
 import org.forgerock.opendj.config.DecodingException;
 import org.forgerock.util.Reject;

@@ -21,11 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.slf4j.impl;
 
-import org.opends.server.loggers.OpenDJLoggerFactory;
+import org.opends.server.loggers.slf4j.OpenDJLoggerFactory;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 
