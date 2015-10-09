@@ -26,25 +26,23 @@
  */
 package org.opends.server.replication;
 
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
-/**
- * Test re-synchronization after after backup/restore and LDIF import.
- */
+/** Test re-synchronization after backup/restore and LDIF import. */
 @SuppressWarnings("javadoc")
 public class ReSyncTest extends ReplicationTestCase
 {
@@ -134,7 +132,7 @@ public class ReSyncTest extends ReplicationTestCase
   }
 
   /**
-   * Test re-synchronization after after backup/restore:
+   * Test re-synchronization after backup/restore:
    * <ol>
    * <li>Backup the server</li>
    * <li>ADD an entry</li>
@@ -145,8 +143,7 @@ public class ReSyncTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void testResyncAfterRestore() throws Exception
   {
-    // Delete the entry we are going to use to make sure that
-    // we do test something.
+    // Delete the entry we are going to use to make sure that we do test something.
     DN entryDN = DN.valueOf("dc=fooUniqueName1," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
@@ -181,7 +178,7 @@ public class ReSyncTest extends ReplicationTestCase
   }
 
   /**
-   * Test re-synchronization after after backup/restore:
+   * Test re-synchronization after backup/restore:
    * <ol>
    * <li>Do an export to a LDIF file</li>
    * <li>Add an entry</li>
@@ -192,8 +189,7 @@ public class ReSyncTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow")
   public void testResyncAfterImport() throws Exception
   {
-    // delete the entry we are going to use to make sure that
-    // we do test something.
+    // delete the entry we are going to use to make sure that we do test something.
     DN entryDN = DN.valueOf("dc=fooUniqueName2," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
@@ -227,9 +223,7 @@ public class ReSyncTest extends ReplicationTestCase
         "The Directory has not been resynchronized after the restore.");
   }
 
-  /**
-   * Clean up the environment.
-   */
+  /** Clean up the environment. */
   @AfterClass
   @Override
   public void classCleanUp() throws Exception
