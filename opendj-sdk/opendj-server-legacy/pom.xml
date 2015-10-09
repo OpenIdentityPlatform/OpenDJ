@@ -83,6 +83,12 @@
     <!-- If we release this project, we need to include the Forgerock binary license -->
     <include.binary.license>${project.build.directory}/legal-notices/</include.binary.license>
 
+    <!-- Additional OSGI import package for this module -->
+    <opendj.osgi.import.additional>
+      org.forgerock.opendj.*;provide:=true,
+      org.forgerock.json.*;provide:=true
+    </opendj.osgi.import.additional>
+
   </properties>
 
   <dependencies>
@@ -104,11 +110,6 @@
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-server</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-legacy</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -170,9 +171,9 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
-      <version>1.4.7</version>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.5.1</version>
     </dependency>
 
     <!-- Tests -->
@@ -200,6 +201,12 @@
       <artifactId>opendj-core</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>2.3.21</version>
       <scope>test</scope>
     </dependency>
 
@@ -346,14 +353,14 @@
         </configuration>
       </plugin>
 
-      <!-- Unpack configuration files from opendj-maven-plugin -->
-      <!-- This plugin could be removed once the migration to the new config framework will be done -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
+          <!-- Unpack configuration files from opendj-maven-plugin -->
+          <!-- This plugin could be removed once the migration to the new config framework will be done -->
           <execution>
-            <id>unpack</id>
+            <id>unpack-config-files</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>unpack</goal>
@@ -368,6 +375,29 @@
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</outputDirectory>
                   <includes>config/xml/**/*.xml</includes>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+
+          <!-- Unpack legacy classes to include them in main jar.
+               This "hacked" approach is needed since using the maven shade plugin
+               is too complex with this multi-artefact maven module. -->
+          <execution>
+            <id>unpack-legacy-classes</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.forgerock.opendj</groupId>
+                  <artifactId>opendj-legacy</artifactId>
+                  <version>${project.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -656,6 +686,59 @@
       </plugin>
 
       <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <!-- Create opendj-slf4j-adapter manifest -->
+          <execution>
+            <id>opendj-slf4j-adapter-manifest</id>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+            <configuration>
+              <buildDirectory>${project.build.directory}/slf4j-adapter-manifest/META-INF</buildDirectory>
+              <manifestLocation>${project.build.directory}/slf4j-adapter-manifest/META-INF</manifestLocation>
+              <instructions>
+                <!-- Export only slf4j adapter -->
+                <Export-Package>org.opends.server.loggers.slf4j</Export-Package>
+                <Import-Package>
+                  org.forgerock.i18n,
+                  org.forgerock.i18n.slf4j,
+                  org.opends.messages,
+                  org.opends.server.loggers,
+                  org.slf4j,
+                  org.slf4j.helpers,
+                  org.slf4j.spi
+                </Import-Package>
+              </instructions>
+            </configuration>
+          </execution>
+
+          <!-- Create OpenDJ manifest -->
+          <execution>
+            <id>opendj-manifest</id>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+            <configuration>
+              <instructions>
+                <Bundle-Version>${project.version}</Bundle-Version>
+                <!-- Do not export packages of this module -->
+                <Export-Package>!*</Export-Package>
+                <!-- Import je changelog since it is not shipped in the main jar -->
+                <Import-Package>
+                  org.opends.server.replication.server.changelog.je,
+                  javax.jnlp,
+                  netscape.ldap,
+                  ${opendj.osgi.import}
+                </Import-Package>
+              </instructions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <!-- Package boostrap jar - contains only a manifest with classpath for the server -->
@@ -761,6 +844,10 @@
                 <include>**/org/slf4j/**</include>
                 <include>**/org/opends/server/loggers/slf4j/**</include>
               </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <manifestFile>${project.build.directory}/slf4j-adapter-manifest/META-INF/MANIFEST.MF</manifestFile>
+              </archive>
             </configuration>
           </execution>
           <!-- Package JE backend and changelog jar -->
@@ -796,6 +883,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -814,6 +902,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -832,6 +921,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -850,6 +940,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -868,6 +959,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -886,6 +978,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -904,6 +997,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -922,6 +1016,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -940,6 +1035,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
@@ -978,6 +1074,7 @@
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>
                 <index>true</index>
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>

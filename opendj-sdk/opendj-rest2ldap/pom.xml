@@ -30,6 +30,10 @@
     <packaging>bundle</packaging>
     <properties>
         <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
+        <opendj.osgi.import.additional>
+            org.forgerock.opendj.*;provide:=true,
+            org.forgerock.json.*;provide:=true
+        </opendj.osgi.import.additional>
     </properties>
     <dependencies>
         <dependency>
@@ -60,6 +64,11 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>org.forgerock.opendj.rest2ldap</Export-Package>
+                    </instructions>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
