@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -64,10 +64,9 @@
     </dependency>
   </dependencies>
   <properties>
-    <opendj.osgi.import>
-      com.sun.security.auth*;resolution:=optional,
-      *
-    </opendj.osgi.import>
+    <opendj.osgi.import.additional>
+      com.sun.security.auth*;resolution:=optional
+    </opendj.osgi.import.additional>
   </properties>
   <build>
     <plugins>
@@ -88,11 +87,23 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Creates opendj-core bundle -->
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package>
+              com.forgerock.opendj.util,
+              org.forgerock.opendj.io,
+              org.forgerock.opendj.ldap*,
+              org.forgerock.opendj.ldif
+            </Export-Package>
+          </instructions>
+        </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>

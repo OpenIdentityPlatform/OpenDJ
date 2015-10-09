@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2015 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -70,12 +70,13 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <properties>
-    <opendj.osgi.import>
-      com.sun.security.auth*;resolution:=optional,
-      *
-    </opendj.osgi.import>
+    <opendj.osgi.import.additional>
+      org.forgerock.opendj.*;provide:=true
+    </opendj.osgi.import.additional>
   </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -98,7 +99,14 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <!-- Export only public APIs of this module-->
+            <Export-Package>
+              org.forgerock.opendj.grizzly*
+            </Export-Package>
+          </instructions>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -37,8 +37,7 @@
     This module includes Configuration APIs for implementing LDAP Directory
     client and server applications.
   </description>
-  <!-- Change to bundle when/if we have a need -->
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <dependencies>
     <dependency>
       <groupId>org.forgerock.commons</groupId>
@@ -76,19 +75,38 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
   <properties>
-    <opendj.osgi.import>
-      com.sun.security.auth*;resolution:=optional,
-      *
-    </opendj.osgi.import>
+    <opendj.osgi.import.additional>
+      org.forgerock.opendj.*;provide:=true
+    </opendj.osgi.import.additional>
   </properties>
+
   <build>
+    <resources>
+      <!-- Main resources -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+      <!-- Generated resources -->
+      <resource>
+        <directory>${project.build.directory}/generated-resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>
+        </includes>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
+            <id>generate-test-jar</id>
             <goals>
               <goal>test-jar</goal>
             </goals>
@@ -141,6 +159,10 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
