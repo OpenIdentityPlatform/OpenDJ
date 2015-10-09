@@ -487,7 +487,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       {
         synchronized (trees)
         {
-          trees.remove(treeName);
+          closeSilently(trees.remove(treeName));
           env.removeDatabase(txn, toDatabaseName(treeName));
         }
       }
