@@ -728,12 +728,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   @Override
   public <T> T read(final ReadOperation<T> operation) throws Exception
   {
-    final Transaction txn = beginTransaction();
     try
     {
-      final T result = operation.run(newWriteableTransaction(txn));
-      commit(txn);
-      return result;
+      return operation.run(newWriteableTransaction(null));
     }
     catch (final StorageRuntimeException e)
     {
@@ -742,10 +739,6 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         throw (Exception) e.getCause();
       }
       throw e;
-    }
-    finally
-    {
-      abort(txn);
     }
   }
 
@@ -789,7 +782,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   {
     if (envConfig.getTransactional())
     {
-      final Transaction txn = env.beginTransaction(null, new TransactionConfig());
+      final Transaction txn = env.beginTransaction(null, null);
       logger.trace("beginTransaction", "begin txnid=" + txn.getId());
       return txn;
     }
@@ -798,7 +791,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
   private void commit(final Transaction txn)
   {
-    if (envConfig.getTransactional())
+    if (txn != null)
     {
       txn.commit();
       logger.trace("commit txnid=%d", txn.getId());
@@ -807,7 +800,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
   private void abort(final Transaction txn)
   {
-    if (envConfig.getTransactional())
+    if (txn != null)
     {
       txn.abort();
       logger.trace("abort txnid=%d", txn.getId());
