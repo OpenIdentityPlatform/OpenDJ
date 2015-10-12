@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -50,6 +49,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
@@ -107,35 +107,33 @@ public class LocalBackendModifyOperation
 
   /** The backend in which the target entry exists. */
   private Backend<?> backend;
-
-  /** Indicates whether the request included the user's current password. */
-  private boolean currentPasswordProvided;
-  /**
-   * Indicates whether the user's account has been enabled or disabled
-   * by this modify operation.
-   */
-  private boolean enabledStateChanged;
-  /** Indicates whether the user's account is currently enabled. */
-  private boolean isEnabled;
-
-  /** Indicates whether the request included the LDAP no-op control. */
-  private boolean noOp;
-
-  /** Indicates whether the request included the Permissive Modify control. */
-  private boolean permissiveModify;
+  /** The client connection associated with this operation. */
+  private ClientConnection clientConnection;
+  private boolean preOperationPluginsExecuted;
 
   /** Indicates whether this modify operation includes a password change. */
   private boolean passwordChanged;
-  /** Indicates whether the request included the password policy request control. */
-  private boolean pwPolicyControlRequested;
   /** Indicates whether the password change is a self-change. */
   private boolean selfChange;
-
+  /** Indicates whether the request included the user's current password. */
+  private boolean currentPasswordProvided;
+  /** Indicates whether the user's account has been enabled or disabled by this modify operation. */
+  private boolean enabledStateChanged;
+  /** Indicates whether the user's account is currently enabled. */
+  private boolean isEnabled;
   /** Indicates whether the user's account was locked before this change. */
   private boolean wasLocked;
 
-  /** The client connection associated with this operation. */
-  private ClientConnection clientConnection;
+  /** Indicates whether the request included the LDAP no-op control. */
+  private boolean noOp;
+  /** Indicates whether the request included the Permissive Modify control. */
+  private boolean permissiveModify;
+  /** Indicates whether the request included the password policy request control. */
+  private boolean pwPolicyControlRequested;
+  /** The post-read request control, if present. */
+  private LDAPPostReadRequestControl postReadRequest;
+  /** The pre-read request control, if present. */
+  private LDAPPreReadRequestControl preReadRequest;
 
   /** The DN of the entry to modify. */
   private DN entryDN;
@@ -143,28 +141,21 @@ public class LocalBackendModifyOperation
   private Entry currentEntry;
   /** The modified entry that will be stored in the backend. */
   private Entry modifiedEntry;
+  /** The set of modifications contained in this request. */
+  private List<Modification> modifications;
 
   /** The number of passwords contained in the modify operation. */
   private int numPasswords;
 
-  /** The post-read request control, if present.*/
-  private LDAPPostReadRequestControl postReadRequest;
-  /** The pre-read request control, if present.*/
-  private LDAPPreReadRequestControl preReadRequest;
-
-  /** The set of clear-text current passwords (if any were provided).*/
+  /** The set of clear-text current passwords (if any were provided). */
   private List<ByteString> currentPasswords;
-  /** The set of clear-text new passwords (if any were provided).*/
+  /** The set of clear-text new passwords (if any were provided). */
   private List<ByteString> newPasswords;
-
-  /** The set of modifications contained in this request. */
-  private List<Modification> modifications;
 
   /** The password policy error type for this operation. */
   private PasswordPolicyErrorType pwpErrorType;
   /** The password policy state for this modify operation. */
   private PasswordPolicyState pwPolicyState;
-
 
 
   /**
@@ -192,8 +183,7 @@ public class LocalBackendModifyOperation
    * Retrieves the current entry before any modifications are applied.  This
    * will not be available to pre-parse plugins.
    *
-   * @return  The current entry, or <CODE>null</CODE> if it is not yet
-   *          available.
+   * @return  The current entry, or {@code null} if it is not yet available.
    */
   @Override
   public final Entry getCurrentEntry()
@@ -211,7 +201,7 @@ public class LocalBackendModifyOperation
    * plugins.
    *
    * @return  The set of clear-text current password values as provided in the
-   *          modify request, or <CODE>null</CODE> if there were none or this
+   *          modify request, or {@code null} if there were none or this
    *          information is not yet available.
    */
   @Override
@@ -229,7 +219,7 @@ public class LocalBackendModifyOperation
    * the set of modifications to ensure that the update will be consistent.
    *
    * @return  The modified entry that is to be written to the backend, or
-   *          <CODE>null</CODE> if it is not yet available.
+   *          {@code null} if it is not yet available.
    */
   @Override
   public final Entry getModifiedEntry()
@@ -246,7 +236,7 @@ public class LocalBackendModifyOperation
    * values in the clear.  It will not be available to pre-parse plugins.
    *
    * @return  The set of clear-text new passwords as provided in the modify
-   *          request, or <CODE>null</CODE> if there were none or this
+   *          request, or {@code null} if there were none or this
    *          information is not yet available.
    */
   @Override
@@ -258,15 +248,13 @@ public class LocalBackendModifyOperation
 
 
   /**
-   * Adds the provided modification to the set of modifications to this modify
-   * operation.
+   * Adds the provided modification to the set of modifications to this modify operation.
    * In addition, the modification is applied to the modified entry.
-   *
+   * <p>
    * This may only be called by pre-operation plugins.
    *
    * @param  modification  The modification to add to the set of changes for
    *                       this modify operation.
-   *
    * @throws  DirectoryException  If an unexpected problem occurs while applying
    *                              the modification to the entry.
    */
@@ -291,40 +279,19 @@ public class LocalBackendModifyOperation
   void processLocalModify(final LocalBackendWorkflowElement wfe) throws CanceledOperationException
   {
     this.backend = wfe.getBackend();
+    this.clientConnection = getClientConnection();
 
-    clientConnection = getClientConnection();
-
-    // Check for a request to cancel this operation.
     checkIfCanceled(false);
-
     try
     {
-      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
-      processModify(executePostOpPlugins);
+      processModify();
 
-      // If the password policy request control was included, then make sure we
-      // send the corresponding response control.
       if (pwPolicyControlRequested)
       {
         addResponseControl(new PasswordPolicyResponseControl(null, 0, pwpErrorType));
       }
 
-      // Invoke the post-operation or post-synchronization modify plugins.
-      if (isSynchronizationOperation())
-      {
-        if (getResultCode() == ResultCode.SUCCESS)
-        {
-          getPluginConfigManager().invokePostSynchronizationModifyPlugins(this);
-        }
-      }
-      else if (executePostOpPlugins.get())
-      {
-        // FIXME -- Should this also be done while holding the locks?
-        if (!processOperationResult(this, getPluginConfigManager().invokePostOperationModifyPlugins(this)))
-        {
-          return;
-        }
-      }
+      invokePostModifyPlugins();
     }
     finally
     {
@@ -350,9 +317,26 @@ public class LocalBackendModifyOperation
     }
   }
 
+  private void invokePostModifyPlugins()
+  {
+    if (isSynchronizationOperation())
+    {
+      if (getResultCode() == ResultCode.SUCCESS)
+      {
+        getPluginConfigManager().invokePostSynchronizationModifyPlugins(this);
+      }
+    }
+    else if (preOperationPluginsExecuted)
+    {
+      PostOperation result = getPluginConfigManager().invokePostOperationModifyPlugins(this);
+      if (!processOperationResult(this, result))
+      {
+        return;
+      }
+    }
+  }
 
-  private void processModify(AtomicBoolean executePostOpPlugins)
-      throws CanceledOperationException
+  private void processModify() throws CanceledOperationException
   {
     entryDN = getEntryDN();
     if (entryDN == null)
@@ -375,7 +359,6 @@ public class LocalBackendModifyOperation
       return;
     }
 
-    // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
     // Acquire a write lock on the target entry.
@@ -389,24 +372,17 @@ public class LocalBackendModifyOperation
         return;
       }
 
-      // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
-      // Get the entry to modify. If it does not exist, then fail.
       currentEntry = backend.getEntry(entryDN);
-
       if (currentEntry == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
         appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(entryDN));
-
-        // See if one of the entry's ancestors exists.
         setMatchedDN(findMatchedDN(entryDN));
         return;
       }
 
-      // Check to see if there are any controls in the request. If so, then
-      // see if there is any special processing required.
       processRequestControls();
 
       // Get the password policy state object for the entry that can be used
@@ -498,14 +474,13 @@ public class LocalBackendModifyOperation
         }
       }
 
-      // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
       // If the operation is not a synchronization operation,
       // Invoke the pre-operation modify plugins.
       if (!isSynchronizationOperation())
       {
-        executePostOpPlugins.set(true);
+        preOperationPluginsExecuted = true;
         if (!processOperationResult(this, getPluginConfigManager().invokePreOperationModifyPlugins(this)))
         {
           return;
@@ -1003,8 +978,8 @@ public class LocalBackendModifyOperation
 
     // Iterate through the password values and see if any of them are
     // pre-encoded. If so, then check to see if we'll allow it.
-    // Otherwise, store the clear-text values for later validation and
-    // update the attribute with the encoded values.
+    // Otherwise, store the clear-text values for later validation
+    // and update the attribute with the encoded values.
     AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
     for (ByteString v : pwAttr)
     {
@@ -1162,7 +1137,7 @@ public class LocalBackendModifyOperation
     if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
     {
       String[] components = AuthPasswordSyntax.decodeAuthPassword(av.toString());
-      PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(components[0].toString());
+      PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(components[0]);
       return scheme != null && scheme.authPasswordMatches(val, components[1], components[2]);
     } else {
       String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
