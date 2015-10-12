@@ -783,7 +783,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     if (envConfig.getTransactional())
     {
       final Transaction txn = env.beginTransaction(null, null);
-      logger.trace("beginTransaction", "begin txnid=" + txn.getId());
+      logger.trace("beginTransaction txnid=%d", txn.getId());
       return txn;
     }
     return null;
