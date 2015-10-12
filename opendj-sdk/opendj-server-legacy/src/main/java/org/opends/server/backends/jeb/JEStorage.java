@@ -26,6 +26,8 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
+import static com.sleepycat.je.LockMode.READ_COMMITTED;
+import static com.sleepycat.je.LockMode.RMW;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.forgerock.util.Utils.*;
@@ -97,10 +99,8 @@ import com.sleepycat.je.DatabaseNotFoundException;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
-import com.sleepycat.je.TransactionConfig;
 
 /** Berkeley DB Java Edition (JE for short) database implementation of the {@link Storage} engine. */
 public final class JEStorage implements Storage, Backupable, ConfigurationChangeListener<JEBackendCfg>,
@@ -435,7 +435,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       try
       {
         DatabaseEntry dbValue = new DatabaseEntry();
-        boolean isDefined = getOrOpenTree(treeName).get(txn, db(key), dbValue, null) == SUCCESS;
+        boolean isDefined = getOrOpenTree(treeName).get(txn, db(key), dbValue, READ_COMMITTED) == SUCCESS;
         return valueToBytes(dbValue, isDefined);
       }
       catch (DatabaseException e)
@@ -453,7 +453,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         DatabaseEntry dbKey = db(key);
         DatabaseEntry dbValue = new DatabaseEntry();
 
-        boolean isDefined = tree.get(txn, dbKey, dbValue, LockMode.RMW) == SUCCESS;
+        boolean isDefined = tree.get(txn, dbKey, dbValue, RMW) == SUCCESS;
         final ByteSequence oldValue = valueToBytes(dbValue, isDefined);
         final ByteSequence newValue = f.computeNewValue(oldValue);
         if (!Objects.equals(newValue, oldValue))
