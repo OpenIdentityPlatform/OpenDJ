@@ -83,10 +83,12 @@
   <adm:property name="ssl-cert-nickname" multi-valued="true">
     <adm:TODO>Need a better default description.</adm:TODO>
     <adm:synopsis>
-      Specifies the nickname (also called the alias) of the certificate
+      Specifies the nicknames (also called the aliases) of the certificates
       that the
       <adm:user-friendly-name />
-      should use when performing SSL communication.
+      should use when performing SSL communication. The property can be used multiple times
+      (referencing different nicknames) when an RSA, a DSA, and an ECC based server certificate
+      is used in parallel.
     </adm:synopsis>
     <adm:description>
       This is only applicable when the
