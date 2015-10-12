@@ -55,7 +55,6 @@ public final class TestRDN extends TypesTestCase {
   private ByteString AV_CN;
 
 
-
   /**
    * Set up the environment for performing the tests in this suite.
    *
@@ -177,6 +176,19 @@ public final class TestRDN extends TypesTestCase {
     assertEquals(rdn.getAttributeType(1), AT_CN);
     assertEquals(rdn.getAttributeName(1), AT_CN.getNameOrOID());
     assertEquals(rdn.getAttributeValue(1), AV_CN);
+  }
+
+
+
+  /**
+   * Test escaping of single space values.
+   *
+   * @throws Exception  If the test failed unexpectedly.
+   */
+  @Test
+  public void testEscaping() {
+    RDN rdn = new RDN(AT_DC, ByteString.valueOf(" "));
+    assertEquals(rdn.toString(), "dc=\\ ");
   }
 
 

@@ -497,6 +497,9 @@ public final class RDN
     if (c == ' ' || c == '#') {
       buffer.append('\\');
       buffer.append(c);
+      if (length == 1) {
+        return buffer.toString();
+      }
       start = 1;
     }
 
