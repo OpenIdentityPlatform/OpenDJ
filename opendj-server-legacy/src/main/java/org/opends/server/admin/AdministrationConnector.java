@@ -593,10 +593,7 @@ public final class AdministrationConnector implements
     }
     catch (Exception e)
     {
-      logger.traceException(e);
-      LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
-      logger.error(message);
-      throw new InitializationException(message);
+      throw new InitializationException(ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage()), e);
     }
   }
 

@@ -101,7 +101,7 @@ public final class Platform
     RSA("rsa", 2048, "SHA1WithRSA"),
 
     /** Elliptic Curve key algorithm with 233 bits size and SHA1withECDSA signing algorithm. */
-    EC("ec", 233, "SHA1withECDSA");
+    EC("ec", 256, "SHA1withECDSA");
 
     /** Default key type used when none can be determined. */
     public final static KeyType DEFAULT = RSA;
@@ -251,14 +251,14 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
         ks.deleteEntry(alias);
-        FileOutputStream fs = new FileOutputStream(ksPath);
-        ks.store(fs, pwd);
-        fs.close();
+        try (final FileOutputStream fs = new FileOutputStream(ksPath))
+        {
+          ks.store(fs, pwd);
+        }
       }
       catch (Exception e)
       {
-        LocalizableMessage msg = ERR_CERTMGR_DELETE_ALIAS.get(alias, e.getMessage());
-        throw new KeyStoreException(msg.toString());
+        throw new KeyStoreException(ERR_CERTMGR_DELETE_ALIAS.get(alias, e.getMessage()).toString(), e);
       }
     }
 
@@ -300,8 +300,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        LocalizableMessage msg = ERR_CERTMGR_ADD_CERT.get(alias, e.getMessage());
-        throw new KeyStoreException(msg.toString());
+        throw new KeyStoreException(ERR_CERTMGR_ADD_CERT.get(alias, e.getMessage()).toString(), e);
       }
     }
 
@@ -346,9 +345,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        LocalizableMessage msg = ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e
-            .getMessage());
-        throw new KeyStoreException(msg.toString());
+        throw new KeyStoreException(ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e.getMessage()).toString(), e);
       }
       return ks;
     }
@@ -378,8 +375,7 @@ public final class Platform
       }
       catch (Exception e)
       {
-        LocalizableMessage msg = ERR_CERTMGR_TRUSTED_CERT.get(alias, e.getMessage());
-        throw new KeyStoreException(msg.toString());
+        throw new KeyStoreException(ERR_CERTMGR_TRUSTED_CERT.get(alias, e.getMessage()).toString(), e);
       }
     }
 
