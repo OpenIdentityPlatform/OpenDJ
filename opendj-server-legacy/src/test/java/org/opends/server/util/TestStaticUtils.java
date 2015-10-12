@@ -169,20 +169,6 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
-   * Tests the {@link StaticUtils#getBytes(char[])} method.
-   *
-   * @param inputString
-   *          The input string.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "getBytesTestData")
-  public void testCharsToBytes(String inputString) throws Exception {
-    Assert.assertEquals(StaticUtils.getBytes(inputString.toCharArray()),
-        inputString.getBytes("UTF-8"));
-  }
-
-  /**
    * Create test strings for the {@link StaticUtils#byteToHex(byte)}.
    *
    * @return Returns an array of test strings.
@@ -235,23 +221,6 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
-   * Tests the {@link StaticUtils#byteToASCII(byte)} method.
-   *
-   * @param b
-   *          The input byte.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "byteToHexTestData")
-  public void testByteToASCII(byte b) throws Exception {
-    if (b < 32 || b > 126) {
-      Assert.assertEquals(StaticUtils.byteToASCII(b), ' ');
-    } else {
-      Assert.assertEquals(StaticUtils.byteToASCII(b), (char) b);
-    }
-  }
-
-  /**
    * Create test strings for the {@link StaticUtils#bytesToHex(byte[])}.
    *
    * @return Returns an array of test data.
@@ -299,19 +268,6 @@ public final class TestStaticUtils extends UtilTestCase {
     ByteBuffer buffer = (bytes != null) ? ByteBuffer.wrap(bytes) : null;
 
     Assert.assertEquals(StaticUtils.bytesToHex(buffer), expected);
-  }
-
-  /**
-   * Tests the {@link StaticUtils#byteToBinary(byte)} method.
-   *
-   * @param b
-   *          The input byte.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "byteToHexTestData")
-  public void testByteToBinary(byte b) throws Exception {
-    Assert.assertEquals(StaticUtils.byteToBinary(b), BIT_STRINGS[b & 0xff]);
   }
 
   /**
@@ -1101,11 +1057,45 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
+   * Create test strings for the {@link StaticUtils#toLowerCase(ByteSequence, StringBuilder, boolean)} method
+   * with trimming enabled.
+   *
+   * @return Returns an array of test data.
+   */
+  @DataProvider(name = "stringCaseConversionTestDataWithTrim")
+  public Object[][] createStringCaseConversionTestDataWithTrim()
+  {
+    return new Object[][] {
+        {" aBc", "abc"},
+        {"abC", "abc"},
+        {"   A bC  ", "a bc"},
+        {"fgh ", "fgh"},
+        {"    ", ""},
+        {"  D ", "d"}
+    };
+  }
+
+  /**
+   * Tests to lower case strings with space trimming.
+   * @param input the test string
+   * @param lower test string in lower case
+   * @throws Exception if tests fails
+   */
+  @Test(dataProvider = "stringCaseConversionTestDataWithTrim")
+  public void testToLowerCaseWithTrim(String input, String lower) throws Exception
+  {
+    StringBuilder sb = new StringBuilder();
+    ByteString bytes = input != null ? ByteString.valueOf(input) : null;
+    StaticUtils.toLowerCase(bytes, sb, true);
+    Assert.assertEquals(sb.toString(), lower);
+  }
+
+  /**
    * Create test strings for the
    * {@link StaticUtils#toRFC3641StringValue(StringBuilder, String)}
    * method.
    *
-   * @return Returns an array of test data.
+   * @return an array of test data.
    */
   @DataProvider(name = "toRFC3641StringValueTestData")
   public Object[][] createToRFC3641StringValueTestData() {

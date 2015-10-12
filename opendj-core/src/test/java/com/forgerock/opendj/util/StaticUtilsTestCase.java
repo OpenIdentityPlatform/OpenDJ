@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.util;
 
@@ -30,6 +30,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.testng.Assert;
@@ -111,7 +113,7 @@ public final class StaticUtilsTestCase extends UtilTestCase {
     }
 
     /**
-     * Tests {@link GeneralizedTimeSyntax#format(java.util.Date)}.
+     * Tests {@link StaticUtils#formatAsGeneralizedTime(java.util.Date)}.
      *
      * @param yyyy
      *            The year.
@@ -227,6 +229,20 @@ public final class StaticUtilsTestCase extends UtilTestCase {
         }
     }
 
+    @Test(dataProvider = "getBytesTestData")
+    public void testCharsToBytes(String inputString) throws Exception {
+        Assert.assertEquals(StaticUtils.getBytes(inputString.toCharArray()), inputString.getBytes("UTF-8"));
+    }
+
+    @Test(dataProvider = "byteToHexTestData")
+    public void testByteToASCII(byte b) throws Exception {
+        if (b < 32 || b > 126) {
+            Assert.assertEquals(byteToASCII(b), ' ');
+        } else {
+            Assert.assertEquals(byteToASCII(b), (char) b);
+        }
+    }
+
     @DataProvider
     public Object[][] stackTraceToSingleLineFullStackStackProvider() {
         return new Object[][] {
@@ -269,5 +285,58 @@ public final class StaticUtilsTestCase extends UtilTestCase {
         assertThat(trace).startsWith(expectedStartWith);
         assertThat(trace).contains(expectedContains);
         assertThat(trace).doesNotContain("...)");
+    }
+
+    @DataProvider(name = "byteToHexTestData")
+    public Object[][] createByteToHexTestData() {
+        Object[][] data = new Object[256][];
+
+        for (int i = 0; i < 256; i++) {
+            data[i] = new Object[] { new Byte((byte) i) };
+        }
+
+        return data;
+    }
+
+    @DataProvider(name = "getBytesTestData")
+    public Object[][] createGetBytesTestData() {
+        List<String> strings = new LinkedList<>();
+
+        // Some simple strings.
+        strings.add("");
+        strings.add(" ");
+        strings.add("an ascii string");
+
+        // A string containing just UTF-8 1 byte sequences.
+        StringBuilder builder = new StringBuilder();
+        for (char c = '\u0000'; c < '\u0080'; c++) {
+            builder.append(c);
+        }
+        strings.add(builder.toString());
+
+        // A string containing UTF-8 1 and 2 byte sequences.
+        builder = new StringBuilder();
+        for (char c = '\u0000'; c < '\u0100'; c++) {
+            builder.append(c);
+        }
+        strings.add(builder.toString());
+
+        // A string containing UTF-8 1 and 6 byte sequences.
+        builder = new StringBuilder();
+        for (char c = '\u0000'; c < '\u0080'; c++) {
+            builder.append(c);
+        }
+        for (char c = '\uff00'; c != '\u0000'; c++) {
+            builder.append(c);
+        }
+        strings.add(builder.toString());
+
+        // Construct the array.
+        Object[][] data = new Object[strings.size()][];
+        for (int i = 0; i < strings.size(); i++) {
+            data[i] = new Object[] { strings.get(i) };
+        }
+
+        return data;
     }
 }

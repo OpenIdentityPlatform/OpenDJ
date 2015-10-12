@@ -27,7 +27,7 @@
 package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;

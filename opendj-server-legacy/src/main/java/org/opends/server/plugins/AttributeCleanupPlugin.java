@@ -27,7 +27,7 @@
 package org.opends.server.plugins;
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
