@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -414,6 +414,18 @@ public final class RDNTestCase extends SdkTestCase {
         final Iterator<AVA> it = rdn.iterator();
         assertEquals(it.next().getAttributeType().getNameOrOID(), ATTR_TYPE_DC.getNameOrOID());
         assertEquals(it.next().getAttributeType().getNameOrOID(), ATTR_TYPE_CN.getNameOrOID());
+    }
+
+    /**
+     * Test escaping of single space values.
+     *
+     * @throws Exception
+     *             If the test failed unexpectedly.
+     */
+    @Test
+    public void testEscaping() {
+        RDN rdn = new RDN(ATTR_TYPE_DC, ByteString.valueOf(" "));
+        assertEquals(rdn.toString(), "dc=\\ ");
     }
 
     /**
