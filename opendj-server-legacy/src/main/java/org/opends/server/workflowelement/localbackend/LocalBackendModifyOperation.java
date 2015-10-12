@@ -110,13 +110,11 @@ public class LocalBackendModifyOperation
 
   /** Indicates whether the request included the user's current password. */
   private boolean currentPasswordProvided;
-
   /**
    * Indicates whether the user's account has been enabled or disabled
    * by this modify operation.
    */
   private boolean enabledStateChanged;
-
   /** Indicates whether the user's account is currently enabled. */
   private boolean isEnabled;
 
@@ -290,8 +288,7 @@ public class LocalBackendModifyOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  public void processLocalModify(final LocalBackendWorkflowElement wfe)
-      throws CanceledOperationException
+  void processLocalModify(final LocalBackendWorkflowElement wfe) throws CanceledOperationException
   {
     this.backend = wfe.getBackend();
 
@@ -473,18 +470,20 @@ public class LocalBackendModifyOperation
         return;
       }
 
-      processPasswordPolicyModifications();
-      performAdditionalPasswordChangedProcessing();
-
-      if (!passwordChanged && !isInternalOperation() && selfChange
-          && pwPolicyState != null && pwPolicyState.mustChangePassword())
+      if (isAuthnManagedLocally())
       {
-        // The user did not attempt to change their password.
-        pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-        setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-        appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
-            .get(authzDN != null ? authzDN : "anonymous"));
-        return;
+        processPasswordPolicyModifications();
+        performAdditionalPasswordChangedProcessing();
+
+        if (!isInternalOperation()
+            && selfChange && !passwordChanged && pwPolicyState.mustChangePassword())
+        {
+          // The user did not attempt to change their password.
+          pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get(authzDN != null ? authzDN : "anonymous"));
+          return;
+        }
       }
 
       if (mustCheckSchema())
@@ -539,7 +538,10 @@ public class LocalBackendModifyOperation
 
         backend.replaceEntry(currentEntry, modifiedEntry, this);
 
-        generatePwpAccountStatusNotifications();
+        if (isAuthnManagedLocally())
+        {
+          generatePwpAccountStatusNotifications();
+        }
       }
 
       // Handle any processing that may be needed for the pre-read and/or post-read controls.
@@ -802,12 +804,6 @@ public class LocalBackendModifyOperation
     isEnabled = true;
     enabledStateChanged = false;
 
-    if (!isAuthnManagedLocally())
-    {
-      // nothing to do.
-      return;
-    }
-
     final PasswordPolicy authPolicy = pwPolicyState.getAuthenticationPolicy();
     if (currentEntry.hasAttribute(authPolicy.getPasswordAttribute()))
     {
@@ -850,7 +846,7 @@ public class LocalBackendModifyOperation
           && t.equals(getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_DISABLED)))
       {
         enabledStateChanged = true;
-        isEnabled = pwPolicyState != null && !pwPolicyState.isDisabled();
+        isEnabled = !pwPolicyState.isDisabled();
       }
     }
   }
@@ -1496,9 +1492,9 @@ public class LocalBackendModifyOperation
    * @throws DirectoryException
    *           If a problem occurs that should cause the modify operation to fail.
    */
-  public void performAdditionalPasswordChangedProcessing() throws DirectoryException
+  private void performAdditionalPasswordChangedProcessing() throws DirectoryException
   {
-    if (!isAuthnManagedLocally() || !passwordChanged)
+    if (!passwordChanged)
     {
       // Nothing to do.
       return;
@@ -1605,12 +1601,6 @@ public class LocalBackendModifyOperation
   /** Generate any password policy account status notifications as a result of modify processing. */
   private void generatePwpAccountStatusNotifications()
   {
-    if (!isAuthnManagedLocally())
-    {
-      // nothing to do.
-      return;
-    }
-
     if (passwordChanged)
     {
       if (selfChange)
