@@ -36,7 +36,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * This class is a wrapper around the tree object and provides basic
  * read and write methods for entries.
  */
-abstract class AbstractTree implements Tree, Comparable<Tree>
+abstract class AbstractTree implements Tree
 {
   /** The name of the tree within the entryContainer. */
   private final TreeName name;
