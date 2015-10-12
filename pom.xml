@@ -143,7 +143,7 @@
     <coreDocBase>https://backstage.forgerock.com/#!/docs/opendj/${stableServerVersion}</coreDocBase>
     <configRefBase>${coreDocBase}/configref/</configRefBase>
     <serverJavadocBase>${coreDocBase}/javadoc/</serverJavadocBase>
-    <sdkJavadocBase>https://backstage.forgerock.com/static/docs/opendj/${stableServerVersion}/apidocs/</sdkJavadocBase>
+    <sdkJavadocBase>https://backstage.forgerock.com/static/docs/opendj-ldap-sdk/${sdkDocTargetVersion}/apidocs/</sdkJavadocBase>
     <!-- END Documentation properties -->
   </properties>
   <build>

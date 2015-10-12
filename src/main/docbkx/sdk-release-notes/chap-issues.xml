@@ -73,21 +73,13 @@
    at the time this release became available.
   </para>
 
-  <!-- List generated at 16:02:23 20150914 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+%28resolution+%3D+unresolved+or+%28fixVersion+not+in+%28%222.6.1-sdk%22%2C+%222.6.2-sdk%22%2C+%222.6.3-sdk%22%2C+%222.6.4-sdk%22%2C+%222.6.5-sdk%22%2C+%222.6.6-sdk%22%2C+%222.6.7-sdk%22%2C+%222.6.8-sdk%22%2C+%222.6.9-sdk%22%2C+%222.6.10-sdk%22%2C+%222.6.11-sdk%22%29%29%29+AND+component+%3D+%22opendj+sdk%22+AND+labels+%3D+release-notes+AND+NOT+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ+AND+fixVersion+in+%28%272.6.10-sdk%27%2C+%272.6.11-sdk%27%29+AND+resolution+%3D+Fixed%22%2C+%22is+a+backport+of%22%29%29&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 11:24:36 20151012 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+%28resolution+%3D+unresolved+or+%28fixVersion+not+in+%28%222.6.0%22%2C+%222.6.1-sdk%22%2C+%222.6.2-sdk%22%2C+%222.6.3-sdk%22%2C+%222.6.4-sdk%22%2C+%222.6.5-sdk%22%2C+%222.6.6-sdk%22%2C+%222.6.7-sdk%22%2C+%222.6.8-sdk%22%2C+%222.6.9-sdk%22%2C+%222.6.10-sdk%22%2C+%222.6.11-sdk%22%29%29%29+AND+component+%3D+%22opendj+sdk%22+AND+labels+%3D+release-notes+AND+NOT+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ+AND+fixVersion+in+%28%272.6.10-sdk%27%2C+%272.6.11-sdk%27%29+AND+resolution+%3D+Fixed%22%2C+%22is+a+backport+of%22%29%29&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1276" xlink:show="new">OPENDJ-1276</link>: ModifyDNRequest javadoc should describe deleteOldRDN default value</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1131" xlink:show="new">OPENDJ-1131</link>: Rest2LDAP fails to start with GlassFish3.1</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-627" xlink:show="new">OPENDJ-627</link>: ConnectionPool internal state becomes invalid when stale connections are discarded</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-590" xlink:show="new">OPENDJ-590</link>: ConnectionPool may return already closed/disconnected connections</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-553" xlink:show="new">OPENDJ-553</link>: FailoverLoadBalancingAlgorithm does not appear to fail over</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-514" xlink:show="new">OPENDJ-514</link>: OpenDJ SDK SASL integrity/confidentiality violates protocol</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-464" xlink:show="new">OPENDJ-464</link>: NPE in PasswordPolicyStateExtendedResult results in eternal waiting</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-427" xlink:show="new">OPENDJ-427</link>: AuthenticatedConnectionFactory hides exception with NPE</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-271" xlink:show="new">OPENDJ-271</link>: ExternalSASLBindRequestImpl throws java.lang.IllegalStateException</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-159" xlink:show="new">OPENDJ-159</link>: LDAP connections use stale default schema if it is changed after factory creation.</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-156" xlink:show="new">OPENDJ-156</link>: Errors when parsing collective attribute definitions </para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-155" xlink:show="new">OPENDJ-155</link>: Add support for OpenDJ extended matching rules and syntaxes</para></listitem>
   </itemizedlist>
-  <!-- Issue count: 12 -->
+  <!-- Issue count: 4 -->
  </section>
 </chapter>

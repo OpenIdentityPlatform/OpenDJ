@@ -98,7 +98,7 @@
     <para>
      <link xlink:show="new"
            xlink:href="${sdkJavadocBase}"><citetitle
-      >OpenDJ 2.6.0 LDAP SDK API Specification</citetitle></link>
+      >OpenDJ 2.6.11 LDAP SDK API Specification</citetitle></link>
     </para>
    </listitem>
   </itemizedlist>
