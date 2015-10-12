@@ -45,7 +45,7 @@ import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for storing and interacting

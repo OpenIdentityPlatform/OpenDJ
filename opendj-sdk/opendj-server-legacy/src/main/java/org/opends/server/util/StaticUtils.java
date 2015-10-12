@@ -30,7 +30,6 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -102,27 +101,9 @@ public final class StaticUtils
    */
   public static final int MB = KB * KB;
 
-  private static final String[][] BYTE_HEX_STRINGS = new String[2][256];
-  private static final String[] BYTE_BIN_STRINGS = new String[256];
-  private static final int UPPER_CASE = 0;
-  private static final int LOWER_CASE = 1;
-
   /** Private constructor to prevent instantiation. */
   private StaticUtils() {
     // No implementation required.
-  }
-
-  static {
-    String[] hexDigits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
-    for (int i = 0; i < 256; i++) {
-      BYTE_HEX_STRINGS[UPPER_CASE][i] = hexDigits[i >>> 4] + hexDigits[i & 0xF];
-      BYTE_HEX_STRINGS[LOWER_CASE][i] = BYTE_HEX_STRINGS[UPPER_CASE][i].toLowerCase();
-      StringBuilder sb = new StringBuilder();
-      for (int j = 7; j >= 0; j--) {
-        sb.append((i & (1 << j)) == 0 ? "0" : "1");
-      }
-      BYTE_BIN_STRINGS[i] = sb.toString();
-    }
   }
 
   /**
@@ -137,45 +118,8 @@ public final class StaticUtils
    */
   public static byte[] getBytes(String s)
   {
-    if (s == null)
-    {
-      return null;
-    }
-
-    try
-    {
-      char c;
-      int length = s.length();
-      byte[] returnArray = new byte[length];
-      for (int i=0; i < length; i++)
-      {
-        c = s.charAt(i);
-        returnArray[i] = (byte) (c & 0x0000007F);
-        if (c != returnArray[i])
-        {
-          return s.getBytes("UTF-8");
-        }
-      }
-
-      return returnArray;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      try
-      {
-        return s.getBytes("UTF-8");
-      }
-      catch (Exception e2)
-      {
-        logger.traceException(e2);
-
-        return s.getBytes();
-      }
-    }
+    return com.forgerock.opendj.util.StaticUtils.getBytes(s);
   }
-
 
 
   /**
@@ -234,72 +178,30 @@ public final class StaticUtils
 
 
   /**
-   * Construct a byte array containing the UTF-8 encoding of the
-   * provided <code>char</code> array.
+   * Retrieves a string representation of the provided byte in hexadecimal.
    *
-   * @param chars
-   *          The character array to convert to a UTF-8 byte array.
-   * @return Returns a byte array containing the UTF-8 encoding of the
-   *         provided <code>char</code> array.
+   * @param b
+   *            The byte for which to retrieve the hexadecimal string
+   *            representation.
+   * @return The string representation of the provided byte in hexadecimal.
    */
-  public static byte[] getBytes(char[] chars)
+
+  public static String byteToHex(final byte b)
   {
-    return getBytes(new String(chars));
+    return com.forgerock.opendj.util.StaticUtils.byteToHex(b);
   }
-
-
-
   /**
    * Retrieves a string representation of the provided byte in hexadecimal.
    *
    * @param  b  The byte for which to retrieve the hexadecimal string
    *            representation.
-   *
-   * @return  The string representation of the provided byte in hexadecimal.
+   * @return The string representation of the provided byte in hexadecimal
+   *         using lowercase characters.
    */
-  public static String byteToHex(byte b)
+  public static String byteToLowerHex(final byte b)
   {
-    return BYTE_HEX_STRINGS[UPPER_CASE][b & 0xFF];
+    return com.forgerock.opendj.util.StaticUtils.byteToLowerHex(b);
   }
-
-
-
-  /**
-   * Retrieves a string representation of the provided byte in hexadecimal.
-   *
-   * @param  b  The byte for which to retrieve the hexadecimal string
-   *            representation.
-   *
-   * @return  The string representation of the provided byte in hexadecimal
-   *          using lowercase characters.
-   */
-  public static String byteToLowerHex(byte b)
-  {
-    return BYTE_HEX_STRINGS[LOWER_CASE][b & 0xFF];
-  }
-
-
-
-  /**
-   * Retrieves the printable ASCII representation of the provided byte.
-   *
-   * @param  b  The byte for which to retrieve the printable ASCII
-   *            representation.
-   *
-   * @return  The printable ASCII representation of the provided byte, or a
-   *          space if the provided byte does not have  printable ASCII
-   *          representation.
-   */
-  public static char byteToASCII(byte b)
-  {
-    if (32 <= b && b <= 126)
-    {
-      return (char) b;
-    }
-    return ' ';
-  }
-
-
 
   /**
    * Retrieves a string representation of the contents of the provided byte
@@ -554,7 +456,10 @@ public final class StaticUtils
     }
   }
 
-
+  private static char byteToASCII(byte b)
+  {
+    return com.forgerock.opendj.util.StaticUtils.byteToASCII(b);
+  }
 
   /**
    * Appends a string representation of the remaining unread data in the
@@ -655,21 +560,6 @@ public final class StaticUtils
 
     b.position(position);
     b.limit(limit);
-  }
-
-
-
-  /**
-   * Retrieves a binary representation of the provided byte.  It will always be
-   * a sequence of eight zeros and/or ones.
-   *
-   * @param  b  The byte for which to retrieve the binary representation.
-   *
-   * @return  The binary representation for the provided byte.
-   */
-  public static String byteToBinary(byte b)
-  {
-    return BYTE_BIN_STRINGS[b & 0xFF];
   }
 
 
@@ -809,73 +699,9 @@ public final class StaticUtils
       message.append(")");
       return LocalizableMessage.raw(message.toString());
     }
-    else if (t instanceof NullPointerException)
-    {
-      LocalizableMessageBuilder message = new LocalizableMessageBuilder();
-      message.append("NullPointerException(");
-
-      StackTraceElement[] stackElements = t.getStackTrace();
-      if (stackElements.length > 0)
-      {
-        message.append(stackElements[0].getFileName());
-        message.append(":");
-        message.append(stackElements[0].getLineNumber());
-      }
-
-      message.append(")");
-      return message.toMessage();
-    }
-    else if (t instanceof InvocationTargetException && t.getCause() != null)
-    {
-      return getExceptionMessage(t.getCause());
-    }
     else
     {
-      StringBuilder message = new StringBuilder();
-
-      String className = t.getClass().getName();
-      int periodPos = className.lastIndexOf('.');
-      if (periodPos > 0)
-      {
-        message.append(className.substring(periodPos+1));
-      }
-      else
-      {
-        message.append(className);
-      }
-
-      message.append("(");
-      if (t.getMessage() == null)
-      {
-        StackTraceElement[] stackElements = t.getStackTrace();
-
-        if (stackElements.length > 0)
-        {
-          message.append(stackElements[0].getFileName());
-          message.append(":");
-          message.append(stackElements[0].getLineNumber());
-
-          // FIXME Temporary to debug issue 2256.
-          if (t instanceof IllegalStateException)
-          {
-            for (int i = 1; i < stackElements.length; i++)
-            {
-              message.append(' ');
-              message.append(stackElements[i].getFileName());
-              message.append(":");
-              message.append(stackElements[i].getLineNumber());
-            }
-          }
-        }
-      }
-      else
-      {
-        message.append(t.getMessage());
-      }
-
-      message.append(")");
-
-      return LocalizableMessage.raw(message.toString());
+      return com.forgerock.opendj.util.StaticUtils.getExceptionMessage(t);
     }
   }
 
@@ -891,8 +717,7 @@ public final class StaticUtils
    */
   public static String stackTraceToSingleLineString(Throwable t)
   {
-    return com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(
-        t, DynamicConstants.DEBUG_BUILD);
+    return com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(t, DynamicConstants.DEBUG_BUILD);
   }
 
 
@@ -907,8 +732,7 @@ public final class StaticUtils
   public static void stackTraceToSingleLineString(StringBuilder buffer,
                                                   Throwable t)
   {
-    com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(
-        buffer, t, DynamicConstants.DEBUG_BUILD);
+    com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(buffer, t, DynamicConstants.DEBUG_BUILD);
   }
 
 
@@ -1091,24 +915,8 @@ public final class StaticUtils
    * @return  <CODE>true</CODE> if the provided character represents a numeric
    *          digit, or <CODE>false</CODE> if not.
    */
-  public static boolean isDigit(char c)
-  {
-    switch (c)
-    {
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-        return true;
-      default:
-        return false;
-    }
+  public static boolean isDigit(final char c) {
+    return com.forgerock.opendj.util.StaticUtils.isDigit(c);
   }
 
 
@@ -1122,81 +930,9 @@ public final class StaticUtils
    *          lowercase ASCII alphabetic character, or <CODE>false</CODE> if it
    *          is not.
    */
-  public static boolean isAlpha(char c)
-  {
-    switch (c)
-    {
-      case 'A':
-      case 'B':
-      case 'C':
-      case 'D':
-      case 'E':
-      case 'F':
-      case 'G':
-      case 'H':
-      case 'I':
-      case 'J':
-      case 'K':
-      case 'L':
-      case 'M':
-      case 'N':
-      case 'O':
-      case 'P':
-      case 'Q':
-      case 'R':
-      case 'S':
-      case 'T':
-      case 'U':
-      case 'V':
-      case 'W':
-      case 'X':
-      case 'Y':
-      case 'Z':
-        return true;
-
-      case '[':
-      case '\\':
-      case ']':
-      case '^':
-      case '_':
-      case '`':
-        // Making sure all possible cases are present in one contiguous range
-        // can result in a performance improvement.
-        return false;
-
-      case 'a':
-      case 'b':
-      case 'c':
-      case 'd':
-      case 'e':
-      case 'f':
-      case 'g':
-      case 'h':
-      case 'i':
-      case 'j':
-      case 'k':
-      case 'l':
-      case 'm':
-      case 'n':
-      case 'o':
-      case 'p':
-      case 'q':
-      case 'r':
-      case 's':
-      case 't':
-      case 'u':
-      case 'v':
-      case 'w':
-      case 'x':
-      case 'y':
-      case 'z':
-        return true;
-      default:
-        return false;
-    }
+  public static boolean isAlpha(final char c) {
+    return com.forgerock.opendj.util.StaticUtils.isAlpha(c);
   }
-
-
 
   /**
    * Indicates whether the provided character is a hexadecimal digit.
@@ -1206,39 +942,9 @@ public final class StaticUtils
    * @return  <CODE>true</CODE> if the provided character represents a
    *          hexadecimal digit, or <CODE>false</CODE> if not.
    */
-  public static boolean isHexDigit(char c)
-  {
-    switch (c)
-    {
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-      case 'A':
-      case 'B':
-      case 'C':
-      case 'D':
-      case 'E':
-      case 'F':
-      case 'a':
-      case 'b':
-      case 'c':
-      case 'd':
-      case 'e':
-      case 'f':
-        return true;
-      default:
-        return false;
-    }
+  public static boolean isHexDigit(final char c) {
+    return com.forgerock.opendj.util.StaticUtils.isHexDigit(c);
   }
-
-
 
   /**
    * Indicates whether the provided byte represents a hexadecimal digit.
@@ -1477,7 +1183,7 @@ public final class StaticUtils
 
 
     // If the value ends with a space, then it needs to be base64-encoded.
-    if (length > 1 && valueBytes.byteAt(length-1) == 0x20)
+    if (length > 1 && valueBytes.byteAt(length - 1) == 0x20)
     {
       return true;
     }
@@ -1541,7 +1247,7 @@ public final class StaticUtils
 
 
     // If the value ends with a space, then it needs to be base64-encoded.
-    if (length > 1 && valueString.charAt(length-1) == ' ')
+    if (length > 1 && valueString.charAt(length - 1) == ' ')
     {
       return true;
     }
@@ -1915,155 +1621,21 @@ public final class StaticUtils
 
 
   /**
-   * Retrieves a lowercase representation of the given string.  This
-   * implementation presumes that the provided string will contain only ASCII
-   * characters and is optimized for that case.  However, if a non-ASCII
-   * character is encountered it will fall back on a more expensive algorithm
-   * that will work properly for non-ASCII characters.
+   * Returns a lower-case string representation of a given string, verifying for null input string.
+   * {@see com.forgerock.opendj.util.StaticUtils#toLowerCase(String s)}
    *
-   * @param  s  The string for which to obtain the lowercase representation.
-   *
-   * @return  The lowercase representation of the given string.
+   * @param s the mixed case string
+   * @return a lower-case string
    */
   public static String toLowerCase(String s)
   {
-    if (s == null)
-    {
-      return null;
-    }
-
-    StringBuilder buffer = new StringBuilder(s.length());
-    toLowerCase(s, buffer);
-    return buffer.toString();
+    return (s == null ? null : com.forgerock.opendj.util.StaticUtils.toLowerCase(s));
   }
 
-
-
   /**
-   * Appends a lowercase representation of the given string to the provided
-   * buffer.  This implementation presumes that the provided string will contain
-   * only ASCII characters and is optimized for that case.  However, if a
-   * non-ASCII character is encountered it will fall back on a more expensive
-   * algorithm that will work properly for non-ASCII characters.
-   *
-   * @param  s       The string for which to obtain the lowercase
-   *                 representation.
-   * @param  buffer  The buffer to which the lowercase form of the string should
-   *                 be appended.
-   */
-  public static void toLowerCase(String s, StringBuilder buffer)
-  {
-    if (s == null)
-    {
-      return;
-    }
-
-    int length = s.length();
-    for (int i=0; i < length; i++)
-    {
-      char c = s.charAt(i);
-
-      if ((c & 0x7F) != c)
-      {
-        buffer.append(s.substring(i).toLowerCase());
-        return;
-      }
-
-      switch (c)
-      {
-        case 'A':
-          buffer.append('a');
-          break;
-        case 'B':
-          buffer.append('b');
-          break;
-        case 'C':
-          buffer.append('c');
-          break;
-        case 'D':
-          buffer.append('d');
-          break;
-        case 'E':
-          buffer.append('e');
-          break;
-        case 'F':
-          buffer.append('f');
-          break;
-        case 'G':
-          buffer.append('g');
-          break;
-        case 'H':
-          buffer.append('h');
-          break;
-        case 'I':
-          buffer.append('i');
-          break;
-        case 'J':
-          buffer.append('j');
-          break;
-        case 'K':
-          buffer.append('k');
-          break;
-        case 'L':
-          buffer.append('l');
-          break;
-        case 'M':
-          buffer.append('m');
-          break;
-        case 'N':
-          buffer.append('n');
-          break;
-        case 'O':
-          buffer.append('o');
-          break;
-        case 'P':
-          buffer.append('p');
-          break;
-        case 'Q':
-          buffer.append('q');
-          break;
-        case 'R':
-          buffer.append('r');
-          break;
-        case 'S':
-          buffer.append('s');
-          break;
-        case 'T':
-          buffer.append('t');
-          break;
-        case 'U':
-          buffer.append('u');
-          break;
-        case 'V':
-          buffer.append('v');
-          break;
-        case 'W':
-          buffer.append('w');
-          break;
-        case 'X':
-          buffer.append('x');
-          break;
-        case 'Y':
-          buffer.append('y');
-          break;
-        case 'Z':
-          buffer.append('z');
-          break;
-        default:
-          buffer.append(c);
-      }
-    }
-  }
-
-
-
-  /**
-   * Appends a lowercase string representation of the contents of the given byte
-   * array to the provided buffer, optionally trimming leading and trailing
-   * spaces.  This implementation presumes that the provided string will contain
-   * only ASCII characters and is optimized for that case.  However, if a
-   * non-ASCII character is encountered it will fall back on a more expensive
-   * algorithm that will work properly for non-ASCII characters.
+   * Appends a lower-case string representation of a given ByteSequence to a StringBuilder,
+   * verifying for null input.
+   * {@see com.forgerock.opendj.util.StaticUtils#toLowerCase(ByteSequence s, StringBuilder string)}
    *
    * @param  b       The byte array for which to obtain the lowercase string
    *                 representation.
@@ -2072,136 +1644,39 @@ public final class StaticUtils
    * @param  trim    Indicates whether leading and trailing spaces should be
    *                 omitted from the string representation.
    */
-  public static void toLowerCase(ByteSequence b, StringBuilder buffer,
-                                 boolean trim)
+  public static void toLowerCase(ByteSequence b, StringBuilder buffer, boolean trim)
   {
     if (b == null)
     {
       return;
     }
 
-    int origBufferLen = buffer.length();
-    int length = b.length();
-    for (int i=0; i < length; i++)
-    {
-      if ((b.byteAt(i) & 0x7F) != b.byteAt(i))
-      {
-        buffer.replace(origBufferLen, buffer.length(),
-            b.toString().toLowerCase());
-        break;
-      }
-
-      int bufferLength = buffer.length();
-      switch (b.byteAt(i))
-      {
-        case ' ':
-          // If we don't care about trimming, then we can always append the
-          // space.  Otherwise, only do so if there are other characters in the value.
-          if (trim && bufferLength == 0)
-          {
-            break;
-          }
-
-          buffer.append(' ');
-          break;
-        case 'A':
-          buffer.append('a');
-          break;
-        case 'B':
-          buffer.append('b');
-          break;
-        case 'C':
-          buffer.append('c');
-          break;
-        case 'D':
-          buffer.append('d');
-          break;
-        case 'E':
-          buffer.append('e');
-          break;
-        case 'F':
-          buffer.append('f');
-          break;
-        case 'G':
-          buffer.append('g');
-          break;
-        case 'H':
-          buffer.append('h');
-          break;
-        case 'I':
-          buffer.append('i');
-          break;
-        case 'J':
-          buffer.append('j');
-          break;
-        case 'K':
-          buffer.append('k');
-          break;
-        case 'L':
-          buffer.append('l');
-          break;
-        case 'M':
-          buffer.append('m');
-          break;
-        case 'N':
-          buffer.append('n');
-          break;
-        case 'O':
-          buffer.append('o');
-          break;
-        case 'P':
-          buffer.append('p');
-          break;
-        case 'Q':
-          buffer.append('q');
-          break;
-        case 'R':
-          buffer.append('r');
-          break;
-        case 'S':
-          buffer.append('s');
-          break;
-        case 'T':
-          buffer.append('t');
-          break;
-        case 'U':
-          buffer.append('u');
-          break;
-        case 'V':
-          buffer.append('v');
-          break;
-        case 'W':
-          buffer.append('w');
-          break;
-        case 'X':
-          buffer.append('x');
-          break;
-        case 'Y':
-          buffer.append('y');
-          break;
-        case 'Z':
-          buffer.append('z');
-          break;
-        default:
-          buffer.append((char) b.byteAt(i));
-      }
-    }
-
     if (trim)
     {
-      // Strip off any trailing spaces.
-      for (int i=buffer.length()-1; i > 0; i--)
+      int begin = 0;
+      int end = b.length() - 1;
+      while (begin <= end)
       {
-        if (buffer.charAt(i) == ' ')
+        if (b.byteAt(begin) == ' ')
         {
-          buffer.delete(i, i+1);
+          begin++;
+        }
+        else if (b.byteAt(end) == ' ')
+        {
+          end--;
         }
         else
         {
           break;
         }
       }
+      if (begin > 0 || end < b.length() - 1)
+      {
+        b = b.subSequence(begin, end + 1);
+      }
     }
+
+    com.forgerock.opendj.util.StaticUtils.toLowerCase(b, buffer);
   }
 
 
