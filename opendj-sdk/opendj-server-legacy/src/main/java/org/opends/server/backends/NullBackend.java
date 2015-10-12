@@ -41,6 +41,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.PagedResultsControl;
@@ -299,6 +300,12 @@ public class NullBackend extends Backend<BackendCfg>
       PagedResultsControl control =
           new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
+    }
+
+    if (SearchScope.BASE_OBJECT.equals(searchOperation.getScope())
+        && baseDNSet.contains(searchOperation.getBaseDN()))
+    {
+      searchOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
     }
   }
 
