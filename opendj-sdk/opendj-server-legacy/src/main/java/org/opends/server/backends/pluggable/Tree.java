@@ -36,7 +36,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
  * This class is a wrapper around the tree object and provides basic
  * read and write methods for entries.
  */
-interface Tree
+interface Tree extends Comparable<Tree>
 {
   /**
    * Opens a tree, optionally creating it. If the provided configuration is transactional,
