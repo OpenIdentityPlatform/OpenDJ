@@ -303,7 +303,7 @@ final class OnDiskMergeImporter
     }
 
     private static final Set<String> selectIndexesToRebuild(EntryContainer entryContainer, RebuildConfig rebuildConfig,
-        long totalEntries)
+        long totalEntries) throws InitializationException
     {
       final SelectIndexName selector = new SelectIndexName();
       switch (rebuildConfig.getRebuildMode())
@@ -318,6 +318,13 @@ final class OnDiskMergeImporter
         break;
       case USER_DEFINED:
         visitIndexes(entryContainer, visitOnlyAttributesOrIndexes(rebuildConfig.getRebuildList(), selector));
+        final Set<String> indexesToRebuild = selector.getSelectedIndexNames();
+        if (!indexesToRebuild.containsAll(rebuildConfig.getRebuildList()))
+        {
+          final Set<String> unknownIndexes = new HashSet<>(rebuildConfig.getRebuildList());
+          unknownIndexes.removeAll(indexesToRebuild);
+          throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(unknownIndexes.iterator().next()));
+        }
         if (!rebuildConfig.isClearDegradedState())
         {
           logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", selector.getSelectedIndexNames()), totalEntries);
