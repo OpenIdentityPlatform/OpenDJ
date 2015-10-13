@@ -685,15 +685,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
         throw new DirectoryException(getServerErrorResultCode(), ERR_REMOVE_FAIL.get(e.getMessage()), e);
       }
       rootContainer = newRootContainer(AccessMode.READ_WRITE);
-      try
-      {
-        rootContainer.getStorage().close();
-        return getImportStrategy(serverContext, rootContainer).importLDIF(importConfig);
-      }
-      finally
-      {
-        rootContainer.getStorage().open(AccessMode.READ_WRITE);
-      }
+      rootContainer.getStorage().close();
+      return getImportStrategy(serverContext, rootContainer).importLDIF(importConfig);
     }
     catch (StorageRuntimeException e)
     {
@@ -809,16 +802,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       if (openRootContainer)
       {
         rootContainer = newRootContainer(AccessMode.READ_WRITE);
+        rootContainer.getStorage().close();
       }
-      rootContainer.getStorage().close();
-      try
-      {
-        getImportStrategy(serverContext, rootContainer).rebuildIndex(rebuildConfig);
-      }
-      finally
-      {
-        rootContainer.getStorage().open(AccessMode.READ_WRITE);
-      }
+      getImportStrategy(serverContext, rootContainer).rebuildIndex(rebuildConfig);
     }
     catch (ExecutionException execEx)
     {
