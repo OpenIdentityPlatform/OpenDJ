@@ -28,7 +28,7 @@
   <title>${name}</title>
 
   <para>
-   ${description}
+   ${description?ensure_ends_with(".")}
   </para>
 
   <#if info??>${info}</#if>
@@ -48,7 +48,7 @@
             <term><option>${option.synopsis?xml}</option></term>
             <listitem>
              <para>
-               ${option.description}
+               ${option.description?ensure_ends_with(".")}
              </para>
 
              <#if option.info??>

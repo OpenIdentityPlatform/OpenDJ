@@ -87,7 +87,7 @@
    <title>${descTitle}</title>
 
    <para>
-     ${description}
+     ${description?ensure_ends_with(".")}
    </para>
 
    <#if info??>${info}</#if>

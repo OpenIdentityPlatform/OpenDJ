@@ -44,7 +44,7 @@
         <term><option>${option.synopsis?xml}</option></term>
         <listitem>
           <para>
-            ${option.description}
+            ${option.description?ensure_ends_with(".")}
           </para>
 
           <#if option.default??>

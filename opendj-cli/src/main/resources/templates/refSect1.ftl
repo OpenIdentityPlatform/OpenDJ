@@ -25,14 +25,14 @@
  #
  #-->
 <refsect1 xml:id="${name}-subcommands">
-  <title>Subcommands</title>
+  <title>${title}</title>
 
   <#if info??>
     ${info}
   </#if>
 
   <para>
-   The <command>${name}</command> utility supports the following subcommands.
+   ${intro}
   </para>
 
   <#if isItemizedList??><itemizedlist></#if>

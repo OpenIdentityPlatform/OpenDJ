@@ -56,7 +56,7 @@
      </para>
 
      <para>
-      ${entry.message}
+      ${entry.message?ensure_ends_with(".")}
      </para>
     </listitem>
    </varlistentry>

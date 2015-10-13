@@ -1158,7 +1158,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         Map<String, Object> map = new HashMap<>();
         map.put("name", scriptName);
+        map.put("title", REF_TITLE_SUBCOMMANDS.get());
         map.put("info", getDocSubcommandsDescriptionSupplement());
+        map.put("intro", REF_INTRO_SUBCOMMANDS.get(scriptName));
         if (scriptName.equals("dsconfig")) {
             // Break dsconfig into multiple pages, so use only the list here.
             map.put("isItemizedList", true);
