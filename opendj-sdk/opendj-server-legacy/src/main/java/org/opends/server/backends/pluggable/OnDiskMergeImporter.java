@@ -90,6 +90,8 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.forgerock.util.promise.PromiseImpl;
@@ -317,17 +319,12 @@ final class OnDiskMergeImporter
         logger.info(NOTE_REBUILD_DEGRADED_START, totalEntries);
         break;
       case USER_DEFINED:
-        visitIndexes(entryContainer, visitOnlyAttributesOrIndexes(rebuildConfig.getRebuildList(), selector));
-        final Set<String> indexesToRebuild = selector.getSelectedIndexNames();
-        if (!indexesToRebuild.containsAll(rebuildConfig.getRebuildList()))
-        {
-          final Set<String> unknownIndexes = new HashSet<>(rebuildConfig.getRebuildList());
-          unknownIndexes.removeAll(indexesToRebuild);
-          throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(unknownIndexes.iterator().next()));
-        }
+        // User defined format is attributeType(.indexType)
+        visitIndexes(entryContainer,
+            visitOnlyIndexes(buildUserDefinedIndexNames(entryContainer, rebuildConfig.getRebuildList()), selector));
         if (!rebuildConfig.isClearDegradedState())
         {
-          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", selector.getSelectedIndexNames()), totalEntries);
+          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", rebuildConfig.getRebuildList()), totalEntries);
         }
         break;
       default:
@@ -340,6 +337,110 @@ final class OnDiskMergeImporter
         indexesToRebuild.add(SuffixContainer.ID2CHILDREN_COUNT_NAME);
       }
       return selector.getSelectedIndexNames();
+    }
+
+    /**
+     * Translate attributeType(.indexType|matchingRuleOid) into attributeType.matchingRuleOid index name.
+     *
+     * @throws InitializationException
+     *           if rebuildList contains an invalid/non-existing attribute/index name.
+     **/
+    private static final Set<String> buildUserDefinedIndexNames(EntryContainer entryContainer,
+        Collection<String> rebuildList) throws InitializationException
+    {
+      final Set<String> indexNames = new HashSet<>();
+      for (String name : rebuildList)
+      {
+        final String parts[] = name.split("\\.");
+        final AttributeIndex attribute = findAttribute(entryContainer, parts[0]);
+        if (parts.length == 1)
+        {
+          // Add all indexes of this attribute
+          for (Tree index : attribute.getNameToIndexes().values())
+          {
+            indexNames.add(index.getName().getIndexId());
+          }
+        }
+        else if (parts.length == 2)
+        {
+          // First, assume the supplied name is a valid index name.
+          final SelectIndexName selector = new SelectIndexName();
+          visitIndexes(entryContainer, visitOnlyIndexes(Arrays.asList(name), selector));
+          indexNames.addAll(selector.getSelectedIndexNames());
+          if (selector.getSelectedIndexNames().isEmpty())
+          {
+            // ... if not, assume the supplied name identify an attributeType.indexType
+            try
+            {
+              indexNames.addAll(getIndexNames(IndexType.valueOf(parts[1].toUpperCase()), attribute));
+            }
+            catch (IllegalArgumentException e)
+            {
+              throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name), e);
+            }
+          }
+        }
+        else
+        {
+          throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name));
+        }
+      }
+      return indexNames;
+    }
+
+    private static final AttributeIndex findAttribute(EntryContainer entryContainer, String name)
+        throws InitializationException
+    {
+      for (AttributeIndex index : entryContainer.getAttributeIndexes())
+      {
+        if (index.getAttributeType().getNameOrOID().equalsIgnoreCase(name))
+        {
+          return index;
+        }
+      }
+      throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name));
+    }
+
+    private static Collection<String> getIndexNames(IndexType indexType, AttributeIndex attrIndex)
+    {
+      final Map<String, MatchingRuleIndex> indexes = attrIndex.getNameToIndexes();
+
+      final AttributeType attrType = attrIndex.getAttributeType();
+      final MatchingRule rule;
+      switch (indexType)
+      {
+      case PRESENCE:
+        return Collections.singletonList(IndexType.PRESENCE.toString());
+      case APPROXIMATE:
+        rule = attrType.getApproximateMatchingRule();
+        break;
+      case EQUALITY:
+        rule = attrType.getEqualityMatchingRule();
+        break;
+      case ORDERING:
+        rule = attrType.getOrderingMatchingRule();
+        break;
+      case SUBSTRING:
+        rule = attrType.getSubstringMatchingRule();
+        break;
+      default:
+        throw new IllegalArgumentException("Not implemented for index type " + indexType);
+      }
+      if (rule == null)
+      {
+        throw new IllegalArgumentException("No matching rule for index type " + indexType);
+      }
+      final Set<String> indexNames = new HashSet<>();
+      for (Indexer indexer : rule.createIndexers(attrIndex.getIndexingOptions()))
+      {
+        final Tree indexTree = attrIndex.getNameToIndexes().get(indexer.getIndexID());
+        if (indexTree == null)
+        {
+          throw new IllegalArgumentException("No index found for type " + indexType);
+        }
+        indexNames.add(indexTree.getName().getIndexId());
+      }
+      return indexNames;
     }
 
     private static File prepareTempDir(PluggableBackendCfg backendCfg, String tmpDirectory)
@@ -3246,7 +3347,7 @@ final class OnDiskMergeImporter
     {
       for (MatchingRuleIndex index : attribute.getNameToIndexes().values())
       {
-        visitor.visitAttributeIndex(attribute.getAttributeType(), index);
+        visitor.visitAttributeIndex(index);
         nbVisited++;
       }
     }
@@ -3265,7 +3366,7 @@ final class OnDiskMergeImporter
   /** Visitor pattern allowing to process all type of indexes. */
   private interface IndexVisitor
   {
-    void visitAttributeIndex(AttributeType attribute, DefaultIndex index);
+    void visitAttributeIndex(DefaultIndex index);
 
     void visitVLVIndex(VLVIndex index);
 
@@ -3290,7 +3391,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    public void visitAttributeIndex(DefaultIndex index)
     {
       index.setTrusted(txn, trustValue);
     }
@@ -3324,7 +3425,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    public void visitAttributeIndex(DefaultIndex index)
     {
       clearTree(index);
     }
@@ -3363,11 +3464,11 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    public void visitAttributeIndex(DefaultIndex index)
     {
       if (!index.isTrusted())
       {
-        delegate.visitAttributeIndex(attribute, index);
+        delegate.visitAttributeIndex(index);
       }
     }
 
@@ -3403,7 +3504,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    public void visitAttributeIndex(DefaultIndex index)
     {
       addIndex(index);
     }
@@ -3428,13 +3529,7 @@ final class OnDiskMergeImporter
 
   private static final IndexVisitor visitOnlyIndexes(Collection<String> indexNames, IndexVisitor delegate)
   {
-    return new SpecificIndexFilter(delegate, indexNames, false);
-  }
-
-  private static final IndexVisitor visitOnlyAttributesOrIndexes(Collection<String> indexOrAttributeNames,
-      IndexVisitor delegate)
-  {
-    return new SpecificIndexFilter(delegate, indexOrAttributeNames, true);
+    return new SpecificIndexFilter(delegate, indexNames);
   }
 
   /** Visit indexes only if their name match one contained in a list. */
@@ -3442,12 +3537,10 @@ final class OnDiskMergeImporter
   {
     private final IndexVisitor delegate;
     private final Collection<String> indexNames;
-    private final boolean includeAttributeNames;
 
-    SpecificIndexFilter(IndexVisitor delegate, Collection<String> names, boolean includeAttributeNames)
+    SpecificIndexFilter(IndexVisitor delegate, Collection<String> names)
     {
       this.delegate = delegate;
-      this.includeAttributeNames = includeAttributeNames;
       this.indexNames = new HashSet<>(names.size());
       for(String indexName : names)
       {
@@ -3456,12 +3549,11 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(AttributeType attribute, DefaultIndex index)
+    public void visitAttributeIndex(DefaultIndex index)
     {
-      if (indexIncluded(index)
-          || (includeAttributeNames && indexNames.contains(attribute.getNameOrOID().toLowerCase())))
+      if (indexIncluded(index))
       {
-        delegate.visitAttributeIndex(attribute, index);
+        delegate.visitAttributeIndex(index);
       }
     }
 
