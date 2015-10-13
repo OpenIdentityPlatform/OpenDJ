@@ -57,18 +57,11 @@ import java.util.Map;
  * This class is responsible for doing the following:
  * <p>
  * <ul>
- * <li>Check whether we are installing or uninstalling and which type of
- * installation we are running.</li>
+ * <li>Check whether we are installing or uninstalling.</li>
  * <li>Performs all the checks and validation of the data provided by the user
  * during the setup.</li>
  * <li>It will launch also the installation once the user clicks on 'Finish' if
  * we are installing the product.</li>
- * <li>If we are running a web start installation it will start the background
- * downloading of the jar files that are required to perform the installation
- * (OpenDS.jar, je.jar, etc.). The global idea is to force the user to download
- * just one jar file (quicksetup.jar) to launch the Web Start installer. Until
- * this class is not finished the WebStart Installer will be on the
- * ProgressStep.DOWNLOADING step.</li>
  * </ul>
  */
 public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
@@ -382,18 +375,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       {
         try
         {
-          final Installation installation;
-          if (isWebStart())
-          {
-            String installDir = application.getUserData().getServerLocation();
-            installation = new Installation(installDir, installDir);
-          }
-          else
-          {
-            installation = Installation.getLocal();
-          }
-
+          final Installation installation = Installation.getLocal();
           final ProcessBuilder pb;
+
           if (isMacOS())
           {
             List<String> cmd = new ArrayList<>();

@@ -34,7 +34,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
@@ -124,17 +123,6 @@ public class LicenseFile
   }
 
   /**
-   * Returns the URL to the license file when using jnlp / java web start.
-   */
-  private static URL getWebStartLicenseFile()
-  {
-    final String licenseResource =
-        LEGAL_FOLDER_NAME + File.separatorChar + LICENSE_FILE_NAME;
-    return Thread.currentThread().getContextClassLoader().getResource(
-        licenseResource);
-  }
-
-  /**
    * Checks if the license file exists.
    *
    * @return <CODE>true</CODE> if the license file exists in the Legal directory
@@ -143,14 +131,7 @@ public class LicenseFile
    */
   public static boolean exists()
   {
-    if (Utils.isWebStart())
-    {
-      return getWebStartLicenseFile() != null;
-    }
-    else
-    {
-      return getFile().exists();
-    }
+    return getFile().exists();
   }
 
   /**
@@ -161,37 +142,16 @@ public class LicenseFile
   public static String getText()
   {
     InputStream input = null;
-    // Gets the inputstream of the license
-    // From a file as the usual way,
-    // from an URL if we use web start / jnlp.
-    if (!Utils.isWebStart())
+    try
     {
-      try
-      {
-        input = new FileInputStream(getFile());
-      }
-      catch (FileNotFoundException e)
-      {
-        // Should not happen
-        return "";
-      }
+      input = new FileInputStream(getFile());
     }
-    else
+    catch (FileNotFoundException e)
     {
-      URL licenseURL = getWebStartLicenseFile();
-      if (licenseURL != null)
-      {
-        try
-        {
-          input = licenseURL.openStream();
-        }
-        catch (Exception e)
-        {
-          // Should not happen
-          return "";
-        }
-      }
+      // Should not happen
+      return "";
     }
+
     // Reads the inputstream content.
     final StringBuilder sb = new StringBuilder();
     if (input != null)

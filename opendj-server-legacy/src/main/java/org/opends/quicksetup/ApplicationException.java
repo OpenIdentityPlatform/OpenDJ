@@ -34,7 +34,6 @@ import org.opends.server.types.OpenDsException;
  * during the installation.
  *
  * @see org.opends.quicksetup.installer.Installer
- * @see org.opends.quicksetup.installer.webstart.WebStartInstaller
  * @see org.opends.quicksetup.installer.offline.OfflineInstaller
  */
 public class ApplicationException extends OpenDsException {

@@ -94,8 +94,6 @@ public class JavaArgumentsDialog extends JDialog
 
   private boolean isCheckingVisible;
 
-  private static boolean userAgreedWithWebStart;
-
   /**
    * Constructor of the JavaArgumentsDialog.
    * @param parent the parent frame for this dialog.
@@ -585,11 +583,8 @@ public class JavaArgumentsDialog extends JDialog
           }
           else
           {
-            if (displayWebStartWarningIfRequired())
-            {
-              isCanceled = false;
-              dispose();
-            }
+            isCanceled = false;
+            dispose();
           }
         }
       }
@@ -749,24 +744,21 @@ public class JavaArgumentsDialog extends JDialog
     checkOptions(options, errorMsgs, new JLabel[]{l}, errorMsg);
   }
 
-  private void checkOptions(String options, Collection<LocalizableMessage> errorMsgs,
-      JLabel[] ls,  LocalizableMessage errorMsg)
+  private void checkOptions(
+          String options, Collection<LocalizableMessage> errorMsgs, JLabel[] ls,  LocalizableMessage errorMsg)
   {
-    if (!Utils.isWebStart())
+    String javaHome = System.getProperty("java.home");
+    if (javaHome == null || javaHome.length() == 0)
     {
-      String javaHome = System.getProperty("java.home");
-      if (javaHome == null || javaHome.length() == 0)
+      javaHome = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
+    }
+    if (!Utils.supportsOption(options, javaHome, INSTALL_PATH))
+    {
+      for (JLabel l : ls)
       {
-        javaHome = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
+        setValidLater(l, false);
       }
-      if (!Utils.supportsOption(options, javaHome, INSTALL_PATH))
-      {
-        for (JLabel l : ls)
-        {
-          setValidLater(l, false);
-        }
-        errorMsgs.add(errorMsg);
-      }
+      errorMsgs.add(errorMsg);
     }
   }
 
@@ -908,24 +900,5 @@ public class JavaArgumentsDialog extends JDialog
       checkOptions(sb.toString(), errorMsgs, lOtherArguments,
           ERR_GENERIC_JAVA_ARGUMENT.get(sb));
     }
-  }
-
-  private boolean displayWebStartWarningIfRequired()
-  {
-    if (Utils.isWebStart() && !userAgreedWithWebStart)
-    {
-      JavaArguments args = getJavaArguments();
-      if (!args.equals(javaArguments) &&
-          (args.getInitialMemory() != -1 ||
-              args.getMaxMemory() != -1 ||
-              args.getAdditionalArguments().length > 0))
-      {
-        userAgreedWithWebStart = displayConfirmationDialog(
-            INFO_JAVA_ARGUMENTS_CANNOT_BE_CHECKED_IN_WEBSTART.get(),
-            INFO_CONFIRMATION_TITLE.get());
-        return userAgreedWithWebStart;
-      }
-    }
-    return true;
   }
 }

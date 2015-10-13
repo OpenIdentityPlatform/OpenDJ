@@ -55,11 +55,6 @@ import com.forgerock.opendj.util.OperatingSystem;
 public class SetupUtils
 {
   /**
-   * Java property used to known if we are using web start or not.
-   */
-  public static final String IS_WEBSTART = "org.opends.quicksetup.iswebstart";
-
-  /**
    * Specific environment variable used by the scripts to find java.
    */
   public static final String OPENDJ_JAVA_HOME = "OPENDJ_JAVA_HOME";
@@ -350,17 +345,6 @@ public class SetupUtils
   public static boolean isPrivilegedPort(int port)
   {
     return port <= 1024 && !OperatingSystem.isWindows();
-  }
-
-  /**
-   * Indicates whether we are in a web start installation or not.
-   *
-   * @return <CODE>true</CODE> if we are in a web start installation and
-   *         <CODE>false</CODE> if not.
-   */
-  public static boolean isWebStart()
-  {
-    return "true".equals(System.getProperty(IS_WEBSTART));
   }
 
   /**

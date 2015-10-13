@@ -48,7 +48,6 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
-import org.opends.quicksetup.util.Utils;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -424,17 +423,6 @@ implements HyperlinkListener
   protected boolean requiresScroll()
   {
     return true;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if this is a WebStart based installer and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if this is a WebStart based installer and
-   * <CODE>false</CODE> otherwise.
-   */
-  protected boolean isWebStart()
-  {
-    return Utils.isWebStart();
   }
 
   /**

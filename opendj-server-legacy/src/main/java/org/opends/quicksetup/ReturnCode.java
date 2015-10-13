@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -51,12 +51,6 @@ public class ReturnCode {
    * Return code: Error accessing file system (reading/writing).
    */
   public static final ReturnCode FILE_SYSTEM_ACCESS_ERROR = new ReturnCode(3);
-
-  /**
-   * Error downloading jar files from web start server.  This is specific
-   * to the web start installation.
-   */
-  public static final ReturnCode DOWNLOAD_ERROR = new ReturnCode(4);
 
   /**
    * Error during the configuration of the Directory Server.

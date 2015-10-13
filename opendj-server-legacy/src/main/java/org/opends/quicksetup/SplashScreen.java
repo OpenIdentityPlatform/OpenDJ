@@ -44,9 +44,6 @@ import org.opends.quicksetup.ui.Utilities;
  * This is the class that displays a splash screen and in the background it will
  * create QuickSetup object.
  *
- * The main method of this class is directly called by the Java Web Start
- * mechanism to launch the JWS setup.
- *
  * This class tries to minimize the time to be displayed. So it does the loading
  * of the setup class in runtime once we already have displayed the splash
  * screen. This is why the quickSetup variable is of type Object.

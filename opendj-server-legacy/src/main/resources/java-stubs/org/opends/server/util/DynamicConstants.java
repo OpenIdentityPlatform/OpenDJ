@@ -180,22 +180,7 @@ public final class DynamicConstants
   static {
 
      try {
-        Class c;
-        if (org.opends.server.util.SetupUtils.isWebStart())
-        {
-          Class<?> cS = Class.forName("org.opends.server.util.SetupUtils");
-          java.net.URL[] urls = new java.net.URL[]
-          {
-            cS.getProtectionDomain().getCodeSource().getLocation()
-          };
-          ClassLoader webstartClassLoader = new java.net.URLClassLoader(urls);
-          c = webstartClassLoader.loadClass(
-              "org.opends.server.util.ReleaseDefinition");
-        }
-        else
-        {
-          c = Class.forName("org.opends.server.util.ReleaseDefinition");
-        }
+        Class c = Class.forName("org.opends.server.util.ReleaseDefinition");
         Object obj = c.newInstance();
 
         try {

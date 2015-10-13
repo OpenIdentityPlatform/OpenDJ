@@ -728,8 +728,6 @@
                 <!-- Import je changelog since it is not shipped in the main jar -->
                 <Import-Package>
                   org.opends.server.replication.server.changelog.je,
-                  javax.jnlp,
-                  netscape.ldap,
                   ${opendj.osgi.import}
                 </Import-Package>
               </instructions>
@@ -797,8 +795,6 @@
                 <include>**/messages/MessageDescriptor.class</include>
                 <include>**/server/types/PublicAPI.class</include>
                 <include>**/server/types/StabilityLevel.class</include>
-                <include>**/javax/jnlp/*</include>
-                <include>**/netscape/ldap/*</include>
                 <include>**/build/tools/*</include>
               </includes>
             </configuration>
@@ -1053,8 +1049,6 @@
                 <exclude>*.app/**</exclude>
                 <exclude>java-stubs/**</exclude>
                 <exclude>bootstrap/**</exclude>
-                <exclude>javax/jnlp/**</exclude>
-                <exclude>netscape/**</exclude>
                 <exclude>META-INF/**</exclude>
                 <exclude>org/opends/dsml/**</exclude>
                 <exclude>**/*_ca_ES.properties</exclude>
@@ -1321,7 +1315,7 @@
               <execution>
                 <id>check-src-and-tests-alternative</id>
                 <configuration>
-                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**,**/dsml/protocol/**,javax/jnlp/**,netscape/ldap/**</excludes>
+                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**,**/dsml/protocol/**</excludes>
                   <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
                   <headerLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opendj.sourceheader</headerLocation>
                   <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>

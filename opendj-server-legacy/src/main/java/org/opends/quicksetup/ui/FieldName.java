@@ -141,11 +141,7 @@ public enum FieldName
   /** The value associated with this is a JavaArguments object. */
   SERVER_JAVA_ARGUMENTS,
 
-  /**
-   * The value associated with this is a String.
-   * The web start installer uses this field to indicate the
-   * location to install the server.
-   */
+  /** The value associated with this is a String. */
   SERVER_LOCATION,
 
   /** The value associated with this is a String. */

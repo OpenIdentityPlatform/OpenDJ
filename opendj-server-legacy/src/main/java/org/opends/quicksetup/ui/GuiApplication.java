@@ -29,13 +29,11 @@ package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.Application;
-import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.WizardStep;
-import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -58,9 +56,6 @@ public abstract class GuiApplication extends Application {
 
   /** The currently displayed wizard step. */
   private WizardStep displayedStep;
-
-  /** Downloads .jar files for webstart application. */
-  protected WebStartDownloader loader;
 
   /** The QuickSetupDialog in control. */
   private QuickSetupDialog qs;
@@ -462,75 +457,6 @@ public abstract class GuiApplication extends Application {
       {
         logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
       }
-    }
-  }
-
-  /**
-   * Begins downloading webstart jars in another thread
-   * for WebStart applications only.
-   */
-  protected void initLoader() {
-    loader = new WebStartDownloader();
-    loader.start(false);
-  }
-
-  /**
-   * Waits for the loader to be finished.  Every time we have an update in the
-   * percentage that is downloaded we notify the listeners of this.
-   *
-   * @param maxRatio is the integer value that tells us which is the max ratio
-   * that corresponds to the download.  It is used to calculate how the global
-   * installation ratio changes when the download ratio increases.  For instance
-   * if we suppose that the download takes 25 % of the total installation
-   * process, then maxRatio will be 25.  When the download is complete this
-   * method will send a notification to the ProgressUpdateListeners with a ratio
-   * of 25 %.
-   * @throws org.opends.quicksetup.ApplicationException if something goes wrong
-   *
-   */
-  protected void waitForLoader(Integer maxRatio) throws ApplicationException {
-    int lastPercentage = -1;
-    WebStartDownloader.Status lastStatus =
-      WebStartDownloader.Status.DOWNLOADING;
-    while (!loader.isFinished() && loader.getException() == null)
-    {
-      checkAbort();
-      // Pool until is over
-      int perc = loader.getDownloadPercentage();
-      WebStartDownloader.Status downloadStatus = loader.getStatus();
-      if (perc != lastPercentage || downloadStatus != lastStatus)
-      {
-        lastPercentage = perc;
-        int ratio = (perc * maxRatio) / 100;
-        LocalizableMessage summary;
-        switch (downloadStatus)
-        {
-        case VALIDATING:
-          summary = INFO_VALIDATING_RATIO.get(perc, loader.getCurrentValidatingPercentage());
-          break;
-        case UPGRADING:
-          summary = INFO_UPGRADING_RATIO.get(perc, loader.getCurrentValidatingPercentage());
-          break;
-        default:
-          summary = INFO_DOWNLOADING_RATIO.get(perc);
-        }
-        loader.setSummary(summary);
-        notifyListeners(ratio, summary, null);
-      }
-      checkAbort();
-      try
-      {
-        Thread.sleep(300);
-      } catch (Exception ex)
-      {
-        // do nothing;
-      }
-    }
-    checkAbort();
-
-    if (loader.getException() != null)
-    {
-      throw loader.getException();
     }
   }
 

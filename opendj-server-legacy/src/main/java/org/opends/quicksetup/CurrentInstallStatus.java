@@ -34,16 +34,16 @@ import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.quicksetup.util.Utils;
 
 /**
- * This class is used to know which is the status of the install. This class is
- * not used when we install Open DS using java web start. However it is required
- * when do an offline installation after the user has unzipped the zip file. The
- * main goal of the class is to help identifying whether there is already
+ * This class is used to know which is the status of the install.
+ * It is required to do an installation after the user has unzipped the zip file.
+ * The main goal of the class is to help identifying whether there is already
  * something installed or not.
  *
  * This class assumes that we are running in the case of an offline install.
@@ -59,66 +59,61 @@ public class CurrentInstallStatus
   /** The constructor of a CurrentInstallStatus object. */
   public CurrentInstallStatus()
   {
-    if (Utils.isWebStart())
+
+    Installation installation = Installation.getLocal();
+    List<LocalizableMessage> msgs = new ArrayList<>();
+
+    if (installation.getStatus().isServerRunning())
     {
-      isInstalled = false;
-    } else
+      msgs.add(INFO_INSTALLSTATUS_SERVERRUNNING.get(getPort()));
+    }
+
+    if (dbFilesExist())
     {
-      Installation installation = Installation.getLocal();
-      ArrayList<LocalizableMessage> msgs = new ArrayList<>();
+      canOverwriteCurrentInstall = true;
+      msgs.add(INFO_INSTALLSTATUS_DBFILEEXIST.get());
+    }
 
-      if (installation.getStatus().isServerRunning())
-      {
-        msgs.add(INFO_INSTALLSTATUS_SERVERRUNNING.get(getPort()));
-      }
+    if (configExists())
+    {
+      canOverwriteCurrentInstall = false;
+      isInstalled = true;
+      msgs.add(INFO_INSTALLSTATUS_CONFIGFILEMODIFIED.get());
+    }
 
-      if (dbFilesExist())
+    if (canOverwriteCurrentInstall)
+    {
+      installationMsg = !Utils.isCli()?
+        INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG.get() :
+        INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG_CLI.get();
+    }
+    else if (isInstalled)
+    {
+      LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
+      if (Utils.isCli())
       {
-        canOverwriteCurrentInstall = true;
-        msgs.add(INFO_INSTALLSTATUS_DBFILEEXIST.get());
-      }
-
-      if (configExists())
-      {
-        canOverwriteCurrentInstall = false;
-        isInstalled = true;
-        msgs.add(INFO_INSTALLSTATUS_CONFIGFILEMODIFIED.get());
-      }
-
-      if (canOverwriteCurrentInstall)
-      {
-        installationMsg = !Utils.isCli()?
-          INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG.get() :
-          INFO_INSTALLSTATUS_CANOVERWRITECURRENTINSTALL_MSG_CLI.get();
-      }
-      else if (isInstalled)
-      {
-        LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-        if (Utils.isCli())
+        buf = new LocalizableMessageBuilder();
+        for (LocalizableMessage msg : msgs)
         {
-          buf = new LocalizableMessageBuilder();
-          for (LocalizableMessage msg : msgs)
-          {
-            buf.append(Constants.LINE_SEPARATOR);
-            buf.append("- ").append(msg);
-          }
-          String cmd = isWindows() ?
-              Installation.WINDOWS_SETUP_FILE_NAME :
-                Installation.UNIX_SETUP_FILE_NAME;
-          installationMsg = INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf);
+          buf.append(Constants.LINE_SEPARATOR);
+          buf.append("- ").append(msg);
         }
-        else
+        String cmd = isWindows() ?
+            Installation.WINDOWS_SETUP_FILE_NAME :
+              Installation.UNIX_SETUP_FILE_NAME;
+        installationMsg = INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf);
+      }
+      else
+      {
+        buf.append("<ul>");
+        for (LocalizableMessage msg : msgs)
         {
-          buf.append("<ul>");
-          for (LocalizableMessage msg : msgs)
-          {
-            buf.append("\n<li>");
-            buf.append(msg);
-            buf.append("</li>");
-          }
-          buf.append("</ul>");
-          installationMsg = INFO_INSTALLSTATUS_INSTALLED.get(buf);
+          buf.append("\n<li>");
+          buf.append(msg);
+          buf.append("</li>");
         }
+        buf.append("</ul>");
+        installationMsg = INFO_INSTALLSTATUS_INSTALLED.get(buf);
       }
     }
     if (!isInstalled)
