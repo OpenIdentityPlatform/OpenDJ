@@ -39,18 +39,6 @@ public enum InstallProgressStep implements ProgressStep {
   NOT_STARTED,
 
   /**
-   * Downloading the remote jar files (this step is specific to the Web Start
-   * installation).
-   */
-  DOWNLOADING,
-
-  /**
-   * Extracting the zip file (this step is specific to the Web Start
-   * installation).
-   */
-  EXTRACTING,
-
-  /**
    * Configuring server.
    */
   CONFIGURING_SERVER,

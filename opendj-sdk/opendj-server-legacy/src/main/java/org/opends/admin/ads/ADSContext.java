@@ -1030,8 +1030,7 @@ public class ADSContext
 
   /**
    * Creates the Administration Data in the server. The call to this method
-   * assumes that OpenDS.jar has already been loaded. So this should not be
-   * called by the Java Web Start before being sure that this jar is loaded.
+   * assumes that OpenDJ.jar has already been loaded.
    *
    * @param backendName
    *          the backend name which will handle admin information.

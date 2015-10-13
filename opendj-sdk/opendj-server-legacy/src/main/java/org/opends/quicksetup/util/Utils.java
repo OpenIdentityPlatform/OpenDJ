@@ -121,9 +121,6 @@ public class Utils
   /** The class name that contains the control panel customizations for products. */
   private static final String CUSTOMIZATION_CLASS_NAME = "org.opends.server.util.ReleaseDefinition";
 
-  /** The service name required by the JNLP downloader. */
-  public static final String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
-
   /**
    * Returns <CODE>true</CODE> if the provided port is free and we can use it,
    * <CODE>false</CODE> otherwise.
@@ -780,17 +777,6 @@ public class Utils
   }
 
   /**
-   * Indicates whether we are in a web start installation or not.
-   *
-   * @return <CODE>true</CODE> if we are in a web start installation and
-   *         <CODE>false</CODE> if not.
-   */
-  public static boolean isWebStart()
-  {
-    return SetupUtils.isWebStart();
-  }
-
-  /**
    * Returns <CODE>true</CODE> if this is executed from command line and
    * <CODE>false</CODE> otherwise.
    *
@@ -1294,20 +1280,6 @@ public class Utils
     {
       throw new IncompatibleVersionException(e.getMessageObject(), e);
     }
-
-    if (Utils.isWebStart())
-    {
-      // Check that the JNLP service exists.
-      try
-      {
-        javax.jnlp.ServiceManager.lookup(JNLP_SERVICE_NAME);
-      }
-      catch (Throwable t)
-      {
-        throw new IncompatibleVersionException(
-            INFO_DOWNLOADING_ERROR_NO_SERVICE_FOUND.get(JNLP_SERVICE_NAME, getSetupFilename()), t);
-      }
-    }
   }
 
   /**
@@ -1433,22 +1405,18 @@ public class Utils
    */
   public static <T> T getCustomizedObject(String fieldName, T defaultValue, Class<T> valueClass)
   {
-    T value = defaultValue;
-    if (!isWebStart())
+    try
     {
-      try
-      {
-        Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
-        Object obj = c.newInstance();
+      Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
+      Object obj = c.newInstance();
 
-        value = valueClass.cast(c.getField(fieldName).get(obj));
-      }
-      catch (Exception ex)
-      {
-        // do nothing
-      }
+      return valueClass.cast(c.getField(fieldName).get(obj));
     }
-    return value;
+    catch (Exception ex)
+    {
+      logger.error(LocalizableMessage.raw(ex.getMessage()), ex);
+      return defaultValue;
+    }
   }
 
   /**
@@ -1744,9 +1712,7 @@ public class Utils
 
   /**
    * Returns the equivalent setup CLI command-line. Note that this command-line
-   * does not cover all the replication part of the GUI install. Note also that
-   * to avoid problems in the WebStart setup, all the Strings are hard-coded in
-   * the implementation of this method.
+   * does not cover all the replication part of the GUI install.
    *
    * @param userData
    *          the user data.
@@ -2053,17 +2019,9 @@ public class Utils
    */
   private static String getInstallDir(UserData userData)
   {
-    if (isWebStart() || installDir == null)
+    if (installDir == null)
     {
-      File f;
-      if (isWebStart())
-      {
-        f = new File(userData.getServerLocation());
-      }
-      else
-      {
-        f = org.opends.quicksetup.Installation.getLocal().getRootDirectory();
-      }
+      File f = org.opends.quicksetup.Installation.getLocal().getRootDirectory();
       try
       {
         installDir = f.getCanonicalPath();

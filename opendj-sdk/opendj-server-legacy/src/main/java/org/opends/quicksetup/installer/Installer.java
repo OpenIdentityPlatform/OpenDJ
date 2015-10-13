@@ -827,13 +827,6 @@ public abstract class Installer extends GuiApplication
   protected void configureServer() throws ApplicationException
   {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
-
-    if (Utils.isWebStart())
-    {
-      String installDir = getUserData().getServerLocation();
-      setInstallation(new Installation(installDir, installDir));
-    }
-
     copyTemplateInstance();
     writeOpenDSJavaHome();
     writeHostName();
@@ -1870,8 +1863,6 @@ public abstract class Installer extends GuiApplication
   protected void initSummaryMap(Map<ProgressStep, LocalizableMessage> hmSummary, boolean isCli)
   {
     put(hmSummary, NOT_STARTED, INFO_SUMMARY_INSTALL_NOT_STARTED);
-    put(hmSummary, DOWNLOADING, INFO_SUMMARY_DOWNLOADING);
-    put(hmSummary, EXTRACTING, INFO_SUMMARY_EXTRACTING);
     put(hmSummary, CONFIGURING_SERVER, INFO_SUMMARY_CONFIGURING);
     put(hmSummary, CREATING_BASE_ENTRY, INFO_SUMMARY_CREATING_BASE_ENTRY);
     put(hmSummary, IMPORTING_LDIF, INFO_SUMMARY_IMPORTING_LDIF);
@@ -2681,16 +2672,7 @@ public abstract class Installer extends GuiApplication
     serverProperties.put(ADSContext.ServerProperty.JMX_PORT, "1689");
     serverProperties.put(ADSContext.ServerProperty.JMX_ENABLED, "false");
 
-    String path;
-    if (isWebStart())
-    {
-      path = userData.getServerLocation();
-    }
-    else
-    {
-      path = getInstallPathFromClasspath();
-    }
-    serverProperties.put(ADSContext.ServerProperty.INSTANCE_PATH, path);
+    serverProperties.put(ADSContext.ServerProperty.INSTANCE_PATH, getInstallPathFromClasspath());
 
     String serverID = serverProperties.get(ADSContext.ServerProperty.HOST_NAME) + ":" + userData.getServerPort();
 
@@ -2722,91 +2704,6 @@ public abstract class Installer extends GuiApplication
   {
     List<LocalizableMessage> errorMsgs = new ArrayList<>();
     LocalizableMessage confirmationMsg = null;
-
-    if (isWebStart())
-    {
-      // Check the server location
-      String serverLocation = qs.getFieldStringValue(FieldName.SERVER_LOCATION);
-
-      if (serverLocation == null || "".equals(serverLocation.trim()))
-      {
-        errorMsgs.add(INFO_EMPTY_SERVER_LOCATION.get());
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      }
-      else if (!parentDirectoryExists(serverLocation))
-      {
-        String existingParentDirectory = null;
-        File f = new File(serverLocation);
-        while (existingParentDirectory == null && f != null)
-        {
-          f = f.getParentFile();
-          if (f != null && f.exists())
-          {
-            if (f.isDirectory())
-            {
-              existingParentDirectory = f.getAbsolutePath();
-            }
-            else
-            {
-              // The parent path is a file!
-              f = null;
-            }
-          }
-        }
-        if (existingParentDirectory == null)
-        {
-          errorMsgs.add(INFO_PARENT_DIRECTORY_COULD_NOT_BE_FOUND.get(serverLocation));
-          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-        }
-        else if (!canWrite(existingParentDirectory))
-        {
-          errorMsgs.add(INFO_DIRECTORY_NOT_WRITABLE.get(existingParentDirectory));
-          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-        }
-        else if (!hasEnoughSpace(existingParentDirectory, getRequiredInstallSpace()))
-        {
-          long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
-          errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(existingParentDirectory, requiredInMb));
-          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-        }
-        else
-        {
-          confirmationMsg = INFO_PARENT_DIRECTORY_DOES_NOT_EXIST_CONFIRMATION.get(serverLocation);
-          getUserData().setServerLocation(serverLocation);
-        }
-      }
-      else if (fileExists(serverLocation))
-      {
-        errorMsgs.add(INFO_FILE_EXISTS.get(serverLocation));
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      }
-      else if (directoryExistsAndIsNotEmpty(serverLocation))
-      {
-        errorMsgs.add(INFO_DIRECTORY_EXISTS_NOT_EMPTY.get(serverLocation));
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      }
-      else if (!canWrite(serverLocation))
-      {
-        errorMsgs.add(INFO_DIRECTORY_NOT_WRITABLE.get(serverLocation));
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      }
-      else if (!hasEnoughSpace(serverLocation, getRequiredInstallSpace()))
-      {
-        long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
-        errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(serverLocation, requiredInMb));
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      }
-      else if (OperatingSystem.isWindows() && serverLocation.contains("%"))
-      {
-        errorMsgs.add(INFO_INVALID_CHAR_IN_PATH.get("%"));
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      }
-      else
-      {
-        getUserData().setServerLocation(serverLocation);
-        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, false);
-      }
-    }
 
     // Check the host is not empty.
     // TODO: check that the host name is valid...

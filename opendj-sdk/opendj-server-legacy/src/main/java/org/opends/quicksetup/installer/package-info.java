@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 /**
- * Defines the classes that are you used by both the off-line and the web start
- * installer.  This includes in particular shared classes used to represent user
- * provided data, specific exceptions and the abstract Installer application
- * which contains the code shared by both installer applications.
+ * Defines the classes that are you used by the installer.
+ * This includes in particular classes used to represent user
+ * provided data, specific exceptions and the abstract Installer application.
  */
 package org.opends.quicksetup.installer;

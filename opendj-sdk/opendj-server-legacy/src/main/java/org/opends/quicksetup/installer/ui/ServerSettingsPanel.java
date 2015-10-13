@@ -71,7 +71,6 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   private JButton secureAccessButton;
   private JButton browseButton;
 
-  private boolean displayServerLocation;
   private boolean canUpdateSecurity;
 
   private SecurityOptions securityOptions;
@@ -97,7 +96,6 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   {
     super(application);
     this.defaultUserData = application.getUserData();
-    this.displayServerLocation = isWebStart();
     canUpdateSecurity = CertificateManager.mayUseCertificateManager();
     securityOptions = defaultUserData.getSecurityOptions();
     populateLabelAndFieldMaps();
@@ -182,51 +180,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
         FieldName.DIRECTORY_MANAGER_PWD_CONFIRM
     };
 
-    JPanel auxPanel;
-    // Add the server location widgets
-    if (displayServerLocation)
-    {
-      gbc.gridwidth = GridBagConstraints.RELATIVE;
-      gbc.weightx = 0.0;
-      gbc.insets.top = 0;
-      gbc.insets.left = 0;
-      gbc.anchor = GridBagConstraints.NORTHWEST;
-      panel.add(lServerLocation, gbc);
 
-      gbc.anchor = GridBagConstraints.WEST;
-      auxPanel = new JPanel(new GridBagLayout());
-      auxPanel.setOpaque(false);
-      gbc.weightx = 1.0;
-      gbc.fill = GridBagConstraints.HORIZONTAL;
-      gbc.insets.top = 0;
-      gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-      panel.add(auxPanel, gbc);
-
-      gbc.gridwidth = 3;
-      gbc.insets = UIFactory.getEmptyInsets();
-      gbc.weightx = 0.7;
-      auxPanel.add(tfServerLocationParent, gbc);
-
-      gbc.gridwidth = GridBagConstraints.RELATIVE;
-      gbc.weightx = 0.0;
-      gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
-      auxPanel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-          LocalizableMessage.raw(File.separator), UIFactory.TextStyle.TEXTFIELD), gbc);
-
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-      gbc.weightx = 0.3;
-      auxPanel.add(tfServerLocationRelativePath, gbc);
-
-      gbc.gridwidth = 3;
-      gbc.anchor = GridBagConstraints.NORTHEAST;
-      gbc.insets.top = UIFactory.TOP_INSET_BROWSE;
-      gbc.weightx = 0.0;
-      gbc.fill = GridBagConstraints.NONE;
-      auxPanel.add(getBrowseButton(), gbc);
-    }
-
-    // Add the other widgets
+    // Add widgets
     for (FieldName fieldName : fieldNames) {
       gbc.gridwidth = GridBagConstraints.RELATIVE;
       gbc.weightx = 0.0;
@@ -249,7 +204,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       }
       panel.add(getLabel(fieldName), gbc);
 
-      auxPanel = new JPanel(new GridBagLayout());
+      final JPanel auxPanel = new JPanel(new GridBagLayout());
       auxPanel.setOpaque(false);
       gbc.weightx = 1.0;
       gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -332,14 +287,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   /** {@inheritDoc} */
   protected LocalizableMessage getInstructions()
   {
-    if (Utils.isWebStart())
-    {
-      return INFO_SERVER_SETTINGS_PANEL_INSTRUCTIONS_WEBSTART.get();
-    }
-    else
-    {
-      return INFO_SERVER_SETTINGS_PANEL_INSTRUCTIONS.get();
-    }
+    return INFO_SERVER_SETTINGS_PANEL_INSTRUCTIONS.get();
   }
 
   /** {@inheritDoc} */
@@ -629,14 +577,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     }
     getLDAPSecureAccessButton().addFocusListener(l);
     getBrowseButton().addFocusListener(l);
-    if (Utils.isWebStart())
-    {
-      lastFocusComponent = tfServerLocationRelativePath;
-    }
-    else
-    {
-      lastFocusComponent = getField(FieldName.DIRECTORY_MANAGER_PWD);
-    }
+    lastFocusComponent = getField(FieldName.DIRECTORY_MANAGER_PWD);
   }
 
   /**

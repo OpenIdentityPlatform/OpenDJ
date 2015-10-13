@@ -82,8 +82,6 @@ public class InstallReviewPanel extends ReviewPanel {
 
   private static final long serialVersionUID = -7356174829193265699L;
 
-  private final boolean displayServerLocation;
-
   private final HashMap<FieldName, JLabel> hmLabels = new HashMap<>();
   private final HashMap<FieldName, JTextComponent> hmFields = new HashMap<>();
   private JPanel bottomComponent;
@@ -110,7 +108,6 @@ public class InstallReviewPanel extends ReviewPanel {
   public InstallReviewPanel(GuiApplication application)
   {
     super(application);
-    this.displayServerLocation = isWebStart();
     populateLabelAndFieldsMap();
   }
 
@@ -118,10 +115,6 @@ public class InstallReviewPanel extends ReviewPanel {
   @Override
   public void beginDisplay(UserData userData)
   {
-    if (displayServerLocation)
-    {
-      setFieldValue(FieldName.SERVER_LOCATION, userData.getServerLocation());
-    }
     setFieldValue(FieldName.HOST_NAME, userData.getHostName());
     setFieldValue(FieldName.SERVER_PORT, Integer.toString(userData.getServerPort()));
     setFieldValue(FieldName.ADMIN_CONNECTOR_PORT, Integer.toString(userData.getAdminConnectorPort()));
@@ -277,15 +270,6 @@ public class InstallReviewPanel extends ReviewPanel {
   private void populateLabelAndFieldsMap()
   {
     final HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
-
-    if (displayServerLocation)
-    {
-      hm.put(FieldName.SERVER_LOCATION, new LabelFieldDescriptor(
-              INFO_SERVER_LOCATION_LABEL.get(),
-              INFO_SERVER_LOCATION_RELATIVE_TOOLTIP.get(),
-              LabelFieldDescriptor.FieldType.READ_ONLY,
-              LabelFieldDescriptor.LabelType.PRIMARY, 0));
-    }
 
     hm.put(FieldName.HOST_NAME, new LabelFieldDescriptor(
             INFO_HOST_NAME_LABEL.get(),
@@ -506,11 +490,6 @@ public class InstallReviewPanel extends ReviewPanel {
     final GridBagConstraints gbc = new GridBagConstraints();
 
     final List<FieldName> fieldNames = new LinkedList<>();
-    if (displayServerLocation)
-    {
-      fieldNames.add(FieldName.SERVER_LOCATION);
-    }
-
     fieldNames.addAll(Arrays.asList(
         new FieldName[] {
           FieldName.HOST_NAME, FieldName.SERVER_PORT,
@@ -780,13 +759,13 @@ public class InstallReviewPanel extends ReviewPanel {
 
     if (linesToAdd.size() == 1)
     {
-      final String arg0 = getJavaPropertiesFilePath(userData);
+      final String arg0 = getJavaPropertiesFilePath();
       final String arg1 = linesToAdd.get(0);
       sb.append(formatter.getFormattedProgress(INFO_EDIT_JAVA_PROPERTIES_LINE.get(arg0, arg1)));
     }
     else if (linesToAdd.size() > 1)
     {
-      final String arg0 = getJavaPropertiesFilePath(userData);
+      final String arg0 = getJavaPropertiesFilePath();
       final String arg1 = joinAsString(Constants.LINE_SEPARATOR, linesToAdd);
       sb.append(formatter.getFormattedProgress(INFO_EDIT_JAVA_PROPERTIES_LINES.get(arg0, arg1)));
     }
@@ -799,19 +778,9 @@ public class InstallReviewPanel extends ReviewPanel {
     return scriptName + ".java-args";
   }
 
-  private String getJavaPropertiesFilePath(UserData userData)
+  private String getJavaPropertiesFilePath()
   {
-    String path;
-    if (isWebStart())
-    {
-      path = userData.getServerLocation();
-    }
-    else
-    {
-      path = Utils.getInstallPathFromClasspath();
-      path = Utils.getInstancePathFromInstallPath(path);
-    }
-
+    final String path = Utils.getInstancePathFromInstallPath(Utils.getInstallPathFromClasspath());
     return getPath(getPath(path, Installation.CONFIG_PATH_RELATIVE), Installation.DEFAULT_JAVA_PROPERTIES_FILE);
   }
 
