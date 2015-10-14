@@ -233,10 +233,8 @@ public class HistoricalTest extends ReplicationTestCase
     final DN dn1 = DN.valueOf("cn=test1," + TEST_ROOT_DN_STRING);
     final DN dn2 = DN.valueOf("cn=test2," + TEST_ROOT_DN_STRING);
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    final AttributeType attrType =
-         DirectoryServer.getAttributeType("displayname");
-    final AttributeType entryuuidType =
-         DirectoryServer.getAttributeType("entryuuid");
+    final AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("displayname");
+    final AttributeType entryuuidType = DirectoryServer.getAttributeTypeOrNull("entryuuid");
 
     /*
      * Open a session to the replicationServer using the broker API.

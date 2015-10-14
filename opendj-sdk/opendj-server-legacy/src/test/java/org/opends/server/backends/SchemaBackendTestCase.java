@@ -110,16 +110,16 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    AttributeType t = DirectoryServer.getAttributeType("attributetypes");
+    AttributeType t = DirectoryServer.getAttributeTypeOrNull("attributetypes");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("objectclasses");
+    t = DirectoryServer.getAttributeTypeOrNull("objectclasses");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("ldapsyntaxes");
+    t = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("matchingrules");
+    t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
     assertTrue(schemaEntry.hasAttribute(t));
   }
 
@@ -161,16 +161,16 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    AttributeType t = DirectoryServer.getAttributeType("attributetypes");
+    AttributeType t = DirectoryServer.getAttributeTypeOrNull("attributetypes");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("objectclasses");
+    t = DirectoryServer.getAttributeTypeOrNull("objectclasses");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("ldapsyntaxes");
+    t = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("matchingrules");
+    t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
     assertTrue(schemaEntry.hasAttribute(t));
 
 
@@ -179,16 +179,16 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    t = DirectoryServer.getAttributeType("attributetypes");
+    t = DirectoryServer.getAttributeTypeOrNull("attributetypes");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("objectclasses");
+    t = DirectoryServer.getAttributeTypeOrNull("objectclasses");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("ldapsyntaxes");
+    t = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
     assertTrue(schemaEntry.hasAttribute(t));
 
-    t = DirectoryServer.getAttributeType("matchingrules");
+    t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
     assertTrue(schemaEntry.hasAttribute(t));
   }
 
@@ -400,10 +400,10 @@ public class SchemaBackendTestCase extends BackendTestCase
          throws Exception
   {
     DN schemaDN = DN.valueOf("cn=schema");
-    AttributeType a = DirectoryServer.getAttributeType("attributetypes");
-    AttributeType o = DirectoryServer.getAttributeType("objectclasses");
-    AttributeType m = DirectoryServer.getAttributeType("matchingrules");
-    AttributeType s = DirectoryServer.getAttributeType("ldapsyntaxes");
+    AttributeType a = DirectoryServer.getAttributeTypeOrNull("attributetypes");
+    AttributeType o = DirectoryServer.getAttributeTypeOrNull("objectclasses");
+    AttributeType m = DirectoryServer.getAttributeTypeOrNull("matchingrules");
+    AttributeType s = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
 
     assertFalse(schemaBackend.showAllAttributes());
     Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);

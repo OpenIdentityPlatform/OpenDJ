@@ -2640,7 +2640,7 @@ public final class DirectoryServer
    * @return  The requested attribute type, or <CODE>null</CODE> if there is no
    *          attribute with the specified type defined in the server schema.
    */
-  public static AttributeType getAttributeType(String lowerName)
+  public static AttributeType getAttributeTypeOrNull(String lowerName)
   {
     return directoryServer.schema.getAttributeType(lowerName);
   }

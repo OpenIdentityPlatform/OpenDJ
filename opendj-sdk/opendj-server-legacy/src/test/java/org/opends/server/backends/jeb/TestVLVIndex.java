@@ -94,12 +94,11 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     TestCaseUtils.startServer();
     TestCaseUtils.enableBackend(beID);
 
-    SortKey[] sortKeys = new SortKey[3];
-    sortKeys[0] = new SortKey(DirectoryServer.getAttributeType("givenname"), true);
-    sortKeys[1] = new SortKey(DirectoryServer.getAttributeType("sn"),
-                              false);
-    sortKeys[2] = new SortKey(
-        DirectoryServer.getAttributeType("uid"), true);
+    SortKey[] sortKeys = new SortKey[] {
+      new SortKey(DirectoryServer.getAttributeTypeOrNull("givenname"), true),
+      new SortKey(DirectoryServer.getAttributeTypeOrNull("sn"), false),
+      new SortKey(DirectoryServer.getAttributeTypeOrNull("uid"), true),
+    };
     sortOrder = new SortOrder(sortKeys);
 
     aaccfJohnsonDN    = DN.valueOf("uid=aaccf.johnson,dc=vlvtest,dc=com");

@@ -315,13 +315,10 @@ public class AggregationClientTest extends AdminTestCase {
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
-    TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
-        .getInstance(), "test child new", null);
+    TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
     child.setMandatoryBooleanProperty(true);
-    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer
-        .getAttributeType("description"));
-    child.setAggregationProperty(Collections
-        .singleton("LDAP Connection Handler"));
+    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+    child.setAggregationProperty(Collections.singleton("LDAP Connection Handler"));
     child.commit();
 
     c.assertEntryIsCreated();

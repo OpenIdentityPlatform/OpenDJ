@@ -666,7 +666,7 @@ public final class RDN
     // don't return it yet because this could be a multi-valued RDN.
     String name            = attributeName.toString();
     String lowerName       = toLowerCase(name);
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
     if (attrType == null)
     {
       // This must be an attribute type that we don't know about.
@@ -785,7 +785,7 @@ public final class RDN
       {
         name      = attributeName.toString();
         lowerName = toLowerCase(name);
-        attrType  = DirectoryServer.getAttributeType(lowerName);
+        attrType  = DirectoryServer.getAttributeTypeOrNull(lowerName);
 
         if (attrType == null)
         {
@@ -810,7 +810,7 @@ public final class RDN
       // Update the RDN to include the new attribute/value.
       name            = attributeName.toString();
       lowerName       = toLowerCase(name);
-      attrType = DirectoryServer.getAttributeType(lowerName);
+      attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
       if (attrType == null)
       {
         // This must be an attribute type that we don't know about.

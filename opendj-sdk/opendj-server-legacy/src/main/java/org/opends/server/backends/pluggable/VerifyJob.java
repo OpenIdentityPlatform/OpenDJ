@@ -219,7 +219,7 @@ class VerifyJob
           }
           else
           {
-            AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+            AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
             if (attrType == null)
             {
               throw new StorageRuntimeException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index).toString());

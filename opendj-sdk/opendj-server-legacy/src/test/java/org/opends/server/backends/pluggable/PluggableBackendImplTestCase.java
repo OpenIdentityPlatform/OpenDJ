@@ -171,7 +171,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
     {
       final String attributeName = index.getKey().toLowerCase();
-      final AttributeType attribute = DirectoryServer.getAttributeType(attributeName);
+      final AttributeType attribute = DirectoryServer.getAttributeTypeOrNull(attributeName);
       Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
 
       BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
@@ -677,7 +677,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     {
       for (IndexType type : index.getValue())
       {
-        final AttributeType attributeType = DirectoryServer.getAttributeType(index.getKey().toLowerCase());
+        final AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(index.getKey().toLowerCase());
         assertTrue(backend.isIndexed(attributeType,
             org.opends.server.types.IndexType.valueOf(type.toString().toUpperCase())));
       }
@@ -876,7 +876,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     Entry oldEntry = workEntries.get(0);
     Entry newEntry = oldEntry.duplicate(false);
 
-    modifyAttribute = DirectoryServer.getAttributeType("jpegphoto");
+    modifyAttribute = DirectoryServer.getAttributeTypeOrNull("jpegphoto");
     newEntry.applyModifications(Arrays.asList(new Modification(ADD, create(modifyAttribute, modifyValue))));
 
     backend.replaceEntry(oldEntry, newEntry, null);

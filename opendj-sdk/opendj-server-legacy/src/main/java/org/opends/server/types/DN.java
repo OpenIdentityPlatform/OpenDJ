@@ -649,8 +649,7 @@ public final class DN implements Comparable<DN>, Serializable
         toLowerCase(attributeName, lowerName, true);
         String attributeNameString = attributeName.toString();
         AttributeType attrType = getAttributeType(lowerName.toString(), attributeNameString);
-        rdnComponents.add(
-            new RDN(attrType, attributeNameString, ByteString.empty()));
+        rdnComponents.add(new RDN(attrType, attributeNameString, ByteString.empty()));
         return new DN(rdnComponents);
       }
 
@@ -663,8 +662,7 @@ public final class DN implements Comparable<DN>, Serializable
       // Create the new RDN with the provided information.
       StringBuilder lowerName = new StringBuilder();
       toLowerCase(attributeName, lowerName, true);
-      AttributeType attrType  =
-          DirectoryServer.getAttributeType(lowerName.toString());
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName.toString());
       String attributeNameString = attributeName.toString();
       if (attrType == null)
       {
@@ -781,8 +779,7 @@ public final class DN implements Comparable<DN>, Serializable
         {
           lowerName = new StringBuilder();
           toLowerCase(attributeName, lowerName, true);
-          attrType =
-              DirectoryServer.getAttributeType(lowerName.toString());
+          attrType = DirectoryServer.getAttributeTypeOrNull(lowerName.toString());
           attributeNameString = attributeName.toString();
 
           if (attrType == null)
@@ -809,8 +806,7 @@ public final class DN implements Comparable<DN>, Serializable
 
         lowerName = new StringBuilder();
         toLowerCase(attributeName, lowerName, true);
-        attrType =
-            DirectoryServer.getAttributeType(lowerName.toString());
+        attrType = DirectoryServer.getAttributeTypeOrNull(lowerName.toString());
         attributeNameString = attributeName.toString();
         if (attrType == null)
         {
@@ -1109,7 +1105,7 @@ public final class DN implements Comparable<DN>, Serializable
         {
           name      = attributeName.toString();
           lowerName = toLowerCase(name);
-          attrType  = DirectoryServer.getAttributeType(lowerName);
+          attrType  = DirectoryServer.getAttributeTypeOrNull(lowerName);
 
           if (attrType == null)
           {
@@ -1135,7 +1131,7 @@ public final class DN implements Comparable<DN>, Serializable
         // Create the new RDN with the provided information.
         name      = attributeName.toString();
         lowerName = toLowerCase(name);
-        attrType  = DirectoryServer.getAttributeType(lowerName);
+        attrType  = DirectoryServer.getAttributeTypeOrNull(lowerName);
         if (attrType == null)
         {
           // This must be an attribute type that we don't know about.
@@ -1190,7 +1186,7 @@ public final class DN implements Comparable<DN>, Serializable
 
   private static AttributeType getAttributeType(String lowerName, String name)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
     if (attrType == null)
     {
       // This must be an attribute type that we don't know about.

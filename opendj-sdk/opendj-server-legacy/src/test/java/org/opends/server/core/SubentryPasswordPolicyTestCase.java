@@ -411,16 +411,13 @@ public class SubentryPasswordPolicyTestCase
   public void testPasswordPolicySubentryAttribute()
          throws Exception
   {
-    PasswordPolicy defaultPolicy =
-            DirectoryServer.getDefaultPasswordPolicy();
+    PasswordPolicy defaultPolicy = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(defaultPolicy);
 
-    Entry testEntry = DirectoryServer.getEntry(DN.valueOf(
-            "uid=rogasawara," + BASE));
+    Entry testEntry = DirectoryServer.getEntry(DN.valueOf("uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
-    AttributeType attrType = DirectoryServer.getAttributeType(
-            "pwdpolicysubentry");
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("pwdpolicysubentry");
 
     // Make sure that default policy is in effect
     // for the user entry.
@@ -444,13 +441,11 @@ public class SubentryPasswordPolicyTestCase
         );
 
     // Make sure just added policy is in effect.
-    testEntry = DirectoryServer.getEntry(DN.valueOf(
-            "uid=rogasawara," + BASE));
+    testEntry = DirectoryServer.getEntry(DN.valueOf("uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
     assertTrue(testEntry.hasAttribute(attrType));
-    assertTrue(testEntry.hasValue(attrType, null,
-            ByteString.valueOf("cn=Temp Policy," + SUFFIX)));
+    assertTrue(testEntry.hasValue(attrType, null, ByteString.valueOf("cn=Temp Policy," + SUFFIX)));
 
     // Remove subentry policy and make sure
     // default policy is in effect again.

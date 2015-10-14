@@ -222,13 +222,10 @@ public class ReferentialIntegrityPlugin
       String attr = attrFilt.substring(0, sepInd);
       String filtStr = attrFilt.substring(sepInd + 1);
 
-      AttributeType attrType =
-        DirectoryServer.getAttributeType(attr.toLowerCase());
-
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr.toLowerCase());
       try
       {
-        SearchFilter filter =
-          SearchFilter.createFilterFromString(filtStr);
+        SearchFilter filter = SearchFilter.createFilterFromString(filtStr);
         newAttrFiltMap.put(attrType, filter);
       }
       catch (DirectoryException de)
@@ -348,9 +345,7 @@ public class ReferentialIntegrityPlugin
        * type has to be present in the attributeType list.
        */
 
-      AttributeType attrType =
-        DirectoryServer.getAttributeType(attr.toLowerCase());
-
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr.toLowerCase());
       if (attrType == null || !theAttributeTypes.contains(attrType))
       {
         isAcceptable = false;

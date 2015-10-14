@@ -85,72 +85,59 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "invalidConfigs")
-  public Object[][] getInvalidConfigurations()
-         throws Exception
+  public Object[][] getInvalidConfigurations() throws Exception
   {
     List<Entry> entries = TestCaseUtils.makeEntries(
       "dn: cn=No Map Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: No Map Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "",
       "dn: cn=No Map Colon,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: No Map Colon",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: nomapcolon",
       "",
       "dn: cn=No Map Cert Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: No Map Cert Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: :cn",
       "",
       "dn: cn=No Map User Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: No Map User Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: cn:",
       "",
       "dn: cn=Undefined User Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: Undefined User Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: cn:undefined",
       "",
       "dn: cn=Duplicate Cert Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: Duplicate Cert Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: cn:cn",
       "ds-cfg-subject-attribute-mapping: cn:sn",
@@ -158,11 +145,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
       "dn: cn=Duplicate User Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: Duplicate User Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: cn:cn",
       "ds-cfg-subject-attribute-mapping: e:cn",
@@ -182,11 +167,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
       "dn: cn=Duplicate Cert Attr OID and Name,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
-      "objectClass: " +
-           "ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
+      "objectClass: ds-cfg-subject-attribute-to-user-attribute-certificate-mapper",
       "cn: Duplicate Cert Attr OID and Name",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectAttributeToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute-mapping: cn:cn",
       "ds-cfg-subject-attribute-mapping: 2.5.4.3:displayName");
@@ -731,12 +714,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
   public void testRemoveMapAttribute()
          throws Exception
   {
-    String mapperDN = "cn=Subject Attribute to User Attribute," +
-                      "cn=Certificate Mappers,cn=config";
+    String mapperDN = "cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config";
 
-    Attribute a =
-      Attributes.empty(DirectoryServer.getAttributeType(
-                            "ds-cfg-subject-attribute-mapping"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-subject-attribute-mapping"));
 
     ArrayList<Modification> mods = newArrayList(
         new Modification(ModificationType.DELETE, a));
@@ -912,13 +892,11 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void setBaseDNs(String[] baseDNs)
-          throws Exception
+  private void setBaseDNs(String[] baseDNs) throws Exception
   {
-    String mapperDN = "cn=Subject Attribute to User Attribute," +
-                      "cn=Certificate Mappers,cn=config";
+    String mapperDN = "cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config";
 
-    AttributeType attrType = DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("ds-cfg-user-base-dn");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {

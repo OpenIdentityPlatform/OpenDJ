@@ -82,16 +82,13 @@ public class DN2URI extends DatabaseContainer
    * The standard attribute type that is used to specify the set of referral
    * URLs in a referral entry.
    */
-  private final AttributeType referralType =
-       DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+  private final AttributeType referralType = DirectoryServer.getAttributeTypeOrNull(ATTR_REFERRAL_URL);
 
   /**
-   * A flag that indicates whether there are any referrals contained in this
-   * database.  It should only be set to {@code false} when it is known that
-   * there are no referrals.
+   * A flag that indicates whether there are any referrals contained in this database.
+   * It should only be set to {@code false} when it is known that there are no referrals.
    */
-  private volatile ConditionResult containsReferrals =
-       ConditionResult.UNDEFINED;
+  private volatile ConditionResult containsReferrals = ConditionResult.UNDEFINED;
 
 
   /**
