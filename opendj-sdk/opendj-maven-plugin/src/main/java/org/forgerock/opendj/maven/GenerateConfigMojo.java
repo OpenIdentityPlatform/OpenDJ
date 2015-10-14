@@ -56,6 +56,7 @@ import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -107,6 +108,7 @@ import org.apache.maven.project.MavenProject;
  */
 @Mojo(name = "generate-config", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE_PLUS_RUNTIME)
 public final class GenerateConfigMojo extends AbstractMojo {
+
     private interface StreamSourceFactory {
         StreamSource newStreamSource() throws IOException;
     }
@@ -198,13 +200,26 @@ public final class GenerateConfigMojo extends AbstractMojo {
             loadXMLDescriptors();
             executeValidateXMLDefinitions();
             executeTransformXMLDefinitions();
-            getLog().info(
-                    "Adding source directory \"" + getGeneratedSourcesDirectory()
-                            + "\" to build path...");
+            getLog().info("Adding source directory \"" + getGeneratedSourcesDirectory() + "\" to build path...");
             project.addCompileSourceRoot(getGeneratedSourcesDirectory());
+            project.addResource(getGeneratedMavenResources());
         } catch (final Exception e) {
             throw new MojoExecutionException("XSLT configuration transformation failed", e);
         }
+    }
+
+    private Resource getGeneratedMavenResources() {
+        final String[] generatedResourcesRelativePath =
+                new String[] { "/META-INF/services/**", "/config/**/*.properties" };
+        final Resource resources = new Resource();
+        resources.setDirectory(getGeneratedResourcesDirectory());
+        for (final String generatedResourceRelativePath : generatedResourcesRelativePath) {
+            resources.addInclude(generatedResourceRelativePath);
+            getLog().info("Adding resource \"" + getGeneratedResourcesDirectory() + generatedResourceRelativePath
+                    + " to resource path...");
+        }
+
+        return resources;
     }
 
     private void createTransformTask(final StreamSourceFactory inputFactory, final StreamResult output,
@@ -342,17 +357,21 @@ public final class GenerateConfigMojo extends AbstractMojo {
         return project.getBasedir().toString();
     }
 
+    private String getGeneratedResourcesDirectory() {
+        return project.getBuild().getDirectory() + "/generated-resources";
+    }
+
     private String getGeneratedManifestFile() {
-        return project.getBuild().getOutputDirectory()
+        return getGeneratedResourcesDirectory()
                 + "/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
     }
 
     private String getGeneratedMessagesDirectory() {
-        return project.getBuild().getOutputDirectory() + "/config/messages";
+        return getGeneratedResourcesDirectory() + "/config/messages";
     }
 
     private String getGeneratedProfilesDirectory(final String profileName) {
-        return project.getBuild().getOutputDirectory() + "/config/profiles/" + profileName;
+        return getGeneratedResourcesDirectory() + "/config/profiles/" + profileName;
     }
 
     private String getGeneratedSourcesDirectory() {
