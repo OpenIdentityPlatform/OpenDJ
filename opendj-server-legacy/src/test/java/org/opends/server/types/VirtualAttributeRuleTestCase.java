@@ -66,7 +66,7 @@ public class VirtualAttributeRuleTestCase
   {
     TestCaseUtils.startServer();
 
-    entryDNType = DirectoryServer.getAttributeType("entrydn");
+    entryDNType = DirectoryServer.getAttributeTypeOrNull("entrydn");
     assertNotNull(entryDNType);
   }
 

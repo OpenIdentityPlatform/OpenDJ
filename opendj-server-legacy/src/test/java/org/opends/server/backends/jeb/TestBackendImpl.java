@@ -570,9 +570,9 @@ public class TestBackendImpl extends JebTestCase {
         "ou: People"
     );
 
-    givenName = DirectoryServer.getAttributeType("givenname");
-    title = DirectoryServer.getAttributeType("title");
-    name = DirectoryServer.getAttributeType("name");
+    givenName = DirectoryServer.getAttributeTypeOrNull("givenname");
+    title = DirectoryServer.getAttributeTypeOrNull("title");
+    name = DirectoryServer.getAttributeTypeOrNull("name");
   }
 
   @AfterClass
@@ -1268,7 +1268,7 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(resultCode, 0);
 
-    AttributeType givennameAttr = DirectoryServer.getAttributeType("givenname");
+    AttributeType givennameAttr = DirectoryServer.getAttributeTypeOrNull("givenname");
     assertNull(ec.getAttributeIndex(givennameAttr));
 
     List<DatabaseContainer> databases = new ArrayList<>();

@@ -164,7 +164,7 @@ public final class AttributeTypePropertyDefinition extends
 
     String name = value.trim().toLowerCase();
     AttributeType type = isCheckSchema
-        ? DirectoryServer.getAttributeType(name)
+        ? DirectoryServer.getAttributeTypeOrNull(name)
         : DirectoryServer.getAttributeTypeOrDefault(name);
     if (type == null) {
       throw PropertyException.illegalPropertyValueException(this, value);

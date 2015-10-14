@@ -35,11 +35,16 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.OperationType;
 
 /**
  * This class defines a data structure that will be used to keep track
@@ -250,141 +255,77 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
      *        and associated with their objectclass
      *        OC_MONITOR_CONNHANDLERSTATS
      */
-    attrs.add(createAttribute("connectionsEstablished", String
-        .valueOf(tmpConnectionsEstablished)));
-    attrs.add(createAttribute("connectionsClosed", String
-        .valueOf(tmpConnectionsClosed)));
-    attrs.add(createAttribute("bytesRead", String
-        .valueOf(tmpBytesRead)));
-    attrs.add(createAttribute("bytesWritten", String
-        .valueOf(tmpBytesWritten)));
-    attrs.add(createAttribute("ldapMessagesRead", String
-        .valueOf(tmpMessagesRead)));
-    attrs.add(createAttribute("ldapMessagesWritten", String
-        .valueOf(tmpMessagesWritten)));
-    attrs.add(createAttribute("operationsAbandoned", String
-        .valueOf(tmpOperationsAbandoned)));
-    attrs.add(createAttribute("operationsInitiated", String
-        .valueOf(tmpOperationsInitiated)));
-    attrs.add(createAttribute("operationsCompleted", String
-        .valueOf(tmpOperationsCompleted)));
-    attrs.add(createAttribute("abandonRequests", String
-        .valueOf(tmpAbandonRequests)));
-    attrs.add(createAttribute("addRequests", String
-        .valueOf(tmpAddRequests)));
-    attrs.add(createAttribute("addResponses", String
-        .valueOf(tmpAddResponses)));
-    attrs.add(createAttribute("bindRequests", String
-        .valueOf(tmpBindRequests)));
-    attrs.add(createAttribute("bindResponses", String
-        .valueOf(tmpBindResponses)));
-    attrs.add(createAttribute("compareRequests", String
-        .valueOf(tmpCompareRequests)));
-    attrs.add(createAttribute("compareResponses", String
-        .valueOf(tmpCompareResponses)));
-    attrs.add(createAttribute("deleteRequests", String
-        .valueOf(tmpDeleteRequests)));
-    attrs.add(createAttribute("deleteResponses", String
-        .valueOf(tmpDeleteResponses)));
-    attrs.add(createAttribute("extendedRequests", String
-        .valueOf(tmpExtendedRequests)));
-    attrs.add(createAttribute("extendedResponses", String
-        .valueOf(tmpExtendedResponses)));
-    attrs.add(createAttribute("modifyRequests", String
-        .valueOf(tmpModifyRequests)));
-    attrs.add(createAttribute("modifyResponses", String
-        .valueOf(tmpModifyResponses)));
-    attrs.add(createAttribute("modifyDNRequests", String
-        .valueOf(tmpModifyDNRequests)));
-    attrs.add(createAttribute("modifyDNResponses", String
-        .valueOf(tmpModifyDNResponses)));
-    attrs.add(createAttribute("searchRequests", String
-        .valueOf(tmpSearchRequests)));
-    attrs.add(createAttribute("searchOneRequests", String
-        .valueOf(tmpSearchOneRequests)));
-    attrs.add(createAttribute("searchSubRequests", String
-        .valueOf(tmpSearchSubRequests)));
-    attrs.add(createAttribute("searchResultEntries", String
-        .valueOf(tmpSearchEntries)));
-    attrs.add(createAttribute("searchResultReferences", String
-        .valueOf(tmpSearchReferences)));
-    attrs.add(createAttribute("searchResultsDone", String
-        .valueOf(tmpSearchResultsDone)));
-    attrs.add(createAttribute("unbindRequests", String
-        .valueOf(tmpUnbindRequests)));
+    attrs.add(createAttribute("connectionsEstablished", tmpConnectionsEstablished));
+    attrs.add(createAttribute("connectionsClosed", tmpConnectionsClosed));
+    attrs.add(createAttribute("bytesRead", tmpBytesRead));
+    attrs.add(createAttribute("bytesWritten", tmpBytesWritten));
+    attrs.add(createAttribute("ldapMessagesRead", tmpMessagesRead));
+    attrs.add(createAttribute("ldapMessagesWritten", tmpMessagesWritten));
+    attrs.add(createAttribute("operationsAbandoned", tmpOperationsAbandoned));
+    attrs.add(createAttribute("operationsInitiated", tmpOperationsInitiated));
+    attrs.add(createAttribute("operationsCompleted", tmpOperationsCompleted));
+    attrs.add(createAttribute("abandonRequests", tmpAbandonRequests));
+    attrs.add(createAttribute("addRequests", tmpAddRequests));
+    attrs.add(createAttribute("addResponses", tmpAddResponses));
+    attrs.add(createAttribute("bindRequests", tmpBindRequests));
+    attrs.add(createAttribute("bindResponses", tmpBindResponses));
+    attrs.add(createAttribute("compareRequests", tmpCompareRequests));
+    attrs.add(createAttribute("compareResponses", tmpCompareResponses));
+    attrs.add(createAttribute("deleteRequests", tmpDeleteRequests));
+    attrs.add(createAttribute("deleteResponses", tmpDeleteResponses));
+    attrs.add(createAttribute("extendedRequests", tmpExtendedRequests));
+    attrs.add(createAttribute("extendedResponses", tmpExtendedResponses));
+    attrs.add(createAttribute("modifyRequests", tmpModifyRequests));
+    attrs.add(createAttribute("modifyResponses", tmpModifyResponses));
+    attrs.add(createAttribute("modifyDNRequests", tmpModifyDNRequests));
+    attrs.add(createAttribute("modifyDNResponses", tmpModifyDNResponses));
+    attrs.add(createAttribute("searchRequests", tmpSearchRequests));
+    attrs.add(createAttribute("searchOneRequests", tmpSearchOneRequests));
+    attrs.add(createAttribute("searchSubRequests", tmpSearchSubRequests));
+    attrs.add(createAttribute("searchResultEntries", tmpSearchEntries));
+    attrs.add(createAttribute("searchResultReferences", tmpSearchReferences));
+    attrs.add(createAttribute("searchResultsDone", tmpSearchResultsDone));
+    attrs.add(createAttribute("unbindRequests", tmpUnbindRequests));
 
     // adds
-    attrs.add(createAttribute("ds-mon-add-operations-total-count",
-        String.valueOf(tmpAddOperationCount)));
-
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-add-operations-total-time", String
-            .valueOf(tmpAddOperationTime)));
+    attrs.add(createAttribute("ds-mon-add-operations-total-count", tmpAddOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-add-operations-total-time", tmpAddOperationTime));
 
     // search
-    attrs.add(createAttribute("ds-mon-search-operations-total-count",
-        String.valueOf(tmpSearchOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-search-operations-total-time", String
-            .valueOf(tmpSearchOperationTime)));
+    attrs.add(createAttribute("ds-mon-search-operations-total-count", tmpSearchOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-search-operations-total-time", tmpSearchOperationTime));
 
     // bind
-    attrs.add(createAttribute("ds-mon-bind-operations-total-count",
-        String.valueOf(tmpBindOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-bind-operations-total-time", String
-            .valueOf(tmpBindOperationTime)));
+    attrs.add(createAttribute("ds-mon-bind-operations-total-count", tmpBindOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-bind-operations-total-time", tmpBindOperationTime));
 
     // unbind
-    attrs.add(createAttribute("ds-mon-unbind-operations-total-count",
-        String.valueOf(tmpUnbindOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-unbind-operations-total-time", String
-            .valueOf(tmpUnbindOperationTime)));
+    attrs.add(createAttribute("ds-mon-unbind-operations-total-count", tmpUnbindOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-unbind-operations-total-time", tmpUnbindOperationTime));
 
     // compare
-    attrs
-        .add(createAttribute("ds-mon-compare-operations-total-count",
-            String.valueOf(tmpCompOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-compare-operations-total-time", String
-            .valueOf(tmpCompOperationTime)));
+    attrs.add(createAttribute("ds-mon-compare-operations-total-count", tmpCompOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-compare-operations-total-time", tmpCompOperationTime));
+
     // del
-    attrs.add(createAttribute("ds-mon-delete-operations-total-count",
-        String.valueOf(tmpDelOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-delete-operations-total-time", String
-            .valueOf(tmpDelOperationTime)));
+    attrs.add(createAttribute("ds-mon-delete-operations-total-count", tmpDelOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-delete-operations-total-time", tmpDelOperationTime));
 
     // mod
-    attrs.add(createAttribute("ds-mon-mod-operations-total-count",
-        String.valueOf(tmpModOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-mod-operations-total-time", String
-            .valueOf(tmpModOperationTime)));
+    attrs.add(createAttribute("ds-mon-mod-operations-total-count", tmpModOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-mod-operations-total-time", tmpModOperationTime));
 
     // moddn
-    attrs.add(createAttribute("ds-mon-moddn-operations-total-count",
-        String.valueOf(tmpModdnOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-moddn-operations-total-time", String
-            .valueOf(tmpModdnOperationTime)));
+    attrs.add(createAttribute("ds-mon-moddn-operations-total-count", tmpModdnOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-moddn-operations-total-time", tmpModdnOperationTime));
 
     // abandon
-    attrs
-        .add(createAttribute("ds-mon-abandon-operations-total-count",
-            String.valueOf(tmpAbandonOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-abandon-operations-total-time", String
-            .valueOf(tmpAbandonOperationTime)));
+    attrs.add(createAttribute("ds-mon-abandon-operations-total-count", tmpAbandonOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-abandon-operations-total-time", tmpAbandonOperationTime));
 
     // extended
-    attrs
-        .add(createAttribute("ds-mon-extended-operations-total-count",
-            String.valueOf(tmpExtOperationCount)));
-    attrs.add(createAttribute(
-        "ds-mon-resident-time-extended-operations-total-time", String
-            .valueOf(tmpExtOperationTime)));
+    attrs.add(createAttribute("ds-mon-extended-operations-total-count", tmpExtOperationCount));
+    attrs.add(createAttribute("ds-mon-resident-time-extended-operations-total-time", tmpExtOperationTime));
 
     return attrs;
   }
@@ -651,11 +592,10 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *          The value to use for the attribute.
    * @return the constructed attribute.
    */
-  protected Attribute createAttribute(String name, String value)
+  protected Attribute createAttribute(String name, Object value)
   {
-    AttributeType attrType =
-      DirectoryServer.getAttributeType(name.toLowerCase());
-    return Attributes.create(attrType, value);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(name.toLowerCase());
+    return Attributes.create(attrType, String.valueOf(value));
   }
 
 
@@ -669,7 +609,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getConnectionsEstablished()
   {
-   return connectionsEstablished.get();
+    return connectionsEstablished.get();
   }
 
 
@@ -681,8 +621,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getConnectionsClosed()
   {
-      return connectionsClosed.get();
-
+    return connectionsClosed.get();
   }
 
 

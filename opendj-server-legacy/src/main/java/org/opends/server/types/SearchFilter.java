@@ -2055,7 +2055,7 @@ public final class SearchFilter
 
   private static AttributeType getAttributeType(String attrType, StringBuilder lowerType)
   {
-    AttributeType attributeType = DirectoryServer.getAttributeType(lowerType.toString());
+    AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(lowerType.toString());
     if (attributeType == null)
     {
       String typeStr = attrType.substring(0, lowerType.length());

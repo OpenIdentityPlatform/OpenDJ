@@ -306,7 +306,7 @@ public class AttributeCleanupPlugin extends
           ? toAttr
           : toAttr.substring(semicolonPos + 1);
 
-      if (DirectoryServer.getAttributeType(toLowerCase(toAttrType)) == null)
+      if (DirectoryServer.getAttributeTypeOrNull(toLowerCase(toAttrType)) == null)
       {
         messages.add(ERR_PLUGIN_ATTR_CLEANUP_ATTRIBUTE_MISSING.get(toAttr));
         isValid = false;

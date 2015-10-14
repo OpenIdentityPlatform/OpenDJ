@@ -577,7 +577,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     FilterDescription description = new FilterDescription();
 
     description.filterType = filterType;
-    description.attributeType = DirectoryServer.getAttributeType(attributeType);
+    description.attributeType = DirectoryServer.getAttributeTypeOrNull(attributeType);
     description.assertionValue = ByteString.valueOf(attributeValue);
 
     if (filterType == FilterType.EQUALITY) {
@@ -639,7 +639,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     FilterDescription description = new FilterDescription();
 
     description.filterType = FilterType.SUBSTRING;
-    description.attributeType = DirectoryServer.getAttributeType(attributeType);
+    description.attributeType = DirectoryServer.getAttributeTypeOrNull(attributeType);
 
     description.subInitialElement = ByteString.valueOf(subInitial);
     description.subAnyElements = new ArrayList<>();

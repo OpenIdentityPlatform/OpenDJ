@@ -97,10 +97,10 @@ public class ServerSideSortControlTestCase
   {
     TestCaseUtils.startServer();
 
-    givenNameType = DirectoryServer.getAttributeType("givenname");
+    givenNameType = DirectoryServer.getAttributeTypeOrNull("givenname");
     assertNotNull(givenNameType);
 
-    snType = DirectoryServer.getAttributeType("sn");
+    snType = DirectoryServer.getAttributeTypeOrNull("sn");
     assertNotNull(snType);
 
     aaccfJohnsonDN    = DN.valueOf("uid=aaccf.johnson,dc=example,dc=com");

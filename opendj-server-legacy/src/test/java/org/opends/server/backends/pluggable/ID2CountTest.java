@@ -250,7 +250,7 @@ public class ID2CountTest extends DirectoryServerTestCase
 
     BackendIndexCfg indexCfg = legacyMockCfg(BackendIndexCfg.class);
     when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
-    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType("sn"));
+    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeTypeOrNull("sn"));
     when(backendCfg.getBackendIndex("sn")).thenReturn(indexCfg);
 
     return backendCfg;

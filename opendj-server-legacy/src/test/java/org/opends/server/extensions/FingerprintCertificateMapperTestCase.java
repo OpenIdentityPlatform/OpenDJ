@@ -434,20 +434,16 @@ public class FingerprintCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to remove the fingerprint attribute will
-   * fail.
+   * Tests to ensure that an attmept to remove the fingerprint attribute will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testRemoveFingerprintAttribute()
-         throws Exception
+  public void testRemoveFingerprintAttribute() throws Exception
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    Attribute a =
-      Attributes.empty(DirectoryServer.getAttributeType(
-                            "ds-cfg-fingerprint-attribute"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-fingerprint-attribute"));
 
     ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
     ModifyOperation modifyOperation =
@@ -463,14 +459,11 @@ public class FingerprintCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testRemoveFingerprintAlgorithm()
-         throws Exception
+  public void testRemoveFingerprintAlgorithm() throws Exception
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    Attribute a =
-      Attributes.empty(DirectoryServer.getAttributeType(
-                            "ds-cfg-fingerprint-algorithm"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-fingerprint-algorithm"));
 
     ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
     ModifyOperation modifyOperation =

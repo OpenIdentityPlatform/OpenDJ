@@ -214,12 +214,10 @@ public final class ConfigEntry
   public void putConfigAttribute(ConfigAttribute attribute)
   {
     String name = attribute.getName();
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(name.toLowerCase());
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(name.toLowerCase());
     if (attrType == null)
     {
-      attrType =
-           DirectoryServer.getDefaultAttributeType(name, attribute.getSyntax());
+      attrType = DirectoryServer.getDefaultAttributeType(name, attribute.getSyntax());
     }
 
     List<Attribute> attrs = new ArrayList<>(2);

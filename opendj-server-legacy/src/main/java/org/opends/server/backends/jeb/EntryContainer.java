@@ -275,7 +275,7 @@ public class EntryContainer
         }
 
         AttributeType attrType =
-          DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+          DirectoryServer.getAttributeTypeOrNull(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
           unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));

@@ -704,10 +704,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final SearchResultEntry resultEntry = getFirstResult(searchOperation);
     if (resultEntry != null)
     {
-      AttributeType synchronizationGenIDType =
-          DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-      List<Attribute> attrs =
-          resultEntry.getAttribute(synchronizationGenIDType);
+      AttributeType synchronizationGenIDType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
+      List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
       if (attrs != null)
       {
         Attribute attr = attrs.get(0);
@@ -725,10 +723,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return null;
   }
 
-  private Iterator<String> getAttributeValueIterator(
-      SearchResultEntry resultEntry, String attrName)
+  private Iterator<String> getAttributeValueIterator(SearchResultEntry resultEntry, String attrName)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
     List<Attribute> exclAttrs = resultEntry.getAttribute(attrType);
     if (exclAttrs != null)
     {
@@ -1142,7 +1139,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     for (String attrName : attrNames)
     {
-      if (DirectoryServer.getAttributeType(attrName).equals(attrTypeToFind))
+      if (DirectoryServer.getAttributeTypeOrNull(attrName).equals(attrTypeToFind))
       {
         return true;
       }
@@ -3282,10 +3279,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       SearchResultEntry resultEntry = result.get(0);
       if (resultEntry != null)
       {
-        AttributeType synchronizationGenIDType =
-          DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-        List<Attribute> attrs =
-          resultEntry.getAttribute(synchronizationGenIDType);
+        AttributeType synchronizationGenIDType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
+        List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
         if (attrs != null)
         {
           Attribute attr = attrs.get(0);

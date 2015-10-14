@@ -188,7 +188,7 @@ public class RecurringTask
 
 
     // Get the schedule for this task.
-    attrType = DirectoryServer.getAttributeType(ATTR_RECURRING_TASK_SCHEDULE.toLowerCase());
+    attrType = DirectoryServer.getAttributeTypeOrNull(ATTR_RECURRING_TASK_SCHEDULE.toLowerCase());
     if (attrType == null)
     {
       attrType = DirectoryServer.getDefaultAttributeType(ATTR_RECURRING_TASK_SCHEDULE);
@@ -238,7 +238,7 @@ public class RecurringTask
     weekdayArray = taskArrays[WEEKDAY_INDEX];
 
     // Get the class name from the entry.  If there isn't one, then fail.
-    attrType = DirectoryServer.getAttributeType(ATTR_TASK_CLASS.toLowerCase());
+    attrType = DirectoryServer.getAttributeTypeOrNull(ATTR_TASK_CLASS.toLowerCase());
     if (attrType == null)
     {
       attrType = DirectoryServer.getDefaultAttributeType(ATTR_TASK_CLASS);
@@ -408,7 +408,7 @@ public class RecurringTask
       SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       String nextTaskID = task.getTaskID() + "-" + df.format(nextTaskDate);
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
-      AttributeType taskIDAttrType = DirectoryServer.getAttributeType(nextTaskIDName);
+      AttributeType taskIDAttrType = DirectoryServer.getAttributeTypeOrNull(nextTaskIDName);
       Attribute nextTaskIDAttr = Attributes.create(taskIDAttrType, nextTaskID);
       nextTaskEntry.replaceAttribute(nextTaskIDAttr);
       RDN nextTaskRDN = RDN.decode(nextTaskIDName + "=" + nextTaskID);
@@ -416,12 +416,9 @@ public class RecurringTask
         taskScheduler.getTaskBackend().getScheduledTasksParentDN());
       nextTaskEntry.setDN(nextTaskDN);
 
-      String nextTaskStartTimeName = NAME_PREFIX_TASK +
-        "scheduled-start-time";
-      AttributeType taskStartTimeAttrType =
-        DirectoryServer.getAttributeType(nextTaskStartTimeName);
-      Attribute nextTaskStartTimeAttr = Attributes.create(
-        taskStartTimeAttrType, nextTaskStartTime);
+      String nextTaskStartTimeName = NAME_PREFIX_TASK + "scheduled-start-time";
+      AttributeType taskStartTimeAttrType = DirectoryServer.getAttributeTypeOrNull(nextTaskStartTimeName);
+      Attribute nextTaskStartTimeAttr = Attributes.create(taskStartTimeAttrType, nextTaskStartTime);
       nextTaskEntry.replaceAttribute(nextTaskStartTimeAttr);
 
       nextTask.initializeTaskInternal(serverContext, taskScheduler, nextTaskEntry);

@@ -3359,7 +3359,7 @@ final class Importer implements DiskSpaceMonitorHandler
           {
             throw attributeIndexNotConfigured(index);
           }
-          AttributeType attrType = DirectoryServer.getAttributeType(attrIndexParts[0]);
+          AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrIndexParts[0]);
           if (attrType == null)
           {
             throw attributeIndexNotConfigured(index);

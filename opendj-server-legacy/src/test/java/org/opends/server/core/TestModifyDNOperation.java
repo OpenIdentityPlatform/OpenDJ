@@ -357,7 +357,7 @@ public class TestModifyDNOperation extends OperationTestCase
     assertEquals(newEntry.getName().toString(),
         "uid=USER.0,ou=People,dc=example,dc=com");
 
-    AttributeType at = DirectoryServer.getAttributeType("uid");
+    AttributeType at = DirectoryServer.getAttributeTypeOrNull("uid");
     List<Attribute> attrList = newEntry.getAttribute(at);
 
     // There should be only one value for "uid"
@@ -422,7 +422,7 @@ public class TestModifyDNOperation extends OperationTestCase
     assertEquals(newEntry.getName().toString(),
         "uid=UserID.0+cn=Test,ou=People,dc=example,dc=com");
 
-    AttributeType at = DirectoryServer.getAttributeType("uid");
+    AttributeType at = DirectoryServer.getAttributeTypeOrNull("uid");
     List<Attribute> attrList = newEntry.getAttribute(at);
 
     // There should be only one value for "uid"
@@ -473,7 +473,7 @@ public class TestModifyDNOperation extends OperationTestCase
     assertEquals(newEntry.getName().toString(),
         "uid=userid.0+sn=JENSEN,ou=People,dc=example,dc=com");
 
-    AttributeType at = DirectoryServer.getAttributeType("sn");
+    AttributeType at = DirectoryServer.getAttributeTypeOrNull("sn");
     List<Attribute> attrList = newEntry.getAttribute(at);
 
     // There should be only one value for "sn"

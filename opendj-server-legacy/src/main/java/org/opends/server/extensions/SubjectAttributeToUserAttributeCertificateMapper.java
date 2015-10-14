@@ -399,7 +399,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         return null;
       }
 
-      AttributeType userAttrType = DirectoryServer.getAttributeType(userAttrName);
+      AttributeType userAttrType = DirectoryServer.getAttributeTypeOrNull(userAttrName);
       if (userAttrType == null)
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
@@ -429,7 +429,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   private static String normalizeAttributeName(String attrName)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
     if (attrType != null)
     {
       String attrNameNormalized = attrType.getNormalizedPrimaryNameOrOID();

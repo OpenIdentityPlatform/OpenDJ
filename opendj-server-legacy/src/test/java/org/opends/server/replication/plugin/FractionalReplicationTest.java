@@ -548,7 +548,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       debugInfo("Entry found <" + rootDn + ">");
 
       AttributeType synchronizationGenIDType =
-          DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
+          DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
       List<Attribute> attrs =
           resultEntry.getAttribute(synchronizationGenIDType);
       if (attrs != null)
@@ -687,7 +687,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             if (!first)
             {
               assertFalse(newEntry.hasAttribute(DirectoryServer.
-                getAttributeType(fracAttr.toLowerCase())));
+                getAttributeTypeOrNull(fracAttr.toLowerCase())));
             }
             first = false;
           }
@@ -705,7 +705,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             first = false;
           }
           assertFalse(newEntry.hasAttribute(DirectoryServer.
-                getAttributeType(OPTIONAL_ATTR.toLowerCase())));
+                getAttributeTypeOrNull(OPTIONAL_ATTR.toLowerCase())));
           break;
         default:
           fail("Unexpected fractional mode.");
@@ -744,7 +744,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             if (!first)
             {
               assertFalse(entry.hasAttribute(DirectoryServer.
-                getAttributeType(fracAttr.toLowerCase())));
+                getAttributeTypeOrNull(fracAttr.toLowerCase())));
             }
             first = false;
           }
@@ -762,7 +762,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             first = false;
           }
           assertFalse(entry.hasAttribute(DirectoryServer.
-                getAttributeType(OPTIONAL_ATTR.toLowerCase())));
+                getAttributeTypeOrNull(OPTIONAL_ATTR.toLowerCase())));
           break;
         default:
           fail("Unexpected fractional mode.");
@@ -988,7 +988,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private Entry waitTillEntryHasSynchroAttribute(String entryDN)
       throws Exception
   {
-    AttributeType synchroAttrType = DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase());
+    AttributeType synchroAttrType = DirectoryServer.getAttributeTypeOrNull(SYNCHRO_OPTIONAL_ATTR.toLowerCase());
     DN dn = DN.valueOf(entryDN);
 
     Entry entry = null;

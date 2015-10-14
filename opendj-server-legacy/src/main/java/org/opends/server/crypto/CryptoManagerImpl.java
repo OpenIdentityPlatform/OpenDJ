@@ -64,7 +64,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -242,42 +241,25 @@ public class CryptoManagerImpl
     this.serverContext = serverContext;
     if (!schemaInitDone) {
       // Initialize various schema references.
-      attrKeyID = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_KEY_ID);
-      attrPublicKeyCertificate = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-      attrTransformation = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
-      attrMacAlgorithm = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_MAC_ALGORITHM_NAME);
-      attrSymmetricKey = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
-      attrInitVectorLength = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
-      attrKeyLength = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS);
-      attrCompromisedTime = DirectoryServer.getAttributeType(
-           ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
-      ocCertRequest = DirectoryServer.getObjectClass(
-              "ds-cfg-self-signed-cert-request"); // TODO: ConfigConstants
-      ocInstanceKey = DirectoryServer.getObjectClass(
-           ConfigConstants.OC_CRYPTO_INSTANCE_KEY);
-      ocCipherKey = DirectoryServer.getObjectClass(
-           ConfigConstants.OC_CRYPTO_CIPHER_KEY);
-      ocMacKey = DirectoryServer.getObjectClass(
-           ConfigConstants.OC_CRYPTO_MAC_KEY);
+      attrKeyID = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_KEY_ID);
+      attrPublicKeyCertificate = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+      attrTransformation = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
+      attrMacAlgorithm = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
+      attrSymmetricKey = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_SYMMETRIC_KEY);
+      attrInitVectorLength = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
+      attrKeyLength = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_KEY_LENGTH_BITS);
+      attrCompromisedTime = DirectoryServer.getAttributeTypeOrNull(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      ocCertRequest = DirectoryServer.getObjectClass("ds-cfg-self-signed-cert-request"); // TODO: ConfigConstants
+      ocInstanceKey = DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY);
+      ocCipherKey = DirectoryServer.getObjectClass(OC_CRYPTO_CIPHER_KEY);
+      ocMacKey = DirectoryServer.getObjectClass(OC_CRYPTO_MAC_KEY);
 
       try {
-        localTruststoreDN
-                = DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT);
-        DN adminSuffixDN = DN.valueOf(
-                ADSContext.getAdministrationSuffixDN());
-        instanceKeysDN = adminSuffixDN.child(
-                DN.valueOf("cn=instance keys"));
-        secretKeysDN = adminSuffixDN.child(
-             DN.valueOf("cn=secret keys"));
-        serversDN = adminSuffixDN.child(
-             DN.valueOf("cn=Servers"));
+        localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
+        DN adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
+        instanceKeysDN = adminSuffixDN.child(DN.valueOf("cn=instance keys"));
+        secretKeysDN = adminSuffixDN.child(DN.valueOf("cn=secret keys"));
+        serversDN = adminSuffixDN.child(DN.valueOf("cn=Servers"));
       }
       catch (DirectoryException ex) {
         logger.traceException(ex);
@@ -458,16 +440,14 @@ public class CryptoManagerImpl
   private TrustStoreBackend getTrustStoreBackend()
        throws ConfigException
   {
-    Backend<?> b = DirectoryServer.getBackend(ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
+    Backend<?> b = DirectoryServer.getBackend(ID_ADS_TRUST_STORE_BACKEND);
     if (b == null)
     {
-      throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(
-            ConfigConstants.ID_ADS_TRUST_STORE_BACKEND));
+      throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(ID_ADS_TRUST_STORE_BACKEND));
     }
     if (!(b instanceof TrustStoreBackend))
     {
-      throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_WRONG_CLASS.get(
-            ConfigConstants.ID_ADS_TRUST_STORE_BACKEND));
+      throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_WRONG_CLASS.get(ID_ADS_TRUST_STORE_BACKEND));
     }
     return (TrustStoreBackend)b;
   }
@@ -490,9 +470,8 @@ public class CryptoManagerImpl
   static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
     // Construct the key entry DN.
-    final ByteString distinguishedValue = ByteString.valueOf(ConfigConstants.ADS_CERTIFICATE_ALIAS);
-    final DN entryDN = localTruststoreDN.child(
-            RDN.create(attrKeyID, distinguishedValue));
+    final ByteString distinguishedValue = ByteString.valueOf(ADS_CERTIFICATE_ALIAS);
+    final DN entryDN = localTruststoreDN.child(RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
     // Construct the attribute list.
@@ -857,8 +836,7 @@ public class CryptoManagerImpl
     // Retrieve instance-key-pair private key part.
     PrivateKey privateKey;
     try {
-      privateKey = (PrivateKey) getTrustStoreBackend()
-              .getKey(ConfigConstants.ADS_CERTIFICATE_ALIAS);
+      privateKey = (PrivateKey) getTrustStoreBackend().getKey(ADS_CERTIFICATE_ALIAS);
     }
     catch(ConfigException ce)
     {
@@ -1099,12 +1077,9 @@ public class CryptoManagerImpl
               secretKey, keyLengthBits, ivLengthBits, isCompromised);
 
       // Write the value to the entry.
-      InternalClientConnection internalConnection =
-              InternalClientConnection.getRootConnection();
-      Attribute attribute = Attributes.create(
-          ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
-      List<Modification> modifications = newArrayList(
-          new Modification(ModificationType.ADD, attribute, false));
+      InternalClientConnection internalConnection = getRootConnection();
+      Attribute attribute = Attributes.create(ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
+      List<Modification> modifications = newArrayList(new Modification(ModificationType.ADD, attribute, false));
       ModifyOperation internalModify = internalConnection.processModify(entry.getName(), modifications);
       if (internalModify.getResultCode() != ResultCode.SUCCESS)
       {
@@ -2170,9 +2145,7 @@ public class CryptoManagerImpl
       // Create the entry.
       Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
 
-      InternalClientConnection connection =
-           InternalClientConnection.getRootConnection();
-      AddOperation addOperation = connection.processAdd(entry);
+      AddOperation addOperation = getRootConnection().processAdd(entry);
       if (addOperation.getResultCode() != ResultCode.SUCCESS)
       {
         throw new CryptoManagerException(

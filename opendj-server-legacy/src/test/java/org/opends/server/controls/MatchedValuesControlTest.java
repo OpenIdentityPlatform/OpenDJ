@@ -125,7 +125,7 @@ public class MatchedValuesControlTest
     }
 
 
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getAttributeTypeOrNull(type);
     ByteString attVal = null;
     if (attType != null)
     {
@@ -204,7 +204,7 @@ public class MatchedValuesControlTest
 
     // input parameter
     String             rawAttTypeTest = type;
-    AttributeType         attTypeTest = DirectoryServer.getAttributeType(type);
+    AttributeType         attTypeTest = DirectoryServer.getAttributeTypeOrNull(type);
     ByteString            subInitialTest = ByteString.valueOf(subInitial);
     List<ByteString> subAnyTest = new ArrayList<>(subAny.size());
     for (String s : subAny)
@@ -382,7 +382,7 @@ public class MatchedValuesControlTest
     }
 
     // ( AttributeType attributeType, ByteString assertionValue
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getAttributeTypeOrNull(type);
     ByteString attVal = null;
     if (attType != null)
     {
@@ -478,7 +478,7 @@ public class MatchedValuesControlTest
     }
 
 
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getAttributeTypeOrNull(type);
     ByteString attVal = null ;
     if (attType != null)
     {
@@ -554,7 +554,7 @@ public class MatchedValuesControlTest
     assertEquals(mvf.getMatchType(), MatchedValuesFilter.PRESENT_TYPE);
 
     // ( AttributeType attributeType
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getAttributeTypeOrNull(type);
 
     try
     {
@@ -623,7 +623,7 @@ public class MatchedValuesControlTest
     }
 
     // ( AttributeType attributeType, ByteString assertionValue
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getAttributeTypeOrNull(type);
     ByteString attVal = null ;
     if (attType != null)
     {
@@ -704,7 +704,7 @@ public class MatchedValuesControlTest
 
     // input value
     String          rawAttTypeTest = type ;
-    AttributeType      attTypeTest = DirectoryServer.getAttributeType(type) ;
+    AttributeType      attTypeTest = DirectoryServer.getAttributeTypeOrNull(type) ;
     String             matchingRuleIdTest = matchingRule.getOID() ;
     ByteString    attValueTest = (attTypeTest == null) ? null : ByteString.valueOf(value);
     // parameter used for the test.
@@ -814,7 +814,7 @@ public class MatchedValuesControlTest
   public void testDifferentNormalization(String type, ByteString value,
                                          String assertion)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType("usercertificate");
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("usercertificate");
     MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOf(assertion));
     assertTrue(mvf.valueMatches(attrType, value));
   }

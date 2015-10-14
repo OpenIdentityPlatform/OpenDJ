@@ -170,7 +170,7 @@ public class VLVIndex extends DatabaseContainer
       }
 
       AttributeType attrType =
-          DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+          DirectoryServer.getAttributeTypeOrNull(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
         throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], name));
@@ -1257,7 +1257,7 @@ public class VLVIndex extends DatabaseContainer
         return false;
       }
 
-      AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
         unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], name));
@@ -1351,7 +1351,7 @@ public class VLVIndex extends DatabaseContainer
         }
 
         AttributeType attrType =
-            DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+            DirectoryServer.getAttributeTypeOrNull(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
           ccr.addMessage(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));

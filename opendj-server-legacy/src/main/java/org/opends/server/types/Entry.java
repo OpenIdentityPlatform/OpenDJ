@@ -2640,16 +2640,14 @@ public class Entry
     }
 
 
-    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrTypeName);
     if (attrType == null)
     {
       // This should not happen
       // The server doesn't have this attribute type defined.
       if (logger.isTraceEnabled())
       {
-        logger.trace(
-            "No %s attribute type is defined in the server schema.",
-            attrTypeName);
+        logger.trace("No %s attribute type is defined in the server schema.", attrTypeName);
       }
       return false;
     }
@@ -2688,18 +2686,11 @@ public class Entry
    */
   public Set<String> getReferralURLs()
   {
-    AttributeType referralType =
-         DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType referralType = DirectoryServer.getAttributeTypeOrNull(ATTR_REFERRAL_URL);
     if (referralType == null)
     {
-      // This should not happen -- The server doesn't have a ref
-      // attribute type defined.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(
-            "No %s attribute type is defined in the server schema.",
-                     ATTR_REFERRAL_URL);
-      }
+      // This should not happen -- The server doesn't have a ref attribute type defined.
+      logger.trace("No %s attribute type is defined in the server schema.", ATTR_REFERRAL_URL);
       return null;
     }
 
@@ -2756,18 +2747,11 @@ public class Entry
    */
   public DN getAliasedDN() throws DirectoryException
   {
-    AttributeType aliasType =
-         DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType aliasType = DirectoryServer.getAttributeTypeOrNull(ATTR_REFERRAL_URL);
     if (aliasType == null)
     {
-      // This should not happen -- The server doesn't have an
-      // aliasedObjectName attribute type defined.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(
-            "No %s attribute type is defined in the server schema.",
-                     ATTR_ALIAS_DN);
-      }
+      // This should not happen -- The server doesn't have an aliasedObjectName attribute type defined.
+      logger.trace("No %s attribute type is defined in the server schema.", ATTR_ALIAS_DN);
       return null;
     }
 
@@ -2987,10 +2971,8 @@ public class Entry
     }
 
     // Get collective attribute exclusions.
-    AttributeType exclusionsType = DirectoryServer.getAttributeType(
-            ATTR_COLLECTIVE_EXCLUSIONS_LC);
-    List<Attribute> exclusionsAttrList =
-            operationalAttributes.get(exclusionsType);
+    AttributeType exclusionsType = DirectoryServer.getAttributeTypeOrNull(ATTR_COLLECTIVE_EXCLUSIONS_LC);
+    List<Attribute> exclusionsAttrList = operationalAttributes.get(exclusionsType);
     Set<String> exclusionsNameSet = new HashSet<>();
     if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())
     {
@@ -4685,7 +4667,7 @@ public class Entry
           options = null;
         }
 
-        AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
         if (attrType == null)
         {
           // Unrecognized attribute type - do best effort search.

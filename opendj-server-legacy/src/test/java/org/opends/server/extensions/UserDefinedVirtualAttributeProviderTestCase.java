@@ -77,13 +77,13 @@ public class UserDefinedVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
 
-    descriptionType = DirectoryServer.getAttributeType("description");
+    descriptionType = DirectoryServer.getAttributeTypeOrNull("description");
     assertNotNull(descriptionType);
 
-    pwPolicyDNType = DirectoryServer.getAttributeType("ds-pwp-password-policy-dn");
+    pwPolicyDNType = DirectoryServer.getAttributeTypeOrNull("ds-pwp-password-policy-dn");
     assertNotNull(pwPolicyDNType);
 
-    privNameType = DirectoryServer.getAttributeType("ds-privilege-name");
+    privNameType = DirectoryServer.getAttributeTypeOrNull("ds-privilege-name");
     assertNotNull(privNameType);
   }
 

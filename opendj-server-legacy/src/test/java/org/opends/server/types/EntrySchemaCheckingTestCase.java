@@ -445,16 +445,14 @@ public class EntrySchemaCheckingTestCase
   public void testMultipleValuesForSingleValuedOperationalAttribute()
          throws Exception
   {
-    // The LDIF reader won't let us do this directly, so we have to hack around
-    // it.
+    // The LDIF reader won't let us do this directly, so we have to hack around it.
     Entry e = TestCaseUtils.makeEntry(
          "dn: dc=example,dc=com",
          "objectClass: top",
          "objectClass: domain",
          "dc: example");
 
-    AttributeType creatorsNameType =
-         DirectoryServer.getAttributeType("creatorsname");
+    AttributeType creatorsNameType = DirectoryServer.getAttributeTypeOrNull("creatorsname");
     assertTrue(creatorsNameType.isOperational());
 
     AttributeBuilder builder = new AttributeBuilder(creatorsNameType,

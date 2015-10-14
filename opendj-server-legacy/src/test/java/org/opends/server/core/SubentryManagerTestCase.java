@@ -332,7 +332,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   private void hasValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeLower);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrTypeLower);
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
@@ -343,7 +343,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   private void doesNotHaveValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeLower);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrTypeLower);
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
@@ -354,7 +354,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   private void hasNoAttribute(DN dn, String lowerName) throws Exception
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
     assertFalse(entry.hasAttribute(attrType));
   }
 
@@ -367,7 +367,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
-    AttributeType attrType = DirectoryServer.getAttributeType("collectiveattributesubentries");
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("collectiveattributesubentries");
     Entry e = searchOperation.getSearchEntries().getFirst();
     assertTrue(e.hasValue(attrType, null, ByteString.valueOf(collectiveSubentry.getName())));
   }

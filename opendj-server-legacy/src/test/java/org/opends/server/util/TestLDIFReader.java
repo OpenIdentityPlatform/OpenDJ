@@ -176,10 +176,10 @@ public final class TestLDIFReader extends UtilTestCase {
     OC_PERSON = DirectoryServer.getObjectClass("person");
 
     AT_OC = DirectoryServer.getObjectClassAttributeType();
-    AT_CN = DirectoryServer.getAttributeType("cn");
-    AT_SN = DirectoryServer.getAttributeType("sn");
-    AT_DESCR = DirectoryServer.getAttributeType("description");
-    AT_TELN = DirectoryServer.getAttributeType("telephonenumber");
+    AT_CN = DirectoryServer.getAttributeTypeOrNull("cn");
+    AT_SN = DirectoryServer.getAttributeTypeOrNull("sn");
+    AT_DESCR = DirectoryServer.getAttributeTypeOrNull("description");
+    AT_TELN = DirectoryServer.getAttributeTypeOrNull("telephonenumber");
 
     // Create a temporary file containing an attribute value.
     TEMP_FILE = File.createTempFile("tmp", "txt");
@@ -551,18 +551,15 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(change instanceof ModifyChangeRecordEntry);
       modify = (ModifyChangeRecordEntry) change;
 
-      dn = DN
-          .valueOf("cn=Ingrid Jensen, ou=Product Support, dc=airius, dc=com");
+      dn = DN.valueOf("cn=Ingrid Jensen, ou=Product Support, dc=airius, dc=com");
       Assert.assertEquals(modify.getDN(), dn);
 
       i = modify.getModifications().iterator();
 
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
-      Assert.assertEquals(mod.getModificationType(),
-          ModificationType.REPLACE);
-      attr = Attributes.empty(DirectoryServer
-          .getAttributeType("postaladdress"));
+      Assert.assertEquals(mod.getModificationType(), ModificationType.REPLACE);
+      attr = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("postaladdress"));
       Assert.assertEquals(mod.getAttribute(), attr);
 
       // Change record #7.

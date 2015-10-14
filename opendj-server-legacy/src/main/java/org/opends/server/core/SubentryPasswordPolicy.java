@@ -173,7 +173,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     String value = getAttrValue(entry, PWD_ATTR_ATTRIBUTE);
     if (value != null && value.length() > 0)
     {
-      this.pPasswordAttribute = DirectoryServer.getAttributeType(value.toLowerCase());
+      this.pPasswordAttribute = DirectoryServer.getAttributeTypeOrNull(value.toLowerCase());
       if (this.pPasswordAttribute == null)
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,

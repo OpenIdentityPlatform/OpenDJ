@@ -436,7 +436,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         byte[] data = { 0x00, 0x01, 0x02, (byte) 0xff };
 
         ByteString attrValue = ByteString.wrap(data);
-        Attribute attribute = Attributes.create(DirectoryServer.getAttributeType("cn"), attrValue);
+        Attribute attribute = Attributes.create(DirectoryServer.getAttributeTypeOrNull("cn"), attrValue);
         assertThat(from(attribute).firstValue().toByteArray()).isEqualTo(data);
     }
 

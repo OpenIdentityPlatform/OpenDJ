@@ -67,8 +67,8 @@ public final class TestRDN extends TypesTestCase {
     // we'll start the server.
     TestCaseUtils.startServer();
 
-    AT_DC = DirectoryServer.getAttributeType("dc");
-    AT_CN = DirectoryServer.getAttributeType("cn");
+    AT_DC = DirectoryServer.getAttributeTypeOrNull("dc");
+    AT_CN = DirectoryServer.getAttributeTypeOrNull("cn");
 
     AttributeType dummy = DirectoryServer.getDefaultAttributeType(
         "x-test-integer-type", DirectoryServer

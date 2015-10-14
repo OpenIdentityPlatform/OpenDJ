@@ -90,7 +90,7 @@ public final class EntryUUIDPlugin
 
     // Get the entryUUID attribute type.  This needs to be done in the
     // constructor in order to make the associated variables "final".
-    AttributeType at = DirectoryServer.getAttributeType(ENTRYUUID);
+    AttributeType at = DirectoryServer.getAttributeTypeOrNull(ENTRYUUID);
     if (at == null)
     {
       String definition =

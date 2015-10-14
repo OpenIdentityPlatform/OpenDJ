@@ -391,7 +391,7 @@ public class SMTPAccountStatusNotificationHandler
               else if (lowerTokenStr.startsWith("notification-user-attr:"))
               {
                 String attrName = lowerTokenStr.substring(23);
-                AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+                AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
                 if (attrType == null)
                 {
                   throw new ConfigException(

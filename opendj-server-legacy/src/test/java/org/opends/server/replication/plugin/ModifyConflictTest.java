@@ -1077,7 +1077,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
-    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType entryuuidAttrType = getAttributeTypeOrNull(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidList = Attributes.createAsList(entryuuidAttrType, uuid.toString());
 
     // Add the uuid in the entry
@@ -1165,7 +1165,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    */
   private void assertEntryHistoricalEncodingDecoding(Entry entry, EntryHistorical hist)
   {
-    entry.removeAttribute(getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
+    entry.removeAttribute(getAttributeTypeOrNull(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
@@ -1197,7 +1197,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getExactAttribute(getAttributeType(toLowerCase(attrName)), Collections.<String> emptySet());
+    Attribute attr = entry.getExactAttribute(getAttributeTypeOrNull(toLowerCase(attrName)), Collections.<String> emptySet());
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {
@@ -1218,7 +1218,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private String getEntryUUID(Entry entry)
   {
-    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType entryuuidAttrType = getAttributeTypeOrNull(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = entry.getOperationalAttributes().get(entryuuidAttrType);
     return uuidAttrs.get(0).iterator().next().toString();
   }

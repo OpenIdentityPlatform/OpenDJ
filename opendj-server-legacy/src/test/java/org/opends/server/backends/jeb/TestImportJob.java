@@ -471,7 +471,7 @@ public class TestImportJob extends JebTestCase
       Entry entry = entryContainer.getEntry(DN.valueOf("uid=user.446,dc=importtest1,dc=com"));
       assertNotNull(entry);
 
-      AttributeType attrType = DirectoryServer.getAttributeType("cn");
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("cn");
       assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Annalee Bogard")));
 
       assertEquals(verifyBackend(importtest1DN), 0);

@@ -86,8 +86,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "invalidConfigs")
-  public Object[][] getInvalidConfigurations()
-         throws Exception
+  public Object[][] getInvalidConfigurations() throws Exception
   {
     List<Entry> entries = TestCaseUtils.makeEntries(
       "dn: cn=No Subject Attr,cn=Certificate Mappers,cn=config",
@@ -95,8 +94,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-subject-dn-to-user-attribute-certificate-mapper",
       "cn: No Subject Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectDNToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectDNToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "",
       "dn: cn=Undefined Subject Attr,cn=Certificate Mappers,cn=config",
@@ -104,8 +102,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-subject-dn-to-user-attribute-certificate-mapper",
       "cn: Undefined Subject Attr",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectDNToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectDNToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute: undefined",
       "",
@@ -114,8 +111,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-subject-dn-to-user-attribute-certificate-mapper",
       "cn: Invalid Base DN",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "SubjectDNToUserAttributeCertificateMapper",
+      "ds-cfg-java-class: org.opends.server.extensions.SubjectDNToUserAttributeCertificateMapper",
       "ds-cfg-enabled: true",
       "ds-cfg-subject-attribute: ds-certificate-subject-dn",
       "ds-cfg-user-base-dn: invalid");
@@ -546,7 +542,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
          throws Exception
   {
     String mapperDN = "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-subject-attribute"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-subject-attribute"));
 
     ArrayList<Modification> mods = newArrayList(new Modification(ModificationType.DELETE, a));
     ModifyOperation modifyOperation =
@@ -652,13 +648,11 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void setBaseDNs(String[] baseDNs)
-          throws Exception
+  private void setBaseDNs(String[] baseDNs) throws Exception
   {
-    String mapperDN =
-         "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
+    String mapperDN = "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
 
-    AttributeType attrType = DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("ds-cfg-user-base-dn");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {
@@ -676,8 +670,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testPrivilegeWithSuccessfulMappingDefaultConfig()
-         throws Exception
+  public void testPrivilegeWithSuccessfulMappingDefaultConfig() throws Exception
   {
     enableMapper();
 

@@ -64,7 +64,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
   public void testValidateValue() {
     AttributeTypePropertyDefinition.setCheckSchema(true);
     AttributeTypePropertyDefinition d = createPropertyDefinition();
-    d.validateValue(DirectoryServer.getAttributeType("cn"));
+    d.validateValue(DirectoryServer.getAttributeTypeOrNull("cn"));
   }
 
 
@@ -89,7 +89,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
   public void testDecodeValue(String value) {
     AttributeTypePropertyDefinition.setCheckSchema(true);
     AttributeTypePropertyDefinition d = createPropertyDefinition();
-    AttributeType expected = DirectoryServer.getAttributeType(value);
+    AttributeType expected = DirectoryServer.getAttributeTypeOrNull(value);
     assertEquals(d.decodeValue(value), expected);
   }
 

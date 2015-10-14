@@ -450,7 +450,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       Assert.assertEquals(child.getMandatoryClassProperty(),
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
       Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-          DirectoryServer.getAttributeType("description"));
+          DirectoryServer.getAttributeTypeOrNull("description"));
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
           "dc=new value 1,dc=com", "dc=new value 2,dc=com");
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -499,7 +499,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       Assert.assertEquals(child.getMandatoryClassProperty(),
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
       Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-          DirectoryServer.getAttributeType("description"));
+          DirectoryServer.getAttributeTypeOrNull("description"));
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
           "dc=new value 1,dc=com", "dc=new value 2,dc=com");
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -547,7 +547,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       Assert.assertEquals(child.getMandatoryClassProperty(),
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
       Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-          DirectoryServer.getAttributeType("description"));
+          DirectoryServer.getAttributeTypeOrNull("description"));
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
           "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -596,7 +596,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       Assert.assertEquals(child.getMandatoryClassProperty(),
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
       Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-          DirectoryServer.getAttributeType("description"));
+          DirectoryServer.getAttributeTypeOrNull("description"));
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
           "dc=new value 1,dc=com", "dc=new value 2,dc=com");
       assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -713,7 +713,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Assert.assertEquals(parent.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeType("description"));
+        DirectoryServer.getAttributeTypeOrNull("description"));
     assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(),
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
   }
@@ -733,7 +733,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Assert.assertEquals(parent.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeType("description"));
+        DirectoryServer.getAttributeTypeOrNull("description"));
     assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(),
         "dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com");
   }
@@ -745,7 +745,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeType("description"));
+        DirectoryServer.getAttributeTypeOrNull("description"));
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -759,7 +759,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeType("description"));
+        DirectoryServer.getAttributeTypeOrNull("description"));
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -773,7 +773,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeType("description"));
+        DirectoryServer.getAttributeTypeOrNull("description"));
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=default value c3v1,dc=com", "dc=default value c3v2,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -787,7 +787,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeType("description"));
+        DirectoryServer.getAttributeTypeOrNull("description"));
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),

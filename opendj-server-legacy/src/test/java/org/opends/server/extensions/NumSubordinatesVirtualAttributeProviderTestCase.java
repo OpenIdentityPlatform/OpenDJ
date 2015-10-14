@@ -66,7 +66,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     TestCaseUtils.restartServer();
 
-    numSubordinatesType = DirectoryServer.getAttributeType("numsubordinates");
+    numSubordinatesType = DirectoryServer.getAttributeTypeOrNull("numsubordinates");
     assertNotNull(numSubordinatesType);
 
     entries = TestCaseUtils.makeEntries(

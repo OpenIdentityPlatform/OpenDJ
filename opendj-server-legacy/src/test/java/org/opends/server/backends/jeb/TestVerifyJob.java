@@ -350,7 +350,7 @@ public class TestVerifyJob extends JebTestCase
     eContainer.sharedLock.lock();
     try
     {
-      AttributeType attributeType = DirectoryServer.getAttributeType(phoneType);
+      AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(phoneType);
       Index index = eContainer.getAttributeIndex(attributeType).getIndex(EQUALITY_TELEPHONE);
       //Add entry with bad JEB format Version
       addID2EntryReturnKey(junkDN, 4, true);
@@ -639,8 +639,7 @@ public class TestVerifyJob extends JebTestCase
     eContainer.sharedLock.lock();
     try
     {
-      AttributeType attributeType =
-          DirectoryServer.getAttributeType(mailType);
+      AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(mailType);
       //Get db handles to each index.
       AttributeIndex attributeIndex = eContainer.getAttributeIndex(attributeType);
       Index eqIndex = attributeIndex.getIndex(EQUALITY_CASE_IGNORE);

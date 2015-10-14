@@ -172,16 +172,14 @@ public class PatternRDN
       AttributeType thatType = rdn.getAttributeType(0);
       if (!typePatterns[0].equals("*"))
       {
-        AttributeType thisType =
-             DirectoryServer.getAttributeType(typePatterns[0].toLowerCase());
+        AttributeType thisType = DirectoryServer.getAttributeTypeOrNull(typePatterns[0].toLowerCase());
         if (thisType == null || !thisType.equals(thatType))
         {
           return false;
         }
       }
 
-      return matchValuePattern(valuePatterns.get(0), thatType,
-                               rdn.getAttributeValue(0));
+      return matchValuePattern(valuePatterns.get(0), thatType, rdn.getAttributeValue(0));
     }
 
     if (hasTypeWildcard)
@@ -207,7 +205,7 @@ public class PatternRDN
     for (int i = 0; i < numValues; i++)
     {
       String lowerName = typePatterns[i].toLowerCase();
-      AttributeType type = DirectoryServer.getAttributeType(lowerName);
+      AttributeType type = DirectoryServer.getAttributeTypeOrNull(lowerName);
       if (type == null)
       {
         return false;
@@ -225,9 +223,8 @@ public class PatternRDN
         return false;
       }
 
-      if (!matchValuePattern(patternMap.get(rdnKey),
-                             DirectoryServer.getAttributeType(rdnKey),
-                             rdnMap.get(rdnKey)))
+      AttributeType rdnAttrType = DirectoryServer.getAttributeTypeOrNull(rdnKey);
+      if (!matchValuePattern(patternMap.get(rdnKey), rdnAttrType, rdnMap.get(rdnKey)))
       {
         return false;
       }
