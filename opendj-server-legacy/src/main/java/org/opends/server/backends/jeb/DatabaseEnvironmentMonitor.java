@@ -27,7 +27,12 @@
 package org.opends.server.backends.jeb;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -37,7 +42,12 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;
 
 import com.sleepycat.je.DatabaseException;
@@ -172,12 +182,8 @@ final class DatabaseEnvironmentMonitor
             Object statValue = method.invoke(stats);
 
             // Create an attribute from the statistic.
-            AttributeType attrType =
-                 DirectoryServer.getDefaultAttributeType(attrName,
-                                                         integerSyntax);
-            monitorAttrs.add(Attributes.create(attrType, String
-                .valueOf(statValue)));
-
+            AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName, attrName, integerSyntax);
+            monitorAttrs.add(Attributes.create(attrType, String.valueOf(statValue)));
           } catch (Exception e)
           {
             logger.traceException(e);

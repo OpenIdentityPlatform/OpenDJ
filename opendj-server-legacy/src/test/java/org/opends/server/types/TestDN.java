@@ -28,6 +28,7 @@ package org.opends.server.types;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -165,8 +166,8 @@ public class TestDN extends TypesTestCase {
     // we'll start the server.
     TestCaseUtils.startServer();
 
-    AttributeType dummy = DirectoryServer.getDefaultAttributeType(
-        "x-test-integer-type", DirectoryServer.getDefaultIntegerSyntax());
+    String attrName = "x-test-integer-type";
+    AttributeType dummy = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
   }
 

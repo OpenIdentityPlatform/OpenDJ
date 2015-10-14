@@ -111,7 +111,7 @@ final class JEMonitor extends MonitorProvider<MonitorProviderCfg>
       // Remove the 'get' from the method name and add the prefix.
       String attrName = attrPrefix + method.getName().substring(3);
 
-      AttributeType attrType = DirectoryServer.getDefaultAttributeType(attrName, integerSyntax);
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName, attrName, integerSyntax);
       monitorAttrs.add(Attributes.create(attrType, String.valueOf(method.invoke(stats))));
     }
     catch (Exception e)

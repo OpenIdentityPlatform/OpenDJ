@@ -31,9 +31,9 @@ import static org.opends.server.core.DirectoryServer.*;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.extensions.TraditionalWorkQueue;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -173,7 +173,7 @@ public class TraditionalWorkQueueMonitor
 
   private void putAttribute(ArrayList<Attribute> monitorAttrs, String attrName, Object value)
   {
-    AttributeType attrType = getDefaultAttributeType(attrName, getDefaultIntegerSyntax());
+    AttributeType attrType = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
     monitorAttrs.add(Attributes.create(attrType, String.valueOf(value)));
   }
 }

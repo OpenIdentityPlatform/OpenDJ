@@ -2658,7 +2658,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName)
   {
-    return getAttributeTypeOrDefault(lowerName, lowerName);
+    return getAttributeTypeOrDefault(lowerName, lowerName, getDefaultAttributeSyntax());
   }
 
   /**
@@ -2675,12 +2675,31 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName)
   {
-    AttributeType type = getAttributeTypeOrNull(lowerName);
-    if (type == null)
+    return getAttributeTypeOrDefault(lowerName, upperName, getDefaultAttributeSyntax());
+  }
+
+  /**
+   * Retrieves the attribute type for the provided lowercase name or OID. It will return a generated
+   * "default" version with the uppercase name or OID if the requested attribute type is not defined
+   * in the schema.
+   *
+   * @param lowerName
+   *          The lowercase name or OID for the attribute type to retrieve.
+   * @param upperName
+   *          The uppercase name or OID for the attribute type to generate.
+   * @param syntax
+   *          The syntax for the attribute type to generate.
+   * @return The requested attribute type, or a generated "default" version if there is no attribute
+   *         with the specified type defined in the server schema
+   */
+  public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName, Syntax syntax)
+  {
+    AttributeType attrType = getAttributeTypeOrNull(lowerName);
+    if (attrType == null)
     {
-      type = getDefaultAttributeType(upperName, getDefaultAttributeSyntax());
+      attrType = getDefaultAttributeType(upperName, syntax);
     }
-    return type;
+    return attrType;
   }
 
   /**
@@ -2750,11 +2769,7 @@ public final class DirectoryServer
              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 X-ORIGIN 'RFC 2256' )";
 
         directoryServer.objectClassAttributeType =
-             new AttributeType(definition, "objectClass",
-                               Collections.singleton("objectClass"),
-                               OBJECTCLASS_ATTRIBUTE_TYPE_OID, null, null,
-                               oidSyntax, AttributeUsage.USER_APPLICATIONS,
-                               false, false, false, false);
+            newAttributeType(definition, "objectClass", OBJECTCLASS_ATTRIBUTE_TYPE_OID, oidSyntax);
         try
         {
           directoryServer.schema.registerAttributeType(
@@ -2775,9 +2790,12 @@ public final class DirectoryServer
    * Causes the Directory Server to construct a new attribute type definition
    * with the provided name and syntax.  This should only be used if there is no
    * real attribute type for the specified name.
+   * <p>
+   * TODO remove once we switch to the SDK Schema
+   * <p>
+   * FIXME move to {@link org.opends.server.types.Schema}?
    *
-   * @param  name    The name to use for the attribute type, as provided by the
-   *                 user.
+   * @param  name    The name to use for the attribute type, as provided by the user.
    * @param  syntax  The syntax to use for the attribute type.
    *
    * @return  The constructed attribute type definition.
@@ -2789,10 +2807,13 @@ public final class DirectoryServer
                         syntax.getOID() + " )";
 
     // Temporary attribute types are immediately dirty.
-    return new AttributeType(definition, name, Collections.singleton(name),
-                             oid, null, null, syntax,
-                             AttributeUsage.USER_APPLICATIONS, false, false,
-                             false, false).setDirty();
+    return newAttributeType(definition, name, oid, syntax).setDirty();
+  }
+
+  private static AttributeType newAttributeType(String definition, String name, String oid, Syntax syntax)
+  {
+    return new AttributeType(definition, name, Collections.singleton(name), oid, null, null, syntax,
+        AttributeUsage.USER_APPLICATIONS, false, false, false, false);
   }
 
   /**
