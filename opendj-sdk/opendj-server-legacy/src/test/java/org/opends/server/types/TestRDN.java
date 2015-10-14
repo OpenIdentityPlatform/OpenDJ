@@ -26,10 +26,11 @@
  */
 package org.opends.server.types;
 
-import java.util.ArrayList;
-
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
+
+import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
@@ -70,9 +71,8 @@ public final class TestRDN extends TypesTestCase {
     AT_DC = DirectoryServer.getAttributeTypeOrNull("dc");
     AT_CN = DirectoryServer.getAttributeTypeOrNull("cn");
 
-    AttributeType dummy = DirectoryServer.getDefaultAttributeType(
-        "x-test-integer-type", DirectoryServer
-            .getDefaultIntegerSyntax());
+    String attrName = "x-test-integer-type";
+    AttributeType dummy = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
 
     AV_DC_ORG = ByteString.valueOf("org");

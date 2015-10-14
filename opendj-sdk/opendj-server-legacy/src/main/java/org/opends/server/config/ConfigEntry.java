@@ -38,7 +38,12 @@ import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -214,11 +219,8 @@ public final class ConfigEntry
   public void putConfigAttribute(ConfigAttribute attribute)
   {
     String name = attribute.getName();
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(name.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(name, attribute.getSyntax());
-    }
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(
+        name.toLowerCase(), name, attribute.getSyntax());
 
     List<Attribute> attrs = new ArrayList<>(2);
     AttributeBuilder builder = new AttributeBuilder(attrType, name);

@@ -3628,14 +3628,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       attrTypeSyntax = CoreSchema.getAttributeTypeDescriptionSyntax();
     }
-
-    AttributeType attributeAttrType = schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
-    if (attributeAttrType == null)
-    {
-      attributeAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_ATTRIBUTE_TYPES,
-                                                   attrTypeSyntax);
-    }
+    AttributeType attributeAttrType = DirectoryServer.getAttributeTypeOrDefault(
+        ATTR_ATTRIBUTE_TYPES_LC, ATTR_ATTRIBUTE_TYPES, attrTypeSyntax);
 
     // loop on the attribute types in the entry just received
     // and add them in the existing schema.
@@ -3720,15 +3714,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       ocSyntax = CoreSchema.getObjectClassDescriptionSyntax();
     }
-
-    AttributeType objectclassAttrType =
-      schema.getAttributeType(ATTR_OBJECTCLASSES_LC);
-    if (objectclassAttrType == null)
-    {
-      objectclassAttrType =
-        DirectoryServer.getDefaultAttributeType(ATTR_OBJECTCLASSES,
-                                                ocSyntax);
-    }
+    AttributeType objectclassAttrType = DirectoryServer.getAttributeTypeOrDefault(
+        ATTR_OBJECTCLASSES_LC, ATTR_OBJECTCLASSES, ocSyntax);
 
     oidList.clear();
     List<Attribute> ocList = newSchemaEntry.getAttribute(objectclassAttrType);

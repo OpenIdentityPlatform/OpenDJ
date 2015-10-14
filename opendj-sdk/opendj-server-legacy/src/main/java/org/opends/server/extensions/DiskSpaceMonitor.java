@@ -29,10 +29,7 @@ package org.opends.server.extensions;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_FULL;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_DISK_SPACE_LOW;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_FULL;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_DISK_SPACE_LOW;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,9 +48,9 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.ServerShutdownListener;
@@ -147,7 +144,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
 
     private Attribute attr(String name, Syntax syntax, Object value)
     {
-      AttributeType attrType = DirectoryServer.getDefaultAttributeType(name, syntax);
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name, name, syntax);
       return Attributes.create(attrType, String.valueOf(value));
     }
 
