@@ -529,7 +529,7 @@ public class AttributeTypeSyntax
         {
           if (allowUnknownElements)
           {
-            superiorType = DirectoryServer.getDefaultAttributeType(woidString);
+            superiorType = DirectoryServer.getAttributeTypeOrDefault(woidString);
           }
           else
           {

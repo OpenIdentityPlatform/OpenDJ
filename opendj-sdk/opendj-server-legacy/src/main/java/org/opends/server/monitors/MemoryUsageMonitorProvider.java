@@ -34,13 +34,15 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MemoryUsageMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class defines a monitor provider that reports information about
@@ -111,9 +113,8 @@ public class MemoryUsageMonitorProvider
 
 
 
-  /** {@inheritDoc} */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<>();
 
@@ -143,14 +144,10 @@ public class MemoryUsageMonitorProvider
         gcSafeNames.put(gcName, safeName);
       }
 
-      attrs.add(createAttribute(safeName + "-total-collection-count",
-                                String.valueOf(gcCount)));
-      attrs.add(createAttribute(safeName + "-total-collection-duration",
-                                String.valueOf(gcTime)));
-      attrs.add(createAttribute(safeName + "-average-collection-duration",
-                                String.valueOf(avgGCDuration)));
-      attrs.add(createAttribute(safeName + "-recent-collection-duration",
-                                String.valueOf(recentGCDuration)));
+      attrs.add(createAttribute(safeName + "-total-collection-count", gcCount));
+      attrs.add(createAttribute(safeName + "-total-collection-duration", gcTime));
+      attrs.add(createAttribute(safeName + "-average-collection-duration", avgGCDuration));
+      attrs.add(createAttribute(safeName + "-recent-collection-duration", recentGCDuration));
     }
 
     for (MemoryPoolMXBean mp : ManagementFactory.getMemoryPoolMXBeans())
@@ -166,48 +163,19 @@ public class MemoryUsageMonitorProvider
         gcSafeNames.put(poolName, safeName);
       }
 
-      if (currentUsage == null)
-      {
-        attrs.add(createAttribute(safeName + "-current-bytes-used", "0"));
-      }
-      else
-      {
-        attrs.add(createAttribute(safeName + "-current-bytes-used",
-                                  String.valueOf(currentUsage.getUsed())));
-      }
+      long currentBytesUsed = currentUsage != null ? currentUsage.getUsed() : 0;
+      attrs.add(createAttribute(safeName + "-current-bytes-used", currentBytesUsed));
 
-      if (collectionUsage == null)
-      {
-        attrs.add(createAttribute(safeName +
-                                       "-bytes-used-after-last-collection",
-                                  "0"));
-      }
-      else
-      {
-        attrs.add(createAttribute(safeName +
-                                       "-bytes-used-after-last-collection",
-                                  String.valueOf(collectionUsage.getUsed())));
-      }
+      long collectionBytesUsed = collectionUsage != null ? collectionUsage.getUsed() : 0;
+      attrs.add(createAttribute(safeName + "-bytes-used-after-last-collection", collectionBytesUsed));
     }
 
     return attrs;
   }
 
-
-
-  /**
-   * Constructs an attribute using the provided information.  It will have the
-   * default syntax.
-   *
-   * @param  name   The name to use for the attribute.
-   * @param  value  The value to use for the attribute.
-   *
-   * @return  The attribute created from the provided information.
-   */
-  private Attribute createAttribute(String name, String value)
+  private Attribute createAttribute(String name, Object value)
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
-    return Attributes.create(attrType, value);
+    return Attributes.create(name, String.valueOf(value));
   }
 
 

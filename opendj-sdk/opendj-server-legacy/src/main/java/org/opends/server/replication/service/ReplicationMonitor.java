@@ -33,11 +33,9 @@ import java.util.Map.Entry;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 
 /**
@@ -91,8 +89,8 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   {
     List<Attribute> attributes = new ArrayList<>();
 
-    attributes.add(Attributes.create("domain-name", String.valueOf(domain.getBaseDN())));
-    attributes.add(Attributes.create("connected-to", domain.getReplicationServer()));
+    addMonitorData(attributes, "domain-name", domain.getBaseDN());
+    addMonitorData(attributes, "connected-to", domain.getReplicationServer());
     addMonitorData(attributes, "lost-connections", domain.getNumLostConnections());
     addMonitorData(attributes, "received-updates", domain.getNumRcvdUpdates());
     addMonitorData(attributes, "sent-updates", domain.getNumSentUpdates());
@@ -110,13 +108,12 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
 
     // get the Server State
     final String ATTR_SERVER_STATE = "server-state";
-    AttributeType type = DirectoryServer.getDefaultAttributeType(ATTR_SERVER_STATE);
-    AttributeBuilder builder = new AttributeBuilder(type, ATTR_SERVER_STATE);
+    AttributeBuilder builder = new AttributeBuilder(ATTR_SERVER_STATE);
     builder.addAllStrings(domain.getServerState().toStringSet());
     attributes.add(builder.toAttribute());
 
-    attributes.add(Attributes.create("ssl-encryption", String.valueOf(domain.isSessionEncrypted())));
-    attributes.add(Attributes.create("generation-id", String.valueOf(domain.getGenerationID())));
+    addMonitorData(attributes, "ssl-encryption", domain.isSessionEncrypted());
+    addMonitorData(attributes, "generation-id", domain.getGenerationID());
 
     // Add import/export monitoring attributes
     final ImportExportContext ieContext = domain.getImportExportContext();
@@ -152,20 +149,19 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     addMonitorData(attributes, "assured-sd-server-timeout-updates", domain.getAssuredSdServerTimeoutUpdates());
 
     // Status related monitoring fields
-    addMonitorData(attributes, "last-status-change-date", domain.getLastStatusChangeDate().toString());
+    addMonitorData(attributes, "last-status-change-date", domain.getLastStatusChangeDate());
 
-    addMonitorData(attributes, "status", domain.getStatus().toString());
+    addMonitorData(attributes, "status", domain.getStatus());
 
     return attributes;
   }
 
-  private void addMonitorData(List<Attribute> attributes, String attrType,
+  private void addMonitorData(List<Attribute> attributes, String attrName,
       Map<Integer, Integer> serverIdToNb)
   {
     if (!serverIdToNb.isEmpty())
     {
-      AttributeType type = DirectoryServer.getDefaultAttributeType(attrType);
-      final AttributeBuilder builder = new AttributeBuilder(type, attrType);
+      final AttributeBuilder builder = new AttributeBuilder(attrName);
       for (Entry<Integer, Integer> entry : serverIdToNb.entrySet())
       {
         final Integer serverId = entry.getKey();
@@ -177,42 +173,14 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Add an attribute with an integer value to the list of monitoring
-   * attributes.
+   * Adds an attribute with a value to the list of monitoring attributes.
    *
    * @param attributes the list of monitoring attributes
-   * @param name the name of the attribute to add.
-   * @param value The integer value of he attribute to add.
+   * @param attrName the name of the attribute to add.
+   * @param value The value of he attribute to add.
    */
-  public static void addMonitorData(List<Attribute> attributes, String name, int value)
+  public static void addMonitorData(List<Attribute> attributes, String attrName, Object value)
   {
-    addMonitorData(attributes, name, String.valueOf(value));
-  }
-
-  /**
-   * Add an attribute with an integer value to the list of monitoring
-   * attributes.
-   *
-   * @param attributes the list of monitoring attributes
-   * @param name the name of the attribute to add.
-   * @param value The integer value of he attribute to add.
-   */
-  private static void addMonitorData(List<Attribute> attributes, String name, long value)
-  {
-    addMonitorData(attributes, name, String.valueOf(value));
-  }
-
-  /**
-   * Add an attribute with an integer value to the list of monitoring
-   * attributes.
-   *
-   * @param attributes the list of monitoring attributes
-   * @param name the name of the attribute to add.
-   * @param value The String value of he attribute to add.
-   */
-  private static void addMonitorData(List<Attribute> attributes, String name, String value)
-  {
-    AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes.add(Attributes.create(type, value));
+    attributes.add(Attributes.create(attrName, String.valueOf(value)));
   }
 }

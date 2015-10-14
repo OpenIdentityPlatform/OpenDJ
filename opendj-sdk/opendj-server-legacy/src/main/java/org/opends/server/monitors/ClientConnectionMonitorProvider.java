@@ -37,7 +37,6 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -153,8 +152,7 @@ public class ClientConnectionMonitorProvider extends
       }
     }
 
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType("connection");
-    AttributeBuilder builder = new AttributeBuilder(attrType);
+    AttributeBuilder builder = new AttributeBuilder("connection");
     for (ClientConnection conn : connMap.values())
     {
       builder.add(conn.getMonitorSummary());

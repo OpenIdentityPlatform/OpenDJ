@@ -35,10 +35,8 @@ import java.util.TreeMap;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -75,9 +73,7 @@ public class StackTraceMonitorProvider
       orderedStacks.put(e.getKey().getId(), e);
     }
 
-    AttributeType attrType =
-         DirectoryServer.getDefaultAttributeType("jvmThread");
-    AttributeBuilder builder = new AttributeBuilder(attrType);
+    AttributeBuilder builder = new AttributeBuilder("jvmThread");
     for (Map.Entry<Thread,StackTraceElement[]> e : orderedStacks.values())
     {
       Thread t                          = e.getKey();

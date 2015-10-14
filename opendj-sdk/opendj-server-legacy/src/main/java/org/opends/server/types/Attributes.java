@@ -182,10 +182,9 @@ public final class Attributes
    *          The String representation of the attribute value.
    * @return A new attribute with the specified name and value.
    */
-  public static Attribute create(String attributeName,
-      String valueString)
+  public static Attribute create(String attributeName, String valueString)
   {
-    return create(getAttributeType(attributeName), attributeName, valueString);
+    return create(getAttributeTypeOrDefault(attributeName), attributeName, valueString);
   }
 
   /**
@@ -287,7 +286,7 @@ public final class Attributes
    */
   public static Attribute empty(String attributeName)
   {
-    return empty(getAttributeType(attributeName), attributeName);
+    return empty(getAttributeTypeOrDefault(attributeName), attributeName);
   }
 
 
@@ -409,14 +408,7 @@ public final class Attributes
     return builder.toAttribute();
   }
 
-  /**
-   * Gets the named attribute type, creating a default attribute if necessary.
-   *
-   * @param attributeName
-   *          The name of the attribute type.
-   * @return The attribute type associated with the provided attribute name.
-   */
-  private static AttributeType getAttributeType(String attributeName)
+  private static AttributeType getAttributeTypeOrDefault(String attributeName)
   {
     return DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeName), attributeName);
   }

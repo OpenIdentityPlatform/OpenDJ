@@ -2658,12 +2658,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName)
   {
-    AttributeType type = directoryServer.schema.getAttributeType(lowerName);
-    if (type == null)
-    {
-      type = getDefaultAttributeType(lowerName);
-    }
-    return type;
+    return getAttributeTypeOrDefault(lowerName, lowerName);
   }
 
   /**
@@ -2680,10 +2675,10 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName)
   {
-    AttributeType type = directoryServer.schema.getAttributeType(lowerName);
+    AttributeType type = getAttributeTypeOrNull(lowerName);
     if (type == null)
     {
-      type = getDefaultAttributeType(upperName);
+      type = getDefaultAttributeType(upperName, getDefaultAttributeSyntax());
     }
     return type;
   }
@@ -2774,21 +2769,6 @@ public final class DirectoryServer
     }
 
     return directoryServer.objectClassAttributeType;
-  }
-
-  /**
-   * Causes the Directory Server to construct a new attribute type definition
-   * with the provided name and using the default attribute syntax.  This should
-   * only be used if there is no real attribute type for the specified name.
-   *
-   * @param  name  The name to use for the attribute type, as provided by the
-   *               user.
-   *
-   * @return  The constructed attribute type definition.
-   */
-  public static AttributeType getDefaultAttributeType(String name)
-  {
-    return getDefaultAttributeType(name, getDefaultAttributeSyntax());
   }
 
   /**

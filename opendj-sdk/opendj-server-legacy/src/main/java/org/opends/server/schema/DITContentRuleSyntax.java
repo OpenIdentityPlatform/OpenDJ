@@ -669,7 +669,7 @@ public class DITContentRuleSyntax
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
             msg.get(valueStr, woidString));
       }
-      attr = DirectoryServer.getDefaultAttributeType(woidString);
+      attr = DirectoryServer.getAttributeTypeOrDefault(woidString);
     }
     return attr;
   }

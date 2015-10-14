@@ -26,156 +26,69 @@
  */
 package org.opends.server.monitors;
 
-
-
 import java.util.ArrayList;
+import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.VersionMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.DynamicConstants;
 
-
-
-/**
- * This class defines a monitor provider that reports Directory Server version
- * information.
- */
+/** This class defines a monitor provider that reports Directory Server version information. */
 public class VersionMonitorProvider
        extends MonitorProvider<VersionMonitorProviderCfg>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * The name of the attribute used to provide the product name.
-   */
+  /** The name of the attribute used to provide the product name. */
   public static final String ATTR_PRODUCT_NAME = "productName";
-
-
-
-  /**
-   * The name of the attribute used to provide the short name.
-   */
+  /** The name of the attribute used to provide the short name. */
   public static final String ATTR_SHORT_NAME = "shortName";
-
-
-
-  /**
-   * The name of the attribute used to provide the major version number.
-   */
+  /** The name of the attribute used to provide the major version number. */
   public static final String ATTR_MAJOR_VERSION = "majorVersion";
-
-
-
-  /**
-   * The name of the attribute used to provide the minor version number.
-   */
+  /** The name of the attribute used to provide the minor version number. */
   public static final String ATTR_MINOR_VERSION = "minorVersion";
-
-
-
-  /**
-   * The name of the attribute used to provide the point version number.
-   */
+  /** The name of the attribute used to provide the point version number. */
   public static final String ATTR_POINT_VERSION = "pointVersion";
-
-
-
-  /**
-   * The name of the attribute used to provide the version qualifier string.
-   */
+  /** The name of the attribute used to provide the version qualifier string. */
   public static final String ATTR_VERSION_QUALIFIER = "versionQualifier";
-
-
-
-  /**
-   * The name of the attribute used to provide the weekly build number.
-   */
+  /** The name of the attribute used to provide the weekly build number. */
   public static final String ATTR_BUILD_NUMBER = "buildNumber";
-
-
-
-  /**
-   * The name of the attribute used to provide the list of bugfix IDs.
-   */
+  /** The name of the attribute used to provide the list of bugfix IDs. */
   public static final String ATTR_FIX_IDS = "fixIDs";
-
-
-
-  /**
-   * The name of the attribute used to provide the Subversion revision number.
-   */
+  /** The name of the attribute used to provide the Subversion revision number. */
   public static final String ATTR_REVISION_NUMBER = "revisionNumber";
-
-
-
-  /**
-   * The name of the attribute used to provide the build ID (aka the build
-   * timestamp).
-   */
+  /** The name of the attribute used to provide the build ID (aka the build timestamp). */
   public static final String ATTR_BUILD_ID = "buildID";
-
-
-
-  /**
-   * The name of the attribute used to provide the compact version string.
-   */
+  /** The name of the attribute used to provide the compact version string. */
   public static final String ATTR_COMPACT_VERSION = "compactVersion";
-
-
-
-  /**
-   * The name of the attribute used to provide the full version string.
-   */
+  /** The name of the attribute used to provide the full version string. */
   public static final String ATTR_FULL_VERSION = "fullVersion";
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeMonitorProvider(VersionMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.
   }
 
-
-
-  /**
-   * Retrieves the name of this monitor provider.  It should be unique among all
-   * monitor providers, including all instances of the same monitor provider.
-   *
-   * @return  The name of this monitor provider.
-   */
+  @Override
   public String getMonitorInstanceName()
   {
     return "Version";
   }
 
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
-  public ArrayList<Attribute> getMonitorData()
+  @Override
+  public List<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<>(12);
 
-    attrs.add(createAttribute(ATTR_PRODUCT_NAME,
-                              DynamicConstants.PRODUCT_NAME));
+    attrs.add(createAttribute(ATTR_PRODUCT_NAME, DynamicConstants.PRODUCT_NAME));
     attrs.add(createAttribute(ATTR_SHORT_NAME, DynamicConstants.SHORT_NAME));
-    attrs.add(createAttribute(ATTR_MAJOR_VERSION,
-                              String.valueOf(DynamicConstants.MAJOR_VERSION)));
-    attrs.add(createAttribute(ATTR_MINOR_VERSION,
-                              String.valueOf(DynamicConstants.MINOR_VERSION)));
-    attrs.add(createAttribute(ATTR_POINT_VERSION,
-                              String.valueOf(DynamicConstants.POINT_VERSION)));
+    attrs.add(createAttribute(ATTR_MAJOR_VERSION, DynamicConstants.MAJOR_VERSION));
+    attrs.add(createAttribute(ATTR_MINOR_VERSION, DynamicConstants.MINOR_VERSION));
+    attrs.add(createAttribute(ATTR_POINT_VERSION, DynamicConstants.POINT_VERSION));
 
     String versionQualifier = DynamicConstants.VERSION_QUALIFIER;
     if (versionQualifier != null && versionQualifier.length() > 0)
@@ -186,8 +99,7 @@ public class VersionMonitorProvider
     int buildNumber = DynamicConstants.BUILD_NUMBER;
     if (buildNumber > 0)
     {
-      attrs.add(createAttribute(ATTR_BUILD_NUMBER,
-                                String.valueOf(buildNumber)));
+      attrs.add(createAttribute(ATTR_BUILD_NUMBER, buildNumber));
     }
 
     String fixIDs = DynamicConstants.FIX_IDS;
@@ -196,31 +108,16 @@ public class VersionMonitorProvider
       attrs.add(createAttribute(ATTR_FIX_IDS, fixIDs));
     }
 
-    attrs.add(createAttribute(ATTR_REVISION_NUMBER, String.valueOf(DynamicConstants.REVISION)));
+    attrs.add(createAttribute(ATTR_REVISION_NUMBER, DynamicConstants.REVISION));
     attrs.add(createAttribute(ATTR_BUILD_ID, DynamicConstants.BUILD_ID));
-    attrs.add(createAttribute(ATTR_COMPACT_VERSION,
-                              DynamicConstants.COMPACT_VERSION_STRING));
-    attrs.add(createAttribute(ATTR_FULL_VERSION,
-                              DynamicConstants.FULL_VERSION_STRING));
+    attrs.add(createAttribute(ATTR_COMPACT_VERSION, DynamicConstants.COMPACT_VERSION_STRING));
+    attrs.add(createAttribute(ATTR_FULL_VERSION, DynamicConstants.FULL_VERSION_STRING));
 
     return attrs;
   }
 
-
-
-  /**
-   * Constructs an attribute using the provided information.  It will have the
-   * default syntax.
-   *
-   * @param  name   The name to use for the attribute.
-   * @param  value  The value to use for the attribute.
-   *
-   * @return  The attribute created from the provided information.
-   */
-  private Attribute createAttribute(String name, String value)
+  private Attribute createAttribute(String name, Object value)
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
-    return Attributes.create(attrType, value);
+    return Attributes.create(name, String.valueOf(value));
   }
 }
-

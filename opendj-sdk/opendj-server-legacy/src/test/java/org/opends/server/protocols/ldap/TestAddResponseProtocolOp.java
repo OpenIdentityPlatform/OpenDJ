@@ -55,19 +55,11 @@ import org.testng.annotations.Test;
  * org.opends.server.protocol.ldap.AddResponseProtocolOp class.
  */
 public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
-  /**
-   * The protocol op type for add responses.
-   */
+  /** The protocol op type for add responses. */
   private static final byte OP_TYPE_ADD_RESPONSE = 0x69;
-
-  /**
-   * The result code for add result operations.
-   */
+  /** The result code for add result operations. */
   private static final int resultCode = 10;
-
-  /**
-   * The error message to use for add result operations.
-   */
+  /** The error message to use for add result operations. */
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
   /** The DN to use for add result operations. */
@@ -80,8 +72,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     TestCaseUtils.startServer();
 
     //Setup the DN to use in the response tests.
-    AttributeType attribute =
-        DirectoryServer.getDefaultAttributeType("testAttribute");
+    AttributeType attribute = DirectoryServer.getAttributeTypeOrDefault("testAttribute");
     ByteString attributeValue = ByteString.valueOf("testValue");
     dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }

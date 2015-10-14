@@ -674,7 +674,7 @@ public final class RDN
       // syntax.  If this is a problem, it will be caught later either
       // by not finding the target entry or by not allowing the entry
       // to be added.
-      attrType = DirectoryServer.getDefaultAttributeType(name);
+      attrType = DirectoryServer.getAttributeTypeOrDefault(name);
     }
 
     RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
@@ -794,7 +794,7 @@ public final class RDN
           // default syntax.  If this is a problem, it will be caught
           // later either by not finding the target entry or by not
           // allowing the entry to be added.
-          attrType = DirectoryServer.getDefaultAttributeType(name);
+          attrType = DirectoryServer.getAttributeTypeOrDefault(name);
         }
 
         rdn.addValue(attrType, name, ByteString.empty());
@@ -818,7 +818,7 @@ public final class RDN
         // default syntax.  If this is a problem, it will be caught
         // later either by not finding the target entry or by not
         // allowing the entry to be added.
-        attrType = DirectoryServer.getDefaultAttributeType(name);
+        attrType = DirectoryServer.getAttributeTypeOrDefault(name);
       }
 
       rdn.addValue(attrType, name, parsedValue.toByteString());
