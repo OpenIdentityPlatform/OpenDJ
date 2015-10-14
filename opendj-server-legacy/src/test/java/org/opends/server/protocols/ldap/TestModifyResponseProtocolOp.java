@@ -38,7 +38,10 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -52,24 +55,14 @@ import static org.testng.Assert.*;
  */
 public class TestModifyResponseProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for modify responses.
-   */
+  /** The protocol op type for modify responses. */
   public static final byte OP_TYPE_MODIFY_RESPONSE = 0x67;
-
-  /**
-   * The result code for add result operations.
-   */
+  /** The result code for add result operations. */
   private static final int resultCode = 10;
-
-  /**
-   * The error message to use for add result operations.
-   */
+  /** The error message to use for add result operations. */
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
-/**
-   * The DN to use for add result operations.
-   */
+  /** The DN to use for add result operations. */
   private DN dn;
 
   @BeforeClass
@@ -79,8 +72,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     TestCaseUtils.startServer();
 
     //Setup the DN to use in the response tests.
-    AttributeType attribute =
-        DirectoryServer.getDefaultAttributeType("testAttribute");
+    AttributeType attribute = DirectoryServer.getAttributeTypeOrDefault("testAttribute");
     ByteString attributeValue = ByteString.valueOf("testValue");
     dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }
@@ -93,8 +85,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void testOpType() throws Exception
   {
-    ModifyResponseProtocolOp modifyResponse = new ModifyResponseProtocolOp(
-        resultCode);
+    ModifyResponseProtocolOp modifyResponse = new ModifyResponseProtocolOp(resultCode);
     assertEquals(modifyResponse.getType(), OP_TYPE_MODIFY_RESPONSE);
   }
 

@@ -38,7 +38,10 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -52,24 +55,14 @@ import static org.testng.Assert.*;
  */
 public class TestCompareResponseProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for compare responses.
-   */
+  /** The protocol op type for compare responses. */
   public static final byte OP_TYPE_COMPARE_RESPONSE = 0x6F;
-
-  /**
-   * The result code for compare result operations.
-   */
+  /** The result code for compare result operations. */
   private static final int resultCode = 10;
-
-  /**
-   * The error message to use for compare result operations.
-   */
+  /** The error message to use for compare result operations. */
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
-/**
-   * The DN to use for compare result operations.
-   */
+  /** The DN to use for compare result operations. */
   private DN dn;
 
   @BeforeClass
@@ -79,8 +72,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
     TestCaseUtils.startServer();
 
     //Setup the DN to use in the response tests.
-    AttributeType attribute =
-        DirectoryServer.getDefaultAttributeType("testAttribute");
+    AttributeType attribute = DirectoryServer.getAttributeTypeOrDefault("testAttribute");
     ByteString attributeValue = ByteString.valueOf("testValue");
     dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }
@@ -93,8 +85,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   @Test
   public void testOpType() throws Exception
   {
-    CompareResponseProtocolOp compareResponse = new CompareResponseProtocolOp(
-        resultCode);
+    CompareResponseProtocolOp compareResponse = new CompareResponseProtocolOp(resultCode);
     assertEquals(compareResponse.getType(), OP_TYPE_COMPARE_RESPONSE);
   }
 

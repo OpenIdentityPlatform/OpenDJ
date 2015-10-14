@@ -1491,7 +1491,7 @@ public class Utilities
    */
   public static String getRDNString(String attrName, String attrValue)
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
     RDN rdn = new RDN(attrType, attrName, ByteString.valueOf(attrValue));
     return rdn.toString();
   }

@@ -47,7 +47,6 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
@@ -80,19 +79,13 @@ public class SystemInfoMonitorProvider
   {
     ArrayList<Attribute> attrs = new ArrayList<>(13);
 
-    attrs.add(createAttribute("javaVersion",
-                              System.getProperty("java.version")));
+    attrs.add(createAttribute("javaVersion", System.getProperty("java.version")));
     attrs.add(createAttribute("javaVendor", System.getProperty("java.vendor")));
-    attrs.add(createAttribute("jvmVersion",
-                              System.getProperty("java.vm.version")));
-    attrs.add(createAttribute("jvmVendor",
-                              System.getProperty("java.vm.vendor")));
-    attrs.add(createAttribute("javaHome",
-                              System.getProperty("java.home")));
-    attrs.add(createAttribute("classPath",
-                              System.getProperty("java.class.path")));
-    attrs.add(createAttribute("workingDirectory",
-                              System.getProperty("user.dir")));
+    attrs.add(createAttribute("jvmVersion", System.getProperty("java.vm.version")));
+    attrs.add(createAttribute("jvmVendor", System.getProperty("java.vm.vendor")));
+    attrs.add(createAttribute("javaHome", System.getProperty("java.home")));
+    attrs.add(createAttribute("classPath", System.getProperty("java.class.path")));
+    attrs.add(createAttribute("workingDirectory", System.getProperty("user.dir")));
 
     String osInfo = System.getProperty("os.name") + " " +
                     System.getProperty("os.version") + " " +
@@ -125,14 +118,10 @@ public class SystemInfoMonitorProvider
 
 
     Runtime runtime = Runtime.getRuntime();
-    attrs.add(createAttribute("availableCPUs",
-                              String.valueOf(runtime.availableProcessors())));
-    attrs.add(createAttribute("maxMemory",
-                              String.valueOf(runtime.maxMemory())));
-    attrs.add(createAttribute("usedMemory",
-                              String.valueOf(runtime.totalMemory())));
-    attrs.add(createAttribute("freeUsedMemory",
-                              String.valueOf(runtime.freeMemory())));
+    attrs.add(createAttribute("availableCPUs", runtime.availableProcessors()));
+    attrs.add(createAttribute("maxMemory", runtime.maxMemory()));
+    attrs.add(createAttribute("usedMemory", runtime.totalMemory()));
+    attrs.add(createAttribute("freeUsedMemory", runtime.freeMemory()));
     String installPath = DirectoryServer.getServerRoot();
     if (installPath != null)
     {
@@ -190,25 +179,14 @@ public class SystemInfoMonitorProvider
 
   private void addAttribute(ArrayList<Attribute> attrs, String attrName, Collection<String> values)
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(attrName);
-    AttributeBuilder builder = new AttributeBuilder(attrType);
+    AttributeBuilder builder = new AttributeBuilder(attrName);
     builder.addAllStrings(values);
     attrs.add(builder.toAttribute());
   }
 
-  /**
-   * Constructs an attribute using the provided information.  It will have the
-   * default syntax.
-   *
-   * @param  name   The name to use for the attribute.
-   * @param  value  The value to use for the attribute.
-   *
-   * @return  The attribute created from the provided information.
-   */
-  private Attribute createAttribute(String name, String value)
+  private Attribute createAttribute(String name, Object value)
   {
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
-    return Attributes.create(attrType, value);
+    return Attributes.create(name, String.valueOf(value));
   }
 }
 

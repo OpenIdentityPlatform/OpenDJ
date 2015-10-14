@@ -51,8 +51,8 @@ public class AttributeTypeTest extends DirectoryServerTestCase
   @Test
   public void defaultAttributeTypesWithDifferentCaseEquals()
   {
-    AttributeType attrType = getDefaultAttributeType("displayName");
-    AttributeType attrType2 = getDefaultAttributeType("displayname");
+    AttributeType attrType = getAttributeTypeOrDefault("displayName");
+    AttributeType attrType2 = getAttributeTypeOrDefault("displayname");
     Assert.assertNotSame(attrType, attrType2);
     Assert.assertEquals(attrType, attrType2);
   }

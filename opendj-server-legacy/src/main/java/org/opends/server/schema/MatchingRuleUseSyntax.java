@@ -451,7 +451,7 @@ public class MatchingRuleUseSyntax
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
             ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, woidString));
       }
-      attr = DirectoryServer.getDefaultAttributeType(woidString);
+      attr = DirectoryServer.getAttributeTypeOrDefault(woidString);
     }
     return attr;
   }

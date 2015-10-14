@@ -61,8 +61,12 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.types.RDN;
+import org.opends.server.types.Schema;
 
 /** The task that is called when we must modify an entry. */
 public class ModifyEntryTask extends Task
@@ -490,11 +494,6 @@ public class ModifyEntryTask extends Task
       if (!ViewEntryPanel.isEditable(attrName, schema))
       {
         continue;
-      }
-      AttributeType attrType = schema.getAttributeType(attr.getName().toLowerCase());
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attr.getName().toLowerCase());
       }
       List<ByteString> newValues = new ArrayList<>();
       Iterator<ByteString> it = attr.iterator();

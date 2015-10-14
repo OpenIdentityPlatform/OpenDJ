@@ -215,9 +215,7 @@ final class DatabaseEnvironmentMonitor
 
     ArrayList<Attribute> monitorAttrs = new ArrayList<>();
     String jeVersion = JEVersion.CURRENT_VERSION.getVersionString();
-    AttributeType versionType =
-         DirectoryServer.getDefaultAttributeType("JEVersion");
-    monitorAttrs.add(Attributes.create(versionType, jeVersion));
+    monitorAttrs.add(Attributes.create("JEVersion", jeVersion));
 
     addAttributesForStatsObject(monitorAttrs, environmentStats, "Environment");
     addAttributesForStatsObject(monitorAttrs, transactionStats, "Transaction");
@@ -242,8 +240,7 @@ final class DatabaseEnvironmentMonitor
 
     if(filterUseEnabled)
     {
-      monitorAttrs.add(Attributes.create("filter-use-startTime",
-          startTimeStamp));
+      monitorAttrs.add(Attributes.create("filter-use-startTime", startTimeStamp));
       AttributeBuilder builder = new AttributeBuilder("filter-use");
 
       StringBuilder stringBuilder = new StringBuilder();

@@ -540,7 +540,7 @@ public class NameFormSyntax
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
             msg.get(oid, woidString));
       }
-      attr = DirectoryServer.getDefaultAttributeType(woidString);
+      attr = DirectoryServer.getAttributeTypeOrDefault(woidString);
     }
     return attr;
   }

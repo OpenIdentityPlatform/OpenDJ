@@ -728,7 +728,7 @@ public class ObjectClassSyntax
         LocalizableMessage message = msg.get(oid, woidString);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
-      attr = DirectoryServer.getDefaultAttributeType(woidString);
+      attr = DirectoryServer.getAttributeTypeOrDefault(woidString);
     }
     return attr;
   }

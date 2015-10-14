@@ -406,7 +406,7 @@ public class AciEffectiveRights {
       // Only add the aclRights information if the aclRights attribute type was seen.
       if(hasAttrMask(mask, ACL_RIGHTS))  {
         String typeStr = aclRightsAttributeLevelStr + ";" + a.getNameOrOID();
-        AttributeType attributeType = DirectoryServer.getDefaultAttributeType(typeStr);
+        AttributeType attributeType = DirectoryServer.getAttributeTypeOrDefault(typeStr);
         Attribute attr = Attributes.create(attributeType, evalInfo.toString());
         //It is possible that the user might have specified the same attributes
         //in both the search and the specific attribute part of the control.
@@ -540,9 +540,7 @@ public class AciEffectiveRights {
     evalInfo.append(rightsString(container, handler, skipCheck, "proxy"));
     addEntryLevelRightsInfo(container, mask, retEntry, "proxy");
     if(hasAttrMask(mask, ACL_RIGHTS)) {
-      AttributeType attributeType=
-              DirectoryServer.getDefaultAttributeType(aclRightsEntryLevelStr);
-      Attribute attr = Attributes.create(attributeType, evalInfo.toString());
+      Attribute attr = Attributes.create(aclRightsEntryLevelStr, evalInfo.toString());
       retEntry.addAttribute(attr,null);
     }
   }
@@ -645,10 +643,8 @@ public class AciEffectiveRights {
       String typeStr=
               aclRightsInfoAttrLogsStr + ";" + rightStr + ";" +
               aType.getPrimaryName();
-      AttributeType attributeType=
-                DirectoryServer.getDefaultAttributeType(typeStr);
-      Attribute attr = Attributes.create(attributeType,
-          container.getEvalSummary());
+      AttributeType attributeType = DirectoryServer.getAttributeTypeOrDefault(typeStr);
+      Attribute attr = Attributes.create(attributeType, container.getEvalSummary());
       // The attribute type might have already been added, probably
       // not but it is possible.
       if(!retEntry.hasAttribute(attributeType))
@@ -676,10 +672,7 @@ public class AciEffectiveRights {
      //Check if the aclRightsInfo attribute was requested.
      if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       String typeStr = aclRightsInfoEntryLogsStr + ";" + rightStr;
-       AttributeType attributeType=
-                 DirectoryServer.getDefaultAttributeType(typeStr);
-       Attribute attr = Attributes.create(attributeType,
-           container.getEvalSummary());
+      Attribute attr = Attributes.create(typeStr, container.getEvalSummary());
        retEntry.addAttribute(attr,null);
      }
    }

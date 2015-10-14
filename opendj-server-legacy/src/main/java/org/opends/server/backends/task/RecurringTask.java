@@ -188,11 +188,8 @@ public class RecurringTask
 
 
     // Get the schedule for this task.
-    attrType = DirectoryServer.getAttributeTypeOrNull(ATTR_RECURRING_TASK_SCHEDULE.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_RECURRING_TASK_SCHEDULE);
-    }
+    attrType = DirectoryServer.getAttributeTypeOrDefault(
+        ATTR_RECURRING_TASK_SCHEDULE.toLowerCase(), ATTR_RECURRING_TASK_SCHEDULE);
 
     attrList = recurringTaskEntry.getAttribute(attrType);
     if (attrList == null || attrList.isEmpty())
@@ -238,11 +235,7 @@ public class RecurringTask
     weekdayArray = taskArrays[WEEKDAY_INDEX];
 
     // Get the class name from the entry.  If there isn't one, then fail.
-    attrType = DirectoryServer.getAttributeTypeOrNull(ATTR_TASK_CLASS.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(ATTR_TASK_CLASS);
-    }
+    attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_CLASS.toLowerCase(), ATTR_TASK_CLASS);
 
     attrList = recurringTaskEntry.getAttribute(attrType);
     if (attrList == null || attrList.isEmpty())

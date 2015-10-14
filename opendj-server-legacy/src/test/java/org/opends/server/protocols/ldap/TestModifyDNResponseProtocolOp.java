@@ -56,24 +56,14 @@ import org.testng.annotations.Test;
  */
 public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
 {
-  /**
-   * The protocol op type for modify DN responses.
-   */
+  /** The protocol op type for modify DN responses. */
   public static final byte OP_TYPE_MODIFY_DN_RESPONSE = 0x6D;
-
-  /**
-   * The result code for compare result operations.
-   */
+  /** The result code for compare result operations. */
   private static final int resultCode = 10;
-
-  /**
-   * The error message to use for compare result operations.
-   */
+  /** The error message to use for compare result operations. */
   private static final LocalizableMessage resultMsg = LocalizableMessage.raw("Test Successful");
 
-/**
-   * The DN to use for compare result operations.
-   */
+  /** The DN to use for compare result operations. */
   private DN dn;
 
   @BeforeClass
@@ -83,8 +73,7 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
     TestCaseUtils.startServer();
 
     //Setup the DN to use in the response tests.
-    AttributeType attribute =
-        DirectoryServer.getDefaultAttributeType("testAttribute");
+    AttributeType attribute = DirectoryServer.getAttributeTypeOrDefault("testAttribute");
     ByteString attributeValue = ByteString.valueOf("testValue");
     dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }
@@ -97,8 +86,7 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
   @Test
   public void testOpType() throws Exception
   {
-    ModifyDNResponseProtocolOp modifyResponse = new ModifyDNResponseProtocolOp(
-        resultCode);
+    ModifyDNResponseProtocolOp modifyResponse = new ModifyDNResponseProtocolOp(resultCode);
     assertEquals(modifyResponse.getType(), OP_TYPE_MODIFY_DN_RESPONSE);
   }
 
