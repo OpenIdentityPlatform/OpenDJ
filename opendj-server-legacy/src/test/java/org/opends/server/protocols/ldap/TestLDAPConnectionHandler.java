@@ -121,9 +121,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     //Reset some things for the SSL handler
     Attribute useSSL=Attributes.create(ATTR_USE_SSL, String.valueOf(false));
     Attribute startTls=Attributes.create(ATTR_ALLOW_STARTTLS, String.valueOf(false));
-    AttributeType attrType=DirectoryServer.getAttributeTypeOrDefault(ATTR_LISTEN_PORT);
-    Attribute a=Attributes.empty(attrType);
-    LDAPHandlerEntry.removeAttribute(a, null);
+    LDAPHandlerEntry.removeAttribute(Attributes.empty(ATTR_LISTEN_PORT), null);
     LDAPHandlerEntry.removeAttribute(useSSL, null);
     LDAPHandlerEntry.removeAttribute(startTls, null);
     Attribute useSSL1=Attributes.create(ATTR_USE_SSL, String.valueOf(true));
