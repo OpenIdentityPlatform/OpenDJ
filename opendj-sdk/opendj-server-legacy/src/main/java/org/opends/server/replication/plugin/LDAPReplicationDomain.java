@@ -2195,16 +2195,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         conn, nextOperationID(), nextMessageID(), new ArrayList<Control>(0),
         targetDN, newRDN, false, parentDN);
 
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(DS_SYNC_CONFLICT);
     if (markConflict)
     {
-      Attribute attr =
-          Attributes.create(attrType, targetDN.toString());
+      Attribute attr = Attributes.create(DS_SYNC_CONFLICT, targetDN.toString());
       newOp.addModification(new Modification(ModificationType.REPLACE, attr));
     }
     else
     {
-      Attribute attr = Attributes.empty(attrType);
+      Attribute attr = Attributes.empty(DS_SYNC_CONFLICT);
       newOp.addModification(new Modification(ModificationType.DELETE, attr));
     }
 
@@ -3012,8 +3010,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   private void markConflictEntry(Operation op, DN currentDN, DN conflictDN)
   {
     // create new internal modify operation and run it.
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(DS_SYNC_CONFLICT);
-    Attribute attr = Attributes.create(attrType, conflictDN.toString());
+    Attribute attr = Attributes.create(DS_SYNC_CONFLICT, conflictDN.toString());
     List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
 
     ModifyOperation newOp = new ModifyOperationBasis(
