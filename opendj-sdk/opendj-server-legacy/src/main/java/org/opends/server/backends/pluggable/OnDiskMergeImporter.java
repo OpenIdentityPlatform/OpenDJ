@@ -90,7 +90,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
@@ -115,7 +114,6 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -352,18 +350,18 @@ final class OnDiskMergeImporter
       for (String name : rebuildList)
       {
         final String parts[] = name.split("\\.");
-        final AttributeIndex attribute = findAttribute(entryContainer, parts[0]);
+        final AttributeIndex attrIndex = findAttributeIndex(entryContainer, parts[0]);
         if (parts.length == 1)
         {
           // Add all indexes of this attribute
-          for (Tree index : attribute.getNameToIndexes().values())
+          for (Tree index : attrIndex.getNameToIndexes().values())
           {
             indexNames.add(index.getName().getIndexId());
           }
         }
         else if (parts.length == 2)
         {
-          // First, assume the supplied name is a valid index name.
+          // First, assume the supplied name is a valid index name ...
           final SelectIndexName selector = new SelectIndexName();
           visitIndexes(entryContainer, visitOnlyIndexes(Arrays.asList(name), selector));
           indexNames.addAll(selector.getSelectedIndexNames());
@@ -372,7 +370,7 @@ final class OnDiskMergeImporter
             // ... if not, assume the supplied name identify an attributeType.indexType
             try
             {
-              indexNames.addAll(getIndexNames(IndexType.valueOf(parts[1].toUpperCase()), attribute));
+              indexNames.addAll(getIndexNames(IndexType.valueOf(parts[1].toUpperCase()), attrIndex));
             }
             catch (IllegalArgumentException e)
             {
@@ -388,12 +386,12 @@ final class OnDiskMergeImporter
       return indexNames;
     }
 
-    private static final AttributeIndex findAttribute(EntryContainer entryContainer, String name)
+    private static final AttributeIndex findAttributeIndex(EntryContainer entryContainer, String name)
         throws InitializationException
     {
       for (AttributeIndex index : entryContainer.getAttributeIndexes())
       {
-        if (index.getAttributeType().getNameOrOID().equalsIgnoreCase(name))
+        if (index.getAttributeType().hasNameOrOID(name.toLowerCase()))
         {
           return index;
         }
@@ -401,37 +399,20 @@ final class OnDiskMergeImporter
       throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name));
     }
 
+
     private static Collection<String> getIndexNames(IndexType indexType, AttributeIndex attrIndex)
     {
-      final Map<String, MatchingRuleIndex> indexes = attrIndex.getNameToIndexes();
-
-      final AttributeType attrType = attrIndex.getAttributeType();
-      final MatchingRule rule;
-      switch (indexType)
+      if (indexType.equals(IndexType.PRESENCE))
       {
-      case PRESENCE:
+        if (!attrIndex.isIndexed(org.opends.server.types.IndexType.PRESENCE))
+        {
+          throw new IllegalArgumentException("No index found for type " + indexType);
+        }
         return Collections.singletonList(IndexType.PRESENCE.toString());
-      case APPROXIMATE:
-        rule = attrType.getApproximateMatchingRule();
-        break;
-      case EQUALITY:
-        rule = attrType.getEqualityMatchingRule();
-        break;
-      case ORDERING:
-        rule = attrType.getOrderingMatchingRule();
-        break;
-      case SUBSTRING:
-        rule = attrType.getSubstringMatchingRule();
-        break;
-      default:
-        throw new IllegalArgumentException("Not implemented for index type " + indexType);
-      }
-      if (rule == null)
-      {
-        throw new IllegalArgumentException("No matching rule for index type " + indexType);
       }
       final Set<String> indexNames = new HashSet<>();
-      for (Indexer indexer : rule.createIndexers(attrIndex.getIndexingOptions()))
+      for (Indexer indexer : AttributeIndex.getMatchingRule(indexType, attrIndex.getAttributeType())
+                                           .createIndexers(attrIndex.getIndexingOptions()))
       {
         final Tree indexTree = attrIndex.getNameToIndexes().get(indexer.getIndexID());
         if (indexTree == null)
@@ -3366,7 +3347,7 @@ final class OnDiskMergeImporter
   /** Visitor pattern allowing to process all type of indexes. */
   private interface IndexVisitor
   {
-    void visitAttributeIndex(DefaultIndex index);
+    void visitAttributeIndex(Index index);
 
     void visitVLVIndex(VLVIndex index);
 
@@ -3391,7 +3372,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(DefaultIndex index)
+    public void visitAttributeIndex(Index index)
     {
       index.setTrusted(txn, trustValue);
     }
@@ -3425,7 +3406,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(DefaultIndex index)
+    public void visitAttributeIndex(Index index)
     {
       clearTree(index);
     }
@@ -3464,7 +3445,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(DefaultIndex index)
+    public void visitAttributeIndex(Index index)
     {
       if (!index.isTrusted())
       {
@@ -3504,7 +3485,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(DefaultIndex index)
+    public void visitAttributeIndex(Index index)
     {
       addIndex(index);
     }
@@ -3549,7 +3530,7 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void visitAttributeIndex(DefaultIndex index)
+    public void visitAttributeIndex(Index index)
     {
       if (indexIncluded(index))
       {
