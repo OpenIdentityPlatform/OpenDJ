@@ -1454,42 +1454,34 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
    * @throws InitializationException If an error occurs while interacting with
    *                                 the key store.
    */
-  private void generateInstanceCertificateIfAbsent()
-       throws InitializationException
+  private void generateInstanceCertificateIfAbsent() throws InitializationException
   {
-    final String certAliases[] = { ADS_CERTIFICATE_ALIAS, ADS_CERTIFICATE_EC_ALIAS };
-
-    for (String certAlias : certAliases)
+    final String certAlias = ADS_CERTIFICATE_ALIAS;
+    try
     {
-      try
+      if (certificateManager.aliasInUse(certAlias))
       {
-        if (certificateManager.aliasInUse(certAlias))
-        {
-          continue;
-        }
+        return;
       }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
-            certAlias, trustStoreFile, getExceptionMessage(e));
-       throw new InitializationException(message, e);
-      }
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message =
+          ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(certAlias, trustStoreFile, getExceptionMessage(e));
+      throw new InitializationException(message, e);
+    }
 
-      try
-      {
-        final KeyType keyType = KeyType.getTypeOrDefault(certAlias);
-        certificateManager.generateSelfSignedCertificate(
-            keyType,
-            certAlias,
-            getADSCertificateSubjectDN(keyType),
-            getADSCertificateValidity());
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
-            certAlias, trustStoreFile, getExceptionMessage(e));
-       throw new InitializationException(message, e);
-      }
+    try
+    {
+      final KeyType keyType = KeyType.getTypeOrDefault(certAlias);
+      certificateManager.generateSelfSignedCertificate(keyType, certAlias, getADSCertificateSubjectDN(keyType),
+          getADSCertificateValidity());
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message =
+          ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(certAlias, trustStoreFile, getExceptionMessage(e));
+      throw new InitializationException(message, e);
     }
   }
 }

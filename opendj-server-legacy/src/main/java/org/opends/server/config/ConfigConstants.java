@@ -2822,12 +2822,6 @@ public final class ConfigConstants
   public static final String ADS_CERTIFICATE_ALIAS = "ads-certificate";
 
   /**
-   * Alias of the local instance certificate in the ADS keystore using elliptic curve.
-   */
-  public static final String ADS_CERTIFICATE_EC_ALIAS = ADS_CERTIFICATE_ALIAS + "-ec";
-
-
-  /**
    * The DN of the entry that will serve as the base for local ADS trust store
    * information.
    */
