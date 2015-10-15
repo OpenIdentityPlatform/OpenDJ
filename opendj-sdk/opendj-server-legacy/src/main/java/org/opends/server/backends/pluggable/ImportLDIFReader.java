@@ -159,6 +159,14 @@ final class ImportLDIFReader extends LDIFReader
           // read and return the next entry.
           continue;
         }
+        if (!importConfig.includeEntry(entryDN))
+        {
+          logger.trace("Skipping entry %s because the DN is not one that "
+              + "should be included based on the include and exclude branches.", entryDN);
+          entriesRead.incrementAndGet();
+          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
+          continue;
+        }
         entryContainer = getEntryContainer(entryDN, suffixesMap);
         if (entryContainer == null)
         {
