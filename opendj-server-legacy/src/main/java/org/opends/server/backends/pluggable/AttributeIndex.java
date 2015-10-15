@@ -758,7 +758,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     return true;
   }
 
-  private static MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
+  static MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
   {
     switch (indexType)
     {
