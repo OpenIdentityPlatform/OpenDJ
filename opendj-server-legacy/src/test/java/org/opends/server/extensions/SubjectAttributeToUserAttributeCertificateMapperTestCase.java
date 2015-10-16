@@ -40,6 +40,7 @@ import java.util.List;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SubjectAttributeToUserAttributeCertificateMapperCfgDefn;
@@ -238,22 +239,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "sn: User",
         "cn: Test User");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -283,7 +277,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
     try
     {
-      setAttributeMappings(new String[] { "cn:cn", "1.2.840.113549.1.9.1:mail" });
+      setAttributeMappings("cn:cn", "1.2.840.113549.1.9.1:mail");
 
       TestCaseUtils.initializeTestBackend(true);
       TestCaseUtils.addEntry(
@@ -299,22 +293,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "cn: Test User",
         "mail: test@example.com");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client-emailAddress.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client-emailAddress.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -326,7 +313,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     finally
     {
       disableMapper();
-      setAttributeMappings(new String[] { "cn:cn", "emailAddress:mail" });
+      setAttributeMappings("cn:cn", "emailAddress:mail");
     }
   }
 
@@ -360,22 +347,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "cn: Test User",
         "mail: test@example.com");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client-emailAddress.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client-emailAddress.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -390,7 +370,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     }
   }
 
+  private String getKeyStorePath(String fileName)
+  {
+    return DirectoryServer.getInstanceRoot() + File.separator + "config" + File.separator + fileName;
+  }
 
+  private String getTrustStorePath()
+  {
+    return DirectoryServer.getInstanceRoot() + File.separator + "config" + File.separator + "client.truststore";
+  }
 
   /**
    * Tests a successful mapping with multiple attributes.
@@ -405,7 +393,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
     try
     {
-      setAttributeMappings(new String[] { "cn:cn", "o:o" });
+      setAttributeMappings("cn:cn", "o:o");
 
       TestCaseUtils.initializeTestBackend(true);
       TestCaseUtils.addEntry(
@@ -421,22 +409,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "cn: Test User",
         "o: test");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -448,7 +429,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     finally
     {
       disableMapper();
-      setAttributeMappings(new String[] { "cn:cn", "emailAddress:mail" });
+      setAttributeMappings("cn:cn", "emailAddress:mail");
     }
   }
 
@@ -467,7 +448,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
     try
     {
-      setAttributeMappings(new String[] { "emailAddress:mail" });
+      setAttributeMappings("emailAddress:mail");
 
       TestCaseUtils.initializeTestBackend(true);
       TestCaseUtils.addEntry(
@@ -483,22 +464,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "cn: Test User",
         "o: test");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -510,7 +484,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
     finally
     {
       disableMapper();
-      setAttributeMappings(new String[] { "cn:cn", "emailAddress:mail" });
+      setAttributeMappings("cn:cn", "emailAddress:mail");
     }
   }
 
@@ -542,22 +516,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "sn: User",
         "cn: Not Test User");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -611,22 +578,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "sn: User",
         "cn: Test User");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -657,7 +617,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
 
     try
     {
-      setBaseDNs(new String[] { "dc=example,dc=com" });
+      setBaseDNs("dc=example,dc=com");
 
       TestCaseUtils.initializeTestBackend(true);
       TestCaseUtils.addEntries(
@@ -672,22 +632,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "sn: User",
         "cn: Test User");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "",
         "-s", "base",
@@ -732,10 +685,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { AssertionError.class })
-  public void testSetMappingNoColon()
-         throws Exception
+  public void testSetMappingNoColon() throws Exception
   {
-    setAttributeMappings(new String[] { "nocolon" });
+    setAttributeMappings("nocolon");
   }
 
 
@@ -750,7 +702,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
   public void testSetMappingNoCertAttribute()
          throws Exception
   {
-    setAttributeMappings(new String[] { ":cn" });
+    setAttributeMappings(":cn");
   }
 
 
@@ -762,10 +714,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { AssertionError.class })
-  public void testSetMappingNoUserAttribute()
-         throws Exception
+  public void testSetMappingNoUserAttribute() throws Exception
   {
-    setAttributeMappings(new String[] { "cn:" });
+    setAttributeMappings("cn:");
   }
 
 
@@ -777,10 +728,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { AssertionError.class })
-  public void testSetMappingUndefinedUserAttribute()
-         throws Exception
+  public void testSetMappingUndefinedUserAttribute() throws Exception
   {
-    setAttributeMappings(new String[] { "cn:undefined" });
+    setAttributeMappings("cn:undefined");
   }
 
 
@@ -792,10 +742,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { AssertionError.class })
-  public void testSetMappingDuplicateCertAttribute()
-         throws Exception
+  public void testSetMappingDuplicateCertAttribute() throws Exception
   {
-    setAttributeMappings(new String[] { "cn:cn", "cn:sn" });
+    setAttributeMappings("cn:cn", "cn:sn");
   }
 
 
@@ -807,10 +756,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { AssertionError.class })
-  public void testSetMappingDuplicateUserAttribute()
-         throws Exception
+  public void testSetMappingDuplicateUserAttribute() throws Exception
   {
-    setAttributeMappings(new String[] { "cn:cn", "e:cn" });
+    setAttributeMappings("cn:cn", "e:cn");
   }
 
 
@@ -821,10 +769,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { AssertionError.class })
-  public void testSetInvalidBaseDN()
-         throws Exception
+  public void testSetInvalidBaseDN() throws Exception
   {
-    setBaseDNs(new String[] { "invalid" });
+    setBaseDNs("invalid");
   }
 
 
@@ -870,8 +817,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void setAttributeMappings(String[] mappings)
-          throws Exception
+  private void setAttributeMappings(String... mappings) throws Exception
   {
     String mapperDN = "cn=Subject Attribute to User Attribute," +
                       "cn=Certificate Mappers,cn=config";
@@ -892,7 +838,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void setBaseDNs(String[] baseDNs) throws Exception
+  private void setBaseDNs(String... baseDNs) throws Exception
   {
     String mapperDN = "cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config";
 
@@ -935,22 +881,15 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
         "cn: Test User",
         "ds-privilege-name: config-read");
 
-
-
-      String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.keystore";
-      String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                              "config" + File.separator + "client.truststore";
-
       String[] args =
       {
         "--noPropertiesFile",
         "-h", "127.0.0.1",
         "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
         "-Z",
-        "-K", keyStorePath,
+        "-K", getKeyStorePath("client.keystore"),
         "-W", "password",
-        "-P", trustStorePath,
+        "-P", getTrustStorePath(),
         "-r",
         "-b", "cn=config",
         "-s", "sub",
