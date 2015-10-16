@@ -630,7 +630,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         .setLockTimeout(0, TimeUnit.SECONDS)
         .setTxnTimeout(0, TimeUnit.SECONDS)
         .setDurability(Durability.COMMIT_NO_SYNC)
-        .setConfigParam(CLEANER_MIN_FILE_UTILIZATION, String.valueOf(config.getDBCleanerMinUtilization()))
+        .setConfigParam(CLEANER_MIN_UTILIZATION, String.valueOf(config.getDBCleanerMinUtilization()))
         .setConfigParam(LOG_FILE_MAX, String.valueOf(config.getDBLogFileMax()));
     }
     else

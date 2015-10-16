@@ -198,14 +198,13 @@
   </adm:property>
   <adm:property name="db-cleaner-min-utilization" advanced="true">
     <adm:synopsis>
-      Specifies the minimum percentage of "live" data that the database
-      cleaner attempts to keep in database log files.
+      Specifies the occupancy percentage for "live" data in this backend's
+      database.
     </adm:synopsis>
     <adm:description>
-      If the amount of live data in any database log file drops below
-      this percentage, then the cleaner moves the remaining live
-      data in that file to the end of the database and deletes the
-      original file in order to keep the database relatively compact.
+      When the amount of "live" data in the database drops below this value,
+      cleaners will act to increase the occupancy percentage by compacting
+      the database.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -223,15 +222,15 @@
   </adm:property>
   <adm:property name="db-run-cleaner" advanced="true">
     <adm:synopsis>
-      Indicates whether the database cleaner threads should be
-      enabled.
+      Indicates whether the cleaner threads should be enabled to compact
+      the database.
     </adm:synopsis>
     <adm:description>
       The cleaner threads are used to periodically compact the
-      database by identifying database files with a low (that is, less than
-      the amount specified by the db-cleaner-min-utilization property)
-      percentage of live data, moving the remaining live data to the end
-      of the log and deleting that file.
+      database when it reaches a percentage of occupancy lower than the
+      amount specified by the db-cleaner-min-utilization property. They identify
+      database files with a low percentage of live data, and relocate their
+      remaining live data to the end of the log.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>

@@ -810,7 +810,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     envConfig.setDurability(Durability.COMMIT_NO_SYNC);
     envConfig.setLockTimeout(0, TimeUnit.SECONDS);
     envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
-    envConfig.setConfigParam(CLEANER_MIN_FILE_UTILIZATION,
+    envConfig.setConfigParam(CLEANER_MIN_UTILIZATION,
         String.valueOf(cfg.getDBCleanerMinUtilization()));
     envConfig.setConfigParam(LOG_FILE_MAX,
         String.valueOf(cfg.getDBLogFileMax()));
