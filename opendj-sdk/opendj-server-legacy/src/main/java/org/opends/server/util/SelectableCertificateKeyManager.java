@@ -115,7 +115,7 @@ public final class SelectableCertificateKeyManager
         return clientAlias;
       }
     }
-    logger.warn(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
+    logger.info(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
 
@@ -191,7 +191,7 @@ public final class SelectableCertificateKeyManager
         return serverAlias;
       }
     }
-    logger.warn(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
+    logger.info(INFO_MISSING_KEY_TYPE_IN_ALIASES, componentName, aliases.toString(), Arrays.toString(keyType));
     return null;
   }
 
