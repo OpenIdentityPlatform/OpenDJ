@@ -102,7 +102,6 @@ import com.persistit.exception.InUseException;
 import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 import com.persistit.exception.TreeNotFoundException;
-import com.persistit.mxbeans.CheckpointManagerMXBean;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
 public final class PDBStorage implements Storage, Backupable, ConfigurationChangeListener<PDBBackendCfg>,
@@ -739,7 +738,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   {
     final Configuration dbCfg = buildConfiguration(AccessMode.READ_WRITE);
     getBufferPoolCfg(dbCfg).setMaximumMemory(IMPORT_DB_CACHE_SIZE);
-    dbCfg.setCheckpointInterval(CheckpointManagerMXBean.MAXIMUM_CHECKPOINT_INTERVAL_S);
     dbCfg.setCommitPolicy(SOFT);
     return dbCfg;
   }
