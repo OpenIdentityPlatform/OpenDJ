@@ -106,11 +106,13 @@ import org.opends.server.backends.pluggable.ImportLDIFReader.EntryInformation;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.InMemorySortedChunk;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
+import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
@@ -252,45 +254,64 @@ final class OnDiskMergeImporter
     @Override
     public void rebuildIndex(final RebuildConfig rebuildConfig) throws Exception
     {
-      final long availableMemory = calculateAvailableMemory();
+      final EntryContainer entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
+      final long totalEntries = rootContainer.getStorage().read(new ReadOperation<Long>()
+      {
+        @Override
+        public Long run(ReadableTransaction txn) throws Exception
+        {
+          return entryContainer.getID2Entry().getRecordCount(txn);
+        }
+      });
 
-      // Rebuild indexes
-      final OnDiskMergeImporter importer;
+      final Set<String> indexesToRebuild = selectIndexesToRebuild(entryContainer, rebuildConfig, totalEntries);
+      if (rebuildConfig.isClearDegradedState())
+      {
+        clearDegradedState(entryContainer, indexesToRebuild);
+        logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, rebuildConfig.getRebuildList());
+      }
+      else
+      {
+        rebuildIndex(entryContainer, rebuildConfig.getTmpDirectory(), indexesToRebuild, totalEntries);
+      }
+    }
+
+    private void clearDegradedState(final EntryContainer entryContainer, final Set<String> indexes) throws Exception
+    {
+      rootContainer.getStorage().write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          visitIndexes(entryContainer, visitOnlyIndexes(indexes, setTrust(true, txn)));
+        }
+      });
+    }
+
+    private void rebuildIndex(EntryContainer entryContainer, String tmpDirectory, Set<String> indexesToRebuild,
+        long totalEntries) throws Exception
+    {
+      rootContainer.getStorage().close();
+      final long availableMemory = calculateAvailableMemory();
+      final int threadCount = Runtime.getRuntime().availableProcessors();
+      final int nbBuffer = 2 * indexesToRebuild.size() * threadCount;
+      final int bufferSize = computeBufferSize(nbBuffer, availableMemory);
+      final File tempDir = prepareTempDir(backendCfg, tmpDirectory);
+
       final ExecutorService sorter = Executors.newFixedThreadPool(
           Runtime.getRuntime().availableProcessors(),
           newThreadFactory(null, SORTER_THREAD_NAME, true));
-      try (final Importer dbStorage = rootContainer.getStorage().startImport())
+
+      final OnDiskMergeImporter importer;
+      try (final Importer dbStorage = rootContainer.getStorage().startImport();
+           final BufferPool bufferPool = new BufferPool(nbBuffer, bufferSize))
       {
-        final EntryContainer entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
-        final long totalEntries = entryContainer.getID2Entry().getRecordCount(asWriteableTransaction(dbStorage));
-        final Set<String> indexesToRebuild = selectIndexesToRebuild(entryContainer, rebuildConfig, totalEntries);
-        if (rebuildConfig.isClearDegradedState())
-        {
-          visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(true, dbStorage)));
-          logger.info(NOTE_REBUILD_CLEARDEGRADEDSTATE_FINAL_STATUS, indexesToRebuild);
-          return;
-        }
+        final AbstractTwoPhaseImportStrategy strategy = new RebuildIndexStrategy(
+            rootContainer.getEntryContainers(), dbStorage, tempDir, bufferPool, sorter, indexesToRebuild);
 
-        if (indexesToRebuild.isEmpty())
-        {
-          // Early exit in case there is no index to rebuild.
-          return;
-        }
-
-        final int threadCount = Runtime.getRuntime().availableProcessors();
-        final int nbBuffer = 2 * indexesToRebuild.size() * threadCount;
-        final int bufferSize = computeBufferSize(nbBuffer, availableMemory);
-        try (final BufferPool bufferPool = new BufferPool(nbBuffer, bufferSize))
-        {
-          final File tempDir = prepareTempDir(backendCfg, rebuildConfig.getTmpDirectory());
-          final AbstractTwoPhaseImportStrategy strategy =
-              new RebuildIndexStrategy(rootContainer.getEntryContainers(), dbStorage, tempDir, bufferPool, sorter,
-                  indexesToRebuild);
-
-          importer = new OnDiskMergeImporter(PHASE2_REBUILDER_THREAD_NAME, strategy);
-          importer.doImport(
-              new ID2EntrySource(entryContainer, dbStorage, PHASE1_REBUILDER_THREAD_NAME, threadCount, totalEntries));
-        }
+        importer = new OnDiskMergeImporter(PHASE2_REBUILDER_THREAD_NAME, strategy);
+        importer.doImport(
+            new ID2EntrySource(entryContainer, dbStorage, PHASE1_REBUILDER_THREAD_NAME, threadCount, totalEntries));
       }
       finally
       {
@@ -3356,7 +3377,12 @@ final class OnDiskMergeImporter
 
   private static final IndexVisitor setTrust(boolean trustValue, Importer importer)
   {
-    return new TrustModifier(importer, trustValue);
+    return setTrust(trustValue, asWriteableTransaction(importer));
+  }
+
+  private static final IndexVisitor setTrust(boolean trustValue, WriteableTransaction txn)
+  {
+    return new TrustModifier(txn, trustValue);
   }
 
   /** Update the trust state of the visited indexes. */
@@ -3365,9 +3391,9 @@ final class OnDiskMergeImporter
     private final WriteableTransaction txn;
     private final boolean trustValue;
 
-    TrustModifier(Importer importer, boolean trustValue)
+    TrustModifier(WriteableTransaction txn, boolean trustValue)
     {
-      this.txn = asWriteableTransaction(importer);
+      this.txn = txn;
       this.trustValue = trustValue;
     }
 

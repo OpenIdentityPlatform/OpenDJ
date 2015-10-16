@@ -802,7 +802,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       if (openRootContainer)
       {
         rootContainer = newRootContainer(AccessMode.READ_WRITE);
-        rootContainer.getStorage().close();
       }
       getImportStrategy(serverContext, rootContainer).rebuildIndex(rebuildConfig);
     }
