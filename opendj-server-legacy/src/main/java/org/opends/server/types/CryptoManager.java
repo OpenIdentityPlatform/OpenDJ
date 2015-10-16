@@ -400,13 +400,14 @@ import java.util.SortedSet;
    * Create an SSL context that may be used for communication to
    * another ADS component.
    *
+   * @param componentName    Name of the component to which is associated this SSL Context.
    * @param sslCertNicknames The names of the local certificates to use,
    *                         or null if none is specified.
    * @return A new SSL Context.
    * @throws ConfigException If the context
    * could not be created.
    */
-  SSLContext getSslContext(SortedSet<String> sslCertNicknames) throws ConfigException;
+  SSLContext getSslContext(String componentName, SortedSet<String> sslCertNicknames) throws ConfigException;
 
   /**
    * Get the names of the local certificates to use for SSL.

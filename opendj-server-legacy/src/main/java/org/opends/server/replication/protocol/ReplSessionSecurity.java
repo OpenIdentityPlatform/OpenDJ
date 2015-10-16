@@ -52,6 +52,10 @@ import static org.opends.server.util.StaticUtils.*;
 public final class ReplSessionSecurity
 {
 
+  private static final String REPLICATION_SERVER_NAME = "Replication Server";
+
+  private static final String REPLICATION_CLIENT_NAME = "Replication Client";
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -169,7 +173,7 @@ public final class ReplSessionSecurity
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
       final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      final SSLContext sslContext = cryptoManager.getSslContext(sslCertNicknames);
+      final SSLContext sslContext = cryptoManager.getSslContext(REPLICATION_CLIENT_NAME, sslCertNicknames);
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(
@@ -231,7 +235,7 @@ public final class ReplSessionSecurity
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
       final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      final SSLContext sslContext = cryptoManager.getSslContext(sslCertNicknames);
+      final SSLContext sslContext = cryptoManager.getSslContext(REPLICATION_SERVER_NAME, sslCertNicknames);
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(

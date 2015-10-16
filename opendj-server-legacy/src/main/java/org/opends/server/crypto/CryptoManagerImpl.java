@@ -2840,8 +2840,7 @@ public class CryptoManagerImpl
 
   /** {@inheritDoc} */
   @Override
-  public SSLContext getSslContext(SortedSet<String> sslCertNicknames)
-       throws ConfigException
+  public SSLContext getSslContext(String componentName, SortedSet<String> sslCertNicknames) throws ConfigException
   {
     SSLContext sslContext;
     try
@@ -2860,9 +2859,7 @@ public class CryptoManagerImpl
       else
       {
         KeyManager[] extendedKeyManagers =
-             SelectableCertificateKeyManager.wrap(
-                  keyManagers,
-                  sslCertNicknames);
+            SelectableCertificateKeyManager.wrap(keyManagers, sslCertNicknames, componentName);
         sslContext.init(extendedKeyManagers, trustManagers, null);
       }
     }
