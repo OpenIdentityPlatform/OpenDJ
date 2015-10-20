@@ -32,7 +32,11 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.List;
 import java.util.Map;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -42,31 +46,32 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
+import org.opends.server.util.CollectionUtils;
+import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * A set of test cases for the schema backend.
- */
+/** A set of test cases for the schema backend. */
 @SuppressWarnings("javadoc")
 public class SchemaBackendTestCase extends BackendTestCase
 {
   /** A reference to the schema backend. */
   private SchemaBackend schemaBackend;
 
-
-  /**
-   * Ensures that the Directory Server is running and gets a reference to the
-   * schema backend.
-   */
+  /** Ensures that the Directory Server is running and gets a reference to the schema backend. */
   @BeforeClass
   public void startServer() throws Exception
   {
@@ -75,8 +80,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     schemaBackend = (SchemaBackend) DirectoryServer.getBackend("schema");
     assertNotNull(schemaBackend);
   }
-
-
 
   /**
    * Tests the {@code initializeBackend} method by providing a null
@@ -92,8 +95,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     SchemaBackend schemaBackend = new SchemaBackend();
     schemaBackend.configureBackend(null, null);
   }
-
-
 
   /**
    * Tests the {@code getEntry} method to ensure that it is able to retrieve
@@ -123,8 +124,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(t));
   }
 
-
-
   /**
    * Tests the {@code getEntry} method to ensure that it is not able to retrieve
    * anything when given an inappropriate DN.
@@ -143,8 +142,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     schemaEntry = schemaBackend.getEntry(schemaDN);
     assertNull(schemaEntry);
   }
-
-
 
   /**
    * Tests the {@code getSchemaEntry} method to ensure that it is able to
@@ -173,7 +170,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
     assertTrue(schemaEntry.hasAttribute(t));
 
-
     schemaDN    = DN.valueOf("cn=subschema");
     schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
@@ -192,8 +188,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(t));
   }
 
-
-
   /**
    * Tests the {@code entryExists} method with a valid schema DN.
    *
@@ -206,8 +200,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     DN schemaDN = DN.valueOf("cn=schema");
     assertTrue(schemaBackend.entryExists(schemaDN));
   }
-
-
 
   /**
    * Tests the {@code entryExists} method with an invalid schema DN.
@@ -222,13 +214,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(schemaBackend.entryExists(schemaDN));
   }
 
-
-
-  /**
-   * Tests to ensure that the {@code addEntry} method always throws an
-   * exception.
-   */
-  @Test(expectedExceptions = { DirectoryException.class })
+  /** Tests to ensure that the {@code addEntry} method always throws an exception. */
+  @Test(expectedExceptions = DirectoryException.class)
   public void testAddEntry() throws Exception
   {
     Entry entry = createEntry(DN.valueOf("cn=schema"));
@@ -236,13 +223,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     schemaBackend.addEntry(entry, addOperation);
   }
 
-
-
-  /**
-   * Tests to ensure that the {@code deleteEntry} method always throws an
-   * exception.
-   */
-  @Test(expectedExceptions = { DirectoryException.class })
+  /** Tests to ensure that the {@code deleteEntry} method always throws an exception. */
+  @Test(expectedExceptions = DirectoryException.class)
   public void testDeleteEntry()
          throws Exception
   {
@@ -256,13 +238,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     schemaBackend.deleteEntry(schemaDN, deleteOperation);
   }
 
-
-
-  /**
-   * Tests to ensure that the {@code renameEntry} method always throws an
-   * exception.
-   */
-  @Test(expectedExceptions = { DirectoryException.class })
+  /** Tests to ensure that the {@code renameEntry} method always throws an exception. */
+  @Test(expectedExceptions = DirectoryException.class)
   public void testRenameEntry()
          throws Exception
   {
@@ -280,8 +257,6 @@ public class SchemaBackendTestCase extends BackendTestCase
                               schemaBackend.getSchemaEntry(newSchemaDN, false),
                               modifyDNOperation);
   }
-
-
 
   /**
    * Performs a simple base-level search to verify that the schema entry is
@@ -302,8 +277,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(searchOperation.getSearchEntries().isEmpty());
   }
 
-
-
   /**
    * Performs a simple single-level search to verify that nothing is returned.
    *
@@ -320,8 +293,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(searchOperation.getSearchEntries().isEmpty());
   }
-
-
 
   /**
    * Performs a simple subtree search to verify that the schema entry is
@@ -342,8 +313,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(searchOperation.getSearchEntries().isEmpty());
   }
 
-
-
   /**
    * Performs a simple subordinate subtree search to verify that nothing is
    * returned.
@@ -362,8 +331,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(searchOperation.getSearchEntries().isEmpty());
   }
-
-
 
   /**
    * Performs a set of searches in the schema backend to ensure that they
@@ -386,8 +353,6 @@ public class SchemaBackendTestCase extends BackendTestCase
                     "No matched DN for scope " + scope);
     }
   }
-
-
 
   /**
    * Tests the behavior of the schema backend with regard to the
@@ -429,8 +394,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasOperationalAttribute(s));
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to add a new
    * attribute type that is not allowed to be altered.
@@ -441,16 +404,14 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddUnsupportedAttr()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClass",
          "objectClass: extensibleObject");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -462,7 +423,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveUnsupportedAttr()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: objectClass",
@@ -471,10 +432,8 @@ public class SchemaBackendTestCase extends BackendTestCase
          "add: objectClass",
          "objectClass: extensibleObject");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove all
@@ -486,15 +445,13 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAllAttributeTypes()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: attributeTypes");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to replace all
@@ -506,15 +463,13 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testReplaceAllAttributeTypes()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "replace: attributeTypes");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -526,7 +481,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -538,11 +493,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypesuccessful";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -555,7 +508,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeSuccessfulNoOID()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -567,11 +520,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypesuccessfulnooid";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -584,7 +535,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeType()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -596,11 +547,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypenospacebeforeparenthesis";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -612,7 +561,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeToAltSchemaFile()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -629,12 +578,10 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-attrtype.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
     assertTrue(schemaFile.exists());
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -646,7 +593,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeSuccessfulReplace()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -666,21 +613,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testaddattributetypesuccessfulreplace";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
-
-    assertEquals(runModifyWithSystemErr(args), 0);
+    assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to replace an
@@ -692,7 +627,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testReplaceAttributeTypeInAltSchemaFile()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -717,22 +652,10 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-replaceattrtype.ldif");
     assertFalse(schemaFile.exists());
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
-
-    assertEquals(runModifyWithSystemErr(args), 0);
+    assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
     assertTrue(schemaFile.exists());
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -744,16 +667,14 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeInvalidSyntax()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
          "attributeTypes: invalidsyntax");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -765,7 +686,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeUndefinedSyntax()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -774,10 +695,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.99999 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -789,7 +708,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeUndefinedEMR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -798,10 +717,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -813,7 +730,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeUndefinedOMR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -822,10 +739,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -837,7 +752,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeUndefinedSMR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -846,10 +761,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -861,7 +774,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeUndefinedAMR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -870,10 +783,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-APPROX 'xxxundefinedxxx' X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -885,7 +796,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeInvalidUsage()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -894,10 +805,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "USAGE xxxinvalidxxx X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -909,7 +818,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeObsoleteSuperior()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -923,10 +832,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -942,8 +849,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddATObsoleteEMRMatch", "1.3.6.1.4.1.26027.1.999.20", true);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -953,10 +859,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -968,7 +872,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeMultipleConflicts()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -977,10 +881,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN " +
               "'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -992,7 +894,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeUndefinedSuperior()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1001,11 +903,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN " +
               "'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1018,7 +917,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAttributeTypeSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1038,11 +937,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypesuccessful";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1054,7 +951,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveThenAddAttributeTypeSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1080,11 +977,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypesuccessful";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1096,7 +991,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAttributeTypeUndefined()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: attributeTypes",
@@ -1108,10 +1003,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypeundefined";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1124,7 +1017,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveSuperiorAttributeType()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: attributeTypes",
@@ -1136,11 +1029,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "name";
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1152,7 +1043,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAttributeTypeReferencedByObjectClass()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: attributeTypes",
@@ -1164,11 +1055,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "uid";
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1180,43 +1069,63 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAttributeTypeReferencedByNameForm()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String attrName = "testremoveattributetypereferencedbynf";
+    String modifyAttributeTypes = "attributeTypes: ( " + attrName + "-oid " +
+          "NAME '" + attrName + "' " +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )";
+    String modifyObjectClasses = "objectClasses:  ( " + attrName + "oc-oid " +
+          "NAME '" + attrName + "OC' SUP top " +
+          "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')";
+    String modifyNameForms = "nameForms: ( " + attrName + "nf-oid " +
+          "NAME '" + attrName + "NF' " +
+          "OC " + attrName + "OC " +
+          "MUST " + attrName + " " +
+          "X-ORIGIN 'SchemaBackendTestCase' )";
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
-         "attributeTypes: ( testremoveattributetypereferencedbynf-oid " +
-              "NAME 'testRemoveAttributeTypeReferencedByNF' " +
-              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
-              "X-ORIGIN 'SchemaBackendTestCase' )",
+         modifyAttributeTypes,
          "-",
          "add: objectClasses",
-         "objectClasses:  ( testremoveattributetypereferencedbynfoc-oid " +
-              "NAME 'testRemoveAttributeTypeReferencedByNFOC' SUP top " +
-              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
+         modifyObjectClasses,
          "-",
          "add: nameForms",
-         "nameForms: ( testremoveattributetypereferencedbynfnf-oid " +
-              "NAME 'testRemoveAttributeTypeReferencedByNFNF' " +
-              "OC testRemoveAttributeTypeReferencedByNFOC " +
-              "MUST testRemoveAttributeTypeReferencedByNF " +
-              "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
+         modifyNameForms);
+
+    String ldif1 = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: attributeTypes",
-         "attributeTypes: ( testremoveattributetypereferencedbynf-oid " +
-              "NAME 'testRemoveAttributeTypeReferencedByNF' " +
-              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
-              "X-ORIGIN 'SchemaBackendTestCase' )");
+         modifyAttributeTypes);
 
-    String attrName = "testremoveattributetypereferencedbynf";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    String ldif2 = toLdif(
+        "dn: cn=schema",
+        "changetype: modify",
+        "delete: nameForms",
+        modifyNameForms,
+        "-",
+        "delete: objectClasses",
+        modifyObjectClasses,
+        "-",
+        "delete: attributeTypes",
+        modifyAttributeTypes);
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    try
+    {
+      assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertEquals(runModify(argsNotPermissive(), ldif), 0);
+
+      assertNotEquals(runModify(argsNotPermissive(), ldif1), 0);
+      assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    }
+    finally
+    {
+      assertEquals(runModify(argsNotPermissive(), ldif2), 0);
+      assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    }
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1228,7 +1137,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAttributeTypeReferencedByDCR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1259,11 +1168,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypereferencedbydcr";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1278,8 +1185,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testRemoveATRefByMRUMatch", "1.3.6.1.4.1.26027.1.999.17", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1304,7 +1210,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveatrefbymruat";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -1313,8 +1219,6 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1327,7 +1231,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1338,11 +1242,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclasssuccessful";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1356,7 +1258,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassSuccessfulNoOID()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1367,11 +1269,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclasssuccessfulnooid";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1383,7 +1283,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassToAltSchemaFile()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1399,12 +1299,10 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-oc.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
     assertTrue(schemaFile.exists());
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1416,7 +1314,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassSuccessfulReplace()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1434,21 +1332,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclasssuccessfulreplace";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
-
-    assertEquals(runModifyWithSystemErr(args), 0);
+    assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1460,7 +1346,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassMultipleConflicts()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1472,11 +1358,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclassmultipleconflicts";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1489,7 +1373,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveThenAddAddObjectClassSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1513,11 +1397,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremovethenaddobjectclasssuccessful";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1529,16 +1411,14 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassInvalidSyntax()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
          "objectClasses: invalidsyntax");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1550,7 +1430,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassUndefinedSuperiorClass()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1558,10 +1438,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedSuperior' SUP undefined STRUCTURAL " +
               "MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1573,7 +1451,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassObsoleteSuperiorClass()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1585,10 +1463,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SUP testAddOCObsoleteSuperiorSup STRUCTURAL MUST cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1600,7 +1476,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassObsoleteRequiredAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1615,10 +1491,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "STRUCTURAL MUST testAddOCObsoleteRequiredAttrAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1630,7 +1504,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassObsoleteOptionalAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -1645,10 +1519,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "STRUCTURAL MAY testAddOCObsoleteOptionalAttrAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1660,7 +1532,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassUndefinedRequiredAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1668,10 +1540,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedRequired' SUP top STRUCTURAL " +
               "MUST undefined X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1684,7 +1554,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassMultipleUndefinedRequiredAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1693,10 +1563,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1708,7 +1576,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassUndefinedOptionalAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1716,10 +1584,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedOptional' SUP top STRUCTURAL " +
               "MAY undefined X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1732,7 +1598,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddObjectClassMultipleUndefinedOptionalAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1741,10 +1607,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1756,7 +1620,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAbstractObjectClassWithNonAbstractSuperior()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1764,10 +1628,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddAbstractOCWithNonAbstractSuperior' SUP person " +
               "ABSTRACT MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1779,7 +1641,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAuxiliaryObjectClassWithStructuralSuperior()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1787,10 +1649,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddAuxiliaryOCWithStructuralSuperior' SUP person " +
               "AUXILIARY MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -1802,7 +1662,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddStructuralObjectClassWithAuxiliarySuperior()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1810,10 +1670,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddStructuralOCWithAuxiliarySuperior' SUP posixAccount " +
               "STRUCTURAL MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1825,7 +1683,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveObjectClassSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1843,11 +1701,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremoveobjectclasssuccessful";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1859,7 +1715,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveSuperiorObjectClass()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: objectClasses",
@@ -1870,11 +1726,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "person";
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1883,48 +1737,53 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testRemoveObjectClassReferencedByNameForm()
-         throws Exception
+  public void testRemoveObjectClassReferencedByNameForm() throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: objectClasses",
-         "objectClasses:  ( testremoveobjectclassreferencedbynf-oid " +
-              "NAME 'testRemoveObjectClassReferencedByNF' SUP top " +
-              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')",
-         "-",
-         "add: nameForms",
-         "nameForms: ( testremoveattributetypereferencedbynfnf-oid " +
-              "NAME 'testRemoveObjectClassReferencedByNFNF' " +
-              "OC testRemoveObjectClassReferencedByNF MUST cn " +
-              "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "delete: objectClasses",
-         "objectClasses:  ( testremoveobjectclassreferencedbynf-oid " +
-              "NAME 'testRemoveObjectClassReferencedByNF' SUP top " +
-              "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')");
-
     String ocName = "testremoveobjectclassreferencedbynf";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    String modifyObjectClasses = "objectClasses:  ( " + ocName + "-oid " +
+          "NAME '" + ocName + "' SUP top " +
+          "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')";
+    String modifyNameForms = "nameForms: ( testremoveattributetypereferencedbynfnf-oid " +
+          "NAME '" + ocName + "NF' " +
+          "OC " + ocName + " MUST cn " +
+          "X-ORIGIN 'SchemaBackendTestCase' )";
 
-    String[] args =
+    String addOCThenNF = toLdif(
+        "dn: cn=schema",
+        "changetype: modify",
+        "add: objectClasses",
+        modifyObjectClasses,
+        "-",
+        "add: nameForms",
+        modifyNameForms);
+    String deleteOC = toLdif(
+        "dn: cn=schema",
+        "changetype: modify",
+        "delete: objectClasses",
+        modifyObjectClasses);
+    String deleteNFThenOC = toLdif(
+        "dn: cn=schema",
+        "changetype: modify",
+        "delete: nameForms",
+        modifyNameForms,
+        "-",
+        "delete: objectClasses",
+        modifyObjectClasses);
+
+    try
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
+      assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+      assertEquals(runModify(argsPermissive(), addOCThenNF), 0);
 
-    assertNotEquals(runModify(args), 0);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+      assertNotEquals(runModify(argsPermissive(), deleteOC), 0);
+      assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    }
+    finally
+    {
+      assertEquals(runModify(argsPermissive(), deleteNFThenOC), 0);
+      assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    }
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -1936,7 +1795,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveObjectClassReferencedByDCR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -1959,19 +1818,34 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremoveobjectclassreferencedbydcr";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
-  private String[] standardArgs(String path)
+  private String[] argsNotPermissive()
   {
-    return new String[] {
+    return args(false);
+  }
+
+  private String[] argsPermissive()
+  {
+    return args(true);
+  }
+
+  private String[] args(boolean usePermissiveModifyControl)
+  {
+    final List<String> args = CollectionUtils.newArrayList(
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path
-    };
+      "-w", "password"
+    );
+    if (usePermissiveModifyControl)
+    {
+      args.add("-J");
+      args.add(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL);
+    }
+    return args.toArray(new String[0]);
   }
 
   /**
@@ -1984,7 +1858,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2001,11 +1875,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformsuccessful";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2017,7 +1889,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormToAltSchemaFile()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2039,12 +1911,10 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-nameform.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
     assertTrue(schemaFile.exists());
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2057,7 +1927,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithUndefinedReqAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2074,11 +1944,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2091,7 +1959,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithMultipleUndefinedReqAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2109,11 +1977,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithmultipleundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2126,7 +1992,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithUndefinedOptAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2143,11 +2009,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2160,7 +2024,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithMultipleUndefinedOptAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2178,11 +2042,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithmultipleundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2194,7 +2056,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithUndefinedOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: nameForms",
@@ -2205,11 +2067,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2221,7 +2081,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithAuxiliaryOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2238,11 +2098,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithauxiliaryoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2254,7 +2112,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithObsoleteOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2271,11 +2129,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithobsoleteoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2287,7 +2143,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithObsoleteReqAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -2307,10 +2163,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST testAddNFWithObsoleteReqATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2322,7 +2176,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormWithObsoleteOptAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -2342,10 +2196,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST cn MAY testAddNFWithObsoleteOptATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new name
@@ -2358,7 +2210,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddNameFormOCConflict()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2383,11 +2235,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformocconflict2";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertEquals(runModify(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -2399,7 +2249,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveNameFormSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2424,11 +2274,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testremovenameformsuccessful";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -2440,7 +2288,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveThenAddNameFormSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2471,11 +2319,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testremovethenaddnameformsuccessful";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove a name
@@ -2487,7 +2333,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveNameFormReferencedByDSR()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2518,11 +2364,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testremovenameformreferencedbydsrnf";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2534,7 +2378,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2550,7 +2394,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddditcontentrulesuccessfuloc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -2559,8 +2403,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testaddditcontentrulesuccessful"));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to replace an
@@ -2572,7 +2414,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testReplaceDITContentRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2592,20 +2434,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testReplaceDITContentRuleSuccessful' MAY sn " +
               "NOT description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
-
     String ocName = "testreplaceditcontentrulesuccessfuloc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(args), 0);
+    assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -2614,8 +2446,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testreplaceditcontentrulesuccessful"));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2627,7 +2457,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleToAltSchemaFile()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2649,7 +2479,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-dcr.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -2661,8 +2491,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaFile.exists());
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to remove an
    * existing DIT content rule and add it back in the same operation.
@@ -2673,7 +2501,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveThenAddDITContentRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2701,7 +2529,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremovethenaddditcontentruleoc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -2710,8 +2538,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testremovethenaddditcontentrule"));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2723,7 +2549,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleUndefinedOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: ditContentRules",
@@ -2731,10 +2557,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2746,7 +2570,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleAuxiliaryOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2759,10 +2583,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleAuxiliaryOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2774,7 +2596,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleObsoleteOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2787,10 +2609,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleObsoleteOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2803,7 +2623,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleConflictingOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2823,10 +2643,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleConflictingOC2' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2838,7 +2656,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleUndefinedAuxOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2851,10 +2669,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedAuxOC' " +
               "AUX xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2867,7 +2683,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleMultipleUndefinedAuxOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2881,10 +2697,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX ( posixAccount $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2896,7 +2710,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleAuxOCNotAux()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2909,10 +2723,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleAuxOCNotAuxOC' " +
               "AUX person X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2925,7 +2737,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleMultipleAuxOCNotAux()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2939,10 +2751,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX ( posixAccount $ person ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2954,7 +2764,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleObsoleteAuxOC()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2971,10 +2781,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX testAddDITContentRuleObsoleteAuxOCAuxiliary " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -2986,7 +2794,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleUndefinedReqAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -2999,10 +2807,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedReqAT' " +
               "MUST xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3015,7 +2821,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleMultipleUndefinedReqAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3029,10 +2835,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3044,7 +2848,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleUndefinedOptAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3057,10 +2861,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedOptAT' " +
               "MAY xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3073,7 +2875,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleMultipleUndefinedOptAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3087,10 +2889,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3102,7 +2902,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleUndefinedNotAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3115,10 +2915,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedNotAT' " +
               "NOT xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3131,7 +2929,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleMultipleUndefinedNotAT()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3145,10 +2943,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT ( description $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3161,7 +2957,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleProhibitRequiredStructuralAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3174,10 +2970,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDCRProhibitReqStructuralAT' " +
               "NOT cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3190,7 +2984,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleProhibitRequiredAuxiliaryAttribute()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3203,10 +2997,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDCRProhibitReqAuxiliaryAT' AUX posixAccount " +
               "NOT uid X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3218,7 +3010,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleObsoleteRequiredAttributeType()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -3237,10 +3029,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST testAddDCRObsoleteReqATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3252,7 +3042,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleObsoleteOptionalAttributeType()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -3271,10 +3061,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY testAddDCRObsoleteOptATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new DIT
@@ -3286,7 +3074,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITContentRuleObsoleteProhibitedAttributeType()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -3305,10 +3093,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT testAddDCRObsoleteNotATAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -3320,7 +3106,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveDITContentRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3343,7 +3129,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremoveditcontentrulesuccessfuloc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
     assertNotNull(oc);
@@ -3351,8 +3137,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
     assertNull(dcr);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3364,7 +3148,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITStructureRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3387,11 +3171,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999001;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to replace an
@@ -3403,7 +3185,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testReplaceDITStructureRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3432,24 +3214,12 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testReplaceDITStructureRuleSuccessfulNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
-
     int ruleID = 999002;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(runModifyWithSystemErr(args), 0);
+    assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3461,7 +3231,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITStructureRuleToAltSchemaFile()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3491,13 +3261,11 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-dsr.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
     assertTrue(schemaFile.exists());
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -3510,7 +3278,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAndAddDITStructureRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3548,11 +3316,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999003;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3564,7 +3330,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITStructureRuleUndefinedNameForm()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: ditStructureRules",
@@ -3576,11 +3342,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999004;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3592,7 +3356,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITStructureRuleUndefinedSuperior()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3615,11 +3379,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999005;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3631,7 +3393,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITStructureRuleObsoleteNameForm()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3651,10 +3413,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testAddDITStructureRuleObsoleteNameFormNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3666,7 +3426,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddDITStructureRuleObsoleteSuperiorRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3697,10 +3457,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testAddDITStructureRuleObsoleteSuperiorNF2 SUP 999012 " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -3712,7 +3470,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveDITStructureRuleSuccessful()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3743,11 +3501,9 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999006;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove an
@@ -3760,7 +3516,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveSuperiorDITStructureRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -3802,11 +3558,10 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999007;
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
     assertTrue(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
 
-
-    path = TestCaseUtils.createTempFile(
+    ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "delete: ditStructureRules",
@@ -3819,7 +3574,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "FORM testRemoveSuperiorDITStructureRuleNF " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
@@ -3849,7 +3604,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.10", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -3859,15 +3614,13 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
     assertNotNull(mru);
     assertTrue(mru.hasName("testaddmrusuccessful"));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3882,8 +3635,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddMRUToAltSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.18", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -3898,7 +3650,7 @@ public class SchemaBackendTestCase extends BackendTestCase
                                "98-schema-test-mru.ldif");
     assertFalse(schemaFile.exists());
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -3907,8 +3659,6 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertTrue(schemaFile.exists());
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to replace an
@@ -3923,7 +3673,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testReplaceMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.11", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -3940,25 +3690,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", "1.2.840.113556.1.4.1413",
-      "-f", path
-    };
+    assertEquals(runModify(argsPermissive(), ldif, System.err), 0);
 
-    assertEquals(runModifyWithSystemErr(args), 0);
-
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
+    MatchingRuleUse mru =         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
     assertNotNull(mru);
     assertTrue(mru.hasName("testreplacemrusuccessful"));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to remove and
@@ -3973,8 +3710,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testRemoveAndAddMRUMatch", "1.3.6.1.4.1.26027.1.999.12", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -3996,7 +3732,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
@@ -4018,7 +3754,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddMRUMRConflictMatch", "1.3.6.1.4.1.26027.1.999.14", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -4035,15 +3771,13 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
     assertNotNull(mru);
     assertTrue(mru.hasName("testaddmrumrconflict"));
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -4055,7 +3789,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseMRUndefined()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -4063,7 +3797,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddMRUMRUndefined' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
 
   /**
@@ -4079,8 +3813,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddMRUATUndefinedMatch", "1.3.6.1.4.1.26027.1.999.16", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -4091,10 +3824,8 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -4110,7 +3841,7 @@ public class SchemaBackendTestCase extends BackendTestCase
         getMatchingRule("testAddMRUATMultipleUndefinedMatch", "1.3.6.1.4.1.26027.1.999.19", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -4121,7 +3852,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
 
   /**
@@ -4137,7 +3868,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteMRMatch", "1.3.6.1.4.1.26027.1.999.21", true);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -4147,10 +3878,8 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -4165,7 +3894,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteATMatch", "1.3.6.1.4.1.26027.1.999.22", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -4180,12 +3909,31 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertNotEquals(runModify(standardArgs(path)), 0);
+    assertNotEquals(runModify(argsNotPermissive(), ldif), 0);
   }
 
-  private int runModify(String[] args)
+  private int runModify(String[] args, String ldifContent)
   {
-    return LDAPModify.mainModify(args, false, null, null);
+    return runModify(args, ldifContent, null);
+  }
+
+  private int runModify(String[] args, String ldifContent, PrintStream stderr)
+  {
+    final InputStream stdin = System.in;
+    try
+    {
+      System.setIn(new ByteArrayInputStream(ldifContent.getBytes()));
+      return LDAPModify.mainModify(args, false, null, stderr);
+    }
+    finally
+    {
+      System.setIn(stdin);
+    }
+  }
+
+  private String toLdif(Object... ldifLines)
+  {
+    return Utils.joinAsString("\n", ldifLines);
   }
 
   /**
@@ -4201,7 +3949,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     MatchingRule matchingRule = getMatchingRule("testRemoveMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.13", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: matchingRuleUse",
@@ -4218,14 +3966,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertFalse(DirectoryServer.getSchema().hasMatchingRuleUse(matchingRule));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     MatchingRuleUse mru =
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
     assertNull(mru);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add another
@@ -4238,7 +3984,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAttributeTypesMatchingRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -4258,10 +4004,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testattributetypesmatchingrule";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add another
@@ -4274,7 +4018,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testObjectClassesMatchingRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -4294,10 +4038,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String objectClassName = "testobjectclassesmatchingrule";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(objectClassName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add another
@@ -4310,7 +4052,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testNameFormsMatchingRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -4338,10 +4080,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testnameformsmatchingrule";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add another
@@ -4354,7 +4094,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testDitContentRulesMatchingRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -4382,10 +4122,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String objectClassName = "testditcontentrulesmatchingruleoc";
     assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add another
@@ -4398,7 +4136,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testDitStructureRulesMatchingRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -4450,10 +4188,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String objectClassName = "testditcontentrulesmatchingruleoc1";
     assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
-
-
 
   /**
    * Tests the behavior of the schema backend when attempting to add another
@@ -4466,7 +4202,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testMatchingRuleUseMatchingRule()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -4502,10 +4238,8 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testmatchingruleusematchingruleat1";
     assertNull(DirectoryServer.getSchema().getAttributeType(attrName));
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 20);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 20);
   }
-
-
 
   /**
    * This test case covers the problem identified in issue #1318.  In that
@@ -4534,7 +4268,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAndAddObjectClassIssue1318()
          throws Exception
   {
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: objectClasses",
@@ -4552,7 +4286,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          "objectClasses: ( testissue1318oc2-oid NAME 'testIssue1381OC2' " +
               "MUST testIssue1381AT )");
 
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
   }
 
   /**
@@ -4582,7 +4316,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     ByteString oldMTValue =
          schemaEntry.getAttribute(mtType).get(0).iterator().next();
 
-    String path = TestCaseUtils.createTempFile(
+    String ldif = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
@@ -4594,7 +4328,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     // Sleep longer than the TimeThread delay to ensure the modifytimestamp
     // will be different.
     Thread.sleep(6000);
-    assertEquals(runModifyWithSystemErr(standardArgs(path)), 0);
+    assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
 
     schemaEntry = DirectoryServer.getEntry(DN.valueOf("cn=schema"));
     assertNotNull(schemaEntry);
@@ -4606,11 +4340,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     ByteString newMTValue =
          schemaEntry.getAttribute(mtType).get(0).iterator().next();
     assertNotEquals(oldMTValue, newMTValue);
-  }
-
-  private int runModifyWithSystemErr(String[] args)
-  {
-    return LDAPModify.mainModify(args, false, null, System.err);
   }
 
   /**
@@ -4653,8 +4382,6 @@ public class SchemaBackendTestCase extends BackendTestCase
                     "testaddanddeletedefinitionwithextraspaces-oid"));
   }
 
-
-
   /**
    * Tests the {@code exportLDIF} method with a valid configuration.
    *
@@ -4675,8 +4402,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(tempFile.exists());
     assertTrue(tempFile.length() > 0);
   }
-
-
 
   /**
    * Tests the {@code importLDIF} method to ensure that it throws an exception.
@@ -4699,8 +4424,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     schemaBackend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
   }
 
-
-
   /**
    * Tests the {@code getComponentEntryDN} method.
    *
@@ -4714,22 +4437,14 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertEquals(schemaBackend.getComponentEntryDN(), configEntryDN);
   }
 
-
-
-  /**
-   * Tests the {@code getClassName} method.
-   */
+  /** Tests the {@code getClassName} method. */
   @Test
   public void testGetClassName()
   {
     assertEquals(schemaBackend.getClassName(), SchemaBackend.class.getName());
   }
 
-
-
-  /**
-   * Tests the {@code getAlerts} method.
-   */
+  /** Tests the {@code getAlerts} method. */
   @Test
   public void testGetAlerts()
   {

@@ -369,14 +369,9 @@ public final class TestCaseUtils {
         // Update the install.loc file
         File installLoc = new File(testInstallRoot + File.separator + "instance.loc");
         installLoc.deleteOnExit();
-        FileWriter w = new FileWriter(installLoc);
-        try
+        try (FileWriter w = new FileWriter(installLoc))
         {
           w.write(testInstanceRoot.getAbsolutePath());
-        }
-        finally
-        {
-          w.close();
         }
 
         if (opendmkJar.exists())
@@ -421,25 +416,23 @@ public final class TestCaseUtils {
           + "config-changes.ldif";
       String configChangeFile = System.getProperty(
           PROPERTY_CONFIG_CHANGE_FILE, defaultConfigChangeFile);
-      BufferedReader reader = new BufferedReader(new FileReader(
-                                                 new File(configChangeFile)));
-      FileOutputStream outFile = new FileOutputStream(
-          new File(testConfigDir, "config-changes.ldif"));
-      PrintStream writer = new PrintStream(outFile);
 
-      String line = reader.readLine();
-      while(line != null)
+      try (BufferedReader reader = new BufferedReader(new FileReader(new File(configChangeFile)));
+          FileOutputStream outFile = new FileOutputStream(new File(testConfigDir, "config-changes.ldif"));
+          PrintStream writer = new PrintStream(outFile))
       {
-        line = line.replaceAll("#ldapport#", String.valueOf(serverLdapPort));
-        line = line.replaceAll("#adminport#", String.valueOf(serverAdminPort));
-        line = line.replaceAll("#jmxport#", String.valueOf(serverJmxPort));
-        line = line.replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
+        String line;
+        while ((line = reader.readLine()) != null)
+        {
+          line = line
+              .replaceAll("#ldapport#", String.valueOf(serverLdapPort))
+              .replaceAll("#adminport#", String.valueOf(serverAdminPort))
+              .replaceAll("#jmxport#", String.valueOf(serverJmxPort))
+              .replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
 
-        writer.println(line);
-        line = reader.readLine();
+          writer.println(line);
+        }
       }
-
-      close(writer, outFile, reader);
 
       // Create a configuration for the server.
       DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
@@ -468,9 +461,10 @@ public final class TestCaseUtils {
       DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
 
       // Writing the buildinfo with the current version.
-      final FileWriter buildInfoWriter = new FileWriter (new File(testConfigDir, "buildinfo"));
-      buildInfoWriter.write(BuildVersion.binaryVersion().toString());
-      buildInfoWriter.close();
+      try (final FileWriter buildInfoWriter = new FileWriter(new File(testConfigDir, "buildinfo")))
+      {
+        buildInfoWriter.write(BuildVersion.binaryVersion().toString());
+      }
 
       EmbeddedUtils.startServer(config);
 
@@ -711,12 +705,9 @@ public final class TestCaseUtils {
    */
   public static SocketAddress findFreeSocketAddress()
   {
-    try
+    try (ServerSocket serverLdapSocket = bindFreePort())
     {
-      ServerSocket serverLdapSocket = bindFreePort();
-      final SocketAddress address = serverLdapSocket.getLocalSocketAddress();
-      serverLdapSocket.close();
-      return address;
+      return serverLdapSocket.getLocalSocketAddress();
     }
     catch (IOException e)
     {
@@ -1032,16 +1023,17 @@ public final class TestCaseUtils {
   private static void copyOrAppend(File src, File dst, boolean append)
       throws IOException
   {
-    InputStream in = new FileInputStream(src);
-    OutputStream out = new FileOutputStream(dst, append);
-
-    // Transfer bytes from in to out
-    byte[] buf = new byte[8192];
-    int len;
-    while ((len = in.read(buf)) > 0) {
-      out.write(buf, 0, len);
+    try (InputStream in = new FileInputStream(src);
+        OutputStream out = new FileOutputStream(dst, append))
+    {
+      // Transfer bytes from in to out
+      byte[] buf = new byte[8192];
+      int len;
+      while ((len = in.read(buf)) > 0)
+      {
+        out.write(buf, 0, len);
+      }
     }
-    close(in, out);
   }
 
 
@@ -1149,16 +1141,17 @@ public final class TestCaseUtils {
   public static List<Entry> entriesFromLdifString(String ldif) throws Exception {
     LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
     ldifImportConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifImportConfig);
 
-    List<Entry> entries = new ArrayList<>();
-    Entry entry;
-    while ((entry = reader.readEntry()) != null) {
-      entries.add(entry);
+    try (LDIFReader reader = new LDIFReader(ldifImportConfig))
+    {
+      List<Entry> entries = new ArrayList<>();
+      Entry entry;
+      while ((entry = reader.readEntry()) != null)
+      {
+        entries.add(entry);
+      }
+      return entries;
     }
-
-    reader.close();
-    return entries;
   }
 
   /**
@@ -1308,9 +1301,8 @@ public final class TestCaseUtils {
   public static boolean canBind(String dn, String pw) throws Exception
   {
     // Check that the user can bind.
-    Socket s = null;
-    try {
-      s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());)
+    {
       TestCaseUtils.configureSocket(s);
       ASN1Reader r = ASN1.getReader(s.getInputStream());
       ASN1Writer w = ASN1.getWriter(s.getOutputStream());
@@ -1325,15 +1317,11 @@ public final class TestCaseUtils {
 
       message = LDAPReader.readMessage(r);
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      if (bindResponse.getResultCode() == 0) {
-        return true;
-      }
+      return bindResponse.getResultCode() == 0;
     } catch (Exception t) {
       t.printStackTrace();
-    } finally {
-      close(s);
+      return false;
     }
-    return false;
   }
 
 
@@ -1496,13 +1484,13 @@ public final class TestCaseUtils {
     f.deleteOnExit();
 
     final String EOL = System.getProperty("line.separator");
-
-    FileWriter w = new FileWriter(f);
-    for (String s : lines)
+    try (FileWriter w = new FileWriter(f))
     {
-      w.write(s + EOL);
+      for (String s : lines)
+      {
+        w.write(s + EOL);
+      }
     }
-    w.close();
 
     return f.getAbsolutePath();
   }
@@ -1749,12 +1737,9 @@ public final class TestCaseUtils {
 
   /** Store the contents of a String in a file. */
   public static void writeFile(String path, byte[] contents) throws IOException {
-    FileOutputStream fos = null;
-    try {
-      fos = new FileOutputStream(path);
+    try (FileOutputStream fos = new FileOutputStream(path))
+    {
       fos.write(contents);
-    } finally {
-      close(fos);
     }
   }
 
@@ -1927,19 +1912,13 @@ public final class TestCaseUtils {
   public static void generateThreadDump(String id)
   {
     String date = new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date().getTime());
-    BufferedWriter writer = null;
-    try
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter("/tmp/thread_dump_" + id + "_" + date)))
     {
-      writer = new BufferedWriter(new FileWriter("/tmp/thread_dump_" + id + "_" + date));
       writer.write(generateThreadDump());
     }
     catch (Exception e)
     {
       // do nothing
-    }
-    finally
-    {
-      close(writer);
     }
   }
 
