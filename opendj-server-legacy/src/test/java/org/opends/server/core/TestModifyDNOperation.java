@@ -41,22 +41,37 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
+import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
@@ -133,11 +148,8 @@ public class TestModifyDNOperation extends OperationTestCase
          "ds-privilege-name: bypass-acl",
          "ds-privilege-name: proxied-auth");
 
-    proxyUserConn =
-         new InternalClientConnection(DN.valueOf("uid=proxy.user,o=test"));
+    proxyUserConn = new InternalClientConnection(dn("uid=proxy.user,o=test"));
   }
-
-
 
   /**
    * Invokes a number of operation methods on the provided modify operation
@@ -159,7 +171,6 @@ public class TestModifyDNOperation extends OperationTestCase
     ensurePostReponseHasRun();
 //    assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
   }
-
 
   /**
    * Invokes a number of operation methods on the provided modify operation
@@ -212,8 +223,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineUnparsedOperation(ModifyDNOperation modifyDNOperation,
-      ResultCode resultCode)
+  private void examineUnparsedOperation(ModifyDNOperation modifyDNOperation, ResultCode resultCode)
   {
     assertEquals(modifyDNOperation.getResultCode(), resultCode);
     assertTrue(modifyDNOperation.getErrorMessage().length() > 0);
@@ -230,105 +240,126 @@ public class TestModifyDNOperation extends OperationTestCase
 //    assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Operation[] createTestOperations() throws Exception
   {
-    return new ModifyDNOperationBasis[] {
-      newModifyDNOperation( ByteString.valueOf("cn=test,ou=test"),
-                            ByteString.valueOf("cn=test2"), true,
-                            ByteString.valueOf("dc=example,dc=com")),
-      newModifyDNOperation( DN.valueOf("cn=test,ou=test"),
-                            RDN.decode("cn=test2"), true,
-                            DN.valueOf("dc=example,dc=com"))
+    return new ModifyDNOperation[] {
+      newModifyDNOperationRaw("cn=test,ou=test", "cn=test2", true, "dc=example,dc=com"),
+      newModifyDNOperation("cn=test,ou=test", "cn=test2", true, "dc=example,dc=com")
     };
   }
 
-  private ModifyDNOperationBasis newModifyDNOperation(DN rawEntryDN,
-      RDN newRDN, boolean deleteOldRDN, DN newSuperior)
+  private ModifyDNOperation runModifyDNOperation(
+      String entryDN, String newRDN, boolean deleteOldRDN, String newSuperior) throws DirectoryException
   {
-    final ClientConnection conn = InternalClientConnection.getRootConnection();
-    return new ModifyDNOperationBasis(conn, InternalClientConnection
-        .nextOperationID(), InternalClientConnection.nextMessageID(),
-        Collections.<Control> emptyList(), rawEntryDN, newRDN, deleteOldRDN,
-        newSuperior);
+    ModifyDNOperation op = newModifyDNOperation(entryDN, newRDN, deleteOldRDN, newSuperior);
+    op.run();
+    return op;
   }
 
-  private ModifyDNOperationBasis newModifyDNOperation(ByteString rawEntryDN,
-      ByteString newRDN, boolean deleteOldRDN, ByteString newSuperior)
+  private ModifyDNOperation runModifyDNOperationRaw(
+      String entryDN, String newRDN, boolean deleteOldRDN, String newSuperior)
   {
-    final ClientConnection conn = InternalClientConnection.getRootConnection();
-    return new ModifyDNOperationBasis(conn, InternalClientConnection
-        .nextOperationID(), InternalClientConnection.nextMessageID(),
-        Collections.<Control> emptyList(), rawEntryDN, newRDN, deleteOldRDN,
-        newSuperior);
+    ModifyDNOperation op = newModifyDNOperationRaw(entryDN, newRDN, deleteOldRDN, newSuperior);
+    op.run();
+    return op;
+  }
+
+  private ModifyDNOperationBasis newModifyDNOperation(
+      String entryDN, String newRDN, boolean deleteOldRDN, String newSuperior) throws DirectoryException
+  {
+    return new ModifyDNOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        Collections.<Control> emptyList(), dn(entryDN), rdn(newRDN), deleteOldRDN, dn(newSuperior));
+  }
+
+  private ModifyDNOperationBasis newModifyDNOperationRaw(
+      String entryDN, String newRDN, boolean deleteOldRDN, String newSuperior)
+  {
+    return new ModifyDNOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        Collections.<Control> emptyList(), b(entryDN), b(newRDN), deleteOldRDN, b(newSuperior));
+  }
+
+  private ModifyDNOperation runModifyDNOperation(
+      InternalClientConnection conn, String entryDN, String newRDN, boolean deleteOldRDN, Control control) throws DirectoryException
+  {
+    ModifyDNOperation op = new ModifyDNOperationBasis(conn, nextOperationID(), nextMessageID(),
+        Collections.singletonList(control), dn(entryDN), rdn(newRDN), deleteOldRDN, null);
+    op.run();
+    return op;
+  }
+
+  private ModifyDNOperation runModifyDNOperationRaw(
+      String entryDN, String newRDN, boolean deleteOldRDN, String newSuperior, Control control)
+  {
+    ModifyDNOperation op = new ModifyDNOperationBasis(proxyUserConn, nextOperationID(), nextMessageID(),
+        Collections.singletonList(control), b(entryDN), b(newRDN), deleteOldRDN, b(newSuperior));
+    op.run();
+    return op;
+  }
+
+  private ByteString b(String s)
+  {
+    return s != null ? ByteString.valueOf(s) : null;
+  }
+
+  private DN dn(String s) throws DirectoryException
+  {
+    return s != null ? DN.valueOf(s) : null;
+  }
+
+  private RDN rdn(String s) throws DirectoryException
+  {
+    return s != null ? RDN.decode(s) : null;
   }
 
   private void assertSuccessAndEntryExists(ModifyDNOperation modifyDNOperation,
       String entryDN, boolean user0Exists, boolean userTest0Exists)
       throws DirectoryException
   {
-    assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    final Entry newEntry = DirectoryServer.getEntry(DN.valueOf(entryDN));
+    assertSuccess(modifyDNOperation);
+    final Entry newEntry = DirectoryServer.getEntry(dn(entryDN));
     assertNotNull(newEntry);
 
     final RDN rdn = newEntry.getName().rdn();
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertEquals(newEntry.hasValue(attribute, null, ByteString.valueOf("user.0")), user0Exists);
-      assertEquals(newEntry.hasValue(attribute, null, ByteString.valueOf("user.test0")), userTest0Exists);
+      assertEquals(newEntry.hasValue(attribute, null, b("user.0")), user0Exists);
+      assertEquals(newEntry.hasValue(attribute, null, b("user.test0")), userTest0Exists);
     }
   }
 
   @Test
   public void testRawModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.test0"), false,
-                               null);
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", true, true);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperationRaw(oldEntryDN, "uid=user.test0", false, null);
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, true, true);
     examineCompletedOperation(modifyDNOperation);
 
-
     InvocationCounterPlugin.resetAllCounters();
-    modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.0"), true,
-                               null);
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
+    modifyDNOperation = runModifyDNOperationRaw(newEntryDN, "uid=user.0", true, null);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
   @Test
   public void testProcessedModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", true, true);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(oldEntryDN, "uid=user.test0", false, null);
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, true, true);
     examineCompletedOperation(modifyDNOperation);
 
-
     InvocationCounterPlugin.resetAllCounters();
-    modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), true,
-                               null);
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
+    modifyDNOperation = runModifyDNOperation(newEntryDN, "uid=user.0", true, null);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
@@ -339,57 +370,28 @@ public class TestModifyDNOperation extends OperationTestCase
   @Test
   public void testModifySameDN() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=USER.0,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(oldEntryDN, "uid=USER.0", true, null);
+    assertSuccess(modifyDNOperation);
 
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=USER.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    Entry newEntry = DirectoryServer.getEntry(DN.valueOf(
-        "uid=user.0,ou=People,dc=example,dc=com"));
+    Entry newEntry = DirectoryServer.getEntry(dn(oldEntryDN));
     assertNotNull(newEntry);
-
-    assertEquals(newEntry.getName().toString(),
-        "uid=USER.0,ou=People,dc=example,dc=com");
-
-    AttributeType at = DirectoryServer.getAttributeTypeOrNull("uid");
-    List<Attribute> attrList = newEntry.getAttribute(at);
-
-    // There should be only one value for "uid"
-    assertEquals(attrList.size(),1);
-
-    // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
-    ByteString valueFromEntry = attrList.get(0).iterator().next();
-    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at);
-    assertEquals(valueFromEntry,valueFromRDN);
+    assertEquals(newEntry.getName().toString(), newEntryDN);
+    assertAttrValue(newEntry, "uid", "USER.0");
 
     examineCompletedOperation(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=USER.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    newEntry = DirectoryServer.getEntry(DN.valueOf(
-        "uid=user.0,ou=People,dc=example,dc=com"));
-    assertNotNull(newEntry);
-
+    modifyDNOperation = runModifyDNOperation(newEntryDN, "uid=user.0", true, null);
+    assertSuccess(modifyDNOperation);
+    assertNotNull(DirectoryServer.getEntry(dn(oldEntryDN)));
     examineCompletedOperation(modifyDNOperation);
   }
 
-  /**
-   * Add another attribute to the RDN and change case of the existing value.
-   */
+  /** Add another attribute to the RDN and change case of the existing value. */
   @Test
   public void testModifyDNchangeCaseAndAddValue() throws Exception
   {
@@ -404,38 +406,39 @@ public class TestModifyDNOperation extends OperationTestCase
          "sn: Jensen",
          "cn: Babs Jensen");
 
+    String oldEntryDN = "uid=userid.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=UserID.0+cn=Test,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(oldEntryDN, "uid=UserID.0+cn=Test", false, null);
+    assertSuccess(modifyDNOperation);
+    assertEntryAttrValue(newEntryDN, "uid", "UserID.0");
+    examineCompletedOperation(modifyDNOperation);
 
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=userid.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=UserID.0+cn=Test"), false,
-                               null);
+    TestCaseUtils.deleteEntry(dn(newEntryDN));
+  }
 
-    modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    Entry newEntry = DirectoryServer.getEntry(DN.valueOf(
-        "uid=userid.0+cn=test,ou=People,dc=example,dc=com"));
+  private void assertEntryAttrValue(String entryDN, String attrName, String expectedAttrValue)
+      throws DirectoryException
+  {
+    Entry newEntry = DirectoryServer.getEntry(dn(entryDN));
     assertNotNull(newEntry);
+    assertEquals(newEntry.getName().toString(), entryDN);
 
-    assertEquals(newEntry.getName().toString(),
-        "uid=UserID.0+cn=Test,ou=People,dc=example,dc=com");
+    assertAttrValue(newEntry, attrName, expectedAttrValue);
+  }
 
-    AttributeType at = DirectoryServer.getAttributeTypeOrNull("uid");
+  private void assertAttrValue(Entry newEntry, String attrName, String expectedAttrValue)
+  {
+    AttributeType at = DirectoryServer.getAttributeTypeOrNull(attrName);
     List<Attribute> attrList = newEntry.getAttribute(at);
+    assertEquals(attrList.size(), 1);
 
-    // There should be only one value for "uid"
-    assertEquals(attrList.size(),1);
-
-    // Even though the value of the RDN changed, the representation of the entry's value should be preserved
+    // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
     ByteString valueFromEntry = attrList.get(0).iterator().next();
     ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at);
     assertEquals(valueFromEntry, valueFromRDN);
-    assertEquals(valueFromEntry, ByteString.valueOf("UserID.0"));
-
-    examineCompletedOperation(modifyDNOperation);
-    TestCaseUtils.deleteEntry(DN.valueOf("uid=UserID.0+cn=Test,ou=People,dc=example,dc=com"));
+    assertEquals(valueFromEntry, b(expectedAttrValue));
   }
 
   /**
@@ -455,509 +458,296 @@ public class TestModifyDNOperation extends OperationTestCase
          "sn: Jensen",
          "cn: Babs Jensen");
 
+    String oldEntryDN = "uid=userid.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=userid.0+sn=JENSEN,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=userid.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=userid.0+sn=JENSEN"), false,
-                               null);
-
-    modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    Entry newEntry = DirectoryServer.getEntry(DN.valueOf(
-        "uid=userid.0+sn=jensen,ou=People,dc=example,dc=com"));
-    assertNotNull(newEntry);
-
-    assertEquals(newEntry.getName().toString(),
-        "uid=userid.0+sn=JENSEN,ou=People,dc=example,dc=com");
-
-    AttributeType at = DirectoryServer.getAttributeTypeOrNull("sn");
-    List<Attribute> attrList = newEntry.getAttribute(at);
-
-    // There should be only one value for "sn"
-    assertEquals(attrList.size(),1);
-
-    // Even though the representation of the sn value differs in the RDN,
-    // the representation of the entry's value should be preserved
-    ByteString valueFromEntry = attrList.get(0).iterator().next();
-    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at);
-    assertEquals(valueFromEntry, valueFromRDN);
-    assertEquals(valueFromEntry, ByteString.valueOf("JENSEN"));
-
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(oldEntryDN, "uid=userid.0+sn=JENSEN", false, null);
+    assertSuccess(modifyDNOperation);
+    assertEntryAttrValue(newEntryDN, "sn", "JENSEN");
     examineCompletedOperation(modifyDNOperation);
-    TestCaseUtils.deleteEntry(DN.valueOf("uid=userid.0+sn=Jensen,ou=People,dc=example,dc=com"));
+
+    TestCaseUtils.deleteEntry(dn(newEntryDN));
+  }
+
+  private void assertSuccess(ModifyDNOperation op)
+  {
+    assertEquals(op.getResultCode(), SUCCESS);
+    assertEquals(op.getErrorMessage().length(), 0);
   }
 
   @Test
   public void testRawDeleteOldRDNModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.test0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", false, true);
-
+    ModifyDNOperation modifyDNOperation = runModifyDNOperationRaw(oldEntryDN, "uid=user.test0", true, null);
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, false, true);
     examineCompletedOperation(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperationRaw(newEntryDN, "uid=user.0", true, null);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
   @Test
   public void testProcessedDeleteOldRDNModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(oldEntryDN, "uid=user.test0", true, null);
 
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), true,
-                               null);
-
-    modifyDNOperation.run();
-
-    CancelRequest cancelRequest = new CancelRequest(false,
-                                                    LocalizableMessage.raw("testCancelBeforeStartup"));
+    CancelRequest cancelRequest = new CancelRequest(false, LocalizableMessage.raw("testCancelBeforeStartup"));
     CancelResult cancelResult = modifyDNOperation.cancel(cancelRequest);
+    assertEquals(cancelResult.getResultCode(), TOO_LATE);
 
-    assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", false, true);
-
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, false, true);
     examineCompletedOperation(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperation(newEntryDN, "uid=user.0", true, null);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
   @Test
   public void testRawNewSuperiorModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.test0"), true,
-                               ByteString.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,dc=example,dc=com", false, true);
-
+    ModifyDNOperation modifyDNOperation =
+        runModifyDNOperationRaw(oldEntryDN, "uid=user.test0", true, "dc=example,dc=com");
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, false, true);
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.test0,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.0"), true,
-                               ByteString.valueOf("ou=People,dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperationRaw(newEntryDN, "uid=user.0", true, "ou=People,dc=example,dc=com");
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }
 
   @Test
   public void testProcessedNewSuperiorModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), true,
-                               DN.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,dc=example,dc=com", false, true);
-
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(oldEntryDN, "uid=user.test0", true, "dc=example,dc=com");
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, false, true);
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.test0,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), true,
-                               DN.valueOf("ou=People,dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperation(newEntryDN, "uid=user.0", true, "ou=People,dc=example,dc=com");
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }
 
   @Test
   public void testRawRDNModify() throws Exception
   {
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "cn=Aaccf Amar Test,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("cn=Aaccf Amar Test"), true,
-                               DN.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    Entry newEntry = DirectoryServer.getEntry(DN.valueOf(
-        "cn=Aaccf Amar Test,dc=example,dc=com"));
-    assertNotNull(newEntry);
-    assertNull(DirectoryServer.getEntry(DN.valueOf("uid=user.0,ou=People,dc=example,dc=com")));
-    assertNull(newEntry.getAttribute("uid"));
-
-    for(Attribute attribute : newEntry.getAttribute("cn"))
-    {
-      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar Test")));
-      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar")));
-    }
-
+    ModifyDNOperation modifyDNOperation =
+        runModifyDNOperation(oldEntryDN, "cn=Aaccf Amar Test", true, "dc=example,dc=com");
+    assertSuccess(modifyDNOperation);
+    Entry entry = assertCnAttrValues(newEntryDN, oldEntryDN);
+    assertNull(entry.getAttribute("uid"));
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("cn=Aaccf Amar Test,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), false,
-                               DN.valueOf("ou=People,dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.SUCCESS);
-    assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
-    Entry newOldEntry = DirectoryServer.getEntry(DN.valueOf(
-        "uid=user.0,ou=People,dc=example,dc=com"));
-    assertNotNull(newOldEntry);
-    assertNull(DirectoryServer.getEntry(DN.valueOf("cn=Aaccf Amar Test,dc=example,dc=com")));
-    for(Attribute attribute : newOldEntry.getAttribute("cn"))
-    {
-      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar Test")));
-      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar")));
-    }
+    modifyDNOperation = runModifyDNOperation(newEntryDN, "uid=user.0", false, "ou=People,dc=example,dc=com");
+    assertSuccess(modifyDNOperation);
+    Entry newOldEntry = assertCnAttrValues(oldEntryDN, newEntryDN);
     for(Attribute attribute : newOldEntry.getAttribute("uid"))
     {
-      assertTrue(attribute.contains(ByteString.valueOf("user.0")));
+      assertTrue(attribute.contains(b("user.0")));
     }
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
+  }
+
+  private Entry assertCnAttrValues(String entryDN1, String entryDN2) throws DirectoryException
+  {
+    Entry entry = DirectoryServer.getEntry(dn(entryDN1));
+    assertNotNull(entry);
+    assertNull(DirectoryServer.getEntry(dn(entryDN2)));
+
+    for (Attribute attribute : entry.getAttribute("cn"))
+    {
+      assertTrue(attribute.contains(b("Aaccf Amar Test")));
+      assertTrue(attribute.contains(b("Aaccf Amar")));
+    }
+    return entry;
   }
 
   @Test
   public void testInvalidEntryModify() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.invalid,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), true,
-                               DN.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation, ResultCode.NO_SUCH_OBJECT);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(
+        "uid=user.invalid,ou=People,dc=example,dc=com", "uid=user.test0", true, "dc=example,dc=com");
+    examineIncompleteOperation(modifyDNOperation, NO_SUCH_OBJECT);
   }
 
   @Test
   public void testInvalidRDNModify() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("invalid=invalid"), true,
-                               DN.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation,
-        ResultCode.OBJECTCLASS_VIOLATION);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(
+        "uid=user.0,ou=People,dc=example,dc=com", "invalid=invalid", true, "dc=example,dc=com");
+    examineIncompleteOperation(modifyDNOperation, OBJECTCLASS_VIOLATION);
   }
 
   @Test
   public void testInvalidSuperiorModify() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), true,
-                               DN.valueOf("dc=invalid,dc=com"));
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation, ResultCode.NO_SUCH_OBJECT);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(
+        "uid=user.0,ou=People,dc=example,dc=com", "uid=user.test0", true, "dc=invalid,dc=com");
+    examineIncompleteOperation(modifyDNOperation, NO_SUCH_OBJECT);
   }
 
   @Test
   public void testRawNoSuchDNModify() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("invalid DN"),
-                               ByteString.valueOf("uid=user.test0"), true,
-                               ByteString.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    examineUnparsedOperation(modifyDNOperation, ResultCode.INVALID_DN_SYNTAX);
+    ModifyDNOperation modifyDNOperation =
+        runModifyDNOperationRaw("invalid DN", "uid=user.test0", true, "dc=example,dc=com");
+    examineUnparsedOperation(modifyDNOperation, INVALID_DN_SYNTAX);
   }
 
   @Test
   public void testRawNoSuchRDNModify() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("invalid RDN"), true,
-                               ByteString.valueOf("dc=example,dc=com"));
-
-    modifyDNOperation.run();
-    examineUnparsedOperation(modifyDNOperation, ResultCode.INVALID_DN_SYNTAX);
+    ModifyDNOperation modifyDNOperation =
+        runModifyDNOperationRaw("uid=user.0,ou=People,dc=example,dc=com", "invalid RDN", true, "dc=example,dc=com");
+    examineUnparsedOperation(modifyDNOperation, INVALID_DN_SYNTAX);
   }
 
   @Test
   public void testRawInvalidSuperiorModify() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.test0"), true,
-                               ByteString.valueOf("invalid superior"));
-
-    modifyDNOperation.run();
-    examineUnparsedOperation(modifyDNOperation, ResultCode.INVALID_DN_SYNTAX);
+    ModifyDNOperation modifyDNOperation =
+        runModifyDNOperationRaw("uid=user.0,ou=People,dc=example,dc=com", "uid=user.test0", true, "invalid superior");
+    examineUnparsedOperation(modifyDNOperation, INVALID_DN_SYNTAX);
   }
 
   @Test
   public void testModifySuffix() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("dc=example,dc=com"),
-                               RDN.decode("dc=exampletest"), true,
-                               null);
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation,
-        ResultCode.UNWILLING_TO_PERFORM);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation("dc=example,dc=com", "dc=exampletest", true, null);
+    examineIncompleteOperation(modifyDNOperation, UNWILLING_TO_PERFORM);
   }
 
   @Test
   public void testRawProxyAuthV1Modify() throws Exception
   {
-    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(
-         ByteString.valueOf("cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = Collections.<Control> singletonList(authV1Control);
+    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(b("cn=Directory Manager,cn=Root DNs,cn=config"));
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
+
     InvocationCounterPlugin.resetAllCounters();
-
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               ByteString.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", true, true);
-
+    ModifyDNOperation modifyDNOperation = runModifyDNOperationRaw(oldEntryDN, "uid=user.test0", false, null, authV1Control);
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, true, true);
     examineCompletedOperation(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               ByteString.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               ByteString.valueOf("uid=user.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperationRaw(newEntryDN, "uid=user.0", true, null, authV1Control);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
   @Test
   public void testProcessedProxyAuthV1Modify() throws Exception
   {
-    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(ByteString.valueOf(
-      "cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = Collections.<Control> singletonList(authV1Control);
-    InvocationCounterPlugin.resetAllCounters();
+    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(b("cn=Directory Manager,cn=Root DNs,cn=config"));
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
 
+    InvocationCounterPlugin.resetAllCounters();
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", true, true);
-
+        runModifyDNOperation(proxyUserConn, oldEntryDN, "uid=user.test0", false, authV1Control);
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, true, true);
     examineCompletedOperation(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(),
-                               controls,
-                               DN.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperation(proxyUserConn, newEntryDN, "uid=user.0", true, authV1Control);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
   @Test
   public void testProcessedProxyAuthV1DeniedModify() throws Exception
   {
-    ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
-    List<Control> controls = Collections.<Control> singletonList(authV1Control);
+    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(b("cn=nonexistent,o=test"));
     InvocationCounterPlugin.resetAllCounters();
 
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation,
-        ResultCode.AUTHORIZATION_DENIED);
+        runModifyDNOperation(proxyUserConn, "uid=user.0,ou=People,dc=example,dc=com", "uid=user.test0", false, authV1Control);
+    examineIncompleteOperation(modifyDNOperation, AUTHORIZATION_DENIED);
   }
 
   @Test
   public void testProcessedProxyAuthV2Modify() throws Exception
   {
-    ProxiedAuthV2Control authV2Control =
-         new ProxiedAuthV2Control(ByteString.valueOf(
-              "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
-    List<Control> controls = Collections.<Control> singletonList(authV2Control);
-    InvocationCounterPlugin.resetAllCounters();
+    ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(b("dn:cn=Directory Manager,cn=Root DNs,cn=config"));
+    String oldEntryDN = "uid=user.0,ou=People,dc=example,dc=com";
+    String newEntryDN = "uid=user.test0,ou=People,dc=example,dc=com";
 
+    InvocationCounterPlugin.resetAllCounters();
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.test0,ou=People,dc=example,dc=com", true, true);
-
+        runModifyDNOperation(proxyUserConn, oldEntryDN, "uid=user.test0", false, authV2Control);
+    assertSuccessAndEntryExists(modifyDNOperation, newEntryDN, true, true);
     examineCompletedOperation(modifyDNOperation);
+
     InvocationCounterPlugin.resetAllCounters();
-
-    modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               DN.valueOf("uid=user.test0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.0"), true,
-                               null);
-
-    modifyDNOperation.run();
-    assertSuccessAndEntryExists(modifyDNOperation,
-        "uid=user.0,ou=People,dc=example,dc=com", true, false);
-
+    modifyDNOperation = runModifyDNOperation(proxyUserConn, newEntryDN, "uid=user.0", true, authV2Control);
+    assertSuccessAndEntryExists(modifyDNOperation, oldEntryDN, true, false);
     examineCompletedOperation(modifyDNOperation);
   }
 
   @Test
   public void testProcessedProxyAuthV2DeniedModify() throws Exception
   {
-    ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(
-         ByteString.valueOf("dn:cn=nonexistent,o=test"));
-    List<Control> controls = Collections.<Control> singletonList(authV2Control);
+    ProxiedAuthV2Control authV2Control = new ProxiedAuthV2Control(b("dn:cn=nonexistent,o=test"));
     InvocationCounterPlugin.resetAllCounters();
 
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation,
-        ResultCode.AUTHORIZATION_DENIED);
+        runModifyDNOperation(proxyUserConn, "uid=user.0,ou=People,dc=example,dc=com", "uid=user.test0", false, authV2Control);
+    examineIncompleteOperation(modifyDNOperation, AUTHORIZATION_DENIED);
   }
 
   @Test
   public void testProcessedProxyAuthV2CriticalityModify() throws Exception
   {
-    Control authV2Control =
-         new LDAPControl(ServerConstants.OID_PROXIED_AUTH_V2, false,
-                     ByteString.valueOf("dn:cn=nonexistent,o=test"));
-
-    List<Control> controls = Collections.<Control> singletonList(authV2Control);
+    Control authV2Control = new LDAPControl(OID_PROXIED_AUTH_V2, false, b("dn:cn=nonexistent,o=test"));
     InvocationCounterPlugin.resetAllCounters();
 
     ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(proxyUserConn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls,
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation, ResultCode.PROTOCOL_ERROR);
+        runModifyDNOperation(proxyUserConn, "uid=user.0,ou=People,dc=example,dc=com", "uid=user.test0", false, authV2Control);
+    examineIncompleteOperation(modifyDNOperation, PROTOCOL_ERROR);
   }
 
   @Test
   public void testProcessedUnsupportedControlModify() throws Exception
   {
-    LDAPControl assertControl =
-         new LDAPControl("1.1.1.1.1.1", true);
-    List<Control> controls = Collections.<Control> singletonList(assertControl);
+    LDAPControl assertControl = new LDAPControl("1.1.1.1.1.1", true);
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                               controls,
-                               DN.valueOf("uid=user.0,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), false,
-                               null);
-
-    modifyDNOperation.run();
-    examineIncompleteOperation(modifyDNOperation,
-        ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+    ModifyDNOperation modifyDNOperation = runModifyDNOperation(getRootConnection(), "uid=user.0,ou=People,dc=example,dc=com", "uid=user.test0", false, assertControl);
+    examineIncompleteOperation(modifyDNOperation, UNAVAILABLE_CRITICAL_EXTENSION);
   }
 
   @Test
@@ -969,19 +759,15 @@ public class TestModifyDNOperation extends OperationTestCase
     // operation has completed.
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
-
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    {
     InvocationCounterPlugin.resetAllCounters();
 
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
     TestCaseUtils.configureSocket(s);
-    BindRequestProtocolOp bindRequest =
-              new BindRequestProtocolOp(
-                      ByteString.valueOf("cn=Directory Manager"),
-                      3, ByteString.valueOf("password"));
+    BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(b("cn=Directory Manager"), 3, b("password"));
     LDAPMessage bindMessage = new LDAPMessage(1, bindRequest);
     w.writeMessage(bindMessage);
 
@@ -992,21 +778,17 @@ public class TestModifyDNOperation extends OperationTestCase
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
     InvocationCounterPlugin.resetAllCounters();
     ModifyDNRequestProtocolOp modifyRequest =
-        new ModifyDNRequestProtocolOp(
-            ByteString.valueOf(entry.getName().toString()),
-            ByteString.valueOf("uid=user.test0"), false);
+        new ModifyDNRequestProtocolOp(b(entry.getName().toString()), b("uid=user.test0"), false);
     LDAPMessage message = new LDAPMessage(2, modifyRequest,
                                           ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
     w.writeMessage(message);
 
     message = r.readMessage();
-    ModifyDNResponseProtocolOp modifyResponse =
-        message.getModifyDNResponseProtocolOp();
+    ModifyDNResponseProtocolOp modifyResponse = message.getModifyDNResponseProtocolOp();
 
     assertEquals(modifyResponse.getResultCode(), 80);
 //    assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-
-    StaticUtils.close(s);
+    }
   }
 
   @Test(groups = "slow")
@@ -1017,17 +799,13 @@ public class TestModifyDNOperation extends OperationTestCase
     // modify DN operation does not proceed.
 
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    try
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
       LDAPWriter w = new LDAPWriter(s);
       TestCaseUtils.configureSocket(s);
 
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                ByteString.valueOf("cn=Directory Manager"),
-                3, ByteString.valueOf("password"));
+      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(b("cn=Directory Manager"), 3, b("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -1041,7 +819,6 @@ public class TestModifyDNOperation extends OperationTestCase
       // operation has completed.
       assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
-
       final DNLock writeLock = DirectoryServer.getLockManager().tryWriteLockEntry(entry.getName());
       assertNotNull(writeLock);
 
@@ -1053,15 +830,12 @@ public class TestModifyDNOperation extends OperationTestCase
         //long modifyDNResponses = ldapStatistics.getModifyDNResponses();
 
         ModifyDNRequestProtocolOp modifyRequest =
-          new ModifyDNRequestProtocolOp(
-               ByteString.valueOf(entry.getName().toString()),
-               ByteString.valueOf("uid=user.test0"), false);
+            new ModifyDNRequestProtocolOp(b(entry.getName().toString()), b("uid=user.test0"), false);
         message = new LDAPMessage(2, modifyRequest);
         w.writeMessage(message);
 
         message = r.readMessage();
-        ModifyDNResponseProtocolOp modifyResponse =
-             message.getModifyDNResponseProtocolOp();
+        ModifyDNResponseProtocolOp modifyResponse = message.getModifyDNResponseProtocolOp();
 
         assertEquals(modifyResponse.getResultCode(), LDAPResultCode.BUSY);
 
@@ -1078,13 +852,8 @@ public class TestModifyDNOperation extends OperationTestCase
       {
         writeLock.unlock();
       }
-    } finally
-    {
-      StaticUtils.close(s);
     }
   }
-
-
 
   /**
    * Tests performing a modify DN operation in which the new RDN contains an
@@ -1146,8 +915,6 @@ public class TestModifyDNOperation extends OperationTestCase
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
-
-
   /**
    * Tests a subtree rename operation to ensure that subordinate modify DN
    * plugins will be invoked as expected.
@@ -1191,24 +958,19 @@ public class TestModifyDNOperation extends OperationTestCase
         "userPassword: Password");
 
       assertTrue(DirectoryServer.entryExists(
-                      DN.valueOf("uid=first.test,ou=People,dc=example,dc=com")));
+                      dn("uid=first.test,ou=People,dc=example,dc=com")));
       assertFalse(DirectoryServer.entryExists(
-                      DN.valueOf("uid=first.test,ou=Users,dc=example,dc=com")));
+                      dn("uid=first.test,ou=Users,dc=example,dc=com")));
 
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
       ModifyDNOperation modifyDNOperation =
-           conn.processModifyDN("ou=People,dc=example,dc=com", "ou=Users",
-                                true);
-      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
+          getRootConnection().processModifyDN("ou=People,dc=example,dc=com", "ou=Users", true);
+      assertSuccess(modifyDNOperation);
 //      assertEquals(InvocationCounterPlugin.getSubordinateModifyDNCount(), 2);
 
-
       assertFalse(DirectoryServer.entryExists(
-                       DN.valueOf("uid=first.test,ou=People,dc=example,dc=com")));
+                       dn("uid=first.test,ou=People,dc=example,dc=com")));
       assertTrue(DirectoryServer.entryExists(
-                      DN.valueOf("uid=first.test,ou=Users,dc=example,dc=com")));
+                      dn("uid=first.test,ou=Users,dc=example,dc=com")));
     }
     finally
     {
@@ -1218,8 +980,6 @@ public class TestModifyDNOperation extends OperationTestCase
       InvocationCounterPlugin.resetAllCounters();
     }
   }
-
-
 
   /**
    * Tests a subtree move operation to ensure that subordinate modify DN
@@ -1274,25 +1034,21 @@ public class TestModifyDNOperation extends OperationTestCase
         "userPassword: Password");
 
       assertTrue(DirectoryServer.entryExists(
-           DN.valueOf("uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com")));
+           dn("uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com")));
       assertFalse(DirectoryServer.entryExists(
-           DN.valueOf("uid=first.test,ou=Org 2.1,ou=Org 2,dc=example,dc=com")));
+           dn("uid=first.test,ou=Org 2.1,ou=Org 2,dc=example,dc=com")));
 
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
       ModifyDNOperation modifyDNOperation =
-           conn.processModifyDN("ou=Org 1.1,ou=Org 1,dc=example,dc=com",
+          getRootConnection().processModifyDN("ou=Org 1.1,ou=Org 1,dc=example,dc=com",
                                 "ou=Org 2.1", true,
                                 "ou=Org 2,dc=example,dc=com");
-      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
+      assertSuccess(modifyDNOperation);
 //      assertEquals(InvocationCounterPlugin.getSubordinateModifyDNCount(), 2);
 
-
       assertFalse(DirectoryServer.entryExists(
-           DN.valueOf("uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com")));
+           dn("uid=first.test,ou=Org 1.1,ou=Org 1,dc=example,dc=com")));
       assertTrue(DirectoryServer.entryExists(
-           DN.valueOf("uid=first.test,ou=Org 2.1,ou=Org 2,dc=example,dc=com")));
+           dn("uid=first.test,ou=Org 2.1,ou=Org 2,dc=example,dc=com")));
     }
     finally
     {
@@ -1309,17 +1065,14 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ModifyDNOperation modifyDNOperation = newModifyDNOperation(
-                               DN.valueOf("uid=user.invalid,ou=People,dc=example,dc=com"),
-                               RDN.decode("uid=user.test0"), true,
-                               DN.valueOf("dc=example,dc=com"));
+        "uid=user.invalid,ou=People,dc=example,dc=com", "uid=user.test0", true, "dc=example,dc=com");
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     LocalizableMessage.raw("testCancelBeforeStartup"));
     modifyDNOperation.abort(cancelRequest);
     modifyDNOperation.run();
-    assertEquals(modifyDNOperation.getResultCode(), ResultCode.CANCELLED);
+    assertEquals(modifyDNOperation.getResultCode(), CANCELLED);
   }
-
 
   /**
    * Tests whether an invalid rdn is allowed during an modrdn operation.
