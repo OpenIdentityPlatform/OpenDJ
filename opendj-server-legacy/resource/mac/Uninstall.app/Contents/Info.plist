@@ -13,7 +13,7 @@
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>true</string>
 	<key>CFBundleExecutable</key>
-	<string>JavaApplicationStub</string>
+	<string>universalJavaApplicationStub</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundlePackageType</key>
@@ -24,14 +24,14 @@
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>
 	<string>OpenDJ_Uninst.icns</string>
-	<key>Java</key>
+	<key>JavaX</key>
 	<dict>
 		<key>VMOptions</key>
 		<string>-Dorg.opends.server.ServerRoot=$APP_PACKAGE/..</string>
 		<key>MainClass</key>
 		<string>org.opends.guitools.uninstaller.UninstallLauncher</string>
 		<key>JVMVersion</key>
-		<string>1.6+</string>
+		<string>1.7+</string>
 		<key>ClassPath</key>
 		<array>
 			<string>$JAVAROOT/../../../../classes</string>

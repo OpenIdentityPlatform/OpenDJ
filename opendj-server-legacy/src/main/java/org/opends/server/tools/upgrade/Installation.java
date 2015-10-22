@@ -162,7 +162,7 @@ final class Installation
   /**
    * The MacOS X Java application stub name.
    */
-  static final String MAC_JAVA_APP_STUB_NAME = "JavaApplicationStub";
+  static final String MAC_JAVA_APP_STUB_NAME = "universalJavaApplicationStub";
 
   /**
    * Generic name for the backup tool.

@@ -124,7 +124,7 @@ public final class Installation
   /** The Windows control panel batch file name. */
   public static final String WINDOWS_CONTROLPANEL_FILE_NAME = "control-panel.bat";
   /** The MacOS X Java application stub name. */
-  public static final String MAC_JAVA_APP_STUB_NAME = "JavaApplicationStub";
+  public static final String MAC_JAVA_APP_STUB_NAME = "universalJavaApplicationStub";
   /** The MacOS X control panel application bundle name. */
   public static final String MAC_CONTROLPANEL_FILE_NAME = "ControlPanel.app";
   /** The UNIX status command line script file name. */

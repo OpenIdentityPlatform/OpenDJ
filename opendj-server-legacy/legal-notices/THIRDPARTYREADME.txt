@@ -260,6 +260,9 @@ Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 Version: slf4j-jdk14.jar (1.7.5)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
+Version: universalJavaApplicationStub (1.0.0)
+Copyright: Copyright (c) 2015 Tobias Fischer
+
 ==================
 Full license text:
 ==================
