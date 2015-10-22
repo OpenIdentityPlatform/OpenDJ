@@ -23,7 +23,8 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions Copyright 2011 ForgeRock AS
+  !      Portions Copyright 2011-2015 ForgeRock AS
+  !      Portions copyright 2015 Edan Idzerda
   ! -->
 <adm:managed-object name="smtp-account-status-notification-handler"
   plural-name="smtp-account-status-notification-handlers"
@@ -144,6 +145,31 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="send-email-as-html"
+                mandatory="true" advanced="true">
+    <adm:synopsis>
+      Indicates whether an email notification message should be sent as HTML.
+    </adm:synopsis>
+    <adm:description>
+      If this value is true, email notification messages are marked as text/html.
+      Otherwise outgoing email messages are assumed to be plaintext and marked as text/plain.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+       </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+           ds-cfg-send-email-as-html
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="sender-address" mandatory="true">
     <adm:synopsis>
       Specifies the email address from which the message is sent.
@@ -185,7 +211,7 @@
   <adm:property name="message-template-file" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      Specifies the path to the file containing the message template 
+      Specifies the path to the file containing the message template
       to generate the email notification messages.
     </adm:synopsis>
     <adm:description>

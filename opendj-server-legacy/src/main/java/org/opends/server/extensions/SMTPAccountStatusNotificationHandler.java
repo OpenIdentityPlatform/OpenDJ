@@ -23,6 +23,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2015 Edan Idzerda
  */
 package org.opends.server.extensions;
 
@@ -622,6 +623,11 @@ public class SMTPAccountStatusNotificationHandler
     EMailMessage message = new EMailMessage(config.getSenderAddress(),
                                             recipients, subject);
     message.setBody(messageBody);
+
+    if (config.isSendEmailAsHtml())
+    {
+      message.setBodyMIMEType("text/html");
+    }
     if (logger.isTraceEnabled())
     {
       logger.trace("Set message body of " + messageBody);

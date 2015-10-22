@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2015 Edan Idzerda
  */
 package org.opends.server.util;
 
@@ -228,6 +229,25 @@ public final class EMailMessage
   }
 
 
+  /**
+   * Retrieves the MIME Type for the body of this message
+   *
+   * @return The MIME Type for this message
+   */
+   public String getBodyMIMEType()
+   {
+     return bodyMIMEType;
+   }
+
+  /**
+   * Specifies the MIME Type for the body of this message
+   *
+   * @param bodyMIMEType  The MIME Type for this message
+   */
+  public void setBodyMIMEType(String bodyMIMEType)
+  {
+    this.bodyMIMEType = bodyMIMEType;
+  }
 
   /**
    * Retrieves the body for this message.  It may be directly manipulated by the
@@ -431,7 +451,7 @@ public final class EMailMessage
       // multipart.  Otherwise, just set the text of the message.
       if (attachments.isEmpty())
       {
-        message.setText(body.toString());
+        message.setContent(body.toString(), bodyMIMEType);
       }
       else
       {

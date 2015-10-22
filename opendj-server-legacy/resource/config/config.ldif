@@ -22,6 +22,7 @@
 #      Copyright 2006-2010 Sun Microsystems, Inc.
 #      Portions Copyright 2012-2014 Manuel Gaupp
 #      Portions Copyright 2010-2015 ForgeRock AS.
+#      Portions copyright 2015 Edan Idzerda
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -143,6 +144,7 @@ ds-cfg-enabled: false
 ds-cfg-sender-address: opends-notifications@example.com
 ds-cfg-email-address-attribute-type: mail
 ds-cfg-send-message-without-end-user-address: false
+ds-cdf-send-email-as-html: false
 ds-cfg-message-template-file: account-temporarily-locked:config/messages/account-temporarily-locked.template
 ds-cfg-message-template-file: account-permanently-locked:config/messages/account-permanently-locked.template
 ds-cfg-message-template-file: account-unlocked:config/messages/account-unlocked.template
