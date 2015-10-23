@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<adm:package name="com.example.opendj"
-  xmlns:adm="http://opendj.forgerock.org/admin"
-  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
-  <adm:synopsis>Example OpenDJ Hello World plugin.</adm:synopsis>
-</adm:package>
