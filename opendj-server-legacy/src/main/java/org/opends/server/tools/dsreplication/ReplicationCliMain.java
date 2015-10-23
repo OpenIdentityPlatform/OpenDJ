@@ -259,7 +259,7 @@ public class ReplicationCliMain extends ConsoleApplication
   /** The argument parser to be used. */
   private ReplicationCliArgumentParser argParser;
   private FileBasedArgument userProvidedAdminPwdFile;
-  private LDAPConnectionConsoleInteraction ci;
+  private LDAPConnectionConsoleInteraction sourceServerCI;
   private CommandBuilder firstServerCommandBuilder;
   /** The message formatter. */
   private PlainTextProgressMessageFormatter formatter = new PlainTextProgressMessageFormatter();
@@ -446,8 +446,8 @@ public class ReplicationCliMain extends ConsoleApplication
         throw new IllegalStateException("Unexpected error: " + t, t);
       }
     }
-    ci = new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
-    ci.setDisplayLdapIfSecureParameters(false);
+    sourceServerCI = new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
+    sourceServerCI.setDisplayLdapIfSecureParameters(false);
 
     ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
     String subCommand = null;
@@ -943,8 +943,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String separator = formatter.getLineBreak().toString() + formatter.getTab();
     println();
     LocalizableMessage msg = formatter.getFormattedProgress(
-        INFO_PROGRESS_PURGE_HISTORICAL.get(separator,
-            joinAsString(separator, uData.getBaseDNs())));
+        INFO_PROGRESS_PURGE_HISTORICAL.get(separator, joinAsString(separator, uData.getBaseDNs())));
     print(msg);
     println();
   }
@@ -1080,11 +1079,10 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ClientException
    *           if there was an error establishing the connection.
    */
-  private InitialLdapContext createInitialLdapContextInteracting(
-      LDAPConnectionConsoleInteraction ci) throws ClientException
+  private InitialLdapContext createInitialLdapContextInteracting(LDAPConnectionConsoleInteraction ci)
+      throws ClientException
   {
-    return createInitialLdapContextInteracting(ci, isInteractive()
-        && ci.isTrustStoreInMemory());
+    return createInitialLdapContextInteracting(ci, isInteractive() && ci.isTrustStoreInMemory());
   }
 
   private OpendsCertificateException getCertificateRootException(Throwable t)
@@ -1114,9 +1112,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ClientException
    *           if there was an error establishing the connection.
    */
-  private InitialLdapContext createInitialLdapContextInteracting(
-      LDAPConnectionConsoleInteraction ci, boolean promptForCertificate)
-      throws ClientException
+  private InitialLdapContext createInitialLdapContextInteracting(LDAPConnectionConsoleInteraction ci,
+      boolean promptForCertificate) throws ClientException
   {
     // Interact with the user though the console to get
     // LDAP connection information
@@ -1331,7 +1328,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       return createAdministrativeContext(uData.getHostName(), uData.getPort(),
           useSSL, useStartTLS, bindDn,
-          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException ne)
     {
@@ -1817,16 +1814,16 @@ public class ReplicationCliMain extends ConsoleApplication
 
       try
       {
-        ci.run();
+        sourceServerCI.run();
 
-        InitialLdapContext ctx = createInitialLdapContextInteracting(ci);
+        InitialLdapContext ctx = createInitialLdapContextInteracting(sourceServerCI);
         if (ctx != null)
         {
           uData.setOnline(true);
-          uData.setHostName(ci.getHostName());
-          uData.setPort(ci.getPortNumber());
-          uData.setAdminUid(ci.getAdministratorUID());
-          uData.setAdminPwd(ci.getBindPassword());
+          uData.setHostName(sourceServerCI.getHostName());
+          uData.setPort(sourceServerCI.getPortNumber());
+          uData.setAdminUid(sourceServerCI.getAdministratorUID());
+          uData.setAdminPwd(sourceServerCI.getBindPassword());
         }
         return ctx;
       }
@@ -1836,7 +1833,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
-        ci.resetConnectionArguments();
+        sourceServerCI.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -1880,7 +1877,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     boolean administratorDefined = false;
 
-    ci.setUseAdminOrBindDn(true);
+    sourceServerCI.setUseAdminOrBindDn(true);
 
     String adminPwd = argParser.getBindPasswordAdmin();
     String adminUid = argParser.getAdministratorUID();
@@ -1914,8 +1911,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * Use a copy of the argument properties since the map might be cleared
      * in initializeGlobalArguments.
      */
-    ci.initializeGlobalArguments(host1, port1, adminUid,
-        bindDn1, pwd,
+    sourceServerCI.initializeGlobalArguments(host1, port1, adminUid, bindDn1, pwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     InitialLdapContext ctx1 = null;
 
@@ -1923,25 +1919,25 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
-        ci.run();
-        host1 = ci.getHostName();
-        port1 = ci.getPortNumber();
-        if (ci.getProvidedAdminUID() != null)
+        sourceServerCI.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
+        sourceServerCI.run();
+        host1 = sourceServerCI.getHostName();
+        port1 = sourceServerCI.getPortNumber();
+        if (sourceServerCI.getProvidedAdminUID() != null)
         {
-          adminUid = ci.getProvidedAdminUID();
-          if (ci.getProvidedBindDN() == null)
+          adminUid = sourceServerCI.getProvidedAdminUID();
+          if (sourceServerCI.getProvidedBindDN() == null)
           {
             // If the explicit bind DN is not null, the password corresponds
             // to that bind DN.  We are in the case where the user provides
             // bind DN on first server and admin UID globally.
-            adminPwd = ci.getBindPassword();
+            adminPwd = sourceServerCI.getBindPassword();
           }
         }
-        bindDn1 = ci.getBindDN();
-        pwd1 = ci.getBindPassword();
+        bindDn1 = sourceServerCI.getBindDN();
+        pwd1 = sourceServerCI.getBindPassword();
 
-        ctx1 = createInitialLdapContextInteracting(ci);
+        ctx1 = createInitialLdapContextInteracting(sourceServerCI);
         if (ctx1 == null)
         {
           cancelled = true;
@@ -1953,7 +1949,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
-        ci.resetConnectionArguments();
+        sourceServerCI.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2090,7 +2086,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (!cancelled)
       {
         AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx1);
-        cancelled = !loadADSAndAcceptCertificates(aux, uData, true);
+        cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, true);
         ctx1 = aux.get();
       }
       if (!cancelled)
@@ -2109,7 +2105,7 @@ public class ReplicationCliMain extends ConsoleApplication
     firstServerCommandBuilder = new CommandBuilder(null, null);
     if (mustPrintCommandBuilder())
     {
-      firstServerCommandBuilder.append(ci.getCommandBuilder());
+      firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
     }
 
     /* Prompt for information on the second server. */
@@ -2117,7 +2113,9 @@ public class ReplicationCliMain extends ConsoleApplication
     int port2 = -1;
     String bindDn2 = null;
     String pwd2 = null;
-    ci.resetHeadingDisplayed();
+    LDAPConnectionConsoleInteraction destinationServerCI = new LDAPConnectionConsoleInteraction(this,
+        argParser.getSecureArgsList());
+    destinationServerCI.resetHeadingDisplayed();
 
     boolean doNotDisplayFirstError = false;
 
@@ -2153,8 +2151,7 @@ public class ReplicationCliMain extends ConsoleApplication
        * Use a copy of the argument properties since the map might be cleared
        * in initializeGlobalArguments.
        */
-      ci.initializeGlobalArguments(host2, port2, adminUid,
-          bindDn2, pwd,
+      destinationServerCI.initializeGlobalArguments(host2, port2, adminUid, bindDn2, pwd,
           pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     }
     InitialLdapContext ctx2 = null;
@@ -2163,23 +2160,23 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST2_CONNECTION_PARAMETERS.get());
-        ci.run();
-        host2 = ci.getHostName();
-        port2 = ci.getPortNumber();
-        if (ci.getProvidedAdminUID() != null)
+        destinationServerCI.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST2_CONNECTION_PARAMETERS.get());
+        destinationServerCI.run();
+        host2 = destinationServerCI.getHostName();
+        port2 = destinationServerCI.getPortNumber();
+        if (destinationServerCI.getProvidedAdminUID() != null)
         {
-          adminUid = ci.getProvidedAdminUID();
-          if (ci.getProvidedBindDN() == null)
+          adminUid = destinationServerCI.getProvidedAdminUID();
+          if (destinationServerCI.getProvidedBindDN() == null)
           {
             // If the explicit bind DN is not null, the password corresponds
             // to that bind DN.  We are in the case where the user provides
             // bind DN on first server and admin UID globally.
-            adminPwd = ci.getBindPassword();
+            adminPwd = destinationServerCI.getBindPassword();
           }
         }
-        bindDn2 = ci.getBindDN();
-        pwd2 = ci.getBindPassword();
+        bindDn2 = destinationServerCI.getBindDN();
+        pwd2 = destinationServerCI.getBindPassword();
 
         boolean error = false;
         if (host1.equalsIgnoreCase(host2) && port1 == port2)
@@ -2193,7 +2190,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!error)
         {
-          ctx2 = createInitialLdapContextInteracting(ci, true);
+          ctx2 = createInitialLdapContextInteracting(destinationServerCI, true);
           if (ctx2 == null)
           {
             cancelled = true;
@@ -2208,13 +2205,13 @@ public class ReplicationCliMain extends ConsoleApplication
           errPrintln();
           errPrintln(ce.getMessageObject());
           errPrintln();
-          ci.resetConnectionArguments();
+          destinationServerCI.resetConnectionArguments();
         }
         else
         {
           // Reset only the credential parameters.
-          ci.resetConnectionArguments();
-          ci.initializeGlobalArguments(host2, port2, null, null, null, null);
+          destinationServerCI.resetConnectionArguments();
+          destinationServerCI.initializeGlobalArguments(host2, port2, null, null, null, null);
         }
       }
       catch (ArgumentException ae)
@@ -2366,7 +2363,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (!cancelled)
       {
         AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx2);
-        cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+        cancelled = !loadADSAndAcceptCertificates(destinationServerCI, aux, uData, false);
         ctx2 = aux.get();
       }
       if (!cancelled)
@@ -2502,15 +2499,15 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setUseAdminOrBindDn(true);
-        ci.run();
-        host = ci.getHostName();
-        port = ci.getPortNumber();
-        bindDn = ci.getProvidedBindDN();
-        adminUid = ci.getProvidedAdminUID();
-        adminPwd = ci.getBindPassword();
+        sourceServerCI.setUseAdminOrBindDn(true);
+        sourceServerCI.run();
+        host = sourceServerCI.getHostName();
+        port = sourceServerCI.getPortNumber();
+        bindDn = sourceServerCI.getProvidedBindDN();
+        adminUid = sourceServerCI.getProvidedAdminUID();
+        adminPwd = sourceServerCI.getBindPassword();
 
-        ctx = createInitialLdapContextInteracting(ci);
+        ctx = createInitialLdapContextInteracting(sourceServerCI);
         if (ctx == null)
         {
           cancelled = true;
@@ -2522,7 +2519,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
-        ci.resetConnectionArguments();
+        sourceServerCI.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2548,7 +2545,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
       AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx);
-      cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+      cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false);
       ctx = aux.get();
     }
 
@@ -2785,17 +2782,17 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         if (uData instanceof InitializeAllReplicationUserData)
         {
-          ci.setHeadingMessage(INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
+          sourceServerCI.setHeadingMessage(INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
         }
-        ci.run();
+        sourceServerCI.run();
 
-        InitialLdapContext ctx = createInitialLdapContextInteracting(ci);
+        InitialLdapContext ctx = createInitialLdapContextInteracting(sourceServerCI);
         if (ctx != null)
         {
-          uData.setHostName(ci.getHostName());
-          uData.setPort(ci.getPortNumber());
-          uData.setAdminUid(ci.getAdministratorUID());
-          uData.setAdminPwd(ci.getBindPassword());
+          uData.setHostName(sourceServerCI.getHostName());
+          uData.setPort(sourceServerCI.getPortNumber());
+          uData.setAdminUid(sourceServerCI.getAdministratorUID());
+          uData.setAdminPwd(sourceServerCI.getBindPassword());
           if (uData instanceof StatusReplicationUserData)
           {
             ((StatusReplicationUserData) uData).setScriptFriendly(argParser.isScriptFriendly());
@@ -2809,7 +2806,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
-        ci.resetConnectionArguments();
+        sourceServerCI.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2849,7 +2846,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
       AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx);
-      boolean cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+      boolean cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false);
       ctx = aux.get();
       if (cancelled)
       {
@@ -2897,8 +2894,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * Use a copy of the argument properties since the map might be cleared
      * in initializeGlobalArguments.
      */
-    ci.initializeGlobalArguments(hostSource, portSource, adminUid, null,
-        adminPwd,
+    sourceServerCI.initializeGlobalArguments(hostSource, portSource, adminUid, null, adminPwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     /* Try to connect to the source server. */
     InitialLdapContext ctxSource = null;
@@ -2907,14 +2903,14 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
-        ci.run();
-        hostSource = ci.getHostName();
-        portSource = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
-        adminPwd = ci.getBindPassword();
+        sourceServerCI.setHeadingMessage(INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
+        sourceServerCI.run();
+        hostSource = sourceServerCI.getHostName();
+        portSource = sourceServerCI.getPortNumber();
+        adminUid = sourceServerCI.getAdministratorUID();
+        adminPwd = sourceServerCI.getBindPassword();
 
-        ctxSource = createInitialLdapContextInteracting(ci);
+        ctxSource = createInitialLdapContextInteracting(sourceServerCI);
 
         if (ctxSource == null)
         {
@@ -2927,7 +2923,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
-        ci.resetConnectionArguments();
+        sourceServerCI.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2947,7 +2943,7 @@ public class ReplicationCliMain extends ConsoleApplication
     firstServerCommandBuilder = new CommandBuilder(null, null);
     if (mustPrintCommandBuilder())
     {
-      firstServerCommandBuilder.append(ci.getCommandBuilder());
+      firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
     }
 
     /* Prompt for destination server credentials */
@@ -2958,21 +2954,22 @@ public class ReplicationCliMain extends ConsoleApplication
      * Use a copy of the argument properties since the map might be cleared
      * in initializeGlobalArguments.
      */
-    ci.initializeGlobalArguments(hostDestination, portDestination,
-        adminUid, null, adminPwd,
+    LDAPConnectionConsoleInteraction destinationServerCI = new LDAPConnectionConsoleInteraction(this,
+        argParser.getSecureArgsList());
+    destinationServerCI.initializeGlobalArguments(hostDestination, portDestination, adminUid, null, adminPwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     /* Try to connect to the destination server. */
     InitialLdapContext ctxDestination = null;
 
-    ci.resetHeadingDisplayed();
+    destinationServerCI.resetHeadingDisplayed();
     while (ctxDestination == null && !cancelled)
     {
       try
       {
-        ci.setHeadingMessage(INFO_REPLICATION_INITIALIZE_DESTINATION_CONNECTION_PARAMETERS.get());
-        ci.run();
-        hostDestination = ci.getHostName();
-        portDestination = ci.getPortNumber();
+        destinationServerCI.setHeadingMessage(INFO_REPLICATION_INITIALIZE_DESTINATION_CONNECTION_PARAMETERS.get());
+        destinationServerCI.run();
+        hostDestination = destinationServerCI.getHostName();
+        portDestination = destinationServerCI.getPortNumber();
 
         boolean error = false;
         if (hostSource.equalsIgnoreCase(hostDestination)
@@ -2987,7 +2984,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!error)
         {
-          ctxDestination = createInitialLdapContextInteracting(ci, true);
+          ctxDestination = createInitialLdapContextInteracting(destinationServerCI, true);
 
           if (ctxDestination == null)
           {
@@ -3001,7 +2998,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
-        ci.resetConnectionArguments();
+        destinationServerCI.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -3064,9 +3061,10 @@ public class ReplicationCliMain extends ConsoleApplication
 
   /**
    * Returns the trust manager to be used by this application.
+   * @param ci the LDAP connection to the server
    * @return the trust manager to be used by this application.
    */
-  private ApplicationTrustManager getTrustManager()
+  private ApplicationTrustManager getTrustManager(LDAPConnectionConsoleInteraction ci)
   {
     return isInteractive() ? ci.getTrustManager() : argParser.getTrustManager();
   }
@@ -3110,7 +3108,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         InitialLdapContext ctx = createAdministrativeContext(server.getHostName(), server.getPort(),
-            useSSL, useStartTLS, adminDN, adminPwd, getConnectTimeout(), getTrustManager());
+            useSSL, useStartTLS, adminDN, adminPwd, getConnectTimeout(), getTrustManager(sourceServerCI));
         server.setBindDn(adminDN);
         server.setPwd(adminPwd);
         ctx.close();
@@ -3174,8 +3172,7 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setPort(argParser.getPortToDisableOrDefault());
 
     uData.setDisableAll(argParser.disableAllArg.isPresent());
-    uData.setDisableReplicationServer(
-        argParser.disableReplicationServerArg.isPresent());
+    uData.setDisableReplicationServer(argParser.disableReplicationServerArg.isPresent());
   }
 
   /**
@@ -3266,6 +3263,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * provided ctx is not using Global Administrator credentials, we prompt the
    * user to provide them and update the provide ReplicationUserData
    * accordingly.
+   *
+   * @param ci the LDAP connection to the server
    * @param ctx the Ldap context to be used in an array: note the context
    * may be modified with the new credentials provided by the user.
    * @param uData the ReplicationUserData to be updated.
@@ -3278,8 +3277,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * if the user did not accept a certificate or any of the confirmation
    * messages.
    */
-  private boolean loadADSAndAcceptCertificates(AtomicReference<InitialLdapContext> ctx,
-      ReplicationUserData uData, boolean isFirstOrSourceServer)
+  private boolean loadADSAndAcceptCertificates(LDAPConnectionConsoleInteraction ci,
+      AtomicReference<InitialLdapContext> ctx, ReplicationUserData uData, boolean isFirstOrSourceServer)
   throws ReplicationCliException
   {
     boolean cancelled = false;
@@ -3289,12 +3288,12 @@ public class ReplicationCliMain extends ConsoleApplication
     int port = getPort(ctx1);
     boolean isSSL = isSSL(ctx1);
     boolean isStartTLS = isStartTLS(ctx1);
-    if (getTrustManager() == null)
+    if (getTrustManager(ci) == null)
     {
       // This is required when the user did  connect to the server using SSL or
       // Start TLS.  In this case LDAPConnectionConsoleInteraction.run does not
       // initialize the keystore and the trust manager is null.
-      forceTrustManagerInitialization();
+      forceTrustManagerInitialization(ci);
     }
     try
     {
@@ -3309,7 +3308,7 @@ public class ReplicationCliMain extends ConsoleApplication
           // LDAPConnectionConsoleInteraction object might have changed.
 
           TopologyCache cache = new TopologyCache(adsContext,
-              getTrustManager(), getConnectTimeout());
+              getTrustManager(ci), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
           cache.getFilter().setSearchBaseDNInformation(false);
           cache.setPreferredConnections(getPreferredConnections(ctx1));
@@ -3380,10 +3379,10 @@ public class ReplicationCliMain extends ConsoleApplication
                   {
                     final InitialLdapContext ctx2 = createAdministrativeContext(host, port, isSSL,
                         isStartTLS, getAdministratorDN(adminUid),
-                        adminPwd, getConnectTimeout(), getTrustManager());
+                        adminPwd, getConnectTimeout(), getTrustManager(ci));
                     ctx.set(ctx2);
                     adsContext = new ADSContext(ctx2);
-                    cache = new TopologyCache(adsContext, getTrustManager(),
+                    cache = new TopologyCache(adsContext, getTrustManager(ci),
                         getConnectTimeout());
                     cache.getFilter().setSearchMonitoringInformation(false);
                     cache.getFilter().setSearchBaseDNInformation(false);
@@ -3528,7 +3527,7 @@ public class ReplicationCliMain extends ConsoleApplication
     return false;
   }
 
-  /** Helper type for the {@link #getCommonSuffixes()} method. */
+  /** Helper type for the {@link #getCommonSuffixes(InitialLdapContext, InitialLdapContext, SuffixRelationType)}. */
   private enum SuffixRelationType
   {
     NOT_REPLICATED, FULLY_REPLICATED, REPLICATED, NOT_FULLY_REPLICATED, ALL
@@ -3866,7 +3865,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       return createAdministrativeContext(
           server.getHostName(), server.getPort(), useSSL, useStartTLS, server.getBindDn(), server.getPwd(),
-          getConnectTimeout(), getTrustManager());
+          getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException ne)
     {
@@ -4066,7 +4065,7 @@ public class ReplicationCliMain extends ConsoleApplication
       return createAdministrativeContext(
           host, port, useSSL, useStartTLS,
           getAdministratorDN(uData.getAdminUid()), uData.getAdminPwd(),
-          getConnectTimeout(), getTrustManager());
+          getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException ne)
     {
@@ -5350,7 +5349,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     if (adsCtx.hasAdminData())
     {
-      TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(), getConnectTimeout());
+      TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
       cache.setPreferredConnections(cnx);
       cache.getFilter().setSearchMonitoringInformation(false);
       addBaseDNs(cache.getFilter(), uData.getBaseDNs());
@@ -5405,8 +5404,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (adsCtx.hasAdminData() && tryToUpdateRemote)
       {
-        cache = new TopologyCache(adsCtx, getTrustManager(),
-            getConnectTimeout());
+        cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
         cache.setPreferredConnections(getPreferredConnections(ctx));
         cache.getFilter().setSearchMonitoringInformation(false);
         if (!uData.disableAll())
@@ -5808,7 +5806,7 @@ public class ReplicationCliMain extends ConsoleApplication
     TopologyCache cache;
     try
     {
-      cache = new TopologyCache(adsCtx, getTrustManager(), getConnectTimeout());
+      cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
       cache.setPreferredConnections(getPreferredConnections(ctx));
       addBaseDNs(cache.getFilter(), uData.getBaseDNs());
       cache.reloadTopology();
@@ -7460,7 +7458,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
-        pwd, getTrustManager(), getConnectTimeout(), cnx, filter);
+        pwd, getTrustManager(sourceServerCI), getConnectTimeout(), cnx, filter);
     InitialLdapContext ctx = null;
     String lastBaseDN = null;
     String hostPort = null;
@@ -7931,8 +7929,11 @@ public class ReplicationCliMain extends ConsoleApplication
     return true;
   }
 
-  /** Forces the initialization of the trust manager in the LDAPConnectionInteraction object. */
-  private void forceTrustManagerInitialization()
+  /**
+   * Forces the initialization of the trust manager in the LDAPConnectionInteraction object.
+   * @param ci the LDAP connection to the server
+   */
+  private void forceTrustManagerInitialization(LDAPConnectionConsoleInteraction ci)
   {
     forceNonInteractive = true;
     try
@@ -8138,13 +8139,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * this method.  Currently it simply writes the content of the CommandBuilder
    * to the standard output, but if we provide an option to write the content
    * to a file only the implementation of this method must be changed.
-   * @param commandBuilder the command builder to be printed.
+   * @param subCommandName the command builder to be printed.
+   * @param uData input parameters from cli
    */
   private void printNewCommandBuilder(String subCommandName, ReplicationUserData uData)
   {
     try
     {
-      final CommandBuilder commandBuilder = createCommandBuilder(subCommandName, uData);
+      final CommandBuilder commandBuilder = createCommandBuilder(sourceServerCI, subCommandName, uData);
       if (argParser.displayEquivalentArgument.isPresent())
       {
         println();
@@ -8185,12 +8187,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * Creates a command builder with the global options: script friendly,
    * verbose, etc. for a given subcommand name.  It also adds systematically the
    * no-prompt option.
+   *
+   * @param ci the LDAP connection to the server
    * @param subcommandName the subcommand name.
    * @param uData the user data.
    * @return the command builder that has been created with the specified
    * subcommandName.
    */
-  private CommandBuilder createCommandBuilder(String subcommandName,
+  private CommandBuilder createCommandBuilder(LDAPConnectionConsoleInteraction ci, String subcommandName,
       ReplicationUserData uData) throws ArgumentException
   {
     String commandName = getCommandName();
@@ -8212,7 +8216,7 @@ public class ReplicationCliMain extends ConsoleApplication
     else if (PURGE_HISTORICAL_SUBCMD_NAME.equals(subcommandName))
     {
       // All the arguments for initialize replication are update here.
-      updateCommandBuilder(commandBuilder, (PurgeHistoricalUserData)uData);
+      updateCommandBuilder(ci, commandBuilder, (PurgeHistoricalUserData)uData);
     }
     else
     {
@@ -8251,8 +8255,7 @@ public class ReplicationCliMain extends ConsoleApplication
     return "dsreplication";
   }
 
-  private void updateCommandBuilderWithConsoleInteraction(
-      CommandBuilder commandBuilder,
+  private void updateCommandBuilderWithConsoleInteraction(CommandBuilder commandBuilder,
       LDAPConnectionConsoleInteraction ci) throws ArgumentException
   {
     if (ci != null && ci.getCommandBuilder() != null)
@@ -8276,7 +8279,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void updateCommandBuilder(CommandBuilder commandBuilder,
+  private void updateCommandBuilder(LDAPConnectionConsoleInteraction ci, CommandBuilder commandBuilder,
       PurgeHistoricalUserData uData) throws ArgumentException
   {
     if (uData.isOnline())
@@ -8519,9 +8522,9 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     EnableReplicationServerData server2 = uData.getServer2();
-    if (ci != null && ci.getCommandBuilder() != null)
+    if (sourceServerCI != null && sourceServerCI.getCommandBuilder() != null)
     {
-      CommandBuilder interactionBuilder = ci.getCommandBuilder();
+      CommandBuilder interactionBuilder = sourceServerCI.getCommandBuilder();
       boolean useAdminUID = existsArg(interactionBuilder, OPTION_LONG_ADMIN_UID);
       boolean hasBindDN = existsArg(interactionBuilder, OPTION_LONG_BINDDN);
 //    This is required when both the bindDN and the admin UID are provided
@@ -8826,9 +8829,9 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (ci != null && ci.getCommandBuilder() != null)
+    if (sourceServerCI != null && sourceServerCI.getCommandBuilder() != null)
     {
-      CommandBuilder interactionBuilder = ci.getCommandBuilder();
+      CommandBuilder interactionBuilder = sourceServerCI.getCommandBuilder();
       for (Argument arg : interactionBuilder.getArguments())
       {
         if (OPTION_LONG_HOST.equals(arg.getLongIdentifier()))
@@ -8966,7 +8969,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ADSContext adsContext = new ADSContext(ctx);
       if (adsContext.hasAdminData())
       {
-        TopologyCache cache = new TopologyCache(adsContext, getTrustManager(), getConnectTimeout());
+        TopologyCache cache = new TopologyCache(adsContext, getTrustManager(sourceServerCI), getConnectTimeout());
         cache.getFilter().setSearchMonitoringInformation(false);
         cache.setPreferredConnections(getPreferredConnections(ctx));
         cache.reloadTopology();
@@ -9116,7 +9119,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (adsCtx.hasAdminData())
       {
-        TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(), getConnectTimeout());
+        TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
         cache.getFilter().setSearchMonitoringInformation(false);
         addBaseDNs(cache.getFilter(), uData.getBaseDNs());
         cache.reloadTopology();
@@ -9417,7 +9420,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private TopologyCache createTopologyCache(ADSContext adsCtx, Set<PreferredConnection> cnx)
       throws ReplicationCliException
   {
-    TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(), getConnectTimeout());
+    TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
     cache.setPreferredConnections(cnx);
     cache.getFilter().setSearchBaseDNInformation(false);
     try
@@ -9442,7 +9445,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(),
-        dn, pwd, getTrustManager(), getConnectTimeout(),
+        dn, pwd, getTrustManager(sourceServerCI), getConnectTimeout(),
         cache.getPreferredConnections(), filter);
     return loader.createContext();
   }
