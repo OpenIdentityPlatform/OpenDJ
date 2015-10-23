@@ -35,7 +35,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}</directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory></outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>644</fileMode>
       <includes>
@@ -52,7 +52,7 @@
     </fileSet>
   <fileSet>
     <directory>${project.parent.parent.basedir}</directory>
-    <outputDirectory>/</outputDirectory>
+    <outputDirectory></outputDirectory>
     <directoryMode>755</directoryMode>
     <fileMode>644</fileMode>
     <includes>
