@@ -32,14 +32,12 @@
     <version>2.0.3</version>
   </parent>
   <groupId>org.forgerock.opendj</groupId>
-  <artifactId>opendj-project</artifactId>
+  <artifactId>opendj-sdk</artifactId>
   <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>OpenDJ Directory Services Project</name>
+  <name>OpenDJ LDAP SDK</name>
   <description>
-    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
-    platform, providing a high performance, highly available and secure store
-    for the identities managed by enterprises.
+    This group module provides a complete LDAP SDK for developing LDAP Directory client and server applications.
   </description>
   <inceptionYear>2011</inceptionYear>
   <url>http://opendj.forgerock.org</url>
@@ -64,9 +62,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj/browse</url>
-    <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj.git</connection>
-    <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj.git</developerConnection>
+      <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-sdk/browse</url>
+      <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</connection>
+      <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
@@ -90,21 +88,14 @@
     </site>
   </distributionManagement>
   <modules>
-    <module>opendj-maven-plugin</module>
     <module>opendj-copyright-maven-plugin</module>
     <module>opendj-doc-maven-plugin</module>
     <module>opendj-core</module>
     <module>opendj-grizzly</module>
-    <module>opendj-config</module>
     <module>opendj-cli</module>
     <module>opendj-ldap-toolkit</module>
     <module>opendj-ldap-sdk-examples</module>
     <module>opendj-rest2ldap</module>
-    <module>opendj-rest2ldap-servlet</module>
-    <module>opendj-server</module>
-    <module>opendj-server-example-plugin</module>
-    <module>opendj-legacy</module>
-    <module>opendj-server-legacy</module>
   </modules>
   <properties>
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
@@ -245,35 +236,6 @@
                 <exclude>**/*Messages.class</exclude>
               </excludes>
             </instrumentation>
-          </configuration>
-        </plugin>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only.
-            It has no influence on the Maven build itself.-->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.forgerock.opendj</groupId>
-                    <artifactId>opendj-maven-plugin</artifactId>
-                    <versionRange>[1.0.0-SNAPSHOT,)</versionRange>
-                    <goals>
-                      <goal>generate-config</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute>
-                        <!-- <runOnIncremental>true</runOnIncremental> -->
-                        <runOnConfiguration>true</runOnConfiguration>
-                    </execute>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
           </configuration>
         </plugin>
         <!-- This is needed to use annotations in maven plugins with maven 3.0.x -->
