@@ -78,15 +78,25 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
-          <webResources> 
+          <webResources>
+            <!-- Include CDDLv1_0.txt -->
             <resource>
               <targetPath>WEB-INF/legal-notices</targetPath>
               <directory>../legal-notices</directory>
-              <excludes>
-                <!-- The web-app does not include the documentation -->
-                <exclude>CC-BY-NC-ND.txt</exclude>
-              </excludes>
+              <includes>
+                <include>CDDLv1_0.txt</include>
+              </includes>
             </resource>
+
+            <!-- Include THIRDPARTYREADME.txt -->
+            <resource>
+              <targetPath>WEB-INF/legal-notices</targetPath>
+              <directory>legal-notices</directory>
+              <includes>
+                <include>THIRDPARTYREADME.txt</include>
+              </includes>
+            </resource>
+
             <resource>
               <targetPath>/</targetPath>
               <directory>src/main/webapp/</directory>

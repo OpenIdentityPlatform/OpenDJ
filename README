@@ -1,7 +1,7 @@
 OpenDJ
 
 This Maven project contains the OpenDJ product suite, comprising of an open
-source LDAP Directory Server, client tools, and LDAP SDK. All modules are 100%
+source LDAP Directory Server and client tools. All modules are 100%
 Java based and require Java 7. 
 
 OpenDJ is a downstream build of the OpenDS project, with a different name

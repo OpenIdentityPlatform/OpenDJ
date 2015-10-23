@@ -10,11 +10,8 @@ Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 Version: jackson-mapper-asl.jar (1.9.2)
 Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 
-Version: forgerock-persistit-core.jar (4.0.0)
+Version: forgerock-persistit-core.jar (4.1.0)
 Copyright: Copyright 2011-2012 Akiban Technologies, Inc.
-
-Version: freemarker.jar (2.3.21)
-Copyright: Copyright (c) 2003 The Visigoth Software Society. All rights reserved.
 
 ==================
 Full license text:
@@ -99,7 +96,7 @@ COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 Version: activation-1.1.jar
 Copyright: Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
 
-Version: javax.mail-1.4.7.jar
+Version: javax.mail-1.5.1.jar
 Copyright: Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
 
 Version: grizzly-framework.jar (2.3.14)

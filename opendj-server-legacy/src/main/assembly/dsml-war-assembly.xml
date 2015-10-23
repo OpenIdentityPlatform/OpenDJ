@@ -54,6 +54,24 @@
       <outputDirectory>legal-notices</outputDirectory>
     </fileSet>
 
+    <!-- Add legal-notices/THIRDPARTYREADME.txt -->
+    <fileSet>
+      <directory>${basedir}/legal-notices</directory>
+      <outputDirectory>WEB-INF/legal-notices</outputDirectory>
+      <includes>
+        <include>THIRDPARTYREADME.txt</include>
+      </includes>
+    </fileSet>
+
+    <!-- Add legal-notices/CDDLv1_0.txt -->
+    <fileSet>
+      <directory>${basedir}/../legal-notices</directory>
+      <outputDirectory>WEB-INF/legal-notices</outputDirectory>
+      <includes>
+        <include>CDDLv1_0.txt</include>
+      </includes>
+    </fileSet>
+
     <fileSet>
       <directory>${jars.dir}/</directory>
       <outputDirectory>WEB-INF/lib</outputDirectory>

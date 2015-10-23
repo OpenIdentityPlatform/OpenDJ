@@ -67,10 +67,22 @@
       <directoryMode>755</directoryMode>
     </fileSet>
 
-    <!-- Creates legal-notices/ directory -->
+    <!-- Add legal-notices/THIRDPARTYREADME.txt -->
     <fileSet>
-      <directory>${basedir}/resource/legal-notices</directory>
+      <directory>${basedir}/legal-notices</directory>
       <outputDirectory>legal-notices</outputDirectory>
+      <includes>
+        <include>THIRDPARTYREADME.txt</include>
+      </includes>
+    </fileSet>
+
+    <!-- Add legal-notices/CDDLv1_0.txt -->
+    <fileSet>
+      <directory>${basedir}/../legal-notices</directory>
+      <outputDirectory>legal-notices</outputDirectory>
+      <includes>
+        <include>CDDLv1_0.txt</include>
+      </includes>
     </fileSet>
 
     <!-- Include the Forgerock binary license file if exists -->
