@@ -24,429 +24,478 @@
   !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.forgerock</groupId>
-    <artifactId>forgerock-parent</artifactId>
-    <version>2.0.3</version>
-  </parent>
-  <groupId>org.forgerock.opendj</groupId>
-  <artifactId>opendj-sdk</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <name>OpenDJ LDAP SDK</name>
-  <description>
-    This group module provides a complete LDAP SDK for developing LDAP Directory client and server applications.
-  </description>
-  <inceptionYear>2011</inceptionYear>
-  <url>http://opendj.forgerock.org</url>
-  <issueManagement>
-    <system>Jira</system>
-    <url>https://bugster.forgerock.org/jira/browse/OPENDJ</url>
-  </issueManagement>
-  <mailingLists>
-    <mailingList>
-      <name>OpenDJ Users Mailing List</name>
-      <archive>http://lists.forgerock.org/pipermail/opendj/</archive>
-      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</subscribe>
-      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</unsubscribe>
-      <post>opendj@forgerock.org</post>
-    </mailingList>
-    <mailingList>
-      <name>OpenDJ Developers Mailing List</name>
-      <archive>http://lists.forgerock.org/pipermail/opendj-dev/</archive>
-      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</subscribe>
-      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</unsubscribe>
-      <post>opendj-dev@forgerock.org</post>
-    </mailingList>
-  </mailingLists>
-  <scm>
-      <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-sdk/browse</url>
-      <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</connection>
-      <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</developerConnection>
-  </scm>
-  <ciManagement>
-    <system>jenkins</system>
-    <url>https://builds.forgerock.org/view/OpenDJ/job/OpenDJ%20SDK%20-%20trunk%20-%20postcommit/</url>
-    <notifiers>
-      <notifier>
-        <type>mail</type>
-        <sendOnError>true</sendOnError>
-        <sendOnFailure>true</sendOnFailure>
-        <sendOnSuccess>false</sendOnSuccess>
-        <sendOnWarning>false</sendOnWarning>
-        <address>opendj-dev@forgerock.org</address>
-      </notifier>
-    </notifiers>
-  </ciManagement>
-  <distributionManagement>
-    <site>
-      <id>forgerock.org</id>
-      <name>OpenDJ Community</name>
-      <url>${siteDistributionURL}</url>
-    </site>
-  </distributionManagement>
-  <modules>
-    <module>opendj-copyright-maven-plugin</module>
-    <module>opendj-doc-maven-plugin</module>
-    <module>opendj-core</module>
-    <module>opendj-grizzly</module>
-    <module>opendj-cli</module>
-    <module>opendj-ldap-toolkit</module>
-    <module>opendj-ldap-sdk-examples</module>
-    <module>opendj-rest2ldap</module>
-  </modules>
-  <properties>
-    <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
-    <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-    <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
-    <i18nFrameworkVersion>1.4.2-SNAPSHOT</i18nFrameworkVersion>
-    <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
-    <slf4jVersion>1.7.5</slf4jVersion>
-    <forgerockRestVersion>3.0.0-SNAPSHOT</forgerockRestVersion>
-    <forgerockHttpVersion>0.0.1-SNAPSHOT</forgerockHttpVersion>
-    <frDocPluginVersion>3.1.0-SNAPSHOT</frDocPluginVersion>
+    <parent>
+        <groupId>org.forgerock</groupId>
+        <artifactId>forgerock-parent</artifactId>
+        <version>2.0.3</version>
+    </parent>
 
-    <!-- OSGi bundles properties -->
-    <opendj.osgi.import.additional />
-    <!--
-     | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
-     | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
-    -->
-    <opendj.osgi.import>
-      ${opendj.osgi.import.additional},
-      *
-    </opendj.osgi.import>
+    <groupId>org.forgerock.opendj</groupId>
+    <artifactId>opendj-sdk</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
 
-    <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
+    <packaging>pom</packaging>
 
-    <siteDistributionURL>scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
-  </properties>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.forgerock.maven.plugins</groupId>
-        <artifactId>javadoc-updater-maven-plugin</artifactId>
-        <version>1.0.0</version>
-        <executions>
-          <execution>
-            <phase>site</phase>
-            <goals>
-              <goal>fixjavadoc</goal>
-            </goals>
-            <configuration>
-              <directory>${project.reporting.outputDirectory}</directory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+    <name>OpenDJ LDAP SDK</name>
+    <description>
+        This group module provides a complete LDAP SDK for developing LDAP Directory client and server applications.
+    </description>
+    <inceptionYear>2011</inceptionYear>
+    <url>http://opendj.forgerock.org</url>
 
-    </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <inherited>true</inherited>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.7</source>
-            <target>1.7</target>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <argLine>-server</argLine>
-            <properties>
-              <property>
-                <name>usedefaultlisteners</name>
-                <value>false</value>
-              </property>
-              <property>
-                <name>listener</name>
-                <value>org.forgerock.testng.ForgeRockTestListener</value>
-              </property>
-            </properties>
-          </configuration>
-        </plugin>
-          <plugin>
-              <groupId>org.apache.felix</groupId>
-              <artifactId>maven-bundle-plugin</artifactId>
-              <version>2.3.7</version>
-              <extensions>true</extensions>
-              <configuration>
-                  <instructions>
-                      <!--
-                      | Remove the by default removed headers plus some other to make cleaner the generated MANIFEST.MF
-                      -->
-                      <_removeheaders>
-                          Bnd-LastModified,Built-By,Private-Package,Tool,Created-By,Build-Jdk,Include-Resource,
-                          Ignore-Package,Private-Package,Bundle-DocURL
-                      </_removeheaders>
-                      <Import-Package>${opendj.osgi.import}</Import-Package>
-                  </instructions>
-                  <archive>
-                    <addMavenDescriptor>false</addMavenDescriptor>
-                    <index>true</index>
-                    <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                  </archive>
-              </configuration>
-          </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <configuration>
-            <links>
-             <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
-            </links>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <executions>
-            <execution>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-site-plugin</artifactId>
-          <configuration>
-            <locales>en</locales>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.forgerock.commons</groupId>
-          <artifactId>i18n-maven-plugin</artifactId>
-          <version>${i18nFrameworkVersion}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>cobertura-maven-plugin</artifactId>
-          <configuration>
-            <instrumentation>
-              <excludes>
-                <exclude>**/*Messages.class</exclude>
-              </excludes>
-            </instrumentation>
-          </configuration>
-        </plugin>
-        <!-- This is needed to use annotations in maven plugins with maven 3.0.x -->
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-plugin-plugin</artifactId>
-            <version>3.2</version>
-            <configuration>
-                <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
-            </configuration>
-            <executions>
-                <execution>
-                    <id>mojo-descriptor</id>
-                    <phase>process-classes</phase>
-                    <goals>
-                        <goal>descriptor</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
+    <issueManagement>
+        <system>Jira</system>
+        <url>https://bugster.forgerock.org/jira/browse/OPENDJ</url>
+    </issueManagement>
 
-        <!-- Provides build capabilities for docs in DocBook XML format. -->
-        <plugin>
-            <groupId>org.forgerock.commons</groupId>
-            <artifactId>forgerock-doc-maven-plugin</artifactId>
-            <version>${frDocPluginVersion}</version>
-            <configuration>
-                <projectName>OpenDJ</projectName>
-                <projectVersion>${project.version}</projectVersion>
-                <releaseVersion>${project.version}</releaseVersion>
-                <googleAnalyticsId>UA-23412190-8</googleAnalyticsId>
-            </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.4</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>index</report>
-              <report>mailing-list</report>
-              <report>issue-tracking</report>
-              <report>license</report>
-              <report>scm</report>
-              <report>cim</report>
-              <report>distribution-management</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
-  <repositories>
-    <repository>
-      <id>forgerock-staging-repository</id>
-      <name>ForgeRock Release Repository</name>
-      <url>http://maven.forgerock.org/repo/releases</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>forgerock-snapshots-repository</id>
-      <name>ForgeRock Snapshot Repository</name>
-      <url>http://maven.forgerock.org/repo/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-    </repository>
-    <repository>
-      <id>jvnet-nexus-snapshots</id>
-      <url>https://maven.java.net/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>i18n-core</artifactId>
-        <version>${i18nFrameworkVersion}</version>
-        <scope>compile</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>i18n-slf4j</artifactId>
-        <version>${i18nFrameworkVersion}</version>
-        <scope>compile</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4jVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-jdk14</artifactId>
-        <version>${slf4jVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>forgerock-util</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>org.easytesting</groupId>
-      <artifactId>fest-assert</artifactId>
-      <version>1.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.8.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testng</groupId>
-      <artifactId>testng</artifactId>
-      <version>6.0.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-  <licenses>
-   <license>
-    <name>CDDL-1.0</name>
-    <url>http://www.opensource.org/licenses/CDDL-1.0</url>
-    <comments>Common Development and Distribution License (CDDL) 1.0.
-    This license applies to OpenDJ source code as indicated in the
-    source files.</comments>
-    <distribution>repo</distribution>
-   </license>
-  </licenses>
-  <profiles>
-    <profile>
-      <id>precommit</id>
-      <build>
+    <mailingLists>
+        <mailingList>
+            <name>OpenDJ Users Mailing List</name>
+            <archive>http://lists.forgerock.org/pipermail/opendj/</archive>
+            <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</subscribe>
+            <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</unsubscribe>
+            <post>opendj@forgerock.org</post>
+        </mailingList>
+
+        <mailingList>
+            <name>OpenDJ Developers Mailing List</name>
+            <archive>http://lists.forgerock.org/pipermail/opendj-dev/</archive>
+            <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</subscribe>
+            <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</unsubscribe>
+            <post>opendj-dev@forgerock.org</post>
+        </mailingList>
+    </mailingLists>
+
+    <scm>
+        <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-sdk/browse</url>
+        <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</connection>
+        <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</developerConnection>
+    </scm>
+
+    <ciManagement>
+        <system>jenkins</system>
+        <url>https://builds.forgerock.org/view/OpenDJ/job/OpenDJ%20SDK%20-%20trunk%20-%20postcommit/</url>
+        <notifiers>
+            <notifier>
+                <type>mail</type>
+                <sendOnError>true</sendOnError>
+                <sendOnFailure>true</sendOnFailure>
+                <sendOnSuccess>false</sendOnSuccess>
+                <sendOnWarning>false</sendOnWarning>
+                <address>opendj-dev@forgerock.org</address>
+            </notifier>
+        </notifiers>
+    </ciManagement>
+
+    <distributionManagement>
+        <site>
+            <id>forgerock.org</id>
+            <name>OpenDJ Community</name>
+            <url>${siteDistributionURL}</url>
+        </site>
+    </distributionManagement>
+
+    <modules>
+        <module>opendj-copyright-maven-plugin</module>
+        <module>opendj-doc-maven-plugin</module>
+        <module>opendj-core</module>
+        <module>opendj-grizzly</module>
+        <module>opendj-cli</module>
+        <module>opendj-ldap-toolkit</module>
+        <module>opendj-ldap-sdk-examples</module>
+        <module>opendj-rest2ldap</module>
+    </modules>
+
+    <properties>
+        <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
+        <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
+
+        <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
+        <i18n-framework.version>1.4.2-SNAPSHOT</i18n-framework.version>
+        <grizzly-framework.version>2.3.14</grizzly-framework.version>
+        <slf4j.version>1.7.5</slf4j.version>
+        <forgerock-rest.version>3.0.0-SNAPSHOT</forgerock-rest.version>
+        <forgerock-http.version>0.0.1-SNAPSHOT</forgerock-http.version>
+        <forgerock-doc-plugin.version>3.1.0-SNAPSHOT</forgerock-doc-plugin.version>
+
+        <!-- OSGi bundles properties -->
+        <opendj.osgi.import.additional/>
+        <!--
+         | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
+         | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
+        -->
+        <opendj.osgi.import>
+            ${opendj.osgi.import.additional},
+            *
+        </opendj.osgi.import>
+
+        <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
+
+        <siteDistributionURL>scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs
+        </siteDistributionURL>
+    </properties>
+
+
+    <build>
         <plugins>
-          <plugin>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-copyright-maven-plugin</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
-            <executions>
-                <execution>
-                    <id>check-copyright</id>
-                    <goals>
-                        <goal>check-copyright</goal>
-                    </goals>
-                </execution>
-            </executions>
-          </plugin>
-        </plugins>
-        </build>
-    </profile>
-
-    <profile>
-      <id>update-copyrights</id>
-        <build>
-          <plugins>
             <plugin>
-              <groupId>org.forgerock.opendj</groupId>
-              <artifactId>opendj-copyright-maven-plugin</artifactId>
-              <version>3.0.0-SNAPSHOT</version>
-              <executions>
-                  <execution>
-                    <id>check-copyright</id>
-                    <phase>none</phase>
-                    <goals>
-                        <goal>check-copyright</goal>
-                    </goals>
-                  </execution>
-                  <execution>
-                      <id>update-copyright</id>
-                      <goals>
-                          <goal>update-copyright</goal>
-                      </goals>
-                      <configuration>
-                        <!-- We need to accept the second part of the following regular expression for submodules:
-                           ! * opendj-rest2ldap
-                           ! * opendj-rest2ldap-servlet
-                           ! * opendj-legacy
-                           !
-                           ! Please note that the regexp '\"Portions Copyright \[year\] \[name of copyright owner\]\"'
-                           ! must never be found before 'CDDL HEADER END' in other submodules, otherwise the plugin will fail.
-                         -->
-                        <lineBeforeCopyrightRegExp>(CDDL HEADER END|\"Portions Copyright \[year\] \[name of copyright owner\]\")</lineBeforeCopyrightRegExp>
-                      </configuration>
-                  </execution>
-              </executions>
+                <groupId>org.forgerock.maven.plugins</groupId>
+                <artifactId>javadoc-updater-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>fixjavadoc</goal>
+                        </goals>
+                        <configuration>
+                            <directory>${project.reporting.outputDirectory}</directory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
-          </plugins>
-        </build>
-    </profile>
-  </profiles>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <inherited>true</inherited>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <argLine>-server</argLine>
+                        <properties>
+                            <property>
+                                <name>usedefaultlisteners</name>
+                                <value>false</value>
+                            </property>
+                            <property>
+                                <name>listener</name>
+                                <value>org.forgerock.testng.ForgeRockTestListener</value>
+                            </property>
+                        </properties>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>2.3.7</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <instructions>
+                            <!--
+                            | Remove the by default removed headers plus some other to make cleaner the generated MANIFEST.MF
+                            -->
+                            <_removeheaders>
+                                Bnd-LastModified,Built-By,Private-Package,Tool,Created-By,Build-Jdk,Include-Resource,
+                                Ignore-Package,Private-Package,Bundle-DocURL
+                            </_removeheaders>
+                            <Import-Package>${opendj.osgi.import}</Import-Package>
+                        </instructions>
+                        <archive>
+                            <addMavenDescriptor>false</addMavenDescriptor>
+                            <index>true</index>
+                            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                        </archive>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <configuration>
+                        <links>
+                            <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
+                        </links>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <configuration>
+                        <locales>en</locales>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.forgerock.commons</groupId>
+                    <artifactId>i18n-maven-plugin</artifactId>
+                    <version>${i18n-framework.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>cobertura-maven-plugin</artifactId>
+                    <configuration>
+                        <instrumentation>
+                            <excludes>
+                                <exclude>**/*Messages.class</exclude>
+                            </excludes>
+                        </instrumentation>
+                    </configuration>
+                </plugin>
+
+                <!-- This is needed to use annotations in maven plugins with maven 3.0.x -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.2</version>
+                    <configuration>
+                        <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>mojo-descriptor</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>descriptor</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Provides build capabilities for docs in DocBook XML format. -->
+                <plugin>
+                    <groupId>org.forgerock.commons</groupId>
+                    <artifactId>forgerock-doc-maven-plugin</artifactId>
+                    <version>${forgerock-doc-plugin.version}</version>
+                    <configuration>
+                        <projectName>OpenDJ</projectName>
+                        <projectVersion>${project.version}</projectVersion>
+                        <releaseVersion>${project.version}</releaseVersion>
+                        <googleAnalyticsId>UA-23412190-8</googleAnalyticsId>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.4</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>mailing-list</report>
+                            <report>issue-tracking</report>
+                            <report>license</report>
+                            <report>scm</report>
+                            <report>cim</report>
+                            <report>distribution-management</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+
+
+    <repositories>
+        <repository>
+            <id>forgerock-staging-repository</id>
+            <name>ForgeRock Release Repository</name>
+            <url>http://maven.forgerock.org/repo/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>forgerock-snapshots-repository</id>
+            <name>ForgeRock Snapshot Repository</name>
+            <url>http://maven.forgerock.org/repo/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>jvnet-nexus-snapshots</id>
+            <url>https://maven.java.net/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-core</artifactId>
+                <version>${i18n-framework.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-slf4j</artifactId>
+                <version>${i18n-framework.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>forgerock-util</artifactId>
+                <version>2.0.0-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.easytesting</groupId>
+            <artifactId>fest-assert</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.5</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.0.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <licenses>
+        <license>
+            <name>CDDL-1.0</name>
+            <url>http://www.opensource.org/licenses/CDDL-1.0</url>
+            <comments>Common Development and Distribution License (CDDL) 1.0.
+                This license applies to OpenDJ source code as indicated in the
+                source files.
+            </comments>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+    <profiles>
+        <profile>
+            <id>precommit</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.forgerock.opendj</groupId>
+                        <artifactId>opendj-copyright-maven-plugin</artifactId>
+                        <version>3.0.0-SNAPSHOT</version>
+                        <executions>
+                            <execution>
+                                <id>check-copyright</id>
+                                <goals>
+                                    <goal>check-copyright</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>update-copyrights</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.forgerock.opendj</groupId>
+                        <artifactId>opendj-copyright-maven-plugin</artifactId>
+                        <version>3.0.0-SNAPSHOT</version>
+                        <executions>
+                            <execution>
+                                <id>check-copyright</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>check-copyright</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>update-copyright</id>
+                                <goals>
+                                    <goal>update-copyright</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- We need to accept the second part of the following regular expression for submodules:
+                                       ! * opendj-rest2ldap
+                                       ! * opendj-rest2ldap-servlet
+                                       ! * opendj-legacy
+                                       !
+                                       ! Please note that the regexp '\"Portions Copyright \[year\] \[name of copyright owner\]\"'
+                                       ! must never be found before 'CDDL HEADER END' in other submodules, otherwise the plugin will fail.
+                                     -->
+                                    <lineBeforeCopyrightRegExp>(CDDL HEADER END|\"Portions Copyright \[year\] \[name of
+                                        copyright owner\]\")
+                                    </lineBeforeCopyrightRegExp>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

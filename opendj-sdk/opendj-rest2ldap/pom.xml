@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ! The contents of this file are subject to the terms of the Common Development and
   ! Distribution License (the License). You may not use this file except in compliance with the
@@ -15,19 +15,23 @@
   ! Copyright 2012-2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>opendj-sdk</artifactId>
         <groupId>org.forgerock.opendj</groupId>
         <version>3.0.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>opendj-rest2ldap</artifactId>
     <name>OpenDJ Commons REST Adapter</name>
-    <description>
-        This module includes APIs for accessing LDAP repositories using commons REST.
-    </description>
+    <description>This module includes APIs for accessing LDAP repositories using commons REST.</description>
+
     <packaging>bundle</packaging>
+
     <properties>
         <checkstyleHeaderLocation>org/forgerock/checkstyle/default-java-header</checkstyleHeaderLocation>
         <opendj.osgi.import.additional>
@@ -35,29 +39,36 @@
             org.forgerock.json.*;provide:=true
         </opendj.osgi.import.additional>
     </properties>
+
+
     <dependencies>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource</artifactId>
-            <version>${forgerockRestVersion}</version>
+            <version>${forgerock-rest.version}</version>
         </dependency>
+
         <dependency>
-          <groupId>org.forgerock.commons</groupId>
-          <artifactId>json-resource-http</artifactId>
-          <version>${forgerockRestVersion}</version>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>json-resource-http</artifactId>
+            <version>${forgerock-rest.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.forgerock</groupId>
             <artifactId>forgerock-build-tools</artifactId>
-            <version>${forgerockBuildToolsVersion}</version>
+            <version>${forgerock-build-tools.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+
     <build>
         <plugins>
             <plugin>
@@ -70,12 +81,15 @@
                     </instructions>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
+
+
     <reporting>
         <plugins>
             <plugin>

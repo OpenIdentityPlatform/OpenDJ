@@ -24,122 +24,139 @@
   !      Copyright 2013-2015 ForgeRock AS
   !    
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>opendj-sdk</artifactId>
-    <groupId>org.forgerock.opendj</groupId>
-    <version>3.0.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>opendj-grizzly</artifactId>
-  <name>OpenDJ Grizzly Transport Provider</name>
-  <description>
-    This module includes a Grizzly based network transport provider for OpenDJ.
-  </description>
-  <packaging>bundle</packaging>
-  <dependencies>
-     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.commons</groupId>
-      <artifactId>i18n-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-framework</artifactId>
-      <version>${grizzlyFrameworkVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock</groupId>
-      <artifactId>forgerock-build-tools</artifactId>
-      <version>${forgerockBuildToolsVersion}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <properties>
-    <opendj.osgi.import.additional>
-      org.forgerock.opendj.*;provide:=true
-    </opendj.osgi.import.additional>
-  </properties>
+    <parent>
+        <artifactId>opendj-sdk</artifactId>
+        <groupId>org.forgerock.opendj</groupId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>generate-messages</goal>
-            </goals>
-            <configuration>
-              <messageFiles>
-                <messageFile>com/forgerock/opendj/grizzly/grizzly.properties</messageFile>
-              </messageFiles>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <configuration>
-          <instructions>
-            <!-- Export only public APIs of this module-->
-            <Export-Package>
-              org.forgerock.opendj.grizzly*
-            </Export-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>dependencies</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <links>
-           <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
-          </links>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
+    <artifactId>opendj-grizzly</artifactId>
+    <name>OpenDJ Grizzly Transport Provider</name>
+    <description>This module includes a Grizzly based network transport provider for OpenDJ.</description>
+
+    <packaging>bundle</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-core</artifactId>
+            <type>test-jar</type>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>i18n-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.grizzly</groupId>
+            <artifactId>grizzly-framework</artifactId>
+            <version>${grizzly-framework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock</groupId>
+            <artifactId>forgerock-build-tools</artifactId>
+            <version>${forgerock-build-tools.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <properties>
+        <opendj.osgi.import.additional>
+            org.forgerock.opendj.*;provide:=true
+        </opendj.osgi.import.additional>
+    </properties>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-messages</goal>
+                        </goals>
+                        <configuration>
+                            <messageFiles>
+                                <messageFile>com/forgerock/opendj/grizzly/grizzly.properties</messageFile>
+                            </messageFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <!-- Export only public APIs of this module-->
+                        <Export-Package>
+                            org.forgerock.opendj.grizzly*
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependencies</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <links>
+                        <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
+                    </links>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>

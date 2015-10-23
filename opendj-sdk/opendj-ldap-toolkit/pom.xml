@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  ! CDDL HEADER START
  !
@@ -24,285 +24,307 @@
  !      Copyright 2011-2015 ForgeRock AS.
  !    
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>opendj-sdk</artifactId>
-    <groupId>org.forgerock.opendj</groupId>
-    <version>3.0.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>opendj-ldap-toolkit</artifactId>
-  <name>OpenDJ SDK Toolkit</name>
-  <description>
-    This module includes LDAP command line tools based on the OpenDJ LDAP SDK.
-  </description>
-  <packaging>jar</packaging>
-  <dependencies>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-grizzly</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.commons</groupId>
-      <artifactId>i18n-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-cli</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-   	  <groupId>org.forgerock</groupId>
-      <artifactId>forgerock-build-tools</artifactId>
-      <version>${forgerockBuildToolsVersion}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>generate-messages</goal>
-            </goals>
-            <configuration>
-              <messageFiles>
-                <messageFile>com/forgerock/opendj/ldap/tools/tools.properties</messageFile>
-              </messageFiles>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <appendAssemblyId>false</appendAssemblyId>
-              <descriptors>
-                <descriptor>src/main/assembly/descriptor.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <executions>
-	          <execution>
-	          	<goals>
-	          		<goal>integration-test</goal>
-	          		<goal>verify</goal>
-	          	</goals>
-	          </execution>
-          </executions>
-     </plugin>
-    </plugins>
-  </build>
-  <profiles>
-    <profile>
-      <id>docs</id>
-      <build>
-        <plugins>
-          <plugin>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>opendj-sdk</artifactId>
+        <groupId>org.forgerock.opendj</groupId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>opendj-ldap-toolkit</artifactId>
+    <name>OpenDJ SDK Toolkit</name>
+    <description>This module includes LDAP command line tools based on the OpenDJ LDAP SDK.</description>
+
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
             <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-doc-maven-plugin</artifactId>
+            <artifactId>opendj-core</artifactId>
             <version>${project.version}</version>
-            <executions>
-              <execution>
-                <id>generate-doc</id>
-                <goals>
-                  <goal>generate-refentry</goal>
-                </goals>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-grizzly</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>i18n-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock</groupId>
+            <artifactId>forgerock-build-tools</artifactId>
+            <version>${forgerock-build-tools.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-messages</goal>
+                        </goals>
+                        <configuration>
+                            <messageFiles>
+                                <messageFile>com/forgerock/opendj/ldap/tools/tools.properties</messageFile>
+                            </messageFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                  <outputDir>${project.build.directory}/generated-man-pages</outputDir>
-                  <tools>
-                    <tool>
-                      <name>addrate</name>
-                      <application>com.forgerock.opendj.ldap.tools.AddRate</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-80-89.xml</trailingSectionPath>
-                        <trailingSectionPath>addrate-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>authrate</name>
-                      <application>com.forgerock.opendj.ldap.tools.AuthRate</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
-                        <trailingSectionPath>authrate-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldapcompare</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                        <trailingSectionPath>files.xml</trailingSectionPath>
-                        <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldapmodify</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDAPModify</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                        <trailingSectionPath>files.xml</trailingSectionPath>
-                        <trailingSectionPath>ldapmodify-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldappasswordmodify</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDAPPasswordModify</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                        <trailingSectionPath>files.xml</trailingSectionPath>
-                        <trailingSectionPath>ldappasswordmodify-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldapsearch</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDAPSearch</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>filters.xml</trailingSectionPath>
-                        <trailingSectionPath>attributes.xml</trailingSectionPath>
-                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                        <trailingSectionPath>files.xml</trailingSectionPath>
-                        <trailingSectionPath>ldapsearch-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldifdiff</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDIFDiff</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-5-6-other.xml</trailingSectionPath>
-                        <trailingSectionPath>ldifdiff-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldifmodify</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDIFModify</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                        <trailingSectionPath>ldifmodify-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>ldifsearch</name>
-                      <application>com.forgerock.opendj.ldap.tools.LDIFSearch</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                        <trailingSectionPath>ldifsearch-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>makeldif</name>
-                      <application>com.forgerock.opendj.ldap.tools.MakeLDIF</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-1.xml</trailingSectionPath>
-                        <trailingSectionPath>makeldif-examples.xml</trailingSectionPath>
-                        <trailingSectionPath>makeldif-see-also.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>modrate</name>
-                      <application>com.forgerock.opendj.ldap.tools.ModRate</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
-                        <trailingSectionPath>modrate-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-
-                    <tool>
-                      <name>searchrate</name>
-                      <application>com.forgerock.opendj.ldap.tools.SearchRate</application>
-                      <trailingSectionPaths>
-                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
-                        <trailingSectionPath>searchrate-examples.xml</trailingSectionPath>
-                      </trailingSectionPaths>
-                    </tool>
-                  </tools>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>man-pages</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/man-pages.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/descriptor.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
-      </build>
-    </profile>
-  </profiles>
+    </build>
+
+
+    <profiles>
+        <profile>
+            <id>docs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.forgerock.opendj</groupId>
+                        <artifactId>opendj-doc-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+                        <executions>
+                            <execution>
+                                <id>generate-doc</id>
+                                <goals>
+                                    <goal>generate-refentry</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDir>${project.build.directory}/generated-man-pages</outputDir>
+                                    <tools>
+                                        <tool>
+                                            <name>addrate</name>
+                                            <application>com.forgerock.opendj.ldap.tools.AddRate</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-80-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>addrate-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>authrate</name>
+                                            <application>com.forgerock.opendj.ldap.tools.AuthRate</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>authrate-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldapcompare</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>files.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldapmodify</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDAPModify</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>files.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldapmodify-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldappasswordmodify</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDAPPasswordModify
+                                            </application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>files.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldappasswordmodify-examples.xml
+                                                </trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldapsearch</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDAPSearch</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>filters.xml</trailingSectionPath>
+                                                <trailingSectionPath>attributes.xml</trailingSectionPath>
+                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>files.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldapsearch-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldifdiff</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDIFDiff</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-5-6-other.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldifdiff-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldifmodify</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDIFModify</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldifmodify-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>ldifsearch</name>
+                                            <application>com.forgerock.opendj.ldap.tools.LDIFSearch</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                                                <trailingSectionPath>ldifsearch-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>makeldif</name>
+                                            <application>com.forgerock.opendj.ldap.tools.MakeLDIF</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-1.xml</trailingSectionPath>
+                                                <trailingSectionPath>makeldif-examples.xml</trailingSectionPath>
+                                                <trailingSectionPath>makeldif-see-also.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>modrate</name>
+                                            <application>com.forgerock.opendj.ldap.tools.ModRate</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>modrate-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+
+                                        <tool>
+                                            <name>searchrate</name>
+                                            <application>com.forgerock.opendj.ldap.tools.SearchRate</application>
+                                            <trailingSectionPaths>
+                                                <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                                                <trailingSectionPath>searchrate-examples.xml</trailingSectionPath>
+                                            </trailingSectionPaths>
+                                        </tool>
+                                    </tools>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>man-pages</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/man-pages.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

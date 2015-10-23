@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  ! CDDL HEADER START
  !
@@ -21,8 +21,8 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011 ForgeRock AS
- !    
+ !      Copyright 2011-2015 ForgeRock AS
+ !
  -->
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -35,7 +35,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}</directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory></outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>644</fileMode>
       <includes>
@@ -52,7 +52,7 @@
     </fileSet>
   <fileSet>
     <directory>${project.parent.parent.basedir}</directory>
-    <outputDirectory>/</outputDirectory>
+    <outputDirectory></outputDirectory>
     <directoryMode>755</directoryMode>
     <fileMode>644</fileMode>
     <includes>
