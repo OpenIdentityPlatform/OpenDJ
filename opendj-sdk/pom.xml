@@ -36,7 +36,7 @@
     </parent>
 
     <groupId>org.forgerock.opendj</groupId>
-    <artifactId>opendj-sdk</artifactId>
+    <artifactId>opendj-sdk-parent</artifactId>
     <version>3.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
@@ -50,7 +50,7 @@
 
     <issueManagement>
         <system>Jira</system>
-        <url>https://bugster.forgerock.org/jira/browse/OPENDJ</url>
+        <url>https://bugster.forgerock.org/jira/browse/OPENDJSDK</url>
     </issueManagement>
 
     <mailingLists>
@@ -79,7 +79,7 @@
 
     <ciManagement>
         <system>jenkins</system>
-        <url>https://builds.forgerock.org/view/OpenDJ/job/OpenDJ%20SDK%20-%20trunk%20-%20postcommit/</url>
+        <url>https://ci.forgerock.org/view/OpenDJ/job/OpenDJ%20-%20SDK%20-%20postcommit</url>
         <notifiers>
             <notifier>
                 <type>mail</type>
