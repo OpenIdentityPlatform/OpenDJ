@@ -71,12 +71,7 @@ public class StateTest extends DirectoryServerTestCase
 
   @BeforeClass
   public void startServer() throws Exception {
-    TestCaseUtils.startFakeServer();
-  }
-
-  @AfterClass
-  public void stopServer() throws Exception {
-    TestCaseUtils.shutdownFakeServer();
+    TestCaseUtils.startServer();
   }
 
   @BeforeMethod

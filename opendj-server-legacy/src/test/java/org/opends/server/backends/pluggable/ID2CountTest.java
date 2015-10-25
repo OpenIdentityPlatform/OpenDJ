@@ -72,13 +72,9 @@ public class ID2CountTest extends DirectoryServerTestCase
   private PDBStorage storage;
 
   @BeforeClass
-  public void startFakeServer() throws Exception {
-    TestCaseUtils.startFakeServer();
-  }
-
-  @AfterClass
-  public void stopFakeServer() throws Exception {
-    TestCaseUtils.shutdownFakeServer();
+  public void startServer() throws Exception
+  {
+    TestCaseUtils.startServer();
   }
 
   @BeforeMethod
