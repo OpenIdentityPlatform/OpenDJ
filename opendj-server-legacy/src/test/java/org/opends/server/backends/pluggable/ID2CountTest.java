@@ -131,18 +131,18 @@ public class ID2CountTest extends DirectoryServerTestCase
   @Test
   public void testDeleteCounterDecrementTotalCounter() throws Exception
   {
-    addDelta(id(0), 1024);
-    addDelta(id(1), 1024);
-    addDelta(id(2), 1024);
-    addDelta(id(3), 1024);
+    updateCount(id(0), 1024);
+    updateCount(id(1), 1024);
+    updateCount(id(2), 1024);
+    updateCount(id(3), 1024);
     assertThat(getTotalCounter()).isEqualTo(4096);
 
-    assertThat(deleteCount(id(0))).isEqualTo(1024);
+    assertThat(removeCount(id(0))).isEqualTo(1024);
     assertThat(getTotalCounter()).isEqualTo(3072);
 
-    assertThat(deleteCount(id(1))).isEqualTo(1024);
-    assertThat(deleteCount(id(2))).isEqualTo(1024);
-    assertThat(deleteCount(id(3))).isEqualTo(1024);
+    assertThat(removeCount(id(1))).isEqualTo(1024);
+    assertThat(removeCount(id(2))).isEqualTo(1024);
+    assertThat(removeCount(id(3))).isEqualTo(1024);
     assertThat(getTotalCounter()).isEqualTo(0);
   }
 
@@ -171,7 +171,7 @@ public class ID2CountTest extends DirectoryServerTestCase
         @Override
         public Void call() throws Exception
         {
-          addDelta(key, delta);
+          updateCount(key, delta);
           return null;
         }
       });
@@ -179,26 +179,29 @@ public class ID2CountTest extends DirectoryServerTestCase
     return expected;
   }
 
-  private long deleteCount(final EntryID key) throws Exception {
+  private long removeCount(final EntryID key) throws Exception {
     final PromiseImpl<Long, NeverThrowsException> l = PromiseImpl.create();
     storage.write(new WriteOperation()
     {
       @Override
       public void run(WriteableTransaction txn) throws Exception
       {
-        l.handleResult(id2Count.deleteCount(txn, key));
+        final long delta = id2Count.removeCount(txn, key);
+        id2Count.updateTotalCount(txn, -delta);
+        l.handleResult(delta);
       }
     });
     return l.get();
   }
 
-  private void addDelta(final EntryID key, final long delta) throws Exception {
+  private void updateCount(final EntryID key, final long delta) throws Exception {
     storage.write(new WriteOperation()
     {
       @Override
       public void run(WriteableTransaction txn) throws Exception
       {
-        id2Count.addDelta(txn, key, delta);
+        id2Count.updateCount(txn, key, delta);
+        id2Count.updateTotalCount(txn, delta);
       }
     });
   }

@@ -30,6 +30,7 @@ import static org.forgerock.util.Reject.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.backends.pluggable.CursorTransformer.transformKeysAndValues;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -45,6 +46,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.util.Function;
 import org.forgerock.util.Reject;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -64,6 +66,24 @@ import org.opends.server.types.LDAPException;
 class ID2Entry extends AbstractTree
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** Transforms cursor keys into EntryIDs. */
+  private static final Function<ByteString, EntryID, Exception> TO_ENTRY_ID =
+          new Function<ByteString, EntryID, Exception>() {
+    @Override
+    public EntryID apply(ByteString value) throws Exception {
+      return new EntryID(value);
+    }
+  };
+
+  /** Transforms cursor values into Entry objects. */
+  private final CursorTransformer.ValueTransformer<ByteString, ByteString, Entry, Exception> TO_ENTRY =
+          new CursorTransformer.ValueTransformer<ByteString, ByteString, Entry, Exception>() {
+    @Override
+    public Entry transform(ByteString key, ByteString value) throws Exception {
+      return get0(value);
+    }
+  };
 
   /** Parameters for compression and encryption. */
   private DataConfig dataConfig;
@@ -372,6 +392,10 @@ class ID2Entry extends AbstractTree
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(entryID));
     }
   }
+
+  Cursor<EntryID, Entry> openCursor(ReadableTransaction txn)
+  {
+    return transformKeysAndValues(txn.openCursor(getName()), TO_ENTRY_ID, TO_ENTRY);
   }
 
   /**

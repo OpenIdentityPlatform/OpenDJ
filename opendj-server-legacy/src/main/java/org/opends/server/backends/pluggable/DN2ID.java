@@ -29,7 +29,9 @@ package org.opends.server.backends.pluggable;
 import static org.opends.server.backends.pluggable.CursorTransformer.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -37,6 +39,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.util.Function;
+import org.forgerock.util.Pair;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.SequentialCursorDecorator;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -46,7 +49,9 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
 
 /**
  * This class represents the dn2id index, which has one record
@@ -176,6 +181,44 @@ class DN2ID extends AbstractTree
 
   SequentialCursor<Void, EntryID> openSubordinatesCursor(ReadableTransaction txn, DN dn) {
     return transformKeysAndValues(new SubtreeCursor(openCursor0(txn, dn)), TO_VOID_KEY, TO_ENTRY_ID);
+  }
+
+  List<Pair<Long, Long>> renameSubtree(WriteableTransaction txn,
+                                       DN oldName,
+                                       DN newName,
+                                       RootContainer rootContainer,
+                                       boolean renumberEntryIDs,
+                                       Operation operation)
+          throws CanceledOperationException
+  {
+    try (SequentialCursor<ByteString, ByteString> cursor = new SubtreeCursor(openCursor0(txn, oldName)))
+    {
+      List<Pair<Long, Long>> renamedEntryIDs = new ArrayList<>();
+      int oldTargetDnKeyLength = toKey(oldName).length();
+      ByteString newTargetDnKey = toKey(newName);
+
+      do
+      {
+        ByteString currentDnKey = cursor.getKey();
+        EntryID oldID = new EntryID(cursor.getValue());
+        cursor.delete();
+
+        ByteString newDnKeySuffix = currentDnKey.subSequence(oldTargetDnKeyLength, currentDnKey.length());
+        ByteSequence newDnKey = new ByteStringBuilder(newTargetDnKey).append(newDnKeySuffix);
+        EntryID newID = renumberEntryIDs ? rootContainer.getNextEntryID() : oldID;
+        txn.put(getName(), newDnKey, newID.toByteString());
+
+        renamedEntryIDs.add(Pair.of(oldID.longValue(), newID.longValue()));
+
+        if (operation != null)
+        {
+          operation.checkIfCanceled(false);
+        }
+      }
+      while (cursor.next());
+
+      return renamedEntryIDs;
+    }
   }
 
   /**
@@ -386,6 +429,12 @@ class DN2ID extends AbstractTree
     public ByteString getValue() throws NoSuchElementException
     {
       return delegate.getValue();
+    }
+
+    @Override
+    public void delete() throws NoSuchElementException, UnsupportedOperationException
+    {
+      throw new UnsupportedOperationException();
     }
 
     @Override

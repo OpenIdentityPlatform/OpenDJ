@@ -127,6 +127,14 @@ final class TracedStorage implements Storage
     }
 
     @Override
+    public void delete()
+    {
+      traceEnter("delete");
+      cursor.delete();
+      traceLeave("delete");
+    }
+
+    @Override
     public boolean isDefined()
     {
       traceEnter("isDefined");

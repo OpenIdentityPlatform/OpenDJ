@@ -68,6 +68,16 @@ public interface SequentialCursor<K,V> extends Closeable
    */
   V getValue() throws NoSuchElementException;
 
+  /**
+   * Deletes the record on which this cursor is currently positioned. This method does not alter the position of the
+   * cursor. In particular, {@link #next()} must be called in order to point to the next record. The behavior of
+   * methods {@link #getKey()} and {@link #getValue()} after this method returns is undefined.
+   *
+   * @throws NoSuchElementException if the cursor is not defined.
+   * @throws UnsupportedOperationException if the cursor implementation does not support updates.
+   */
+  void delete() throws NoSuchElementException, UnsupportedOperationException;
+
   /** {@inheritDoc} */
   @Override
   void close();

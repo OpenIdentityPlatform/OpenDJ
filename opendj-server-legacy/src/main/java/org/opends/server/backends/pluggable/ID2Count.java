@@ -79,16 +79,30 @@ final class ID2Count extends AbstractTree
   }
 
   /**
-   * Add a value to the counter associated to the given key
-   * @param txn Database transaction
-   * @param entryID The entryID identifying to the counter
+   * Updates the counter associated with the given key, but does not update the total count.
+   * <p>
+   * Implementation note: this method accepts a {@code null} entryID in order to eliminate null checks in client code.
+   * In particular, client code has to deal with the special case where a target entry does not have a parent because
+   * the target entry is a base entry within the backend.
+   *
+   * @param txn storage transaction
+   * @param entryID The entryID identifying to the counter, which may be
+   *                {@code null} in which case calling this method has no effect.
    * @param delta The value to add. Can be negative to decrease counter value.
    */
-  void addDelta(WriteableTransaction txn, EntryID entryID, final long delta)
-  {
-    Reject.ifTrue(entryID.longValue() >= TOTAL_COUNT_ENTRY_ID.longValue(), "EntryID overflow.");
+  void updateCount(final WriteableTransaction txn, final EntryID entryID, final long delta) {
+    if (entryID != null)
+    {
+      addToCounter(txn, entryID, delta);
+    }
+  }
 
-    addToCounter(txn, entryID, delta);
+  /**
+   * Updates the total count which should be the sum of all counters.
+   * @param txn storage transaction
+   * @param delta The value to add. Can be negative to decrease counter value.
+   */
+  void updateTotalCount(final WriteableTransaction txn, final long delta) {
     addToCounter(txn, TOTAL_COUNT_ENTRY_ID, delta);
   }
 
@@ -209,27 +223,24 @@ final class ID2Count extends AbstractTree
   }
 
   /**
-   * Delete the counter associated to the given key
-   * @param txn The transaction
+   * Removes the counter associated to the given key, but does not update the total count.
+   * @param txn storage transaction
    * @param entryID The entryID identifying the counter
    * @return Value of the counter before it's deletion.
    */
-  long deleteCount(WriteableTransaction txn, EntryID entryID)
-  {
+  long removeCount(final WriteableTransaction txn, final EntryID entryID) {
     long counterValue = 0;
-    try(final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName())) {
+    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(getName())) {
       final ByteSequence encodedEntryID = getKeyFromEntryID(entryID);
       if (cursor.positionToKeyOrNext(encodedEntryID)) {
-        while (cursor.getKey().startsWith(encodedEntryID))
-        {
+        // Iterate over and remove all the thread local shards
+        while (cursor.isDefined() && cursor.getKey().startsWith(encodedEntryID)) {
           counterValue += cursor.getValue().asReader().getLong();
-          txn.delete(getName(), cursor.getKey());
+          cursor.delete();
           cursor.next();
         }
       }
     }
-    addToCounter(txn, TOTAL_COUNT_ENTRY_ID, -counterValue);
-
     return counterValue;
   }
 }

@@ -47,6 +47,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -61,6 +62,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Pair;
 import org.opends.messages.CoreMessages;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -1464,7 +1466,30 @@ public final class EntryContainer
               throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
                   ERR_ADD_ENTRY_ALREADY_EXISTS.get(entry.getName()));
             }
-            addEntry0(entry, parentDN, entryID, indexBuffer, encodedEntry, txn);
+            // Check that the parent entry exists.
+            EntryID parentID = null;
+            if (parentDN != null)
+            {
+              // Check for referral entries above the target.
+              dn2uri.targetEntryReferrals(txn, entry.getName(), null);
+
+              parentID = dn2id.get(txn, parentDN);
+              if (parentID == null)
+              {
+                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                                             ERR_ADD_NO_SUCH_OBJECT.get(entry.getName()),
+                                             getMatchedDN(txn, parentDN),
+                                             null);
+              }
+            }
+
+            // Ensure same access ordering as deleteEntry.
+            dn2id.put(txn, entry.getName(), entryID);
+            id2childrenCount.updateCount(txn, parentID, 1);
+            id2entry.put(txn, entryID, encodedEntry);
+            dn2uri.addEntry(txn, entry);
+            id2childrenCount.updateTotalCount(txn, 1);
+            indexBuffer.flush(txn);
             if (addOperation != null)
             {
               // One last check before committing
@@ -1500,37 +1525,15 @@ public final class EntryContainer
     }
   }
 
-  private void addEntry0(final Entry entry, final DN parentDN, final EntryID entryID, final IndexBuffer indexBuffer,
-      final ByteString encodedEntry, WriteableTransaction txn) throws DirectoryException
-  {
-    // Check that the parent entry exists.
-    if (parentDN != null)
-    {
-      // Check for referral entries above the target.
-      dn2uri.targetEntryReferrals(txn, entry.getName(), null);
-
-      final EntryID parentID = dn2id.get(txn, parentDN);
-      if (parentID == null)
-      {
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            ERR_ADD_NO_SUCH_OBJECT.get(entry.getName()), getMatchedDN(txn, baseDN), null);
-      }
-      id2childrenCount.addDelta(txn, parentID, 1);
-    }
-
-    dn2id.put(txn, entry.getName(), entryID);
-    dn2uri.addEntry(txn, entry);
-    id2entry.put(txn, entryID, encodedEntry);
-
-    indexBuffer.flush(txn);
-  }
-
   void importEntry(WriteableTransaction txn, EntryID entryID, Entry entry) throws DirectoryException,
       StorageRuntimeException
   {
     final IndexBuffer indexBuffer = IndexBuffer.newImportIndexBuffer(txn, entryID);
     insertEntryIntoIndexes(indexBuffer, entry, entryID);
-    addEntry0(entry, null, entryID, indexBuffer, id2entry.encode(entry), txn);
+    dn2id.put(txn, entry.getName(), entryID);
+    id2entry.put(txn, entryID, id2entry.encode(entry));
+    dn2uri.addEntry(txn, entry);
+    indexBuffer.flush(txn);
   }
 
   /**
@@ -1550,22 +1553,8 @@ public final class EntryContainer
    * @throws CanceledOperationException if this operation should be cancelled.
    */
   void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
-  throws DirectoryException, StorageRuntimeException, CanceledOperationException
+          throws DirectoryException, StorageRuntimeException, CanceledOperationException
   {
-    final IndexBuffer indexBuffer = new IndexBuffer();
-    final boolean isSubtreeDelete =
-        deleteOperation != null && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
-
-    /*
-     * We will iterate forwards through a range of the dn2id keys to find subordinates of the target entry from the top
-     * of the tree downwards.
-     */
-    final ByteString entryDNKey = dnToDNKey(entryDN, baseDN.size());
-    final ByteStringBuilder suffix = beforeKey(entryDNKey);
-    final ByteStringBuilder end = afterKey(entryDNKey);
-
-    final DN parentDN = getParentWithinBase(entryDN);
-
     try
     {
       storage.write(new WriteOperation()
@@ -1578,90 +1567,109 @@ public final class EntryContainer
             // Check for referral entries above the target entry.
             dn2uri.targetEntryReferrals(txn, entryDN, null);
 
-            int subordinateEntriesDeleted = 0;
-
-            // Since everything under targetDN will be deleted, we only have to decrement the counter of targetDN's
-            // parent. Other counters will be removed in deleteEntry()
-            if (parentDN != null) {
-              final EntryID parentID = dn2id.get(txn, parentDN);
-              if ( parentID == null ) {
-                throw new StorageRuntimeException(ERR_MISSING_DN2ID_RECORD.get(parentDN).toString());
+            // We'll need the parent ID when we update the id2childrenCount. Fetch it now so that accesses to dn2id
+            // are ordered.
+            final DN parentDN = getParentWithinBase(entryDN);
+            EntryID parentID = null;
+            if (parentDN != null)
+            {
+              parentID = dn2id.get(txn, parentDN);
+              if (parentID == null)
+              {
+                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                                             ERR_DELETE_NO_SUCH_OBJECT.get(entryDN),
+                                             getMatchedDN(txn, parentDN),
+                                             null);
               }
-              id2childrenCount.addDelta(txn, parentID, -1);
             }
 
-            Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
-            try
+            // Delete the subordinate entries in dn2id if requested.
+            final boolean isSubtreeDelete = deleteOperation != null
+                    && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
+
+            /* draft-armijo-ldap-treedelete, 4.1 Tree Delete Semantics: The server MUST NOT chase referrals stored in
+             * the tree. If information about referrals is stored in this section of the tree, this pointer will be
+             * deleted.
+             */
+            final boolean isManageDsaIT = isSubtreeDelete || isManageDsaITOperation(deleteOperation);
+
+            /* Ensure that all index updates are done in the correct order to avoid deadlocks. First iterate over
+             * dn2id collecting all the IDs of the entries to be deleted. Then update dn2uri, id2entry,
+             * id2childrenCount, and finally the attribute indexes.
+             */
+            final List<Long> entriesToBeDeleted = new ArrayList<>();
+            try (final SequentialCursor<Void, EntryID> cursor = dn2id.openSubordinatesCursor(txn, entryDN))
             {
-              // Step forward until we pass the ending value.
-              boolean success = cursor.positionToKeyOrNext(suffix);
-              while (success && cursor.getKey().compareTo(end) < 0)
+              // Delete the target entry in dn2id.
+              if (!cursor.isDefined())
               {
-                // We have found a subordinate entry.
+                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                                             ERR_DELETE_NO_SUCH_OBJECT.get(entryDN),
+                                             getMatchedDN(txn, entryDN),
+                                             null);
+              }
+              entriesToBeDeleted.add(cursor.getValue().longValue());
+              cursor.delete();
+
+              // Now delete the subordinate entries in dn2id.
+              while (cursor.next())
+              {
                 if (!isSubtreeDelete)
                 {
-                  // The subtree delete control was not specified and
-                  // the target entry is not a leaf.
-                  throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_DELETE_NOT_ALLOWED_ON_NONLEAF
-                      .get(entryDN));
+                  throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
+                                               ERR_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN));
                 }
-
-                /*
-                 * Delete this entry which by now must be a leaf because we have
-                 * been deleting from the bottom of the tree upwards.
-                 */
-                EntryID entryID = new EntryID(cursor.getValue());
-
-                // Invoke any subordinate delete plugins on the entry.
-                if (deleteOperation != null && !deleteOperation.isSynchronizationOperation())
-                {
-                  Entry subordinateEntry = id2entry.get(txn, entryID);
-                  SubordinateDelete pluginResult =
-                      getPluginConfigManager().invokeSubordinateDeletePlugins(deleteOperation, subordinateEntry);
-
-                  if (!pluginResult.continueProcessing())
-                  {
-                    throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                        ERR_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(subordinateEntry.getName()));
-                  }
-                }
-
-                deleteEntry(txn, indexBuffer, true, entryDN, cursor.getKey(), entryID);
-                subordinateEntriesDeleted++;
-
-                if (deleteOperation != null)
-                {
-                  deleteOperation.checkIfCanceled(false);
-                }
-
-                // Get the next DN.
-                success = cursor.next();
+                entriesToBeDeleted.add(cursor.getValue().longValue());
+                cursor.delete();
+                checkIfCanceled(false);
               }
             }
-            finally
+            // The target entry will have the lowest entryID so it will remain the first element.
+            Collections.sort(entriesToBeDeleted);
+
+            // Now update id2entry, dn2uri, and id2childrenCount in key order.
+            id2childrenCount.updateCount(txn, parentID, -1);
+            final IndexBuffer indexBuffer = new IndexBuffer();
+            final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
+            boolean isBaseEntry = true;
+            try (final Cursor<EntryID, Entry> cursor = id2entry.openCursor(txn))
             {
-              cursor.close();
+              for (Long entryIDLong : entriesToBeDeleted)
+              {
+                final EntryID entryID = new EntryID(entryIDLong);
+                if (!cursor.positionToKey(entryID.toByteString()))
+                {
+                  throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                               ERR_MISSING_ID2ENTRY_RECORD.get(entryID));
+                }
+                final Entry entry = cursor.getValue();
+                if (isBaseEntry && !isManageDsaIT)
+                {
+                  dn2uri.checkTargetForReferral(entry, null);
+                }
+                cursor.delete();
+                dn2uri.deleteEntry(txn, entry);
+                id2childrenCount.removeCount(txn, entryID);
+                removeEntryFromIndexes(indexBuffer, entry, entryID);
+                if (!isBaseEntry)
+                {
+                  invokeSubordinateDeletePlugins(entry);
+                }
+                if (entryCache != null)
+                {
+                  entryCache.removeEntry(entry.getName());
+                }
+                isBaseEntry = false;
+                checkIfCanceled(false);
+              }
             }
-
-            // draft-armijo-ldap-treedelete, 4.1 Tree Delete Semantics:
-            // The server MUST NOT chase referrals stored in the tree. If
-            // information about referrals is stored in this section of the
-            // tree, this pointer will be deleted.
-            boolean manageDsaIT = isSubtreeDelete || isManageDsaITOperation(deleteOperation);
-            deleteEntry(txn, indexBuffer, manageDsaIT, entryDN, null, null);
-
+            id2childrenCount.updateTotalCount(txn, -entriesToBeDeleted.size());
             indexBuffer.flush(txn);
-
-            if (deleteOperation != null)
-            {
-              // One last check before committing
-              deleteOperation.checkIfCanceled(true);
-            }
-
+            checkIfCanceled(true);
             if (isSubtreeDelete)
             {
               deleteOperation.addAdditionalLogItem(unquotedKeyValue(getClass(), "deletedEntries",
-                  subordinateEntriesDeleted + 1));
+                                                                    entriesToBeDeleted.size()));
             }
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
@@ -1679,83 +1687,33 @@ public final class EntryContainer
                 DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
+
+        private void invokeSubordinateDeletePlugins(final Entry entry) throws DirectoryException
+        {
+          if (deleteOperation != null && !deleteOperation.isSynchronizationOperation())
+          {
+            SubordinateDelete pluginResult =
+                    getPluginConfigManager().invokeSubordinateDeletePlugins(deleteOperation, entry);
+            if (!pluginResult.continueProcessing())
+            {
+              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                           ERR_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(entry.getName()));
+            }
+          }
+        }
+
+        private void checkIfCanceled(boolean signalTooLate) throws CanceledOperationException
+        {
+          if (deleteOperation != null)
+          {
+            deleteOperation.checkIfCanceled(signalTooLate);
+          }
+        }
       });
     }
     catch (Exception e)
     {
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
-    }
-  }
-
-  private void deleteEntry(WriteableTransaction txn,
-      IndexBuffer indexBuffer,
-      boolean manageDsaIT,
-      DN targetDN,
-      ByteSequence leafDNKey,
-      EntryID leafID)
-  throws StorageRuntimeException, DirectoryException
-  {
-    if(leafID == null || leafDNKey == null)
-    {
-      // Read the entry ID from dn2id.
-      if(leafDNKey == null)
-      {
-        leafDNKey = dnToDNKey(targetDN, baseDN.size());
-      }
-      // FIXME: previously this used a RMW lock - see OPENDJ-1878.
-      ByteString value = txn.read(dn2id.getName(), leafDNKey);
-      if (value == null)
-      {
-        LocalizableMessage message = ERR_DELETE_NO_SUCH_OBJECT.get(targetDN);
-        DN matchedDN = getMatchedDN(txn, baseDN);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
-      }
-      leafID = new EntryID(value);
-    }
-
-    // Remove from dn2id.
-    if (!txn.delete(dn2id.getName(), leafDNKey))
-    {
-      // Do not expect to ever come through here.
-      throw new DirectoryException(
-          ResultCode.NO_SUCH_OBJECT, ERR_DELETE_NO_SUCH_OBJECT.get(leafDNKey), getMatchedDN(txn, baseDN), null);
-    }
-
-    // Check that the entry exists in id2entry and read its contents.
-    // FIXME: previously this used a RMW lock - see OPENDJ-1878.
-    Entry entry = id2entry.get(txn, leafID);
-    if (entry == null)
-    {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_MISSING_ID2ENTRY_RECORD.get(leafID));
-    }
-
-    if (!manageDsaIT)
-    {
-      dn2uri.checkTargetForReferral(entry, null);
-    }
-
-    // Update the referral tree.
-    dn2uri.deleteEntry(txn, entry);
-
-    // Remove from id2entry.
-    if (!id2entry.remove(txn, leafID))
-    {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_MISSING_ID2ENTRY_RECORD.get(leafID));
-    }
-
-    // Remove from the indexes, in index config order.
-    removeEntryFromIndexes(indexBuffer, entry, leafID);
-
-    // Remove the children counter for this entry.
-    id2childrenCount.deleteCount(txn, leafID);
-
-    // Remove the entry from the entry cache.
-    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    if (entryCache != null)
-    {
-      entryCache.removeEntry(entry.getName());
     }
   }
 
@@ -1899,7 +1857,9 @@ public final class EntryContainer
             if (entryID == null)
             {
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                  ERR_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName()), getMatchedDN(txn, baseDN), null);
+                                           ERR_MODIFY_NO_SUCH_OBJECT.get(newEntry.getName()),
+                                           getMatchedDN(txn, newEntry.getName()),
+                                           null);
             }
 
             if (!isManageDsaITOperation(modifyOperation))
@@ -1907,6 +1867,9 @@ public final class EntryContainer
               // Check if the entry is a referral entry.
               dn2uri.checkTargetForReferral(oldEntry, null);
             }
+
+            // Ensure same ordering as deleteEntry: id2entry, dn2uri, then indexes.
+            id2entry.put(txn, entryID, newEntry);
 
             // Update the referral tree.
             if (modifyOperation != null)
@@ -1920,8 +1883,6 @@ public final class EntryContainer
               dn2uri.replaceEntry(txn, oldEntry, newEntry);
             }
 
-            // Replace id2entry.
-            id2entry.put(txn, entryID, newEntry);
 
             // Update the indexes.
             final IndexBuffer indexBuffer = new IndexBuffer();
@@ -1983,8 +1944,8 @@ public final class EntryContainer
    * target DN of the provided entry.  The caller must hold write locks on both
    * the current DN and the new DN for the entry.
    *
-   * @param currentDN         The current DN of the entry to be replaced.
-   * @param entry             The new content to use for the entry.
+   * @param oldTargetDN             The current DN of the entry to be renamed.
+   * @param newTargetEntry          The new content to use for the entry.
    * @param modifyDNOperation The modify DN operation with which this action
    *                          is associated.  This may be <CODE>null</CODE>
    *                          for modify DN operations performed internally.
@@ -1996,10 +1957,9 @@ public final class EntryContainer
    *          modify DN operation.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
-  void renameEntry(final DN currentDN, final Entry entry, final ModifyDNOperation modifyDNOperation)
+  void renameEntry(final DN oldTargetDN, final Entry newTargetEntry, final ModifyDNOperation modifyDNOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
-    // FIXME: consistency + isolation cannot be maintained lock free - see OPENDJ-1878.
     try
     {
       storage.write(new WriteOperation()
@@ -2007,168 +1967,80 @@ public final class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          DN oldSuperiorDN = getParentWithinBase(currentDN);
-          DN newSuperiorDN = getParentWithinBase(entry.getName());
-
-          final boolean isApexEntryMoved;
-          if (oldSuperiorDN != null)
-          {
-            isApexEntryMoved = !oldSuperiorDN.equals(newSuperiorDN);
-          }
-          else if (newSuperiorDN != null)
-          {
-            isApexEntryMoved = !newSuperiorDN.equals(oldSuperiorDN);
-          }
-          else
-          {
-            isApexEntryMoved = false;
-          }
-
-          final IndexBuffer buffer = new IndexBuffer();
-
           try
           {
-            // Check whether the renamed entry already exists.
-            if (!currentDN.equals(entry.getName()) && dn2id.get(txn, entry.getName()) != null)
-            {
-              LocalizableMessage message = ERR_MODIFYDN_ALREADY_EXISTS.get(entry.getName());
-              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
-            }
+            // Validate the request.
+            final DN newTargetDN = newTargetEntry.getName();
+            final DN oldSuperiorDN = getParentWithinBase(oldTargetDN);
+            final DN newSuperiorDN = getParentWithinBase(newTargetDN);
 
-            EntryID oldApexID = dn2id.get(txn, currentDN);
-            if (oldApexID == null)
+            final EntryID oldSuperiorID = oldSuperiorDN != null ? dn2id.get(txn, oldSuperiorDN) : null;
+            final EntryID oldTargetID = dn2id.get(txn, oldTargetDN);
+            if ((oldSuperiorDN != null && oldSuperiorID == null) || oldTargetID == null)
             {
               // Check for referral entries above the target entry.
-              dn2uri.targetEntryReferrals(txn, currentDN, null);
-
+              dn2uri.targetEntryReferrals(txn, oldTargetDN, null);
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                  ERR_MODIFYDN_NO_SUCH_OBJECT.get(currentDN), getMatchedDN(txn, baseDN), null);
+                                           ERR_MODIFYDN_NO_SUCH_OBJECT.get(oldTargetDN),
+                                           getMatchedDN(txn, oldTargetDN),
+                                           null);
             }
 
-            Entry oldApexEntry = id2entry.get(txn, oldApexID);
-            if (oldApexEntry == null)
+            final EntryID newSuperiorID = newSuperiorDN != null ? dn2id.get(txn, newSuperiorDN) : null;
+            if (newSuperiorDN != null && newSuperiorID == null)
             {
-              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_MISSING_ID2ENTRY_RECORD
-                  .get(oldApexID));
+              throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                                           ERR_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN),
+                                           getMatchedDN(txn, newSuperiorDN),
+                                           null);
             }
-
-            if (!isManageDsaITOperation(modifyDNOperation))
+            if (dn2id.get(txn, newTargetDN) != null)
             {
-              dn2uri.checkTargetForReferral(oldApexEntry, null);
+              throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
+                                           ERR_MODIFYDN_ALREADY_EXISTS.get(newTargetDN));
             }
 
-            EntryID newApexID = oldApexID;
-            if (newSuperiorDN != null && isApexEntryMoved)
-            {
-              /*
-               * We want to preserve the invariant that the ID of an entry is
-               * greater than its parent, since search results are returned in
-               * ID order.
-               */
-              EntryID newSuperiorID = dn2id.get(txn, newSuperiorDN);
-              if (newSuperiorID == null)
-              {
-                throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                    ERR_NEW_SUPERIOR_NO_SUCH_OBJECT.get(newSuperiorDN), getMatchedDN(txn, baseDN), null);
-              }
-
-              if (newSuperiorID.compareTo(oldApexID) > 0)
-              {
-                // This move would break the above invariant so we must
-                // renumber every entry that moves. This is even more
-                // expensive since every entry has to be deleted from
-                // and added back into the attribute indexes.
-                newApexID = rootContainer.getNextEntryID();
-
-                if (logger.isTraceEnabled())
-                {
-                  logger.trace("Move of target entry requires renumbering" + "all entries in the subtree. "
-                      + "Old DN: %s " + "New DN: %s " + "Old entry ID: %d " + "New entry ID: %d "
-                      + "New Superior ID: %d" + oldApexEntry.getName(), entry.getName(), oldApexID,
-                      newApexID, newSuperiorID);
-                }
-              }
-            }
-
-            MovedEntry head = new MovedEntry(null, null, false);
-            MovedEntry current = head;
-            // Move or rename the apex entry.
-            removeApexEntry(txn, buffer, oldSuperiorDN, oldApexID, newApexID, oldApexEntry, entry, isApexEntryMoved,
-                modifyDNOperation, current);
-            current = current.next;
-
-            /*
-             * We will iterate forwards through a range of the dn2id keys to
-             * find subordinates of the target entry from the top of the tree
-             * downwards.
+            /* We want to preserve the invariant that the ID of an entry is greater than its parent, since search
+             * results are returned in ID order. Note: if the superior has changed then oldSuperiorDN and
+             * newSuperiorDN will be non-null.
              */
-            ByteString currentDNKey = dnToDNKey(currentDN, baseDN.size());
-            ByteStringBuilder suffix = beforeKey(currentDNKey);
-            ByteStringBuilder end = afterKey(currentDNKey);
+            final boolean superiorHasChanged = !Objects.equals(oldSuperiorDN, newSuperiorDN);
+            final boolean renumberEntryIDs = superiorHasChanged && newSuperiorID.compareTo(oldSuperiorID) > 0;
 
-            Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
-            try
+            /* Ensure that all index updates are done in the correct order to avoid deadlocks. First iterate over
+             * dn2id collecting all the IDs of the entries to be renamed. Then update dn2uri, id2entry,
+             * id2childrenCount, and finally the attribute indexes.
+             */
+            final List<Pair<Long, Long>> renamedEntryIDs = dn2id.renameSubtree(txn,
+                                                                               oldTargetDN,
+                                                                               newTargetDN,
+                                                                               rootContainer,
+                                                                               renumberEntryIDs,
+                                                                               modifyDNOperation);
+
+            // The target entry will have the lowest entryID so it will remain the first element.
+            Collections.sort(renamedEntryIDs, Pair.<Long, Long>getPairComparator());
+
+            // Now update id2entry, dn2uri, and id2childrenCount in key order.
+            if (superiorHasChanged)
             {
-              // Step forward until we pass the ending value.
-              boolean success = cursor.positionToKeyOrNext(suffix);
-              while (success && cursor.getKey().compareTo(end) < 0)
+              id2childrenCount.updateCount(txn, oldSuperiorID, -1);
+              id2childrenCount.updateCount(txn, newSuperiorID, 1);
+            }
+            final IndexBuffer indexBuffer = new IndexBuffer();
+            boolean isBaseEntry = true;
+            try (final Cursor<EntryID, Entry> cursor = id2entry.openCursor(txn))
+            {
+              for (Pair<Long, Long> renamedEntryID : renamedEntryIDs)
               {
-                // We have found a subordinate entry.
-                EntryID oldID = new EntryID(cursor.getValue());
-                Entry oldEntry = id2entry.get(txn, oldID);
-
-                // Construct the new DN of the entry.
-                DN newDN = modDN(oldEntry.getName(), currentDN.size(), entry.getName());
-
-                // Assign a new entry ID if we are renumbering.
-                EntryID newID = oldID;
-                if (!newApexID.equals(oldApexID))
-                {
-                  newID = rootContainer.getNextEntryID();
-
-                  if (logger.isTraceEnabled())
-                  {
-                    logger.trace("Move of subordinate entry requires renumbering. "
-                        + "Old DN: %s New DN: %s Old entry ID: %d New entry ID: %d",
-                        oldEntry.getName(), newDN, oldID, newID);
-                  }
-                }
-
-                // Move this entry.
-                removeSubordinateEntry(txn, buffer, oldID, newID, oldEntry, newDN, modifyDNOperation, current);
-                current = current.next;
-
-                if (modifyDNOperation != null)
-                {
-                  modifyDNOperation.checkIfCanceled(false);
-                }
-
-                // Get the next DN.
-                success = cursor.next();
+                renameSingleEntry(txn, renamedEntryID, cursor, indexBuffer, newTargetDN, renumberEntryIDs, isBaseEntry);
+                isBaseEntry = false;
+                checkIfCanceled(false);
               }
-            }
-            finally
-            {
-              cursor.close();
-            }
 
-            // Set current to the first moved entry and null out the head.
-            // This will allow processed moved entries to be GCed.
-            current = head.next;
-            head = null;
-            while (current != null)
-            {
-              addRenamedEntry(txn, buffer, current.entryID, current.entry, isApexEntryMoved, current.renumbered,
-                  modifyDNOperation);
-              current = current.next;
             }
-            buffer.flush(txn);
-
-            if (modifyDNOperation != null)
-            {
-              // One last check before committing
-              modifyDNOperation.checkIfCanceled(true);
-            }
+            indexBuffer.flush(txn);
+            checkIfCanceled(true);
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
@@ -2185,191 +2057,128 @@ public final class EntryContainer
                 DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
+
+        private void renameSingleEntry(
+                final WriteableTransaction txn,
+                final Pair<Long, Long> renamedEntryID,
+                final Cursor<EntryID, Entry> cursor,
+                final IndexBuffer indexBuffer,
+                final DN newTargetDN,
+                final boolean renumberEntryIDs,
+                final boolean isBaseEntry) throws DirectoryException
+        {
+          final EntryID oldEntryID = new EntryID(renamedEntryID.getFirst());
+          final EntryID newEntryID = new EntryID(renamedEntryID.getSecond());
+          if (!cursor.positionToKey(oldEntryID.toByteString()))
+          {
+            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                         ERR_MISSING_ID2ENTRY_RECORD.get(oldEntryID));
+          }
+
+          final Entry oldEntry = cursor.getValue();
+          final Entry newEntry;
+          final List<Modification> modifications;
+          if (isBaseEntry)
+          {
+            if (!isManageDsaITOperation(modifyDNOperation))
+            {
+              dn2uri.checkTargetForReferral(oldEntry, null);
+            }
+            newEntry = newTargetEntry;
+            modifications = modifyDNOperation != null ? modifyDNOperation.getModifications() : null;
+          }
+          else
+          {
+            final DN newDN = modDN(oldEntry.getName(), oldTargetDN.size(), newTargetDN);
+            newEntry = oldEntry.duplicate(false);
+            newEntry.setDN(newDN);
+            modifications = invokeSubordinateModifyDNPlugins(oldEntry, newEntry);
+          }
+
+          if (renumberEntryIDs)
+          {
+            cursor.delete();
+          }
+          id2entry.put(txn, newEntryID, newEntry);
+          dn2uri.deleteEntry(txn, oldEntry);
+          dn2uri.addEntry(txn, newEntry);
+          if (renumberEntryIDs)
+          {
+            // In-order: new entryID is guaranteed to be greater than old entryID.
+            final long count = id2childrenCount.removeCount(txn, oldEntryID);
+            id2childrenCount.updateCount(txn, newEntryID, count);
+          }
+
+          if (renumberEntryIDs || modifications == null)
+          {
+            // Slow path: the entry has been renumbered so we need to fully re-index.
+            removeEntryFromIndexes(indexBuffer, oldEntry, oldEntryID);
+            insertEntryIntoIndexes(indexBuffer, newEntry, newEntryID);
+          }
+          else if (!modifications.isEmpty())
+          {
+            // Fast-path: the entryID has not changed so we only need to re-index the mods.
+            indexModifications(indexBuffer, oldEntry, newEntry, oldEntryID, modifications);
+          }
+
+          final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
+          if (entryCache != null)
+          {
+            entryCache.removeEntry(oldEntry.getName());
+          }
+        }
+
+        private void checkIfCanceled(boolean signalTooLate) throws CanceledOperationException
+        {
+          if (modifyDNOperation != null)
+          {
+            modifyDNOperation.checkIfCanceled(signalTooLate);
+          }
+        }
+
+        private List<Modification> invokeSubordinateModifyDNPlugins(
+                final Entry oldEntry, final Entry newEntry) throws DirectoryException
+        {
+          final List<Modification> modifications = Collections.unmodifiableList(new ArrayList<Modification>(0));
+
+          // Create a new entry that is a copy of the old entry but with the new DN.
+          // Also invoke any subordinate modify DN plugins on the entry.
+          // FIXME -- At the present time, we don't support subordinate modify DN
+          //          plugins that make changes to subordinate entries and therefore
+          //          provide an unmodifiable list for the modifications element.
+          // FIXME -- This will need to be updated appropriately if we decided that
+          //          these plugins should be invoked for synchronization operations.
+          if (modifyDNOperation != null && !modifyDNOperation.isSynchronizationOperation())
+          {
+            SubordinateModifyDN pluginResult = getPluginConfigManager().invokeSubordinateModifyDNPlugins(
+                    modifyDNOperation, oldEntry, newEntry, modifications);
+
+            if (!pluginResult.continueProcessing())
+            {
+              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                           ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(oldEntry.getName(),
+                                                                                          newEntry.getName()));
+            }
+
+            if (!modifications.isEmpty())
+            {
+              LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+              if (!newEntry.conformsToSchema(null, false, false, false, invalidReason))
+              {
+                throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                             ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(oldEntry.getName(),
+                                                                                                  newEntry.getName(),
+                                                                                                  invalidReason));
+              }
+            }
+          }
+          return modifications;
+        }
       });
     }
     catch (Exception e)
     {
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
-    }
-  }
-
-  /** Represents an renamed entry that was deleted from but yet to be added back. */
-  private static final class MovedEntry
-  {
-    private EntryID entryID;
-    private Entry entry;
-    private MovedEntry next;
-    private boolean renumbered;
-
-    private MovedEntry(EntryID entryID, Entry entry, boolean renumbered)
-    {
-      this.entryID = entryID;
-      this.entry = entry;
-      this.renumbered = renumbered;
-    }
-  }
-
-  private void addRenamedEntry(WriteableTransaction txn, IndexBuffer buffer,
-                           EntryID newID,
-                           Entry newEntry,
-                           boolean isApexEntryMoved,
-                           boolean renumbered,
-                           ModifyDNOperation modifyDNOperation)
-      throws DirectoryException, StorageRuntimeException
-  {
-    // FIXME: the core server should validate that the new subtree location is empty.
-    dn2id.put(txn, newEntry.getName(), newID);
-    id2entry.put(txn, newID, newEntry);
-    dn2uri.addEntry(txn, newEntry);
-
-    if (renumbered || modifyDNOperation == null)
-    {
-      // Reindex the entry with the new ID.
-      insertEntryIntoIndexes(buffer, newEntry, newID);
-    }
-
-    if(isApexEntryMoved)
-    {
-      final DN parentDN = getParentWithinBase(newEntry.getName());
-      if (parentDN != null)
-      {
-        id2childrenCount.addDelta(txn, dn2id.get(txn, parentDN), 1);
-      }
-    }
-  }
-
-  private void removeApexEntry(WriteableTransaction txn, IndexBuffer buffer,
-      DN oldSuperiorDN,
-      EntryID oldID, EntryID newID,
-      Entry oldEntry, Entry newEntry,
-      boolean isApexEntryMoved,
-      ModifyDNOperation modifyDNOperation,
-      MovedEntry tail)
-  throws DirectoryException, StorageRuntimeException
-  {
-    DN oldDN = oldEntry.getName();
-
-    // Remove the old DN from dn2id.
-    dn2id.remove(txn, oldDN);
-
-    // Remove old ID from id2entry and put the new entry
-    // (old entry with new DN) in id2entry.
-    if (!newID.equals(oldID))
-    {
-      id2entry.remove(txn, oldID);
-    }
-
-    // Update any referral records.
-    dn2uri.deleteEntry(txn, oldEntry);
-
-    tail.next = new MovedEntry(newID, newEntry, !newID.equals(oldID));
-
-    if(oldSuperiorDN != null && isApexEntryMoved)
-    {
-      // Since entry has moved, oldSuperiorDN has lost a child
-      id2childrenCount.addDelta(txn, dn2id.get(txn, oldSuperiorDN), -1);
-    }
-
-    if (!newID.equals(oldID))
-    {
-      id2childrenCount.addDelta(txn, newID, id2childrenCount.deleteCount(txn, oldID));
-    }
-
-    if (!newID.equals(oldID) || modifyDNOperation == null)
-    {
-      // Reindex the entry with the new ID.
-      removeEntryFromIndexes(buffer, oldEntry, oldID);
-    }
-    else
-    {
-      // Update the indexes if needed.
-      indexModifications(buffer, oldEntry, newEntry, oldID,
-          modifyDNOperation.getModifications());
-    }
-
-    // Remove the entry from the entry cache.
-    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    if (entryCache != null)
-    {
-      entryCache.removeEntry(oldDN);
-    }
-  }
-
-  private void removeSubordinateEntry(WriteableTransaction txn, IndexBuffer buffer,
-      EntryID oldID, EntryID newID,
-      Entry oldEntry, DN newDN,
-      ModifyDNOperation modifyDNOperation,
-      MovedEntry tail)
-  throws DirectoryException, StorageRuntimeException
-  {
-    DN oldDN = oldEntry.getName();
-    Entry newEntry = oldEntry.duplicate(false);
-    newEntry.setDN(newDN);
-    List<Modification> modifications =
-      Collections.unmodifiableList(new ArrayList<Modification>(0));
-
-    // Create a new entry that is a copy of the old entry but with the new DN.
-    // Also invoke any subordinate modify DN plugins on the entry.
-    // FIXME -- At the present time, we don't support subordinate modify DN
-    //          plugins that make changes to subordinate entries and therefore
-    //          provide an unmodifiable list for the modifications element.
-    // FIXME -- This will need to be updated appropriately if we decided that
-    //          these plugins should be invoked for synchronization operations.
-    if (modifyDNOperation != null && !modifyDNOperation.isSynchronizationOperation())
-    {
-      SubordinateModifyDN pluginResult =
-        getPluginConfigManager().invokeSubordinateModifyDNPlugins(
-            modifyDNOperation, oldEntry, newEntry, modifications);
-
-      if (!pluginResult.continueProcessing())
-      {
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-            ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(oldDN, newDN));
-      }
-
-      if (! modifications.isEmpty())
-      {
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        if (! newEntry.conformsToSchema(null, false, false, false,
-            invalidReason))
-        {
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(oldDN, newDN, invalidReason));
-        }
-      }
-    }
-
-    dn2id.remove(txn, oldDN);
-
-    // Remove old ID from id2entry and put the new entry (old entry with new DN) in id2entry.
-    if (!newID.equals(oldID))
-    {
-      id2entry.remove(txn, oldID);
-    }
-
-    // Update any referral records.
-    dn2uri.deleteEntry(txn, oldEntry);
-
-    tail.next = new MovedEntry(newID, newEntry, !newID.equals(oldID));
-
-    if (!newID.equals(oldID))
-    {
-      id2childrenCount.deleteCount(txn, oldID);
-
-      // Reindex the entry with the new ID.
-      removeEntryFromIndexes(buffer, oldEntry, oldID);
-    }
-    else if (!modifications.isEmpty())
-    {
-      // Update the indexes.
-      indexModifications(buffer, oldEntry, newEntry, oldID, modifications);
-    }
-
-    // Remove the entry from the entry cache.
-    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    if (entryCache != null)
-    {
-      entryCache.removeEntry(oldDN);
     }
   }
 
@@ -2507,8 +2316,7 @@ public final class EntryContainer
 
   long getNumberOfEntriesInBaseDN0(ReadableTransaction txn)
   {
-    final int baseDnIfExists = dn2id.get(txn, baseDN) != null ? 1 : 0;
-    return id2childrenCount.getTotalCount(txn) + baseDnIfExists;
+    return id2childrenCount.getTotalCount(txn);
   }
 
   /**

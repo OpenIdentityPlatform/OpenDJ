@@ -158,6 +158,13 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
   }
 
   @Override
+  public void delete() throws NoSuchElementException, UnsupportedOperationException
+  {
+    // No need to clear the cached key/value. They will be updated when the cursor moves.
+    input.delete();
+  }
+
+  @Override
   public boolean next()
   {
     clearCache();
@@ -235,6 +242,12 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
     public V getValue() throws NoSuchElementException
     {
       return delegate.getValue();
+    }
+
+    @Override
+    public void delete() throws NoSuchElementException, UnsupportedOperationException
+    {
+      delegate.delete();
     }
 
     @Override

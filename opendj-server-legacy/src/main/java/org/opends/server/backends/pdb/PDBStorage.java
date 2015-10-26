@@ -177,6 +177,20 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
 
     @Override
+    public void delete()
+    {
+      throwIfUndefined();
+      try
+      {
+        exchange.remove();
+      }
+      catch (final PersistitException e)
+      {
+        throw new StorageRuntimeException(e);
+      }
+    }
+
+    @Override
     public boolean positionToKey(final ByteSequence key)
     {
       clearCurrentKeyAndValue();

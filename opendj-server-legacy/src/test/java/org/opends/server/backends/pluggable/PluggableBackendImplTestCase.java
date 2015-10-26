@@ -937,7 +937,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       importConf.setThreadCount(0);
       backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
     }
-    assertEquals(rejectedEntries.size(), 0, "No entries should be rejected");
+    assertEquals(rejectedEntries.size(), 0,
+                 "No entries should be rejected. Content was:\n" + rejectedEntries.toString());
 
     backend.openBackend();
     assertEquals(backend.getEntryCount(), ldifNumberOfEntries, "Not enough entries in DIT.");
@@ -1111,8 +1112,10 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       @Override
       public void run(WriteableTransaction txn) throws Exception
       {
-        id2ChildrenCount.deleteCount(txn, peopleID);
-        id2ChildrenCount.addDelta(txn, peopleID, 1);
+        final long delta = id2ChildrenCount.removeCount(txn, peopleID);
+        id2ChildrenCount.updateTotalCount(txn, -delta);
+        id2ChildrenCount.updateCount(txn, peopleID, 1);
+        id2ChildrenCount.updateTotalCount(txn, 1);
       }
     });
 

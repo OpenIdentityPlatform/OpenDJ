@@ -420,6 +420,12 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     }
 
     @Override
+    public void delete() throws NoSuchElementException, UnsupportedOperationException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void close()
     {
     }

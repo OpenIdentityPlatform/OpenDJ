@@ -101,6 +101,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
 
 /** Berkeley DB Java Edition (JE for short) database implementation of the {@link Storage} engine. */
 public final class JEStorage implements Storage, Backupable, ConfigurationChangeListener<JEBackendCfg>,
@@ -163,6 +164,20 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       {
         isDefined = cursor.getNext(dbKey, dbValue, null) == SUCCESS;
         return isDefined;
+      }
+      catch (DatabaseException e)
+      {
+        throw new StorageRuntimeException(e);
+      }
+    }
+
+    @Override
+    public void delete() throws NoSuchElementException, UnsupportedOperationException
+    {
+      throwIfNotSuccess();
+      try
+      {
+        cursor.delete();
       }
       catch (DatabaseException e)
       {
@@ -568,6 +583,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** Use read committed isolation instead of the default which is repeatable read. */
+  private static final TransactionConfig TXN_READ_COMMITTED = new TransactionConfig().setReadCommitted(true);
+
   private final ServerContext serverContext;
   private final File backendDirectory;
   private JEBackendCfg config;
@@ -609,7 +628,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         tree = trees.get(treeName);
         if (tree == null)
         {
-          tree = env.openDatabase(txn, toDatabaseName(treeName), dbConfig());
+          tree = env.openDatabase(null, toDatabaseName(treeName), dbConfig());
           trees.put(treeName, tree);
         }
       }
@@ -782,7 +801,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   {
     if (envConfig.getTransactional())
     {
-      final Transaction txn = env.beginTransaction(null, null);
+      final Transaction txn = env.beginTransaction(null, TXN_READ_COMMITTED);
       logger.trace("beginTransaction txnid=%d", txn.getId());
       return txn;
     }

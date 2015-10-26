@@ -170,6 +170,12 @@ public class DefaultIndexTest extends DirectoryServerTestCase
         }
 
         @Override
+        public void delete() throws NoSuchElementException, UnsupportedOperationException
+        {
+          it.remove();
+        }
+
+        @Override
         public boolean isDefined()
         {
           return current != null;

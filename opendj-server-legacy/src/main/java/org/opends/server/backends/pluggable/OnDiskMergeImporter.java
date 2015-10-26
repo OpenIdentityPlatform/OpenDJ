@@ -1704,6 +1704,12 @@ final class OnDiskMergeImporter
         }
 
         @Override
+        public void delete() throws NoSuchElementException, UnsupportedOperationException
+        {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void close()
         {
           key = value = null;
@@ -1903,6 +1909,12 @@ final class OnDiskMergeImporter
         }
 
         @Override
+        public void delete() throws NoSuchElementException, UnsupportedOperationException
+        {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void close()
         {
           key = value = null;
@@ -1991,6 +2003,12 @@ final class OnDiskMergeImporter
       {
         throwIfUndefined(this);
         return value;
+      }
+
+      @Override
+      public void delete() throws NoSuchElementException, UnsupportedOperationException
+      {
+        throw new UnsupportedOperationException();
       }
 
       @Override
@@ -2116,6 +2134,12 @@ final class OnDiskMergeImporter
       }
 
       @Override
+      public void delete() throws NoSuchElementException, UnsupportedOperationException
+      {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
       public void close()
       {
         closeSilently(orderedCursors);
@@ -2231,8 +2255,7 @@ final class OnDiskMergeImporter
           totalNumberOfEntries++;
         }
       }
-      // -1 because baseDN is not counted
-      id2count.importPutTotalCount(asImporter(id2CountChunk), Math.max(0, totalNumberOfEntries - 1));
+      id2count.importPutTotalCount(asImporter(id2CountChunk), Math.max(0, totalNumberOfEntries));
 
       new ChunkCopierTask(reporter, id2CountChunk, id2count.getName(), importer).call();
       return null;
@@ -2505,6 +2528,12 @@ final class OnDiskMergeImporter
         public ByteString getValue() throws NoSuchElementException
         {
           throw new NoSuchElementException();
+        }
+
+        @Override
+        public void delete() throws NoSuchElementException, UnsupportedOperationException
+        {
+          throw new UnsupportedOperationException();
         }
 
         @Override
@@ -3282,6 +3311,12 @@ final class OnDiskMergeImporter
     }
 
     @Override
+    public void delete() throws NoSuchElementException, UnsupportedOperationException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public long getNbBytesRead()
     {
       return bytesRead;
@@ -3333,6 +3368,12 @@ final class OnDiskMergeImporter
     public V getValue() throws NoSuchElementException
     {
       return delegate.getValue();
+    }
+
+    @Override
+    public void delete() throws NoSuchElementException, UnsupportedOperationException
+    {
+      delegate.delete();
     }
 
     @Override
