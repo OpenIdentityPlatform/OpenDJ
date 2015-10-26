@@ -25,6 +25,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -52,6 +53,136 @@ import org.opends.server.types.RestoreConfig;
 /** Decorates a {@link Storage} with additional trace logging. */
 final class TracedStorage implements Storage
 {
+  private void appendKeyValue(final StringBuilder builder, final Object key, final Object value)
+  {
+    builder.append("\"").append(key).append("\":\"").append(value).append("\"");
+  }
+
+  /**
+   * Decorates {@link Cursor} with trace logging. Navigational methods will perform enter/leave logging in order to
+   * help detect deadlocks.
+   */
+  private class TracedCursor implements Cursor<ByteString, ByteString>
+  {
+    private final Cursor<ByteString, ByteString> cursor;
+
+    private TracedCursor(final Cursor<ByteString, ByteString> cursor)
+    {
+      this.cursor = cursor;
+    }
+
+    private void traceEnter(String method, Object... args)
+    {
+      trace("Cursor", id(), method + "#enter", args);
+    }
+
+    private void traceLeave(String method, Object... args)
+    {
+      trace("Cursor", id(), method + "#leave", args);
+    }
+
+    @Override
+    public boolean positionToKey(final ByteSequence key)
+    {
+      traceEnter("positionToKey", "key", hex(key));
+      boolean found = cursor.positionToKey(key);
+      traceLeave("positionToKey", "key", hex(key), "found", found);
+      return found;
+    }
+
+    @Override
+    public boolean positionToKeyOrNext(final ByteSequence key)
+    {
+      traceEnter("positionToKeyOrNext", "key", hex(key));
+      boolean found = cursor.positionToKeyOrNext(key);
+      traceLeave("positionToKeyOrNext", "key", hex(key), "found", found);
+      return found;
+    }
+
+    @Override
+    public boolean positionToLastKey()
+    {
+      traceEnter("positionToLastKey");
+      boolean found = cursor.positionToLastKey();
+      traceLeave("positionToLastKey", "found", found);
+      return found;
+    }
+
+    @Override
+    public boolean positionToIndex(final int index)
+    {
+      traceEnter("positionToIndex", "index", index);
+      boolean found = cursor.positionToIndex(index);
+      traceLeave("positionToIndex", "index", index, "found", found);
+      return found;
+    }
+
+    @Override
+    public boolean next()
+    {
+      traceEnter("next");
+      boolean found = cursor.next();
+      traceLeave("next", "found", found);
+      return found;
+    }
+
+    @Override
+    public boolean isDefined()
+    {
+      traceEnter("isDefined");
+      boolean isDefined = cursor.isDefined();
+      traceLeave("isDefined", "isDefined", isDefined);
+      return isDefined;
+    }
+
+    @Override
+    public ByteString getKey() throws NoSuchElementException
+    {
+      traceEnter("getKey");
+      try
+      {
+        ByteString key = cursor.getKey();
+        traceLeave("getKey", "key", hex(key));
+        return key;
+      }
+      catch (NoSuchElementException e)
+      {
+        traceLeave("getKey", "NoSuchElementException", e.getMessage());
+        throw e;
+      }
+    }
+
+    @Override
+    public ByteString getValue() throws NoSuchElementException
+    {
+      traceEnter("getValue");
+      try
+      {
+        ByteString value = cursor.getValue();
+        traceLeave("getValue", "value", hex(value));
+        return value;
+      }
+      catch (NoSuchElementException e)
+      {
+        traceLeave("getValue", "NoSuchElementException", e.getMessage());
+        throw e;
+      }
+    }
+
+    @Override
+    public void close()
+    {
+      traceEnter("close");
+      cursor.close();
+      traceLeave("close");
+    }
+
+    private int id()
+    {
+      return System.identityHashCode(this);
+    }
+  }
+
   /** Decorates an {@link Importer} with additional trace logging. */
   private final class TracedImporter implements Importer
   {
@@ -62,36 +193,47 @@ final class TracedStorage implements Storage
       this.importer = importer;
     }
 
+    private void traceEnter(String method, Object... args)
+    {
+      trace("Importer", id(), method + "#enter", args);
+    }
+
+    private void traceLeave(String method, Object... args)
+    {
+      trace("Importer", id(), method + "#leave", args);
+    }
+
     @Override
     public void clearTree(final TreeName name)
     {
+      traceEnter("clearTree", "name", name);
       importer.clearTree(name);
-      logger.trace("Storage@%s.Importer@%s.clearTree(%s, %s)", storageId(), id(), backendId, name);
+      traceLeave("clearTree", "name", name);
     }
 
     @Override
     public void put(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
+      traceEnter("put", "name", name, "key", hex(key), "value", hex(value));
       importer.put(name, key, value);
-      logger.trace("Storage@%s.Importer@%s.put(%s, %s, %s, %s)",
-          storageId(), id(), backendId, name, hex(key), hex(value));
+      traceLeave("put", "name", name, "key", hex(key), "value", hex(value));
     }
 
     @Override
     public ByteString read(TreeName name, ByteSequence key)
     {
+      traceEnter("read", "name", name, "key", hex(key));
       final ByteString value = importer.read(name, key);
-      logger.trace("Storage@%s.Importer@%s.read(%s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), hex(value));
+      traceLeave("read", "name", name, "key", hex(key), "value", hex(value));
       return value;
     }
 
     @Override
     public void close()
     {
+      traceEnter("close");
       importer.close();
-      logger.trace("Storage@%s.Importer@%s.close(%s)",
-          storageId(), id(), backendId);
+      traceLeave("close");
     }
 
     private int id()
@@ -102,8 +244,10 @@ final class TracedStorage implements Storage
     @Override
     public SequentialCursor<ByteString, ByteString> openCursor(TreeName name)
     {
-      logger.trace("Storage@%s.Importer@%s.openCursor(%s,%s)", storageId(), id(), backendId, name);
-      return importer.openCursor(name);
+      traceEnter("openCursor", "name", name);
+      SequentialCursor<ByteString, ByteString> cursor = importer.openCursor(name);
+      traceLeave("openCursor", "name", name);
+      return cursor;
     }
   }
 
@@ -117,30 +261,40 @@ final class TracedStorage implements Storage
       this.txn = txn;
     }
 
+    private void traceEnter(String method, Object... args)
+    {
+      trace("ReadableTransaction", id(), method + "#enter", args);
+    }
+
+    private void traceLeave(String method, Object... args)
+    {
+      trace("ReadableTransaction", id(), method + "#leave", args);
+    }
+
     @Override
     public long getRecordCount(TreeName name)
     {
+      traceEnter("getRecordCount", "name", name);
       final long count = txn.getRecordCount(name);
-      logger.trace("Storage@%s.ReadableTransaction@%s.getRecordCount(%s, %s) = %d",
-          storageId(), id(), backendId, name, count);
+      traceLeave("getRecordCount", "name", name, "count", count);
       return count;
     }
 
     @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
+      traceEnter("openCursor", "name", name);
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
-      logger.trace("Storage@%s.ReadableTransaction@%s.openCursor(%s, %s)",
-          storageId(), id(), backendId, name);
-      return cursor;
+      traceLeave("openCursor", "name", name);
+      return new TracedCursor(cursor);
     }
 
     @Override
     public ByteString read(final TreeName name, final ByteSequence key)
     {
+      traceEnter("read", "name", name, "key", hex(key));
       final ByteString value = txn.read(name, key);
-      logger.trace("Storage@%s.ReadableTransaction@%s.read(%s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), hex(value));
+      traceLeave("read", "name", name, "key", hex(key), "value", hex(value));
       return value;
     }
 
@@ -160,72 +314,90 @@ final class TracedStorage implements Storage
       this.txn = txn;
     }
 
+    private void traceEnter(String method, Object... args)
+    {
+      trace("WriteableTransaction", id(), method + "#enter", args);
+    }
+
+    private void traceLeave(String method, Object... args)
+    {
+      trace("WriteableTransaction", id(), method + "#leave", args);
+    }
+
     @Override
     public void put(final TreeName name, final ByteSequence key, final ByteSequence value)
     {
+      traceEnter("put", "name", name, "key", hex(key), "value", hex(value));
       txn.put(name, key, value);
-      logger.trace("Storage@%s.WriteableTransaction@%s.create(%s, %s, %s, %s)",
-          storageId(), id(), backendId, name, hex(key), hex(value));
+      traceLeave("put", "name", name, "key", hex(key), "value", hex(value));
     }
 
     @Override
     public boolean delete(final TreeName name, final ByteSequence key)
     {
+      traceEnter("delete", "name", name, "key", hex(key));
       final boolean isDeleted = txn.delete(name, key);
-      logger.trace("Storage@%s.WriteableTransaction@%s.delete(%s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), isDeleted);
+      traceLeave("delete", "name", name, "key", hex(key), "isDeleted", isDeleted);
       return isDeleted;
     }
 
     @Override
     public void deleteTree(final TreeName name)
     {
+      traceEnter("deleteTree", "name", name);
       txn.deleteTree(name);
-      logger.trace("Storage@%s.WriteableTransaction@%s.deleteTree(%s, %s)",
-          storageId(), id(), backendId, name);
+      traceLeave("deleteTree", "name", name);
     }
 
     @Override
     public long getRecordCount(TreeName name)
     {
+      traceEnter("getRecordCount", "name", name);
       final long count = txn.getRecordCount(name);
-      logger.trace("Storage@%s.WriteableTransaction@%s.getRecordCount(%s, %s) = %d",
-          storageId(), id(), backendId, name, count);
+      traceLeave("getRecordCount", "name", name, "count", count);
       return count;
     }
 
     @Override
     public Cursor<ByteString, ByteString> openCursor(final TreeName name)
     {
+      traceEnter("openCursor", "name", name);
       final Cursor<ByteString, ByteString> cursor = txn.openCursor(name);
-      logger.trace("Storage@%s.WriteableTransaction@%s.openCursor(%s, %s)",
-          storageId(), id(), backendId, name);
-      return cursor;
+      traceLeave("openCursor", "name", name);
+      return new TracedCursor(cursor);
     }
 
     @Override
     public void openTree(final TreeName name, boolean createOnDemand)
     {
+      traceEnter("openTree", "name", name, "createOnDemand", createOnDemand);
       txn.openTree(name, createOnDemand);
-      logger.trace("Storage@%s.WriteableTransaction@%s.openTree(%s, %s)",
-          storageId(), id(), backendId, name);
+      traceLeave("openTree", "name", name, "createOnDemand", createOnDemand);
     }
 
     @Override
     public ByteString read(final TreeName name, final ByteSequence key)
     {
+      traceEnter("read", "name", name, "key", hex(key));
       final ByteString value = txn.read(name, key);
-      logger.trace("Storage@%s.WriteableTransaction@%s.read(%s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), hex(value));
+      traceLeave("read", "name", name, "key", hex(key), "value", hex(value));
       return value;
     }
 
     @Override
     public boolean update(final TreeName name, final ByteSequence key, final UpdateFunction f)
     {
-      final boolean isUpdated = txn.update(name, key, f);
-      logger.trace("Storage@%s.WriteableTransaction@%s.update(%s, %s, %s, %s) = %s",
-          storageId(), id(), backendId, name, hex(key), f, isUpdated);
+      traceEnter("update", "name", name, "key", hex(key));
+      final boolean isUpdated = txn.update(name, key, new UpdateFunction() {
+        @Override
+        public ByteSequence computeNewValue(final ByteSequence oldValue) {
+          traceEnter("updateFunction", "oldValue", hex(oldValue));
+          ByteSequence newValue = f.computeNewValue(oldValue);
+          traceLeave("updateFunction", "oldValue", hex(oldValue), "newValue", hex(newValue));
+          return newValue;
+        }
+      });
+      traceLeave("update", "name", name, "key", hex(key), "isUpdated", isUpdated);
       return isUpdated;
     }
 
@@ -246,14 +418,52 @@ final class TracedStorage implements Storage
     this.backendId = backendId;
   }
 
+  private void trace(String type, int id, String method, Object... args)
+  {
+    StringBuilder builder = new StringBuilder();
+    // Include a "!" in order to facilitate filtering using commands like "cut".
+    builder.append("!{");
+    appendKeyValue(builder, "backend", backendId);
+    builder.append(",");
+    appendKeyValue(builder, "storage", storageId());
+    builder.append(",");
+    appendKeyValue(builder, "type", type);
+    builder.append(",");
+    appendKeyValue(builder, "id", id);
+    builder.append(",");
+    appendKeyValue(builder, "method", method);
+    for (int i = 0; i < args.length; i += 2)
+    {
+      builder.append(",");
+      appendKeyValue(builder, args[i], args[i + 1]);
+    }
+    builder.append("}");
+    logger.trace(builder.toString());
+  }
+
+  private void traceEnter(String method, Object... args)
+  {
+    if (logger.isTraceEnabled())
+    {
+      trace("Storage", storageId(), method + "#enter", args);
+    }
+  }
+
+  private void traceLeave(String method, Object... args)
+  {
+    if (logger.isTraceEnabled())
+    {
+      trace("Storage", storageId(), method + "#leave", args);
+    }
+  }
+
+
   @Override
   public void close()
   {
+    traceEnter("close");
     storage.close();
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.close(%s)", storageId(), backendId);
-    }
+    traceLeave("close");
   }
 
   @Override
@@ -265,12 +475,9 @@ final class TracedStorage implements Storage
   @Override
   public void open(AccessMode accessMode) throws Exception
   {
+    traceEnter("open", "accessMode", accessMode);
     storage.open(accessMode);
-    if (logger.isTraceEnabled())
-    {
-      logger
-          .trace("Storage@%s.open(accessMode=%s) - Opened storage for backend %s", storageId(), accessMode, backendId);
-    }
+    traceLeave("open", "accessMode", accessMode);
   }
 
   @Override
@@ -294,23 +501,18 @@ final class TracedStorage implements Storage
   @Override
   public void removeStorageFiles() throws StorageRuntimeException
   {
+    traceEnter("removeStorageFiles");
     storage.removeStorageFiles();
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.removeStorageFiles(%s)", storageId(), backendId);
-    }
+    traceLeave("removeStorageFiles");
   }
 
   @Override
   public Importer startImport() throws ConfigException, StorageRuntimeException
   {
+    traceEnter("startImport");
     final Importer importer = storage.startImport();
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.startImport(%s)", storageId(), backendId);
-      return new TracedImporter(importer);
-    }
-    return importer;
+    traceLeave("startImport");
+    return logger.isTraceEnabled() ? new TracedImporter(importer) : importer;
   }
 
   @Override
@@ -340,47 +542,39 @@ final class TracedStorage implements Storage
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
+    traceEnter("createBackup");
     storage.createBackup(backupConfig);
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.createBackup(%s)", storageId(), backendId);
-    }
+    traceLeave("createBackup");
   }
 
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
+    traceEnter("removeBackup", "backupID", backupID);
     storage.removeBackup(backupDirectory, backupID);
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.removeBackup(%s, %s)", storageId(), backupID, backendId);
-    }
+    traceLeave("removeBackup", "backupID", backupID);
   }
 
   @Override
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
+    traceEnter("restoreBackup");
     storage.restoreBackup(restoreConfig);
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.restoreBackup(%s)", storageId(), backendId);
-    }
+    traceLeave("restoreBackup");
   }
 
   @Override
   public Set<TreeName> listTrees()
   {
+    traceEnter("listTrees");
     final Set<TreeName> results = storage.listTrees();
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Storage@%s.listTrees() = ", storageId(), results);
-    }
+    traceLeave("listTrees", "trees", results);
     return results;
   }
 
   private static String hex(final ByteSequence bytes)
   {
-    return bytes != null ? bytes.toByteString().toHexString() : null;
+    return bytes != null ? bytes.toByteString().toASCIIString() : null;
   }
 
   private int storageId()
