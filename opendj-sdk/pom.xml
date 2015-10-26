@@ -116,9 +116,9 @@
         <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
 
         <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
-        <i18n-framework.version>1.4.2-SNAPSHOT</i18n-framework.version>
+        <i18n-framework.version>1.4.2</i18n-framework.version>
         <grizzly-framework.version>2.3.14</grizzly-framework.version>
-        <forgerock-doc-plugin.version>3.1.0-SNAPSHOT</forgerock-doc-plugin.version>
+        <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
 
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional/>
