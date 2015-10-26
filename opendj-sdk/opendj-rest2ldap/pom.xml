@@ -51,13 +51,11 @@
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource</artifactId>
-            <version>${forgerock-rest.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource-http</artifactId>
-            <version>${forgerock-rest.version}</version>
         </dependency>
 
         <dependency>
