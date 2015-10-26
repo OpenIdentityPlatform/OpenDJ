@@ -102,13 +102,12 @@
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
     <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
 
-    <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
-    <i18nFrameworkVersion>1.4.2-SNAPSHOT</i18nFrameworkVersion>
-    <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
+    <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
+    <i18n-framework.version>1.4.2-SNAPSHOT</i18n-framework.version>
     <slf4jVersion>1.7.5</slf4jVersion>
     <forgerockRestVersion>3.0.0-SNAPSHOT</forgerockRestVersion>
     <forgerockHttpVersion>0.0.1-SNAPSHOT</forgerockHttpVersion>
-    <frDocPluginVersion>3.1.0-SNAPSHOT</frDocPluginVersion>
+    <forgerock-doc-plugin.version>3.1.0-SNAPSHOT</forgerock-doc-plugin.version>
 
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
@@ -226,7 +225,7 @@
         <plugin>
           <groupId>org.forgerock.commons</groupId>
           <artifactId>i18n-maven-plugin</artifactId>
-          <version>${i18nFrameworkVersion}</version>
+          <version>${i18n-framework.version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -291,7 +290,7 @@
         <plugin>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-doc-maven-plugin</artifactId>
-            <version>${frDocPluginVersion}</version>
+            <version>${forgerock-doc-plugin.version}</version>
             <configuration>
                 <projectName>OpenDJ</projectName>
                 <projectVersion>${project.version}</projectVersion>
@@ -357,13 +356,13 @@
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-core</artifactId>
-        <version>${i18nFrameworkVersion}</version>
+        <version>${i18n-framework.version}</version>
         <scope>compile</scope>
       </dependency>
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-slf4j</artifactId>
-        <version>${i18nFrameworkVersion}</version>
+        <version>${i18n-framework.version}</version>
         <scope>compile</scope>
       </dependency>
       <dependency>
@@ -463,7 +462,6 @@
                       </goals>
                       <configuration>
                         <!-- We need to accept the second part of the following regular expression for submodules:
-                           ! * opendj-rest2ldap
                            ! * opendj-rest2ldap-servlet
                            ! * opendj-legacy
                            !

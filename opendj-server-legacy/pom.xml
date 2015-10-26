@@ -122,7 +122,7 @@
     <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
-      <version>${forgerockBuildToolsVersion}</version>
+      <version>${forgerock-build-tools.version}</version>
       <scope>test</scope>
     </dependency>
 
