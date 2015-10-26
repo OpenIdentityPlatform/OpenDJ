@@ -98,15 +98,18 @@
       <artifactId>opendj-rest2ldap</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>i18n-slf4j</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-config</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-server</artifactId>
@@ -134,23 +137,21 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource</artifactId>
-      <version>${forgerockRestVersion}</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource-http</artifactId>
-      <version>${forgerockRestVersion}</version>
     </dependency>
     
     <dependency>
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-http-core</artifactId>
-      <version>${forgerockHttpVersion}</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-http-servlet</artifactId>
-      <version>${forgerockHttpVersion}</version>
     </dependency>
 
     <!-- servlet and mail -->
@@ -159,6 +160,7 @@
       <artifactId>javax.servlet-api</artifactId>
       <version>3.1-b02</version>
     </dependency>
+
     <dependency>
       <groupId>org.glassfish.grizzly</groupId>
       <artifactId>grizzly-http-servlet</artifactId>
@@ -170,13 +172,14 @@
         </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>
       <version>1.5.1</version>
     </dependency>
 
-    <!-- Tests -->
+    <!-- We need to override testNG version to make test works (see OPENDJ-2389) -->
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
@@ -187,15 +190,15 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>1.7.0</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.9.5</version>
+      <artifactId>mockito-all</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
@@ -203,6 +206,7 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
@@ -216,6 +220,7 @@
       <artifactId>je</artifactId>
       <version>5.0.104</version>
     </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-persistit-core</artifactId>

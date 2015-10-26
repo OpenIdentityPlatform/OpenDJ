@@ -104,9 +104,6 @@
 
     <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
     <i18n-framework.version>1.4.2-SNAPSHOT</i18n-framework.version>
-    <slf4jVersion>1.7.5</slf4jVersion>
-    <forgerockRestVersion>3.0.0-SNAPSHOT</forgerockRestVersion>
-    <forgerockHttpVersion>0.0.1-SNAPSHOT</forgerockHttpVersion>
     <forgerock-doc-plugin.version>3.1.0-SNAPSHOT</forgerock-doc-plugin.version>
 
     <!-- OSGi bundles properties -->
@@ -351,62 +348,61 @@
       </snapshots>
     </repository>
   </repositories>
+
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>forgerock-bom</artifactId>
+        <version>1.0.0</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-core</artifactId>
         <version>${i18n-framework.version}</version>
         <scope>compile</scope>
       </dependency>
+
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-slf4j</artifactId>
         <version>${i18n-framework.version}</version>
         <scope>compile</scope>
       </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4jVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-jdk14</artifactId>
-        <version>${slf4jVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.forgerock.commons</groupId>
-        <artifactId>forgerock-util</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
+
+
   <dependencies>
     <dependency>
       <groupId>org.easytesting</groupId>
       <artifactId>fest-assert</artifactId>
-      <version>1.4</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.5</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.0.1</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+
   <licenses>
    <license>
     <name>CDDL-1.0</name>
