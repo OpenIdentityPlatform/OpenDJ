@@ -24,9 +24,7 @@
   !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -37,7 +35,7 @@
 
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-sdk-parent</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
 
     <packaging>pom</packaging>
 
@@ -75,7 +73,8 @@
         <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-sdk/browse</url>
         <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</connection>
         <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</developerConnection>
-    </scm>
+      <tag>3.0.0</tag>
+  </scm>
 
     <ciManagement>
         <system>jenkins</system>
@@ -121,7 +120,7 @@
         <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
 
         <!-- OSGi bundles properties -->
-        <opendj.osgi.import.additional/>
+        <opendj.osgi.import.additional />
         <!--
          | Use provide:=true to disallow mixing OpenDJ and ForgeRock resource versions.
          | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
@@ -427,7 +426,7 @@
                     <plugin>
                         <groupId>org.forgerock.opendj</groupId>
                         <artifactId>opendj-copyright-maven-plugin</artifactId>
-                        <version>3.0.0-SNAPSHOT</version>
+                        <version>3.0.0</version>
                         <executions>
                             <execution>
                                 <id>check-copyright</id>
@@ -448,7 +447,7 @@
                     <plugin>
                         <groupId>org.forgerock.opendj</groupId>
                         <artifactId>opendj-copyright-maven-plugin</artifactId>
-                        <version>3.0.0-SNAPSHOT</version>
+                        <version>3.0.0</version>
                         <executions>
                             <execution>
                                 <id>check-copyright</id>
