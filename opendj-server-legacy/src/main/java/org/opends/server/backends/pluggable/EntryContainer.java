@@ -120,7 +120,7 @@ import org.opends.server.util.StaticUtils;
  * its own entry container.  The entry container is the object that implements
  * the guts of the backend API methods for LDAP operations.
  */
-public class EntryContainer
+public final class EntryContainer
     implements SuffixContainer, ConfigurationChangeListener<PluggableBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -620,8 +620,7 @@ public class EntryContainer
    */
   EntryID getHighestEntryID(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName());
-    try
+    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
     {
       // Position a cursor on the last data item, and the key should give the highest ID.
       if (cursor.positionToLastKey())
@@ -629,10 +628,6 @@ public class EntryContainer
         return new EntryID(cursor.getKey());
       }
       return new EntryID(0);
-    }
-    finally
-    {
-      cursor.close();
     }
   }
 
@@ -1158,73 +1153,65 @@ public class EntryContainer
     int lookthroughCount = 0;
     int lookthroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
 
-    try
+    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName()))
     {
-      final Cursor<ByteString, ByteString> cursor = txn.openCursor(dn2id.getName());
-      try
+      // Initialize the cursor very close to the starting value.
+      boolean success = cursor.positionToKeyOrNext(begin);
+
+      // Step forward until we pass the ending value.
+      while (success && cursor.getKey().compareTo(end) < 0)
       {
-        // Initialize the cursor very close to the starting value.
-        boolean success = cursor.positionToKeyOrNext(begin);
-
-        // Step forward until we pass the ending value.
-        while (success && cursor.getKey().compareTo(end) < 0)
+        if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
         {
-          if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
-          {
-            // Lookthrough limit exceeded
-            searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
-            searchOperation.appendErrorMessage(NOTE_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
-            return;
-          }
+          // Lookthrough limit exceeded
+          searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+          searchOperation.appendErrorMessage(NOTE_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+          return;
+        }
 
-          // We have found a subordinate entry.
-          EntryID entryID = new EntryID(cursor.getValue());
-          boolean isInScope =
-              searchScope != SearchScope.SINGLE_LEVEL
-                  // Check if this entry is an immediate child.
-                  || findDNKeyParent(cursor.getKey()) == baseDNKey.length();
-          if (isInScope)
+        // We have found a subordinate entry.
+        EntryID entryID = new EntryID(cursor.getValue());
+        boolean isInScope =
+            searchScope != SearchScope.SINGLE_LEVEL
+                // Check if this entry is an immediate child.
+                || findDNKeyParent(cursor.getKey()) == baseDNKey.length();
+        if (isInScope)
+        {
+          // Process the candidate entry.
+          final Entry entry = getEntry(txn, entryID);
+          if (entry != null)
           {
-            // Process the candidate entry.
-            final Entry entry = getEntry(txn, entryID);
-            if (entry != null)
+            lookthroughCount++;
+
+            if ((manageDsaIT || entry.getReferralURLs() == null)
+                && searchOperation.getFilter().matchesEntry(entry))
             {
-              lookthroughCount++;
-
-              if ((manageDsaIT || entry.getReferralURLs() == null)
-                  && searchOperation.getFilter().matchesEntry(entry))
+              if (pageRequest != null
+                  && searchOperation.getEntriesSent() == pageRequest.getSize())
               {
-                if (pageRequest != null
-                    && searchOperation.getEntriesSent() == pageRequest.getSize())
-                {
-                  // The current page is full.
-                  // Set the cookie to remember where we were.
-                  ByteString cookie = cursor.getKey();
-                  Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
-                  searchOperation.getResponseControls().add(control);
-                  return;
-                }
+                // The current page is full.
+                // Set the cookie to remember where we were.
+                ByteString cookie = cursor.getKey();
+                Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
+                searchOperation.getResponseControls().add(control);
+                return;
+              }
 
-                if (!searchOperation.returnEntry(entry, null))
-                {
-                  // We have been told to discontinue processing of the
-                  // search. This could be due to size limit exceeded or
-                  // operation cancelled.
-                  return;
-                }
+              if (!searchOperation.returnEntry(entry, null))
+              {
+                // We have been told to discontinue processing of the
+                // search. This could be due to size limit exceeded or
+                // operation cancelled.
+                return;
               }
             }
           }
-
-          searchOperation.checkIfCanceled(false);
-
-          // Move to the next record.
-          success = cursor.next();
         }
-      }
-      finally
-      {
-        cursor.close();
+
+        searchOperation.checkIfCanceled(false);
+
+        // Move to the next record.
+        success = cursor.next();
       }
     }
     catch (StorageRuntimeException e)
@@ -1779,19 +1766,13 @@ public class EntryContainer
    *
    * @return  <CODE>true</CODE> if the specified entry exists,
    *          or <CODE>false</CODE> if it does not.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to make the
-   *                              determination.
    */
-  private boolean entryExists(ReadableTransaction txn, final DN entryDN) throws DirectoryException
+  private boolean entryExists(ReadableTransaction txn, final DN entryDN)
   {
     // Try the entry cache first.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    if (entryCache != null && entryCache.containsEntry(entryDN))
-    {
-      return true;
-    }
-    return dn2id.get(txn, entryDN) != null;
+    return (entryCache != null && entryCache.containsEntry(entryDN))
+            || dn2id.get(txn, entryDN) != null;
   }
 
 
@@ -1841,7 +1822,13 @@ public class EntryContainer
         @Override
         public Entry run(ReadableTransaction txn) throws Exception
         {
-          return getEntry0(txn, entryDN);
+          Entry entry = getEntry0(txn, entryDN);
+          if (entry == null)
+          {
+            // The entryDN does not exist. Check for referral entries above the target entry.
+            dn2uri.targetEntryReferrals(txn, entryDN, null);
+          }
+          return entry;
         }
       });
     }
@@ -1865,33 +1852,22 @@ public class EntryContainer
       }
     }
 
-    try
+    final EntryID entryID = dn2id.get(txn, entryDN);
+    if (entryID == null)
     {
-      final EntryID entryID = dn2id.get(txn, entryDN);
-      if (entryID == null)
-      {
-        // The entryDN does not exist. Check for referral entries above the target entry.
-        dn2uri.targetEntryReferrals(txn, entryDN, null);
-        return null;
-      }
+      return null;
+    }
 
-      final Entry entry = id2entry.get(txn, entryID);
-      if (entry != null && entryCache != null)
-      {
-        /*
-         * Put the entry in the cache making sure not to overwrite a newer copy that may have been
-         * inserted since the time we read the cache.
-         */
-        entryCache.putEntryIfAbsent(entry, backendID, entryID.longValue());
-      }
-      return entry;
-    }
-    catch (Exception e)
+    final Entry entry = id2entry.get(txn, entryID);
+    if (entry != null && entryCache != null)
     {
-      // it is not very clean to specify twice the same exception but it saves me some code for now
-      throwAllowedExceptionTypes(e, DirectoryException.class, DirectoryException.class);
-      return null; // unreachable
+      /*
+       * Put the entry in the cache making sure not to overwrite a newer copy that may have been
+       * inserted since the time we read the cache.
+       */
+      entryCache.putEntryIfAbsent(entry, backendID, entryID.longValue());
     }
+    return entry;
   }
 
   /**
@@ -2506,8 +2482,6 @@ public class EntryContainer
   /**
    * Get a count of the number of entries stored in this entry container including the baseDN
    *
-   * @param txn
-   *          a non null transaction
    * @return The number of entries stored in this entry container including the baseDN.
    * @throws StorageRuntimeException
    *           If an error occurs in the storage.
@@ -2747,15 +2721,15 @@ public class EntryContainer
   /**
    * Finds an existing entry whose DN is the closest ancestor of a given baseDN.
    *
-   * @param baseDN  the DN for which we are searching a matched DN.
+   * @param targetDN  the DN for which we are searching a matched DN.
    * @return the DN of the closest ancestor of the baseDN.
    * @throws DirectoryException If an error prevented the check of an
    * existing entry from being performed.
    */
-  private DN getMatchedDN(ReadableTransaction txn, DN baseDN) throws DirectoryException
+  private DN getMatchedDN(ReadableTransaction txn, DN targetDN) throws DirectoryException
   {
-    DN parentDN  = baseDN.getParentDNInSuffix();
-    while (parentDN != null && parentDN.isDescendantOf(getBaseDN()))
+    DN parentDN  = targetDN.getParentDNInSuffix();
+    while (parentDN != null && parentDN.isDescendantOf(baseDN))
     {
       if (entryExists(txn, parentDN))
       {
@@ -2793,35 +2767,23 @@ public class EntryContainer
 
   /**
    * Fetch the base Entry of the EntryContainer.
-   * @param baseDN the DN for the base entry
+   * @param searchBaseDN the DN for the base entry
    * @param searchScope the scope under which this is fetched.
    *                    Scope is used for referral processing.
    * @return the Entry matching the baseDN.
    * @throws DirectoryException if the baseDN doesn't exist.
    */
-  private Entry fetchBaseEntry(ReadableTransaction txn, DN baseDN, SearchScope searchScope)
+  private Entry fetchBaseEntry(ReadableTransaction txn, DN searchBaseDN, SearchScope searchScope)
       throws DirectoryException
   {
-    Entry baseEntry = null;
-    try
-    {
-      baseEntry = getEntry0(txn, baseDN);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-
-    // The base entry must exist for a successful result.
+    Entry baseEntry = getEntry0(txn, searchBaseDN);
     if (baseEntry == null)
     {
       // Check for referral entries above the base entry.
-      dn2uri.targetEntryReferrals(txn, baseDN, searchScope);
-
+      dn2uri.targetEntryReferrals(txn, searchBaseDN, searchScope);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_SEARCH_NO_SUCH_OBJECT.get(baseDN), getMatchedDN(txn, baseDN), null);
+          ERR_SEARCH_NO_SUCH_OBJECT.get(searchBaseDN), getMatchedDN(txn, searchBaseDN), null);
     }
-
     return baseEntry;
   }
 
@@ -2869,7 +2831,7 @@ public class EntryContainer
     return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortOrder, sortMap);
   }
 
-  private static final long[] toArray(Collection<EntryID> entryIDs)
+  private static long[] toArray(Collection<EntryID> entryIDs)
   {
     final long[] array = new long[entryIDs.size()];
     int i = 0;
@@ -2880,7 +2842,7 @@ public class EntryContainer
     return array;
   }
 
-  private static final EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
+  private static EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
       VLVRequestControl vlvRequest, SortOrder sortOrder, final TreeMap<ByteString, EntryID> sortMap)
       throws DirectoryException
   {
@@ -2939,7 +2901,7 @@ public class EntryContainer
     return result;
   }
 
-  private static final EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
+  private static EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
       TreeMap<ByteString, EntryID> sortMap) throws DirectoryException
   {
     int targetOffset = vlvRequest.getOffset();

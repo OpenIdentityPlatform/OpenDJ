@@ -219,7 +219,6 @@ class ID2Entry extends AbstractTree
    * @param name The name of the entry tree.
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry tree.
-   * @param entryContainer The entryContainer of the entry tree.
    * @throws StorageRuntimeException If an error occurs in the storage.
    */
   ID2Entry(TreeName name, DataConfig dataConfig) throws StorageRuntimeException
@@ -364,7 +363,15 @@ class ID2Entry extends AbstractTree
   public Entry get(ReadableTransaction txn, EntryID entryID)
        throws DirectoryException, StorageRuntimeException
   {
-    return get0(entryID, txn.read(getName(), entryID.toByteString()));
+    try
+    {
+      return get0(txn.read(getName(), entryID.toByteString()));
+    }
+    catch (Exception e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(entryID));
+    }
+  }
   }
 
   /**
@@ -384,23 +391,15 @@ class ID2Entry extends AbstractTree
     }
   }
 
-  private Entry get0(EntryID entryID, ByteString value) throws DirectoryException
+  private Entry get0(ByteString value) throws Exception
   {
     if (value == null)
     {
       return null;
     }
-
-    try
-    {
-      Entry entry = entryFromDatabase(value, dataConfig.getEntryEncodeConfig().getCompressedSchema());
-      entry.processVirtualAttributes();
-      return entry;
-    }
-    catch (Exception e)
-    {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(entryID));
-    }
+    final Entry entry = entryFromDatabase(value, dataConfig.getEntryEncodeConfig().getCompressedSchema());
+    entry.processVirtualAttributes();
+    return entry;
   }
 
   /**
@@ -426,7 +425,7 @@ class ID2Entry extends AbstractTree
   {
     try
     {
-      return "\n" + get0(new EntryID(-1), value).toString();
+      return "\n" + get0(value).toString();
     }
     catch (Exception e)
     {

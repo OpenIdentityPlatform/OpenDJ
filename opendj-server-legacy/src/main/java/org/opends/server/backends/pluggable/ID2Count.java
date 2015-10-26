@@ -170,7 +170,7 @@ final class ID2Count extends AbstractTree
 
   /**
    * Get the counter value for the specified key
-   * @param txn The transaction
+   * @param txn storage transaction
    * @param entryID The entryID identifying to the counter
    * @return Value of the counter. 0 if no counter is associated yet.
    */
@@ -181,7 +181,7 @@ final class ID2Count extends AbstractTree
       cursor.positionToKeyOrNext(getKeyFromEntryID(entryID));
       while (cursor.isDefined() && cursor.getKey().equals(entryID))
       {
-        counterValue += cursor.getValue().longValue();
+        counterValue += cursor.getValue();
         cursor.next();
       }
     }
@@ -200,7 +200,7 @@ final class ID2Count extends AbstractTree
   /**
    * Get the total counter value. The total counter maintain the sum of all
    * the counter contained in this tree.
-   * @param txn The transaction
+   * @param txn storage transaction
    * @return Sum of all the counter contained in this tree
    */
   long getTotalCount(ReadableTransaction txn)
