@@ -464,24 +464,33 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     {
       try
       {
-        Database tree = getOrOpenTree(treeName);
-        DatabaseEntry dbKey = db(key);
-        DatabaseEntry dbValue = new DatabaseEntry();
-
-        boolean isDefined = tree.get(txn, dbKey, dbValue, RMW) == SUCCESS;
-        final ByteSequence oldValue = valueToBytes(dbValue, isDefined);
-        final ByteSequence newValue = f.computeNewValue(oldValue);
-        if (!Objects.equals(newValue, oldValue))
+        final Database tree = getOrOpenTree(treeName);
+        final DatabaseEntry dbKey = db(key);
+        final DatabaseEntry dbValue = new DatabaseEntry();
+        for (;;)
         {
+          final boolean isDefined = tree.get(txn, dbKey, dbValue, RMW) == SUCCESS;
+          final ByteSequence oldValue = valueToBytes(dbValue, isDefined);
+          final ByteSequence newValue = f.computeNewValue(oldValue);
+          if (Objects.equals(newValue, oldValue))
+          {
+            return false;
+          }
           if (newValue == null)
           {
             return tree.delete(txn, dbKey) == SUCCESS;
           }
-
           setData(dbValue, newValue);
-          return tree.put(txn, dbKey, dbValue) == SUCCESS;
+          if (isDefined)
+          {
+            return tree.put(txn, dbKey, dbValue) == SUCCESS;
+          }
+          else if (tree.putNoOverwrite(txn, dbKey, dbValue) == SUCCESS)
+          {
+            return true;
+          }
+          // else retry due to phantom read: another thread inserted a record
         }
-        return false;
       }
       catch (DatabaseException e)
       {
