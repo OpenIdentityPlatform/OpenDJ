@@ -985,12 +985,18 @@ public final class LDAPClientConnection extends ClientConnection implements
         statTracker.updateMessageWritten(message);
       }
     }
+    catch (ClosedChannelException e)
+    {
+      logger.traceException(e);
+      disconnect(DisconnectReason.IO_ERROR, false,
+          ERR_IO_ERROR_ON_CLIENT_CONNECTION.get(getExceptionMessage(e)));
+      return;
+    }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      // FIXME -- Log a message or something
-      disconnect(DisconnectReason.SERVER_ERROR, false, null);
+      disconnect(DisconnectReason.SERVER_ERROR, false,
+          ERR_UNEXPECTED_EXCEPTION_ON_CLIENT_CONNECTION.get(getExceptionMessage(e)));
       return;
     }
     finally

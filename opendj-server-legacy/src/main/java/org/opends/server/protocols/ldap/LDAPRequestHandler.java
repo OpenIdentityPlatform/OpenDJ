@@ -289,27 +289,13 @@ public class LDAPRequestHandler
               {
                 clientConnection = (LDAPClientConnection) key.attachment();
 
-                try
+                int readResult = clientConnection.processDataRead();
+                if (readResult < 0)
                 {
-                  int readResult = clientConnection.processDataRead();
-                  if (readResult < 0)
-                  {
-                    key.cancel();
-                  }
-                  if (readResult > 0) {
-                    readyConnections.add(clientConnection);
-                  }
-                }
-                catch (Exception e)
-                {
-                  logger.traceException(e);
-
-                  // Some other error occurred while we were trying to read data
-                  // from the client.
-                  // FIXME -- Should we log this?
                   key.cancel();
-                  clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
-                                              false, null);
+                }
+                if (readResult > 0) {
+                  readyConnections.add(clientConnection);
                 }
               }
               catch (Exception e)
@@ -323,8 +309,8 @@ public class LDAPRequestHandler
 
                 if (clientConnection != null)
                 {
-                  clientConnection.disconnect(DisconnectReason.SERVER_ERROR,
-                                              false, null);
+                  clientConnection.disconnect(DisconnectReason.SERVER_ERROR, false,
+                      ERR_UNEXPECTED_EXCEPTION_ON_CLIENT_CONNECTION.get(getExceptionMessage(e)));
                 }
               }
             }
