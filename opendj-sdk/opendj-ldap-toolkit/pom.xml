@@ -30,7 +30,7 @@
     <parent>
         <artifactId>opendj-sdk-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>3.0.1-SNAPSHOT</version>
+        <version>3.0.0-M3</version>
     </parent>
 
     <artifactId>opendj-ldap-toolkit</artifactId>

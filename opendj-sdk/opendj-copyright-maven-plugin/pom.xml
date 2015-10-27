@@ -30,11 +30,11 @@
     <parent>
         <artifactId>opendj-sdk-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>3.0.1-SNAPSHOT</version>
+        <version>3.0.0-M3</version>
     </parent>
 
     <artifactId>opendj-copyright-maven-plugin</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.0-M3</version>
     <name>OpenDJ Copyright Check Maven Plugin</name>
     <description>Checks ForgeRock source file copyrights.</description>
 
