@@ -330,11 +330,10 @@ public class VLVKeyComparator implements DatabaseComparator
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initialize(ClassLoader loader)
   {
-    if (orderingRules == null)
+    if (orderingRules == null && orderingRuleOids != null)
     {
       orderingRules = new MatchingRule[orderingRuleOids.length];
       for (int i = 0; i < orderingRuleOids.length; i++)

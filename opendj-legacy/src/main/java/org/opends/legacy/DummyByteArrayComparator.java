@@ -20,10 +20,11 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.legacy;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -35,12 +36,9 @@ import java.util.Comparator;
  * @deprecated Do not use
  */
 @Deprecated
-public class DummyByteArrayComparator implements Comparator<byte[]> {
-
-    /** {@inheritDoc} */
+public class DummyByteArrayComparator implements Comparator<byte[]>, Serializable {
     @Override
     public int compare(byte[] o1, byte[] o2) {
         return 0;
     }
-
 }

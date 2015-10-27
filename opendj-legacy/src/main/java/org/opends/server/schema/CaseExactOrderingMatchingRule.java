@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -33,5 +33,5 @@ import org.opends.legacy.DummyByteArrayComparator;
  */
 @Deprecated
 public class CaseExactOrderingMatchingRule extends DummyByteArrayComparator {
-    // empty
+    private static final long serialVersionUID = -5904188628828913709L;
 }
