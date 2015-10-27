@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -89,6 +91,9 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
 
     @Parameter(required = true, defaultValue = "${project.scm.connection}")
     private String scmRepositoryUrl;
+
+    @Parameter(required = false)
+    private List<String> disabledFiles;
 
     /** The file extensions to test. */
     public static final List<String> CHECKED_EXTENSIONS = new LinkedList<>(Arrays.asList(
@@ -241,10 +246,17 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             final List<ScmFile> scmChangedFiles, final String rootPath, final List<File> changedFiles) {
         for (final ScmFile scmFile : scmChangedFiles) {
             final String scmFilePath = scmFile.getPath();
-            if (scmFile.getStatus() != ScmFileStatus.UNKNOWN && !changedFiles.contains(scmFilePath)) {
+            if (scmFile.getStatus() != ScmFileStatus.UNKNOWN
+                    && new File(scmFilePath).exists()
+                    && !changedFiles.contains(scmFilePath)
+                    && !fileIsDisabled(scmFilePath)) {
                 changedFiles.add(new File(rootPath, scmFilePath));
             }
         }
+    }
+
+    private boolean fileIsDisabled(final String scmFilePath) {
+        return disabledFiles != null && disabledFiles.contains(scmFilePath);
     }
 
     /** Examines the provided files list to determine whether each changed file copyright is acceptable. */
