@@ -912,16 +912,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
-     * Returns an ASCII printable string representation.
-     *
-     * @param seq a normalized DN
-     * @return an ASCII printable string representation
-     */
-    public static String normalizedToASCII(ByteSequence seq) {
-        return seq.toByteString().toASCIIString();
-    }
-
-    /**
      * Retrieves a normalized string representation of this DN.
      * <p>
      * This representation is safe to use in an URL or in a file name.
