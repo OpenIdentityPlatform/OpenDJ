@@ -278,7 +278,6 @@ public class BackendStat
   private static final String SINGLELINE_NAME = "singleline";
   private static final String SINGLELINE = "singleLine";
 
-  private static final int INDENT = 4;
   private static final String HEXDUMP_LINE_FORMAT = "%s%s %s%n";
 
   /** The error stream which this application should use. */
@@ -1130,7 +1129,6 @@ public class BackendStat
           long eighty = 0;
           long ninety = 0;
           long ninetyFive = 0;
-          long invalidIDSet = 0;
           long undefined = 0;
           long count = 0;
           BackendTreeKeyValue keyDecoder = new BackendTreeKeyValue(index);
@@ -1139,14 +1137,13 @@ public class BackendStat
             while (cursor.next())
             {
               count++;
-              EntryIDSet entryIDSet = null;
+              EntryIDSet entryIDSet;
               try
               {
                 entryIDSet = cursor.getValue();
               }
               catch (Exception e)
               {
-                invalidIDSet++;
                 continue;
               }
 
@@ -1308,7 +1305,7 @@ public class BackendStat
             ByteString key;
             ByteString maxKey = null;
             ByteString value;
-            boolean maxKeyReached = false;
+            boolean maxKeyReached;
 
             if (options.get(DUMP_MIN_KEY_VALUE).isPresent())
             {
