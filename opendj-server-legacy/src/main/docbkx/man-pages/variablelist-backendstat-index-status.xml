@@ -31,7 +31,7 @@
                                   http://docbook.org/xml/5.0/xsd/docbook.xsd'>
 
  <para>
-  When you run the 'list-index-status' command, the result is a table, followed by a "Total",
+  When you run the 'show-index-status' command, the result is a table, followed by a "Total",
   which is the total number of indexes, followed by a list of indexes with "Over index-entry-limit keys" to
   show the values for which the number of entries exceeded the index entry limit.
   The table has the following columns.
@@ -53,10 +53,10 @@
  </varlistentry>
 
  <varlistentry>
-  <term>Tree Name</term>
+  <term>Raw DB Name</term>
   <listitem>
    <para>
-    Name of the backend tree, which reflects how OpenDJ directory server organizes the data in the database.
+    The internal name of the database within the storage which OpenDJ directory server is using for the index.
    </para>
 
    <para>

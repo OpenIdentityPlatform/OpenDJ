@@ -240,13 +240,15 @@ public class BackendStat
   private static final Option<Integer> DUMP_MAX_DATA_SIZE = Option.of(Integer.class, Integer.MAX_VALUE);
   private static final Option<Integer> DUMP_INDENT = Option.of(Integer.class, 4);
 
-  private static final String LIST_STORAGE_TREES = "list-storage-trees";
-  private static final String DUMP_STORAGE_TREE = "dump-storage-tree";
-  private static final String LIST_BACKEND_TREES = "list-trees";
-  private static final String DUMP_TREE = "dump-tree";
-  private static final String LIST_ROOT_CONTAINERS = "list-root-containers";
-  private static final String LIST_ENTRY_CONTAINERS = "list-entry-containers";
-  private static final String LIST_INDEX_STATUS = "list-index-status";
+  // Sub-command names.
+  private static final String LIST_BACKENDS = "list-backends";
+  private static final String LIST_BASE_DNS = "list-base-dns";
+  private static final String LIST_INDEXES = "list-indexes";
+  private static final String SHOW_INDEX_STATUS = "show-index-status";
+  private static final String DUMP_INDEX = "dump-index";
+  private static final String LIST_RAW_DBS = "list-raw-dbs";
+  private static final String DUMP_RAW_DB = "dump-raw-db";
+
   private static final String BACKENDID_NAME = "backendid";
   private static final String BACKENDID = "backendID";
   private static final String BASEDN_NAME = "basedn";
@@ -269,8 +271,10 @@ public class BackendStat
   private static final String SKIPDECODE = "skipDecode";
   private static final String STATSONLY_NAME = "statsonly";
   private static final String STATSONLY = "statsOnly";
-  private static final String TREENAME_NAME = "treename";
-  private static final String TREENAME = "treeName";
+  private static final String INDEXNAME_NAME = "indexname";
+  private static final String INDEXNAME = "indexName";
+  private static final String DBNAME_NAME = "dbname";
+  private static final String DBNAME = "dbName";
   private static final String SINGLELINE_NAME = "singleline";
   private static final String SINGLELINE = "singleLine";
 
@@ -390,41 +394,52 @@ public class BackendStat
   {
     if (!subCommandsInitialized)
     {
-      SubCommand sub;
+      // list-backends
+      new SubCommand(parser, LIST_BACKENDS,
+                           INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_BACKENDS.get());
 
-      sub = new SubCommand(parser, LIST_ROOT_CONTAINERS,
-          INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_ROOT_CONTAINERS.get());
-
-      sub = new SubCommand(parser, LIST_ENTRY_CONTAINERS,
-          INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_ENTRY_CONTAINERS.get());
+      // list-base-dns
+      SubCommand sub = new SubCommand(parser, LIST_BASE_DNS,
+                                      INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_ENTRY_CONTAINERS.get());
       addBackendArgument(sub);
 
-      sub = new SubCommand(parser, LIST_STORAGE_TREES, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_STORAGE_TREES.get());
-      addBackendArgument(sub);
-      BooleanArgument useSIUnits =
-          new BooleanArgument(USESIUNITS_NAME, 'u', USESIUNITS, INFO_DESCRIPTION_BACKEND_TOOL_USE_SI_UNITS.get());
-      sub.addArgument(useSIUnits);
-
-      sub = new SubCommand(parser, LIST_BACKEND_TREES, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_TREES.get());
+      // list-indexes
+      sub = new SubCommand(parser, LIST_INDEXES, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEXES.get());
       addBackendBaseDNArguments(sub, false, false, true);
 
-      sub = new SubCommand(parser, DUMP_STORAGE_TREE, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_STORAGE_TREE.get());
-      addBackendArgument(sub);
-      addDumpSubCommandArguments(sub);
-      BooleanArgument singleLine =
-          new BooleanArgument(SINGLELINE_NAME, 'l', SINGLELINE, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_SINGLE_LINE.get());
-      sub.addArgument(singleLine);
+      // show-index-status
+      sub = new SubCommand(parser, SHOW_INDEX_STATUS, INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_INDEX_STATUS.get());
+      sub.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEX_STATUS.get());
+      addBackendBaseDNArguments(sub, true, true, true);
 
-      sub = new SubCommand(parser, DUMP_TREE, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_TREE.get());
+      // dump-index
+      sub = new SubCommand(parser, DUMP_INDEX, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_INDEX.get());
       addBackendBaseDNArguments(sub, true, false, true);
+      sub.addArgument(new StringArgument(INDEXNAME_NAME, 'i', INDEXNAME, true, false, true,
+                                         INFO_INDEX_NAME_PLACEHOLDER.get(), null, null,
+                                         INFO_DESCRIPTION_BACKEND_DEBUG_INDEX_NAME.get()));
       addDumpSubCommandArguments(sub);
       BooleanArgument skipDecode =
           new BooleanArgument(SKIPDECODE_NAME, 'p', SKIPDECODE, INFO_DESCRIPTION_BACKEND_DEBUG_SKIP_DECODE.get());
       sub.addArgument(skipDecode);
 
-      sub = new SubCommand(parser, LIST_INDEX_STATUS, INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_INDEX_STATUS.get());
-      sub.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEX_STATUS.get());
-      addBackendBaseDNArguments(sub, true, true, true);
+      // list-raw-dbs
+      sub = new SubCommand(parser, LIST_RAW_DBS, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_RAW_DBS.get());
+      addBackendArgument(sub);
+      BooleanArgument useSIUnits =
+          new BooleanArgument(USESIUNITS_NAME, 'u', USESIUNITS, INFO_DESCRIPTION_BACKEND_TOOL_USE_SI_UNITS.get());
+      sub.addArgument(useSIUnits);
+
+      // dump-raw-db
+      sub = new SubCommand(parser, DUMP_RAW_DB, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_RAW_DB.get());
+      addBackendArgument(sub);
+      sub.addArgument(new StringArgument(DBNAME_NAME, 'd', DBNAME, true, false, true,
+                                         INFO_DATABASE_NAME_PLACEHOLDER.get(), null, null,
+                                         INFO_DESCRIPTION_BACKEND_DEBUG_RAW_DB_NAME.get()));
+      addDumpSubCommandArguments(sub);
+      BooleanArgument singleLine =
+          new BooleanArgument(SINGLELINE_NAME, 'l', SINGLELINE, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_SINGLE_LINE.get());
+      sub.addArgument(singleLine);
 
       subCommandsInitialized = true;
     }
@@ -447,9 +462,6 @@ public class BackendStat
 
   private void addDumpSubCommandArguments(SubCommand sub) throws ArgumentException
   {
-    sub.addArgument(
-        new StringArgument(TREENAME_NAME, 't', TREENAME, true, false, true, INFO_DATABASE_NAME_PLACEHOLDER.get(), null,
-            null, INFO_DESCRIPTION_BACKEND_DEBUG_INDEX_NAME.get()));
     sub.addArgument(new BooleanArgument(STATSONLY_NAME, 'q', STATSONLY,
         INFO_DESCRIPTION_BACKEND_DEBUG_STATS_ONLY.get()));
     sub.addArgument(newMaxKeyValueArg());
@@ -585,7 +597,7 @@ public class BackendStat
     }
 
     SubCommand subCommand = parser.getSubCommand();
-    if (LIST_ROOT_CONTAINERS.equals(subCommand.getName()))
+    if (LIST_BACKENDS.equals(subCommand.getName()))
     {
       return listRootContainers();
     }
@@ -603,18 +615,18 @@ public class BackendStat
     {
       switch (subCommand.getName())
       {
-      case LIST_ENTRY_CONTAINERS:
-        return listEntryContainers(rootContainer);
-      case LIST_STORAGE_TREES:
-        return listStorageTrees(rootContainer, subCommand.getArgument(USESIUNITS_NAME));
-      case LIST_BACKEND_TREES:
-        return listBackendTrees(rootContainer, backend, subCommand.getArgument(BASEDN_NAME));
-      case DUMP_STORAGE_TREE:
+      case LIST_BASE_DNS:
+        return listBaseDNs(rootContainer);
+      case LIST_RAW_DBS:
+        return listRawDBs(rootContainer, subCommand.getArgument(USESIUNITS_NAME));
+      case LIST_INDEXES:
+        return listIndexes(rootContainer, backend, subCommand.getArgument(BASEDN_NAME));
+      case DUMP_RAW_DB:
         return dumpTree(rootContainer, backend, subCommand, false);
-      case DUMP_TREE:
+      case DUMP_INDEX:
         return dumpTree(rootContainer, backend, subCommand, true);
-      case LIST_INDEX_STATUS:
-        return listIndexStatus(rootContainer, backend, subCommand.getArgument(BASEDN_NAME));
+      case SHOW_INDEX_STATUS:
+        return showIndexStatus(rootContainer, backend, subCommand.getArgument(BASEDN_NAME));
       default:
         return 1;
       }
@@ -651,10 +663,10 @@ public class BackendStat
     }
     if (isBackendTree)
     {
-      return dumpBackendTree(rc, backend, subCommand.getArgument(BASEDN_NAME), subCommand.getArgument(TREENAME_NAME),
+      return dumpBackendTree(rc, backend, subCommand.getArgument(BASEDN_NAME), subCommand.getArgument(INDEXNAME_NAME),
           options);
     }
-    return dumpStorageTree(rc, backend, subCommand.getArgument(TREENAME_NAME), options);
+    return dumpStorageTree(rc, backend, subCommand.getArgument(DBNAME_NAME), options);
   }
 
   private boolean setDumpTreeOptionArguments(SubCommand subCommand, Options options) throws ArgumentException
@@ -737,7 +749,7 @@ public class BackendStat
     return 0;
   }
 
-  private int listEntryContainers(RootContainer rc)
+  private int listBaseDNs(RootContainer rc)
   {
     try
     {
@@ -757,18 +769,18 @@ public class BackendStat
     }
     catch (StorageRuntimeException de)
     {
-      printWrappedText(err, ERR_BACKEND_TOOL_ERROR_READING_ENTRY_CONTAINERS.get(stackTraceToSingleLineString(de)));
+      printWrappedText(err, ERR_BACKEND_TOOL_ERROR_LISTING_BASE_DNS.get(stackTraceToSingleLineString(de)));
       return 1;
     }
   }
 
-  private int listStorageTrees(RootContainer rc, Argument useSIUnits)
+  private int listRawDBs(RootContainer rc, Argument useSIUnits)
   {
     try
     {
       TableBuilder builder = new TableBuilder();
 
-      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_STORAGE_TREE_NAME.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_RAW_DB_NAME.get());
       builder.appendHeading(INFO_LABEL_BACKEND_TOOL_TOTAL_KEYS.get());
       builder.appendHeading(INFO_LABEL_BACKEND_TOOL_KEYS_SIZE.get());
       builder.appendHeading(INFO_LABEL_BACKEND_TOOL_VALUES_SIZE.get());
@@ -830,7 +842,7 @@ public class BackendStat
     }
   }
 
-  private int listBackendTrees(RootContainer rc, BackendImpl backend, Argument baseDNArg) throws DirectoryException
+  private int listIndexes(RootContainer rc, BackendImpl backend, Argument baseDNArg) throws DirectoryException
   {
     DN base = null;
     if (baseDNArg.isPresent())
@@ -844,9 +856,9 @@ public class BackendStat
       int count = 0;
 
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_NAME.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_RAW_DB_NAME.get());
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_TYPE.get());
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_BACKEND_TREE_NAME.get());
 
       if (base != null)
       {
@@ -936,9 +948,9 @@ public class BackendStat
     {
       builder.startRow();
       builder.appendCell(tree.getName().getIndexId());
+      builder.appendCell(tree.getName());
       builder.appendCell(tree.getClass().getSimpleName());
       builder.appendCell(getTreeRecordCount(ec, tree));
-      builder.appendCell(tree.getName());
       count++;
     }
     return count;
@@ -1021,7 +1033,7 @@ public class BackendStat
     return null;
   }
 
-  private int listIndexStatus(RootContainer rc, BackendImpl backend, Argument baseDNArg) throws DirectoryException
+  private int showIndexStatus(RootContainer rc, BackendImpl backend, Argument baseDNArg) throws DirectoryException
   {
     DN base = getBaseDNFromArg(baseDNArg);
 
@@ -1032,7 +1044,7 @@ public class BackendStat
       int count = 0;
 
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_NAME.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_BACKEND_TREE_NAME.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_RAW_DB_NAME.get());
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_STATUS.get());
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
       builder.appendHeading(INFO_LABEL_BACKEND_TOOL_INDEX_UNDEFINED_RECORD_COUNT.get());
