@@ -47,6 +47,9 @@ import com.forgerock.opendj.util.PackedLong;
  */
 public final class ByteStringBuilder implements ByteSequence {
 
+    /** Maximum size in bytes of a compact encoded value. */
+    public static final int MAX_COMPACT_SIZE = PackedLong.MAX_COMPACT_SIZE;
+
     /** Output stream implementation. */
     private final class OutputStreamImpl extends OutputStream {
         @Override

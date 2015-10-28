@@ -35,6 +35,10 @@ import java.util.Arrays;
  * the interesting properties of maintaining correct order of values when compared.
  */
 public final class PackedLong {
+
+    /** Maximum size in bytes of a compact encoded value. */
+    public static final int MAX_COMPACT_SIZE = 8;
+
     private PackedLong() {
     }
 
