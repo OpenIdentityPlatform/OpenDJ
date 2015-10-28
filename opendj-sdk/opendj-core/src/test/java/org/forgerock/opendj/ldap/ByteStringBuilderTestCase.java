@@ -68,7 +68,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         final Object[][] addlSequences = new Object[builders.length + 1][];
         System.arraycopy(builders, 0, addlSequences, 0, builders.length);
         addlSequences[builders.length] =
-                new Object[] { new ByteStringBuilder().append(EIGHT_BYTES).subSequence(2, 6),
+                new Object[] { new ByteStringBuilder().appendBytes(EIGHT_BYTES).subSequence(2, 6),
                     new byte[] { b(0x03), b(0x04), b(0x05), b(0x06) } };
 
         return addlSequences;
@@ -108,63 +108,63 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadByteBufferLength1() {
-        new ByteStringBuilder().append(ByteBuffer.wrap(new byte[5]), -1);
+        new ByteStringBuilder().appendBytes(ByteBuffer.wrap(new byte[5]), -1);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadByteBufferLength2() {
-        new ByteStringBuilder().append(ByteBuffer.wrap(new byte[5]), 6);
+        new ByteStringBuilder().appendBytes(ByteBuffer.wrap(new byte[5]), 6);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadByteSequenceReaderLength1() {
-        new ByteStringBuilder().append(ByteString.wrap(new byte[5]).asReader(), -1);
+        new ByteStringBuilder().appendBytes(ByteString.wrap(new byte[5]).asReader(), -1);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadByteSequenceReaderLength2() {
-        new ByteStringBuilder().append(ByteString.wrap(new byte[5]).asReader(), 6);
+        new ByteStringBuilder().appendBytes(ByteString.wrap(new byte[5]).asReader(), 6);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadInputStreamLength() throws Exception {
         final ByteArrayInputStream stream = new ByteArrayInputStream(new byte[5]);
-        new ByteStringBuilder().append(stream, -1);
+        new ByteStringBuilder().appendBytes(stream, -1);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadLength1() {
-        new ByteStringBuilder().append(new byte[5], 0, 6);
+        new ByteStringBuilder().appendBytes(new byte[5], 0, 6);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadLength2() {
-        new ByteStringBuilder().append(new byte[5], 0, -1);
+        new ByteStringBuilder().appendBytes(new byte[5], 0, -1);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadOffset1() {
-        new ByteStringBuilder().append(new byte[5], -1, 3);
+        new ByteStringBuilder().appendBytes(new byte[5], -1, 3);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testAppendBadOffset2() {
-        new ByteStringBuilder().append(new byte[5], 6, 0);
+        new ByteStringBuilder().appendBytes(new byte[5], 6, 0);
     }
 
     @Test
     public void testAppendInputStream() throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
         final ByteArrayInputStream stream = new ByteArrayInputStream(new byte[5]);
-        Assert.assertEquals(bsb.append(stream, 10), 5);
+        Assert.assertEquals(bsb.appendBytes(stream, 10), 5);
     }
 
     @Test
     public void testAppendDataInputWithNonEmptyBuilder() throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append((byte) 0);
+        bsb.appendByte(0);
         final DataInput stream = new DataInputStream(new ByteArrayInputStream(new byte[5]));
-        bsb.append(stream, 5);
+        bsb.appendBytes(stream, 5);
         Assert.assertEquals(bsb.length(), 6);
     }
 
@@ -187,7 +187,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     private ByteStringBuilder builder(int length) {
         final ByteStringBuilder builder = new ByteStringBuilder();
         for (int i = 0; i < length; i++) {
-            builder.append(42);
+            builder.appendInt(42);
         }
         return builder;
     }
@@ -234,7 +234,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @Test
     public void testTrimToSize() {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append(EIGHT_BYTES);
+        bsb.appendBytes(EIGHT_BYTES);
         Assert.assertTrue(bsb.getBackingArray().length > 8);
         bsb.trimToSize();
         Assert.assertEquals(bsb.getBackingArray().length, 8);
@@ -275,45 +275,45 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         final ByteSequenceReader testByteReader = testByteString.asReader();
         final InputStream testStream = new ByteArrayInputStream(EIGHT_BYTES);
         final ByteStringBuilder testBuilderFromStream = new ByteStringBuilder(8);
-        testBuilderFromStream.append(testStream, 8);
+        testBuilderFromStream.appendBytes(testStream, 8);
 
         return new Object[][] {
-            { new ByteStringBuilder().append(b(0x00)).append(b(0x01)),
+            { new ByteStringBuilder().appendByte(0x00).appendByte(0x01),
                 new byte[] { b(0x00), b(0x01) } },
             { new ByteStringBuilder(5)
-                      .append(new byte[] { b(0x01), b(0x02), b(0x03), b(0x04) })
-                      .append(new byte[] { b(0x05), b(0x06), b(0x07), b(0x08) }),
+                      .appendBytes(new byte[] { b(0x01), b(0x02), b(0x03), b(0x04) })
+                      .appendBytes(new byte[] { b(0x05), b(0x06), b(0x07), b(0x08) }),
                 EIGHT_BYTES },
-            { new ByteStringBuilder(3).append(EIGHT_BYTES, 0, 3).append(EIGHT_BYTES, 3, 5),
+            { new ByteStringBuilder(3).appendBytes(EIGHT_BYTES, 0, 3).appendBytes(EIGHT_BYTES, 3, 5),
                 EIGHT_BYTES },
-            { new ByteStringBuilder().append(testBuffer, 3).append(testBuffer, 5), EIGHT_BYTES },
-            { new ByteStringBuilder(2).append(testByteString), EIGHT_BYTES },
-            { new ByteStringBuilder().append(testByteReader, 5).append(testByteReader, 3),
+            { new ByteStringBuilder().appendBytes(testBuffer, 3).appendBytes(testBuffer, 5), EIGHT_BYTES },
+            { new ByteStringBuilder(2).appendBytes(testByteString), EIGHT_BYTES },
+            { new ByteStringBuilder().appendBytes(testByteReader, 5).appendBytes(testByteReader, 3),
                 EIGHT_BYTES },
             { testBuilderFromStream, EIGHT_BYTES },
-            { new ByteStringBuilder().append(Short.MIN_VALUE).append(Short.MAX_VALUE),
+            { new ByteStringBuilder().appendShort(Short.MIN_VALUE).appendShort(Short.MAX_VALUE),
                 new byte[] { b(0x80), b(0x00), b(0x7F), b(0xFF) } },
             {
-                new ByteStringBuilder(5).append(Integer.MIN_VALUE).append(Integer.MAX_VALUE),
+                new ByteStringBuilder(5).appendInt(Integer.MIN_VALUE).appendInt(Integer.MAX_VALUE),
                 new byte[] { b(0x80), b(0x00), b(0x00), b(0x00), b(0x7F),
                     b(0xFF), b(0xFF), b(0xFF) } },
             {
-                new ByteStringBuilder().append(Long.MIN_VALUE).append(Long.MAX_VALUE),
+                new ByteStringBuilder().appendLong(Long.MIN_VALUE).appendLong(Long.MAX_VALUE),
                 new byte[] { b(0x80), b(0x00), b(0x00), b(0x00), b(0x00),
                     b(0x00), b(0x00), b(0x00), b(0x7F), b(0xFF), b(0xFF),
                     b(0xFF), b(0xFF), b(0xFF), b(0xFF), b(0xFF) } },
-            { new ByteStringBuilder(11).append("this is a").append(" test"),
+            { new ByteStringBuilder(11).appendUtf8("this is a").appendUtf8(" test"),
                 "this is a test".getBytes("UTF-8") },
-            { new ByteStringBuilder().append((Object) "this is a").append((Object) " test"),
+            { new ByteStringBuilder().appendObject((Object) "this is a").appendObject((Object) " test"),
                 "this is a test".getBytes("UTF-8") },
             {
-                new ByteStringBuilder().append("this is a".toCharArray()).append(
+                new ByteStringBuilder().appendUtf8("this is a".toCharArray()).appendUtf8(
                         " test".toCharArray()), "this is a test".getBytes("UTF-8") },
             {
-                new ByteStringBuilder().append((Object) "this is a".toCharArray()).append(
+                new ByteStringBuilder().appendObject((Object) "this is a".toCharArray()).appendObject(
                         (Object) " test".toCharArray()), "this is a test".getBytes("UTF-8") },
             {
-                new ByteStringBuilder().append((Object) EIGHT_BYTES).append((Object) EIGHT_BYTES),
+                new ByteStringBuilder().appendObject((Object) EIGHT_BYTES).appendObject((Object) EIGHT_BYTES),
                 new byte[] { b(0x01), b(0x02), b(0x03), b(0x04), b(0x05),
                     b(0x06), b(0x07), b(0x08), b(0x01), b(0x02), b(0x03),
                     b(0x04), b(0x05), b(0x06), b(0x07), b(0x08) } },
@@ -341,7 +341,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @Test
     public void testCopyCtor() {
         final ByteStringBuilder builder = new ByteStringBuilder(400);
-        builder.append("this is a ByteString");
+        builder.appendUtf8("this is a ByteString");
         final ByteString orig = builder.toByteString();
         final ByteString copy = new ByteStringBuilder(orig).toByteString();
         Assert.assertEquals(copy, orig);
@@ -351,7 +351,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @Test
     public void testSetByte() {
         final ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append("this is a ByteString");
+        builder.appendUtf8("this is a ByteString");
         builder.setByte(2, b('a'));
         builder.setByte(3, b('t'));
         Assert.assertEquals(builder.toByteString().toString(), "that is a ByteString");
@@ -372,7 +372,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @Test
     public void testSetLength() {
         final ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append("this is a ByteString");
+        builder.appendUtf8("this is a ByteString");
         builder.setLength(builder.length() - 16);
         Assert.assertEquals(builder.toString(), "this");
         builder.setLength(builder.length() + 1);
@@ -387,28 +387,28 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @Test
     public void testAppendNullCharArray() {
         final ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append((char[]) null);
+        builder.appendUtf8((char[]) null);
         Assert.assertTrue(builder.isEmpty());
     }
 
     @Test
     public void testAppendNullString() {
         final ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append((String) null);
+        builder.appendUtf8((String) null);
         Assert.assertTrue(builder.isEmpty());
     }
 
     @Test
     public void testAppendNonAsciiCharArray() {
         final ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append(new char[] { 'œ', 'Œ' });
+        builder.appendUtf8(new char[] { 'œ', 'Œ' });
         Assert.assertEquals(builder.toString(), "œŒ");
     }
 
     @Test
     public void testAppendNonAsciiString() {
         final ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append("œŒ");
+        builder.appendUtf8("œŒ");
         Assert.assertEquals(builder.toString(), "œŒ");
     }
 
@@ -448,7 +448,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     public void testSubSequenceIsEmpty() {
         final ByteStringBuilder builder = new ByteStringBuilder();
         Assert.assertTrue(builder.subSequence(0, builder.length()).isEmpty());
-        builder.append("This is a ByteString");
+        builder.appendUtf8("This is a ByteString");
         Assert.assertFalse(builder.subSequence(0, builder.length()).isEmpty());
     }
 }

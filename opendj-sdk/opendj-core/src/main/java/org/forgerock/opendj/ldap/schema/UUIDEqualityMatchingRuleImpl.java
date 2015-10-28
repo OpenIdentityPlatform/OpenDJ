@@ -122,7 +122,7 @@ final class UUIDEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
             default:
                 final int high4Bits = decodeHexByte(value, i++);
                 final int low4Bits = decodeHexByte(value, i);
-                builder.append((byte) ((high4Bits << 4) | low4Bits));
+                builder.appendByte((high4Bits << 4) | low4Bits);
                 break;
             }
         }

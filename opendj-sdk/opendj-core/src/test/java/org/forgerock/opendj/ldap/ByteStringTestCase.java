@@ -265,7 +265,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testToHex() throws Exception {
-        ByteString byteString = new ByteStringBuilder().append("org=example").toByteString();
+        ByteString byteString = new ByteStringBuilder().appendUtf8("org=example").toByteString();
         assertThat(byteString.toHexString()).isEqualTo("6F 72 67 3D 65 78 61 6D 70 6C 65");
 
         assertThat(ByteString.empty().toHexString()).isEqualTo("");
@@ -273,7 +273,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testToPercentHex() throws Exception {
-        ByteString byteString = new ByteStringBuilder().append("org=example").toByteString();
+        ByteString byteString = new ByteStringBuilder().appendUtf8("org=example").toByteString();
         assertThat(byteString.toPercentHexString())
             .isEqualTo("%6F%72%67%3D%65%78%61%6D%70%6C%65");
     }
@@ -281,7 +281,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test
     public void testCopyToCharBuffer() throws Exception {
         String value = "org=example";
-        ByteString byteString = new ByteStringBuilder().append(value).toByteString();
+        ByteString byteString = new ByteStringBuilder().appendUtf8(value).toByteString();
         CharBuffer buffer = CharBuffer.allocate(value.length());
         final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
 
@@ -295,7 +295,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test
     public void testCopyToCharBufferFailure() throws Exception {
         // Non valid UTF-8 byte sequence
-        ByteString byteString = new ByteStringBuilder().append((byte) 0x80).toByteString();
+        ByteString byteString = new ByteStringBuilder().appendByte(0x80).toByteString();
         CharBuffer buffer = CharBuffer.allocate(1);
         final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
 
@@ -308,7 +308,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test
     public void testCopyToByteBuffer() throws Exception {
         String value = "org=example";
-        ByteString byteString = new ByteStringBuilder().append(value).toByteString();
+        ByteString byteString = new ByteStringBuilder().appendUtf8(value).toByteString();
         ByteBuffer buffer = ByteBuffer.allocate(value.length());
 
         byteString.copyTo(buffer);
@@ -326,7 +326,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test
     public void testToHexPlusAsciiString() throws Exception {
         final String eol = System.getProperty("line.separator");
-        ByteString byteString = new ByteStringBuilder().append("cn=testvalue,org=example").toByteString();
+        ByteString byteString = new ByteStringBuilder().appendUtf8("cn=testvalue,org=example").toByteString();
         assertThat(byteString.toHexPlusAsciiString(10)).isEqualTo(
               "          63 6E 3D 74 65 73 74 76   61 6C 75 65 2C 6F 72 67  cn=testv alue,org" + eol
             + "          3D 65 78 61 6D 70 6C 65                            =example " + eol);

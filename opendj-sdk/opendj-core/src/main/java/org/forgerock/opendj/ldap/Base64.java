@@ -277,11 +277,11 @@ final class Base64 {
                     append = false;
                     switch (j) {
                     case 2:
-                        builder.append((byte) ((value >>> 4) & 0xFF));
+                        builder.appendByte(value >>> 4 & 0xFF);
                         break;
                     case 3:
-                        builder.append((byte) ((value >>> 10) & 0xFF));
-                        builder.append((byte) ((value >>> 2) & 0xFF));
+                        builder.appendByte(value >>> 10 & 0xFF);
+                        builder.appendByte(value >>> 2 & 0xFF);
                         break;
                     }
                     break;
@@ -297,9 +297,9 @@ final class Base64 {
             }
 
             if (append) {
-                builder.append((byte) ((value >>> 16) & 0xFF));
-                builder.append((byte) ((value >>> 8) & 0xFF));
-                builder.append((byte) (value & 0xFF));
+                builder.appendByte(value >>> 16 & 0xFF);
+                builder.appendByte(value >>> 8 & 0xFF);
+                builder.appendByte(value & 0xFF);
             } else {
                 break;
             }

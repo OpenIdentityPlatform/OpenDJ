@@ -429,7 +429,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         switch (size()) {
         case 0:
             // Handle RDN.maxValue().
-            builder.append(DN.NORMALIZED_AVA_SEPARATOR);
+            builder.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
             break;
         case 1:
             getFirstAVA().toNormalizedByteString(builder);
@@ -438,7 +438,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
             Iterator<AVA> it = getSortedAvas();
             it.next().toNormalizedByteString(builder);
             while (it.hasNext()) {
-                builder.append(DN.NORMALIZED_AVA_SEPARATOR);
+                builder.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
                 it.next().toNormalizedByteString(builder);
             }
             break;

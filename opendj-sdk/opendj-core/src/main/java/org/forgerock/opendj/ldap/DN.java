@@ -901,7 +901,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
                     final RDN rdn = parent(i).rdn();
                     // Only add a separator if the RDN is not RDN.maxValue().
                     if (rdn.size() != 0) {
-                        builder.append(DN.NORMALIZED_RDN_SEPARATOR);
+                        builder.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
                     }
                     rdn.toNormalizedByteString(builder);
                 }

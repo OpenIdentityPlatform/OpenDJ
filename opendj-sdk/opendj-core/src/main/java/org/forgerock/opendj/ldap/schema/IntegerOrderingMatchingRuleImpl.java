@@ -95,7 +95,7 @@ final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRule
 
         // Encode the absolute value of the integer..
         for (int i = startIndex; i < length; i++) {
-            builder.append((byte) (absBytes[i] ^ signMask));
+            builder.appendByte(absBytes[i] ^ signMask);
         }
 
         return builder.toByteString();
@@ -107,33 +107,33 @@ final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRule
         if ((length & 0x0000000F) == length) {
             // 0000xxxx
             final byte b0 = (byte) (0x80 | length & 0x0F);
-            builder.append((byte) (b0 ^ signMask));
+            builder.appendByte(b0 ^ signMask);
         } else if ((length & 0x00000FFF) == length) {
             // 0001xxxx xxxxxxxx
             final byte b0 = (byte) (0x90 | length >> 8 & 0x0F);
-            builder.append((byte) (b0 ^ signMask));
-            builder.append((byte) (length & 0xFF ^ signMask));
+            builder.appendByte(b0 ^ signMask);
+            builder.appendByte(length & 0xFF ^ signMask);
         } else if ((length & 0x000FFFFF) == length) {
             // 0010xxxx xxxxxxxx xxxxxxxx
             final byte b0 = (byte) (0xA0 | length >> 16 & 0x0F);
-            builder.append((byte) (b0 ^ signMask));
-            builder.append((byte) (length >> 8 & 0xFF ^ signMask));
-            builder.append((byte) (length & 0xFF ^ signMask));
+            builder.appendByte(b0 ^ signMask);
+            builder.appendByte(length >> 8 & 0xFF ^ signMask);
+            builder.appendByte(length & 0xFF ^ signMask);
         } else if ((length & 0x0FFFFFFF) == length) {
             // 0011xxxx xxxxxxxx xxxxxxxx xxxxxxxx
             final byte b0 = (byte) (0xB0 | length >> 24 & 0x0F);
-            builder.append((byte) (b0 ^ signMask));
-            builder.append((byte) (length >> 16 & 0xFF ^ signMask));
-            builder.append((byte) (length >> 8 & 0xFF ^ signMask));
-            builder.append((byte) (length & 0xFF ^ signMask));
+            builder.appendByte(b0 ^ signMask);
+            builder.appendByte(length >> 16 & 0xFF ^ signMask);
+            builder.appendByte(length >> 8 & 0xFF ^ signMask);
+            builder.appendByte(length & 0xFF ^ signMask);
         } else {
             // 0100xxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxx0000
             final byte b0 = (byte) (0xC0 | length >> 28 & 0x0F);
-            builder.append((byte) (b0 ^ signMask));
-            builder.append((byte) (length >> 20 & 0xFF ^ signMask));
-            builder.append((byte) (length >> 12 & 0xFF ^ signMask));
-            builder.append((byte) (length >> 4 & 0xFF ^ signMask));
-            builder.append((byte) (length << 4 & 0xFF ^ signMask));
+            builder.appendByte(b0 ^ signMask);
+            builder.appendByte(length >> 20 & 0xFF ^ signMask);
+            builder.appendByte(length >> 12 & 0xFF ^ signMask);
+            builder.appendByte(length >> 4 & 0xFF ^ signMask);
+            builder.appendByte(length << 4 & 0xFF ^ signMask);
         }
     }
 

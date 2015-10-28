@@ -117,7 +117,7 @@ public class IntegerOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
     private String expected(int... bytes) {
         ByteStringBuilder builder = new ByteStringBuilder();
         for (int b : bytes) {
-            builder.append((byte) b);
+            builder.appendByte(b);
         }
         return builder.toByteString().toHexString();
     }

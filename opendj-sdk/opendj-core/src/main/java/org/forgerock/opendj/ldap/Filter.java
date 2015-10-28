@@ -1179,9 +1179,9 @@ public final class Filter {
                     throw new LocalizedIllegalArgumentException(message);
                 }
 
-                valueBuffer.append(byteValue);
+                valueBuffer.appendByte(byteValue);
             } else {
-                valueBuffer.append(valueBytes[i]);
+                valueBuffer.appendByte(valueBytes[i]);
             }
         }
     }

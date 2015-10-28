@@ -802,11 +802,11 @@ public final class AVA implements Comparable<AVA> {
      * @see DN#toNormalizedByteString()
      */
     ByteStringBuilder toNormalizedByteString(final ByteStringBuilder builder) {
-        builder.append(toLowerCase(attributeType.getNameOrOID()));
-        builder.append("=");
+        builder.appendUtf8(toLowerCase(attributeType.getNameOrOID()));
+        builder.appendUtf8("=");
         final ByteString value = getEqualityNormalizedValue();
         if (value.length() > 0) {
-            builder.append(escapeBytes(value));
+            builder.appendBytes(escapeBytes(value));
         }
         return builder;
     }
@@ -871,9 +871,9 @@ public final class AVA implements Comparable<AVA> {
         for (int i = 0; i < value.length(); i++) {
             final byte b = value.byteAt(i);
             if (isByteToEscape(b)) {
-                builder.append(DN.NORMALIZED_ESC_BYTE);
+                builder.appendByte(DN.NORMALIZED_ESC_BYTE);
             }
-            builder.append(b);
+            builder.appendByte(b);
         }
         return builder.toByteString();
     }

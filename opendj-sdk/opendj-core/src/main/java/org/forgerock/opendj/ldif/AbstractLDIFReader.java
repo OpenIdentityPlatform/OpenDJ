@@ -297,7 +297,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                     int bytesRead;
                     final byte[] buffer = new byte[4096];
                     while ((bytesRead = inputStream.read(buffer)) > 0) {
-                        builder.append(buffer, 0, bytesRead);
+                        builder.appendBytes(buffer, 0, bytesRead);
                     }
 
                     value = builder.toByteString();

@@ -510,4 +510,24 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <differenceType>8001</differenceType>
     <justification>OPENDJ-1654: LDAPOptions should be converted in a SchemaOptions style API</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteStringBuilder</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[(org\.forgerock\.opendj\.ldap\.ByteStringBuilder|int) append\(.*\)]</method>
+    <justification>OPENDJ-1802 ByteStringBuilder.append() => appendByte(), appendShort(), appendInt(), appendLong(), appendBytes(), appendObject()</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteStringBuilder</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.ByteStringBuilder append(byte)</method>
+    <to>org.forgerock.opendj.ldap.ByteStringBuilder appendByte(int)</to>
+    <justification>OPENDJ-1802 Consider making ByteString / ByteStringBuilder methods more intentional</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteStringBuilder</className>
+    <differenceType>7006</differenceType>
+    <method>org.forgerock.opendj.ldap.ByteStringBuilder append(byte)</method>
+    <to>void</to>
+    <justification>OPENDJ-1802 Consider making ByteString / ByteStringBuilder methods more intentional</justification>
+  </difference>
 </differences>

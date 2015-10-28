@@ -42,9 +42,7 @@ import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.PackedLong;
 
-/**
- * A mutable sequence of bytes backed by a byte array.
- */
+/** A mutable sequence of bytes backed by a byte array. */
 public final class ByteStringBuilder implements ByteSequence {
 
     /** Maximum size in bytes of a compact encoded value. */
@@ -59,17 +57,17 @@ public final class ByteStringBuilder implements ByteSequence {
 
         @Override
         public void write(final byte[] bytes) {
-            append(bytes);
+            appendBytes(bytes);
         }
 
         @Override
         public void write(final byte[] bytes, final int i, final int i1) {
-            append(bytes, i, i1);
+            appendBytes(bytes, i, i1);
         }
 
         @Override
         public void write(final int i) {
-            append((byte) (i & 0xFF));
+            appendByte(i & 0xFF);
         }
     }
 
@@ -99,13 +97,11 @@ public final class ByteStringBuilder implements ByteSequence {
             this.subLength = length;
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteSequenceReader asReader() {
             return new ByteSequenceReader(this);
         }
 
-        /** {@inheritDoc} */
         @Override
         public byte byteAt(final int index) {
             if (index >= subLength || index < 0) {
@@ -116,7 +112,6 @@ public final class ByteStringBuilder implements ByteSequence {
             return buffer[subOffset + index];
         }
 
-        /** {@inheritDoc} */
         @Override
         public int compareTo(final byte[] b, final int offset, final int length) {
             ByteString.checkArrayBounds(b, offset, length);
@@ -125,7 +120,6 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.compareTo(buffer, subOffset, subLength, b, offset, length);
         }
 
-        /** {@inheritDoc} */
         @Override
         public int compareTo(final ByteSequence o) {
             if (this == o) {
@@ -136,14 +130,12 @@ public final class ByteStringBuilder implements ByteSequence {
             return -o.compareTo(buffer, subOffset, subLength);
         }
 
-        /** {@inheritDoc} */
         @Override
         public byte[] copyTo(final byte[] b) {
             copyTo(b, 0);
             return b;
         }
 
-        /** {@inheritDoc} */
         @Override
         public byte[] copyTo(final byte[] b, final int offset) {
             if (offset < 0) {
@@ -155,27 +147,23 @@ public final class ByteStringBuilder implements ByteSequence {
             return b;
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
             byteBuffer.put(buffer, subOffset, subLength);
             return byteBuffer;
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
             // Protect against reallocation: use builder's buffer.
-            return builder.append(buffer, subOffset, subLength);
+            return builder.appendBytes(buffer, subOffset, subLength);
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
             return ByteString.copyTo(ByteBuffer.wrap(buffer, subOffset, subLength), charBuffer, decoder);
         }
 
-        /** {@inheritDoc} */
         @Override
         public OutputStream copyTo(final OutputStream stream) throws IOException {
             // Protect against reallocation: use builder's buffer.
@@ -183,7 +171,6 @@ public final class ByteStringBuilder implements ByteSequence {
             return stream;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean equals(final byte[] b, final int offset, final int length) {
             ByteString.checkArrayBounds(b, offset, length);
@@ -192,7 +179,6 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.equals(buffer, subOffset, subLength, b, offset, length);
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean equals(final Object o) {
             if (this == o) {
@@ -207,7 +193,6 @@ public final class ByteStringBuilder implements ByteSequence {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             // Protect against reallocation: use builder's buffer.
@@ -219,13 +204,11 @@ public final class ByteStringBuilder implements ByteSequence {
             return length == 0;
         }
 
-        /** {@inheritDoc} */
         @Override
         public int length() {
             return subLength;
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteSequence subSequence(final int start, final int end) {
             if (start < 0 || start > end || end > subLength) {
@@ -235,7 +218,6 @@ public final class ByteStringBuilder implements ByteSequence {
             return new SubSequence(subOffset + start, end - start);
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean startsWith(ByteSequence prefix) {
             if (prefix == null || prefix.length() > length) {
@@ -244,19 +226,16 @@ public final class ByteStringBuilder implements ByteSequence {
             return prefix.equals(buffer, 0, prefix.length());
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toBase64String() {
             return Base64.encode(this);
         }
 
-        /** {@inheritDoc} */
         @Override
         public byte[] toByteArray() {
             return copyTo(new byte[subLength]);
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteString toByteString() {
             // Protect against reallocation: use builder's buffer.
@@ -265,7 +244,6 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.wrap(b);
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             // Protect against reallocation: use builder's buffer.
@@ -289,9 +267,7 @@ public final class ByteStringBuilder implements ByteSequence {
      */
     private OutputStreamImpl os;
 
-    /**
-     * Creates a new byte string builder with an initial capacity of 32 bytes.
-     */
+    /** Creates a new byte string builder with an initial capacity of 32 bytes. */
     public ByteStringBuilder() {
         // Initially create a 32 byte buffer.
         this(32);
@@ -331,9 +307,9 @@ public final class ByteStringBuilder implements ByteSequence {
      *            The byte to be appended to this byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(final byte b) {
+    public ByteStringBuilder appendByte(final int b) {
         ensureAdditionalCapacity(1);
-        buffer[length++] = b;
+        buffer[length++] = (byte) b;
         return this;
     }
 
@@ -356,8 +332,8 @@ public final class ByteStringBuilder implements ByteSequence {
      *            The byte array to be appended to this byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(final byte[] bytes) {
-        return append(bytes, 0, bytes.length);
+    public ByteStringBuilder appendBytes(final byte[] bytes) {
+        return appendBytes(bytes, 0, bytes.length);
     }
 
     /**
@@ -377,7 +353,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *             negative or if {@code offset + length} is greater than
      *             {@code bytes.length}.
      */
-    public ByteStringBuilder append(final byte[] bytes, final int offset, final int length) {
+    public ByteStringBuilder appendBytes(final byte[] bytes, final int offset, final int length) {
         ByteString.checkArrayBounds(bytes, offset, length);
 
         if (length != 0) {
@@ -401,7 +377,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *             If {@code length} is less than zero or greater than
      *             {@code buffer.remaining()}.
      */
-    public ByteStringBuilder append(final ByteBuffer buffer, final int length) {
+    public ByteStringBuilder appendBytes(final ByteBuffer buffer, final int length) {
         if (length < 0 || length > buffer.remaining()) {
             throw new IndexOutOfBoundsException();
         }
@@ -422,13 +398,12 @@ public final class ByteStringBuilder implements ByteSequence {
      *            The byte sequence to be appended to this byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(final ByteSequence bytes) {
+    public ByteStringBuilder appendBytes(final ByteSequence bytes) {
         return bytes.copyTo(this);
     }
 
     /**
-     * Appends the provided {@link ByteSequenceReader} to this byte string
-     * builder.
+     * Appends the provided {@link ByteSequenceReader} to this byte string builder.
      *
      * @param reader
      *            The byte sequence reader to be appended to this byte string
@@ -440,7 +415,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *             If {@code length} is less than zero or greater than
      *             {@code reader.remaining()}.
      */
-    public ByteStringBuilder append(final ByteSequenceReader reader, final int length) {
+    public ByteStringBuilder appendBytes(final ByteSequenceReader reader, final int length) {
         if (length < 0 || length > reader.remaining()) {
             throw new IndexOutOfBoundsException();
         }
@@ -463,7 +438,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *            byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(final char[] chars) {
+    public ByteStringBuilder appendUtf8(final char[] chars) {
         if (chars == null) {
             return this;
         }
@@ -512,7 +487,7 @@ public final class ByteStringBuilder implements ByteSequence {
      * @throws IOException
      *           If an I/O error occurs.
      */
-    public void append(DataInput stream, int length) throws EOFException, IOException {
+    public void appendBytes(DataInput stream, int length) throws EOFException, IOException {
         if (length < 0) {
             throw new IndexOutOfBoundsException();
         }
@@ -537,7 +512,7 @@ public final class ByteStringBuilder implements ByteSequence {
      * @throws IOException
      *             If an I/O error occurs.
      */
-    public int append(final InputStream stream, final int length) throws IOException {
+    public int appendBytes(final InputStream stream, final int length) throws IOException {
         if (length < 0) {
             throw new IndexOutOfBoundsException();
         }
@@ -560,7 +535,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *            this byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(int i) {
+    public ByteStringBuilder appendInt(int i) {
         ensureAdditionalCapacity(4);
         for (int j = length + 3; j >= length; j--) {
             buffer[j] = (byte) (i & 0xFF);
@@ -579,7 +554,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *            byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(long l) {
+    public ByteStringBuilder appendLong(long l) {
         ensureAdditionalCapacity(8);
         for (int i = length + 7; i >= length; i--) {
             buffer[i] = (byte) (l & 0xFF);
@@ -615,13 +590,13 @@ public final class ByteStringBuilder implements ByteSequence {
      * byte string builder. The object is converted to a byte string as follows:
      * <ul>
      * <li>if the object is an instance of {@code ByteSequence} then this method
-     * is equivalent to calling {@link #append(ByteSequence)}
+     * is equivalent to calling {@link #appendBytes(ByteSequence)}
      * <li>if the object is a {@code byte[]} then this method is equivalent to
-     * calling {@link #append(byte[])}
+     * calling {@link #appendBytes(byte[])}
      * <li>if the object is a {@code char[]} then this method is equivalent to
-     * calling {@link #append(char[])}
+     * calling {@link #appendUtf8(char[])}
      * <li>for all other types of object this method is equivalent to calling
-     * {@link #append(String)} with the {@code toString()} representation of the
+     * {@link #appendUtf8(String)} with the {@code toString()} representation of the
      * provided object.
      * </ul>
      * <b>Note:</b> this method treats {@code Long} and {@code Integer} objects
@@ -636,17 +611,17 @@ public final class ByteStringBuilder implements ByteSequence {
      *            The object to be appended to this byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(final Object o) {
+    public ByteStringBuilder appendObject(final Object o) {
         if (o == null) {
             return this;
         } else if (o instanceof ByteSequence) {
-            return append((ByteSequence) o);
+            return appendBytes((ByteSequence) o);
         } else if (o instanceof byte[]) {
-            return append((byte[]) o);
+            return appendBytes((byte[]) o);
         } else if (o instanceof char[]) {
-            return append((char[]) o);
+            return appendUtf8((char[]) o);
         } else {
-            return append(o.toString());
+            return appendUtf8(o.toString());
         }
     }
 
@@ -659,7 +634,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *            byte string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(short i) {
+    public ByteStringBuilder appendShort(int i) {
         ensureAdditionalCapacity(2);
         for (int j = length + 1; j >= length; j--) {
             buffer[j] = (byte) (i & 0xFF);
@@ -678,7 +653,7 @@ public final class ByteStringBuilder implements ByteSequence {
      *            string builder.
      * @return This byte string builder.
      */
-    public ByteStringBuilder append(final String s) {
+    public ByteStringBuilder appendUtf8(final String s) {
         if (s == null) {
             return this;
         }
@@ -696,7 +671,7 @@ public final class ByteStringBuilder implements ByteSequence {
             } else {
                 // There is a multi-byte char. Defer to JDK
                 try {
-                    return append(s.getBytes("UTF-8"));
+                    return appendBytes(s.getBytes("UTF-8"));
                 } catch (final UnsupportedEncodingException e) {
                     // TODO: I18N
                     throw new RuntimeException("Unable to encode String '" + s + "' to UTF-8 bytes", e);
@@ -786,7 +761,6 @@ public final class ByteStringBuilder implements ByteSequence {
         return new ByteSequenceReader(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte byteAt(final int index) {
         if (index >= length || index < 0) {
@@ -854,14 +828,12 @@ public final class ByteStringBuilder implements ByteSequence {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final byte[] bytes, final int offset, final int length) {
         ByteString.checkArrayBounds(bytes, offset, length);
         return ByteString.compareTo(this.buffer, 0, this.length, bytes, offset, length);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final ByteSequence o) {
         if (this == o) {
@@ -870,14 +842,12 @@ public final class ByteStringBuilder implements ByteSequence {
         return -o.compareTo(buffer, 0, length);
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] copyTo(final byte[] bytes) {
         copyTo(bytes, 0);
         return bytes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] copyTo(final byte[] bytes, final int offset) {
         if (offset < 0) {
@@ -887,27 +857,23 @@ public final class ByteStringBuilder implements ByteSequence {
         return bytes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
         byteBuffer.put(buffer, 0, length);
         return byteBuffer;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
-        builder.append(buffer, 0, length);
+        builder.appendBytes(buffer, 0, length);
         return builder;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
         return ByteString.copyTo(ByteBuffer.wrap(buffer, 0, length), charBuffer, decoder);
     }
 
-    /** {@inheritDoc} */
     @Override
     public OutputStream copyTo(final OutputStream stream) throws IOException {
         stream.write(buffer, 0, length);
@@ -947,7 +913,6 @@ public final class ByteStringBuilder implements ByteSequence {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final byte[] bytes, final int offset, final int length) {
         ByteString.checkArrayBounds(bytes, offset, length);
@@ -1010,13 +975,11 @@ public final class ByteStringBuilder implements ByteSequence {
         return ByteString.hashCode(buffer, 0, length);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
         return length == 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int length() {
         return length;
@@ -1110,7 +1073,6 @@ public final class ByteStringBuilder implements ByteSequence {
         return new SubSequence(start, end - start);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean startsWith(ByteSequence prefix) {
         if (prefix == null || prefix.length() > length) {
@@ -1119,13 +1081,11 @@ public final class ByteStringBuilder implements ByteSequence {
         return prefix.equals(buffer, 0, prefix.length());
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toBase64String() {
         return Base64.encode(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] toByteArray() {
         return copyTo(new byte[length]);
@@ -1145,7 +1105,6 @@ public final class ByteStringBuilder implements ByteSequence {
         return ByteString.wrap(b);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return ByteString.toString(buffer, 0, length);

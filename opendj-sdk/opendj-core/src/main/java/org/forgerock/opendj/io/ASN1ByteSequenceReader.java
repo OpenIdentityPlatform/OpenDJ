@@ -259,7 +259,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
                     ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE.get(peekLength);
             throw DecodeException.fatalError(message);
         }
-        builder.append(reader, peekLength);
+        builder.appendBytes(reader, peekLength);
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return builder;

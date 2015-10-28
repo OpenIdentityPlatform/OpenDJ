@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -50,8 +50,8 @@ public class ByteSequenceReaderTest extends SdkTestCase {
     public Object[][] byteSequenceReaderProvider() {
         return new Object[][] {
             { ByteString.wrap(EIGHT_BYTES).asReader(), EIGHT_BYTES },
-            { new ByteStringBuilder().append(EIGHT_BYTES).asReader(), EIGHT_BYTES },
-            { new ByteStringBuilder().append(EIGHT_BYTES).subSequence(0, 8).asReader(), EIGHT_BYTES }
+            { new ByteStringBuilder().appendBytes(EIGHT_BYTES).asReader(), EIGHT_BYTES },
+            { new ByteStringBuilder().appendBytes(EIGHT_BYTES).subSequence(0, 8).asReader(), EIGHT_BYTES }
         };
     }
 

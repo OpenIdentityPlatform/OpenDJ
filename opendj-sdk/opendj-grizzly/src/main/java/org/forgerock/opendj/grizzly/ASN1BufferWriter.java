@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -44,9 +44,7 @@ import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 import com.forgerock.opendj.util.StaticUtils;
 
-/**
- * Grizzly ASN1 writer implementation.
- */
+/** Grizzly ASN1 writer implementation. */
 final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     private class ChildSequenceBuffer implements SequenceBuffer {
         private SequenceBuffer parent;
@@ -66,18 +64,17 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
                 child = new ChildSequenceBuffer();
                 child.parent = this;
             }
-            buffer.append(type);
+            buffer.appendByte(type);
             child.buffer.clear();
             return child;
         }
 
         public void writeByte(final byte b) throws IOException {
-            buffer.append(b);
+            buffer.appendByte(b);
         }
 
-        public void writeByteArray(final byte[] bs, final int offset, final int length)
-                throws IOException {
-            buffer.append(bs, offset, length);
+        public void writeByteArray(final byte[] bs, final int offset, final int length) throws IOException {
+            buffer.appendBytes(bs, offset, length);
         }
     }
 
@@ -250,27 +247,27 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         if (((intValue < 0) && ((intValue & 0xFFFFFF80) == 0xFFFFFF80))
                 || ((intValue & 0x0000007F) == intValue)) {
             writeLength(sequenceBuffer, 1);
-            sequenceBuffer.writeByte((byte) (intValue & 0xFF));
+            sequenceBuffer.writeByte((byte) intValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, intValue);
         } else if (((intValue < 0) && ((intValue & 0xFFFF8000) == 0xFFFF8000))
                 || ((intValue & 0x00007FFF) == intValue)) {
             writeLength(sequenceBuffer, 2);
-            sequenceBuffer.writeByte((byte) ((intValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (intValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (intValue >> 8));
+            sequenceBuffer.writeByte((byte) intValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, intValue);
         } else if (((intValue < 0) && ((intValue & 0xFF800000) == 0xFF800000))
                 || ((intValue & 0x007FFFFF) == intValue)) {
             writeLength(sequenceBuffer, 3);
-            sequenceBuffer.writeByte((byte) ((intValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((intValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (intValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (intValue >> 16));
+            sequenceBuffer.writeByte((byte) (intValue >> 8));
+            sequenceBuffer.writeByte((byte) intValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, intValue);
         } else {
             writeLength(sequenceBuffer, 4);
-            sequenceBuffer.writeByte((byte) ((intValue >> 24) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((intValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((intValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (intValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (intValue >> 24));
+            sequenceBuffer.writeByte((byte) (intValue >> 16));
+            sequenceBuffer.writeByte((byte) (intValue >> 8));
+            sequenceBuffer.writeByte((byte) intValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, intValue);
         }
         return this;
@@ -282,69 +279,69 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFFFF80L) == 0xFFFFFFFFFFFFFF80L))
                 || ((longValue & 0x000000000000007FL) == longValue)) {
             writeLength(sequenceBuffer, 1);
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFF8000L) == 0xFFFFFFFFFFFF8000L))
                 || ((longValue & 0x0000000000007FFFL) == longValue)) {
             writeLength(sequenceBuffer, 2);
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFF800000L) == 0xFFFFFFFFFF800000L))
                 || ((longValue & 0x00000000007FFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 3);
-            sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 16));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFF80000000L) == 0xFFFFFFFF80000000L))
                 || ((longValue & 0x000000007FFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 4);
-            sequenceBuffer.writeByte((byte) ((longValue >> 24) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 24));
+            sequenceBuffer.writeByte((byte) (longValue >> 16));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFF8000000000L) == 0xFFFFFF8000000000L))
                 || ((longValue & 0x0000007FFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 5);
-            sequenceBuffer.writeByte((byte) ((longValue >> 32) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 24) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 32));
+            sequenceBuffer.writeByte((byte) (longValue >> 24));
+            sequenceBuffer.writeByte((byte) (longValue >> 16));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 5, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFF800000000000L) == 0xFFFF800000000000L))
                 || ((longValue & 0x00007FFFFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 6);
-            sequenceBuffer.writeByte((byte) ((longValue >> 40) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 32) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 24) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 40));
+            sequenceBuffer.writeByte((byte) (longValue >> 32));
+            sequenceBuffer.writeByte((byte) (longValue >> 24));
+            sequenceBuffer.writeByte((byte) (longValue >> 16));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 6, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFF80000000000000L) == 0xFF80000000000000L))
                 || ((longValue & 0x007FFFFFFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 7);
-            sequenceBuffer.writeByte((byte) ((longValue >> 48) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 40) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 32) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 24) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 48));
+            sequenceBuffer.writeByte((byte) (longValue >> 40));
+            sequenceBuffer.writeByte((byte) (longValue >> 32));
+            sequenceBuffer.writeByte((byte) (longValue >> 24));
+            sequenceBuffer.writeByte((byte) (longValue >> 16));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 7, longValue);
         } else {
             writeLength(sequenceBuffer, 8);
-            sequenceBuffer.writeByte((byte) ((longValue >> 56) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 48) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 40) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 32) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 24) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
-            sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
-            sequenceBuffer.writeByte((byte) (longValue & 0xFF));
+            sequenceBuffer.writeByte((byte) (longValue >> 56));
+            sequenceBuffer.writeByte((byte) (longValue >> 48));
+            sequenceBuffer.writeByte((byte) (longValue >> 40));
+            sequenceBuffer.writeByte((byte) (longValue >> 32));
+            sequenceBuffer.writeByte((byte) (longValue >> 24));
+            sequenceBuffer.writeByte((byte) (longValue >> 16));
+            sequenceBuffer.writeByte((byte) (longValue >> 8));
+            sequenceBuffer.writeByte((byte) longValue);
             logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 8, longValue);
         }
         return this;
@@ -437,22 +434,22 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             buffer.writeByte((byte) length);
         } else if ((length & 0x000000FF) == length) {
             buffer.writeByte((byte) 0x81);
-            buffer.writeByte((byte) (length & 0xFF));
+            buffer.writeByte((byte) length);
         } else if ((length & 0x0000FFFF) == length) {
             buffer.writeByte((byte) 0x82);
-            buffer.writeByte((byte) ((length >> 8) & 0xFF));
-            buffer.writeByte((byte) (length & 0xFF));
+            buffer.writeByte((byte) (length >> 8));
+            buffer.writeByte((byte) length);
         } else if ((length & 0x00FFFFFF) == length) {
             buffer.writeByte((byte) 0x83);
-            buffer.writeByte((byte) ((length >> 16) & 0xFF));
-            buffer.writeByte((byte) ((length >> 8) & 0xFF));
-            buffer.writeByte((byte) (length & 0xFF));
+            buffer.writeByte((byte) (length >> 16));
+            buffer.writeByte((byte) (length >> 8));
+            buffer.writeByte((byte) length);
         } else {
             buffer.writeByte((byte) 0x84);
-            buffer.writeByte((byte) ((length >> 24) & 0xFF));
-            buffer.writeByte((byte) ((length >> 16) & 0xFF));
-            buffer.writeByte((byte) ((length >> 8) & 0xFF));
-            buffer.writeByte((byte) (length & 0xFF));
+            buffer.writeByte((byte) (length >> 24));
+            buffer.writeByte((byte) (length >> 16));
+            buffer.writeByte((byte) (length >> 8));
+            buffer.writeByte((byte) length);
         }
     }
 }

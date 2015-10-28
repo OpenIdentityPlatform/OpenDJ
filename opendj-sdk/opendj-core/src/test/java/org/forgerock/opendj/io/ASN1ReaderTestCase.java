@@ -528,9 +528,9 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
     @Test(dataProvider = "elementArrays")
     public void testDecodeValidArrayAsOctetString(final byte[] b) throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
+        bsb.appendByte(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         bsb.appendBERLength(b.length);
-        bsb.append(b);
+        bsb.appendBytes(b);
 
         assertEquals(getReader(bsb.toByteArray(), 0).readOctetString(), ByteString.wrap(b));
     }
@@ -547,9 +547,9 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
     @Test(dataProvider = "elementArrays")
     public void testDecodeValidArrayAsOctetStringAsString(final byte[] b) throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
+        bsb.appendByte(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         bsb.appendBERLength(b.length);
-        bsb.append(b);
+        bsb.appendBytes(b);
 
         assertEquals(getReader(bsb.toByteArray(), 0).readOctetStringAsString(), new String(b,
                 "UTF-8"));
@@ -567,9 +567,9 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
     @Test(dataProvider = "elementArrays")
     public void testDecodeValidArrayAsOctetStringAsStringCharSet(final byte[] b) throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
+        bsb.appendByte(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         bsb.appendBERLength(b.length);
-        bsb.append(b);
+        bsb.appendBytes(b);
 
         assertEquals(getReader(bsb.toByteArray(), 0).readOctetStringAsString(), new String(b,
                 "UTF-8"));
@@ -587,9 +587,9 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
     @Test(dataProvider = "elementArrays")
     public void testDecodeValidArrayAsOctetStringBuilder(final byte[] b) throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
+        bsb.appendByte(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         bsb.appendBERLength(b.length);
-        bsb.append(b);
+        bsb.appendBytes(b);
 
         final ByteStringBuilder bsb2 = new ByteStringBuilder();
         getReader(bsb.toByteArray(), 0).readOctetString(bsb2);
@@ -609,11 +609,11 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
     @Test(dataProvider = "elementArrays")
     public void testDecodeValidArrayAsSequence(final byte[] encodedElements) throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        bsb.append(ASN1.UNIVERSAL_SEQUENCE_TYPE);
+        bsb.appendByte(ASN1.UNIVERSAL_SEQUENCE_TYPE);
         bsb.appendBERLength(encodedElements.length + 2);
-        bsb.append(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
+        bsb.appendByte(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
         bsb.appendBERLength(encodedElements.length);
-        bsb.append(encodedElements);
+        bsb.appendBytes(encodedElements);
 
         final ASN1Reader reader = getReader(bsb.toByteArray(), 0);
         assertEquals(reader.peekLength(), encodedElements.length + 2);

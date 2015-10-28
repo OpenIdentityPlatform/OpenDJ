@@ -81,7 +81,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             this.normFinal = normFinal;
         }
 
-        /** {@inheritDoc} */
         @Override
         public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
             final int valueLength = normalizedAttributeValue.length();
@@ -143,7 +142,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             return ConditionResult.TRUE;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
             if (normInitial == null && (normAnys == null || normAnys.length == 0) && normFinal == null) {
@@ -235,7 +233,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             this.indexID = substringIndexId + ":" + this.substringKeySize;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException {
             final ByteString normValue = normalizeAttributeValue(schema, value);
@@ -256,7 +253,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             return AbstractSubstringMatchingRuleImpl.this.keyToHumanReadableString(key);
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getIndexID() {
             return indexID;
@@ -280,10 +276,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         return key.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
-    public final Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
-            throws DecodeException {
+    public final Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException {
         if (assertionValue.length() == 0) {
             throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
         }
@@ -330,7 +324,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         return getSubstringAssertion(schema, initialString, anyStrings, finalString);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
@@ -513,8 +506,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 if (valueBuffer == null) {
                     valueBuffer = new ByteStringBuilder();
                 }
-                valueBuffer.append(reader.read(length));
-                valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
+                valueBuffer.appendUtf8(reader.read(length));
+                valueBuffer.appendInt(evaluateEscapedChar(reader, escapeChars));
                 reader.mark();
                 length = 0;
                 continue;
@@ -524,7 +517,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                     if (c == delimiterChar) {
                         reader.reset();
                         if (valueBuffer != null) {
-                            valueBuffer.append(reader.read(length));
+                            valueBuffer.appendUtf8(reader.read(length));
                             return valueBuffer.toByteString();
                         } else {
                             if (length > 0) {
@@ -540,7 +533,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
         reader.reset();
         if (valueBuffer != null) {
-            valueBuffer.append(reader.read(length));
+            valueBuffer.appendUtf8(reader.read(length));
             return valueBuffer.toByteString();
         } else {
             if (length > 0) {
@@ -550,10 +543,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
         return Collections.singleton(new SubstringIndexer(options.substringKeySize()));
     }
-
 }

@@ -457,8 +457,8 @@ final class TimeBasedMatchingRulesImpl {
             // Since we reached here we have a valid assertion value.
             // Construct a normalized value in the order: SECOND MINUTE HOUR DATE MONTH YEAR.
             return new ByteStringBuilder(6 * 4)
-                .append(second).append(minute).append(hour)
-                .append(date).append(month).append(year).toByteString();
+                .appendInt(second).appendInt(minute).appendInt(hour)
+                .appendInt(date).appendInt(month).appendInt(year).toByteString();
         }
 
         private boolean isDateInvalid(int date, int month, int year) {
@@ -563,7 +563,7 @@ final class TimeBasedMatchingRulesImpl {
         }
 
         private ByteString getKey(int value, char type) {
-            return new ByteStringBuilder().append(type).append(value).toByteString();
+            return new ByteStringBuilder().appendInt(type).appendInt(value).toByteString();
         }
     }
 

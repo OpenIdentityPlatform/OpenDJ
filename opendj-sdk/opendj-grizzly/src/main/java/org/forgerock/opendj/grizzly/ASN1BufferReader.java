@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -43,9 +43,7 @@ import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
 import org.glassfish.grizzly.memory.MemoryManager;
 
-/**
- * Grizzly ASN1 reader implementation.
- */
+/** Grizzly ASN1 reader implementation. */
 final class ASN1BufferReader extends AbstractASN1Reader {
     private final class ChildSequenceLimiter implements SequenceLimiter {
         private SequenceLimiter parent;
@@ -371,7 +369,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         // Copy the value and construct the element to return.
         // TODO: Is there a more efficient way to do this?
         for (int i = 0; i < peekLength; i++) {
-            builder.append(buffer.get());
+            builder.appendByte(buffer.get());
         }
 
         logger.trace("READ ASN.1 OCTETSTRING(type=0x%x, length=%d)", peekType, peekLength);

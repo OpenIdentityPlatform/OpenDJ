@@ -309,7 +309,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         int bytesNeeded = peekLength;
         int bytesRead;
         while (bytesNeeded > 0) {
-            bytesRead = builder.append(in, bytesNeeded);
+            bytesRead = builder.appendBytes(in, bytesNeeded);
             if (bytesRead < 0) {
                 final LocalizableMessage message =
                         ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE.get(peekLength);

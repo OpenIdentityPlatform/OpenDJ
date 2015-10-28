@@ -678,22 +678,19 @@ public final class ByteString implements ByteSequence {
         return bytes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
         byteBuffer.put(buffer, offset, length);
         return byteBuffer;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
-        builder.append(buffer, offset, length);
+        builder.appendBytes(buffer, offset, length);
         return builder;
     }
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
         return copyTo(ByteBuffer.wrap(buffer, offset, length), charBuffer, decoder);

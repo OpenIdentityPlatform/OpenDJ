@@ -57,22 +57,13 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
  */
 final class CertificateExactMatchingRuleImpl
         extends AbstractEqualityMatchingRuleImpl {
-
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * The GSER identifier for the serialNumber named value.
-     */
+    /** The GSER identifier for the serialNumber named value. */
     private static final String GSER_ID_SERIALNUMBER = "serialNumber";
-
-    /**
-     * The GSER identifier for the issuer named value.
-     */
+    /** The GSER identifier for the issuer named value. */
     private static final String GSER_ID_ISSUER = "issuer";
-
-    /**
-     * The GSER identifier for the rdnSequence IdentifiedChoiceValue.
-     */
+    /** The GSER identifier for the rdnSequence IdentifiedChoiceValue. */
     private static final String GSER_ID_RDNSEQUENCE = "rdnSequence";
 
     CertificateExactMatchingRuleImpl() {
@@ -119,7 +110,6 @@ final class CertificateExactMatchingRuleImpl
         return createEncodedValue(serialNumber, certificateIssuer);
     }
 
-    /** {@inheritDoc} */
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
@@ -213,11 +203,10 @@ final class CertificateExactMatchingRuleImpl
      * @return the encoded ByteString
      */
     private static ByteString createEncodedValue(BigInteger serial, ByteString issuerDN) {
-        ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append(issuerDN);
-        builder.append((byte) 0); // Separator
-        builder.append(serial.toByteArray());
-        return builder.toByteString();
+        return new ByteStringBuilder()
+            .appendBytes(issuerDN)
+            .appendByte(0) // Separator
+            .appendBytes(serial.toByteArray())
+            .toByteString();
     }
-
 }
