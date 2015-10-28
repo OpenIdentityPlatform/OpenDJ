@@ -266,7 +266,7 @@ public final class EntryEncodeConfig
   public void encode(ByteStringBuilder buffer)
   {
     buffer.appendBERLength(1);
-    buffer.append(encodedRepresentation);
+    buffer.appendByte(encodedRepresentation);
   }
 
 

@@ -177,7 +177,7 @@ public class RemoteSchemaLoader extends SchemaLoader
       for (final Object definition : remainingAttrs)
       {
         final ByteStringBuilder sb = new ByteStringBuilder();
-        sb.append(definition);
+        sb.appendObject(definition);
         try
         {
           switch (schemaAttr)
@@ -209,7 +209,7 @@ public class RemoteSchemaLoader extends SchemaLoader
     for (final Object definition : remainingAttrs)
     {
       final ByteStringBuilder sb = new ByteStringBuilder();
-      sb.append(definition);
+      sb.appendObject(definition);
       if (definition.toString().contains(SchemaConstants.OID_OPENDS_SERVER_BASE))
       {
         try

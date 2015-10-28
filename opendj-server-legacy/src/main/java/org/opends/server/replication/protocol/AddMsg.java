@@ -349,7 +349,7 @@ public class AddMsg extends LDAPUpdateMsg
   public void addAttribute(String name, String value) throws DecodeException
   {
     ByteStringBuilder byteBuilder = new ByteStringBuilder();
-    byteBuilder.append(encodedAttributes);
+    byteBuilder.appendBytes(encodedAttributes);
 
     ASN1Writer writer = ASN1.getWriter(byteBuilder);
 

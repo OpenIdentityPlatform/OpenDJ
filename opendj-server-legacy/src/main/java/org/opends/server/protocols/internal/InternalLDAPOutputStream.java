@@ -313,7 +313,7 @@ public final class InternalLDAPOutputStream
     // Append any unused data in the channel buffer to the save buffer
     if(byteBuffer.remaining() > 0)
     {
-      saveBuffer.append(byteBuffer, byteBuffer.remaining());
+      saveBuffer.appendBytes(byteBuffer, byteBuffer.remaining());
     }
   }
 

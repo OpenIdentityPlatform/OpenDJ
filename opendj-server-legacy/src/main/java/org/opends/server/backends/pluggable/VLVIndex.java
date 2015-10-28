@@ -742,7 +742,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     final ByteStringBuilder builder = new ByteStringBuilder();
     encodeVLVKey0(sortOrder, entry, builder);
-    builder.append(entryID);
+    builder.appendLong(entryID);
     return builder.toByteString();
   }
 
@@ -826,7 +826,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
         if ((b & (byte) 0x01) == b)
         {
           // Escape bytes that look like a separator.
-          builder.append(escape);
+          builder.appendByte(escape);
         }
         else if (i == 0 && (b & (byte) 0xfe) == (byte) 0xfe)
         {
@@ -834,18 +834,18 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
            * Ensure that all keys sort before (ascending) or after (descending) null keys, by
            * escaping the first byte if it looks like a null key.
            */
-          builder.append((byte) ~escape);
+          builder.appendByte(~escape);
         }
         // Invert the bits if this key is in descending order.
-        builder.append((byte) (b ^ sortOrderMask));
+        builder.appendByte(b ^ sortOrderMask);
       }
     }
     else
     {
       // Ensure that null keys sort after (ascending) or before (descending) all other keys.
-      builder.append(ascending ? (byte) 0xff : (byte) 0x00);
+      builder.appendByte(ascending ? 0xFF : 0x00);
     }
-    builder.append(separator);
+    builder.appendByte(separator);
   }
 
   @Override

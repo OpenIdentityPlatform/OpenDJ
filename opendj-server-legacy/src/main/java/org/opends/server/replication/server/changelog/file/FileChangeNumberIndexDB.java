@@ -410,10 +410,11 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
     {
       final ChangeNumberIndexRecord cnIndexRecord = record.getValue();
       return new ByteStringBuilder()
-        .append((long) record.getKey())
-        .append(cnIndexRecord.getBaseDN().toString())
-        .append(STRING_SEPARATOR)
-        .append(cnIndexRecord.getCSN().toByteString()).toByteString();
+        .appendLong(record.getKey())
+        .appendUtf8(cnIndexRecord.getBaseDN().toString())
+        .appendByte(STRING_SEPARATOR)
+        .appendBytes(cnIndexRecord.getCSN().toByteString())
+        .toByteString();
     }
 
     @Override

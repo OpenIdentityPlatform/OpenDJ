@@ -224,12 +224,12 @@ public class CompressedSchema
     // Encode the attribute.
     final byte[] idBytes = encodeId(id);
     builder.appendBERLength(idBytes.length);
-    builder.append(idBytes);
+    builder.appendBytes(idBytes);
     builder.appendBERLength(attribute.size());
     for (final ByteString v : attribute)
     {
       builder.appendBERLength(v.length());
-      builder.append(v);
+      builder.appendBytes(v);
     }
   }
 
@@ -273,7 +273,7 @@ public class CompressedSchema
     // Encode the object classes.
     final byte[] idBytes = encodeId(id);
     builder.appendBERLength(idBytes.length);
-    builder.append(idBytes);
+    builder.appendBytes(idBytes);
   }
 
 

@@ -158,10 +158,10 @@ public class PlainSASLMechanismHandlerTestCase
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append("test.user");
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append(password);
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendUtf8("test.user");
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendBytes(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
@@ -199,10 +199,10 @@ public class PlainSASLMechanismHandlerTestCase
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append("u:test.user");
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append(password);
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendUtf8("u:test.user");
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendBytes(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
@@ -241,11 +241,11 @@ public class PlainSASLMechanismHandlerTestCase
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
-    saslCredBytes.append("u:test.user");
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append("u:test.user");
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append(password);
+    saslCredBytes.appendUtf8("u:test.user");
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendUtf8("u:test.user");
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendBytes(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
@@ -283,11 +283,11 @@ public class PlainSASLMechanismHandlerTestCase
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append("dn:");
-    saslCredBytes.append(e.getName().toString());
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append(password);
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendUtf8("dn:");
+    saslCredBytes.appendUtf8(e.getName().toString());
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendBytes(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
@@ -326,13 +326,13 @@ public class PlainSASLMechanismHandlerTestCase
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
-    saslCredBytes.append("dn:");
-    saslCredBytes.append(e.getName().toString());
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append("dn:");
-    saslCredBytes.append(e.getName().toString());
-    saslCredBytes.append((byte)0);
-    saslCredBytes.append(password);
+    saslCredBytes.appendUtf8("dn:");
+    saslCredBytes.appendUtf8(e.getName().toString());
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendUtf8("dn:");
+    saslCredBytes.appendUtf8(e.getName().toString());
+    saslCredBytes.appendByte(0);
+    saslCredBytes.appendBytes(password);
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =

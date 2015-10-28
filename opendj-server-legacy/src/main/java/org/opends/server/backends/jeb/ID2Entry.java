@@ -181,7 +181,7 @@ public class ID2Entry extends DatabaseContainer
       entry.encode(entryBuffer, dataConfig.getEntryEncodeConfig());
 
       // First write the DB format version byte.
-      encodedBuffer.append(JebFormat.FORMAT_VERSION);
+      encodedBuffer.appendByte(JebFormat.FORMAT_VERSION);
 
       try
       {

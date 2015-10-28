@@ -709,11 +709,11 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            valueBuffer.append(byteValue);
+            valueBuffer.appendByte(byteValue);
           }
           else
           {
-            valueBuffer.append(valueBytes[i]);
+            valueBuffer.appendByte(valueBytes[i]);
           }
         }
 
@@ -1063,11 +1063,11 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.append(byteValue);
+            buffer.appendByte(byteValue);
           }
           else
           {
-            buffer.append(valueBytes[i]);
+            buffer.appendByte(valueBytes[i]);
           }
         }
 
@@ -1225,11 +1225,11 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.append(byteValue);
+            buffer.appendByte(byteValue);
           }
           else
           {
-            buffer.append(valueBytes[i]);
+            buffer.appendByte(valueBytes[i]);
           }
         }
 
@@ -1396,11 +1396,11 @@ public class LDAPFilter
                 throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
             }
 
-            buffer.append(byteValue);
+            buffer.appendByte(byteValue);
           }
           else
           {
-            buffer.append(valueBytes[i]);
+            buffer.appendByte(valueBytes[i]);
           }
         }
 
@@ -1658,11 +1658,11 @@ public class LDAPFilter
               throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
           }
 
-          valueBuffer.append(byteValue);
+          valueBuffer.appendByte(byteValue);
         }
         else
         {
-          valueBuffer.append(valueBytes[i]);
+          valueBuffer.appendByte(valueBytes[i]);
         }
       }
 

@@ -1038,7 +1038,7 @@ public final class RDN
   {
     if (normalizedRDN != null)
     {
-      return builder.append(normalizedRDN);
+      return builder.appendBytes(normalizedRDN);
     }
     return computeNormalizedByteString(builder);
   }
@@ -1063,11 +1063,11 @@ public final class RDN
       }
 
       Iterator<ByteString> iterator = avaStrings.iterator();
-      builder.append(iterator.next());
+      builder.appendBytes(iterator.next());
       while (iterator.hasNext())
       {
-        builder.append(DN.NORMALIZED_AVA_SEPARATOR);
-        builder.append(iterator.next());
+        builder.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
+        builder.appendBytes(iterator.next());
       }
     }
 
@@ -1091,12 +1091,12 @@ public final class RDN
    */
   private ByteStringBuilder normalizeAVAToByteString(int position, final ByteStringBuilder builder)
   {
-    builder.append(attributeTypes[position].getNormalizedPrimaryNameOrOID());
-    builder.append("=");
+    builder.appendUtf8(attributeTypes[position].getNormalizedPrimaryNameOrOID());
+    builder.appendUtf8("=");
     final ByteString value = getEqualityNormalizedValue(position);
     if (value.length() > 0)
     {
-      builder.append(escapeBytes(value));
+      builder.appendBytes(escapeBytes(value));
     }
     return builder;
   }
@@ -1120,9 +1120,9 @@ public final class RDN
       final byte b = value.byteAt(i);
       if (isByteToEscape(b))
       {
-        builder.append(DN.NORMALIZED_ESC_BYTE);
+        builder.appendByte(DN.NORMALIZED_ESC_BYTE);
       }
-      builder.append(b);
+      builder.appendByte(b);
     }
     return builder.toByteString();
   }

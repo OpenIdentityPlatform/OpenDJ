@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -79,7 +79,7 @@ public abstract class StartMsg extends ReplicationMsg
      * <message type><protocol version><generation id><group id>
      */
     builder.appendByte(msgType);
-    builder.appendByte((byte) protocolVersion);
+    builder.appendByte(protocolVersion);
     builder.appendLongUTF8(generationId);
     builder.appendByte(groupId);
   }
@@ -98,8 +98,8 @@ public abstract class StartMsg extends ReplicationMsg
      * <message type><protocol version><generation id>
      */
     builder.appendByte(msgType);
-    builder.appendByte((byte) ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
-    builder.appendByte((byte) 0);
+    builder.appendByte(ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
+    builder.appendByte(0);
     builder.appendLongUTF8(generationId);
   }
 

@@ -56,10 +56,11 @@ public class RecordingOutputStream extends OutputStream
   }
 
   /** {@inheritDoc} */
+  @Override
   public void write(int i) throws IOException {
     if(enableRecording)
     {
-      buffer.append((byte) i);
+      buffer.appendByte(i);
     }
     parentStream.write(i);
   }
@@ -69,7 +70,7 @@ public class RecordingOutputStream extends OutputStream
   public void write(byte[] bytes) throws IOException {
     if(enableRecording)
     {
-      buffer.append(bytes);
+      buffer.appendBytes(bytes);
     }
     parentStream.write(bytes);
   }
@@ -79,7 +80,7 @@ public class RecordingOutputStream extends OutputStream
   public void write(byte[] bytes, int i, int i1) throws IOException {
     if(enableRecording)
     {
-      buffer.append(bytes, i, i1);
+      buffer.appendBytes(bytes, i, i1);
     }
     parentStream.write(bytes, i, i1);
   }

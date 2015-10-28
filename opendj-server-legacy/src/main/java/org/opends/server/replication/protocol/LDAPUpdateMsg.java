@@ -221,7 +221,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
     builder.appendByte(msgType);
-    builder.appendByte((byte) protocolVersion);
+    builder.appendByte(protocolVersion);
     builder.appendCSNUTF8(csn);
     builder.appendDN(dn);
     builder.appendString(entryUUID);

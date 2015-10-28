@@ -506,7 +506,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     @Override
     public ByteString encodeRecord(Record<Integer, Integer> record)
     {
-      return new ByteStringBuilder().append((int) record.getKey()).append((int) record.getValue()).toByteString();
+      return new ByteStringBuilder().appendInt(record.getKey()).appendInt(record.getValue()).toByteString();
     }
 
     @Override

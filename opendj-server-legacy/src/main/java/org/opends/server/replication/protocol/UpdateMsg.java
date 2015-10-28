@@ -219,10 +219,9 @@ public class UpdateMsg extends ReplicationMsg
    */
   protected ByteArrayBuilder encodeHeader(byte msgType, short protocolVersion)
   {
-    final ByteArrayBuilder builder =
-        new ByteArrayBuilder(bytes(6) + csnsUTF8(1));
+    final ByteArrayBuilder builder = new ByteArrayBuilder(bytes(6) + csnsUTF8(1));
     builder.appendByte(msgType);
-    builder.appendByte((byte) ProtocolVersion.getCurrentVersion());
+    builder.appendByte(ProtocolVersion.getCurrentVersion());
     builder.appendCSNUTF8(getCSN());
     builder.appendBoolean(assuredFlag);
     builder.appendByte(assuredMode.getValue());

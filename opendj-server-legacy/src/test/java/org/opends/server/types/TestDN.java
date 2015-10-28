@@ -356,8 +356,8 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf("dc=example,dc=com");
 
     assertEquals(dn.toNormalizedByteString(),
-        new ByteStringBuilder().append("dc=com").append(DN.NORMALIZED_RDN_SEPARATOR)
-                               .append("dc=example").toByteString());
+        new ByteStringBuilder().appendUtf8("dc=com").appendByte(DN.NORMALIZED_RDN_SEPARATOR)
+                               .appendUtf8("dc=example").toByteString());
     assertEquals(dn.toNormalizedUrlSafeString(), "dc=com,dc=example");
   }
 

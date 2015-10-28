@@ -57,11 +57,12 @@ public class RecordingInputStream extends InputStream
   }
 
   /** {@inheritDoc} */
+  @Override
   public int read() throws IOException {
     int readByte = parentStream.read();
     if(enableRecording)
     {
-      buffer.append((byte)readByte);
+      buffer.appendByte(readByte);
     }
     return readByte;
   }
@@ -72,7 +73,7 @@ public class RecordingInputStream extends InputStream
     int bytesRead = parentStream.read(bytes);
     if(enableRecording)
     {
-      buffer.append(bytes, 0, bytesRead);
+      buffer.appendBytes(bytes, 0, bytesRead);
     }
     return bytesRead;
   }
@@ -83,7 +84,7 @@ public class RecordingInputStream extends InputStream
     int bytesRead = parentStream.read(bytes, i, i1);
     if(enableRecording)
     {
-      buffer.append(bytes, i, bytesRead);
+      buffer.appendBytes(bytes, i, bytesRead);
     }
     return bytesRead;
   }

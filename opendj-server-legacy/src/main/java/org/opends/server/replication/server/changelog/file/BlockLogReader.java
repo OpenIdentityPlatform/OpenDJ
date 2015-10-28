@@ -314,7 +314,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
       {
         if (distanceToBlockStart != 0)
         {
-          recordBytes.append(reader, distanceToBlockStart);
+          recordBytes.appendBytes(reader, distanceToBlockStart);
         }
         // skip the offset
         reader.skipBytes(SIZE_OF_BLOCK_OFFSET);
@@ -327,7 +327,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
       if (remainingBytesToRead > 0)
       {
         // last bytes of the record
-        recordBytes.append(reader, remainingBytesToRead);
+        recordBytes.appendBytes(reader, remainingBytesToRead);
       }
       return recordBytes.toByteString();
     }
@@ -366,10 +366,10 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
     final ByteStringBuilder lengthBytes = new ByteStringBuilder(SIZE_OF_RECORD_SIZE);
     if (distanceToBlockStart > 0 && distanceToBlockStart < SIZE_OF_RECORD_SIZE)
     {
-      lengthBytes.append(reader, distanceToBlockStart);
+      lengthBytes.appendBytes(reader, distanceToBlockStart);
       // skip the offset
       reader.skipBytes(SIZE_OF_BLOCK_OFFSET);
-      lengthBytes.append(reader, SIZE_OF_RECORD_SIZE - distanceToBlockStart);
+      lengthBytes.appendBytes(reader, SIZE_OF_RECORD_SIZE - distanceToBlockStart);
     }
     else
     {
@@ -378,7 +378,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
         // skip the offset
         reader.skipBytes(SIZE_OF_BLOCK_OFFSET);
       }
-      lengthBytes.append(reader, SIZE_OF_RECORD_SIZE);
+      lengthBytes.appendBytes(reader, SIZE_OF_RECORD_SIZE);
     }
     return lengthBytes.toByteString().toInt();
   }

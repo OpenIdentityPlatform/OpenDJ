@@ -3311,7 +3311,7 @@ public class Entry
          throws DirectoryException
   {
     // The version number will be one byte.
-    buffer.append((byte)0x03);
+    buffer.appendByte(0x03);
 
     // Get the encoded representation of the config.
     config.encode(buffer);
@@ -3324,7 +3324,7 @@ public class Entry
       // TODO: Can we encode the DN directly into buffer?
       byte[] dnBytes  = getBytes(dn.toString());
       buffer.appendBERLength(dnBytes.length);
-      buffer.append(dnBytes);
+      buffer.appendBytes(dnBytes);
     }
 
 
@@ -3339,8 +3339,8 @@ public class Entry
       buffer.appendBERLength(objectClasses.size());
       for (String ocName : objectClasses.values())
       {
-        buffer.append(ocName);
-        buffer.append((byte)0x00);
+        buffer.appendUtf8(ocName);
+        buffer.appendByte(0x00);
       }
     }
 
@@ -3420,14 +3420,14 @@ public class Entry
         for (Attribute a : attrList)
         {
           byte[] nameBytes = getBytes(a.getNameWithOptions());
-          buffer.append(nameBytes);
-          buffer.append((byte)0x00);
+          buffer.appendBytes(nameBytes);
+          buffer.appendByte(0x00);
 
           buffer.appendBERLength(a.size());
           for(ByteString v : a)
           {
             buffer.appendBERLength(v.length());
-            buffer.append(v);
+            buffer.appendBytes(v);
           }
         }
       }

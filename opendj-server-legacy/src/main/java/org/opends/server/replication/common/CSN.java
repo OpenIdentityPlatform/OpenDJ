@@ -236,8 +236,7 @@ public class CSN implements Serializable, Comparable<CSN>
    */
   public ByteStringBuilder toByteString(ByteStringBuilder builder)
   {
-    return builder.append(timeStamp).append((short) (serverId & 0xffff))
-        .append(seqnum);
+    return builder.appendLong(timeStamp).appendShort(serverId & 0xffff).appendInt(seqnum);
   }
 
   /**

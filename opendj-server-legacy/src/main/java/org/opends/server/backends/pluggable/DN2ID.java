@@ -204,7 +204,7 @@ class DN2ID extends AbstractTree
         cursor.delete();
 
         ByteString newDnKeySuffix = currentDnKey.subSequence(oldTargetDnKeyLength, currentDnKey.length());
-        ByteSequence newDnKey = new ByteStringBuilder(newTargetDnKey).append(newDnKeySuffix);
+        ByteSequence newDnKey = new ByteStringBuilder(newTargetDnKey).appendBytes(newDnKeySuffix);
         EntryID newID = renumberEntryIDs ? rootContainer.getNextEntryID() : oldID;
         txn.put(getName(), newDnKey, newID.toByteString());
 
@@ -312,7 +312,7 @@ class DN2ID extends AbstractTree
 
     private ByteSequence nextSibling()
     {
-      return builder.clear().append(delegate.getKey()).append((byte) 0x1);
+      return builder.clear().appendBytes(delegate.getKey()).appendByte(0x1);
     }
   }
 

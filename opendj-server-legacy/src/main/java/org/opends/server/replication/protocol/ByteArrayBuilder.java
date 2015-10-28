@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -78,7 +78,7 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendBoolean(boolean b)
   {
-    appendByte((byte) (b ? 1 : 0));
+    appendByte(b ? 1 : 0);
     return this;
   }
 
@@ -89,9 +89,9 @@ public class ByteArrayBuilder
    *          the byte to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder appendByte(byte b)
+  public ByteArrayBuilder appendByte(int b)
   {
-    builder.append(b);
+    builder.appendByte(b);
     return this;
   }
 
@@ -102,9 +102,9 @@ public class ByteArrayBuilder
    *          the short to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder appendShort(short s)
+  public ByteArrayBuilder appendShort(int s)
   {
-    builder.append(s);
+    builder.appendShort(s);
     return this;
   }
 
@@ -117,7 +117,7 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendInt(int i)
   {
-    builder.append(i);
+    builder.appendInt(i);
     return this;
   }
 
@@ -130,7 +130,7 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendLong(long l)
   {
-    builder.append(l);
+    builder.appendLong(l);
     return this;
   }
 
@@ -170,7 +170,7 @@ public class ByteArrayBuilder
   public ByteArrayBuilder appendStrings(Collection<String> col)
   {
     //appendInt() would have been safer, but byte is compatible with legacy code
-    appendByte((byte) col.size());
+    appendByte(col.size());
     for (String s : col)
     {
       appendString(s);
@@ -253,7 +253,7 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendByteArray(byte[] bytes)
   {
-    builder.append(bytes);
+    builder.appendBytes(bytes);
     return this;
   }
 
@@ -271,13 +271,13 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendZeroTerminatedByteArray(byte[] bytes)
   {
-    builder.append(bytes);
+    builder.appendBytes(bytes);
     return appendZeroSeparator();
   }
 
   private ByteArrayBuilder appendZeroSeparator()
   {
-    builder.append((byte) 0);
+    builder.appendByte(0);
     return this;
   }
 

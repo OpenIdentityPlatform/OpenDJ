@@ -2116,7 +2116,7 @@ public final class DN implements Comparable<DN>, Serializable
     int length = dnString.length();
     if (pos >= length)
     {
-      attributeValue.append("");
+      attributeValue.appendUtf8("");
       return pos;
     }
 
@@ -2207,8 +2207,7 @@ public final class DN implements Comparable<DN>, Serializable
       // octet string.
       try
       {
-        attributeValue.append(
-            hexStringToByteArray(hexString.toString()));
+        attributeValue.appendBytes(hexStringToByteArray(hexString.toString()));
         return pos;
       }
       catch (Exception e)
@@ -2225,8 +2224,7 @@ public final class DN implements Comparable<DN>, Serializable
     // should continue until the corresponding closing quotation mark.
     else if (c == '"')
     {
-      // Keep reading until we find an unescaped closing quotation
-      // mark.
+      // Keep reading until we find an unescaped closing quotation mark.
       boolean escaped = false;
       StringBuilder valueString = new StringBuilder();
       while (true)
@@ -2267,7 +2265,7 @@ public final class DN implements Comparable<DN>, Serializable
         }
       }
 
-      attributeValue.append(valueString.toString());
+      attributeValue.appendUtf8(valueString.toString());
       return pos;
     }
     else if(c == '+' || c == ',')
@@ -2409,7 +2407,7 @@ public final class DN implements Comparable<DN>, Serializable
       }
 
 
-      attributeValue.append(valueString.toString());
+      attributeValue.appendUtf8(valueString.toString());
       return pos;
     }
   }
@@ -2592,7 +2590,7 @@ public final class DN implements Comparable<DN>, Serializable
         rdnComponents[numComponents - 1].toNormalizedByteString(builder);
         for (int i = numComponents - 2; i >= 0; i--)
         {
-          builder.append(NORMALIZED_RDN_SEPARATOR);
+          builder.appendByte(NORMALIZED_RDN_SEPARATOR);
           rdnComponents[i].toNormalizedByteString(builder);
         }
         normalizedDN = builder.toByteString();

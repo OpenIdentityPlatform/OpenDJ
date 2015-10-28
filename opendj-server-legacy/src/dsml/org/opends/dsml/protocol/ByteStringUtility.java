@@ -69,7 +69,7 @@ public class ByteStringUtility
         {
           is = ((URI) obj).toURL().openStream();
           ByteStringBuilder bsb = new ByteStringBuilder();
-          while (bsb.append(is, 2048) != -1)
+          while (bsb.appendBytes(is, 2048) != -1)
           {
             // do nothing
           }

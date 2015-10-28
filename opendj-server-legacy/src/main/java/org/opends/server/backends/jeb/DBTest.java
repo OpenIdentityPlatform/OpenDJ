@@ -1449,7 +1449,7 @@ public class DBTest
       byte[] vBytes = StaticUtils.getBytes(value);
       ByteStringBuilder builder = new ByteStringBuilder();
       builder.appendBERLength(vBytes.length);
-      builder.append(vBytes);
+      builder.appendBytes(vBytes);
       return builder.toByteArray();
     }
     else

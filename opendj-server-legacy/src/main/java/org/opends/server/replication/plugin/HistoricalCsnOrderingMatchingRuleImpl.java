@@ -75,9 +75,9 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     public String keyToHumanReadableString(ByteSequence key)
     {
       ByteStringBuilder bsb = new ByteStringBuilder();
-      bsb.append(key.subSequence(2, 10));
-      bsb.append(key.subSequence(0, 2));
-      bsb.append(key.subSequence(10, 14));
+      bsb.appendBytes(key.subSequence(2, 10));
+      bsb.appendBytes(key.subSequence(0, 2));
+      bsb.appendBytes(key.subSequence(10, 14));
       CSN csn = CSN.valueOf(bsb.toByteString());
       return csn.toStringUI();
     }
@@ -97,9 +97,9 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
       int csnIndex = value.toString().indexOf(':') + 1;
       String csn = value.subSequence(csnIndex, csnIndex + 28).toString();
       ByteStringBuilder builder = new ByteStringBuilder(14);
-      builder.append(hexStringToByteArray(csn.substring(16, 20)));
-      builder.append(hexStringToByteArray(csn.substring(0, 16)));
-      builder.append(hexStringToByteArray(csn.substring(20, 28)));
+      builder.appendBytes(hexStringToByteArray(csn.substring(16, 20)));
+      builder.appendBytes(hexStringToByteArray(csn.substring(0, 16)));
+      builder.appendBytes(hexStringToByteArray(csn.substring(20, 28)));
       return builder.toByteString();
     }
     catch (Exception e)

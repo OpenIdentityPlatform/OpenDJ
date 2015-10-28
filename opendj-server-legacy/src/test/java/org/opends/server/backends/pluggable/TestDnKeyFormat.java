@@ -148,12 +148,12 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
          throws DirectoryException
   {
     // The version number will be one byte.
-    buffer.append((byte)0x01);
+    buffer.appendByte(0x01);
 
     // TODO: Can we encode the DN directly into buffer?
     byte[] dnBytes  = getBytes(entry.getName().toString());
     buffer.appendBERLength(dnBytes.length);
-    buffer.append(dnBytes);
+    buffer.appendBytes(dnBytes);
 
 
     // Encode number of OCs and 0 terminated names.
@@ -161,15 +161,15 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     ByteStringBuilder bsb = new ByteStringBuilder();
     for (String ocName : entry.getObjectClasses().values())
     {
-      bsb.append(ocName);
+      bsb.appendUtf8(ocName);
       if(i < entry.getObjectClasses().values().size())
       {
-        bsb.append((byte)0x00);
+        bsb.appendByte(0x00);
       }
       i++;
     }
     buffer.appendBERLength(bsb.length());
-    buffer.append(bsb);
+    buffer.appendBytes(bsb);
 
 
     // Encode the user attributes in the appropriate manner.
@@ -219,7 +219,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
          throws DirectoryException
   {
     // The version number will be one byte.
-    buffer.append((byte)0x02);
+    buffer.appendByte(0x02);
 
     // Get the encoded respresentation of the config.
     config.encode(buffer);
@@ -232,7 +232,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
       // TODO: Can we encode the DN directly into buffer?
       byte[] dnBytes  = getBytes(entry.getName().toString());
       buffer.appendBERLength(dnBytes.length);
-      buffer.append(dnBytes);
+      buffer.appendBytes(dnBytes);
     }
 
 
@@ -249,15 +249,15 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
       ByteStringBuilder bsb = new ByteStringBuilder();
       for (String ocName : entry.getObjectClasses().values())
       {
-        bsb.append(ocName);
+        bsb.appendUtf8(ocName);
         if(i < entry.getObjectClasses().values().size())
         {
-          bsb.append((byte)0x00);
+          bsb.appendByte(0x00);
         }
         i++;
       }
       buffer.appendBERLength(bsb.length());
-      buffer.append(bsb);
+      buffer.appendBytes(bsb);
     }
 
 
@@ -308,7 +308,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
           ByteStringBuilder bsb = new ByteStringBuilder();
           config.getCompressedSchema().encodeAttribute(bsb, a);
           buffer.appendBERLength(bsb.length());
-          buffer.append(bsb);
+          buffer.appendBytes(bsb);
         }
       }
     }
@@ -335,14 +335,14 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
       for (Attribute a : attrList)
       {
         byte[] nameBytes = getBytes(a.getNameWithOptions());
-        buffer.append(nameBytes);
-        buffer.append((byte)0x00);
+        buffer.appendBytes(nameBytes);
+        buffer.appendByte(0x00);
 
         buffer.appendBERLength(a.size());
         for (ByteString v : a)
         {
           buffer.appendBERLength(v.length());
-          buffer.append(v);
+          buffer.appendBytes(v);
         }
       }
     }

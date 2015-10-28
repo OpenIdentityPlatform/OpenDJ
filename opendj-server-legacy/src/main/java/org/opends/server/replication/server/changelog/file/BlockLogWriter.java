@@ -180,8 +180,8 @@ class BlockLogWriter<K extends Comparable<K>, V> implements Closeable
   {
     // Add length of record before writing
     ByteString data = new ByteStringBuilder(SIZE_OF_RECORD_SIZE + record.length()).
-        append(record.length()).
-        append(record).
+        appendInt(record.length()).
+        appendBytes(record).
         toByteString();
 
     int distanceToBlockStart = BlockLogReader.getDistanceToNextBlockStart(writer.getBytesWritten(), blockSize);

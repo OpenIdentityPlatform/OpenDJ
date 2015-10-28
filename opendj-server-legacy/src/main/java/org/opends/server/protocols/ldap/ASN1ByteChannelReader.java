@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -329,7 +329,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     // Append any unused data in the channel buffer to the save buffer
     if (byteBuffer.remaining() > 0)
     {
-      saveBuffer.append(byteBuffer, byteBuffer.remaining());
+      saveBuffer.appendBytes(byteBuffer, byteBuffer.remaining());
     }
 
     byteBuffer.clear();

@@ -120,14 +120,14 @@ class DN2URI extends AbstractTree
       // encode the dn inside the value
       // because the dn is encoded in a non reversible way in the key
       byte[] dnBytes = StaticUtils.getBytes(dn.toString());
-      b.append(dnBytes.length);
-      b.append(dnBytes);
-      b.append(col.size());
+      b.appendInt(dnBytes.length);
+      b.appendBytes(dnBytes);
+      b.appendInt(col.size());
       for (String s : col)
       {
         byte[] bytes = StaticUtils.getBytes(s);
-        b.append(bytes.length);
-        b.append(bytes);
+        b.appendInt(bytes.length);
+        b.appendBytes(bytes);
       }
       return b;
     }

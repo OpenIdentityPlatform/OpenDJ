@@ -80,7 +80,7 @@ public class DnKeyFormat
     final int startSize = dn.size() - prefixRDNs - 1;
     for (int i = startSize; i >= 0; i--)
     {
-        builder.append(DN.NORMALIZED_RDN_SEPARATOR);
+        builder.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
         dn.getRDN(i).toNormalizedByteString(builder);
     }
     return builder.toByteString();
@@ -105,16 +105,16 @@ public class DnKeyFormat
   static ByteStringBuilder beforeKey(final ByteSequence key)
   {
     final ByteStringBuilder beforeKey = new ByteStringBuilder(key.length() + 1);
-    beforeKey.append(key);
-    beforeKey.append((byte) 0x00);
+    beforeKey.appendBytes(key);
+    beforeKey.appendByte(0x00);
     return beforeKey;
   }
 
   static ByteStringBuilder afterKey(final ByteSequence key)
   {
     final ByteStringBuilder afterKey = new ByteStringBuilder(key.length() + 1);
-    afterKey.append(key);
-    afterKey.append((byte) 0x01);
+    afterKey.appendBytes(key);
+    afterKey.appendByte(0x01);
     return afterKey;
   }
 }

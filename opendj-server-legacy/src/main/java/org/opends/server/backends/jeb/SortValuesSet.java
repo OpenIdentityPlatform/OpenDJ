@@ -493,7 +493,7 @@ public class SortValuesSet
           final MatchingRule eqRule = types[i].getEqualityMatchingRule();
           final ByteString nv = eqRule.normalizeAttributeValue(v);
           builder.appendBERLength(nv.length());
-          builder.append(nv);
+          builder.appendBytes(nv);
         }
       }
       builder.trimToSize();

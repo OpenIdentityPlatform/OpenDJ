@@ -1568,7 +1568,7 @@ public class LDIFReader implements Closeable
           ByteStringBuilder builder = new ByteStringBuilder(4096);
           inputStream  = contentURL.openConnection().getInputStream();
 
-          while (builder.append(inputStream, 4096) != -1) { /* Do nothing */ }
+          while (builder.appendBytes(inputStream, 4096) != -1) { /* Do nothing */ }
 
           value = builder.toByteString();
         }

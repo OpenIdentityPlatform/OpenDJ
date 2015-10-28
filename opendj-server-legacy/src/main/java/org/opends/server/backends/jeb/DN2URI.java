@@ -145,9 +145,9 @@ public class DN2URI extends DatabaseContainer
   private byte[] encodeURIAndDN(String labeledURI, DN dn)
   {
     return new ByteStringBuilder()
-      .append(labeledURI)
-      .append(STRING_SEPARATOR)
-      .append(dn.toString())
+      .appendUtf8(labeledURI)
+      .appendByte(STRING_SEPARATOR)
+      .appendUtf8(dn.toString())
       .toByteArray();
   }
 

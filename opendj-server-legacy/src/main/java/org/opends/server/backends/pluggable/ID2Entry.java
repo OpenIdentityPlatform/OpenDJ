@@ -195,7 +195,7 @@ class ID2Entry extends AbstractTree
       entry.encode(entryBuffer, dataConfig.getEntryEncodeConfig());
 
       // First write the DB format version byte.
-      encodedBuffer.append(DnKeyFormat.FORMAT_VERSION);
+      encodedBuffer.appendByte(DnKeyFormat.FORMAT_VERSION);
 
       try
       {

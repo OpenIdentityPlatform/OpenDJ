@@ -1124,10 +1124,10 @@ public class VLVIndex extends DatabaseContainer
           final MatchingRule eqRule = types[i].getEqualityMatchingRule();
           final ByteString nv = eqRule.normalizeAttributeValue(v);
           builder.appendBERLength(nv.length());
-          builder.append(nv);
+          builder.appendBytes(nv);
         }
       }
-      builder.append(entryID);
+      builder.appendLong(entryID);
       builder.trimToSize();
 
       return builder.getBackingArray();

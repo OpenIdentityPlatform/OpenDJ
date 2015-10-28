@@ -480,12 +480,12 @@ final class EntryIDSet implements Iterable<EntryID>
       {
         for (long value : idSet.getIDs())
         {
-          builder.append(value);
+          builder.appendLong(value);
         }
         return builder;
       }
       // Set top bit.
-      return builder.append((byte) 0x80);
+      return builder.appendByte(0x80);
     }
   }
 
@@ -537,7 +537,7 @@ final class EntryIDSet implements Iterable<EntryID>
       }
       else
       {
-        builder.append(UNDEFINED_SET);
+        builder.appendByte(UNDEFINED_SET);
       }
       return builder;
     }

@@ -304,7 +304,7 @@ public class JebFormat
     int startSize = dn.size() - prefixRDNs - 1;
     for (int i = startSize; i >= 0; i--)
     {
-        builder.append(DN.NORMALIZED_RDN_SEPARATOR);
+        builder.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
         dn.getRDN(i).toNormalizedByteString(builder);
     }
 

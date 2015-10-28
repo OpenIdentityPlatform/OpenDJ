@@ -132,11 +132,11 @@ public class StartSessionMsg extends ReplicationMsg
       ByteStringBuilder byteBuilder = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(byteBuilder);
 
-      byteBuilder.append(MSG_TYPE_START_SESSION);
-      byteBuilder.append(status.getValue());
-      byteBuilder.append(assuredFlag ? (byte) 1 : (byte) 0);
-      byteBuilder.append(assuredMode.getValue());
-      byteBuilder.append(safeDataLevel);
+      byteBuilder.appendByte(MSG_TYPE_START_SESSION);
+      byteBuilder.appendByte(status.getValue());
+      byteBuilder.appendByte(assuredFlag ? 1 : 0);
+      byteBuilder.appendByte(assuredMode.getValue());
+      byteBuilder.appendByte(safeDataLevel);
 
       writer.writeStartSequence();
       for (String url : referralsURLs)

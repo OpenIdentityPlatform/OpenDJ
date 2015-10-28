@@ -371,8 +371,8 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
       Collections.sort(resultContainer);
       for (ByteString s : resultContainer)
       {
-        builder.append(s);
-        builder.append(new char[] { '-' });
+        builder.appendBytes(s);
+        builder.appendUtf8(new char[] { '-' });
       }
       builder.setLength(builder.length() - 1);
       return builder.toByteString();

@@ -296,7 +296,7 @@ public class MonitorMsg extends ReplicationMsg
       if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
       {
         // legacy coding mistake
-        builder.appendByte((byte) 0);
+        builder.appendByte(0);
       }
       return builder.toByteArray();
     }
@@ -315,7 +315,7 @@ public class MonitorMsg extends ReplicationMsg
     }
     else if (protocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
     {
-      builder.appendShort((short) data);
+      builder.appendShort(data);
     }
     else // protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4
     {

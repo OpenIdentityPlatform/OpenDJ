@@ -210,7 +210,7 @@ public class TopologyMsg extends ReplicationMsg
     builder.appendByte(MSG_TYPE_TOPOLOGY);
 
     // Put DS infos
-    builder.appendByte((byte) replicaInfos.size());
+    builder.appendByte(replicaInfos.size());
     for (DSInfo dsInfo : replicaInfos.values())
     {
       builder.appendIntUTF8(dsInfo.getDsId());
@@ -235,12 +235,12 @@ public class TopologyMsg extends ReplicationMsg
         {
           builder.appendStrings(dsInfo.getEclIncludesForDeletes());
         }
-        builder.appendByte((byte) dsInfo.getProtocolVersion());
+        builder.appendByte(dsInfo.getProtocolVersion());
       }
     }
 
     // Put RS infos
-    builder.appendByte((byte) rsInfos.size());
+    builder.appendByte(rsInfos.size());
     for (RSInfo rsInfo : rsInfos)
     {
       builder.appendIntUTF8(rsInfo.getId());

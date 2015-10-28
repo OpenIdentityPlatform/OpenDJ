@@ -57,6 +57,7 @@ public class LogFileTest extends DirectoryServerTestCase
   private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
   private static final File TEST_LOG_FILE = new File(TEST_DIRECTORY, Log.HEAD_LOG_FILE_NAME);
   static final StringRecordParser RECORD_PARSER = new StringRecordParser();
+  private static final byte STRING_SEPARATOR = 0;
 
   @BeforeClass
   public void createTestDirectory()
@@ -225,17 +226,17 @@ public class LogFileTest extends DirectoryServerTestCase
     return new Object[][]
     {
       // write partial record size (should be 4 bytes)
-      { 1, new ByteStringBuilder().append((byte) 0) },
+      { 1, new ByteStringBuilder().appendByte(0) },
       // write partial record size (should be 4 bytes)
-      { 2, new ByteStringBuilder().append((byte) 0).append((byte) 0).append((byte) 0) },
+      { 2, new ByteStringBuilder().appendByte(0).appendByte(0).appendByte(0) },
       // write size only
-      { 3, new ByteStringBuilder().append(10) },
+      { 3, new ByteStringBuilder().appendInt(10) },
       // write size + key
-      { 4, new ByteStringBuilder().append(100).append("key") },
+      { 4, new ByteStringBuilder().appendInt(100).appendUtf8("key") },
       // write size + key + separator
-      { 5, new ByteStringBuilder().append(100).append("key").append(StringRecordParser.STRING_SEPARATOR) },
+      { 5, new ByteStringBuilder().appendInt(100).appendUtf8("key").appendByte(STRING_SEPARATOR) },
       // write size + key + separator + partial value
-      { 6, new ByteStringBuilder().append(100).append("key").append(StringRecordParser.STRING_SEPARATOR).append("v") },
+      { 6, new ByteStringBuilder().appendInt(100).appendUtf8("key").appendByte(STRING_SEPARATOR).appendUtf8("v") },
     };
   }
 
@@ -314,8 +315,6 @@ public class LogFileTest extends DirectoryServerTestCase
    */
   private static class StringRecordParser implements RecordParser<String, String>
   {
-    private static final byte STRING_SEPARATOR = 0;
-
     @Override
     public Record<String, String> decodeRecord(final ByteString data) throws DecodingException
     {
@@ -341,8 +340,8 @@ public class LogFileTest extends DirectoryServerTestCase
     public ByteString encodeRecord(Record<String, String> record)
     {
       return new ByteStringBuilder()
-        .append(record.getKey()).append(STRING_SEPARATOR)
-        .append(record.getValue()).append(STRING_SEPARATOR).toByteString();
+        .appendUtf8(record.getKey()).appendByte(STRING_SEPARATOR)
+        .appendUtf8(record.getValue()).appendByte(STRING_SEPARATOR).toByteString();
     }
 
     @Override

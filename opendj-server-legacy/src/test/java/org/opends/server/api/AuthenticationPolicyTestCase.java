@@ -332,10 +332,10 @@ public class AuthenticationPolicyTestCase extends APITestCase
           .getRootConnection();
 
       ByteStringBuilder credentials = new ByteStringBuilder();
-      credentials.append((byte) 0);
-      credentials.append("dn:" + userDNString);
-      credentials.append((byte) 0);
-      credentials.append("password");
+      credentials.appendByte(0);
+      credentials.appendUtf8("dn:" + userDNString);
+      credentials.appendByte(0);
+      credentials.appendUtf8("password");
 
       BindOperation bind = conn.processSASLBind(DN.rootDN(), "PLAIN",
           credentials.toByteString());
