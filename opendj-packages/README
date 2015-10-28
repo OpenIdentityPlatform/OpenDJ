@@ -1,0 +1,7 @@
+OpenDJ Packages
+
+This Maven project contains OpenDJ packages.
+Packages available are the following:
+* OEM version
+* deb
+* rpm
