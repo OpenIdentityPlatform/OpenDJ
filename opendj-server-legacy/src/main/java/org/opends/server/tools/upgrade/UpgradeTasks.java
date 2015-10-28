@@ -1095,6 +1095,75 @@ public final class UpgradeTasks
     }
   }
 
+  static UpgradeTask clearReplicationDbDirectory()
+  {
+    return new AbstractUpgradeTask()
+    {
+      private File replicationDbDir;
+
+      @Override
+      public void prepare(final UpgradeContext context) throws ClientException
+      {
+        String replDbDir = readReplicationDbDirFromConfig();
+        if (replDbDir != null
+            && context.confirmYN(INFO_UPGRADE_TASK_MIGRATE_CHANGELOG_DESCRIPTION.get(), NO) == YES)
+        {
+          replicationDbDir = new File(getInstancePath(), replDbDir).getAbsoluteFile();
+        }
+        // if replDbDir == null, then this is not an RS, there is no changelog DB to clear
+      }
+
+      private String readReplicationDbDirFromConfig() throws ClientException
+      {
+        final SearchRequest sr = Requests.newSearchRequest(
+            DN.valueOf("cn=replication server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config"),
+            SearchScope.BASE_OBJECT, Filter.alwaysTrue());
+        try (final EntryReader entryReader = searchConfigFile(sr))
+        {
+          if (entryReader.hasNext())
+          {
+            final Entry replServerCfg = entryReader.readEntry();
+            return replServerCfg.parseAttribute("ds-cfg-replication-db-directory").asString();
+          }
+          return null;
+        }
+        catch (IOException e)
+        {
+          LocalizableMessage msg = INFO_UPGRADE_TASK_MIGRATE_CONFIG_READ_FAIL.get();
+          throw new ClientException(ReturnCode.APPLICATION_ERROR, msg, e);
+        }
+      }
+
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException
+      {
+        if (replicationDbDir == null)
+        {
+          // there is no changelog DB to clear
+          return;
+        }
+
+        LocalizableMessage msg = INFO_UPGRADE_TASK_DELETE_CHANGELOG_SUMMARY.get(replicationDbDir);
+        ProgressNotificationCallback pnc =
+           new ProgressNotificationCallback(0, msg, 0);
+        context.notifyProgress(pnc);
+        try
+        {
+          FileManager.deleteRecursively(replicationDbDir);
+          context.notifyProgress(pnc.setProgress(100));
+        }
+        catch (ClientException e)
+        {
+          manageTaskException(context, e.getMessageObject(), pnc);
+        }
+        catch (Exception e)
+        {
+          manageTaskException(context, LocalizableMessage.raw(e.getLocalizedMessage()), pnc);
+        }
+      }
+    };
+  }
+
   /** Prevent instantiation. */
   private UpgradeTasks()
   {

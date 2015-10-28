@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import javax.security.auth.callback.ConfirmationCallback;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.core.LockFileManager;
@@ -46,13 +44,15 @@ import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
 import static com.forgerock.opendj.cli.Utils.*;
-import static javax.security.auth.callback.TextOutputCallback.*;
+import static javax.security.auth.callback.ConfirmationCallback.*;
+import static javax.security.auth.callback.TextOutputCallback.WARNING;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.LicenseFile.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
-import static org.opends.server.tools.upgrade.UpgradeUtils.batDirectory;
-import static org.opends.server.tools.upgrade.UpgradeUtils.binDirectory;
+import static org.opends.server.tools.upgrade.UpgradeUtils.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class contains the table of upgrade tasks that need performing when
@@ -446,6 +446,14 @@ public final class Upgrade
     register("3.0.0",
         rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
 
+    /** See OPENDJ-1742 */
+    register("3.0.0",
+        clearReplicationDbDirectory(),
+        modifyConfigEntry(INFO_UPGRADE_TASK_ENABLED_FILE_BASED_CHANGELOG.get(),
+            "(objectClass=ds-cfg-replication-server)",
+            "replace: ds-cfg-replication-db-implementation",
+            "ds-cfg-replication-db-implementation: log"));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
@@ -536,8 +544,8 @@ public final class Upgrade
       }
 
       // Starts upgrade
-      final int userResponse = context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
-      if (userResponse == ConfirmationCallback.NO)
+      final int userResponse = context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), YES);
+      if (userResponse == NO)
       {
         final LocalizableMessage message = INFO_UPGRADE_ABORTED_BY_USER.get();
         context.notify(message, WARNING);
@@ -588,9 +596,9 @@ public final class Upgrade
     }
     catch (final Exception e)
     {
-      final LocalizableMessage message = ERR_UPGRADE_TASKS_FAIL.get(e.getMessage());
+      final LocalizableMessage message = ERR_UPGRADE_TASKS_FAIL.get(stackTraceToSingleLineString(e));
       context.notify(message, ERROR_CALLBACK);
-      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message, e);
     }
     finally
     {
@@ -759,20 +767,20 @@ public final class Upgrade
         // -an accept license mode to continue the process.
         if (context.isForceUpgradeMode())
         {
-          answer = ConfirmationCallback.NO;
+          answer = NO;
           context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
               + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
         }
         else
         {
-          answer = context.confirmYN(INFO_LICENSE_ACCEPT.get(), ConfirmationCallback.NO);
+          answer = context.confirmYN(INFO_LICENSE_ACCEPT.get(), NO);
         }
 
-        if (answer == ConfirmationCallback.NO)
+        if (answer == NO)
         {
           System.exit(EXIT_CODE_SUCCESS);
         }
-        else if (answer == ConfirmationCallback.YES)
+        else if (answer == YES)
         {
           LicenseFile.setApproval(true);
         }
