@@ -133,7 +133,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource</artifactId>
@@ -143,7 +143,7 @@
       <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource-http</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-http-core</artifactId>
@@ -1679,11 +1679,11 @@
                     </tool>
 
                     <tool>
-                      <name>backendtool</name>
-                      <application>org.opends.server.backends.pluggable.BackendTool</application>
+                      <name>backendstat</name>
+                      <application>org.opends.server.backends.pluggable.BackendStat</application>
                       <trailingSectionPaths>
                         <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                        <trailingSectionPath>backendtool-examples.xml</trailingSectionPath>
+                        <trailingSectionPath>backendstat-examples.xml</trailingSectionPath>
                       </trailingSectionPaths>
                     </tool>
 

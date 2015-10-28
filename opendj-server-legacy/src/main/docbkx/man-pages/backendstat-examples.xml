@@ -36,7 +36,7 @@
  </para>
 
  <screen>
-$ <userinput>bin/backendtool dump-tree  -n userRoot -b dc=example,dc=com -t id2childrencount </userinput>
+$ <userinput>bin/backendstat dump-tree  -n userRoot -b dc=example,dc=com -t id2childrencount </userinput>
 <computeroutput>
     Key (len 2): 1#52
     Value (len 8): 1

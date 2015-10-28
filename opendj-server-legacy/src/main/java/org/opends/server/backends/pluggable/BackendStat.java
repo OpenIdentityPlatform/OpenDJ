@@ -96,7 +96,7 @@ import com.forgerock.opendj.cli.TextTablePrinter;
  * internally within the server process (e.g., via the tasks interface); it still
  * requires configuration information and access to Directory Server instance data.
  */
-public class BackendTool
+public class BackendStat
 {
   /**
    * Collects all necessary interaction interfaces with either a Backend using TreeNames
@@ -327,7 +327,7 @@ public class BackendTool
    */
   public static int main(String[] args, OutputStream outStream, OutputStream errStream)
   {
-    BackendTool app = new BackendTool(outStream, errStream);
+    BackendStat app = new BackendStat(outStream, errStream);
     return app.run(args);
   }
 
@@ -337,7 +337,7 @@ public class BackendTool
    * @param out The application output stream.
    * @param err The application error stream.
    */
-  public BackendTool(OutputStream out, OutputStream err)
+  public BackendStat(OutputStream out, OutputStream err)
   {
     this.out = NullOutputStream.wrapOrNullStream(out);
     this.err = NullOutputStream.wrapOrNullStream(err);

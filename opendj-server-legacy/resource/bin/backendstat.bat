@@ -26,7 +26,7 @@ rem      Portions Copyright 2015 ForgeRock AS
 
 setlocal
 
-set OPENDJ_INVOKE_CLASS="org.opends.server.backends.pluggable.BackendTool"
-set SCRIPT_NAME=backendtool
+set OPENDJ_INVOKE_CLASS="org.opends.server.backends.pluggable.BackendStat"
+set SCRIPT_NAME=backendstat
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
 

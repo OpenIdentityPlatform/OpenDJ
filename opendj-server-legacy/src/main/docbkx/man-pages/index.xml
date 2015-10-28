@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !      Copyright 2015 ForgeRock AS.
-  !    
+  !
 -->
 <book xml:id="reference"
       xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
@@ -63,7 +63,7 @@
   <xinclude:include href="man-backup.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href="man-backendtool.xml">
+  <xinclude:include href="man-backendstat.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
   <xinclude:include href="man-base64.xml">

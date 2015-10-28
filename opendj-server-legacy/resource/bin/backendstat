@@ -25,11 +25,11 @@
 #      Portions Copyright 2015 ForgeRock AS
 
 
-# This script may be used to debug Pluggable backends in the Directory Server.
-OPENDJ_INVOKE_CLASS="org.opends.server.backends.pluggable.BackendTool"
+# This script may be used to debug pluggable backends in the Directory Server.
+OPENDJ_INVOKE_CLASS="org.opends.server.backends.pluggable.BackendStat"
 export OPENDJ_INVOKE_CLASS
 
-SCRIPT_NAME="backendtool"
+SCRIPT_NAME="backendstat"
 export SCRIPT_NAME
 
 SCRIPT_DIR=`dirname "${0}"`
