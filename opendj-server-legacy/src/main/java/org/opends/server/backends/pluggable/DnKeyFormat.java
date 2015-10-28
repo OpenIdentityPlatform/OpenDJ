@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.opendj.ldap.DN.normalizedToASCII;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -95,7 +93,7 @@ public class DnKeyFormat
    */
   static String keyToDNString(ByteString key)
   {
-    return normalizedToASCII(key);
+    return key.toByteString().toASCIIString();
   }
 
   private static boolean positionIsRDNSeparator(ByteSequence key, int index)
