@@ -29,104 +29,145 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_UUID_NAME;
 
-import org.forgerock.i18n.LocalizableMessage;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This class defines the uuidMatch matching rule defined in RFC 4530. It will
  * be used as the default equality matching rule for the UUID syntax.
  */
-final class UUIDEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
-
-    UUIDEqualityMatchingRuleImpl() {
-        super(EMR_UUID_NAME);
-    }
-
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
-            throws DecodeException {
-        if (value.length() != 36) {
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value.toString(), value.length());
-            throw DecodeException.error(message);
+final class UUIDEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+    /**
+     * An optimized hash based indexer which stores a 4 byte hash of the UUID. Mix the bytes using XOR similar
+     * to UUID.hashCode(): 128 down to 64 then 32.
+     */
+    private static final Collection<? extends Indexer> INDEXERS = Collections.singleton(new Indexer() {
+        @Override
+        public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException {
+            keys.add(hash(normalize(value)));
         }
 
-        final StringBuilder builder = new StringBuilder(36);
-        char c;
+        @Override
+        public String keyToHumanReadableString(ByteSequence key) {
+            return key.toByteString().toHexString();
+        }
+
+        @Override
+        public String getIndexID() {
+            return EMR_UUID_NAME;
+        }
+    });
+
+    UUIDEqualityMatchingRuleImpl() {
+        // Nothing to do.
+    }
+
+    @Override
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
+        return normalize(value).toByteString();
+    }
+
+    @Override
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException {
+        final ByteString normalizedAssertionValue = normalizeAttributeValue(schema, assertionValue);
+        return new Assertion() {
+            @Override
+            public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
+                return ConditionResult.valueOf(normalizedAssertionValue.equals(normalizedAttributeValue));
+            }
+
+            @Override
+            public <T> T createIndexQuery(final IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createExactMatchQuery(EMR_UUID_NAME, hash(normalizedAssertionValue));
+            }
+        };
+    }
+
+    @Override
+    public Collection<? extends Indexer> createIndexers(final IndexingOptions options) {
+        return INDEXERS;
+    }
+
+    // Package private so that it can be reused by ordering matching rule.
+    static ByteSequence normalize(final ByteSequence value) throws DecodeException {
+        if (value.length() != 36) {
+            throw DecodeException.error(WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value, value.length()));
+        }
+        final ByteStringBuilder builder = new ByteStringBuilder(16);
         for (int i = 0; i < 36; i++) {
-            // The 9th, 14th, 19th, and 24th characters must be dashes. All
-            // others must be hex. Convert all uppercase hex characters to
-            // lowercase.
-            c = (char) value.byteAt(i);
+            // The 9th, 14th, 19th, and 24th characters must be dashes. All others must be hex.
             switch (i) {
             case 8:
             case 13:
             case 18:
             case 23:
+                final char c = (char) value.byteAt(i);
                 if (c != '-') {
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value.toString(), i, String
-                                    .valueOf(c));
-                    throw DecodeException.error(message);
+                    throw DecodeException.error(WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value, i, c));
                 }
-                builder.append(c);
                 break;
             default:
-                switch (c) {
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                case 'e':
-                case 'f':
-                    // These are all fine.
-                    builder.append(c);
-                    break;
-                case 'A':
-                    builder.append('a');
-                    break;
-                case 'B':
-                    builder.append('b');
-                    break;
-                case 'C':
-                    builder.append('c');
-                    break;
-                case 'D':
-                    builder.append('d');
-                    break;
-                case 'E':
-                    builder.append('e');
-                    break;
-                case 'F':
-                    builder.append('f');
-                    break;
-                default:
-                    final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value.toString(), i, String
-                                    .valueOf(value.byteAt(i)));
-                    throw DecodeException.error(message);
-                }
+                final int high4Bits = decodeHexByte(value, i++);
+                final int low4Bits = decodeHexByte(value, i);
+                builder.append((byte) ((high4Bits << 4) | low4Bits));
+                break;
             }
         }
-
-        return ByteString.valueOf(builder);
+        return builder;
     }
 
-    @Override
-    public String keyToHumanReadableString(ByteSequence key) {
-        return key.toString();
+    private static int decodeHexByte(final ByteSequence value, final int i) throws DecodeException {
+        final char c = (char) value.byteAt(i);
+        switch (c) {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            return c - '0';
+        case 'a':
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+            return c - 'a' + 10;
+        case 'A':
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'E':
+        case 'F':
+            return c - 'A' + 10;
+        default:
+            throw DecodeException.error(WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value, i, c));
+        }
+    }
+
+    private static ByteString hash(final ByteSequence normalizeAttributeValue) {
+        final ByteSequenceReader uuid128Bytes = normalizeAttributeValue.asReader();
+        final long uuidHigh64 = uuid128Bytes.getLong();
+        final long uuidLow64 = uuid128Bytes.getLong();
+        final long uuid64 = uuidHigh64 ^ uuidLow64;
+        final int hash32 = ((int) (uuid64 >> 32)) ^ (int) uuid64;
+        return ByteString.valueOf(hash32);
     }
 }

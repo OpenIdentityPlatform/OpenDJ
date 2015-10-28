@@ -1127,7 +1127,7 @@ public class DNTestCase extends SdkTestCase {
             { "governingStructureRule=256,dc=com", "dc=com,governingstructurerule=%82%01%00" },
             // uuid
             { "entryUUID=597ae2f6-16a6-1027-98f4-d28b5365dc14,dc=com",
-              "dc=com,entryuuid=597ae2f6-16a6-1027-98f4-d28b5365dc14" },
+              "dc=com,entryuuid=%59%7A%E2%F6%16%A6%10%27%98%F4%D2%8B%53%65%DC%14" },
             // characters unescaped by URL encoding (-, _, ., ~)
             { "dc=example\\2Dtest,dc=com", "dc=com,dc=example-test" },
             { "dc=example\\5Ftest,dc=com", "dc=com,dc=example_test" },
