@@ -26,7 +26,6 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import java.util.TimeZone;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -53,9 +53,7 @@ import static com.forgerock.opendj.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.DecodeException.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
-/**
- * Implementations of time-based matching rules.
- */
+/** Implementations of time-based matching rules. */
 final class TimeBasedMatchingRulesImpl {
 
     private static final TimeZone TIME_ZONE_UTC = TimeZone.getTimeZone("UTC");
@@ -65,7 +63,7 @@ final class TimeBasedMatchingRulesImpl {
     private static final char MINUTE = 'm';
     private static final char HOUR = 'h';
     private static final char MONTH = 'M';
-    private static final char DATE = 'D';
+    private static final char DAY = 'D';
     private static final char YEAR = 'Y';
 
     private TimeBasedMatchingRulesImpl() {
@@ -99,15 +97,12 @@ final class TimeBasedMatchingRulesImpl {
         return new PartialDateAndTimeMatchingRuleImpl();
     }
 
-    /**
-     * This class defines a matching rule which is used for time-based searches.
-     */
+    /** This class defines a matching rule which is used for time-based searches. */
     private static abstract class TimeBasedMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
         /** Unit tests can inject fake timestamps if necessary. */
         final TimeService timeService = TimeService.SYSTEM;
 
-        /** {@inheritDoc} */
         @Override
         public final ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
             try {
@@ -123,14 +118,11 @@ final class TimeBasedMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the relative time ordering matching rule.
-     */
+    /** Defines the relative time ordering matching rule. */
     private static abstract class RelativeTimeOrderingMatchingRuleImpl extends TimeBasedMatchingRuleImpl {
 
         final Indexer indexer = new DefaultIndexer(EMR_GENERALIZED_TIME_NAME);
 
-        /** {@inheritDoc} */
         @Override
         public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             return Collections.singletonList(indexer);
@@ -229,13 +221,10 @@ final class TimeBasedMatchingRulesImpl {
 
     }
 
-    /**
-     * Defines the "greater-than" relative time matching rule.
-     */
+    /** Defines the "greater-than" relative time matching rule. */
     private static final class RelativeTimeGreaterThanOrderingMatchingRuleImpl extends
         RelativeTimeOrderingMatchingRuleImpl {
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(final Schema schema, final ByteSequence value) throws DecodeException {
             final ByteString assertionValue = normalizeAssertionValue(value);
@@ -255,13 +244,10 @@ final class TimeBasedMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the "less-than" relative time matching rule.
-     */
+    /** Defines the "less-than" relative time matching rule. */
     private static final class RelativeTimeLessThanOrderingMatchingRuleImpl extends
         RelativeTimeOrderingMatchingRuleImpl {
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(final Schema schema, final ByteSequence value) throws DecodeException {
             final ByteString assertionValue = normalizeAssertionValue(value);
@@ -281,20 +267,16 @@ final class TimeBasedMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the partial date and time matching rule.
-     */
+    /** Defines the partial date and time matching rule. */
     private static final class PartialDateAndTimeMatchingRuleImpl extends TimeBasedMatchingRuleImpl {
 
         private final Indexer indexer = new PartialDateAndTimeIndexer(this);
 
-        /** {@inheritDoc} */
         @Override
         public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             return Collections.singletonList(indexer);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(final Schema schema, final ByteSequence value) throws DecodeException {
             final ByteString assertionValue = normalizeAssertionValue(value);
@@ -307,38 +289,46 @@ final class TimeBasedMatchingRulesImpl {
 
                 @Override
                 public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                    final ByteBuffer buffer = ByteBuffer.wrap(assertionValue.toByteArray());
-                    int assertSecond = buffer.getInt(0);
-                    int assertMinute = buffer.getInt(4);
-                    int assertHour = buffer.getInt(8);
-                    int assertDate = buffer.getInt(12);
-                    int assertMonth = buffer.getInt(16);
-                    int assertYear = buffer.getInt(20);
+                    final ByteSequenceReader reader = assertionValue.asReader();
+                    int assertSecond = reader.get();
+                    int assertMinute = reader.get();
+                    int assertHour = reader.get();
+                    int assertDay = reader.get();
+                    int assertMonth = reader.get();
+                    int assertYear = (int) reader.getCompactUnsigned();
 
                     List<T> queries = new ArrayList<>();
                     if (assertSecond >= 0) {
-                        queries.add(createExactMatchQuery(factory, assertSecond, SECOND));
+                        queries.add(createExactMatchByteQuery(factory, assertSecond, SECOND));
                     }
                     if (assertMinute >= 0) {
-                        queries.add(createExactMatchQuery(factory, assertMinute, MINUTE));
+                        queries.add(createExactMatchByteQuery(factory, assertMinute, MINUTE));
                     }
                     if (assertHour >= 0) {
-                        queries.add(createExactMatchQuery(factory, assertHour, HOUR));
+                        queries.add(createExactMatchByteQuery(factory, assertHour, HOUR));
                     }
-                    if (assertDate > 0) {
-                        queries.add(createExactMatchQuery(factory, assertDate, DATE));
+                    if (assertDay > 0) {
+                        queries.add(createExactMatchByteQuery(factory, assertDay, DAY));
                     }
                     if (assertMonth >= 0) {
-                        queries.add(createExactMatchQuery(factory, assertMonth, MONTH));
+                        queries.add(createExactMatchByteQuery(factory, assertMonth, MONTH));
                     }
                     if (assertYear > 0) {
-                        queries.add(createExactMatchQuery(factory, assertYear, YEAR));
+                        queries.add(createExactMatchCompactUnsignedQuery(factory, assertYear, YEAR));
                     }
                     return factory.createIntersectionQuery(queries);
                 }
 
-                private <T> T createExactMatchQuery(IndexQueryFactory<T> factory, int assertionValue, char type) {
-                    return factory.createExactMatchQuery(indexer.getIndexID(), getKey(assertionValue, type));
+                private <T> T createExactMatchByteQuery(
+                        IndexQueryFactory<T> factory, int assertionValue, char type) {
+                    return factory.createExactMatchQuery(
+                            indexer.getIndexID(), byteKey(assertionValue, type));
+                }
+
+                private <T> T createExactMatchCompactUnsignedQuery(
+                        IndexQueryFactory<T> factory, int assertionValue, char type) {
+                    return factory.createExactMatchQuery(
+                            indexer.getIndexID(), compactUnsignedKey(assertionValue, type));
                 }
             };
         }
@@ -366,14 +356,14 @@ final class TimeBasedMatchingRulesImpl {
          * The normalized value is actually the format of : smhDMY.
          */
         private ByteString normalizeAssertionValue(ByteSequence assertionValue) throws DecodeException {
-            final int initDate = 0;
+            final int initDay = 0;
             final int initValue = -1;
             int second = initValue;
             int minute = initValue;
             int hour = initValue;
-            int date = initDate;
+            int day = initDay;
             int month = initValue;
-            int year = initDate;
+            int year = initDay;
             int number = 0;
 
             int length = assertionValue.length();
@@ -385,29 +375,29 @@ final class TimeBasedMatchingRulesImpl {
                     switch (b) {
                     case 's':
                         if (second != initValue) {
-                            throw error(WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(assertionValue, date));
+                            throw error(WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(assertionValue, day));
                         }
                         second = number;
                         break;
                     case 'm':
                         if (minute != initValue) {
-                            throw error(WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(assertionValue, date));
+                            throw error(WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(assertionValue, day));
                         }
                         minute = number;
                         break;
                     case 'h':
                         if (hour != initValue) {
-                            throw error(WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(assertionValue, date));
+                            throw error(WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(assertionValue, day));
                         }
                         hour = number;
                         break;
                     case 'D':
                         if (number == 0) {
-                            throw error(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, number));
-                        } else if (date != initDate) {
-                            throw error(WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(assertionValue, date));
+                            throw error(WARN_ATTR_INVALID_DAY_ASSERTION_FORMAT.get(assertionValue, number));
+                        } else if (day != initDay) {
+                            throw error(WARN_ATTR_DUPLICATE_DAY_ASSERTION_FORMAT.get(assertionValue, day));
                         }
-                        date = number;
+                        day = number;
                         break;
                     case 'M':
                         if (number == 0) {
@@ -420,7 +410,7 @@ final class TimeBasedMatchingRulesImpl {
                     case 'Y':
                         if (number == 0) {
                             throw error(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, number));
-                        } else if (year != initDate) {
+                        } else if (year != initDay) {
                             throw error(WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
                         }
                         year = number;
@@ -434,14 +424,14 @@ final class TimeBasedMatchingRulesImpl {
 
             month = toCalendarMonth(month, assertionValue);
 
-            // Validate year, month , date , hour, minute and second in that order.
+            // Validate year, month , day , hour, minute and second in that order.
             // -1 values are allowed when these values have not been provided
             if (year < 0) {
                 // A future date is allowed.
                 throw error(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
             }
-            if (isDateInvalid(date, month, year)) {
-                throw error(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, date));
+            if (isDayInvalid(day, month, year)) {
+                throw error(WARN_ATTR_INVALID_DAY_ASSERTION_FORMAT.get(assertionValue, day));
             }
             if (hour < initValue || hour > 23) {
                 throw error(WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(assertionValue, hour));
@@ -455,14 +445,15 @@ final class TimeBasedMatchingRulesImpl {
             }
 
             // Since we reached here we have a valid assertion value.
-            // Construct a normalized value in the order: SECOND MINUTE HOUR DATE MONTH YEAR.
-            return new ByteStringBuilder(6 * 4)
-                .appendInt(second).appendInt(minute).appendInt(hour)
-                .appendInt(date).appendInt(month).appendInt(year).toByteString();
+            // Construct a normalized value in the order: SECOND MINUTE HOUR DAY MONTH YEAR.
+            // Using compact unsigned for year will use only two bytes until the year 16384 :)
+            return new ByteStringBuilder(5 + 2)
+                .appendByte(second).appendByte(minute).appendByte(hour)
+                .appendByte(day).appendByte(month).appendCompactUnsigned(year).toByteString();
         }
 
-        private boolean isDateInvalid(int date, int month, int year) {
-            switch (date) {
+        private boolean isDayInvalid(int day, int month, int year) {
+            switch (day) {
             case 29:
                 return month == Calendar.FEBRUARY && !isLeapYear(year);
             case 30:
@@ -477,7 +468,7 @@ final class TimeBasedMatchingRulesImpl {
                     && month != Calendar.OCTOBER
                     && month != Calendar.DECEMBER;
             default:
-                return date < 0 || date > 31;
+                return day < 0 || day > 31;
             }
         }
 
@@ -504,29 +495,27 @@ final class TimeBasedMatchingRulesImpl {
             int second = cal.get(Calendar.SECOND);
             int minute = cal.get(Calendar.MINUTE);
             int hour = cal.get(Calendar.HOUR_OF_DAY);
-            int date = cal.get(Calendar.DATE);
+            int day = cal.get(Calendar.DAY_OF_MONTH);
             int month = cal.get(Calendar.MONTH);
             int year = cal.get(Calendar.YEAR);
 
             // Build the information from the assertion value.
-            ByteBuffer b = ByteBuffer.wrap(assertionValue.toByteArray());
-            int assertSecond = b.getInt(0);
-            int assertMinute = b.getInt(4);
-            int assertHour = b.getInt(8);
-            int assertDate = b.getInt(12);
-            int assertMonth = b.getInt(16);
-            int assertYear = b.getInt(20);
+            ByteSequenceReader r = assertionValue.asReader();
+            int assertSecond = r.get();
+            int assertMinute = r.get();
+            int assertHour = r.get();
+            int assertDay = r.get();
+            int assertMonth = r.get();
+            int assertYear = (int) r.getCompactUnsigned();
 
             // All the non-zero and non -1 values should match.
-            if ((assertSecond != -1 && assertSecond != second)
-                || (assertMinute != -1 && assertMinute != minute)
-                || (assertHour != -1 && assertHour != hour)
-                || (assertDate != 0 && assertDate != date)
-                || (assertMonth != -1 && assertMonth != month)
-                || (assertYear != 0 && assertYear != year)) {
-                return ConditionResult.FALSE;
-            }
-            return ConditionResult.TRUE;
+            return ConditionResult.valueOf(
+                (assertSecond == -1 || assertSecond == second)
+                    && (assertMinute == -1 || assertMinute == minute)
+                    && (assertHour == -1 || assertHour == hour)
+                    && (assertDay == 0 || assertDay == day)
+                    && (assertMonth == -1 || assertMonth == month)
+                    && (assertYear == 0 || assertYear == year));
         }
 
         /**
@@ -550,7 +539,7 @@ final class TimeBasedMatchingRulesImpl {
             addKeyIfNotZero(keys, cal, Calendar.SECOND, SECOND);
             addKeyIfNotZero(keys, cal, Calendar.MINUTE, MINUTE);
             addKeyIfNotZero(keys, cal, Calendar.HOUR_OF_DAY, HOUR);
-            addKeyIfNotZero(keys, cal, Calendar.DATE, DATE);
+            addKeyIfNotZero(keys, cal, Calendar.DAY_OF_MONTH, DAY);
             addKeyIfNotZero(keys, cal, Calendar.MONTH, MONTH);
             addKeyIfNotZero(keys, cal, Calendar.YEAR, YEAR);
         }
@@ -558,18 +547,35 @@ final class TimeBasedMatchingRulesImpl {
         private void addKeyIfNotZero(Collection<ByteString> keys, GregorianCalendar cal, int calField, char type) {
             int value = cal.get(calField);
             if (value >= 0) {
-                keys.add(getKey(value, type));
+                switch (type) {
+                case SECOND:
+                case MINUTE:
+                case HOUR:
+                case DAY:
+                case MONTH:
+                    keys.add(byteKey(value, type));
+                    break;
+
+                case YEAR:
+                    keys.add(compactUnsignedKey(value, type));
+                    break;
+
+                default:
+                    break;
+                }
             }
         }
 
-        private ByteString getKey(int value, char type) {
-            return new ByteStringBuilder().appendInt(type).appendInt(value).toByteString();
+        private ByteString byteKey(int value, char type) {
+            return new ByteStringBuilder().appendInt(type).appendByte(value).toByteString();
+        }
+
+        private ByteString compactUnsignedKey(long value, char type) {
+            return new ByteStringBuilder().appendInt(type).appendCompactUnsigned(value).toByteString();
         }
     }
 
-    /**
-     * Indexer for Partial Date and Time Matching rules.
-     */
+    /** Indexer for Partial Date and Time Matching rules. */
     private static final class PartialDateAndTimeIndexer implements Indexer {
 
         private final PartialDateAndTimeMatchingRuleImpl matchingRule;
@@ -578,7 +584,6 @@ final class TimeBasedMatchingRulesImpl {
             this.matchingRule = matchingRule;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) {
             matchingRule.timeKeys(value, keys);
@@ -589,7 +594,6 @@ final class TimeBasedMatchingRulesImpl {
             return key.toByteString().toHexString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getIndexID() {
             return MR_PARTIAL_DATE_AND_TIME_NAME;

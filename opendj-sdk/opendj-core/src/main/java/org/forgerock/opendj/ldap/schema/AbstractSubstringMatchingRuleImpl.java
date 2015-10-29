@@ -343,13 +343,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         return new DefaultSubstringAssertion(normInitial, normAnys, normFinal);
     }
 
-    ByteString normalizeSubString(final Schema schema, final ByteSequence value)
-            throws DecodeException {
+    ByteString normalizeSubString(final Schema schema, final ByteSequence value) throws DecodeException {
         return normalizeAttributeValue(schema, value);
     }
 
-    private char evaluateEscapedChar(final SubstringReader reader, final char[] escapeChars)
-            throws DecodeException {
+    private byte evaluateEscapedChar(final SubstringReader reader, final char[] escapeChars) throws DecodeException {
         final char c1 = reader.read();
         byte b;
         switch (c1) {
@@ -409,12 +407,12 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             break;
         default:
             if (c1 == BACKSLASH) {
-                return c1;
+                return (byte) c1;
             }
             if (escapeChars != null) {
                 for (final char escapeChar : escapeChars) {
                     if (c1 == escapeChar) {
-                        return c1;
+                        return (byte) c1;
                     }
                 }
             }
@@ -486,7 +484,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         default:
             throw DecodeException.error(ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] { c1, c2 }), c1));
         }
-        return (char) b;
+        return b;
     }
 
     private ByteString evaluateEscapes(final SubstringReader reader, final char[] escapeChars) throws DecodeException {
@@ -496,18 +494,17 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
     private ByteString evaluateEscapes(final SubstringReader reader, final char[] escapeChars,
             final char[] delimiterChars) throws DecodeException {
         int length = 0;
-        char c;
         ByteStringBuilder valueBuffer = null;
 
         reader.mark();
         while (reader.remaining() > 0) {
-            c = reader.read();
+            char c = reader.read();
             if (c == BACKSLASH) {
                 if (valueBuffer == null) {
                     valueBuffer = new ByteStringBuilder();
                 }
                 valueBuffer.appendUtf8(reader.read(length));
-                valueBuffer.appendInt(evaluateEscapedChar(reader, escapeChars));
+                valueBuffer.appendByte(evaluateEscapedChar(reader, escapeChars));
                 reader.mark();
                 length = 0;
                 continue;
@@ -515,32 +512,26 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             if (delimiterChars != null) {
                 for (final char delimiterChar : delimiterChars) {
                     if (c == delimiterChar) {
-                        reader.reset();
-                        if (valueBuffer != null) {
-                            valueBuffer.appendUtf8(reader.read(length));
-                            return valueBuffer.toByteString();
-                        } else {
-                            if (length > 0) {
-                                return ByteString.valueOf(reader.read(length));
-                            }
-                            return ByteString.empty();
-                        }
+                        return evaluateEscapes0(reader, length, valueBuffer);
                     }
                 }
             }
             length++;
         }
 
+        return evaluateEscapes0(reader, length, valueBuffer);
+    }
+
+    private ByteString evaluateEscapes0(final SubstringReader reader, int length, ByteStringBuilder valueBuffer) {
         reader.reset();
         if (valueBuffer != null) {
             valueBuffer.appendUtf8(reader.read(length));
             return valueBuffer.toByteString();
-        } else {
-            if (length > 0) {
-                return ByteString.valueOf(reader.read(length));
-            }
-            return ByteString.empty();
         }
+        if (length > 0) {
+            return ByteString.valueOf(reader.read(length));
+        }
+        return ByteString.empty();
     }
 
     @Override

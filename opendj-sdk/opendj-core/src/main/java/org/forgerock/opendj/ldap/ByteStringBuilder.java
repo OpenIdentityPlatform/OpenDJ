@@ -67,7 +67,7 @@ public final class ByteStringBuilder implements ByteSequence {
 
         @Override
         public void write(final int i) {
-            appendByte(i & 0xFF);
+            appendByte(i);
         }
     }
 
@@ -302,6 +302,23 @@ public final class ByteStringBuilder implements ByteSequence {
 
     /**
      * Appends the provided byte to this byte string builder.
+     * <p>
+     * Note: this method accepts an {@code int} for ease of reading and writing.
+     * <p>
+     * This method only keeps the lowest 8-bits of the provided {@code int}.
+     * Higher bits will be truncated. This method performs the equivalent of:
+     *
+     * <pre>
+     * int i = ...;
+     * int i8bits = i & 0xFF;
+     * // only use "i8bits"
+     * </pre>
+     * OR
+     * <pre>
+     * int i = ...;
+     * byte b = (byte) i;
+     * // only use "b"
+     * </pre>
      *
      * @param b
      *            The byte to be appended to this byte string builder.
@@ -538,7 +555,7 @@ public final class ByteStringBuilder implements ByteSequence {
     public ByteStringBuilder appendInt(int i) {
         ensureAdditionalCapacity(4);
         for (int j = length + 3; j >= length; j--) {
-            buffer[j] = (byte) (i & 0xFF);
+            buffer[j] = (byte) i;
             i >>>= 8;
         }
         length += 4;
@@ -557,7 +574,7 @@ public final class ByteStringBuilder implements ByteSequence {
     public ByteStringBuilder appendLong(long l) {
         ensureAdditionalCapacity(8);
         for (int i = length + 7; i >= length; i--) {
-            buffer[i] = (byte) (l & 0xFF);
+            buffer[i] = (byte) l;
             l >>>= 8;
         }
         length += 8;
@@ -628,6 +645,23 @@ public final class ByteStringBuilder implements ByteSequence {
     /**
      * Appends the big-endian encoded bytes of the provided short to this byte
      * string builder.
+     * <p>
+     * Note: this method accepts an {@code int} for ease of reading and writing.
+     * <p>
+     * This method only keeps the lowest 16-bits of the provided {@code int}.
+     * Higher bits will be truncated. This method performs the equivalent of:
+     *
+     * <pre>
+     * int i = ...;
+     * int i16bits = i & 0xFFFF;
+     * // only use "i16bits"
+     * </pre>
+     * OR
+     * <pre>
+     * int i = ...;
+     * short s = (short) i;
+     * // only use "s"
+     * </pre>
      *
      * @param i
      *            The short whose big-endian encoding is to be appended to this
@@ -637,7 +671,7 @@ public final class ByteStringBuilder implements ByteSequence {
     public ByteStringBuilder appendShort(int i) {
         ensureAdditionalCapacity(2);
         for (int j = length + 1; j >= length; j--) {
-            buffer[j] = (byte) (i & 0xFF);
+            buffer[j] = (byte) i;
             i >>>= 8;
         }
         length += 2;
@@ -696,33 +730,33 @@ public final class ByteStringBuilder implements ByteSequence {
         if ((length & 0x0000007F) == length) {
             ensureAdditionalCapacity(1);
 
-            buffer[this.length++] = (byte) (length & 0xFF);
+            buffer[this.length++] = (byte) length;
         } else if ((length & 0x000000FF) == length) {
             ensureAdditionalCapacity(2);
 
             buffer[this.length++] = (byte) 0x81;
-            buffer[this.length++] = (byte) (length & 0xFF);
+            buffer[this.length++] = (byte) length;
         } else if ((length & 0x0000FFFF) == length) {
             ensureAdditionalCapacity(3);
 
             buffer[this.length++] = (byte) 0x82;
-            buffer[this.length++] = (byte) (length >> 8 & 0xFF);
-            buffer[this.length++] = (byte) (length & 0xFF);
+            buffer[this.length++] = (byte) (length >> 8);
+            buffer[this.length++] = (byte) length;
         } else if ((length & 0x00FFFFFF) == length) {
             ensureAdditionalCapacity(4);
 
             buffer[this.length++] = (byte) 0x83;
-            buffer[this.length++] = (byte) (length >> 16 & 0xFF);
-            buffer[this.length++] = (byte) (length >> 8 & 0xFF);
-            buffer[this.length++] = (byte) (length & 0xFF);
+            buffer[this.length++] = (byte) (length >> 16);
+            buffer[this.length++] = (byte) (length >> 8);
+            buffer[this.length++] = (byte) length;
         } else {
             ensureAdditionalCapacity(5);
 
             buffer[this.length++] = (byte) 0x84;
-            buffer[this.length++] = (byte) (length >> 24 & 0xFF);
-            buffer[this.length++] = (byte) (length >> 16 & 0xFF);
-            buffer[this.length++] = (byte) (length >> 8 & 0xFF);
-            buffer[this.length++] = (byte) (length & 0xFF);
+            buffer[this.length++] = (byte) (length >> 24);
+            buffer[this.length++] = (byte) (length >> 16);
+            buffer[this.length++] = (byte) (length >> 8);
+            buffer[this.length++] = (byte) length;
         }
         return this;
     }
