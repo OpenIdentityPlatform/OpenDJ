@@ -122,7 +122,7 @@ import org.opends.server.util.StaticUtils;
  * its own entry container.  The entry container is the object that implements
  * the guts of the backend API methods for LDAP operations.
  */
-public final class EntryContainer
+public class EntryContainer
     implements SuffixContainer, ConfigurationChangeListener<PluggableBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -2639,7 +2639,7 @@ public final class EntryContainer
     return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortOrder, sortMap);
   }
 
-  private static long[] toArray(Collection<EntryID> entryIDs)
+  private static final long[] toArray(Collection<EntryID> entryIDs)
   {
     final long[] array = new long[entryIDs.size()];
     int i = 0;
@@ -2650,7 +2650,7 @@ public final class EntryContainer
     return array;
   }
 
-  private static EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
+  private static final EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
       VLVRequestControl vlvRequest, SortOrder sortOrder, final TreeMap<ByteString, EntryID> sortMap)
       throws DirectoryException
   {
@@ -2709,7 +2709,7 @@ public final class EntryContainer
     return result;
   }
 
-  private static EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
+  private static final EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
       TreeMap<ByteString, EntryID> sortMap) throws DirectoryException
   {
     int targetOffset = vlvRequest.getOffset();
