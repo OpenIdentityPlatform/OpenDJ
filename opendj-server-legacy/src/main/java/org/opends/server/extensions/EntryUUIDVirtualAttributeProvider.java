@@ -32,11 +32,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
@@ -56,8 +54,6 @@ import org.opends.server.types.VirtualAttributeRule;
 public class EntryUUIDVirtualAttributeProvider
        extends VirtualAttributeProvider<EntryUUIDVirtualAttributeCfg>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   /**
    * Creates a new instance of this entryUUID virtual attribute provider.
    */
@@ -80,13 +76,9 @@ public class EntryUUIDVirtualAttributeProvider
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    return Attributes.create(rule.getAttributeType(), getUUIDString(entry));
-  }
-
-  private String getUUIDString(Entry entry)
-  {
     ByteString normDN = entry.getName().toNormalizedByteString();
-    return UUID.nameUUIDFromBytes(normDN.toByteArray()).toString();
+    String uuid = UUID.nameUUIDFromBytes(normDN.toByteArray()).toString();
+    return Attributes.create(rule.getAttributeType(), uuid);
   }
 
   /** {@inheritDoc} */
@@ -95,24 +87,6 @@ public class EntryUUIDVirtualAttributeProvider
   {
     // This virtual attribute provider will always generate a value.
     return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
-  {
-    MatchingRule matchingRule = rule.getAttributeType().getEqualityMatchingRule();
-    try
-    {
-      String uuidString = getUUIDString(entry);
-      ByteString normValue = matchingRule.normalizeAttributeValue(value);
-      return uuidString.equals(normValue.toString());
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      return false;
-    }
   }
 
   /** {@inheritDoc} */
