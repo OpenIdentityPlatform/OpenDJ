@@ -439,7 +439,7 @@ public final class ByteStringBuilder implements ByteSequence {
 
         if (length != 0) {
             ensureAdditionalCapacity(length);
-            reader.get(buffer, this.length, length);
+            reader.readBytes(buffer, this.length, length);
             this.length += length;
         }
 

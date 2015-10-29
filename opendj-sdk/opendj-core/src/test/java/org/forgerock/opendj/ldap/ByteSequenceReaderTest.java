@@ -56,18 +56,18 @@ public class ByteSequenceReaderTest extends SdkTestCase {
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGet(ByteSequenceReader reader, byte[] ba) {
+    public void testReadByte(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         for (byte b : ba) {
-            Assert.assertEquals(reader.get(), b);
+            Assert.assertEquals(reader.readByte(), b);
         }
 
-        // The next get should result in IOB exception.
-        reader.get();
+        // The next read should result in IOB exception.
+        reader.readByte();
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testBulkGet(ByteSequenceReader reader, byte[] ba) {
+    public void testReadBytes(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         int remaining = ba.length;
 
@@ -78,7 +78,7 @@ public class ByteSequenceReaderTest extends SdkTestCase {
             }
 
             byte[] readArray = new byte[length];
-            reader.get(readArray);
+            reader.readBytes(readArray);
             byte[] subArray = new byte[length];
             System.arraycopy(ba, ba.length - remaining, subArray, 0, length);
             Assert.assertTrue(Arrays.equals(readArray, subArray));
@@ -86,12 +86,12 @@ public class ByteSequenceReaderTest extends SdkTestCase {
             remaining -= length;
         }
 
-        // Any more gets should result in IOB exception.
-        reader.get(new byte[1]);
+        // Any more reads should result in IOB exception.
+        reader.readBytes(new byte[1]);
     }
 
     @Test(dataProvider = "readerProvider")
-    public void testBulkGetWithOffset(ByteSequenceReader reader, byte[] ba) {
+    public void testReadBytesWithOffset(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         int remaining = ba.length;
         byte[] readArray = new byte[ba.length];
@@ -102,7 +102,7 @@ public class ByteSequenceReaderTest extends SdkTestCase {
                 length = remaining % 2;
             }
 
-            reader.get(readArray, ba.length - remaining, length);
+            reader.readBytes(readArray, ba.length - remaining, length);
 
             remaining -= length;
         }
@@ -111,28 +111,28 @@ public class ByteSequenceReaderTest extends SdkTestCase {
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testNegativeOffsetBulkGet(ByteSequenceReader reader, byte[] ba) {
+    public void testNegativeOffsetReadBytes(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         byte[] array = new byte[ba.length];
-        reader.get(array, -1, ba.length);
+        reader.readBytes(array, -1, ba.length);
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testNegativeLengthBulkGet(ByteSequenceReader reader, byte[] ba) {
+    public void testNegativeLengthReadBytes(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         byte[] array = new byte[ba.length];
-        reader.get(array, 0, -1);
+        reader.readBytes(array, 0, -1);
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testBadOffLenBulkGet(ByteSequenceReader reader, byte[] ba) {
+    public void testBadOffLenReadBytes(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         byte[] array = new byte[ba.length];
-        reader.get(array, 3, ba.length);
+        reader.readBytes(array, 3, ba.length);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetBERLength() {
+    public void testReadBERLength() {
         ByteSequenceReader reader = ByteString.wrap(new byte[]{
             b(0x00), b(0x01), b(0x0F), b(0x10),
             b(0x7F),
@@ -170,33 +170,33 @@ public class ByteSequenceReaderTest extends SdkTestCase {
         };
 
         for (int length : expectedLength) {
-            Assert.assertEquals(reader.getBERLength(), length);
+            Assert.assertEquals(reader.readBERLength(), length);
         }
 
         // Last one is incomplete and should throw error
-        reader.getBERLength();
+        reader.readBERLength();
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testOversizedGetBERLength() {
+    public void testOversizedReadBERLength() {
         ByteSequenceReader reader = ByteString.wrap(new byte[]{
             b(0x85), b(0x10), b(0x00), b(0x00), b(0x00), b(0x00)
         }).asReader();
 
         // Shouldn't be able to reader over a 4 byte length.
-        reader.getBERLength();
+        reader.readBERLength();
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testUndersizedGetBERLength() {
+    public void testUndersizedReadBERLength() {
         ByteSequenceReader reader = ByteString.empty().asReader();
 
         // Shouldn't be able to reader over a 4 byte length.
-        reader.getBERLength();
+        reader.readBERLength();
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetByteSequence(ByteSequenceReader reader, byte[] ba) {
+    public void testReadByteSequence(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         int remaining = ba.length;
 
@@ -206,7 +206,7 @@ public class ByteSequenceReaderTest extends SdkTestCase {
                 length = remaining % 2;
             }
 
-            ByteSequence readSequence = reader.getByteSequence(length);
+            ByteSequence readSequence = reader.readByteSequence(length);
             byte[] subArray = new byte[length];
             System.arraycopy(ba, ba.length - remaining, subArray, 0, length);
             Assert.assertTrue(Arrays.equals(readSequence.toByteArray(), subArray));
@@ -214,12 +214,12 @@ public class ByteSequenceReaderTest extends SdkTestCase {
             remaining -= length;
         }
 
-        // Any more gets should result in IOB exception.
-        reader.getByteSequence(1);
+        // Any more reads should result in IOB exception.
+        reader.readByteSequence(1);
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetByteString(ByteSequenceReader reader, byte[] ba) {
+    public void testReadByteString(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         int remaining = ba.length;
 
@@ -229,7 +229,7 @@ public class ByteSequenceReaderTest extends SdkTestCase {
                 length = remaining % 2;
             }
 
-            ByteString readSequence = reader.getByteString(length);
+            ByteString readSequence = reader.readByteString(length);
             byte[] subArray = new byte[length];
             System.arraycopy(ba, ba.length - remaining, subArray, 0, length);
             Assert.assertTrue(Arrays.equals(readSequence.toByteArray(), subArray));
@@ -237,53 +237,53 @@ public class ByteSequenceReaderTest extends SdkTestCase {
             remaining -= length;
         }
 
-        // Any more gets should result in IOB exception.
-        reader.getByteString(1);
+        // Any more reads should result in IOB exception.
+        reader.readByteString(1);
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetShort() {
+    public void testReadShort() {
         ByteSequenceReader reader = ByteString.wrap(new byte[]{
             b(0x80), b(0x00), b(0x7F), b(0xFF), b(0xFF)
         }).asReader();
 
-        Assert.assertEquals(reader.getShort(), Short.MIN_VALUE);
-        Assert.assertEquals(reader.getShort(), Short.MAX_VALUE);
+        Assert.assertEquals(reader.readShort(), Short.MIN_VALUE);
+        Assert.assertEquals(reader.readShort(), Short.MAX_VALUE);
 
-        // Any more gets should result in IOB exception.
-        reader.getShort();
+        // Any more reads should result in IOB exception.
+        reader.readShort();
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetInt() {
+    public void testReadInt() {
         ByteSequenceReader reader = ByteString.wrap(new byte[]{
             b(0x80), b(0x00), b(0x00), b(0x00), b(0x7F),
             b(0xFF), b(0xFF), b(0xFF), b(0xFF) }).asReader();
 
-        Assert.assertEquals(reader.getInt(), Integer.MIN_VALUE);
-        Assert.assertEquals(reader.getInt(), Integer.MAX_VALUE);
+        Assert.assertEquals(reader.readInt(), Integer.MIN_VALUE);
+        Assert.assertEquals(reader.readInt(), Integer.MAX_VALUE);
 
-        // Any more gets should result in IOB exception.
-        reader.getInt();
+        // Any more reads should result in IOB exception.
+        reader.readInt();
     }
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetLong() {
+    public void testReadLong() {
         ByteSequenceReader reader = ByteString.wrap(new byte[]{
             b(0x80), b(0x00), b(0x00), b(0x00), b(0x00),
             b(0x00), b(0x00), b(0x00), b(0x7F), b(0xFF),
             b(0xFF), b(0xFF), b(0xFF), b(0xFF), b(0xFF),
             b(0xFF), b(0xFF) }).asReader();
 
-        Assert.assertEquals(reader.getLong(), Long.MIN_VALUE);
-        Assert.assertEquals(reader.getLong(), Long.MAX_VALUE);
+        Assert.assertEquals(reader.readLong(), Long.MIN_VALUE);
+        Assert.assertEquals(reader.readLong(), Long.MAX_VALUE);
 
-        // Any more gets should result in IOB exception.
-        reader.getLong();
+        // Any more reads should result in IOB exception.
+        reader.readLong();
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
-    public void testGetString(ByteSequenceReader reader, byte[] ba) {
+    public void testReadString(ByteSequenceReader reader, byte[] ba) {
         reader.rewind();
         int remaining = ba.length;
 
@@ -293,15 +293,15 @@ public class ByteSequenceReaderTest extends SdkTestCase {
                 length = remaining % 2;
             }
 
-            String readString = reader.getString(length);
+            String readString = reader.readStringUtf8(length);
             String subString = new String(ba, ba.length - remaining, length);
             Assert.assertTrue(readString.equals(subString));
 
             remaining -= length;
         }
 
-        // Any more gets should result in IOB exception.
-        reader.getString(1);
+        // Any more reads should result in IOB exception.
+        reader.readStringUtf8(1);
     }
 
     @Test(dataProvider = "readerProvider", expectedExceptions = IndexOutOfBoundsException.class)
@@ -310,7 +310,7 @@ public class ByteSequenceReaderTest extends SdkTestCase {
 
         for (int i = 0; i < ba.length; i++) {
             reader.position(i);
-            String readString = reader.getString(ba.length - i);
+            String readString = reader.readStringUtf8(ba.length - i);
             String subString = new String(ba, i, ba.length - i);
             Assert.assertTrue(readString.equals(subString));
         }
@@ -376,5 +376,4 @@ public class ByteSequenceReaderTest extends SdkTestCase {
             }
         }
     }
-
 }

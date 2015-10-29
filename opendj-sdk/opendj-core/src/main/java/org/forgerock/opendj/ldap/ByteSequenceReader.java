@@ -68,34 +68,33 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative get method. Reads the byte at the current position.
+     * Relative read method. Reads the byte at the current position.
      *
      * @return The byte at this reader's current position.
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; 1}.
+     *             {@code remaining() < 1}.
      */
-    public byte get() {
+    public byte readByte() {
         final byte b = sequence.byteAt(pos);
         pos++;
         return b;
     }
 
     /**
-     * Relative bulk get method. This method transfers bytes from this reader
+     * Relative bulk read method. This method transfers bytes from this reader
      * into the given destination array. An invocation of this method of the
      * form:
      *
      * <pre>
-     * src.get(b);
+     * src.readBytes(b);
      * </pre>
      *
      * Behaves in exactly the same way as the invocation:
      *
      * <pre>
-     * src.get(b, 0, b.length);
+     * src.readBytes(b, 0, b.length);
      * </pre>
      *
      * @param b
@@ -103,29 +102,28 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; b.length}.
+     *             {@code remaining() < b.length}.
      */
-    public void get(final byte[] b) {
-        get(b, 0, b.length);
+    public void readBytes(final byte[] b) {
+        readBytes(b, 0, b.length);
     }
 
     /**
-     * Relative bulk get method. Copies {@code length} bytes from this reader
+     * Relative bulk read method. Copies {@code length} bytes from this reader
      * into the given array, starting at the current position of this reader and
      * at the given {@code offset} in the array. The position of this reader is
      * then incremented by {@code length}. In other words, an invocation of this
      * method of the form:
      *
      * <pre>
-     * src.get(b, offset, length);
+     * src.read(b, offset, length);
      * </pre>
      *
      * Has exactly the same effect as the loop:
      *
      * <pre>
      * for (int i = offset; i &lt; offset + length; i++)
-     *     b[i] = src.get();
+     *     b[i] = src.readByte();
      * </pre>
      *
      * Except that it first checks that there are sufficient bytes in this
@@ -142,10 +140,9 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; length}.
+     *             {@code remaining() < length}.
      */
-    public void get(final byte[] b, final int offset, final int length) {
+    public void readBytes(final byte[] b, final int offset, final int length) {
         if (offset < 0 || length < 0 || offset + length > b.length || length > remaining()) {
             throw new IndexOutOfBoundsException();
         }
@@ -155,7 +152,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative get method for reading a multi-byte BER length. Reads the next
+     * Relative read method for reading a multi-byte BER length. Reads the next
      * one to five bytes at this reader's current position, composing them into
      * a integer value and then increments the position by the number of bytes
      * read.
@@ -166,7 +163,7 @@ public final class ByteSequenceReader {
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request.
      */
-    public int getBERLength() {
+    public int readBERLength() {
         // Make sure we have at least one byte to read.
         int newPos = pos + 1;
         if (newPos > sequence.length()) {
@@ -195,7 +192,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative bulk get method. Returns a {@link ByteSequence} whose content is
+     * Relative bulk read method. Returns a {@link ByteSequence} whose content is
      * the next {@code length} bytes from this reader, starting at the current
      * position of this reader. The position of this reader is then incremented
      * by {@code length}.
@@ -211,10 +208,9 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; length}.
+     *             {@code remaining() < length}.
      */
-    public ByteSequence getByteSequence(final int length) {
+    public ByteSequence readByteSequence(final int length) {
         final int newPos = pos + length;
         final ByteSequence subSequence = sequence.subSequence(pos, newPos);
         pos = newPos;
@@ -222,7 +218,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative bulk get method. Returns a {@link ByteString} whose content is
+     * Relative bulk read method. Returns a {@link ByteString} whose content is
      * the next {@code length} bytes from this reader, starting at the current
      * position of this reader. The position of this reader is then incremented
      * by {@code length}.
@@ -230,13 +226,13 @@ public final class ByteSequenceReader {
      * An invocation of this method of the form:
      *
      * <pre>
-     * src.getByteString(length);
+     * src.readByteString(length);
      * </pre>
      *
      * Has exactly the same effect as:
      *
      * <pre>
-     * src.getByteSequence(length).toByteString();
+     * src.readByteSequence(length).toByteString();
      * </pre>
      *
      * <b>NOTE:</b> The value returned from this method should NEVER be cached
@@ -250,15 +246,14 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; length}.
+     *             {@code remaining() < length}.
      */
-    public ByteString getByteString(final int length) {
-        return getByteSequence(length).toByteString();
+    public ByteString readByteString(final int length) {
+        return readByteSequence(length).toByteString();
     }
 
     /**
-     * Relative get method for reading an integer value. Reads the next four
+     * Relative read method for reading an integer value. Reads the next four
      * bytes at this reader's current position, composing them into an integer
      * value according to big-endian byte order, and then increments the
      * position by four.
@@ -267,10 +262,9 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; 4}.
+     *             {@code remaining() < 4}.
      */
-    public int getInt() {
+    public int readInt() {
         if (remaining() < 4) {
             throw new IndexOutOfBoundsException();
         }
@@ -285,7 +279,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative get method for reading a long value. Reads the next eight bytes
+     * Relative read method for reading a long value. Reads the next eight bytes
      * at this reader's current position, composing them into a long value
      * according to big-endian byte order, and then increments the position by
      * eight.
@@ -294,10 +288,9 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; 8}.
+     *             {@code remaining() < 8}.
      */
-    public long getLong() {
+    public long readLong() {
         if (remaining() < 8) {
             throw new IndexOutOfBoundsException();
         }
@@ -312,7 +305,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative get method for reading a compacted long value.
+     * Relative read method for reading a compacted long value.
      * Compaction allows to reduce number of bytes needed to hold long types
      * depending on its value (i.e: if value < 128, value will be encoded using one byte only).
      * Reads the next bytes at this reader's current position, composing them into a long value
@@ -325,7 +318,7 @@ public final class ByteSequenceReader {
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request.
      */
-    public long getCompactUnsigned() {
+    public long readCompactUnsigned() {
         try {
             return PackedLong.readCompactUnsignedLong(asInputStream());
         } catch (IOException e) {
@@ -334,7 +327,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative get method for reading an short value. Reads the next 2 bytes at
+     * Relative read method for reading an short value. Reads the next 2 bytes at
      * this reader's current position, composing them into an short value
      * according to big-endian byte order, and then increments the position by
      * two.
@@ -343,10 +336,9 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; 2}.
+     *             {@code remaining() < 2}.
      */
-    public short getShort() {
+    public short readShort() {
         if (remaining() < 2) {
             throw new IndexOutOfBoundsException();
         }
@@ -361,7 +353,7 @@ public final class ByteSequenceReader {
     }
 
     /**
-     * Relative get method for reading a UTF-8 encoded string. Reads the next
+     * Relative read method for reading a UTF-8 encoded string. Reads the next
      * number of specified bytes at this reader's current position, decoding
      * them into a string using UTF-8 and then increments the position by the
      * number of bytes read. If UTF-8 decoding fails, the platform's default
@@ -373,10 +365,9 @@ public final class ByteSequenceReader {
      * @throws IndexOutOfBoundsException
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request, that is, if
-     *             {@code remaining()
-     *           &lt; length}.
+     *             {@code remaining() < length}.
      */
-    public String getString(final int length) {
+    public String readStringUtf8(final int length) {
         if (remaining() < length) {
             throw new IndexOutOfBoundsException();
         }
@@ -497,7 +488,6 @@ public final class ByteSequenceReader {
         position(pos + length);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return sequence.toString();

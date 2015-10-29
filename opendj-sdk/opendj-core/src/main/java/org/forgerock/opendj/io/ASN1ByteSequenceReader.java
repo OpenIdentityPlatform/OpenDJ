@@ -38,9 +38,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 
-/**
- * An ASN.1 reader that reads from a {@link ByteSequenceReader}.
- */
+/** An ASN.1 reader that reads from a {@link ByteSequenceReader}. */
 final class ASN1ByteSequenceReader extends AbstractASN1Reader {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -67,24 +65,24 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         this.maxElementSize = maxElementSize;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void close() throws IOException {
         readerStack.clear();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean elementAvailable() throws IOException {
         return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(false))
             && (state != ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE || needFirstLengthByteState(false))
             && peekLength <= reader.remaining();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasNextElement() throws IOException {
         return state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(false);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int peekLength() throws IOException {
         peekType();
 
@@ -95,7 +93,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         return peekLength;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public byte peekType() throws IOException {
         if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             // Read just the type.
@@ -103,7 +101,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
                 final LocalizableMessage message = ERR_ASN1_TRUCATED_TYPE_BYTE.get();
                 throw DecodeException.fatalError(message);
             }
-            final int type = reader.get();
+            final int type = reader.readByte();
 
             peekType = (byte) type;
             state = ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
@@ -112,7 +110,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         return peekType;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean readBoolean() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -126,13 +124,13 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             final LocalizableMessage message = ERR_ASN1_BOOLEAN_TRUNCATED_VALUE.get(peekLength);
             throw DecodeException.fatalError(message);
         }
-        final int readByte = reader.get();
+        final int readByte = reader.readByte();
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return readByte != 0x00;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readEndSequence() throws IOException {
         if (readerStack.isEmpty()) {
             final LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
@@ -150,20 +148,19 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void readEndExplicitTag() throws DecodeException, IOException {
         readEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readEndSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int readEnumerated() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -178,7 +175,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         return (int) readInteger();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public long readInteger() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -195,7 +192,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         if (peekLength > 4) {
             long longValue = 0;
             for (int i = 0; i < peekLength; i++) {
-                final int readByte = reader.get();
+                final int readByte = reader.readByte();
                 if (i == 0 && readByte < 0) {
                     longValue = 0xFFFFFFFFFFFFFFFFL;
                 }
@@ -207,7 +204,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         } else {
             int intValue = 0;
             for (int i = 0; i < peekLength; i++) {
-                final int readByte = reader.get();
+                final int readByte = reader.readByte();
                 if (i == 0 && readByte < 0) {
                     intValue = 0xFFFFFFFF;
                 }
@@ -219,7 +216,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readNull() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -233,7 +230,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString readOctetString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -245,10 +242,10 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         }
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
-        return reader.getByteString(peekLength);
+        return reader.readByteString(peekLength);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteStringBuilder readOctetString(final ByteStringBuilder builder) throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -265,7 +262,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         return builder;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String readOctetStringAsString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -277,10 +274,10 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         }
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
-        return reader.getString(peekLength);
+        return reader.readStringUtf8(peekLength);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readStartSequence() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -291,7 +288,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             throw DecodeException.fatalError(message);
         }
 
-        final ByteSequenceReader subByteString = reader.getByteSequence(peekLength).asReader();
+        final ByteSequenceReader subByteString = reader.readByteSequence(peekLength).asReader();
         readerStack.addFirst(reader);
         reader = subByteString;
 
@@ -299,20 +296,19 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void readStartExplicitTag() throws DecodeException, IOException {
         readStartSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readStartSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readStartSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Reader skipElement() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -346,7 +342,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             }
             return false;
         }
-        int readByte = reader.get();
+        int readByte = reader.readByte();
         peekLength = (readByte & 0x7F);
         if (peekLength != readByte) {
             int lengthBytesNeeded = peekLength;
@@ -367,7 +363,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             }
 
             while (lengthBytesNeeded > 0) {
-                readByte = reader.get();
+                readByte = reader.readByte();
                 peekLength = (peekLength << 8) | (readByte & 0xFF);
                 lengthBytesNeeded--;
             }
@@ -405,7 +401,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             }
             return false;
         }
-        final int type = reader.get();
+        final int type = reader.readByte();
 
         peekType = (byte) type;
         state = ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;

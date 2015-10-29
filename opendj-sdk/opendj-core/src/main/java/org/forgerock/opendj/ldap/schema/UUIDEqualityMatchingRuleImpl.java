@@ -164,8 +164,8 @@ final class UUIDEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
     private static ByteString hash(final ByteSequence normalizeAttributeValue) {
         final ByteSequenceReader uuid128Bytes = normalizeAttributeValue.asReader();
-        final long uuidHigh64 = uuid128Bytes.getLong();
-        final long uuidLow64 = uuid128Bytes.getLong();
+        final long uuidHigh64 = uuid128Bytes.readLong();
+        final long uuidLow64 = uuid128Bytes.readLong();
         final long uuid64 = uuidHigh64 ^ uuidLow64;
         final int hash32 = ((int) (uuid64 >> 32)) ^ (int) uuid64;
         return ByteString.valueOf(hash32);

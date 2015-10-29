@@ -290,12 +290,12 @@ final class TimeBasedMatchingRulesImpl {
                 @Override
                 public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
                     final ByteSequenceReader reader = assertionValue.asReader();
-                    int assertSecond = reader.get();
-                    int assertMinute = reader.get();
-                    int assertHour = reader.get();
-                    int assertDay = reader.get();
-                    int assertMonth = reader.get();
-                    int assertYear = (int) reader.getCompactUnsigned();
+                    int assertSecond = reader.readByte();
+                    int assertMinute = reader.readByte();
+                    int assertHour = reader.readByte();
+                    int assertDay = reader.readByte();
+                    int assertMonth = reader.readByte();
+                    int assertYear = (int) reader.readCompactUnsigned();
 
                     List<T> queries = new ArrayList<>();
                     if (assertSecond >= 0) {
@@ -501,12 +501,12 @@ final class TimeBasedMatchingRulesImpl {
 
             // Build the information from the assertion value.
             ByteSequenceReader r = assertionValue.asReader();
-            int assertSecond = r.get();
-            int assertMinute = r.get();
-            int assertHour = r.get();
-            int assertDay = r.get();
-            int assertMonth = r.get();
-            int assertYear = (int) r.getCompactUnsigned();
+            int assertSecond = r.readByte();
+            int assertMinute = r.readByte();
+            int assertHour = r.readByte();
+            int assertDay = r.readByte();
+            int assertMonth = r.readByte();
+            int assertYear = (int) r.readCompactUnsigned();
 
             // All the non-zero and non -1 values should match.
             return ConditionResult.valueOf(

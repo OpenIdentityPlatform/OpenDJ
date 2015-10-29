@@ -87,8 +87,8 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     @Test(dataProvider = "unsignedLongValues")
     public void testCanAppendCompactPositiveValue(long value) {
-        assertThat(new ByteStringBuilder().appendCompactUnsigned(value).asReader().getCompactUnsigned()).isEqualTo(
-                value);
+        assertThat(new ByteStringBuilder().appendCompactUnsigned(value).asReader().readCompactUnsigned())
+            .isEqualTo(value);
     }
 
     @DataProvider
@@ -243,11 +243,11 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     @Test
     public void testAsOutputStream() throws Exception {
         final ByteStringBuilder bsb = new ByteStringBuilder();
-        final OutputStream os = bsb.asOutputStream();
-        os.write(b(0x01));
-        os.write(2);
-        os.write(new byte[] { 2, 3, 4, 5 }, 1, 2);
-        os.close();
+        try (final OutputStream os = bsb.asOutputStream()) {
+            os.write(b(0x01));
+            os.write(2);
+            os.write(new byte[] { 2, 3, 4, 5 }, 1, 2);
+        }
         Assert.assertEquals(bsb.length(), 4);
         Assert.assertEquals(bsb.toByteArray(), new byte[] { 1, 2, 3, 4 });
     }
@@ -256,15 +256,15 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
     public void testAsOutputStreamCompress() throws Exception {
         final ByteString data = ByteString.wrap(new byte[4000]);
         final ByteStringBuilder compressedData = new ByteStringBuilder();
-        final OutputStream compressor = new DeflaterOutputStream(compressedData.asOutputStream());
-        data.copyTo(compressor);
-        compressor.close();
+        try (final OutputStream compressor = new DeflaterOutputStream(compressedData.asOutputStream())) {
+            data.copyTo(compressor);
+        }
         Assert.assertTrue(compressedData.length() > 0 && compressedData.length() < 4000);
 
         final ByteStringBuilder decompressedData = new ByteStringBuilder();
-        final OutputStream decompressor = new InflaterOutputStream(decompressedData.asOutputStream());
-        compressedData.copyTo(decompressor);
-        decompressor.close();
+        try (final OutputStream decompressor = new InflaterOutputStream(decompressedData.asOutputStream())) {
+            compressedData.copyTo(decompressor);
+        }
         Assert.assertEquals(decompressedData.toByteString(), data);
     }
 

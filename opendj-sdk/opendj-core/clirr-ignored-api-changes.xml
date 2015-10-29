@@ -530,4 +530,10 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <to>void</to>
     <justification>OPENDJ-1802 Consider making ByteString / ByteStringBuilder methods more intentional</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteSequenceReader</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[(\w|\.)+ get\w*\([^)]*\)]</method>
+    <justification>OPENDJ-1802 ByteSequenceReader.get*() => readByte(), readBytes() and read*()</justification>
+  </difference>
 </differences>
