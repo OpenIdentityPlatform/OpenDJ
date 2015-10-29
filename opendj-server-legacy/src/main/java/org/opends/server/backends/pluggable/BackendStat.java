@@ -1305,7 +1305,6 @@ public class BackendStat
             ByteString key;
             ByteString maxKey = null;
             ByteString value;
-            boolean maxKeyReached;
 
             if (options.get(DUMP_MIN_KEY_VALUE).isPresent())
             {
@@ -1331,7 +1330,10 @@ public class BackendStat
             do
             {
               key = cursor.getKey();
-              maxKeyReached = key.equals(maxKey);
+              if (maxKey != null && key.compareTo(maxKey) > 0)
+              {
+                break;
+              }
               value = cursor.getValue();
               long valueLen = value.length();
               if (options.get(DUMP_MIN_DATA_SIZE) <= valueLen && valueLen <= options.get(DUMP_MAX_DATA_SIZE))
@@ -1356,7 +1358,7 @@ public class BackendStat
                 }
               }
             }
-            while (cursor.next() && !maxKeyReached);
+            while (cursor.next());
           }
           catch (Exception e)
           {
