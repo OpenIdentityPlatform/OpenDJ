@@ -50,11 +50,11 @@ abstract class AbstractTree implements Tree
   public final void open(WriteableTransaction txn, boolean createOnDemand) throws StorageRuntimeException
   {
     txn.openTree(name, createOnDemand);
-    open0(txn);
+    afterOpen(txn);
   }
 
   /** Override in order to perform any additional initialization after the index has opened. */
-  void open0(WriteableTransaction txn) throws StorageRuntimeException
+  void afterOpen(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Do nothing by default.
   }
@@ -62,7 +62,14 @@ abstract class AbstractTree implements Tree
   @Override
   public final void delete(WriteableTransaction txn) throws StorageRuntimeException
   {
+    beforeDelete(txn);
     txn.deleteTree(name);
+  }
+
+  /** Override in order to perform any additional operation before index tree deletion. */
+  void beforeDelete(WriteableTransaction txn) throws StorageRuntimeException
+  {
+    // Do nothing by default.
   }
 
   @Override

@@ -66,8 +66,11 @@ class DefaultIndex extends AbstractTree implements Index
    * A flag to indicate if this index should be trusted to be consistent with the entries tree.
    * If not trusted, we assume that existing entryIDSets for a key is still accurate. However, keys
    * that do not exist are undefined instead of an empty entryIDSet. The following rules will be
-   * observed when the index is not trusted: - no entryIDs will be added to a non-existing key. -
-   * undefined entryIdSet will be returned whenever a key is not found.
+   * observed when the index is not trusted:
+   * <ul>
+   * <li>no entryIDs will be added to a non-existing key.</li>
+   * <li>undefined entryIdSet will be returned whenever a key is not found.</li>
+   * </ul>
    */
   private volatile boolean trusted;
 
@@ -95,7 +98,7 @@ class DefaultIndex extends AbstractTree implements Index
   }
 
   @Override
-  final void open0(WriteableTransaction txn)
+  final void afterOpen(WriteableTransaction txn)
   {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
     codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
@@ -154,21 +157,6 @@ class DefaultIndex extends AbstractTree implements Index
   public final void update(final WriteableTransaction txn, final ByteString key, final EntryIDSet deletedIDs,
       final EntryIDSet addedIDs) throws StorageRuntimeException
   {
-    /*
-     * Check the special condition where both deletedIDs and addedIDs are null. This is used when
-     * deleting entries must be completely removed.
-     */
-    if (deletedIDs == null && addedIDs == null)
-    {
-      boolean success = txn.delete(getName(), key);
-      if (!success && logger.isTraceEnabled())
-      {
-        logger.trace("The expected key does not exist in the index %s.\nKey:%s ",
-            getName(), key.toHexPlusAsciiString(4));
-      }
-      return;
-    }
-
     // Handle cases where nothing is changed early to avoid DB access.
     if (isNullOrEmpty(deletedIDs) && isNullOrEmpty(addedIDs))
     {

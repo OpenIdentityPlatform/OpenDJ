@@ -545,7 +545,7 @@ final class EntryIDSet implements Iterable<EntryID>
     private static int getEstimatedSize(EntryIDSet idSet)
     {
       checkNotNull(idSet, "idSet must not be null");
-      return idSet.getIDs().length * LONG_SIZE + INT_SIZE;
+      return idSet.getIDs().length * ByteStringBuilder.MAX_COMPACT_SIZE + INT_SIZE;
     }
 
     private static long[] decodeRaw(ByteSequenceReader reader, int nbEntriesToDecode)

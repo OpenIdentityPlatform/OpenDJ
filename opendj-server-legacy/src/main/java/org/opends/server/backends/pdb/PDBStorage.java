@@ -184,7 +184,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       {
         exchange.remove();
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -439,7 +439,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         bytesToValue(ex.getValue(), value);
         ex.store();
       }
-      catch (final Exception e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -454,7 +454,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         bytesToKey(ex.getKey(), key);
         return ex.remove();
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -469,7 +469,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ex = getExchangeFromCache(treeName);
         ex.removeTree();
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -507,7 +507,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
          */
         return new CursorImpl(getNewExchange(treeName, false));
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -526,7 +526,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         {
           getExchangeFromCache(treeName);
         }
-        catch (final PersistitException e)
+        catch (final PersistitException | RollbackException e)
         {
           throw new StorageRuntimeException(e);
         }
@@ -543,7 +543,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ex.fetch();
         return valueToBytes(ex.getValue());
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -574,7 +574,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         }
         return false;
       }
-      catch (final Exception e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -592,7 +592,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         put(treeName, dummyKey, ByteString.empty());
         delete(treeName, dummyKey);
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -667,7 +667,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       {
         // ignore missing trees.
       }
-      catch (final PersistitException e)
+      catch (final PersistitException | RollbackException e)
       {
         throw new StorageRuntimeException(e);
       }
@@ -852,7 +852,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     catch(final InUseException e) {
       throw new StorageInUseException(e);
     }
-    catch (final PersistitException e)
+    catch (final PersistitException | RollbackException e)
     {
       throw new StorageRuntimeException(e);
     }

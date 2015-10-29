@@ -57,6 +57,7 @@ import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
+import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
@@ -104,7 +105,7 @@ class VerifyJob
   /** The DN tree. */
   private DN2ID dn2id;
   /** The children tree. */
-  private ID2Count id2childrenCount;
+  private ID2ChildrenCount id2childrenCount;
 
   /** A list of the attribute indexes to be verified. */
   private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<>();
@@ -538,21 +539,16 @@ class VerifyJob
 
   private void iterateID2ChildrenCount(ReadableTransaction txn) throws StorageRuntimeException
   {
-    Cursor<EntryID, Long> cursor = id2childrenCount.openCursor(txn);
-    if  (!cursor.next()) {
-      return;
-    }
-
-    EntryID currentEntryID = new EntryID(-1);
-    while(cursor.next()) {
-      if (cursor.getKey().equals(currentEntryID)) {
-        // Sharded cursor may return the same EntryID multiple times
-        continue;
-      }
-      currentEntryID = cursor.getKey();
-      if (!id2entry.containsEntryID(txn, currentEntryID)) {
-        logger.trace("File id2ChildrenCount reference non-existing EntryID <%d>%n", currentEntryID);
-        errorCount++;
+    try (final SequentialCursor<EntryID, Void> cursor = id2childrenCount.openCursor(txn))
+    {
+      while (cursor.next())
+      {
+        final EntryID entryID = cursor.getKey();
+        if (!id2entry.containsEntryID(txn, entryID))
+        {
+          logger.trace("File id2ChildrenCount references non-existing EntryID <%d>%n", entryID);
+          errorCount++;
+        }
       }
     }
   }

@@ -161,7 +161,7 @@ public class EntryContainer
   /** The entry tree maps an entry ID (8 bytes) to a complete encoded entry. */
   private ID2Entry id2entry;
   /** Store the number of children for each entry. */
-  private final ID2Count id2childrenCount;
+  private final ID2ChildrenCount id2childrenCount;
   /** The referral tree maps a normalized DN string to labeled URIs. */
   private final DN2URI dn2uri;
   /** The state tree maps a config DN to config entries. */
@@ -416,7 +416,7 @@ public class EntryContainer
     this.storage = storage;
     this.rootContainer = rootContainer;
     this.treePrefix = baseDN.toNormalizedUrlSafeString();
-    this.id2childrenCount = new ID2Count(getIndexName(ID2CHILDREN_COUNT_TREE_NAME));
+    this.id2childrenCount = new ID2ChildrenCount(getIndexName(ID2CHILDREN_COUNT_TREE_NAME));
     this.dn2id = new DN2ID(getIndexName(DN2ID_TREE_NAME), baseDN);
     this.dn2uri = new DN2URI(getIndexName(REFERRAL_TREE_NAME), this);
     this.state = new State(getIndexName(STATE_TREE_NAME));
@@ -565,7 +565,7 @@ public class EntryContainer
    *
    * @return The children tree.
    */
-  ID2Count getID2ChildrenCount()
+  ID2ChildrenCount getID2ChildrenCount()
   {
     return id2childrenCount;
   }
@@ -1458,6 +1458,7 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
+          // No need to call indexBuffer.reset() since IndexBuffer content will be the same for each retry attempt.
           try
           {
             // Check whether the entry already exists.
@@ -1515,6 +1516,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
+      writeTrustState(indexBuffer);
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
 
@@ -1522,6 +1524,28 @@ public class EntryContainer
     if (entryCache != null)
     {
       entryCache.putEntry(entry, backendID, entryID.longValue());
+    }
+  }
+
+  private void writeTrustState(final IndexBuffer indexBuffer)
+  {
+    // Transaction modifying the index has been rolled back.
+    // Ensure that the index trusted state is persisted.
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          indexBuffer.writeTrustState(txn);
+        }
+      });
+    }
+    catch (Exception e)
+    {
+      // Cannot throw because this method is used in a catch block and we do not want to hide the real exception.
+      logger.traceException(e);
     }
   }
 
@@ -1555,6 +1579,7 @@ public class EntryContainer
   void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
           throws DirectoryException, StorageRuntimeException, CanceledOperationException
   {
+    final IndexBuffer indexBuffer = new IndexBuffer();
     try
     {
       storage.write(new WriteOperation()
@@ -1562,6 +1587,7 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
+          indexBuffer.reset();
           try
           {
             // Check for referral entries above the target entry.
@@ -1629,7 +1655,6 @@ public class EntryContainer
 
             // Now update id2entry, dn2uri, and id2childrenCount in key order.
             id2childrenCount.updateCount(txn, parentID, -1);
-            final IndexBuffer indexBuffer = new IndexBuffer();
             final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
             boolean isBaseEntry = true;
             try (final Cursor<EntryID, Entry> cursor = id2entry.openCursor(txn))
@@ -1713,6 +1738,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
+      writeTrustState(indexBuffer);
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }
@@ -1844,6 +1870,7 @@ public class EntryContainer
   void replaceEntry(final Entry oldEntry, final Entry newEntry, final ModifyOperation modifyOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
+    final IndexBuffer indexBuffer = new IndexBuffer();
     try
     {
       storage.write(new WriteOperation()
@@ -1851,6 +1878,7 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
+          indexBuffer.reset();
           try
           {
             EntryID entryID = dn2id.get(txn, newEntry.getName());
@@ -1883,9 +1911,7 @@ public class EntryContainer
               dn2uri.replaceEntry(txn, oldEntry, newEntry);
             }
 
-
             // Update the indexes.
-            final IndexBuffer indexBuffer = new IndexBuffer();
             if (modifyOperation != null)
             {
               // In this case we know from the operation what the modifications were.
@@ -1933,6 +1959,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
+      writeTrustState(indexBuffer);
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }
@@ -1960,6 +1987,7 @@ public class EntryContainer
   void renameEntry(final DN oldTargetDN, final Entry newTargetEntry, final ModifyDNOperation modifyDNOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
+    final IndexBuffer indexBuffer = new IndexBuffer();
     try
     {
       storage.write(new WriteOperation()
@@ -1967,6 +1995,7 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
+          indexBuffer.reset();
           try
           {
             // Validate the request.
@@ -2027,7 +2056,6 @@ public class EntryContainer
               id2childrenCount.updateCount(txn, oldSuperiorID, -1);
               id2childrenCount.updateCount(txn, newSuperiorID, 1);
             }
-            final IndexBuffer indexBuffer = new IndexBuffer();
             boolean isBaseEntry = true;
             try (final Cursor<EntryID, Entry> cursor = id2entry.openCursor(txn))
             {
@@ -2178,6 +2206,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
+      writeTrustState(indexBuffer);
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }

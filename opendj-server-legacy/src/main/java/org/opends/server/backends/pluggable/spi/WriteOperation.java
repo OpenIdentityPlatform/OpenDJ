@@ -32,7 +32,8 @@ package org.opends.server.backends.pluggable.spi;
 public interface WriteOperation
 {
   /**
-   * Executes a write operation.
+   * Executes a write operation. Implementation must be idempotent since
+   * operation might be retried (for example in case of optimistic locking failure).
    *
    * @param txn
    *          the write transaction where to execute the write operation

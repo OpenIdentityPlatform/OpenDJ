@@ -57,18 +57,17 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
-public class ID2CountTest extends DirectoryServerTestCase
+public class ID2ChildrenCountTest extends DirectoryServerTestCase
 {
   private final TreeName id2CountTreeName = new TreeName("base-dn", "index-id");
   private ExecutorService parallelExecutor;
-  private ID2Count id2Count;
+  private ID2ChildrenCount id2ChildrenCount;
   private PDBStorage storage;
 
   @BeforeClass
@@ -95,7 +94,7 @@ public class ID2CountTest extends DirectoryServerTestCase
       }
     });
 
-    id2Count = new ID2Count(id2CountTreeName);
+    id2ChildrenCount = new ID2ChildrenCount(id2CountTreeName);
 
     parallelExecutor = Executors.newFixedThreadPool(32);
   }
@@ -186,8 +185,8 @@ public class ID2CountTest extends DirectoryServerTestCase
       @Override
       public void run(WriteableTransaction txn) throws Exception
       {
-        final long delta = id2Count.removeCount(txn, key);
-        id2Count.updateTotalCount(txn, -delta);
+        final long delta = id2ChildrenCount.removeCount(txn, key);
+        id2ChildrenCount.updateTotalCount(txn, -delta);
         l.handleResult(delta);
       }
     });
@@ -200,8 +199,8 @@ public class ID2CountTest extends DirectoryServerTestCase
       @Override
       public void run(WriteableTransaction txn) throws Exception
       {
-        id2Count.updateCount(txn, key, delta);
-        id2Count.updateTotalCount(txn, delta);
+        id2ChildrenCount.updateCount(txn, key, delta);
+        id2ChildrenCount.updateTotalCount(txn, delta);
       }
     });
   }
@@ -212,7 +211,7 @@ public class ID2CountTest extends DirectoryServerTestCase
       @Override
       public Long run(ReadableTransaction txn) throws Exception
       {
-        return id2Count.getCount(txn, key);
+        return id2ChildrenCount.getCount(txn, key);
       }
     });
   }
@@ -223,7 +222,7 @@ public class ID2CountTest extends DirectoryServerTestCase
       @Override
       public Long run(ReadableTransaction txn) throws Exception
       {
-        return id2Count.getTotalCount(txn);
+        return id2ChildrenCount.getTotalCount(txn);
       }
     });
   }

@@ -37,7 +37,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -86,16 +85,17 @@ import org.opends.server.util.StaticUtils;
  * "tie-breaker" and ensures that keys correspond to one and only one entry. This ensures that all
  * tree updates can be performed using lock-free operations.
  */
-@SuppressWarnings("javadoc")
 class VLVIndex extends AbstractTree implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
 {
+  private static final ByteString COUNT_KEY = ByteString.valueOfUtf8("nbRecords");
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The VLV vlvIndex configuration. */
   private BackendVLVIndexCfg config;
 
-  /** The cached count of entries in this index. */
-  private final AtomicInteger count = new AtomicInteger(0);
+  /** The count of entries in this index. */
+  private final ShardedCounter counter;
 
   private DN baseDN;
   private SearchScope scope;
@@ -116,7 +116,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       ConfigException
   {
     super(new TreeName(entryContainer.getTreePrefix(), "vlv." + config.getName()));
-
+    this.counter = new ShardedCounter(new TreeName(entryContainer.getTreePrefix(), "counter.vlv." + config.getName()));
     this.config = config;
     this.baseDN = config.getBaseDN();
     this.scope = convertScope(config.getScope());
@@ -163,9 +163,15 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   }
 
   @Override
-  void open0(final WriteableTransaction txn) throws StorageRuntimeException
+  void afterOpen(final WriteableTransaction txn) throws StorageRuntimeException
   {
-    count.set((int) txn.getRecordCount(getName()));
+    counter.open(txn, true);
+  }
+
+  @Override
+  void beforeDelete(WriteableTransaction txn) throws StorageRuntimeException
+  {
+    counter.delete(txn);
   }
 
   @Override
@@ -438,13 +444,13 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       {
         txn.put(getName(), nextAddedKey, toValue());
         nextAddedKey = nextOrNull(ai);
-        count.incrementAndGet();
+        counter.addCount(txn, COUNT_KEY, 1);
       }
       else
       {
         txn.delete(getName(), nextDeletedKey);
         nextDeletedKey = nextOrNull(di);
-        count.decrementAndGet();
+        counter.addCount(txn, COUNT_KEY, -1);
       }
     }
   }
@@ -494,9 +500,14 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
-      final long[] selectedIDs = readRange(cursor, count.get(), debugBuilder);
+      final long[] selectedIDs = readRange(cursor, getEntryCount(txn), debugBuilder);
       return newDefinedSet(selectedIDs);
     }
+  }
+
+  private int getEntryCount(final ReadableTransaction txn)
+  {
+    return (int) counter.getCount(txn, COUNT_KEY);
   }
 
   /**
@@ -508,7 +519,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       final SearchOperation searchOperation, final VLVRequestControl vlvRequest)
       throws DirectoryException
   {
-    final int currentCount = count.get();
+    final int currentCount = getEntryCount(txn);
     final int beforeCount = vlvRequest.getBeforeCount();
     final int afterCount = vlvRequest.getAfterCount();
     final ByteString assertion = vlvRequest.getGreaterThanOrEqualAssertion();
@@ -611,7 +622,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   private EntryIDSet evaluateVLVRequestByOffset(final ReadableTransaction txn, final SearchOperation searchOperation,
       final VLVRequestControl vlvRequest, final StringBuilder debugBuilder) throws DirectoryException
   {
-    final int currentCount = count.get();
+    final int currentCount = getEntryCount(txn);
     int beforeCount = vlvRequest.getBeforeCount();
     int afterCount = vlvRequest.getAfterCount();
     int targetOffset = vlvRequest.getOffset();

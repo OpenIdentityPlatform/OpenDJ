@@ -48,7 +48,6 @@ import org.forgerock.util.Pair;
 import org.mockito.Mockito;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.pluggable.OnDiskMergeImporter.AddLongCollector;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Chunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Collector;
@@ -125,22 +124,22 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 
   @Test
   @SuppressWarnings(value = { "unchecked", "resource" })
-  public void testAddLongCollector()
+  public void testCounterCollector()
   {
-    final ID2Count id2count = new ID2Count(TreeName.valueOf("/dummy/dummy"));
     final MeteredCursor<String, ByteString> source = cursorOf(
-        Pair.of("key1", id2count.toValue(10)),
-        Pair.of("key1", id2count.toValue(20)),
-        Pair.of("key2", id2count.toValue(5)),
-        Pair.of("key3", id2count.toValue(6)),
-        Pair.of("key3", id2count.toValue(4)));
+        Pair.of("key1", ShardedCounter.encodeValue(10)),
+        Pair.of("key1", ShardedCounter.encodeValue(20)),
+        Pair.of("key2", ShardedCounter.encodeValue(5)),
+        Pair.of("key3", ShardedCounter.encodeValue(6)),
+        Pair.of("key3", ShardedCounter.encodeValue(4)));
 
     final SequentialCursor<String, ByteString> expected = cursorOf(
-        Pair.of("key1", id2count.toValue(30)),
-        Pair.of("key2", id2count.toValue(5)),
-        Pair.of("key3", id2count.toValue(10)));
+        Pair.of("key1", ShardedCounter.encodeValue(30)),
+        Pair.of("key2", ShardedCounter.encodeValue(5)),
+        Pair.of("key3", ShardedCounter.encodeValue(10)));
 
-    final SequentialCursor<String, ByteString> result = new CollectorCursor<>(source, new AddLongCollector(id2count));
+    final SequentialCursor<String, ByteString> result =
+        new CollectorCursor<>(source, ID2ChildrenCount.getSumLongCollectorInstance());
 
     assertThat(toPairs(result)).containsExactlyElementsOf(toPairs(expected));
   }

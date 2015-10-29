@@ -55,6 +55,8 @@ class IndexBuffer
   {
     void flush(WriteableTransaction txn) throws StorageRuntimeException, DirectoryException;
 
+    void writeTrustState(WriteableTransaction txn) throws StorageRuntimeException;
+
     void put(Index index, ByteString key, EntryID entryID);
 
     void put(VLVIndex index, ByteString sortKey);
@@ -62,6 +64,8 @@ class IndexBuffer
     void remove(VLVIndex index, ByteString sortKey);
 
     void remove(Index index, ByteString key, EntryID entryID);
+
+    void reset();
   }
 
   /**
@@ -214,6 +218,21 @@ class IndexBuffer
     }
 
     @Override
+    public void writeTrustState(WriteableTransaction txn)
+    {
+      // Indexes cache the index trust flag. Ensure that the cached value is written into the db.
+      for (Index index : bufferedIndexes.keySet())
+      {
+        index.setTrusted(txn, index.isTrusted());
+      }
+
+      for (VLVIndex index : bufferedVLVIndexes.keySet())
+      {
+        index.setTrusted(txn, index.isTrusted());
+      }
+    }
+
+    @Override
     public void put(Index index, ByteString key, EntryID entryID)
     {
       createOrGetBufferedIndexValues(index, key).addEntryID(entryID);
@@ -245,6 +264,13 @@ class IndexBuffer
         final BufferedIndexValues values = entry.getValue();
         index.update(txn, entry.getKey(), values.deletedEntryIDs, values.addedEntryIDs);
       }
+    }
+
+    @Override
+    public void reset()
+    {
+      bufferedIndexes.clear();
+      bufferedVLVIndexes.clear();
     }
   }
 
@@ -285,6 +311,12 @@ class IndexBuffer
     }
 
     @Override
+    public void writeTrustState(WriteableTransaction txn)
+    {
+      // Nothing to do
+    }
+
+    @Override
     public void remove(VLVIndex index, ByteString sortKey)
     {
       throw new UnsupportedOperationException();
@@ -292,6 +324,12 @@ class IndexBuffer
 
     @Override
     public void remove(Index index, ByteString key, EntryID entryID)
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void reset()
     {
       throw new UnsupportedOperationException();
     }
@@ -329,6 +367,19 @@ class IndexBuffer
     impl.flush(txn);
   }
 
+  /**
+   * Indexes might cache their trust state. This ensure that the cached state is persisted into the database.
+   *
+   * @param txn
+   *          a non null transaction
+   * @throws StorageRuntimeException
+   *           If an error occurs in the storage.
+   */
+  void writeTrustState(WriteableTransaction txn)
+  {
+    impl.writeTrustState(txn);
+  }
+
   void put(Index index, ByteString key, EntryID entryID)
   {
     impl.put(index, key, entryID);
@@ -347,5 +398,10 @@ class IndexBuffer
   void remove(Index index, ByteString key, EntryID entryID)
   {
     impl.remove(index, key, entryID);
+  }
+
+  void reset()
+  {
+    impl.reset();
   }
 }

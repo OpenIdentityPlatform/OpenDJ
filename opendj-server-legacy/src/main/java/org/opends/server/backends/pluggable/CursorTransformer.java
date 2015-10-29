@@ -30,6 +30,7 @@ import static org.forgerock.util.Reject.*;
 import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -62,11 +63,11 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
     VO transform(KI key, VI value) throws E;
   }
 
-  private static final Function<Object, Object, NeverThrowsException> NO_TRANSFORM =
-      new Function<Object, Object, NeverThrowsException>()
+  private final static ValueTransformer<?, ?, ?, NeverThrowsException> KEEP_VALUES_UNCHANGED =
+      new ValueTransformer<Object, Object, Object, NeverThrowsException>()
       {
         @Override
-        public Object apply(Object value) throws NeverThrowsException
+        public Object transform(Object key, Object value) throws NeverThrowsException
         {
           return value;
         }
@@ -93,20 +94,36 @@ final class CursorTransformer<KI, VI, KO, VO> implements Cursor<KO, VO>
     return new CursorTransformer<>(new SequentialCursorAdapter<>(input), keyTransformer, valueTransformer);
   }
 
-  @SuppressWarnings("unchecked")
   static <KI, VI, VO> Cursor<KI, VO> transformValues(Cursor<KI, VI> input,
       ValueTransformer<KI, VI, VO, ? extends Exception> valueTransformer)
   {
-    return transformKeysAndValues(input, (Function<KI, KI, NeverThrowsException>) NO_TRANSFORM, valueTransformer);
+    return transformKeysAndValues(input, Functions.<KI>identityFunction(), valueTransformer);
   }
 
-  @SuppressWarnings("unchecked")
   static <KI, VI, VO> Cursor<KI, VO> transformValues(SequentialCursor<KI, VI> input,
       ValueTransformer<KI, VI, VO, ? extends Exception> valueTransformer)
   {
     // SequentialCursorAdapter constructor never throws
-    return transformKeysAndValues(new SequentialCursorAdapter<>(input),
-        (Function<KI, KI, NeverThrowsException>) NO_TRANSFORM, valueTransformer);
+    return transformKeysAndValues(new SequentialCursorAdapter<>(input), Functions.<KI> identityFunction(),
+        valueTransformer);
+  }
+
+  @SuppressWarnings("unchecked")
+  static <K, V> ValueTransformer<K, V, V, NeverThrowsException> keepValuesUnchanged()
+  {
+    return (ValueTransformer<K, V, V, NeverThrowsException>) KEEP_VALUES_UNCHANGED;
+  }
+
+  static <K, VI, VO> ValueTransformer<K, VI, VO, NeverThrowsException> constant(final VO constant)
+  {
+    return new ValueTransformer<K, VI, VO, NeverThrowsException>()
+    {
+      @Override
+      public VO transform(K key, VI value) throws NeverThrowsException
+      {
+        return constant;
+      }
+    };
   }
 
   private CursorTransformer(Cursor<KI, VI> input, Function<KI, KO, ? extends Exception> keyTransformer,

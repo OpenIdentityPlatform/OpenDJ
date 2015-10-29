@@ -979,7 +979,7 @@ final class OnDiskMergeImporter
         PhaseTwoProgressReporter progressReporter, boolean dn2idAlreadyImported)
     {
       final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
-      final ID2Count id2count = entryContainer.getID2ChildrenCount();
+      final ID2ChildrenCount id2count = entryContainer.getID2ChildrenCount();
 
       return new DN2IDImporterTask(progressReporter, importer, tempDir, bufferPool, entryContainer.getDN2ID(), chunk,
           id2count, newCollector(entryContainer, id2count.getName()), dn2idAlreadyImported);
@@ -2207,7 +2207,7 @@ final class OnDiskMergeImporter
 
   /**
    * This task optionally copy the dn2id chunk into the database and takes advantages of it's cursoring to compute the
-   * {@link ID2Count} index.
+   * {@link ID2ChildrenCount} index.
    */
   private static final class DN2IDImporterTask implements Callable<Void>
   {
@@ -2216,13 +2216,13 @@ final class OnDiskMergeImporter
     private final File tempDir;
     private final BufferPool bufferPool;
     private final DN2ID dn2id;
-    private final ID2Count id2count;
+    private final ID2ChildrenCount id2count;
     private final Collector<?, ByteString> id2countCollector;
     private final Chunk dn2IdSourceChunk;
     private final Chunk dn2IdDestination;
 
     DN2IDImporterTask(PhaseTwoProgressReporter progressReporter, Importer importer, File tempDir, BufferPool bufferPool,
-        DN2ID dn2id, Chunk dn2IdChunk, ID2Count id2count, Collector<?, ByteString> id2countCollector,
+        DN2ID dn2id, Chunk dn2IdChunk, ID2ChildrenCount id2count, Collector<?, ByteString> id2countCollector,
         boolean dn2idAlreadyImported)
     {
       this.reporter = progressReporter;
@@ -3037,7 +3037,7 @@ final class OnDiskMergeImporter
     else if (isID2ChildrenCount(treeName))
     {
       // key conflicts == sum values
-      return new AddLongCollector(entryContainer.getID2ChildrenCount());
+      return ID2ChildrenCount.getSumLongCollectorInstance();
     }
     else if (isDN2ID(treeName) || isDN2URI(treeName) || isVLVIndex(entryContainer, treeName))
     {
@@ -3241,38 +3241,6 @@ final class OnDiskMergeImporter
 
       Arrays.sort(entryIDs, 0, i);
       return EntryIDSet.newDefinedSet(Arrays.copyOf(entryIDs, i));
-    }
-  }
-
-  /**
-   * {@link Collector} that accepts {@code long} values encoded into {@link ByteString} objects and produces a
-   * {@link ByteString} representing the sum of the supplied {@code long}s.
-   */
-  static final class AddLongCollector implements Collector<Long, ByteString>
-  {
-    private final ID2Count id2count;
-
-    AddLongCollector(ID2Count id2count)
-    {
-      this.id2count = id2count;
-    }
-
-    @Override
-    public Long get()
-    {
-      return 0L;
-    }
-
-    @Override
-    public Long accept(Long resultContainer, ByteString value)
-    {
-      return resultContainer + id2count.fromValue(value);
-    }
-
-    @Override
-    public ByteString merge(Long resultContainer)
-    {
-      return id2count.toValue(resultContainer);
     }
   }
 

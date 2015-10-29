@@ -1090,7 +1090,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   {
     final Storage storage = backend.getRootContainer().getStorage();
     final DN2ID dn2ID = backend.getRootContainer().getEntryContainer(testBaseDN).getDN2ID();
-    final ID2Count id2ChildrenCount = backend.getRootContainer().getEntryContainer(testBaseDN).getID2ChildrenCount();
+    final ID2ChildrenCount id2ChildrenCount = backend.getRootContainer().getEntryContainer(testBaseDN).getID2ChildrenCount();
 
     final VerifyConfig config = new VerifyConfig();
     config.setBaseDN(DN.valueOf("dc=test,dc=com"));

@@ -248,7 +248,7 @@ class ID2Entry extends AbstractTree
   }
 
   @Override
-  void open0(WriteableTransaction txn) throws StorageRuntimeException
+  void afterOpen(WriteableTransaction txn) throws StorageRuntimeException
   {
     // Make sure the tree is there and readable, even if the storage is READ_ONLY.
     // Would be nice if there were a better way...

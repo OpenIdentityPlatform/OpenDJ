@@ -50,8 +50,8 @@ public interface Cursor<K,V> extends SequentialCursor<K, V>
    *
    * @param key
    *          the key where to position the cursor
-   * @return {@code true} if the cursor could be positioned to the key,
-   *         {@code false} otherwise
+   * @return {@code true} if the cursor could be positioned to the key
+   *         or the next one, {@code false} otherwise
    */
   boolean positionToKeyOrNext(ByteSequence key);
 
