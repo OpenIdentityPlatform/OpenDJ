@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -200,8 +200,8 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
     public void testNormalization(final String value1, final String value2) throws Exception {
         final MatchingRule rule = getRule();
         final ByteString normalizedValue1 =
-                rule.normalizeAttributeValue(ByteString.valueOf(value1));
-        final ByteString expectedValue = ByteString.valueOf(value2);
+                rule.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
+        final ByteString expectedValue = ByteString.valueOfUtf8(value2);
         assertEquals(normalizedValue1, expectedValue);
     }
 

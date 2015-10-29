@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -164,7 +164,7 @@ public class SchemaUtilsTest extends AbstractSchemaTestCase {
     @Test(dataProvider = "stringProvider")
     public void testNormalizeStringProvider(String value, boolean trim, boolean foldCase, String expected)
             throws Exception {
-        ByteString val = ByteString.valueOf(value);
+        ByteString val = ByteString.valueOfUtf8(value);
         ByteString normValue = SchemaUtils.normalizeStringAttributeValue(val, trim, foldCase);
         Assertions.assertThat(normValue.toString()).isEqualTo(expected);
     }
@@ -184,7 +184,7 @@ public class SchemaUtilsTest extends AbstractSchemaTestCase {
     @Test(dataProvider = "stringProvider")
     public void testNormalizeIA5String(String value, boolean trim, boolean foldCase, String expected)
             throws Exception {
-        ByteString val = ByteString.valueOf(value);
+        ByteString val = ByteString.valueOfUtf8(value);
         ByteString normValue = SchemaUtils.normalizeIA5StringAttributeValue(val, trim, foldCase);
         Assertions.assertThat(normValue.toString()).isEqualTo(expected);
     }
@@ -204,7 +204,7 @@ public class SchemaUtilsTest extends AbstractSchemaTestCase {
     @Test(dataProvider = "stringProvider")
     public void testNormalizeStringList(String value, boolean trim, boolean foldCase, String expected)
             throws Exception {
-        ByteString val = ByteString.valueOf(value);
+        ByteString val = ByteString.valueOfUtf8(value);
         ByteString normValue = SchemaUtils.normalizeStringListAttributeValue(val, trim, foldCase);
         Assertions.assertThat(normValue.toString()).isEqualTo(expected);
     }
@@ -255,7 +255,7 @@ public class SchemaUtilsTest extends AbstractSchemaTestCase {
 
     @Test(dataProvider = "numericStringProvider")
     public void testNormalizeNumericString(String value, String expected) throws Exception {
-        ByteString val = ByteString.valueOf(value);
+        ByteString val = ByteString.valueOfUtf8(value);
         ByteString normValue = SchemaUtils.normalizeNumericStringAttributeValue(val);
         Assertions.assertThat(normValue.toString()).isEqualTo(expected);
     }

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -149,14 +149,14 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
 
     @Test
     public void testCreateIndexQuery() throws Exception {
-        ByteString value = ByteString.valueOf("a*c");
+        ByteString value = ByteString.valueOfUtf8("a*c");
         MatchingRule matchingRule = getRule();
         Assertion assertion = matchingRule.getAssertion(value);
 
         String indexQuery = assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(), false));
 
-        ByteString binit = matchingRule.normalizeAttributeValue(ByteString.valueOf("a"));
-        ByteString bfinal = matchingRule.normalizeAttributeValue(ByteString.valueOf("c"));
+        ByteString binit = matchingRule.normalizeAttributeValue(ByteString.valueOfUtf8("a"));
+        ByteString bfinal = matchingRule.normalizeAttributeValue(ByteString.valueOfUtf8("c"));
         assertEquals(indexQuery,
             "intersect["
             + "rangeMatch(fr.shared, '" + binit.toHexString() + "' <= value < '00 54'), "

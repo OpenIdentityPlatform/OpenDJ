@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -90,7 +90,7 @@ public class CollationGreaterThanOrEqualMatchingRuleTest extends MatchingRuleTes
 
     @Test
     public void testCreateIndexQuery() throws Exception {
-        ByteString value = ByteString.valueOf("abc");
+        ByteString value = ByteString.valueOfUtf8("abc");
         MatchingRule matchingRule = getRule();
         Assertion assertion = matchingRule.getAssertion(value);
 

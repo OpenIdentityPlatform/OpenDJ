@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -80,7 +80,7 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest> imple
     @Override
     public CompareRequest setAssertionValue(final Object value) {
         Reject.ifNull(value);
-        this.assertionValue = ByteString.valueOf(value);
+        this.assertionValue = ByteString.valueOfObject(value);
         return this;
     }
 

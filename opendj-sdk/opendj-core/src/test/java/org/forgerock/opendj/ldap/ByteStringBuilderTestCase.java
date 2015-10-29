@@ -414,7 +414,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testByteStringBuilderCompareTo() {
-        final ByteString orig = ByteString.valueOf("this is a ByteString");
+        final ByteString orig = ByteString.valueOfUtf8("this is a ByteString");
         final ByteStringBuilder builder = new ByteStringBuilder(orig);
         Assert.assertEquals(builder.compareTo(builder), 0);
         Assert.assertEquals(builder.compareTo(orig), 0);
@@ -423,7 +423,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testSubSequenceCompareTo() {
-        final ByteString orig = ByteString.valueOf("this is a ByteString");
+        final ByteString orig = ByteString.valueOfUtf8("this is a ByteString");
         final ByteStringBuilder builder = new ByteStringBuilder(orig);
         final ByteSequence subSequence = builder.subSequence(0, 4);
         Assert.assertEquals(subSequence.compareTo(subSequence), 0);
@@ -433,7 +433,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     @Test
     public void testSubSequenceEqualsAndHashCode() {
-        final ByteString orig = ByteString.valueOf("this is a ByteString");
+        final ByteString orig = ByteString.valueOfUtf8("this is a ByteString");
         final ByteStringBuilder builder = new ByteStringBuilder(orig);
         final ByteSequence subSequence = builder.subSequence(0, builder.length());
         final ByteSequence subSequence2 = builder.subSequence(0, builder.length());

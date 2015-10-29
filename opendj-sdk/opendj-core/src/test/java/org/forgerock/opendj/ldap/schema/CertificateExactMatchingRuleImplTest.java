@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -75,10 +76,10 @@ public class CertificateExactMatchingRuleImplTest extends AbstractSchemaTestCase
                 + "CN=Babs Jensen,OU=Product Development,L=Cupertione,C=US\" }";
 
         return new Object[][]{
-            {ByteString.valueOfBase64(validcert1), ByteString.valueOf(assertion), ConditionResult.TRUE},
-            {ByteString.valueOfBase64(validcert1), ByteString.valueOf(assertionWithSpaces), ConditionResult.TRUE},
-            {ByteString.valueOfBase64(validcert1), ByteString.valueOf(assertionDNencoded), ConditionResult.TRUE},
-            {ByteString.valueOfBase64(validcert1), ByteString.valueOf(assertionWrong), ConditionResult.FALSE},
+            {ByteString.valueOfBase64(validcert1), ByteString.valueOfUtf8(assertion), ConditionResult.TRUE},
+            {ByteString.valueOfBase64(validcert1), ByteString.valueOfUtf8(assertionWithSpaces), ConditionResult.TRUE},
+            {ByteString.valueOfBase64(validcert1), ByteString.valueOfUtf8(assertionDNencoded), ConditionResult.TRUE},
+            {ByteString.valueOfBase64(validcert1), ByteString.valueOfUtf8(assertionWrong), ConditionResult.FALSE},
             {ByteString.valueOfBase64(incompleteCert), ByteString.valueOfBase64(incompleteCert), ConditionResult.TRUE},
             {ByteString.valueOfBase64(validcert1), ByteString.valueOfBase64(validcert1), ConditionResult.TRUE}
         };
@@ -178,7 +179,7 @@ public class CertificateExactMatchingRuleImplTest extends AbstractSchemaTestCase
         MatchingRule rule = getRule();
 
         // normalize the provided assertion values
-        rule.getAssertion(ByteString.valueOf(value));
+        rule.getAssertion(ByteString.valueOfUtf8(value));
     }
 
     /**
@@ -192,7 +193,7 @@ public class CertificateExactMatchingRuleImplTest extends AbstractSchemaTestCase
         MatchingRule rule = getRule();
 
         // normalize the provided assertion value
-        rule.getAssertion(ByteString.valueOf(value));
+        rule.getAssertion(ByteString.valueOfUtf8(value));
     }
 
     /**

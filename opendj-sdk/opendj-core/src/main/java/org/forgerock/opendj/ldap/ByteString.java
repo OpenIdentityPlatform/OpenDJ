@@ -69,10 +69,10 @@ public final class ByteString implements ByteSequence {
      * @return The byte string containing the big-endian encoded bytes of the
      *         provided integer.
      */
-    public static ByteString valueOf(int i) {
+    public static ByteString valueOfInt(int i) {
         final byte[] bytes = new byte[4];
         for (int j = 3; j >= 0; j--) {
-            bytes[j] = (byte) (i & 0xFF);
+            bytes[j] = (byte) i;
             i >>>= 8;
         }
         return wrap(bytes);
@@ -87,10 +87,10 @@ public final class ByteString implements ByteSequence {
      * @return The byte string containing the big-endian encoded bytes of the
      *         provided long.
      */
-    public static ByteString valueOf(long l) {
+    public static ByteString valueOfLong(long l) {
         final byte[] bytes = new byte[8];
         for (int i = 7; i >= 0; i--) {
-            bytes[i] = (byte) (l & 0xFF);
+            bytes[i] = (byte) l;
             l >>>= 8;
         }
         return wrap(bytes);
@@ -103,11 +103,11 @@ public final class ByteString implements ByteSequence {
      * <li>if the object is an instance of {@code ByteSequence} then this method
      * is equivalent to calling {@code o.toByteString()}
      * <li>if the object is a {@code byte[]} then this method is equivalent to
-     * calling {@link #valueOf(byte[])}
+     * calling {@link #valueOfBytes(byte[])}
      * <li>if the object is a {@code char[]} then this method is equivalent to
-     * calling {@link #valueOf(char[])}
+     * calling {@link #valueOfUtf8(char[])}
      * <li>for all other types of object this method is equivalent to calling
-     * {@link #valueOf(String)} with the {@code toString()} representation of
+     * {@link #valueOfUtf8(CharSequence)} with the {@code toString()} representation of
      * the provided object.
      * </ul>
      * <b>Note:</b> this method treats {@code Long} and {@code Integer} objects
@@ -122,15 +122,15 @@ public final class ByteString implements ByteSequence {
      *            The object to use.
      * @return The byte string containing the provided object.
      */
-    public static ByteString valueOf(final Object o) {
+    public static ByteString valueOfObject(final Object o) {
         if (o instanceof ByteSequence) {
             return ((ByteSequence) o).toByteString();
         } else if (o instanceof byte[]) {
-            return valueOf((byte[]) o);
+            return valueOfBytes((byte[]) o);
         } else if (o instanceof char[]) {
-            return valueOf((char[]) o);
+            return valueOfUtf8((char[]) o);
         } else {
-            return valueOf(o.toString());
+            return valueOfUtf8(o.toString());
         }
     }
 
@@ -142,7 +142,7 @@ public final class ByteString implements ByteSequence {
      *            The char sequence to use.
      * @return The byte string with the encoded bytes of the provided string.
      */
-    public static ByteString valueOf(final CharSequence s) {
+    public static ByteString valueOfUtf8(final CharSequence s) {
         if (s.length() == 0) {
             return EMPTY;
         }
@@ -194,7 +194,7 @@ public final class ByteString implements ByteSequence {
         for (int i = 0; i < arrayLength; i++) {
             bytes[i] = hexToByte(hexString, hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
         }
-        return valueOf(bytes);
+        return valueOfBytes(bytes);
     }
 
     /**
@@ -207,7 +207,7 @@ public final class ByteString implements ByteSequence {
      *            The byte array to use.
      * @return A byte string containing a copy of the provided byte array.
      */
-    public static ByteString valueOf(final byte[] bytes) {
+    public static ByteString valueOfBytes(final byte[] bytes) {
         if (bytes.length == 0) {
             return EMPTY;
         }
@@ -232,7 +232,7 @@ public final class ByteString implements ByteSequence {
      * @return A byte string containing a copy of the subsequence of the
      *         provided byte array.
      */
-    public static ByteString valueOf(final byte[] bytes, final int offset, final int length) {
+    public static ByteString valueOfBytes(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
         if (offset == length) {
             return EMPTY;
@@ -249,7 +249,7 @@ public final class ByteString implements ByteSequence {
      * @return A byte string containing the UTF-8 encoded bytes of the provided
      *         char array.
      */
-    public static ByteString valueOf(final char[] chars) {
+    public static ByteString valueOfUtf8(final char[] chars) {
         if (chars.length == 0) {
             return EMPTY;
         }

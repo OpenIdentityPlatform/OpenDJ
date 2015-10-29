@@ -59,6 +59,6 @@ final class TelephoneNumberSubstringMatchingRuleImpl extends AbstractSubstringMa
             }
         }
 
-        return ByteString.valueOf(buffer);
+        return ByteString.valueOfUtf8(buffer);
     }
 }

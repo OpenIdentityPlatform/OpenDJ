@@ -2146,7 +2146,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                         CoreSchema.getOctetStringSyntax().toString(), false).toSchema();
 
         // Ensure that the substituted syntax is usable.
-        assertThat(schema.getSyntax("9.9.9").valueIsAcceptable(ByteString.valueOf("test"), null))
+        assertThat(schema.getSyntax("9.9.9").valueIsAcceptable(ByteString.valueOfUtf8("test"), null))
                 .isTrue();
     }
 
@@ -2162,8 +2162,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
         // Ensure that the substituted rule is usable: was triggering a NPE with OPENDJ-1252.
         assertThat(
-                schema.getMatchingRule("9.9.9").normalizeAttributeValue(ByteString.valueOf("test")))
-                .isEqualTo(ByteString.valueOf("test"));
+                schema.getMatchingRule("9.9.9").normalizeAttributeValue(ByteString.valueOfUtf8("test")))
+                .isEqualTo(ByteString.valueOfUtf8("test"));
     }
 
 }

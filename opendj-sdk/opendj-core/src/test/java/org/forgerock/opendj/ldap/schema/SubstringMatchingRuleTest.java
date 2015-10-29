@@ -93,12 +93,12 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         final MatchingRule rule = getRule();
 
         // normalize the 2 provided values and check that they are equals
-        final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
+        final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOfUtf8(value));
 
         final ConditionResult substringAssertionMatches =
-            rule.getSubstringAssertion(null, null, ByteString.valueOf(finalValue)).matches(normalizedValue);
+            rule.getSubstringAssertion(null, null, ByteString.valueOfUtf8(finalValue)).matches(normalizedValue);
         final ConditionResult assertionMatches =
-            rule.getAssertion(ByteString.valueOf("*" + finalValue)).matches(normalizedValue);
+            rule.getAssertion(ByteString.valueOfUtf8("*" + finalValue)).matches(normalizedValue);
         final String message = getMessage("final", rule, value, finalValue);
         assertEquals(substringAssertionMatches, result, message);
         assertEquals(assertionMatches, result, message);
@@ -113,12 +113,12 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         final MatchingRule rule = getRule();
 
         // normalize the 2 provided values and check that they are equals
-        final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
+        final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOfUtf8(value));
 
         final ConditionResult substringAssertionMatches =
-            rule.getSubstringAssertion(ByteString.valueOf(initial), null, null).matches(normalizedValue);
+            rule.getSubstringAssertion(ByteString.valueOfUtf8(initial), null, null).matches(normalizedValue);
         final ConditionResult assertionMatches =
-            rule.getAssertion(ByteString.valueOf(initial + "*")).matches(normalizedValue);
+            rule.getAssertion(ByteString.valueOfUtf8(initial + "*")).matches(normalizedValue);
         final String message = getMessage("initial", rule, value, initial);
         assertEquals(substringAssertionMatches, result, message);
         assertEquals(assertionMatches, result, message);
@@ -142,10 +142,10 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
 
         final List<ByteSequence> anyList = new ArrayList<>(anys.length);
         for (final String middleSub : anys) {
-            anyList.add(ByteString.valueOf(middleSub));
+            anyList.add(ByteString.valueOfUtf8(middleSub));
         }
-        rule.getSubstringAssertion(subInitial == null ? null : ByteString.valueOf(subInitial), anyList,
-                subFinal == null ? null : ByteString.valueOf(subFinal));
+        rule.getSubstringAssertion(subInitial == null ? null : ByteString.valueOfUtf8(subInitial), anyList,
+                subFinal == null ? null : ByteString.valueOfUtf8(subFinal));
     }
 
     /**
@@ -170,7 +170,7 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         if (subFinal != null) {
             assertionString.append(subFinal);
         }
-        rule.getAssertion(ByteString.valueOf(assertionString.toString()));
+        rule.getAssertion(ByteString.valueOfUtf8(assertionString.toString()));
     }
 
     /**
@@ -182,7 +182,7 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         final MatchingRule rule = getRule();
 
         // normalize the 2 provided values and check that they are equals
-        final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
+        final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOfUtf8(value));
 
         final StringBuilder printableMiddleSubs = new StringBuilder();
         final List<ByteSequence> middleList = new ArrayList<>(middleSubs.length);
@@ -190,13 +190,13 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         for (final String middleSub : middleSubs) {
             printableMiddleSubs.append(middleSub);
             printableMiddleSubs.append("*");
-            middleList.add(ByteString.valueOf(middleSub));
+            middleList.add(ByteString.valueOfUtf8(middleSub));
         }
 
         final ConditionResult substringAssertionMatches =
             rule.getSubstringAssertion(null, middleList, null).matches(normalizedValue);
         final ConditionResult assertionMatches =
-            rule.getAssertion(ByteString.valueOf(printableMiddleSubs)).matches(normalizedValue);
+            rule.getAssertion(ByteString.valueOfUtf8(printableMiddleSubs)).matches(normalizedValue);
         final String message = getMessage("middle", rule, value, printableMiddleSubs.toString());
         assertEquals(substringAssertionMatches, result, message);
         assertEquals(assertionMatches, result, message);
@@ -211,7 +211,7 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
         // Get the instance of the rule to be tested.
         final MatchingRule rule = getRule();
 
-        rule.normalizeAttributeValue(ByteString.valueOf(value));
+        rule.normalizeAttributeValue(ByteString.valueOfUtf8(value));
     }
 
     /**

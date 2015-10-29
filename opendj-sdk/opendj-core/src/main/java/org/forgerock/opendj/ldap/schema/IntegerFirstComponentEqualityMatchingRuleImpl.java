@@ -60,7 +60,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
             final String definition = assertionValue.toString();
             final SubstringReader reader = new SubstringReader(definition);
             final int intValue = SchemaUtils.readRuleID(reader);
-            return defaultAssertion(ByteString.valueOf(intValue));
+            return defaultAssertion(ByteString.valueOfInt(intValue));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
 
@@ -98,6 +98,6 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.
-        return ByteString.valueOf(SchemaUtils.readRuleID(reader));
+        return ByteString.valueOfObject(SchemaUtils.readRuleID(reader));
     }
 }

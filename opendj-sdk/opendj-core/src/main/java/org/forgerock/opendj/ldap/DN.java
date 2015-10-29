@@ -440,7 +440,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * schema.
      * <p>
      * If {@code attributeValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeType
      *            The attribute type.

@@ -536,4 +536,10 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>%regex[(\w|\.)+ get\w*\([^)]*\)]</method>
     <justification>OPENDJ-1802 ByteSequenceReader.get*() => readByte(), readBytes() and read*()</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteString</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[org\.forgerock\.opendj\.ldap\.ByteString valueOf\([^)]+\)]</method>
+    <justification>OPENDJ-1802 ByteString.valueOf() => valueOfInt(), valueOfLong(), valueOfUtf8(), valueOfBytes(), valueOfObject()</justification>
+  </difference>
 </differences>

@@ -106,7 +106,7 @@ final class TimeBasedMatchingRulesImpl {
         @Override
         public final ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
             try {
-                return ByteString.valueOf(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
+                return ByteString.valueOfLong(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
             } catch (final LocalizedIllegalArgumentException e) {
                 throw error(e.getMessageObject());
             }
@@ -216,7 +216,7 @@ final class TimeBasedMatchingRulesImpl {
 
             long delta = (second + minute * 60 + hour * 3600 + day * 24 * 3600 + week * 7 * 24 * 3600) * 1000;
             long now = timeService.now();
-            return ByteString.valueOf(signed ? now - delta : now + delta);
+            return ByteString.valueOfLong(signed ? now - delta : now + delta);
         }
 
     }

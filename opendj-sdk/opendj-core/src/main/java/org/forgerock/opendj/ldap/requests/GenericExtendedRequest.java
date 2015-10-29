@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -94,7 +94,7 @@ public interface GenericExtendedRequest extends ExtendedRequest<GenericExtendedR
      * is defined by the specification of this extended request.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param value
      *            TThe value associated with this extended request, or

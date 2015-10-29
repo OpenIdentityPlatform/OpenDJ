@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -40,7 +40,7 @@ final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<Anonymo
         private Client(final AnonymousSASLBindRequestImpl initialBindRequest,
                 final String serverName) {
             super(initialBindRequest);
-            setNextSASLCredentials(ByteString.valueOf(initialBindRequest.getTraceString()));
+            setNextSASLCredentials(ByteString.valueOfUtf8(initialBindRequest.getTraceString()));
         }
     }
 

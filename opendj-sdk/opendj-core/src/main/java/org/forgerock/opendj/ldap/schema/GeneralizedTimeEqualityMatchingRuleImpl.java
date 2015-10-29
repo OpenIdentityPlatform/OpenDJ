@@ -47,7 +47,7 @@ final class GeneralizedTimeEqualityMatchingRuleImpl extends AbstractEqualityMatc
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         try {
-            return ByteString.valueOf(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
+            return ByteString.valueOfLong(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
         } catch (LocalizedIllegalArgumentException e) {
             throw DecodeException.error(e.getMessageObject());
         }

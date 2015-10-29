@@ -61,7 +61,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
         final List<String> entryStrings = new ArrayList<>(entries.size());
 
         for (final String entry : entries) {
-            final String normalized = normalize(ByteString.valueOf(entry));
+            final String normalized = normalize(ByteString.valueOfUtf8(entry));
             if (!entryStrings.contains(normalized)) {
                 entryStrings.add(normalized);
             }

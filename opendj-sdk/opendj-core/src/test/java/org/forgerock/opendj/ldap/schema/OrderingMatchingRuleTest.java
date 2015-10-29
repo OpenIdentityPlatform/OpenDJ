@@ -65,9 +65,9 @@ public abstract class OrderingMatchingRuleTest extends AbstractSchemaTestCase {
         final MatchingRule ruleInstance = getRule();
 
         final ByteString normalizedValue1 =
-                ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
+                ruleInstance.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
         final ByteString normalizedValue2 =
-                ruleInstance.normalizeAttributeValue(ByteString.valueOf(value2));
+                ruleInstance.normalizeAttributeValue(ByteString.valueOfUtf8(value2));
 
         // Test the comparator
         final int comp = normalizedValue1.compareTo(normalizedValue2);
@@ -79,13 +79,13 @@ public abstract class OrderingMatchingRuleTest extends AbstractSchemaTestCase {
             Assert.assertTrue(result < 0);
         }
 
-        Assertion a = ruleInstance.getGreaterOrEqualAssertion(ByteString.valueOf(value2));
+        Assertion a = ruleInstance.getGreaterOrEqualAssertion(ByteString.valueOfUtf8(value2));
         Assert.assertEquals(a.matches(normalizedValue1), ConditionResult.valueOf(result >= 0));
 
-        a = ruleInstance.getLessOrEqualAssertion(ByteString.valueOf(value2));
+        a = ruleInstance.getLessOrEqualAssertion(ByteString.valueOfUtf8(value2));
         Assert.assertEquals(a.matches(normalizedValue1), ConditionResult.valueOf(result <= 0));
 
-        a = ruleInstance.getAssertion(ByteString.valueOf(value2));
+        a = ruleInstance.getAssertion(ByteString.valueOfUtf8(value2));
         Assert.assertEquals(a.matches(normalizedValue1), ConditionResult.valueOf(result < 0));
     }
 
@@ -99,7 +99,7 @@ public abstract class OrderingMatchingRuleTest extends AbstractSchemaTestCase {
         final MatchingRule ruleInstance = getRule();
 
         // normalize the 2 provided values
-        ruleInstance.normalizeAttributeValue(ByteString.valueOf(value));
+        ruleInstance.normalizeAttributeValue(ByteString.valueOfUtf8(value));
     }
 
     /**

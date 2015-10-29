@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -105,7 +105,7 @@ public class GenericExtendedRequestTestCase extends RequestsTestCase {
             GenericExtendedRequest decoded = GenericExtendedRequest.DECODER.decodeExtendedRequest(copy,
                     new DecodeOptions());
             assertThat(decoded.getOID()).isEqualTo(oid);
-            assertThat(decoded.getValue()).isEqualTo(ByteString.valueOf(value));
+            assertThat(decoded.getValue()).isEqualTo(ByteString.valueOfUtf8(value));
             assertThat(decoded.getControls().contains(control)).isTrue();
         } catch (DecodeException e) {
             throw e;

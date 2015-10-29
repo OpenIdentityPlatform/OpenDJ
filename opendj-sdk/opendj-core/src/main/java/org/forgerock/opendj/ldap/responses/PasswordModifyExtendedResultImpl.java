@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -122,7 +122,7 @@ final class PasswordModifyExtendedResultImpl extends
         builder.append(getReferralURIs());
         if (password != null) {
             builder.append(", genPassword=");
-            builder.append(ByteString.valueOf(password));
+            builder.append(ByteString.valueOfBytes(password));
         }
         builder.append(", controls=");
         builder.append(getControls());

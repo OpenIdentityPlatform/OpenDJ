@@ -118,7 +118,7 @@ public class RelativeTimeGreaterThanMatchingRuleTest extends MatchingRuleTest {
 
     @Test
     public void testCreateIndexQuery() throws Exception {
-        Assertion assertion = getRule().getAssertion(ByteString.valueOf("+5m"));
+        Assertion assertion = getRule().getAssertion(ByteString.valueOfUtf8("+5m"));
 
         String indexQuery = assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(), false));
         assertThat(indexQuery).startsWith("rangeMatch(" + EMR_GENERALIZED_TIME_NAME + ", '")

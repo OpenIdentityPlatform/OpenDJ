@@ -164,9 +164,9 @@ final class Utils {
                 if (isJSONPrimitive(value)) {
                     final Syntax syntax = ad.getAttributeType().getSyntax();
                     if (syntax.equals(getGeneralizedTimeSyntax())) {
-                        return ByteString.valueOf(GeneralizedTime.valueOf(parseDateTime(value.toString())));
+                        return ByteString.valueOfObject(GeneralizedTime.valueOf(parseDateTime(value.toString())));
                     } else {
-                        return ByteString.valueOf(value);
+                        return ByteString.valueOfObject(value);
                     }
                 } else {
                     throw new IllegalArgumentException("Unrecognized type of JSON value: "

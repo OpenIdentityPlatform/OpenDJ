@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -513,7 +513,7 @@ public final class Requests {
      * attribute name, and assertion value.
      * <p>
      * If the assertion value is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param name
      *            The distinguished name of the entry to be compared.
@@ -530,7 +530,7 @@ public final class Requests {
             final AttributeDescription attributeDescription, final Object assertionValue) {
         Reject.ifNull(name, attributeDescription, assertionValue);
         return new CompareRequestImpl(name, attributeDescription, ByteString
-                .valueOf(assertionValue));
+                .valueOfObject(assertionValue));
     }
 
     /**
@@ -538,7 +538,7 @@ public final class Requests {
      * attribute name, and assertion value decoded using the default schema.
      * <p>
      * If the assertion value is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param name
      *            The distinguished name of the entry to be compared.
@@ -558,7 +558,7 @@ public final class Requests {
             final String attributeDescription, final Object assertionValue) {
         Reject.ifNull(name, attributeDescription, assertionValue);
         return new CompareRequestImpl(DN.valueOf(name), AttributeDescription
-                .valueOf(attributeDescription), ByteString.valueOf(assertionValue));
+                .valueOf(attributeDescription), ByteString.valueOfObject(assertionValue));
     }
 
     /**
@@ -757,7 +757,7 @@ public final class Requests {
      * optional value.
      * <p>
      * If the request value is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param requestName
      *            The dotted-decimal representation of the unique OID

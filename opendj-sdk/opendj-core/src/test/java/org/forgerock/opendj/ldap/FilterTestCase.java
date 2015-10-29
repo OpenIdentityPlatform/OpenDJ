@@ -57,52 +57,52 @@ public class FilterTestCase extends SdkTestCase {
     @DataProvider(name = "filterstrings")
     public Object[][] getFilterStrings() throws Exception {
         final Filter equal =
-                Filter.equality("objectClass", ByteString.valueOf("\\test*(Value)"));
-        final Filter equal2 = Filter.equality("objectClass", ByteString.valueOf(""));
+                Filter.equality("objectClass", ByteString.valueOfUtf8("\\test*(Value)"));
+        final Filter equal2 = Filter.equality("objectClass", ByteString.valueOfUtf8(""));
         final Filter approx =
-                Filter.approx("sn", ByteString.valueOf("\\test*(Value)"));
+                Filter.approx("sn", ByteString.valueOfUtf8("\\test*(Value)"));
         final Filter greater =
                 Filter.greaterOrEqual("employeeNumber", ByteString
-                        .valueOf("\\test*(Value)"));
+                        .valueOfUtf8("\\test*(Value)"));
         final Filter less =
-                Filter.lessOrEqual("dob", ByteString.valueOf("\\test*(Value)"));
+                Filter.lessOrEqual("dob", ByteString.valueOfUtf8("\\test*(Value)"));
         final Filter presense = Filter.present("login");
 
         final ArrayList<ByteString> any = new ArrayList<>(0);
         final ArrayList<ByteString> multiAny = new ArrayList<>(1);
-        multiAny.add(ByteString.valueOf("\\wid*(get)"));
-        multiAny.add(ByteString.valueOf("*"));
+        multiAny.add(ByteString.valueOfUtf8("\\wid*(get)"));
+        multiAny.add(ByteString.valueOfUtf8("*"));
 
         final Filter substring1 =
-                Filter.substrings("givenName", ByteString.valueOf("\\Jo*()"), any,
-                        ByteString.valueOf("\\n*()"));
+                Filter.substrings("givenName", ByteString.valueOfUtf8("\\Jo*()"), any,
+                        ByteString.valueOfUtf8("\\n*()"));
         final Filter substring2 =
-                Filter.substrings("givenName", ByteString.valueOf("\\Jo*()"), multiAny,
-                        ByteString.valueOf("\\n*()"));
+                Filter.substrings("givenName", ByteString.valueOfUtf8("\\Jo*()"), multiAny,
+                        ByteString.valueOfUtf8("\\n*()"));
         final Filter substring3 =
-                Filter.substrings("givenName", ByteString.valueOf(""), any, ByteString
-                        .valueOf("\\n*()"));
+                Filter.substrings("givenName", ByteString.valueOfUtf8(""), any, ByteString
+                        .valueOfUtf8("\\n*()"));
         final Filter substring4 =
-                Filter.substrings("givenName", ByteString.valueOf("\\Jo*()"), any,
-                        ByteString.valueOf(""));
+                Filter.substrings("givenName", ByteString.valueOfUtf8("\\Jo*()"), any,
+                        ByteString.valueOfUtf8(""));
         final Filter substring5 =
-                Filter.substrings("givenName", ByteString.valueOf(""), multiAny,
-                        ByteString.valueOf(""));
+                Filter.substrings("givenName", ByteString.valueOfUtf8(""), multiAny,
+                        ByteString.valueOfUtf8(""));
         final Filter extensible1 =
                 Filter.extensible("2.4.6.8.19", "cn", ByteString
-                        .valueOf("\\John* (Doe)"), false);
+                        .valueOfUtf8("\\John* (Doe)"), false);
         final Filter extensible2 =
                 Filter.extensible("2.4.6.8.19", "cn", ByteString
-                        .valueOf("\\John* (Doe)"), true);
+                        .valueOfUtf8("\\John* (Doe)"), true);
         final Filter extensible3 =
                 Filter.extensible("2.4.6.8.19", null, ByteString
-                        .valueOf("\\John* (Doe)"), true);
+                        .valueOfUtf8("\\John* (Doe)"), true);
         final Filter extensible4 =
-                Filter.extensible(null, "cn", ByteString.valueOf("\\John* (Doe)"),
+                Filter.extensible(null, "cn", ByteString.valueOfUtf8("\\John* (Doe)"),
                         true);
         final Filter extensible5 =
                 Filter.extensible("2.4.6.8.19", null, ByteString
-                        .valueOf("\\John* (Doe)"), false);
+                        .valueOfUtf8("\\John* (Doe)"), false);
 
         final ArrayList<Filter> list1 = new ArrayList<>();
         list1.add(equal);
@@ -259,7 +259,7 @@ public class FilterTestCase extends SdkTestCase {
     @Test
     public void testMatcher() throws Exception {
         final Filter equal =
-                Filter.equality("cn", ByteString.valueOf("\\test*(Value)"));
+                Filter.equality("cn", ByteString.valueOfUtf8("\\test*(Value)"));
         final LinkedHashMapEntry entry =
                 new LinkedHashMapEntry(DN.valueOf("cn=\\test*(Value),dc=org"));
         entry.addAttribute("cn", "\\test*(Value)");

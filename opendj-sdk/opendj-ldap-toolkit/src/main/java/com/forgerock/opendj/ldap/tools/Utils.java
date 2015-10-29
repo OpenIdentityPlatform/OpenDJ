@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -143,7 +143,7 @@ final class Utils {
 
         final String valString = remainder.substring(idx + 1, remainder.length());
         if (valString.charAt(0) == ':') {
-            controlValue = ByteString.valueOf(valString.substring(1, valString.length()));
+            controlValue = ByteString.valueOfUtf8(valString.substring(1, valString.length()));
         } else if (valString.charAt(0) == '<') {
             // Read data from the file.
             final String filePath = valString.substring(1, valString.length());
@@ -154,7 +154,7 @@ final class Utils {
                 return null;
             }
         } else {
-            controlValue = ByteString.valueOf(valString);
+            controlValue = ByteString.valueOfUtf8(valString);
         }
 
         return GenericControl.newControl(controlOID, controlCriticality, controlValue);

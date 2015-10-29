@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -91,7 +91,7 @@ public final class GenericControl implements Control {
      * Creates a new control having the provided OID, criticality, and value.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param oid
      *            The numeric OID associated with this control.
@@ -110,7 +110,7 @@ public final class GenericControl implements Control {
     public static GenericControl newControl(final String oid, final boolean isCritical,
             final Object value) {
         return new GenericControl(oid, isCritical, (value == null) ? null : ByteString
-                .valueOf(value));
+                .valueOfObject(value));
     }
 
     private final String oid;

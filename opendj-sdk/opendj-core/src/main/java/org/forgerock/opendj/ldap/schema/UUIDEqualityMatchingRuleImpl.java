@@ -168,6 +168,6 @@ final class UUIDEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
         final long uuidLow64 = uuid128Bytes.readLong();
         final long uuid64 = uuidHigh64 ^ uuidLow64;
         final int hash32 = ((int) (uuid64 >> 32)) ^ (int) uuid64;
-        return ByteString.valueOf(hash32);
+        return ByteString.valueOfInt(hash32);
     }
 }

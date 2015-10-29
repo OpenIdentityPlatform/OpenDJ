@@ -156,7 +156,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         Reject.ifNull(values);
         boolean modified = false;
         for (final Object value : values) {
-            modified |= add(ByteString.valueOf(value));
+            modified |= add(ByteString.valueOfObject(value));
         }
         return modified;
     }
@@ -286,7 +286,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
 
         final Map<ByteString, T> valuesToRetain = new HashMap<>(values.size());
         for (final T value : values) {
-            valuesToRetain.put(normalizeValue(this, ByteString.valueOf(value)), value);
+            valuesToRetain.put(normalizeValue(this, ByteString.valueOfObject(value)), value);
         }
 
         boolean modified = false;

@@ -734,7 +734,7 @@ public final class PasswordPolicyStateExtendedRequest
     }
 
     private void setBooleanProperty(PasswordPolicyStateOperationType property, final boolean state) {
-        operations.add(new MultiValueOperation(property, ByteString.valueOf(String.valueOf(state))));
+        operations.add(new MultiValueOperation(property, ByteString.valueOfUtf8(String.valueOf(state))));
     }
 
     private void setDateProperty(PasswordPolicyStateOperationType property, final Date date) {
@@ -758,7 +758,7 @@ public final class PasswordPolicyStateExtendedRequest
     }
 
     private ByteString toByteString(final Date date) {
-        return ByteString.valueOf(formatAsGeneralizedTime(date));
+        return ByteString.valueOfUtf8(formatAsGeneralizedTime(date));
     }
 
     /** {@inheritDoc} */

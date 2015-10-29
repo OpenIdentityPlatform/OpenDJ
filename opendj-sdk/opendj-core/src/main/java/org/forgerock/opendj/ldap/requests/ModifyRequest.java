@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -85,7 +85,7 @@ public interface ModifyRequest extends Request, ChangeRecord {
      * with this modify request.
      * <p>
      * If the attribute value is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param type
      *            The type of modification to be performed.

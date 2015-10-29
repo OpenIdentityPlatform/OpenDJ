@@ -62,11 +62,11 @@ public final class RDNTestCase extends SdkTestCase {
         ATTR_TYPE_DC = Schema.getCoreSchema().getAttributeType("dc");
         ATTR_TYPE_CN = Schema.getCoreSchema().getAttributeType("cn");
         // Set the avas.
-        ATTR_VALUE_DC_ORG = new AVA(ATTR_TYPE_DC, ByteString.valueOf("org"));
+        ATTR_VALUE_DC_ORG = new AVA(ATTR_TYPE_DC, ByteString.valueOfUtf8("org"));
     }
 
     /** "org" bytestring. */
-    private static final ByteString ORG = ByteString.valueOf("org");
+    private static final ByteString ORG = ByteString.valueOfUtf8("org");
 
     /**
      * RDN test data provider.
@@ -424,7 +424,7 @@ public final class RDNTestCase extends SdkTestCase {
      */
     @Test
     public void testEscaping() {
-        RDN rdn = new RDN(ATTR_TYPE_DC, ByteString.valueOf(" "));
+        RDN rdn = new RDN(ATTR_TYPE_DC, ByteString.valueOfUtf8(" "));
         assertEquals(rdn.toString(), "dc=\\ ");
     }
 

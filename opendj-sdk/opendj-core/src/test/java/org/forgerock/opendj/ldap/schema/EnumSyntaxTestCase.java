@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -56,11 +56,11 @@ public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
         final Schema schema = builder.toSchema();
         final Syntax syntax = schema.getSyntax("3.3.3");
         final MatchingRule rule = syntax.getOrderingMatchingRule();
-        final ByteString monday = ByteString.valueOf("monday");
+        final ByteString monday = ByteString.valueOfUtf8("monday");
         final ByteString normMonday = rule.normalizeAttributeValue(monday);
-        final ByteString tuesday = ByteString.valueOf("tuesday");
+        final ByteString tuesday = ByteString.valueOfUtf8("tuesday");
         final ByteString normTuesday = rule.normalizeAttributeValue(tuesday);
-        final ByteString normThursday = rule.normalizeAttributeValue(ByteString.valueOf("thursday"));
+        final ByteString normThursday = rule.normalizeAttributeValue(ByteString.valueOfUtf8("thursday"));
         assertEquals(rule.getGreaterOrEqualAssertion(monday).matches(normThursday), TRUE);
         assertEquals(rule.getLessOrEqualAssertion(monday).matches(normThursday), FALSE);
         assertEquals(rule.getGreaterOrEqualAssertion(tuesday).matches(normMonday), FALSE);

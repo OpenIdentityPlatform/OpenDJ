@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -75,8 +76,8 @@ public abstract class MatchingRuleTest extends AbstractSchemaTestCase {
 
         // normalize the 2 provided values and check that they are equals
         final ByteString normalizedValue1 =
-                rule.normalizeAttributeValue(ByteString.valueOf(value1));
-        final Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+                rule.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
+        final Assertion assertion = rule.getAssertion(ByteString.valueOfUtf8(value2));
 
         final ConditionResult liveResult = assertion.matches(normalizedValue1);
         assertEquals(result, liveResult);
@@ -91,7 +92,7 @@ public abstract class MatchingRuleTest extends AbstractSchemaTestCase {
         // Get the instance of the rule to be tested.
         final MatchingRule rule = getRule();
 
-        rule.getAssertion(ByteString.valueOf(value));
+        rule.getAssertion(ByteString.valueOfUtf8(value));
     }
 
     /**
@@ -103,7 +104,7 @@ public abstract class MatchingRuleTest extends AbstractSchemaTestCase {
         // Get the instance of the rule to be tested.
         final MatchingRule rule = getRule();
 
-        rule.normalizeAttributeValue(ByteString.valueOf(value));
+        rule.normalizeAttributeValue(ByteString.valueOfUtf8(value));
     }
 
     /**

@@ -165,7 +165,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
 
     @Test(dataProvider = "invalidAssertions", expectedExceptions = { DecodeException.class })
     public void testInvalidAssertion(String assertionValue) throws Exception {
-        getRule().getAssertion(null, valueOf(assertionValue));
+        getRule().getAssertion(null, valueOfUtf8(assertionValue));
     }
 
     @DataProvider
@@ -201,8 +201,8 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
     public void testValidAssertions(String attrValue, String assertionValue, ConditionResult expected)
             throws Exception {
         final MatchingRuleImpl rule = getRule();
-        final ByteString normValue = rule.normalizeAttributeValue(null, valueOf(attrValue));
-        Assertion assertion = rule.getAssertion(null, valueOf(assertionValue));
+        final ByteString normValue = rule.normalizeAttributeValue(null, valueOfUtf8(attrValue));
+        Assertion assertion = rule.getAssertion(null, valueOfUtf8(assertionValue));
         assertEquals(assertion.matches(normValue), expected);
     }
 
@@ -210,7 +210,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
     @SuppressWarnings("unchecked")
     public void testSubstringCreateIndexQueryForFinalWithMultipleSubqueries() throws Exception {
         Assertion assertion = getRule().getSubstringAssertion(
-            null, null, Collections.EMPTY_LIST, valueOf("this"));
+            null, null, Collections.EMPTY_LIST, valueOfUtf8("this"));
 
         assertEquals(
             assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
@@ -223,7 +223,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
     @Test
     public void testSubstringCreateIndexQueryForAllNoSubqueries() throws Exception {
         Assertion assertion = getRule().getSubstringAssertion(
-            null, valueOf("abc"), Arrays.asList(toByteStrings("def", "ghi")), valueOf("jkl"));
+            null, valueOfUtf8("abc"), Arrays.asList(toByteStrings("def", "ghi")), valueOfUtf8("jkl"));
 
         assertEquals(
             assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
@@ -240,7 +240,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
     @SuppressWarnings("unchecked")
     public void testSubstringCreateIndexQueryWithInitial() throws Exception {
         Assertion assertion = getRule().getSubstringAssertion(
-            null, valueOf("aa"), Collections.EMPTY_LIST, null);
+            null, valueOfUtf8("aa"), Collections.EMPTY_LIST, null);
 
         assertEquals(
             assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
@@ -274,14 +274,14 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         Assertions.assertThat(indexer.getIndexID()).isEqualTo(SMR_CASE_EXACT_OID + ":" + options.substringKeySize());
 
         final TreeSet<ByteString> keys = new TreeSet<>();
-        indexer.createKeys(Schema.getCoreSchema(), valueOf("ABCDE"), keys);
+        indexer.createKeys(Schema.getCoreSchema(), valueOfUtf8("ABCDE"), keys);
         Assertions.assertThat(keys).containsOnly((Object[]) toByteStrings("ABC", "BCD", "CDE", "DE", "E"));
     }
 
     private ByteString[] toByteStrings(String... strings) {
         final ByteString[] results = new ByteString[strings.length];
         for (int i = 0; i < strings.length; i++) {
-            results[i] = valueOf(strings[i]);
+            results[i] = valueOfUtf8(strings[i]);
         }
         return results;
     }

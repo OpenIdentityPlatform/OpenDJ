@@ -31,7 +31,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_BIT_STRING
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -50,19 +49,15 @@ final class BitStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRu
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String valueString = value.toString().toUpperCase();
-
         final int length = valueString.length();
         if (length < 3) {
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.toString());
-            throw DecodeException.error(message);
+            throw DecodeException.error(WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value));
         }
 
-        if (valueString.charAt(0) != '\'' || valueString.charAt(length - 2) != '\''
-                || valueString.charAt(length - 1) != 'B') {
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.toString());
-            throw DecodeException.error(message);
+        if (valueString.charAt(0) != '\''
+                || valueString.charAt(length - 1) != 'B'
+                || valueString.charAt(length - 2) != '\'') {
+            throw DecodeException.error(WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value));
         }
 
         for (int i = 1; i < length - 2; i++) {
@@ -72,13 +67,10 @@ final class BitStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRu
                 // These characters are fine.
                 break;
             default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(value.toString(), String
-                                .valueOf(valueString.charAt(i)));
-                throw DecodeException.error(message);
+                throw DecodeException.error(WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(value, valueString.charAt(i)));
             }
         }
 
-        return ByteString.valueOf(valueString);
+        return ByteString.valueOfUtf8(valueString);
     }
 }

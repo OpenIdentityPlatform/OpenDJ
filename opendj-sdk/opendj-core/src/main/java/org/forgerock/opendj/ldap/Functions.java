@@ -72,7 +72,7 @@ public final class Functions {
     private static final Function<Object, ByteString, NeverThrowsException> OBJECT_TO_BYTESTRING =
             new Function<Object, ByteString, NeverThrowsException>() {
                 public ByteString apply(final Object value) {
-                    return ByteString.valueOf(value);
+                    return ByteString.valueOfObject(value);
                 }
             };
 
@@ -209,7 +209,7 @@ public final class Functions {
 
     /**
      * Returns a function which converts an {@code Object} to a
-     * {@code ByteString} using the {@link ByteString#valueOf(Object)} method.
+     * {@code ByteString} using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @return A function which converts an {@code Object} to a
      *         {@code ByteString} .

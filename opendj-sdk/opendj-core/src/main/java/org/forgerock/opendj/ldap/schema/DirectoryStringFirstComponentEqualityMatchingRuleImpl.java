@@ -89,7 +89,7 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
         final String string = SchemaUtils.readQuotedString(reader);
 
         // Grab the substring between the start pos and the current pos
-        return ByteString.valueOf(string);
+        return ByteString.valueOfUtf8(string);
     }
 
     @Override

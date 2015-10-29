@@ -133,7 +133,7 @@ public final class EntryTestCase extends SdkTestCase {
                 .isFalse();
         assertThat(entry.getAttribute(AD_CN)).hasSize(1);
         assertThat(duplicateValues).hasSize(1);
-        assertThat(duplicateValues).contains(ByteString.valueOf("test"));
+        assertThat(duplicateValues).contains(ByteString.valueOfUtf8("test"));
     }
 
     @Test(dataProvider = "EntryFactory")

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -72,7 +72,7 @@ final class GenericExtendedResultImpl extends AbstractExtendedResult<GenericExte
 
     @Override
     public GenericExtendedResult setValue(final Object value) {
-        this.responseValue = value != null ? ByteString.valueOf(value) : null;
+        this.responseValue = value != null ? ByteString.valueOfObject(value) : null;
         return this;
     }
 

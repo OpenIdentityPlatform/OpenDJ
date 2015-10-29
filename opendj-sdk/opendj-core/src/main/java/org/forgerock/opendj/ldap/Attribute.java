@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -41,7 +41,7 @@ import java.util.Set;
  * <p>
  * Any methods which accept {@code Object} based attribute values convert the
  * attribute values to instances of {@code ByteString} using
- * {@link ByteString#valueOf(Object)}.
+ * {@link ByteString#valueOfObject(Object)}.
  */
 public interface Attribute extends Set<ByteString> {
     // TODO: matching against attribute value assertions.
@@ -67,7 +67,7 @@ public interface Attribute extends Set<ByteString> {
      * not already present (optional operation).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param values
      *            The attribute values to be added to this attribute.
@@ -108,7 +108,7 @@ public interface Attribute extends Set<ByteString> {
      * {@code duplicateValues} if specified.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param <T>
      *            The type of the attribute value objects being added.
@@ -140,7 +140,7 @@ public interface Attribute extends Set<ByteString> {
      * Returns {@code true} if this attribute contains {@code value}.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param value
      *            The attribute value whose presence in this attribute is to be
@@ -157,7 +157,7 @@ public interface Attribute extends Set<ByteString> {
      * values contained in {@code values}.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param values
      *            The attribute values whose presence in this attribute is to be
@@ -258,7 +258,7 @@ public interface Attribute extends Set<ByteString> {
      * leaves the attribute unchanged and returns {@code false}.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param value
      *            The attribute value to be removed from this attribute.
@@ -276,7 +276,7 @@ public interface Attribute extends Set<ByteString> {
      * attribute if they are present (optional operation).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * An invocation of this method is equivalent to:
      *
@@ -302,7 +302,7 @@ public interface Attribute extends Set<ByteString> {
      * specified.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param <T>
      *            The type of the attribute value objects being removed.
@@ -325,7 +325,7 @@ public interface Attribute extends Set<ByteString> {
      * in {@code values} (optional operation).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * An invocation of this method is equivalent to:
      *
@@ -350,7 +350,7 @@ public interface Attribute extends Set<ByteString> {
      * not already present will be added to {@code missingValues} if specified.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param <T>
      *            The type of the attribute value objects being retained.

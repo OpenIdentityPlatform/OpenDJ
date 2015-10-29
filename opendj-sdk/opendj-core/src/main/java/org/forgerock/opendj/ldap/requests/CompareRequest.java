@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -107,7 +107,7 @@ public interface CompareRequest extends Request {
      * Sets the assertion value to be compared.
      * <p>
      * If the assertion value is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param value
      *            The assertion value to be compared.

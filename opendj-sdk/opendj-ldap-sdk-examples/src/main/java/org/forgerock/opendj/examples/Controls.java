@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2014 ForgeRock AS
+ *      Copyright 2012-2015 ForgeRock AS
  *
  */
 
@@ -1024,7 +1024,7 @@ public final class Controls {
                             .addControl(
                                     VirtualListViewRequestControl.newAssertionControl(
                                             true,
-                                            ByteString.valueOf("Jensen"),
+                                            ByteString.valueOfUtf8("Jensen"),
                                             2, 2, contextID));
 
             final SearchResultHandler resultHandler = new MySearchResultHandler();

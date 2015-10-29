@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -164,7 +164,7 @@ public final class AuthorizationIdentityResponseControl implements Control {
 
     /** {@inheritDoc} */
     public ByteString getValue() {
-        return ByteString.valueOf(authorizationID);
+        return ByteString.valueOfUtf8(authorizationID);
     }
 
     /** {@inheritDoc} */

@@ -529,7 +529,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             return valueBuffer.toByteString();
         }
         if (length > 0) {
-            return ByteString.valueOf(reader.read(length));
+            return ByteString.valueOfUtf8(reader.read(length));
         }
         return ByteString.empty();
     }

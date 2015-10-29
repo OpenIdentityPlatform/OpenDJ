@@ -329,7 +329,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                     pos++;
                 }
 
-                value = ByteString.valueOf(ldifLine.substring(pos));
+                value = ByteString.valueOfUtf8(ldifLine.substring(pos));
             }
         }
         return value;

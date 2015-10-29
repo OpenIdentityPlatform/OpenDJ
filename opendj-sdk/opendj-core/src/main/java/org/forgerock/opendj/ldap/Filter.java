@@ -526,7 +526,7 @@ public final class Filter {
      * attribute description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -537,7 +537,7 @@ public final class Filter {
     public static Filter approx(final String attributeDescription, final Object assertionValue) {
         Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new ApproxMatchImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+                .valueOfObject(assertionValue)));
     }
 
     /**
@@ -545,7 +545,7 @@ public final class Filter {
      * description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -556,7 +556,7 @@ public final class Filter {
     public static Filter equality(final String attributeDescription, final Object assertionValue) {
         Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new EqualityMatchImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+                .valueOfObject(assertionValue)));
     }
 
     /**
@@ -582,7 +582,7 @@ public final class Filter {
      * </pre>
      *
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * <b>Note:</b> assertion values do not and should not be escaped before
      * passing them to constructors like {@link #equality(String, Object)}.
@@ -597,7 +597,7 @@ public final class Filter {
      */
     public static String escapeAssertionValue(final Object assertionValue) {
         Reject.ifNull(assertionValue);
-        final ByteString bytes = ByteString.valueOf(assertionValue);
+        final ByteString bytes = ByteString.valueOfObject(assertionValue);
         final StringBuilder builder = new StringBuilder(bytes.length());
         valueToFilterString(builder, bytes);
         return builder.toString();
@@ -607,7 +607,7 @@ public final class Filter {
      * Creates a new {@code extensible match} filter.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param matchingRule
      *            The matching rule name, may be {@code null} if
@@ -627,7 +627,7 @@ public final class Filter {
                 "matchingRule and/or attributeDescription must not be null");
         Reject.ifNull(assertionValue);
         return new Filter(new ExtensibleMatchImpl(matchingRule, attributeDescription, ByteString
-                .valueOf(assertionValue), dnAttributes));
+                .valueOfObject(assertionValue), dnAttributes));
     }
 
     /**
@@ -635,7 +635,7 @@ public final class Filter {
      * attribute description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -647,7 +647,7 @@ public final class Filter {
             final Object assertionValue) {
         Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new GreaterOrEqualImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+                .valueOfObject(assertionValue)));
     }
 
     /**
@@ -655,7 +655,7 @@ public final class Filter {
      * description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * <b>NOTE:</b> since LDAP does not support {@code greater than}
      * comparisons, this method returns a filter of the form
@@ -680,7 +680,7 @@ public final class Filter {
      * description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -691,7 +691,7 @@ public final class Filter {
     public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
         Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new LessOrEqualImpl(attributeDescription, ByteString
-                .valueOf(assertionValue)));
+                .valueOfObject(assertionValue)));
     }
 
     /**
@@ -699,7 +699,7 @@ public final class Filter {
      * description and assertion value.
      * <p>
      * If {@code assertionValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * <b>NOTE:</b> since LDAP does not support {@code less than} comparisons,
      * this method returns a filter of the form
@@ -823,7 +823,7 @@ public final class Filter {
      * description, {@code initial}, {@code final}, and {@code any} sub-strings.
      * <p>
      * Any substrings which are not instances of {@code ByteString} will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -855,20 +855,20 @@ public final class Filter {
         } else if (anySubstrings.size() == 1) {
             final Object anySubstring = anySubstrings.iterator().next();
             Reject.ifNull(anySubstring);
-            anySubstringList = Collections.singletonList(ByteString.valueOf(anySubstring));
+            anySubstringList = Collections.singletonList(ByteString.valueOfObject(anySubstring));
         } else {
             anySubstringList = new ArrayList<>(anySubstrings.size());
             for (final Object anySubstring : anySubstrings) {
                 Reject.ifNull(anySubstring);
 
-                anySubstringList.add(ByteString.valueOf(anySubstring));
+                anySubstringList.add(ByteString.valueOfObject(anySubstring));
             }
             anySubstringList = Collections.unmodifiableList(anySubstringList);
         }
 
         return new Filter(new SubstringsImpl(attributeDescription,
-                initialSubstring != null ? ByteString.valueOf(initialSubstring) : null,
-                anySubstringList, finalSubstring != null ? ByteString.valueOf(finalSubstring)
+                initialSubstring != null ? ByteString.valueOfObject(initialSubstring) : null,
+                anySubstringList, finalSubstring != null ? ByteString.valueOfObject(finalSubstring)
                         : null));
     }
 
@@ -950,7 +950,7 @@ public final class Filter {
      * </pre>
      *
      * Any assertion values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param template
      *            The filter template.

@@ -305,7 +305,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             public void intermediateResponse(int messageID, IntermediateResponse response)
                     throws DecodeException, IOException {
                 assertThat(response.getOID()).isEqualTo(oid);
-                assertThat(response.getValue()).isEqualTo(ByteString.valueOf(responseValue));
+                assertThat(response.getValue()).isEqualTo(ByteString.valueOfUtf8(responseValue));
             }
         } };
     }
@@ -464,7 +464,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
 
     Object[] unrecognizedMessage() {
         final byte messageTag = 0x01;
-        final ByteString messageBytes = ByteString.valueOf("message");
+        final ByteString messageBytes = ByteString.valueOfUtf8("message");
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {

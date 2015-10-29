@@ -57,7 +57,7 @@ final class EnumOrderingMatchingRule extends AbstractOrderingMatchingRuleImpl {
             throw DecodeException.error(WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value
                     .toString(), syntax.getName()));
         }
-        return ByteString.valueOf(index);
+        return ByteString.valueOfInt(index);
     }
 
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -48,11 +49,11 @@ public class ApproximateMatchingRuleTest extends AbstractSchemaTestCase {
             final String value2, final ConditionResult result) throws Exception {
         // normalize the 2 provided values
         final ByteString normalizedValue1 =
-                rule.normalizeAttributeValue(ByteString.valueOf(value1));
+                rule.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
 
         // check that the approximatelyMatch return the expected result.
         final ConditionResult liveResult =
-                rule.getAssertion(ByteString.valueOf(value2)).matches(normalizedValue1);
+                rule.getAssertion(ByteString.valueOfUtf8(value2)).matches(normalizedValue1);
         assertEquals(result, liveResult);
     }
 

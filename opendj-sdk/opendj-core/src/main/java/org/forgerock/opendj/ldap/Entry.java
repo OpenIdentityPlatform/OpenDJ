@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -143,7 +143,7 @@ public interface Entry {
      * with this entry (usually the default schema).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * <b>NOTE:</b> When {@code attribute} is non-empty, this method implements
      * LDAP Modify add semantics.
@@ -203,7 +203,7 @@ public interface Entry {
      * with this entry (usually the default schema).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The name of the attribute whose presence in this entry is to
@@ -407,7 +407,7 @@ public interface Entry {
      * with this entry (usually the default schema).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * <b>NOTE:</b> This method implements LDAP Modify delete semantics.
      *
@@ -462,7 +462,7 @@ public interface Entry {
      * with this entry (usually the default schema).
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      * <p>
      * <b>NOTE:</b> This method implements LDAP Modify replace semantics as
      * described in <a href="http://tools.ietf.org/html/rfc4511#section-4.6"

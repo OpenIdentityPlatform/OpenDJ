@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -275,7 +275,7 @@ final class PasswordModifyExtendedRequestImpl extends
 
     @Override
     public PasswordModifyExtendedRequest setUserIdentity(final Object userIdentity) {
-        this.userIdentity = (userIdentity != null) ? ByteString.valueOf(userIdentity) : null;
+        this.userIdentity = (userIdentity != null) ? ByteString.valueOfObject(userIdentity) : null;
         return this;
     }
 

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -69,7 +69,7 @@ public class PasswordModifyExtendedRequestTestCase extends RequestsTestCase {
         final PasswordModifyExtendedRequest copy = (PasswordModifyExtendedRequest) copyOf(original);
         copy.setNewPassword(password.toCharArray());
         copy.setOldPassword(oldPassword.toCharArray());
-        copy.setUserIdentity(ByteString.valueOf(userIdentity));
+        copy.setUserIdentity(ByteString.valueOfUtf8(userIdentity));
 
         assertThat(copy.getNewPassword()).isEqualTo(password.getBytes());
         assertThat(original.getNewPassword()).isNull();
@@ -97,7 +97,7 @@ public class PasswordModifyExtendedRequestTestCase extends RequestsTestCase {
                     new DecodeOptions());
             assertThat(decoded.getNewPassword()).isEqualTo(password.getBytes());
             assertThat(decoded.getOldPassword()).isEqualTo(oldPassword.getBytes());
-            assertThat(decoded.getUserIdentity()).isEqualTo(ByteString.valueOf(userIdentity));
+            assertThat(decoded.getUserIdentity()).isEqualTo(ByteString.valueOfUtf8(userIdentity));
             assertThat(decoded.getControls().contains(control)).isTrue();
         } catch (DecodeException e) {
             throw e;

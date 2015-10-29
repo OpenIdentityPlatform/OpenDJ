@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -142,7 +142,7 @@ final class GenericExtendedRequestImpl extends
 
     @Override
     public GenericExtendedRequest setValue(final Object value) {
-        this.requestValue = value != null ? ByteString.valueOf(value) : null;
+        this.requestValue = value != null ? ByteString.valueOfObject(value) : null;
         return this;
     }
 

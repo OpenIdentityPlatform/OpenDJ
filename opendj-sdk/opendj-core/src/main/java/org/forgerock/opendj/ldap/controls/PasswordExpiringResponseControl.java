@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS
+ *      Portions copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -162,7 +162,7 @@ public final class PasswordExpiringResponseControl implements Control {
 
     /** {@inheritDoc} */
     public ByteString getValue() {
-        return ByteString.valueOf(String.valueOf(secondsUntilExpiration));
+        return ByteString.valueOfUtf8(String.valueOf(secondsUntilExpiration));
     }
 
     /** {@inheritDoc} */

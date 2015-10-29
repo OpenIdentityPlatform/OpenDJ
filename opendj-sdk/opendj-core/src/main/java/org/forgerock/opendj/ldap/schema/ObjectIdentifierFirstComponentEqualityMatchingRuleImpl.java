@@ -87,6 +87,6 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
 
         // The next set of characters must be the OID.
         final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
-        return ByteString.valueOf(resolveNames(schema, oid));
+        return ByteString.valueOfUtf8(resolveNames(schema, oid));
     }
 }

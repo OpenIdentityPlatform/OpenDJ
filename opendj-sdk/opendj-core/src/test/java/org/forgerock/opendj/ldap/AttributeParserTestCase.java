@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS.
+ *      Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -278,14 +278,14 @@ public final class AttributeParserTestCase extends SdkTestCase {
     @Test
     public void testAsByteString() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test", "type: cn");
-        assertThat(e.parseAttribute("type").asByteString()).isEqualTo(ByteString.valueOf("cn"));
+        assertThat(e.parseAttribute("type").asByteString()).isEqualTo(ByteString.valueOfUtf8("cn"));
     }
 
     @Test
     public void testAsByteStringDefault() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test", "type: cn");
-        assertThat(e.parseAttribute("type").asByteString(ByteString.valueOf("sn"))).isEqualTo(
-                ByteString.valueOf("cn"));
+        assertThat(e.parseAttribute("type").asByteString(ByteString.valueOfUtf8("sn"))).isEqualTo(
+                ByteString.valueOfUtf8("cn"));
     }
 
     @Test
@@ -297,8 +297,8 @@ public final class AttributeParserTestCase extends SdkTestCase {
     @Test
     public void testAsByteStringMissingDefault() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
-        assertThat(e.parseAttribute("type").asByteString(ByteString.valueOf("sn"))).isEqualTo(
-                ByteString.valueOf("sn"));
+        assertThat(e.parseAttribute("type").asByteString(ByteString.valueOfUtf8("sn"))).isEqualTo(
+                ByteString.valueOfUtf8("sn"));
     }
 
     @Test(expectedExceptions = { NoSuchElementException.class })

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -249,7 +249,7 @@ public final class Attributes {
         private SingletonAttribute(final AttributeDescription attributeDescription,
                 final Object value) {
             this.attributeDescription = attributeDescription;
-            this.value = ByteString.valueOf(value);
+            this.value = ByteString.valueOfObject(value);
         }
 
         @Override
@@ -264,7 +264,7 @@ public final class Attributes {
 
         @Override
         public boolean contains(final Object value) {
-            final ByteString normalizedValue = normalizeValue(this, ByteString.valueOf(value));
+            final ByteString normalizedValue = normalizeValue(this, ByteString.valueOfObject(value));
             return normalizedSingleValue().equals(normalizedValue);
         }
 
@@ -535,7 +535,7 @@ public final class Attributes {
      * {@code UnsupportedOperationException}.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -558,7 +558,7 @@ public final class Attributes {
      * {@code UnsupportedOperationException}.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.

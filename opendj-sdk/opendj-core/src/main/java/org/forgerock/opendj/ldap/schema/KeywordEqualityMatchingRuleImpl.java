@@ -134,7 +134,7 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
-        return ByteString.valueOf(normalize(value));
+        return ByteString.valueOfUtf8(normalize(value));
     }
 
     private String normalize(final ByteSequence value) {

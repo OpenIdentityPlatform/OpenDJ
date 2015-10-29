@@ -76,7 +76,7 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);
         final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
-        return ByteString.valueOf(resolveNames(schema, oid));
+        return ByteString.valueOfUtf8(resolveNames(schema, oid));
     }
 
     @Override

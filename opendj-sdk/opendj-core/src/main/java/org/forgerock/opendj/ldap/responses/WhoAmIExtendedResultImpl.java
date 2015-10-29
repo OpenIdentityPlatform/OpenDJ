@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -66,7 +66,7 @@ final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtend
 
     @Override
     public ByteString getValue() {
-        return (authorizationID != null) ? ByteString.valueOf(authorizationID) : null;
+        return (authorizationID != null) ? ByteString.valueOfUtf8(authorizationID) : null;
     }
 
     @Override

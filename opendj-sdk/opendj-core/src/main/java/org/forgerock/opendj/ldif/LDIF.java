@@ -98,8 +98,8 @@ public final class LDIF {
      */
     private static final Comparator<byte[]> DN_ORDER = new Comparator<byte[]>() {
         public int compare(byte[] b1, byte[] b2) {
-            final ByteString bs = ByteString.valueOf(b1);
-            final ByteString bs2 = ByteString.valueOf(b2);
+            final ByteString bs = ByteString.valueOfBytes(b1);
+            final ByteString bs2 = ByteString.valueOfBytes(b2);
             return bs.compareTo(bs2);
         }
     };

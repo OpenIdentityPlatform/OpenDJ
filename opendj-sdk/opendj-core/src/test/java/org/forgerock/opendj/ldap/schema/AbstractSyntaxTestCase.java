@@ -54,7 +54,7 @@ public abstract class AbstractSyntaxTestCase extends AbstractSchemaTestCase {
         final Syntax syntax = getRule();
 
         final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
-        final Boolean liveResult = syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
+        final Boolean liveResult = syntax.valueIsAcceptable(ByteString.valueOfUtf8(value), reason);
         assertEquals(liveResult, result,
             syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
     }

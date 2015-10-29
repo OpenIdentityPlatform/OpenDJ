@@ -299,10 +299,10 @@ public final class LDAPCompare extends ConsoleApplication {
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             } else {
-                attributeVal = ByteString.valueOf(remainder);
+                attributeVal = ByteString.valueOfUtf8(remainder);
             }
         } else {
-            attributeVal = ByteString.valueOf(remainder);
+            attributeVal = ByteString.valueOfUtf8(remainder);
         }
 
         final CompareRequest compare = Requests.newCompareRequest("", attributeType, attributeVal);

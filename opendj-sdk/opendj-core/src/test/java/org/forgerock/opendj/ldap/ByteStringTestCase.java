@@ -62,29 +62,29 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
             { ByteString.valueOfBase64("AAA="), new byte[] { 0x00, 0x00 }},
             { ByteString.valueOfBase64("AAAA"), new byte[] { 0x00, 0x00, 0x00 }},
             { ByteString.valueOfBase64("AAAAAA=="), new byte[] { 0x00, 0x00, 0x00, 0x00 }},
-            { ByteString.valueOf(1),
+            { ByteString.valueOfInt(1),
                 new byte[] { (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01 } },
-            { ByteString.valueOf(Integer.MAX_VALUE),
+            { ByteString.valueOfInt(Integer.MAX_VALUE),
                 new byte[] { (byte) 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF } },
-            { ByteString.valueOf(Integer.MIN_VALUE),
+            { ByteString.valueOfInt(Integer.MIN_VALUE),
                 new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00 } },
             {
-                ByteString.valueOf(Long.MAX_VALUE),
+                ByteString.valueOfLong(Long.MAX_VALUE),
                 new byte[] { (byte) 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
                     (byte) 0xFF, (byte) 0xFF, (byte) 0xFF } },
             {
-                ByteString.valueOf(Long.MIN_VALUE),
+                ByteString.valueOfLong(Long.MIN_VALUE),
                 new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
                     (byte) 0x00, (byte) 0x00, (byte) 0x00 } },
-            { ByteString.valueOf("cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
-            { ByteString.valueOf((Object) "cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
-            { ByteString.valueOf("cn=testvalue".toCharArray()), "cn=testvalue".getBytes("UTF-8") },
-            { ByteString.valueOf((Object) "cn=testvalue".toCharArray()),
+            { ByteString.valueOfUtf8("cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
+            { ByteString.valueOfObject((Object) "cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
+            { ByteString.valueOfUtf8("cn=testvalue".toCharArray()), "cn=testvalue".getBytes("UTF-8") },
+            { ByteString.valueOfObject((Object) "cn=testvalue".toCharArray()),
                 "cn=testvalue".getBytes("UTF-8") },
-            { ByteString.valueOf(new byte[0]), new byte[0] },
-            { ByteString.valueOf(testBytes), testBytes },
-            { ByteString.valueOf((Object) testBytes), testBytes },
-            { ByteString.valueOf(ByteString.valueOf("cn=testvalue")),
+            { ByteString.valueOfBytes(new byte[0]), new byte[0] },
+            { ByteString.valueOfBytes(testBytes), testBytes },
+            { ByteString.valueOfObject((Object) testBytes), testBytes },
+            { ByteString.valueOfObject(ByteString.valueOfUtf8("cn=testvalue")),
                 "cn=testvalue".getBytes("UTF-8") },
             { ByteString.wrap(new byte[0]), new byte[0] },
             {
@@ -117,16 +117,16 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @DataProvider(name = "byteStringIntegerProvider")
     public Object[][] byteStringIntegerProvider() {
-        return new Object[][] { { ByteString.valueOf(0), 0 }, { ByteString.valueOf(1), 1 },
-            { ByteString.valueOf(Integer.MAX_VALUE), Integer.MAX_VALUE },
-            { ByteString.valueOf(Integer.MIN_VALUE), Integer.MIN_VALUE }, };
+        return new Object[][] { { ByteString.valueOfInt(0), 0 }, { ByteString.valueOfInt(1), 1 },
+            { ByteString.valueOfInt(Integer.MAX_VALUE), Integer.MAX_VALUE },
+            { ByteString.valueOfInt(Integer.MIN_VALUE), Integer.MIN_VALUE }, };
     }
 
     @DataProvider(name = "byteStringLongProvider")
     public Object[][] byteStringLongProvider() {
-        return new Object[][] { { ByteString.valueOf(0L), 0L }, { ByteString.valueOf(1L), 1L },
-            { ByteString.valueOf(Long.MAX_VALUE), Long.MAX_VALUE },
-            { ByteString.valueOf(Long.MIN_VALUE), Long.MIN_VALUE } };
+        return new Object[][] { { ByteString.valueOfLong(0L), 0L }, { ByteString.valueOfLong(1L), 1L },
+            { ByteString.valueOfLong(Long.MAX_VALUE), Long.MAX_VALUE },
+            { ByteString.valueOfLong(Long.MIN_VALUE), Long.MIN_VALUE } };
     }
 
     @DataProvider(name = "byteStringCharArrayProvider")
@@ -151,20 +151,20 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
 
     @Test(dataProvider = "byteStringCharArrayProvider")
     public void testFromStringToCharArray(final String s) {
-        ByteString bs = ByteString.valueOf(s);
+        ByteString bs = ByteString.valueOfUtf8(s);
         Assert.assertTrue(Arrays.equals(bs.toCharArray(), s.toCharArray()));
     }
 
     @Test(dataProvider = "byteStringCharArrayProvider")
     public void testFromCharArrayToCharArray(final String s) {
         final char[] chars = s.toCharArray();
-        ByteString bs = ByteString.valueOf(chars);
+        ByteString bs = ByteString.valueOfUtf8(chars);
         Assert.assertTrue(Arrays.equals(bs.toCharArray(), chars));
     }
 
     @Test(dataProvider = "byteStringCharArrayProvider")
     public void testValueOfCharArray(final String s) {
-        ByteString bs = ByteString.valueOf(s.toCharArray());
+        ByteString bs = ByteString.valueOfUtf8(s.toCharArray());
         Assert.assertEquals(bs.toString(), s);
     }
 
@@ -245,8 +245,8 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
         }
         result[len++] = new Object[] { ByteString.empty(), new byte[0], 0 };
         result[len++] = new Object[] { ByteString.empty(), "bla".getBytes("UTF8"), -3 };
-        result[len++] = new Object[] { ByteString.valueOf("bla"), new byte[0], 3 };
-        result[len++] = new Object[] { ByteString.valueOf("bla"), "bla".getBytes("UTF8"), 0 };
+        result[len++] = new Object[] { ByteString.valueOfUtf8("bla"), new byte[0], 3 };
+        result[len++] = new Object[] { ByteString.valueOfUtf8("bla"), "bla".getBytes("UTF8"), 0 };
         return result;
     }
 

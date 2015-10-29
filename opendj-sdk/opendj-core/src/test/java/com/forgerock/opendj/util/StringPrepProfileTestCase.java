@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -51,9 +52,9 @@ public class StringPrepProfileTestCase extends UtilTestCase {
             final ConditionResult result) throws Exception {
         // Take any caseExact matching rule.
         final MatchingRule rule = Schema.getCoreSchema().getMatchingRule("2.5.13.5");
-        final Assertion assertion = rule.getAssertion(ByteString.valueOf(value1));
+        final Assertion assertion = rule.getAssertion(ByteString.valueOfUtf8(value1));
         final ByteString normalizedValue2 =
-                rule.normalizeAttributeValue(ByteString.valueOf(value2));
+                rule.normalizeAttributeValue(ByteString.valueOfUtf8(value2));
         final ConditionResult liveResult = assertion.matches(normalizedValue2);
         assertEquals(result, liveResult);
     }
@@ -67,9 +68,9 @@ public class StringPrepProfileTestCase extends UtilTestCase {
             final ConditionResult result) throws Exception {
         // Take any caseExact matching rule.
         final MatchingRule rule = Schema.getCoreSchema().getMatchingRule("2.5.13.2");
-        final Assertion assertion = rule.getAssertion(ByteString.valueOf(value1));
+        final Assertion assertion = rule.getAssertion(ByteString.valueOfUtf8(value1));
         final ByteString normalizedValue2 =
-                rule.normalizeAttributeValue(ByteString.valueOf(value2));
+                rule.normalizeAttributeValue(ByteString.valueOfUtf8(value2));
         final ConditionResult liveResult = assertion.matches(normalizedValue2);
         assertEquals(result, liveResult);
     }

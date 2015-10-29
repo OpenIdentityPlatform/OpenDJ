@@ -729,7 +729,7 @@ public final class Rest2LDAP {
                             + "client provided resource ID");
                 }
             } else {
-                entry.addAttribute(new LinkedAttribute(idAttribute, ByteString.valueOf(resourceId)));
+                entry.addAttribute(new LinkedAttribute(idAttribute, ByteString.valueOfUtf8(resourceId)));
             }
             final String rdnValue = entry.parseAttribute(dnAttribute).asString();
             final RDN rdn = new RDN(dnAttribute.getAttributeType(), rdnValue);
@@ -765,7 +765,7 @@ public final class Rest2LDAP {
                 final Entry entry) throws ResourceException {
             if (resourceId != null) {
                 entry.setName(baseDN.child(rdn(resourceId)));
-                entry.addAttribute(new LinkedAttribute(attribute, ByteString.valueOf(resourceId)));
+                entry.addAttribute(new LinkedAttribute(attribute, ByteString.valueOfUtf8(resourceId)));
             } else if (entry.getAttribute(attribute) != null) {
                 entry.setName(baseDN.child(rdn(entry.parseAttribute(attribute).asString())));
             } else {

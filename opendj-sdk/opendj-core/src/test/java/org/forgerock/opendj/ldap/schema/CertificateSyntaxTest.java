@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -90,10 +90,10 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
 
         return new Object[][]{
             {ByteString.valueOfBase64(validcert1), true},
-            {ByteString.valueOf(validcert1), false},
+            {ByteString.valueOfUtf8(validcert1), false},
             {ByteString.valueOfBase64(invalidcert1), false},
             {ByteString.valueOfBase64(brokencert1), false},
-            {ByteString.valueOf("invalid"), false}
+            {ByteString.valueOfUtf8("invalid"), false}
         };
     }
 

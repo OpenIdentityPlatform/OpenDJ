@@ -184,7 +184,7 @@ public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
 
     @Test
     public void testCreateIndexQuery() throws Exception {
-        Assertion assertion = getRule().getAssertion(ByteString.valueOf("2012Y"));
+        Assertion assertion = getRule().getAssertion(ByteString.valueOfUtf8("2012Y"));
 
         String indexQuery = assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(), false));
         assertThat(indexQuery).matches(

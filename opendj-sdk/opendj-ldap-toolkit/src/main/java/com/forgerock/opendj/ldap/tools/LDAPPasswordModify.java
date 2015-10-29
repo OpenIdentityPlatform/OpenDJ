@@ -296,7 +296,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         }
 
         if (result.getGeneratedPassword() != null) {
-            println(INFO_LDAPPWMOD_GENERATED_PASSWORD.get(ByteString.valueOf(
+            println(INFO_LDAPPWMOD_GENERATED_PASSWORD.get(ByteString.valueOfBytes(
                     result.getGeneratedPassword()).toString()));
         }
 

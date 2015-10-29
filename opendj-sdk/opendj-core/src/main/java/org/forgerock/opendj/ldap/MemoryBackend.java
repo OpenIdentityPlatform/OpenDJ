@@ -531,7 +531,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         }
         final Result result = newResult(ResultCode.SUCCESS);
         if (pageSize > 0) {
-            final ByteString cookie = numberOfResults == pageSize ? ByteString.valueOf(String.valueOf(position))
+            final ByteString cookie = numberOfResults == pageSize ? ByteString.valueOfUtf8(String.valueOf(position))
                     : ByteString.empty();
             result.addControl(SimplePagedResultsControl.newControl(true, 0, cookie));
         }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -240,7 +240,7 @@ public final class Responses {
      * name and value.
      * <p>
      * If the response value is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param responseName
      *            The dotted-decimal representation of the unique OID

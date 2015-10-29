@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -120,7 +120,7 @@ public final class PasswordExpiredResponseControl implements Control {
                 }
             };
 
-    private static final ByteString CONTROL_VALUE = ByteString.valueOf("0");
+    private static final ByteString CONTROL_VALUE = ByteString.valueOfUtf8("0");
 
     /**
      * Creates a new Netscape password expired response control.

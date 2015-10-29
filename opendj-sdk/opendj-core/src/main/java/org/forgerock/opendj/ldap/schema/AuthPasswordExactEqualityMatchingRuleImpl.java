@@ -51,6 +51,6 @@ final class AuthPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMa
         normalizedValue.append('$');
         normalizedValue.append(authPWComponents[2]);
 
-        return ByteString.valueOf(normalizedValue);
+        return ByteString.valueOfUtf8(normalizedValue);
     }
 }

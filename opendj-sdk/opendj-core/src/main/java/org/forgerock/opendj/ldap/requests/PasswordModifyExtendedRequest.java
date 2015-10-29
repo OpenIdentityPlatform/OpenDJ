@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -206,7 +206,7 @@ public interface PasswordModifyExtendedRequest extends
      * identity may or may not be a distinguished name.
      * <p>
      * If {@code userIdentity} is not an instance of {@code ByteString} then it
-     * will be converted using the {@link ByteString#valueOf(Object)} method.
+     * will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param userIdentity
      *            The identity of the user whose password is to be modified, or

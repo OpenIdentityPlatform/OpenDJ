@@ -300,7 +300,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
 
     final void writeKeyAndValue(final CharSequence key, final CharSequence value)
             throws IOException {
-        writeKeyAndValue(key, ByteString.valueOf(value));
+        writeKeyAndValue(key, ByteString.valueOfUtf8(value));
     }
 
     final void writeLine(final CharSequence line) throws IOException {

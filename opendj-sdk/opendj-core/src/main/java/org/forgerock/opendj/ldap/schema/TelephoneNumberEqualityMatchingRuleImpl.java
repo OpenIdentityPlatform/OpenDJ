@@ -59,7 +59,7 @@ final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractEqualityMatc
             }
         }
 
-        return ByteString.valueOf(buffer);
+        return ByteString.valueOfUtf8(buffer);
     }
 
     @Override

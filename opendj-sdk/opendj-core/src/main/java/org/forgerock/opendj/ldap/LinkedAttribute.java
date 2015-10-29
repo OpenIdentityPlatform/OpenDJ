@@ -65,7 +65,7 @@ public final class LinkedAttribute extends AbstractAttribute {
             // TODO: could optimize if objects is a LinkedAttribute having the
             // same equality matching rule.
             for (final Object value : values) {
-                if (!contains(attribute, ByteString.valueOf(value))) {
+                if (!contains(attribute, ByteString.valueOfObject(value))) {
                     return false;
                 }
             }
@@ -177,7 +177,7 @@ public final class LinkedAttribute extends AbstractAttribute {
 
             final Map<ByteString, T> valuesToRetain = new HashMap<>(values.size());
             for (final T value : values) {
-                valuesToRetain.put(normalizeValue(attribute, ByteString.valueOf(value)), value);
+                valuesToRetain.put(normalizeValue(attribute, ByteString.valueOfObject(value)), value);
             }
 
             boolean modified = false;
@@ -331,7 +331,7 @@ public final class LinkedAttribute extends AbstractAttribute {
             boolean retained = false;
             for (final T value : values) {
                 final ByteString normalizedValue =
-                        normalizeValue(attribute, ByteString.valueOf(value));
+                        normalizeValue(attribute, ByteString.valueOfObject(value));
                 if (normalizedSingleValue.equals(normalizedValue)) {
                     if (missingValues == null) {
                         // We can stop now.
@@ -500,7 +500,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      * single attribute value.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -520,7 +520,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      * attribute values.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -541,7 +541,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      * attribute values.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -580,7 +580,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      * default schema.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -604,7 +604,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      * the default schema.
      * <p>
      * If {@code value} is not an instance of {@code ByteString} then it will be
-     * converted using the {@link ByteString#valueOf(Object)} method.
+     * converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -619,7 +619,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     public LinkedAttribute(final String attributeDescription, final Object value) {
         this(attributeDescription);
-        add(ByteString.valueOf(value));
+        add(ByteString.valueOfObject(value));
     }
 
     /**
@@ -628,7 +628,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      * default schema.
      * <p>
      * Any attribute values which are not instances of {@code ByteString} will
-     * be converted using the {@link ByteString#valueOf(Object)} method.
+     * be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeDescription
      *            The attribute description.
@@ -663,7 +663,7 @@ public final class LinkedAttribute extends AbstractAttribute {
     @Override
     public boolean contains(final Object value) {
         Reject.ifNull(value);
-        return pimpl.contains(this, ByteString.valueOf(value));
+        return pimpl.contains(this, ByteString.valueOfObject(value));
     }
 
     /** {@inheritDoc} */
@@ -695,7 +695,7 @@ public final class LinkedAttribute extends AbstractAttribute {
     @Override
     public boolean remove(final Object value) {
         Reject.ifNull(value);
-        return pimpl.remove(this, ByteString.valueOf(value));
+        return pimpl.remove(this, ByteString.valueOfObject(value));
     }
 
     /** {@inheritDoc} */

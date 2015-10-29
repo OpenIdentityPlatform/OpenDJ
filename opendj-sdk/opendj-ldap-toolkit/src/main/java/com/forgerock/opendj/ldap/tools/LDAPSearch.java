@@ -749,7 +749,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 try {
                     final int beforeCount = Integer.parseInt(tokenizer.nextToken());
                     final int afterCount = Integer.parseInt(tokenizer.nextToken());
-                    final ByteString assertionValue = ByteString.valueOf(tokenizer.nextToken());
+                    final ByteString assertionValue = ByteString.valueOfUtf8(tokenizer.nextToken());
                     search.addControl(VirtualListViewRequestControl.newAssertionControl(true,
                             assertionValue, beforeCount, afterCount, null));
                 } catch (final Exception e) {

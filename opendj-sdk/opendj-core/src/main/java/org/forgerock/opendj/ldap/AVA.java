@@ -383,7 +383,7 @@ public final class AVA implements Comparable<AVA> {
                     reader.reset();
                     // Return what we have got here so far.
                     appendHexChars(reader, valueBuffer, hexBuffer);
-                    return ByteString.valueOf(valueBuffer);
+                    return ByteString.valueOfUtf8(valueBuffer);
                 }
                 // It is definitely not a delimiter at this point.
                 appendHexChars(reader, valueBuffer, hexBuffer);
@@ -393,7 +393,7 @@ public final class AVA implements Comparable<AVA> {
         }
 
         reader.reset();
-        return ByteString.valueOf(valueBuffer);
+        return ByteString.valueOfUtf8(valueBuffer);
     }
 
     private static AttributeType readAttributeName(final SubstringReader reader, final Schema schema) {
@@ -567,7 +567,7 @@ public final class AVA implements Comparable<AVA> {
                 length++;
             }
             reader.reset();
-            final ByteString retString = ByteString.valueOf(reader.read(length));
+            final ByteString retString = ByteString.valueOfUtf8(reader.read(length));
             reader.read();
             return retString;
         } else {
@@ -605,7 +605,7 @@ public final class AVA implements Comparable<AVA> {
      * attribute type and value.
      * <p>
      * If {@code attributeValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeType
      *            The attribute type.
@@ -619,7 +619,7 @@ public final class AVA implements Comparable<AVA> {
         Reject.ifNull(attributeType, attributeValue);
 
         this.attributeType = attributeType;
-        this.attributeValue = ByteString.valueOf(attributeValue);
+        this.attributeValue = ByteString.valueOfObject(attributeValue);
     }
 
     /**
@@ -627,7 +627,7 @@ public final class AVA implements Comparable<AVA> {
      * attribute type and value decoded using the default schema.
      * <p>
      * If {@code attributeValue} is not an instance of {@code ByteString} then
-     * it will be converted using the {@link ByteString#valueOf(Object)} method.
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
      *
      * @param attributeType
      *            The attribute type.
@@ -643,7 +643,7 @@ public final class AVA implements Comparable<AVA> {
         Reject.ifNull(attributeType, attributeValue);
 
         this.attributeType = Schema.getDefaultSchema().getAttributeType(attributeType);
-        this.attributeValue = ByteString.valueOf(attributeValue);
+        this.attributeValue = ByteString.valueOfObject(attributeValue);
     }
 
     /** {@inheritDoc} */
