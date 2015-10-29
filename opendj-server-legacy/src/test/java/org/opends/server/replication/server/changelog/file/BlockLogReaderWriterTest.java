@@ -498,8 +498,8 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     public Record<Integer, Integer> decodeRecord(final ByteString data) throws DecodingException
     {
       ByteSequenceReader reader = data.asReader();
-      int key = reader.getInt();
-      int value = reader.getInt();
+      int key = reader.readInt();
+      int value = reader.readInt();
       return Record.from(key, value);
     }
 

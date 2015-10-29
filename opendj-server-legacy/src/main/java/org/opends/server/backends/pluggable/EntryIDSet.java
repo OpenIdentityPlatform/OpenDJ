@@ -466,7 +466,7 @@ final class EntryIDSet implements Iterable<EntryID>
 
       final long ids[] = new long[nbEntriesToDecode];
       for(int i = 0 ; i < nbEntriesToDecode ; i++) {
-        ids[i] = reader.getLong();
+        ids[i] = reader.readLong();
       }
       return ids;
     }
@@ -517,7 +517,7 @@ final class EntryIDSet implements Iterable<EntryID>
         return newUndefinedSetWithKey(key);
       }
       final ByteSequenceReader reader = value.asReader();
-      return newDefinedSet(decodeRaw(reader, (int) reader.getCompactUnsigned()));
+      return newDefinedSet(decodeRaw(reader, (int) reader.readCompactUnsigned()));
     }
 
     private static ByteStringBuilder append(ByteStringBuilder builder, EntryIDSet idSet)
@@ -557,9 +557,9 @@ final class EntryIDSet implements Iterable<EntryID>
         return EMPTY_LONG_ARRAY;
       }
       final long ids[] = new long[nbEntriesToDecode];
-      ids[0] = reader.getCompactUnsigned();
+      ids[0] = reader.readCompactUnsigned();
       for(int i = 1 ; i < nbEntriesToDecode ; i++) {
-        ids[i] = ids[i-1] + reader.getCompactUnsigned();
+        ids[i] = ids[i-1] + reader.readCompactUnsigned();
       }
       return ids;
     }

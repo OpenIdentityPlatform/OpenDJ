@@ -100,9 +100,9 @@ public class CSN implements Serializable, Comparable<CSN>
   public static CSN valueOf(ByteSequence bs)
   {
     ByteSequenceReader reader = bs.asReader();
-    long timeStamp = reader.getLong();
-    int serverId = reader.getShort() & 0xffff;
-    int seqnum = reader.getInt();
+    long timeStamp = reader.readLong();
+    int serverId = reader.readShort() & 0xffff;
+    int seqnum = reader.readInt();
     return new CSN(timeStamp, seqnum, serverId);
   }
 

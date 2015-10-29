@@ -299,7 +299,7 @@ public final class InternalLDAPInputStream
       }
     }
 
-    return 0xFF & messageReader.get();
+    return 0xFF & messageReader.readByte();
   }
 
 
@@ -382,7 +382,7 @@ public final class InternalLDAPInputStream
     }
 
     int actualLen = Math.min(len, messageReader.remaining());
-    messageReader.get(b, off, actualLen);
+    messageReader.readBytes(b, off, actualLen);
     return actualLen;
   }
 

@@ -115,12 +115,12 @@ public final class InternalLDAPOutputStream
       if(saveBufferReader.remaining() > 0)
       {
         // Try saved buffer first
-        return 0xFF & saveBufferReader.get();
+        return 0xFF & saveBufferReader.readByte();
       }
       if(byteBuffer.remaining() > 0)
       {
         // Must still be on the channel buffer
-        return 0xFF & byteBuffer.get();
+        return 0xFF & byteBuffer.readByte();
       }
 
       return -1;
@@ -143,7 +143,7 @@ public final class InternalLDAPOutputStream
       {
         // Copy out of the last saved buffer first
         len = Math.min(saveBufferReader.remaining(), length);
-        saveBufferReader.get(value, off, len);
+        saveBufferReader.readBytes(value, off, len);
         bytesCopied += len;
       }
       if(bytesCopied < length && byteBuffer.remaining() > 0)
@@ -151,7 +151,7 @@ public final class InternalLDAPOutputStream
         // Copy out of the channel buffer if we haven't got
         // everything we needed.
         len = Math.min(byteBuffer.remaining(), length - bytesCopied);
-        byteBuffer.get(value, off + bytesCopied, len);
+        byteBuffer.readBytes(value, off + bytesCopied, len);
         bytesCopied += len;
       }
       return bytesCopied;

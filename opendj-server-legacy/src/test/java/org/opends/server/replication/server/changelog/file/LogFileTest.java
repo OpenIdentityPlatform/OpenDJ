@@ -319,9 +319,9 @@ public class LogFileTest extends DirectoryServerTestCase
     public Record<String, String> decodeRecord(final ByteString data) throws DecodingException
     {
       ByteSequenceReader reader = data.asReader();
-      String key = reader.getString(getNextStringLength(reader));
+      String key = reader.readStringUtf8(getNextStringLength(reader));
       reader.skip(1);
-      String value = reader.getString(getNextStringLength(reader));
+      String value = reader.readStringUtf8(getNextStringLength(reader));
       return key.isEmpty() || value.isEmpty() ? null : Record.from(key, value);
     }
 

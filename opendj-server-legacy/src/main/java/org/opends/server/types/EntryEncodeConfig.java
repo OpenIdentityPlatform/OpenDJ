@@ -299,7 +299,7 @@ public final class EntryEncodeConfig
                      message);
     }
 
-    byte b = buffer.get();
+    byte b = buffer.readByte();
     boolean excludeDN = is(b, ENCODE_FLAG_EXCLUDE_DN);
     boolean compressAttrDescriptions = is(b, ENCODE_FLAG_COMPRESS_ADS);
     boolean compressObjectClassSets = is(b, ENCODE_FLAG_COMPRESS_OCS);

@@ -204,7 +204,7 @@ public class StartSessionMsg extends ReplicationMsg
     ByteSequenceReader reader = ByteString.wrap(in).asReader();
     try
     {
-      if (reader.get() != MSG_TYPE_START_SESSION)
+      if (reader.readByte() != MSG_TYPE_START_SESSION)
       {
         throw new DataFormatException("input is not a valid "
             + getClass().getCanonicalName());
@@ -216,10 +216,10 @@ public class StartSessionMsg extends ReplicationMsg
       assuredMode=AssuredMode.valueOf((asn1Reader.readOctetString().byteAt(0)));
       safeDataLevel = asn1Reader.readOctetString().byteAt(0);
       */
-      status = ServerStatus.valueOf(reader.get());
-      assuredFlag = reader.get() == 1;
-      assuredMode = AssuredMode.valueOf(reader.get());
-      safeDataLevel = reader.get();
+      status = ServerStatus.valueOf(reader.readByte());
+      assuredFlag = reader.readByte() == 1;
+      assuredMode = AssuredMode.valueOf(reader.readByte());
+      safeDataLevel = reader.readByte();
 
       ASN1Reader asn1Reader = ASN1.getReader(reader);
 

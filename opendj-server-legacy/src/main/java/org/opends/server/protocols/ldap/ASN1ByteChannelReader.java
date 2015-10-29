@@ -138,7 +138,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
       if(saveBufferReader.remaining() > 0)
       {
         // Try saved buffer first
-        return 0xFF & saveBufferReader.get();
+        return 0xFF & saveBufferReader.readByte();
       }
       if(byteBuffer.remaining() > 0)
       {
@@ -225,7 +225,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
       {
         // Copy out of the last saved buffer first
         getLen = Math.min(saveBufferReader.remaining(), len);
-        saveBufferReader.get(b, off, getLen);
+        saveBufferReader.readBytes(b, off, getLen);
         bytesCopied += getLen;
       }
       if(bytesCopied < len && byteBuffer.remaining() > 0)

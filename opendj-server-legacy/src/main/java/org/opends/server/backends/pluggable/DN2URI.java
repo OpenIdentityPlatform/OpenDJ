@@ -159,12 +159,12 @@ class DN2URI extends AbstractTree
 
   private DN decodeDN(ByteSequenceReader r, boolean decodeDN)
   {
-    final int dnLength = r.getInt();
+    final int dnLength = r.readInt();
     if (decodeDN)
     {
       try
       {
-        return DN.valueOf(r.getString(dnLength));
+        return DN.valueOf(r.readStringUtf8(dnLength));
       }
       catch (DirectoryException e)
       {
@@ -178,12 +178,12 @@ class DN2URI extends AbstractTree
 
   private List<String> decodeUris(ByteSequenceReader r)
   {
-    final int nbElems = r.getInt();
+    final int nbElems = r.readInt();
     List<String> results = new ArrayList<>(nbElems);
     for (int i = 0; i < nbElems; i++)
     {
-      final int stringLength = r.getInt();
-      results.add(r.getString(stringLength));
+      final int stringLength = r.readInt();
+      results.add(r.readStringUtf8(stringLength));
     }
     return results;
   }

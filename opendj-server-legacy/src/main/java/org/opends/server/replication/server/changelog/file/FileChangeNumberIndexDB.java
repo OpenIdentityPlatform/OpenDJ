@@ -423,10 +423,10 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
       try
       {
         ByteSequenceReader reader = data.asReader();
-        final long changeNumber = reader.getLong();
-        final DN baseDN = DN.valueOf(reader.getString(getNextStringLength(reader)));
+        final long changeNumber = reader.readLong();
+        final DN baseDN = DN.valueOf(reader.readStringUtf8(getNextStringLength(reader)));
         reader.skip(1);
-        final CSN csn = CSN.valueOf(reader.getByteString(reader.remaining()));
+        final CSN csn = CSN.valueOf(reader.readByteString(reader.remaining()));
 
         return Record.from(changeNumber, new ChangeNumberIndexRecord(changeNumber, baseDN, csn));
       }

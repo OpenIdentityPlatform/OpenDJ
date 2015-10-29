@@ -576,7 +576,7 @@ public final class DN implements Comparable<DN>, Serializable
     // rid of any leading spaces.
     ByteSequenceReader dnReader = dnString.asReader();
     b = ' ';
-    while (dnReader.remaining() > 0 && (b = dnReader.get()) == ' ')
+    while (dnReader.remaining() > 0 && (b = dnReader.readByte()) == ' ')
     {}
 
     if(b == ' ')
@@ -611,7 +611,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       // Skip over any spaces between the attribute name and its value.
       b = ' ';
-      while (dnReader.remaining() > 0 && (b = dnReader.get()) == ' ')
+      while (dnReader.remaining() > 0 && (b = dnReader.readByte()) == ' ')
       {}
 
 
@@ -635,7 +635,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       // Skip over any spaces after the equal sign.
       b = ' ';
-      while (dnReader.remaining() > 0 && (b = dnReader.get()) == ' ')
+      while (dnReader.remaining() > 0 && (b = dnReader.readByte()) == ' ')
       {}
 
 
@@ -662,7 +662,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       // Skip over any spaces that might be after the attribute value.
       b = ' ';
-      while (dnReader.remaining() > 0 && (b = dnReader.get()) == ' ')
+      while (dnReader.remaining() > 0 && (b = dnReader.readByte()) == ' ')
       {}
 
 
@@ -703,7 +703,7 @@ public final class DN implements Comparable<DN>, Serializable
         // before the next attribute name.
         b = ' ';
         while (dnReader.remaining() > 0 &&
-            (b = dnReader.get()) == ' ')
+            (b = dnReader.readByte()) == ' ')
         {}
 
         dnReader.skip(-1);
@@ -723,7 +723,7 @@ public final class DN implements Comparable<DN>, Serializable
         // Skip over any spaces between the attribute name and its value.
         b = ' ';
         while (dnReader.remaining() > 0 &&
-            (b = dnReader.get()) == ' ')
+            (b = dnReader.readByte()) == ' ')
         {}
 
         if(b == ' ')
@@ -748,7 +748,7 @@ public final class DN implements Comparable<DN>, Serializable
         // Skip over any spaces after the equal sign.
         b = ' ';
         while (dnReader.remaining() > 0 &&
-            (b = dnReader.get()) == ' ')
+            (b = dnReader.readByte()) == ' ')
         {}
 
 
@@ -777,7 +777,7 @@ public final class DN implements Comparable<DN>, Serializable
         // Skip over any spaces that might be after the attribute value.
         b = ' ';
         while (dnReader.remaining() > 0 &&
-            (b = dnReader.get()) == ' ')
+            (b = dnReader.readByte()) == ' ')
         {}
 
 
@@ -1166,7 +1166,7 @@ public final class DN implements Comparable<DN>, Serializable
           throws DirectoryException
   {
     // Skip over any leading spaces.
-    while(dnBytes.remaining() > 0 && dnBytes.get() == ' ')
+    while(dnBytes.remaining() > 0 && dnBytes.readByte() == ' ')
     {}
 
     if(dnBytes.remaining() <= 0)
@@ -1198,7 +1198,7 @@ public final class DN implements Comparable<DN>, Serializable
       // To make the switch more efficient, we'll include all ASCII
       // characters in the range of allowed values and then reject the
       // ones that aren't allowed.
-      byte b = dnBytes.get();
+      byte b = dnBytes.readByte();
       switch (b)
       {
         case ' ':
@@ -1394,8 +1394,7 @@ public final class DN implements Comparable<DN>, Serializable
       {
         int nameEndPos = dnBytes.position() - 1;
         dnBytes.position(nameStartPos);
-        nameBytes =
-            dnBytes.getByteString(nameEndPos - nameStartPos);
+        nameBytes = dnBytes.readByteString(nameEndPos - nameStartPos);
         break;
       }
     }
@@ -1925,7 +1924,7 @@ public final class DN implements Comparable<DN>, Serializable
 
     // Look at the first character.  If it is an octothorpe (#), then
     // that means that the value should be a hex string.
-    byte b = dnBytes.get();
+    byte b = dnBytes.readByte();
     if (b == '#')
     {
       // The first two characters must be hex characters.
@@ -1938,7 +1937,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       for (int i=0; i < 2; i++)
       {
-        b = dnBytes.get();
+        b = dnBytes.readByte();
         if (isHexDigit(b))
         {
           hexString.append((char) b);
@@ -1956,14 +1955,14 @@ public final class DN implements Comparable<DN>, Serializable
       // end of the DN, a comma or semicolon, a plus sign, or a space.
       while (dnBytes.remaining() > 0)
       {
-        b = dnBytes.get();
+        b = dnBytes.readByte();
         if (isHexDigit(b))
         {
           hexString.append((char) b);
 
           if (dnBytes.remaining() > 0)
           {
-            b = dnBytes.get();
+            b = dnBytes.readByte();
             if (isHexDigit(b))
             {
               hexString.append((char) b);
@@ -2028,7 +2027,7 @@ public final class DN implements Comparable<DN>, Serializable
               ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnBytes));
         }
 
-        if (dnBytes.get() == '"')
+        if (dnBytes.readByte() == '"')
         {
           // This is the end of the value.
           break;
@@ -2037,7 +2036,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       int valueEndPos = dnBytes.position();
       dnBytes.position(valueStartPos);
-      ByteString bs = dnBytes.getByteString(valueEndPos - valueStartPos - 1);
+      ByteString bs = dnBytes.readByteString(valueEndPos - valueStartPos - 1);
       dnBytes.skip(1);
       return bs;
     }
@@ -2066,7 +2065,7 @@ public final class DN implements Comparable<DN>, Serializable
           break;
         }
 
-        b = dnBytes.get();
+        b = dnBytes.readByte();
         if (b == ',' || b == ';' || b == '+')
         {
           dnBytes.skip(-1);
@@ -2082,7 +2081,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       // Convert the byte buffer to an array.
       dnBytes.position(valueStartPos);
-      return dnBytes.getByteString(valueEndPos - valueStartPos);
+      return dnBytes.readByteString(valueEndPos - valueStartPos);
     }
   }
 

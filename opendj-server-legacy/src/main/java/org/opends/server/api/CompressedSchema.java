@@ -89,9 +89,9 @@ public class CompressedSchema
       throws DirectoryException
   {
     // First decode the encoded attribute description id.
-    final int length = reader.getBERLength();
+    final int length = reader.readBERLength();
     final byte[] idBytes = new byte[length];
-    reader.get(idBytes);
+    reader.readBytes(idBytes);
     final int id = decodeId(idBytes);
 
     // Look up the attribute description.
@@ -114,14 +114,14 @@ public class CompressedSchema
     }
 
     // Determine the number of values for the attribute.
-    final int numValues = reader.getBERLength();
+    final int numValues = reader.readBERLength();
 
     // For the common case of a single value with no options, generate
     // less garbage.
     if (numValues == 1 && options.isEmpty())
     {
-      final int valueLength = reader.getBERLength();
-      final ByteSequence valueBytes = reader.getByteSequence(valueLength);
+      final int valueLength = reader.readBERLength();
+      final ByteSequence valueBytes = reader.readByteSequence(valueLength);
       return Attributes.create(attrType, valueBytes.toByteString());
     }
     else
@@ -131,8 +131,8 @@ public class CompressedSchema
       builder.setOptions(options);
       for (int i = 0; i < numValues; i++)
       {
-        final int valueLength = reader.getBERLength();
-        final ByteSequence valueBytes = reader.getByteSequence(valueLength);
+        final int valueLength = reader.readBERLength();
+        final ByteSequence valueBytes = reader.readByteSequence(valueLength);
         builder.add(valueBytes.toByteString());
       }
       return builder.toAttribute();
@@ -155,9 +155,9 @@ public class CompressedSchema
       final ByteSequenceReader reader) throws DirectoryException
   {
     // First decode the encoded object class id.
-    final int length = reader.getBERLength();
+    final int length = reader.readBERLength();
     final byte[] idBytes = new byte[length];
-    reader.get(idBytes);
+    reader.readBytes(idBytes);
     final int id = decodeId(idBytes);
 
     // Look up the object classes.

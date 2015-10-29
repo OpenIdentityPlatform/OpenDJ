@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -87,7 +87,7 @@ public class ByteArrayScanner
   {
     try
     {
-      return bytes.get();
+      return bytes.readByte();
     }
     catch (IndexOutOfBoundsException e)
     {
@@ -106,7 +106,7 @@ public class ByteArrayScanner
   {
     try
     {
-      return bytes.getShort();
+      return bytes.readShort();
     }
     catch (IndexOutOfBoundsException e)
     {
@@ -125,7 +125,7 @@ public class ByteArrayScanner
   {
     try
     {
-      return bytes.getInt();
+      return bytes.readInt();
     }
     catch (IndexOutOfBoundsException e)
     {
@@ -144,7 +144,7 @@ public class ByteArrayScanner
   {
     try
     {
-      return bytes.getLong();
+      return bytes.readLong();
     }
     catch (IndexOutOfBoundsException e)
     {
@@ -190,7 +190,7 @@ public class ByteArrayScanner
       final int offset = findZeroSeparator();
       if (offset > 0)
       {
-        final String s = bytes.getString(offset);
+        final String s = bytes.readStringUtf8(offset);
         skipZeroSeparator();
         return s;
       }
@@ -254,7 +254,7 @@ public class ByteArrayScanner
   {
     try
     {
-      return CSN.valueOf(bytes.getByteSequence(CSN.BYTE_ENCODING_LENGTH));
+      return CSN.valueOf(bytes.readByteSequence(CSN.BYTE_ENCODING_LENGTH));
     }
     catch (IndexOutOfBoundsException e)
     {

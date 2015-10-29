@@ -3478,7 +3478,7 @@ public class Entry
     {
       // The first byte must be the entry version.  If it's not one
       // we recognize, then that's an error.
-      Byte version = entryBuffer.get();
+      Byte version = entryBuffer.readByte();
       if (version != 0x03 && version != 0x02 && version != 0x01)
       {
         LocalizableMessage message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
@@ -3492,7 +3492,7 @@ public class Entry
       if(version != 0x01)
       {
         // Next is the length of the encoded configuration.
-        int configLength = entryBuffer.getBERLength();
+        int configLength = entryBuffer.readBERLength();
 
         // Next is the encoded configuration itself.
         config =
@@ -3515,11 +3515,11 @@ public class Entry
       {
         // Next is the length of the DN.  It may be a single byte or
         // multiple bytes.
-        int dnLength = entryBuffer.getBERLength();
+        int dnLength = entryBuffer.readBERLength();
 
 
         // Next is the DN itself.
-        ByteSequence dnBytes = entryBuffer.getByteSequence(dnLength);
+        ByteSequence dnBytes = entryBuffer.readByteSequence(dnLength);
         dn = DN.decode(dnBytes.toByteString());
       }
 
@@ -3589,7 +3589,7 @@ public class Entry
       {
         // Next is the length of the object classes. It may be a
         // single byte or multiple bytes.
-        int ocLength = entryBuffer.getBERLength();
+        int ocLength = entryBuffer.readBERLength();
 
         // The set of object classes will be encoded as a single
         // string with the object class names separated by zeros.
@@ -3597,7 +3597,7 @@ public class Entry
         int startPos = entryBuffer.position();
         for (int i=0; i < ocLength; i++)
         {
-          if (entryBuffer.get() == 0x00)
+          if (entryBuffer.readByte() == 0x00)
           {
             int endPos = entryBuffer.position() - 1;
             addObjectClass(objectClasses, entryBuffer, startPos, endPos);
@@ -3612,12 +3612,12 @@ public class Entry
       else
       {
         // Next is the number of zero terminated object classes.
-        int numOC = entryBuffer.getBERLength();
+        int numOC = entryBuffer.readBERLength();
         objectClasses = new LinkedHashMap<>(numOC);
         for(int i = 0; i < numOC; i++)
         {
           int startPos = entryBuffer.position();
-          while(entryBuffer.get() != 0x00)
+          while(entryBuffer.readByte() != 0x00)
           {}
           int endPos = entryBuffer.position() - 1;
           addObjectClass(objectClasses, entryBuffer, startPos, endPos);
@@ -3645,7 +3645,7 @@ public class Entry
       ByteSequenceReader entryBuffer, int startPos, int endPos)
   {
     entryBuffer.position(startPos);
-    final String ocName = entryBuffer.getString(endPos - startPos);
+    final String ocName = entryBuffer.readStringUtf8(endPos - startPos);
     final String lowerName = toLowerCase(ocName);
     final ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
     objectClasses.put(oc, ocName);
@@ -3670,7 +3670,7 @@ public class Entry
   {
     // Next is the total number of attributes.  It may be a
     // single byte or multiple bytes.
-    int attrs = entryBuffer.getBERLength();
+    int attrs = entryBuffer.readBERLength();
 
 
     // Now, we should iterate through the attributes and decode each one.
@@ -3682,7 +3682,7 @@ public class Entry
         if(ver < 0x03)
         {
           // Version 2 includes a total attribute length
-          entryBuffer.getBERLength();
+          entryBuffer.readBERLength();
         }
         // Decode the attribute.
         Attribute a = config.getCompressedSchema().decodeAttribute(entryBuffer);
@@ -3705,11 +3705,11 @@ public class Entry
 
         // First, we have the zero-terminated attribute name.
         startPos = entryBuffer.position();
-        while (entryBuffer.get() != 0x00)
+        while (entryBuffer.readByte() != 0x00)
         {}
         endPos = entryBuffer.position()-1;
         entryBuffer.position(startPos);
-        String name = entryBuffer.getString(endPos - startPos);
+        String name = entryBuffer.readStringUtf8(endPos - startPos);
         entryBuffer.skip(1);
 
         AttributeType attributeType;
@@ -3746,15 +3746,15 @@ public class Entry
 
 
         // Next, we have the number of values.
-        int numValues = entryBuffer.getBERLength();
+        int numValues = entryBuffer.readBERLength();
 
         // Next, we have the sequence of length-value pairs.
         for (int j=0; j < numValues; j++)
         {
-          int valueLength = entryBuffer.getBERLength();
+          int valueLength = entryBuffer.readBERLength();
 
           ByteString valueBytes =
-              entryBuffer.getByteSequence(valueLength).toByteString();
+              entryBuffer.readByteSequence(valueLength).toByteString();
           builder.add(valueBytes);
         }
 

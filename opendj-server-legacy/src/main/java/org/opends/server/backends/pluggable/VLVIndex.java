@@ -714,7 +714,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   static long decodeEntryIDFromVLVKey(final ByteString key)
   {
     final int sizeOfEncodedEntryID = 8;
-    return key.subSequence(key.length() - sizeOfEncodedEntryID, key.length()).asReader().getLong();
+    return key.subSequence(key.length() - sizeOfEncodedEntryID, key.length()).asReader().readLong();
   }
 
   private void logSearchKeyResult(final ByteString key)

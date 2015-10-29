@@ -66,7 +66,7 @@ final class ID2Count extends AbstractTree
           @Override
           public EntryID apply(ByteString value) throws Exception
           {
-            return new EntryID(value.asReader().getCompactUnsigned());
+            return new EntryID(value.asReader().readCompactUnsigned());
           }
         }, new CursorTransformer.ValueTransformer<ByteString, ByteString, Long, NeverThrowsException>()
         {
@@ -114,7 +114,7 @@ final class ID2Count extends AbstractTree
       @Override
       public ByteSequence computeNewValue(ByteSequence oldValue)
       {
-        final long currentValue = oldValue == null ? 0 : oldValue.asReader().getLong();
+        final long currentValue = oldValue == null ? 0 : oldValue.asReader().readLong();
         final long newValue = currentValue + delta;
         return newValue == 0 ? null : toValue(newValue);
       }
@@ -164,8 +164,8 @@ final class ID2Count extends AbstractTree
   public String keyToString(ByteString key)
   {
     ByteSequenceReader keyReader = key.asReader();
-    long keyID = keyReader.getCompactUnsigned();
-    long shardBucket = keyReader.getCompactUnsigned();
+    long keyID = keyReader.readCompactUnsigned();
+    long shardBucket = keyReader.readCompactUnsigned();
     return (keyID == TOTAL_COUNT_ENTRY_ID.longValue() ? "Total Children Count" : keyID) + "#" + shardBucket;
   }
 
@@ -235,7 +235,7 @@ final class ID2Count extends AbstractTree
       if (cursor.positionToKeyOrNext(encodedEntryID)) {
         // Iterate over and remove all the thread local shards
         while (cursor.isDefined() && cursor.getKey().startsWith(encodedEntryID)) {
-          counterValue += cursor.getValue().asReader().getLong();
+          counterValue += cursor.getValue().asReader().readLong();
           cursor.delete();
           cursor.next();
         }
