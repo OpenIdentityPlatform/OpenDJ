@@ -81,7 +81,7 @@ public class LDAPAttribute
   {
     this.attributeType = attributeType;
 
-    values = newArrayList(ByteString.valueOf(value));
+    values = newArrayList(ByteString.valueOfUtf8(value));
   }
 
 
@@ -120,7 +120,7 @@ public class LDAPAttribute
       this.values = new ArrayList<>(values.size());
       for (String value : values)
       {
-        this.values.add(ByteString.valueOf(value));
+        this.values.add(ByteString.valueOfUtf8(value));
       }
     }
   }

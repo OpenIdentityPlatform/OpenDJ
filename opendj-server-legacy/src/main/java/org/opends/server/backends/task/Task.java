@@ -847,7 +847,7 @@ public abstract class Task implements Comparable<Task>
           ATTR_TASK_LOG_MESSAGES.toLowerCase(), ATTR_TASK_LOG_MESSAGES);
 
       final List<Attribute> attrList = taskEntry.getAttribute(type);
-      ByteString value = ByteString.valueOf(messageString);
+      ByteString value = ByteString.valueOfUtf8(messageString);
       if (attrList == null)
       {
         taskEntry.putAttribute(type, newArrayList(Attributes.create(type, value)));

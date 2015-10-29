@@ -1771,7 +1771,7 @@ public class EntryContainer
     indexRemoveEntry(indexBuffer, entry, leafID);
 
     // Remove the id2c and id2s records for this entry.
-    final ByteString leafIDKeyBytes = ByteString.valueOf(leafID.longValue());
+    final ByteString leafIDKeyBytes = ByteString.valueOfLong(leafID.longValue());
     id2children.delete(indexBuffer, leafIDKeyBytes);
     id2subtree.delete(indexBuffer, leafIDKeyBytes);
 
@@ -1787,7 +1787,7 @@ public class EntryContainer
         throw new JebException(ERR_MISSING_DN2ID_RECORD.get(parentDN));
       }
 
-      ByteString parentIDBytes = ByteString.valueOf(parentID.longValue());
+      ByteString parentIDBytes = ByteString.valueOfLong(parentID.longValue());
       // Remove from id2children.
       if (isParent)
       {
@@ -2286,7 +2286,7 @@ public class EntryContainer
            dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
+        ByteString parentIDKeyBytes = ByteString.valueOfLong(parentID.longValue());
         if(isParent)
         {
           id2children.insertID(buffer, parentIDKeyBytes, newID);
@@ -2331,7 +2331,7 @@ public class EntryContainer
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
+        ByteString parentIDKeyBytes = ByteString.valueOfLong(parentID.longValue());
         if(isParent)
         {
           id2children.removeID(buffer, parentIDKeyBytes, oldID);
@@ -2345,7 +2345,7 @@ public class EntryContainer
     {
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
-      ByteString oldIDKeyBytes = ByteString.valueOf(oldID.longValue());
+      ByteString oldIDKeyBytes = ByteString.valueOfLong(oldID.longValue());
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 
@@ -2436,7 +2436,7 @@ public class EntryContainer
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
+        ByteString parentIDKeyBytes = ByteString.valueOfLong(parentID.longValue());
         id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
       }
     }
@@ -2445,7 +2445,7 @@ public class EntryContainer
     {
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
-      ByteString oldIDKeyBytes = ByteString.valueOf(oldID.longValue());
+      ByteString oldIDKeyBytes = ByteString.valueOfLong(oldID.longValue());
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 

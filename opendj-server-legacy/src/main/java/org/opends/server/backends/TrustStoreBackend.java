@@ -1013,7 +1013,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public static DN makeChildDN(DN parentDN, AttributeType rdnAttrType,
                                String rdnStringValue)
   {
-    ByteString attrValue = ByteString.valueOf(rdnStringValue);
+    ByteString attrValue = ByteString.valueOfUtf8(rdnStringValue);
     return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
 

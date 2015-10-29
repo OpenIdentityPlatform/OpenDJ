@@ -225,7 +225,7 @@ public final class TestEntry extends TypesTestCase {
         + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.45 )";
 
     AttributeType type = AttributeTypeSyntax.decodeAttributeType(
-        ByteString.valueOf(string),
+        ByteString.valueOfUtf8(string),
         DirectoryServer.getSchema(), false);
 
     // Test values.

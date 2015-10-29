@@ -1520,7 +1520,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                 AttributeType attr = rdn.getAttributeType(i);
                 attributeTypes.add(attr);
                 attributeNames.add(rdn.getAttributeName(i));
-                attributeValues.add(ByteString.valueOf(firstNonEmpty));
+                attributeValues.add(ByteString.valueOfUtf8(firstNonEmpty));
               }
             }
           }
@@ -1559,7 +1559,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                   {
                     attributeTypes.add(attr);
                     attributeNames.add(attrName);
-                    attributeValues.add(ByteString.valueOf((String) o));
+                    attributeValues.add(ByteString.valueOfUtf8((String) o));
                   }
                   break;
                 }

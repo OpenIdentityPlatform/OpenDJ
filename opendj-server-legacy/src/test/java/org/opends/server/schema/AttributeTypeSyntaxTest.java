@@ -136,7 +136,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 
 
     // Create an attribute type definition and verify that it is acceptable.
-    ByteString definition = ByteString.valueOf(
+    ByteString definition = ByteString.valueOfUtf8(
       "( testxapproxtype-oid NAME 'testXApproxType' " +
            "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
            "X-APPROX 'ds-mr-double-metaphone-approx' )");

@@ -174,7 +174,7 @@ public class AddMsg extends LDAPUpdateMsg
     AddOperation add =  new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDN.toString()), attr);
+        ByteString.valueOfUtf8(newDN.toString()), attr);
     AddContext ctx = new AddContext(getCSN(), getEntryUUID(), parentEntryUUID);
     add.setAttachment(SYNCHROCONTEXT, ctx);
     return add;

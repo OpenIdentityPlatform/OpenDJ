@@ -153,7 +153,7 @@ public class TemplateEntry
           return null;
         }
 
-        rdn = new RDN(t, ByteString.valueOf(v.getValue().toString()));
+        rdn = new RDN(t, ByteString.valueOfUtf8(v.getValue().toString()));
       }
       else
       {
@@ -169,7 +169,7 @@ public class TemplateEntry
           }
 
           names[i]  = t.getPrimaryName();
-          values[i] = ByteString.valueOf(v.getValue().toString());
+          values[i] = ByteString.valueOfUtf8(v.getValue().toString());
         }
 
         rdn = new RDN(rdnAttrs, names, values);
@@ -309,7 +309,7 @@ public class TemplateEntry
         AttributeBuilder base64Builder = null;
         for (TemplateValue v : valueList)
         {
-          ByteString value = ByteString.valueOf(v.getValue().toString());
+          ByteString value = ByteString.valueOfUtf8(v.getValue().toString());
           builder.add(value);
           if (v.getTemplateLine().isURL())
           {
@@ -350,7 +350,7 @@ public class TemplateEntry
     // First, write the DN.  It will always be included.
     StringBuilder dnLine = new StringBuilder("dn");
     appendLDIFSeparatorAndValue(dnLine,
-        ByteString.valueOf(getDN().toString()));
+        ByteString.valueOfUtf8(getDN().toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 

@@ -644,7 +644,7 @@ outerLoop:
 
     // Write the newRDN element.
     StringBuilder rdnLine = new StringBuilder("newrdn");
-    appendLDIFSeparatorAndValue(rdnLine, ByteString.valueOf(newRDN.toString()));
+    appendLDIFSeparatorAndValue(rdnLine, ByteString.valueOfUtf8(newRDN.toString()));
     writeLDIFLine(rdnLine, writer, wrapLines, wrapColumn);
 
 
@@ -668,7 +668,7 @@ outerLoop:
       boolean wrapLines, int wrapColumn) throws IOException
   {
     final StringBuilder newLine = new StringBuilder(attrType);
-    appendLDIFSeparatorAndValue(newLine, ByteString.valueOf(dn.toString()));
+    appendLDIFSeparatorAndValue(newLine, ByteString.valueOfUtf8(dn.toString()));
     writeLDIFLine(newLine, writer, wrapLines, wrapColumn);
   }
 

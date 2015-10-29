@@ -884,7 +884,7 @@ public abstract class ConfigAttribute
   static LinkedHashSet<ByteString> getValueSet(String value)
   {
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(1);
-    valueSet.add(ByteString.valueOf(value));
+    valueSet.add(ByteString.valueOfUtf8(value));
     return valueSet;
   }
 
@@ -905,7 +905,7 @@ public abstract class ConfigAttribute
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
     for (String value : values)
     {
-      valueSet.add(ByteString.valueOf(value));
+      valueSet.add(ByteString.valueOfUtf8(value));
     }
     return valueSet;
   }

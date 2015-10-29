@@ -192,7 +192,7 @@ public class SaltedSHA512PasswordStorageScheme
     System.arraycopy(saltBytes, 0, hashPlusSalt, digestBytes.length,
                      NUM_SALT_BYTES);
 
-    return ByteString.valueOf(Base64.encode(hashPlusSalt));
+    return ByteString.valueOfUtf8(Base64.encode(hashPlusSalt));
   }
 
 
@@ -250,7 +250,7 @@ public class SaltedSHA512PasswordStorageScheme
                      NUM_SALT_BYTES);
     buffer.append(Base64.encode(hashPlusSalt));
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 
@@ -389,7 +389,7 @@ public class SaltedSHA512PasswordStorageScheme
     authPWValue.append('$');
     authPWValue.append(Base64.encode(digestBytes));
 
-    return ByteString.valueOf(authPWValue);
+    return ByteString.valueOfUtf8(authPWValue);
   }
 
 

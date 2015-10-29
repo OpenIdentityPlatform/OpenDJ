@@ -1136,7 +1136,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setAccountExpirationTime(time);
           }
@@ -1181,7 +1181,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setPasswordChangedTime(time);
           }
@@ -1222,7 +1222,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setWarnedTime(time);
           }
@@ -1277,7 +1277,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             List<Long> authFailureTimes = pwpState.getAuthFailureTimes();
             ArrayList<Long> newFailureTimes = new ArrayList<>(authFailureTimes.size()+1);
@@ -1360,7 +1360,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setLastLoginTime(time);
           }
@@ -1456,7 +1456,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             List<Long> authFailureTimes = pwpState.getGraceLoginTimes();
             ArrayList<Long> newGraceTimes = new ArrayList<>(authFailureTimes.size()+1);
@@ -1535,7 +1535,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            ByteString valueString = ByteString.valueOfUtf8(opValues.get(0));
             long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setRequiredChangeTime(time);
           }

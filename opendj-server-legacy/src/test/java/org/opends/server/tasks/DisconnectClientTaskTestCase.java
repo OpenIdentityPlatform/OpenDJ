@@ -77,8 +77,8 @@ public class DisconnectClientTaskTestCase
         new org.opends.server.tools.LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -150,8 +150,8 @@ public class DisconnectClientTaskTestCase
         new org.opends.server.tools.LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 

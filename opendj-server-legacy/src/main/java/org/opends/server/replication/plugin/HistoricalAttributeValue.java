@@ -146,7 +146,7 @@ class HistoricalAttributeValue
       if (token.length == 4)
       {
         stringValue = token[3];
-        attributeValue = ByteString.valueOf(stringValue);
+        attributeValue = ByteString.valueOfUtf8(stringValue);
       }
       else
       {

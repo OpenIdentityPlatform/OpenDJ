@@ -587,7 +587,7 @@ public class ConfigFileHandler
       {
         try
         {
-          ByteString ts = ByteString.valueOf(name.substring(7, dotPos));
+          ByteString ts = ByteString.valueOfUtf8(name.substring(7, dotPos));
           long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
           if (timestamp > latestTimestamp)
           {
@@ -606,7 +606,7 @@ public class ConfigFileHandler
       {
         try
         {
-          ByteString ts = ByteString.valueOf(name.substring(7, dashPos));
+          ByteString ts = ByteString.valueOfUtf8(name.substring(7, dashPos));
           long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
           int counter = Integer.parseInt(name.substring(dashPos+1, dotPos));
 

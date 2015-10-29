@@ -55,7 +55,7 @@ public class ByteStringUtility
     {
       if (obj instanceof String)
       {
-        bs = ByteString.valueOf((String)obj);
+        bs = ByteString.valueOfUtf8((String)obj);
       }
       else if (obj instanceof byte [])
       {
@@ -86,7 +86,7 @@ public class ByteStringUtility
       else if (obj instanceof Element)
       {
         Element element = (Element) obj;
-        bs = ByteString.valueOf(element.getTextContent());
+        bs = ByteString.valueOfUtf8(element.getTextContent());
       }
     }
     return bs;

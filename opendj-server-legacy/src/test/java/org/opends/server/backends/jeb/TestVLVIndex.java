@@ -713,7 +713,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
   {
     final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
         .addControl(new ServerSideSortRequestControl(sortOrder))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("a")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("a")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -763,7 +763,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
   {
     final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
         .addControl(new ServerSideSortRequestControl(sortOrder))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("aaccf")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("aaccf")));
 
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -813,7 +813,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
   {
     final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
         .addControl(new ServerSideSortRequestControl(sortOrder))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("albert")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("albert")));
 
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -869,7 +869,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
   {
     final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
         .addControl(new ServerSideSortRequestControl(sortOrder))
-        .addControl(new VLVRequestControl(1, 3, ByteString.valueOf("albert")));
+        .addControl(new VLVRequestControl(1, 3, ByteString.valueOfUtf8("albert")));
 
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -926,7 +926,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
   {
     final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
         .addControl(new ServerSideSortRequestControl(sortOrder))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("zz")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("zz")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     // It will be successful because the control isn't critical.

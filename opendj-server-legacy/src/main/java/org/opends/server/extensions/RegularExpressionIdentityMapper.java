@@ -197,7 +197,7 @@ public class RegularExpressionIdentityMapper
     SearchFilter filter;
     if (attributeTypes.length == 1)
     {
-      ByteString value = ByteString.valueOf(processedID);
+      ByteString value = ByteString.valueOfUtf8(processedID);
       filter = SearchFilter.createEqualityFilter(attributeTypes[0], value);
     }
     else
@@ -205,7 +205,7 @@ public class RegularExpressionIdentityMapper
       ArrayList<SearchFilter> filterComps = new ArrayList<>(attributeTypes.length);
       for (AttributeType t : attributeTypes)
       {
-        ByteString value = ByteString.valueOf(processedID);
+        ByteString value = ByteString.valueOfUtf8(processedID);
         filterComps.add(SearchFilter.createEqualityFilter(t, value));
       }
 

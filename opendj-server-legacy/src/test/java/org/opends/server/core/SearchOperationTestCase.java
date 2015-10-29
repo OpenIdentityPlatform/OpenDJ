@@ -291,8 +291,8 @@ public class SearchOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(
-              ByteString.valueOf("cn=Directory Manager"),
-              3, ByteString.valueOf("password"));
+              ByteString.valueOfUtf8("cn=Directory Manager"),
+              3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -413,7 +413,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -432,7 +432,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -451,7 +451,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -475,7 +475,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -499,7 +499,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -523,7 +523,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -546,7 +546,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("uid", "createtimestamp");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -567,7 +567,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -589,7 +589,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -614,7 +614,7 @@ public class SearchOperationTestCase extends OperationTestCase
     LinkedHashSet<String> attributes = newLinkedHashSet("title;lang-ja;phonetic");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -640,7 +640,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
-              ByteString.valueOf(BASE),
+              ByteString.valueOfUtf8(BASE),
               SearchScope.WHOLE_SUBTREE,
               DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
@@ -1162,7 +1162,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     SearchRequestProtocolOp searchRequest =
       new SearchRequestProtocolOp(
-          ByteString.valueOf(userDNString),
+          ByteString.valueOfUtf8(userDNString),
           SearchScope.BASE_OBJECT,
           DereferenceAliasesPolicy.NEVER,
           Integer.MAX_VALUE,

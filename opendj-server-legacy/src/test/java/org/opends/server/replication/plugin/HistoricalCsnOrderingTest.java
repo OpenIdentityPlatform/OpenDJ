@@ -112,8 +112,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
 
-    ByteString v1 = ByteString.valueOf("a:" + del1);
-    ByteString v2 = ByteString.valueOf("a:" + del2);
+    ByteString v1 = ByteString.valueOfUtf8("a:" + del1);
+    ByteString v2 = ByteString.valueOfUtf8("a:" + del2);
 
     Assertion assert1 = rule.getAssertion(v2);
     assertEquals(assert1.matches(rule.normalizeAttributeValue(v1)), ConditionResult.TRUE);

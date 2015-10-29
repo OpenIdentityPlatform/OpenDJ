@@ -26,7 +26,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.ldap.ByteString.valueOf;
+import static org.forgerock.opendj.ldap.ByteString.valueOfUtf8;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
@@ -104,24 +104,24 @@ public class DefaultIndexTest extends DirectoryServerTestCase
     put(newDefinedSet(1, 2, 3, 4));
     update(newDefinedSet(1, 2, 3, 4), newDefinedSet());
 
-    assertThat(txn.read(index.getName(), valueOf("key"))).isNull();
+    assertThat(txn.read(index.getName(), valueOfUtf8("key"))).isNull();
   }
 
   private void update(EntryIDSet deletedIDSet, EntryIDSet addedIDSet) {
-    index.update(txn, valueOf("key"), deletedIDSet, addedIDSet);
+    index.update(txn, valueOfUtf8("key"), deletedIDSet, addedIDSet);
   }
 
   private void put(EntryIDSet idSet)
   {
-    txn.put(index.getName(), valueOf("key"), CODEC_V2.encode(idSet));
+    txn.put(index.getName(), valueOfUtf8("key"), CODEC_V2.encode(idSet));
   }
 
   private ByteString getFromDb() {
-    return txn.read(index.getName(), valueOf("key"));
+    return txn.read(index.getName(), valueOfUtf8("key"));
   }
 
   private EntryIDSet get() {
-    return CODEC_V2.decode(valueOf("key"), getFromDb());
+    return CODEC_V2.decode(valueOfUtf8("key"), getFromDb());
   }
 
   private static DefaultIndex newIndex(String name, int indexLimit, EnumSet<IndexFlag> indexFlags)

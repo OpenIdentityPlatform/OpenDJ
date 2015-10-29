@@ -123,7 +123,7 @@ public class DSMLModifyOperation
 
     }
 
-    ByteString dnStr = ByteString.valueOf(modifyRequest.getDn());
+    ByteString dnStr = ByteString.valueOfUtf8(modifyRequest.getDn());
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new ModifyRequestProtocolOp(dnStr, modifications);

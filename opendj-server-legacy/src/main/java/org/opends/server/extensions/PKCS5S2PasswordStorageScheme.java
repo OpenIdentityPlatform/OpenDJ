@@ -122,7 +122,7 @@ public class PKCS5S2PasswordStorageScheme
     byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes,random);
     byte[] hashPlusSalt = concatenateSaltPlusHash(saltBytes, digestBytes);
 
-    return ByteString.valueOf(Base64.encode(hashPlusSalt));
+    return ByteString.valueOfUtf8(Base64.encode(hashPlusSalt));
   }
 
   /** {@inheritDoc} */
@@ -130,7 +130,7 @@ public class PKCS5S2PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
       throws DirectoryException
   {
-    return ByteString.valueOf('{' + STORAGE_SCHEME_NAME_PKCS5S2 + '}' + encodePassword(plaintext));
+    return ByteString.valueOfUtf8('{' + STORAGE_SCHEME_NAME_PKCS5S2 + '}' + encodePassword(plaintext));
   }
 
   /** {@inheritDoc} */
@@ -186,7 +186,7 @@ public class PKCS5S2PasswordStorageScheme
     byte[] saltBytes      = new byte[NUM_SALT_BYTES];
     byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes,random);
     // Encode and return the value.
-    return ByteString.valueOf(AUTH_PASSWORD_SCHEME_NAME_PKCS5S2 + '$' + iterations
+    return ByteString.valueOfUtf8(AUTH_PASSWORD_SCHEME_NAME_PKCS5S2 + '$' + iterations
         + ':' + Base64.encode(saltBytes) + '$' + Base64.encode(digestBytes));
   }
 

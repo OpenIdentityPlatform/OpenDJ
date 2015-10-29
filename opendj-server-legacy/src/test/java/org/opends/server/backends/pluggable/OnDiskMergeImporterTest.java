@@ -282,7 +282,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   public void testExternalSortChunk() throws Exception
   {
     final int NB_REGION = 10;
-    final ByteString KEY = ByteString.valueOf("key");
+    final ByteString KEY = ByteString.valueOfUtf8("key");
     final File tempDir = TestCaseUtils.createTemporaryDirectory("testExternalSortChunk");
     try(final BufferPool bufferPool = new BufferPool(2, 4 + 1 + KEY.length() + 1 + 4)) {
       // 4: record offset, 1: key length, 1: value length, 4: value
@@ -292,7 +292,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
       List<ByteString> expected = new ArrayList<>(NB_REGION);
       for (int i = 0; i < NB_REGION; i++)
       {
-        final ByteString value = ByteString.valueOf(String.format("%02d", i));
+        final ByteString value = ByteString.valueOfUtf8(String.format("%02d", i));
         chunk.put(KEY, value);
         expected.add(value);
       }
@@ -310,7 +310,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     final List<Pair<ByteString, ByteString>> content = new ArrayList<>(data.length);
     for (String[] keyValue : data)
     {
-      content.add(Pair.of(ByteString.valueOf(keyValue[0]), ByteString.valueOf(keyValue[1])));
+      content.add(Pair.of(ByteString.valueOfUtf8(keyValue[0]), ByteString.valueOfUtf8(keyValue[1])));
     }
     return content;
   }

@@ -48,7 +48,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class TestSearchProtocolOp extends LdapTestCase
 {
-  private ByteString baseDN = ByteString.valueOf("dc=example,dc=COM");
+  private ByteString baseDN = ByteString.valueOfUtf8("dc=example,dc=COM");
   private SearchScope scope = SearchScope.WHOLE_SUBTREE;
   private DereferenceAliasesPolicy dereferencePolicy =
       DereferenceAliasesPolicy.IN_SEARCHING;

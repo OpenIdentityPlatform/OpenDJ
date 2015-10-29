@@ -88,7 +88,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
   private static final String DESCRIPTION = "description";
   private static final String ETAG = "etag";
 
-  private final ByteString dummyValue = ByteString.valueOf("dummy");
+  private final ByteString dummyValue = ByteString.valueOfUtf8("dummy");
   private final EntityTagVirtualAttributeProvider provider = new EntityTagVirtualAttributeProvider();
   private boolean changeListenerRemoved;
   private boolean changeListenerAdded;
@@ -515,7 +515,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     // Apply a change using the assertion control for optimistic concurrency.
     Attribute attr = Attributes.create(DESCRIPTION, "first modify");
     List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
-    Control c = new LDAPAssertionRequestControl(true, LDAPFilter.createEqualityFilter(ETAG, ByteString.valueOf(etag1)));
+    Control c = new LDAPAssertionRequestControl(true, LDAPFilter.createEqualityFilter(ETAG, ByteString.valueOfUtf8(etag1)));
     List<Control> ctrls = Collections.singletonList(c);
     ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

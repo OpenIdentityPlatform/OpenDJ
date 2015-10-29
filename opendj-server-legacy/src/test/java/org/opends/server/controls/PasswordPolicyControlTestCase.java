@@ -111,8 +111,8 @@ public class PasswordPolicyControlTestCase
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest, controls);
       w.writeMessage(message);
 
@@ -132,7 +132,7 @@ public class PasswordPolicyControlTestCase
       rawAttrs.add(RawAttribute.create("ou", "People"));
 
       AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
-           ByteString.valueOf("ou=People,o=test"), rawAttrs);
+           ByteString.valueOfUtf8("ou=People,o=test"), rawAttrs);
 
       controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -179,8 +179,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("cn=Directory Manager"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("cn=Directory Manager"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -199,7 +199,7 @@ public class PasswordPolicyControlTestCase
                         "{SSHA}0pZPpMIm6xSBIW4hGvR/72fjO4M9p3Ff1g7QFw=="));
 
       AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
-           ByteString.valueOf("ou=uid=test.user,o=test"), rawAttrs);
+           ByteString.valueOfUtf8("ou=uid=test.user,o=test"), rawAttrs);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -269,8 +269,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("cn=Directory Manager"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("cn=Directory Manager"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -288,7 +288,7 @@ public class PasswordPolicyControlTestCase
       rawAttrs.add(RawAttribute.create("userPassword", "short"));
 
       AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
-           ByteString.valueOf("ou=uid=test.user,o=test"), rawAttrs);
+           ByteString.valueOfUtf8("ou=uid=test.user,o=test"), rawAttrs);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -351,8 +351,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("wrong"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("wrong"));
 
       for (int i=1; i <= 3; i++)
       {
@@ -365,8 +365,8 @@ public class PasswordPolicyControlTestCase
       }
 
       bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -427,8 +427,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -438,8 +438,8 @@ public class PasswordPolicyControlTestCase
 
 
       CompareRequestProtocolOp compareRequest =
-           new CompareRequestProtocolOp(ByteString.valueOf("o=test"), "o",
-                                        ByteString.valueOf("test"));
+           new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o",
+                                        ByteString.valueOfUtf8("test"));
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -507,8 +507,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -518,7 +518,7 @@ public class PasswordPolicyControlTestCase
 
 
       DeleteRequestProtocolOp deleteRequest =
-           new DeleteRequestProtocolOp(ByteString.valueOf("ou=People,o=test"));
+           new DeleteRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"));
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -628,8 +628,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf(userDN), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8(userDN), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -643,7 +643,7 @@ public class PasswordPolicyControlTestCase
                                       "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(ByteString.valueOf(entryDN), mods);
+           new ModifyRequestProtocolOp(ByteString.valueOfUtf8(entryDN), mods);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -773,8 +773,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf(userDN), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8(userDN), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -788,12 +788,12 @@ public class PasswordPolicyControlTestCase
                                       "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(ByteString.valueOf(entryDN), mods);
+           new ModifyRequestProtocolOp(ByteString.valueOfUtf8(entryDN), mods);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
       controls.add(new LDAPControl(OID_PROXIED_AUTH_V2, true,
-          ByteString.valueOf("dn:" + authzDN)));
+          ByteString.valueOfUtf8("dn:" + authzDN)));
 
       message = new LDAPMessage(2, modifyRequest, controls);
       w.writeMessage(message);
@@ -856,8 +856,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -872,7 +872,7 @@ public class PasswordPolicyControlTestCase
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(
-                    ByteString.valueOf("uid=test.user,o=test"), mods);
+                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -934,8 +934,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -950,7 +950,7 @@ public class PasswordPolicyControlTestCase
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(
-                    ByteString.valueOf("uid=test.user,o=test"), mods);
+                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -1014,8 +1014,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -1030,7 +1030,7 @@ public class PasswordPolicyControlTestCase
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(
-                    ByteString.valueOf("uid=test.user,o=test"), mods);
+                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -1094,8 +1094,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -1110,7 +1110,7 @@ public class PasswordPolicyControlTestCase
 
       ModifyRequestProtocolOp modifyRequest =
            new ModifyRequestProtocolOp(
-                    ByteString.valueOf("uid=test.user,o=test"), mods);
+                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -1178,8 +1178,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -1190,8 +1190,8 @@ public class PasswordPolicyControlTestCase
 
       ModifyDNRequestProtocolOp modifyDNRequest =
            new ModifyDNRequestProtocolOp(
-                    ByteString.valueOf("ou=People,o=test"),
-                    ByteString.valueOf("ou=Users"), true);
+                    ByteString.valueOfUtf8("ou=People,o=test"),
+                    ByteString.valueOfUtf8("ou=Users"), true);
 
       List<Control> controls = new ArrayList<>();
       controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
@@ -1252,8 +1252,8 @@ public class PasswordPolicyControlTestCase
     try
     {
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -1263,7 +1263,7 @@ public class PasswordPolicyControlTestCase
 
 
       SearchRequestProtocolOp searchRequest =
-           new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
+           new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
                                        SearchScope.BASE_OBJECT,
                                        DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                        LDAPFilter.objectClassPresent(),

@@ -1201,7 +1201,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {
-      attr.contains(ByteString.valueOf(value));
+      attr.contains(ByteString.valueOfUtf8(value));
     }
   }
 

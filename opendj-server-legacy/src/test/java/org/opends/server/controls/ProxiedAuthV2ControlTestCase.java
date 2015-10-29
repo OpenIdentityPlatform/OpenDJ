@@ -83,8 +83,8 @@ public class ProxiedAuthV2ControlTestCase
   public void testConstructorEmptyAuthzID()
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf(""));
-    assertEquals(proxyControl.getAuthorizationID(), ByteString.valueOf(""));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8(""));
+    assertEquals(proxyControl.getAuthorizationID(), ByteString.valueOfUtf8(""));
   }
 
 
@@ -97,9 +97,9 @@ public class ProxiedAuthV2ControlTestCase
   public void testConstructorNonEmptyAuthzIDDN()
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationID(),
-                 ByteString.valueOf("dn:uid=test,o=test"));
+                 ByteString.valueOfUtf8("dn:uid=test,o=test"));
   }
 
 
@@ -112,9 +112,9 @@ public class ProxiedAuthV2ControlTestCase
   public void testConstructorNonEmptyAuthzIDUsername()
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("u:test"));
     assertEquals(proxyControl.getAuthorizationID(),
-                 ByteString.valueOf("u:test"));
+                 ByteString.valueOfUtf8("u:test"));
   }
 
 
@@ -130,7 +130,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, false,
-                            ByteString.valueOf("u:test"));
+                            ByteString.valueOfUtf8("u:test"));
     ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
   }
 
@@ -162,7 +162,7 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlDNValue()
          throws Exception
   {
-    ByteString authzID = ByteString.valueOf("dn:uid=test,o=test");
+    ByteString authzID = ByteString.valueOfUtf8("dn:uid=test,o=test");
 
     LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, authzID);
     ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
@@ -181,7 +181,7 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlUsernameValue()
          throws Exception
   {
-    ByteString authzID = ByteString.valueOf("u:test");
+    ByteString authzID = ByteString.valueOfUtf8("u:test");
 
     LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, authzID);
     ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
@@ -200,7 +200,7 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlInvalidValue()
          throws Exception
   {
-    ByteString authzID = ByteString.valueOf("invalid");
+    ByteString authzID = ByteString.valueOfUtf8("invalid");
 
     LDAPControl c = new LDAPControl(OID_PROXIED_AUTH_V2, true, authzID);
     ProxiedAuthV2Control proxyControl = ProxiedAuthV2Control.DECODER.decode(c.isCritical(), c.getValue());
@@ -220,7 +220,7 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlLegacyDNValue()
          throws Exception
   {
-    ByteString innerValue = ByteString.valueOf("dn:uid=test,o=test");
+    ByteString innerValue = ByteString.valueOfUtf8("dn:uid=test,o=test");
     ByteStringBuilder bsb = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(bsb);
     writer.writeOctetString(innerValue);
@@ -244,7 +244,7 @@ public class ProxiedAuthV2ControlTestCase
   public void testDecodeControlLegacyUsernameValue()
          throws Exception
   {
-    ByteString innerValue = ByteString.valueOf("u:test");
+    ByteString innerValue = ByteString.valueOfUtf8("u:test");
     ByteStringBuilder bsb = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(bsb);
     writer.writeOctetString(innerValue);
@@ -268,7 +268,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf(""));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8(""));
     assertNull(proxyControl.getAuthorizationEntry());
   }
 
@@ -285,7 +285,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("dn:"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:"));
     assertNull(proxyControl.getAuthorizationEntry());
   }
 
@@ -314,7 +314,7 @@ public class ProxiedAuthV2ControlTestCase
       "cn: Test User");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationEntry().getName(),
                  DN.valueOf("uid=test,o=test"));
   }
@@ -334,7 +334,7 @@ public class ProxiedAuthV2ControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test,o=test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -365,7 +365,7 @@ public class ProxiedAuthV2ControlTestCase
       "ds-pwp-account-disabled: true");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test,o=test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -382,7 +382,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("u:"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("u:"));
     assertNull(proxyControl.getAuthorizationEntry());
   }
 
@@ -411,7 +411,7 @@ public class ProxiedAuthV2ControlTestCase
       "cn: Test User");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("u:test"));
     assertEquals(proxyControl.getAuthorizationEntry().getName(),
                  DN.valueOf("uid=test,o=test"));
   }
@@ -431,7 +431,7 @@ public class ProxiedAuthV2ControlTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("u:test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -462,7 +462,7 @@ public class ProxiedAuthV2ControlTestCase
       "ds-pwp-account-disabled: true");
 
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("u:test"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -479,7 +479,7 @@ public class ProxiedAuthV2ControlTestCase
          throws Exception
   {
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("invalid"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("invalid"));
     proxyControl.getAuthorizationEntry();
   }
 
@@ -497,10 +497,10 @@ public class ProxiedAuthV2ControlTestCase
     // The default toString() calls the version that takes a string builder
     // argument, so we only need to use the default version to cover both cases.
     ProxiedAuthV2Control proxyControl =
-         new ProxiedAuthV2Control(ByteString.valueOf("dn:uid=test,o=test"));
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test,o=test"));
     proxyControl.toString();
 
-    proxyControl = new ProxiedAuthV2Control(ByteString.valueOf("u:test"));
+    proxyControl = new ProxiedAuthV2Control(ByteString.valueOfUtf8("u:test"));
     proxyControl.toString();
   }
 }

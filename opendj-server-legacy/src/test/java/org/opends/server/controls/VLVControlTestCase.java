@@ -284,7 +284,7 @@ public class VLVControlTestCase
               throws Exception
   {
     VLVRequestControl vlvRequest =
-         new VLVRequestControl(true, 0, 9, 1, 0, ByteString.valueOf("foo"));
+         new VLVRequestControl(true, 0, 9, 1, 0, ByteString.valueOfUtf8("foo"));
 
     assertEquals(vlvRequest.isCritical(), true);
     assertEquals(vlvRequest.getBeforeCount(), 0);
@@ -310,7 +310,7 @@ public class VLVControlTestCase
               throws Exception
   {
     VLVRequestControl vlvRequest =
-         new VLVRequestControl(0, 9, ByteString.valueOf("a"));
+         new VLVRequestControl(0, 9, ByteString.valueOfUtf8("a"));
 
     assertEquals(vlvRequest.isCritical(), false);
     assertEquals(vlvRequest.getBeforeCount(), 0);
@@ -336,7 +336,7 @@ public class VLVControlTestCase
               throws Exception
   {
     VLVRequestControl vlvRequest =
-         new VLVRequestControl(true, 0, 9, ByteString.valueOf("a"), null);
+         new VLVRequestControl(true, 0, 9, ByteString.valueOfUtf8("a"), null);
 
     assertEquals(vlvRequest.isCritical(), true);
     assertEquals(vlvRequest.getBeforeCount(), 0);
@@ -362,8 +362,8 @@ public class VLVControlTestCase
               throws Exception
   {
     VLVRequestControl vlvRequest =
-         new VLVRequestControl(true, 0, 9, ByteString.valueOf("a"),
-                               ByteString.valueOf("foo"));
+         new VLVRequestControl(true, 0, 9, ByteString.valueOfUtf8("a"),
+                               ByteString.valueOfUtf8("foo"));
 
     assertEquals(vlvRequest.isCritical(), true);
     assertEquals(vlvRequest.getBeforeCount(), 0);
@@ -388,7 +388,7 @@ public class VLVControlTestCase
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);
     VLVResponseControl vlvResponse = new VLVResponseControl(true, 0, 15, 0,
-        ByteString.valueOf("foo"));
+        ByteString.valueOfUtf8("foo"));
     vlvResponse.writeValue(writer);
 
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
@@ -466,7 +466,7 @@ public class VLVControlTestCase
          throws Exception
   {
     VLVResponseControl vlvResponse =
-         new VLVResponseControl(true, 0, 15, 0, ByteString.valueOf("foo"));
+         new VLVResponseControl(true, 0, 15, 0, ByteString.valueOfUtf8("foo"));
 
     assertEquals(vlvResponse.isCritical(), true);
     assertEquals(vlvResponse.getTargetPosition(), 0);
@@ -823,7 +823,7 @@ public class VLVControlTestCase
 
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
         .addControl(new ServerSideSortRequestControl("givenName"))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("a")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("a")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -883,7 +883,7 @@ public class VLVControlTestCase
 
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
         .addControl(new ServerSideSortRequestControl("givenName"))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("aaccf")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("aaccf")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -945,7 +945,7 @@ public class VLVControlTestCase
 
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
         .addControl(new ServerSideSortRequestControl("givenName"))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("albert")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("albert")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -1007,7 +1007,7 @@ public class VLVControlTestCase
 
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
         .addControl(new ServerSideSortRequestControl("givenName"))
-        .addControl(new VLVRequestControl(1, 3, ByteString.valueOf("albert")));
+        .addControl(new VLVRequestControl(1, 3, ByteString.valueOfUtf8("albert")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -1075,7 +1075,7 @@ public class VLVControlTestCase
 
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
         .addControl(new ServerSideSortRequestControl("sn"))
-        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("zz")));
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOfUtf8("zz")));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     // It will be successful because the control isn't critical.

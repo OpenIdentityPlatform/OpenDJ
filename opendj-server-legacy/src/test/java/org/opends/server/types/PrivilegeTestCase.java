@@ -428,7 +428,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
     AttributeType cnAttrType = DirectoryServer.getAttributeTypeOrNull("cn");
     CompareOperation compareOperation = conn.processCompare(
-        DN.valueOf("cn=config"), cnAttrType, ByteString.valueOf("config"));
+        DN.valueOf("cn=config"), cnAttrType, ByteString.valueOfUtf8("config"));
     if (hasPrivilege)
     {
       assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);
@@ -1266,7 +1266,7 @@ public class PrivilegeTestCase extends TypesTestCase
                               nextOperationID(), nextMessageID(),
                               controls, targetDN,
                               DirectoryServer.getAttributeTypeOrDefault("cn"),
-                              ByteString.valueOf("PWReset Target"));
+                              ByteString.valueOfUtf8("PWReset Target"));
     compareOperation.run();
     if (hasProxyPrivilege)
     {
@@ -1320,7 +1320,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "sn: Test");
 
     List<Control> controls = new ArrayList<>(1);
-    controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:cn=PWReset Target,o=test")));
+    controls.add(new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:cn=PWReset Target,o=test")));
 
 
     // Try to add the entry.  If this fails with the proxy control, then add it
@@ -1405,14 +1405,14 @@ public class PrivilegeTestCase extends TypesTestCase
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
     List<Control> controls = new ArrayList<>(1);
-    controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
+    controls.add(new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:" + targetDN)));
 
 
     // Test a compare operation against the PWReset Target user.
     CompareOperation compareOperation = new CompareOperationBasis(conn, nextOperationID(),
                               nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeTypeOrDefault("cn"),
-             ByteString.valueOf("PWReset Target"));
+             ByteString.valueOfUtf8("PWReset Target"));
     compareOperation.run();
     if (hasProxyPrivilege)
     {
@@ -2267,8 +2267,8 @@ public class PrivilegeTestCase extends TypesTestCase
       LDAPWriter w = new LDAPWriter(s);
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-          ByteString.valueOf("cn=Test User,o=test"), 3,
-          ByteString.valueOf("password"));
+          ByteString.valueOfUtf8("cn=Test User,o=test"), 3,
+          ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 

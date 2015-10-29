@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -238,10 +238,10 @@ public final class Adapters {
             @Override
             public Result modifyDN(final ModifyDNRequest request) throws LdapException {
                 final ModifyDNOperation modifyDNOperation =
-                        icc.processModifyDN(valueOf(request.getName()),
-                                valueOf(request.getNewRDN()),
+                        icc.processModifyDN(valueOfObject(request.getName()),
+                                valueOfObject(request.getNewRDN()),
                                 request.isDeleteOldRDN(),
-                                request.getNewSuperior() != null ? valueOf(request.getNewSuperior()) : null,
+                                request.getNewSuperior() != null ? valueOfObject(request.getNewSuperior()) : null,
                                 to(request.getControls()));
                 return getResponseResult(modifyDNOperation);
             }
@@ -249,7 +249,7 @@ public final class Adapters {
             @Override
             public Result modify(final ModifyRequest request) throws LdapException {
                 final ModifyOperation modifyOperation =
-                        icc.processModify(valueOf(request.getName()), toRawModifications(request
+                        icc.processModify(valueOfObject(request.getName()), toRawModifications(request
                                 .getModifications()), to(request.getControls()));
                 return getResponseResult(modifyOperation);
             }
@@ -300,14 +300,14 @@ public final class Adapters {
             @Override
             public Result delete(final DeleteRequest request) throws LdapException {
                 final DeleteOperation deleteOperation =
-                        icc.processDelete(valueOf(request.getName()), to(request.getControls()));
+                        icc.processDelete(valueOfObject(request.getName()), to(request.getControls()));
                 return getResponseResult(deleteOperation);
             }
 
             @Override
             public CompareResult compare(final CompareRequest request) throws LdapException {
                 final CompareOperation compareOperation =
-                        icc.processCompare(valueOf(request.getName()),
+                        icc.processCompare(valueOfObject(request.getName()),
                                 request.getAttributeDescription().toString(),
                                 request.getAssertionValue(), to(request.getControls()));
 
@@ -325,7 +325,7 @@ public final class Adapters {
                 BindOperation bindOperation = null;
                 if (request instanceof SimpleBindRequest) {
                     bindOperation =
-                            icc.processSimpleBind(valueOf(request.getName()),
+                            icc.processSimpleBind(valueOfUtf8(request.getName()),
                                     ByteString.wrap(((SimpleBindRequest) request).getPassword()),
                                     to(request.getControls()));
                 } else if (request instanceof SASLBindRequest) {
@@ -340,7 +340,7 @@ public final class Adapters {
                         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
                         bindOperation =
                                 icc.processSASLBind(
-                                        valueOf(request.getName()),
+                                        valueOfUtf8(request.getName()),
                                         ((SASLBindRequest) request).getSASLMechanism(),
                                         getCredentials(genericBindRequest.getAuthenticationValue()),
                                         to(request.getControls()));
@@ -369,7 +369,7 @@ public final class Adapters {
             @Override
             public Result add(final AddRequest request) throws LdapException {
                 final AddOperation addOperation =
-                        icc.processAdd(valueOf(request.getName()), to(request
+                        icc.processAdd(valueOfObject(request.getName()), to(request
                                 .getAllAttributes()), to(request.getControls()));
                 return getResponseResult(addOperation);
             }

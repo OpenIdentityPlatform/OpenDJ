@@ -90,7 +90,7 @@ public class DSMLAddOperation
     LDAPResult addResponse = objFactory.createLDAPResult();
     addResponse.setRequestID(addRequest.getRequestID());
 
-    ByteString dnStr = ByteString.valueOf(addRequest.getDn());
+    ByteString dnStr = ByteString.valueOfUtf8(addRequest.getDn());
     ArrayList<RawAttribute> attributes = new ArrayList<>();
 
     List<DsmlAttr> addList = addRequest.getAttr();

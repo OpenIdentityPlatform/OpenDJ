@@ -1125,7 +1125,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     InternalSearchOperation operation = getRootConnection().processSearch(request);
     for (SearchResultEntry entry : operation.getSearchEntries()) {
       for(String dn : dns) {
-        ByteString value = ByteString.valueOf(dn);
+        ByteString value = ByteString.valueOfUtf8(dn);
         assertEquals(entry.hasValue(type, null, value), expected);
       }
     }

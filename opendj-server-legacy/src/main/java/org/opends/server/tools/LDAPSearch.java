@@ -138,7 +138,7 @@ public class LDAPSearch
 
     for (LDAPFilter filter: filters)
     {
-      ByteString asn1OctetStr = ByteString.valueOf(baseDN);
+      ByteString asn1OctetStr = ByteString.valueOfUtf8(baseDN);
 
       SearchRequestProtocolOp protocolOp =
         new SearchRequestProtocolOp(asn1OctetStr,
@@ -1267,7 +1267,7 @@ public class LDAPSearch
     {
       Control proxyControl =
           new ProxiedAuthV2Control(true,
-              ByteString.valueOf(proxyAuthzID.getValue()));
+              ByteString.valueOfUtf8(proxyAuthzID.getValue()));
       searchOptions.getControls().add(proxyControl);
     }
 
@@ -1459,7 +1459,7 @@ public class LDAPSearch
         {
           int beforeCount = Integer.parseInt(tokenizer.nextToken());
           int afterCount  = Integer.parseInt(tokenizer.nextToken());
-          ByteString assertionValue = ByteString.valueOf(tokenizer.nextToken());
+          ByteString assertionValue = ByteString.valueOfUtf8(tokenizer.nextToken());
           searchOptions.getControls().add(
               new VLVRequestControl(beforeCount, afterCount, assertionValue));
         }

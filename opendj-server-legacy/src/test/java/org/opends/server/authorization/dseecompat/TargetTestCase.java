@@ -426,7 +426,7 @@ public class TargetTestCase extends AciTestCase
   public void applicableTargets(String aciDN, String aciString, String entryDN)
        throws Exception
   {
-    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.valueOf(aciDN));
+    Aci aci = Aci.decode(ByteString.valueOfUtf8(aciString), DN.valueOf(aciDN));
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
                                                   DN.valueOf(entryDN));
@@ -440,7 +440,7 @@ public class TargetTestCase extends AciTestCase
                                    String entryDN)
        throws Exception
   {
-    Aci aci = Aci.decode(ByteString.valueOf(aciString), DN.valueOf(aciDN));
+    Aci aci = Aci.decode(ByteString.valueOfUtf8(aciString), DN.valueOf(aciDN));
     boolean match = AciTargets.isTargetApplicable(aci,
                                                   aci.getTargets(),
                                                   DN.valueOf(entryDN));

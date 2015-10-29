@@ -2125,7 +2125,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     try
     {
       filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
-          ByteString.valueOf(freedDN.toString())).toSearchFilter();
+          ByteString.valueOfUtf8(freedDN.toString())).toSearchFilter();
     }
     catch (DirectoryException e)
     {
@@ -3190,7 +3190,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   private ResultCode runSaveGenerationId(DN entryDN, long generationId)
   {
     // The generationId is stored in the root entry of the domain.
-    final ByteString asn1BaseDn = ByteString.valueOf(entryDN.toString());
+    final ByteString asn1BaseDn = ByteString.valueOfUtf8(entryDN.toString());
 
     LDAPAttribute attr = new LDAPAttribute(REPLICATION_GENERATION_ID, Long.toString(generationId));
     List<RawModification> mods = new ArrayList<>(1);

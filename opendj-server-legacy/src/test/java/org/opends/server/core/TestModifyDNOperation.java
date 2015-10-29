@@ -299,7 +299,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
   private ByteString b(String s)
   {
-    return s != null ? ByteString.valueOf(s) : null;
+    return s != null ? ByteString.valueOfUtf8(s) : null;
   }
 
   private DN dn(String s) throws DirectoryException

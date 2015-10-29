@@ -1953,7 +1953,7 @@ public final class Schema
   private AttributeType recreateFromDefinition(AttributeType attrType)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(attrType.toString());
+    ByteString value = ByteString.valueOfUtf8(attrType.toString());
     AttributeType copy =
         AttributeTypeSyntax.decodeAttributeType(value, this, false);
     setSchemaFile(copy, getSchemaFile(attrType));
@@ -1967,7 +1967,7 @@ public final class Schema
   private DITContentRule recreateFromDefinition(DITContentRule dcr)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(dcr.toString());
+    ByteString value = ByteString.valueOfUtf8(dcr.toString());
     DITContentRule copy =
         DITContentRuleSyntax.decodeDITContentRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dcr));
@@ -1977,7 +1977,7 @@ public final class Schema
   private DITStructureRule recreateFromDefinition(DITStructureRule dsr)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(dsr.toString());
+    ByteString value = ByteString.valueOfUtf8(dsr.toString());
     DITStructureRule copy =
         DITStructureRuleSyntax.decodeDITStructureRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dsr));
@@ -1987,7 +1987,7 @@ public final class Schema
   private MatchingRuleUse recreateFromDefinition(MatchingRuleUse mru)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(mru.toString());
+    ByteString value = ByteString.valueOfUtf8(mru.toString());
     MatchingRuleUse copy =
         MatchingRuleUseSyntax.decodeMatchingRuleUse(value, this, false);
     setSchemaFile(copy, getSchemaFile(mru));
@@ -1997,7 +1997,7 @@ public final class Schema
   private NameForm recreateFromDefinition(NameForm nf)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(nf.toString());
+    ByteString value = ByteString.valueOfUtf8(nf.toString());
     NameForm copy = NameFormSyntax.decodeNameForm(value, this, false);
     setSchemaFile(copy, getSchemaFile(nf));
     return copy;
@@ -2006,7 +2006,7 @@ public final class Schema
   private ObjectClass recreateFromDefinition(ObjectClass oc)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(oc.toString());
+    ByteString value = ByteString.valueOfUtf8(oc.toString());
     ObjectClass copy = ObjectClassSyntax.decodeObjectClass(value, this, false);
     setSchemaFile(copy, getSchemaFile(oc));
     return copy;

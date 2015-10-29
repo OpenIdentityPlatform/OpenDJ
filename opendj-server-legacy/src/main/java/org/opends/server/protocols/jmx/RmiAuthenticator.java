@@ -200,7 +200,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     }
 
     ArrayList<Control> requestControls = new ArrayList<>();
-    ByteString bindPW = password != null ? ByteString.valueOf(password) : null;
+    ByteString bindPW = password != null ? ByteString.valueOfUtf8(password) : null;
 
     AuthenticationInfo authInfo = new AuthenticationInfo();
     JmxClientConnection jmxClientConnection = new JmxClientConnection(
@@ -210,7 +210,7 @@ public class RmiAuthenticator implements JMXAuthenticator
         jmxClientConnection.nextOperationID(),
         jmxClientConnection.nextMessageID(), requestControls,
         jmxConnectionHandler.getRMIConnector().getProtocolVersion(),
-        ByteString.valueOf(authcID), bindPW);
+        ByteString.valueOfUtf8(authcID), bindPW);
 
     bindOp.run();
     if (bindOp.getResultCode() == ResultCode.SUCCESS)

@@ -92,7 +92,7 @@ public class EntryDNVirtualAttributeProvider
     try
     {
       MatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
-      ByteString dn = ByteString.valueOf(entry.getName().toString());
+      ByteString dn = ByteString.valueOfUtf8(entry.getName().toString());
       ByteString normalizedDN = eqRule.normalizeAttributeValue(dn);
       ByteString normalizedValue = eqRule.normalizeAttributeValue(value);
       return normalizedDN.equals(normalizedValue);

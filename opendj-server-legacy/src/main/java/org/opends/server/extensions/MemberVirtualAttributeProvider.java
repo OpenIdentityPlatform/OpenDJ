@@ -128,7 +128,7 @@ public class MemberVirtualAttributeProvider
           DN memberDN = memberList.nextMemberDN();
           if (memberDN != null)
           {
-            builder.add(ByteString.valueOf(memberDN.toString()));
+            builder.add(ByteString.valueOfUtf8(memberDN.toString()));
           }
         }
         catch (MembershipException me)

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -73,7 +73,7 @@ class UserPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingR
 
     // We support the scheme, so make the determination.
     return ConditionResult.valueOf(
-        storageScheme.passwordMatches(assertionValue, ByteString.valueOf(userPWComponents[1])));
+        storageScheme.passwordMatches(assertionValue, ByteString.valueOfUtf8(userPWComponents[1])));
   }
 
 }

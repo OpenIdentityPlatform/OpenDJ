@@ -244,7 +244,7 @@ public class LDAPModify
 
       ProtocolOp protocolOp = null;
       ByteString asn1OctetStr =
-          ByteString.valueOf(entry.getDN().toString());
+          ByteString.valueOfUtf8(entry.getDN().toString());
 
       String operationType = "";
       switch(entry.getChangeOperationType())
@@ -280,14 +280,14 @@ public class LDAPModify
           if(modDNEntry.getNewSuperiorDN() != null)
           {
             protocolOp = new ModifyDNRequestProtocolOp(asn1OctetStr,
-                ByteString.valueOf(modDNEntry.getNewRDN().toString()),
+                ByteString.valueOfUtf8(modDNEntry.getNewRDN().toString()),
                  modDNEntry.deleteOldRDN(),
-                ByteString.valueOf(
+                ByteString.valueOfUtf8(
                           modDNEntry.getNewSuperiorDN().toString()));
           } else
           {
             protocolOp = new ModifyDNRequestProtocolOp(asn1OctetStr,
-                ByteString.valueOf(modDNEntry.getNewRDN().toString()),
+                ByteString.valueOfUtf8(modDNEntry.getNewRDN().toString()),
                  modDNEntry.deleteOldRDN());
           }
 
@@ -987,7 +987,7 @@ public class LDAPModify
     {
       Control proxyControl =
           new ProxiedAuthV2Control(true,
-              ByteString.valueOf(proxyAuthzID.getValue()));
+              ByteString.valueOfUtf8(proxyAuthzID.getValue()));
       modifyOptions.getControls().add(proxyControl);
     }
 

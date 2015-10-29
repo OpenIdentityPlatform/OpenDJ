@@ -87,7 +87,7 @@ public class ProxiedAuthV1ControlTestCase
 
 
     // Try an empty DN, which is acceptable.
-    proxyControl = new ProxiedAuthV1Control(ByteString.valueOf(""));
+    proxyControl = new ProxiedAuthV1Control(ByteString.valueOfUtf8(""));
     assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     assertTrue(proxyControl.getAuthorizationDN().isRootDN());
@@ -95,7 +95,7 @@ public class ProxiedAuthV1ControlTestCase
 
     // Try a valid DN, which is acceptable.
     proxyControl =
-         new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOfUtf8("uid=test,o=test"));
     assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     assertEquals(proxyControl.getAuthorizationDN(),
@@ -104,7 +104,7 @@ public class ProxiedAuthV1ControlTestCase
 
     // Try an invalid DN, which will be initally accepted but will fail when
     // attempting to get the authorization DN.
-    proxyControl = new ProxiedAuthV1Control(ByteString.valueOf("invalid"));
+    proxyControl = new ProxiedAuthV1Control(ByteString.valueOfUtf8("invalid"));
     assertEquals(proxyControl.getOID(), OID_PROXIED_AUTH_V1);
     assertTrue(proxyControl.isCritical());
     try
@@ -208,7 +208,7 @@ public class ProxiedAuthV1ControlTestCase
   {
     LDAPControl c =
         new LDAPControl(OID_PROXIED_AUTH_V1, true,
-            ByteString.valueOf("uid=test,o=test"));
+            ByteString.valueOfUtf8("uid=test,o=test"));
 
     ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
   }
@@ -256,7 +256,7 @@ public class ProxiedAuthV1ControlTestCase
     LDAPControl c =
         new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    assertEquals(ByteString.valueOf("uid=element1,o=test"),
+    assertEquals(ByteString.valueOfUtf8("uid=element1,o=test"),
         ProxiedAuthV1Control.DECODER.decode(c.isCritical(),
             c.getValue()).getRawAuthorizationDN());
   }
@@ -346,13 +346,13 @@ public class ProxiedAuthV1ControlTestCase
          throws Exception
   {
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(ByteString.valueOf(""));
-    assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOf(""));
+         new ProxiedAuthV1Control(ByteString.valueOfUtf8(""));
+    assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOfUtf8(""));
 
     proxyControl =
-         new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOfUtf8("uid=test,o=test"));
     assertEquals(proxyControl.getRawAuthorizationDN(),
-        ByteString.valueOf("uid=test,o=test"));
+        ByteString.valueOfUtf8("uid=test,o=test"));
   }
 
 
@@ -369,13 +369,13 @@ public class ProxiedAuthV1ControlTestCase
   {
     ProxiedAuthV1Control proxyControl =
          new ProxiedAuthV1Control(DN.rootDN());
-    assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOf(""));
+    assertEquals(proxyControl.getRawAuthorizationDN(), ByteString.valueOfUtf8(""));
     assertEquals(proxyControl.getAuthorizationDN(), DN.rootDN());
 
     proxyControl =
          new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));
     assertEquals(proxyControl.getRawAuthorizationDN(),
-                 ByteString.valueOf("uid=test,o=test"));
+                 ByteString.valueOfUtf8("uid=test,o=test"));
     assertEquals(proxyControl.getAuthorizationDN(),
                  DN.valueOf("uid=test,o=test"));
   }
@@ -493,7 +493,7 @@ public class ProxiedAuthV1ControlTestCase
     // The default toString() calls the version that takes a string builder
     // argument, so we only need to use the default version to cover both cases.
     ProxiedAuthV1Control proxyControl =
-         new ProxiedAuthV1Control(ByteString.valueOf("uid=test,o=test"));
+         new ProxiedAuthV1Control(ByteString.valueOfUtf8("uid=test,o=test"));
     proxyControl.toString();
 
     proxyControl = new ProxiedAuthV1Control(DN.valueOf("uid=test,o=test"));

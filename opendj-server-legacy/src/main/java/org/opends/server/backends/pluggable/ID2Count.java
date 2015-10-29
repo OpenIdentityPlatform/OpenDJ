@@ -151,7 +151,7 @@ final class ID2Count extends AbstractTree
   ByteString toValue(final long count)
   {
     Reject.ifFalse(count != 0, "count must be != 0");
-    return ByteString.valueOf(count);
+    return ByteString.valueOfLong(count);
   }
 
   long fromValue(ByteString value)

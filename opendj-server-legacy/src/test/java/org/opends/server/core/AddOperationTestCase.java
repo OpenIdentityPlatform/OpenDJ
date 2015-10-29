@@ -114,10 +114,10 @@ public class AddOperationTestCase
     Operation[] opArray = new Operation[]
     {
       new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                       null, ByteString.valueOf("ou=People,o=test"),
+                       null, ByteString.valueOfUtf8("ou=People,o=test"),
                        ldapAttrList),
       new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                       noControls, ByteString.valueOf("ou=People,o=test"),
+                       noControls, ByteString.valueOfUtf8("ou=People,o=test"),
                        ldapAttrList),
       new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                        null, entry.getName(), entry.getObjectClasses(),
@@ -169,10 +169,10 @@ public class AddOperationTestCase
     ByteString originalDN = addOperation.getRawEntryDN();
     assertNotNull(originalDN);
 
-    addOperation.setRawEntryDN(ByteString.valueOf("uid=test,o=test"));
+    addOperation.setRawEntryDN(ByteString.valueOfUtf8("uid=test,o=test"));
     assertNotNull(addOperation.getRawEntryDN());
     assertEquals(addOperation.getRawEntryDN(),
-                 ByteString.valueOf("uid=test,o=test"));
+                 ByteString.valueOfUtf8("uid=test,o=test"));
 
     addOperation.setRawEntryDN(originalDN);
     assertNotNull(addOperation.getRawEntryDN());
@@ -194,7 +194,7 @@ public class AddOperationTestCase
 
     AddOperationBasis addOperation =
          new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          null, ByteString.valueOf("ou=People,o=test"),
+                          null, ByteString.valueOfUtf8("ou=People,o=test"),
                           ldapAttrList);
     assertNotNull(addOperation.getEntryDN());
   }
@@ -209,7 +209,7 @@ public class AddOperationTestCase
     ArrayList<ByteString> values = new ArrayList<>();
     for (String s : v)
     {
-      values.add(ByteString.valueOf(s));
+      values.add(ByteString.valueOfUtf8(s));
     }
     return values;
   }
@@ -262,7 +262,7 @@ public class AddOperationTestCase
                           entry.getOperationalAttributes());
     assertNotNull(addOperation.getEntryDN());
 
-    addOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
+    addOperation.setRawEntryDN(ByteString.valueOfUtf8("ou=Users,o=test"));
     assertNotNull(addOperation.getEntryDN());
   }
 
@@ -409,12 +409,12 @@ public class AddOperationTestCase
     boolean foundBar = false;
     for (Attribute attr : attrList)
     {
-      if (attr.contains(ByteString.valueOf("foo")))
+      if (attr.contains(ByteString.valueOfUtf8("foo")))
       {
         foundFoo = true;
       }
 
-      if (attr.contains(ByteString.valueOf("bar")))
+      if (attr.contains(ByteString.valueOfUtf8("bar")))
       {
         foundBar = true;
       }
@@ -714,7 +714,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", newArrayList("top", "undefined")),
         new LDAPAttribute("ou", "People"));
 
-    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -767,7 +767,7 @@ public class AddOperationTestCase
         new LDAPAttribute("ou", "People"),
         new LDAPAttribute("description", "bar"));
 
-    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -788,7 +788,7 @@ public class AddOperationTestCase
         new LDAPAttribute("ou", "People"),
         new LDAPAttribute("description;lang-en-us", "foo"));
 
-    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -810,7 +810,7 @@ public class AddOperationTestCase
         new LDAPAttribute("ou", "People"),
         new LDAPAttribute("description;lang-en-us", "foo"));
 
-    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1309,7 +1309,7 @@ public class AddOperationTestCase
   private void bind(LDAPReader r, LDAPWriter w) throws Exception
   {
     final BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-        ByteString.valueOf("cn=Directory Manager"), 3, ByteString.valueOf("password"));
+        ByteString.valueOfUtf8("cn=Directory Manager"), 3, ByteString.valueOfUtf8("password"));
     w.writeMessage(new LDAPMessage(1, bindRequest));
 
     final LDAPMessage message = r.readMessage();
@@ -1642,7 +1642,7 @@ public class AddOperationTestCase
   private void writeAddRequest(LDAPWriter w, ArrayList<RawAttribute> attrs,
       String section) throws IOException
   {
-    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"), attrs);
+    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     List<Control> controls = section != null
         ? DisconnectClientPlugin.createDisconnectControlList(section)
         : null;
@@ -1954,7 +1954,7 @@ responseLoop:
 
     AddOperationBasis addOperation =
          new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          controls, ByteString.valueOf("o=test"), rawAttrs);
+                          controls, ByteString.valueOfUtf8("o=test"), rawAttrs);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));

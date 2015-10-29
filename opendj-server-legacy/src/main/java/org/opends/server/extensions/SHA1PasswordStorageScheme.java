@@ -158,7 +158,7 @@ public class SHA1PasswordStorageScheme
       }
     }
 
-    return ByteString.valueOf(Base64.encode(digestBytes));
+    return ByteString.valueOfUtf8(Base64.encode(digestBytes));
   }
 
 
@@ -204,7 +204,7 @@ public class SHA1PasswordStorageScheme
 
     buffer.append(Base64.encode(digestBytes));
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

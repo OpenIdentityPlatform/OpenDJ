@@ -121,18 +121,18 @@ public class VirtualAttributeTestCase
          throws Exception
   {
     assertEquals(virtualAttribute.size(), 1);
-    assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
+    assertTrue(virtualAttribute.contains(ByteString.valueOfUtf8("o=test")));
 
     assertFalse(virtualAttribute.isEmpty());
 
-    assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
-    assertFalse(virtualAttribute.contains(ByteString.valueOf("o=not test")));
+    assertTrue(virtualAttribute.contains(ByteString.valueOfUtf8("o=test")));
+    assertFalse(virtualAttribute.contains(ByteString.valueOfUtf8("o=not test")));
 
     LinkedHashSet<ByteString> testValues = new LinkedHashSet<>();
-    testValues.add(ByteString.valueOf("o=test"));
+    testValues.add(ByteString.valueOfUtf8("o=test"));
     assertTrue(virtualAttribute.containsAll(testValues));
 
-    testValues.add(ByteString.valueOf("o=not test"));
+    testValues.add(ByteString.valueOfUtf8("o=not test"));
     assertFalse(virtualAttribute.containsAll(testValues));
   }
 
@@ -148,11 +148,11 @@ public class VirtualAttributeTestCase
          throws Exception
   {
     assertEquals(virtualAttribute.matchesSubstring(
-        ByteString.valueOf("o="), null,
-        ByteString.valueOf("test")),
+        ByteString.valueOfUtf8("o="), null,
+        ByteString.valueOfUtf8("test")),
                  ConditionResult.UNDEFINED);
 
-    ByteString assertionValue = ByteString.valueOf("o=test");
+    ByteString assertionValue = ByteString.valueOfUtf8("o=test");
     assertEquals(virtualAttribute.greaterThanOrEqualTo(assertionValue),
                  ConditionResult.UNDEFINED);
     assertEquals(virtualAttribute.lessThanOrEqualTo(assertionValue),

@@ -77,7 +77,7 @@ class EntryID implements Comparable<EntryID>
   {
     if (value == null)
     {
-      value = ByteString.valueOf(id);
+      value = ByteString.valueOfLong(id);
     }
     return value;
   }

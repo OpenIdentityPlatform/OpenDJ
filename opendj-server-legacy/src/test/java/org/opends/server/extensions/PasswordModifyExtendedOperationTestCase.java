@@ -962,7 +962,7 @@ public class PasswordModifyExtendedOperationTestCase
   @Test
   public void testFailureInvalidRequestValueFormat()
   {
-    ByteString requestValue = ByteString.valueOf("malformed");
+    ByteString requestValue = ByteString.valueOfUtf8("malformed");
 
     InternalClientConnection conn = getRootConnection();
     ExtendedOperation extOp = conn.processExtendedOperation(OID_PASSWORD_MODIFY_REQUEST, requestValue);
@@ -1852,7 +1852,7 @@ public class PasswordModifyExtendedOperationTestCase
     // Perform an internal bind to verify the password was actually changed.
     InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
-        conn.processSimpleBind(name, ByteString.valueOf(newPwd));
+        conn.processSimpleBind(name, ByteString.valueOfUtf8(newPwd));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

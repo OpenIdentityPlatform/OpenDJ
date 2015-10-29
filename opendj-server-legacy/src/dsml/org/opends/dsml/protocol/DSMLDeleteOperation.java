@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -93,7 +93,7 @@ public class DSMLDeleteOperation
     delResponse.setRequestID(deleteRequest.getRequestID());
 
     // Create and send the LDAP delete request to the server.
-    ByteString dnStr = ByteString.valueOf(deleteRequest.getDn());
+    ByteString dnStr = ByteString.valueOfUtf8(deleteRequest.getDn());
     ProtocolOp op = new DeleteRequestProtocolOp(dnStr);
     LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op,
         controls);

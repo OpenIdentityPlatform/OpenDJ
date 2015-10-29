@@ -666,7 +666,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
     final SearchRequest request =
         newSearchRequest(BACKEND_BASE_DN, SearchScope.WHOLE_SUBTREE, VLV_FILTER).addControl(
             new ServerSideSortRequestControl(mangleSortOrder(sortOrder))).addControl(
-            new VLVRequestControl(beforeCount, afterCount, ByteString.valueOf(assertion)));
+            new VLVRequestControl(beforeCount, afterCount, ByteString.valueOfUtf8(assertion)));
     final InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertThat(internalSearch.getResultCode()).isEqualTo(ResultCode.SUCCESS);
     assertThat(getDNs(internalSearch.getSearchEntries())).isEqualTo(getDNs(expectedOrder));

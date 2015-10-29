@@ -226,7 +226,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(ByteString.valueOf(String.valueOf(count))));
+      assertTrue(a.contains(ByteString.valueOfUtf8(String.valueOf(count))));
     }
   }
 

@@ -336,12 +336,12 @@ public class EncodePassword
     if (encodedPassword.hasValue())
     {
       compareMode = true;
-      encodedPW = ByteString.valueOf(encodedPassword.getValue());
+      encodedPW = ByteString.valueOfUtf8(encodedPassword.getValue());
     }
     else if (encodedPasswordFile.hasValue())
     {
       compareMode = true;
-      encodedPW = ByteString.valueOf(encodedPasswordFile.getValue());
+      encodedPW = ByteString.valueOfUtf8(encodedPasswordFile.getValue());
     }
     else
     {
@@ -577,7 +577,7 @@ public class EncodePassword
         }
         boolean passwordMatches =
             storageScheme.passwordMatches(clearPW, ByteString
-                .valueOf(encodedPWString));
+                .valueOfUtf8(encodedPWString));
         out.println(getOutputMessage(passwordMatches));
         if (useCompareResultCode.isPresent())
         {
@@ -823,11 +823,11 @@ public class EncodePassword
   {
     if (clearPassword.hasValue())
     {
-      return ByteString.valueOf(clearPassword.getValue());
+      return ByteString.valueOfUtf8(clearPassword.getValue());
     }
     else if (clearPasswordFile.hasValue())
     {
-      return ByteString.valueOf(clearPasswordFile.getValue());
+      return ByteString.valueOfUtf8(clearPasswordFile.getValue());
     }
     else if (interactivePassword.isPresent())
     {
@@ -838,7 +838,7 @@ public class EncodePassword
         String pwd2 = encodePassword.getPassword(INFO_ENCPW_INPUT_PWD_2.get().toString());
         if (pwd1.equals(pwd2))
         {
-          return ByteString.valueOf(pwd1);
+          return ByteString.valueOfUtf8(pwd1);
         }
         else
         {

@@ -994,21 +994,21 @@ public class TestBackendImpl extends JebTestCase {
           Attributes.create("title", "debugger")));
 
       final Attribute cnAttr = entry.getAttribute("cn").get(0);
-      assertTrue(cnAttr.contains(ByteString.valueOf("Aaren Rigor")));
-      assertTrue(cnAttr.contains(ByteString.valueOf("Aarenister Rigor")));
-      assertFalse(cnAttr.contains(ByteString.valueOf("Aaren Atp")));
+      assertTrue(cnAttr.contains(ByteString.valueOfUtf8("Aaren Rigor")));
+      assertTrue(cnAttr.contains(ByteString.valueOfUtf8("Aarenister Rigor")));
+      assertFalse(cnAttr.contains(ByteString.valueOfUtf8("Aaren Atp")));
 
       Set<String> options = Collections.singleton("lang-de");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          ByteString.valueOf("test")));
+          ByteString.valueOfUtf8("test")));
       options = Collections.singleton("lang-cn");
       assertNull(entry.getAttribute("givenname", options));
       options = Collections.singleton("lang-es");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          ByteString.valueOf("newtest3")));
+          ByteString.valueOfUtf8("newtest3")));
       options = Collections.singleton("lang-fr");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          ByteString.valueOf("test2")));
+          ByteString.valueOfUtf8("test2")));
 
       assertTrue(entry.getAttribute("employeenumber").contains(
           Attributes.create("employeenumber", "222")));

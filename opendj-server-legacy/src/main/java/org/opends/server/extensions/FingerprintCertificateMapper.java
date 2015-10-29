@@ -215,7 +215,7 @@ public class FingerprintCertificateMapper
 
 
     // Create the search filter from the fingerprint.
-    ByteString value = ByteString.valueOf(fingerprintString);
+    ByteString value = ByteString.valueOfUtf8(fingerprintString);
     SearchFilter filter =
          SearchFilter.createEqualityFilter(fingerprintAttributeType, value);
 

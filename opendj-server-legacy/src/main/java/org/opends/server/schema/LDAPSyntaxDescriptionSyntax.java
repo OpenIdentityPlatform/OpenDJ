@@ -484,7 +484,7 @@ public class LDAPSyntaxDescriptionSyntax
           List<String> entries = new LinkedList<>();
           for (String v : values)
           {
-            ByteString entry = ByteString.valueOf(v);
+            ByteString entry = ByteString.valueOfUtf8(v);
             if (entries.contains(entry))
             {
               throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,

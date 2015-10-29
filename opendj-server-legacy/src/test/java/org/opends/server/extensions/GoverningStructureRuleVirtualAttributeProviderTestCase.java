@@ -190,7 +190,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(ByteString.valueOf(ruleId)));
+      assertTrue(a.contains(ByteString.valueOfUtf8(ruleId)));
     }
   }
 
@@ -438,7 +438,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     Attribute values = provider.getValues(entry, getRule(provider));
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(ByteString.valueOf("22")));
+    assertTrue(values.contains(ByteString.valueOfUtf8("22")));
   }
 
 
@@ -488,7 +488,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    assertTrue(provider.hasValue(entry, getRule(provider), ByteString.valueOf("22")));
+    assertTrue(provider.hasValue(entry, getRule(provider), ByteString.valueOfUtf8("22")));
   }
 
 
@@ -513,7 +513,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    assertFalse(provider.hasValue(entry, getRule(provider), ByteString.valueOf("1")));
+    assertFalse(provider.hasValue(entry, getRule(provider), ByteString.valueOfUtf8("1")));
   }
 
 

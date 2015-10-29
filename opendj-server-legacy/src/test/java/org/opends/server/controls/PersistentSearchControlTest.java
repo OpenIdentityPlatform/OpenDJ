@@ -332,7 +332,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       try
       {
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical,
-            ByteString.valueOf("invalid value"));
+            ByteString.valueOfUtf8("invalid value"));
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
         fail();
       }
@@ -525,7 +525,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf("cn=config"), mods);
+         conn.processModify(ByteString.valueOfUtf8("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     //Create a persistent search request.

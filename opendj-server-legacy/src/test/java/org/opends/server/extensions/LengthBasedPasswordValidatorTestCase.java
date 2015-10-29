@@ -358,7 +358,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ByteString password = ByteString.valueOf(buffer.toString());
+      ByteString password = ByteString.valueOfUtf8(buffer.toString());
 
       ModifyOperationBasis op = newModifyOperation(buffer);
 
@@ -430,7 +430,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ByteString password = ByteString.valueOf(buffer.toString());
+      ByteString password = ByteString.valueOfUtf8(buffer.toString());
 
       ModifyOperationBasis op = newModifyOperation(buffer);
 
@@ -493,7 +493,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ByteString password = ByteString.valueOf(buffer.toString());
+      ByteString password = ByteString.valueOfUtf8(buffer.toString());
 
       ModifyOperationBasis op = newModifyOperation(buffer);
 
@@ -556,7 +556,7 @@ public class LengthBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ByteString password = ByteString.valueOf(buffer.toString());
+      ByteString password = ByteString.valueOfUtf8(buffer.toString());
 
       ModifyOperationBasis op = newModifyOperation(buffer);
 

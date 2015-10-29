@@ -155,7 +155,7 @@ class State extends AbstractTree
     for(IndexFlag flag : flags) {
       value |= flag.mask;
     }
-    return ByteString.valueOf(new byte[] { value });
+    return ByteString.valueOfBytes(new byte[] { value });
   }
 
   /**

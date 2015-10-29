@@ -331,7 +331,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
           }
           else
           {
-            bs = ByteString.valueOf(value.toString());
+            bs = ByteString.valueOfUtf8(value.toString());
           }
           builder.add(bs);
         }

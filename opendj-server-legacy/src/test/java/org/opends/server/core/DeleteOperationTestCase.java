@@ -78,8 +78,8 @@ public class DeleteOperationTestCase extends OperationTestCase
     {
       newDeleteOperation(noControls, ByteString.empty()),
       newDeleteOperation(null, ByteString.empty()),
-      newDeleteOperation(noControls, ByteString.valueOf("o=test")),
-      newDeleteOperation(null, ByteString.valueOf("o=test")),
+      newDeleteOperation(noControls, ByteString.valueOfUtf8("o=test")),
+      newDeleteOperation(null, ByteString.valueOfUtf8("o=test")),
       newDeleteOperation(noControls, DN.rootDN()),
       newDeleteOperation(null, DN.rootDN()),
       newDeleteOperation(noControls, DN.valueOf("o=test")),
@@ -117,9 +117,9 @@ public class DeleteOperationTestCase extends OperationTestCase
     ByteString originalRawDN = deleteOperation.getRawEntryDN();
     assertNotNull(originalRawDN);
 
-    deleteOperation.setRawEntryDN(ByteString.valueOf("dc=example,dc=com"));
+    deleteOperation.setRawEntryDN(ByteString.valueOfUtf8("dc=example,dc=com"));
     assertEquals(deleteOperation.getRawEntryDN(),
-                 ByteString.valueOf("dc=example,dc=com"));
+                 ByteString.valueOfUtf8("dc=example,dc=com"));
 
     deleteOperation.setRawEntryDN(originalRawDN);
     assertEquals(deleteOperation.getRawEntryDN(), originalRawDN);
@@ -135,7 +135,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   public void testGetEntryDNNull()
   {
     DeleteOperation deleteOperation =
-        newDeleteOperation(null, ByteString.valueOf("o=test"));
+        newDeleteOperation(null, ByteString.valueOfUtf8("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -172,7 +172,7 @@ public class DeleteOperationTestCase extends OperationTestCase
         newDeleteOperation(null, DN.valueOf("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
 
-    deleteOperation.setRawEntryDN(ByteString.valueOf("dc=example,dc=com"));
+    deleteOperation.setRawEntryDN(ByteString.valueOfUtf8("dc=example,dc=com"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -220,7 +220,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
   private DeleteOperation processDeleteRaw(String entryDN)
   {
-    return getRootConnection().processDelete(ByteString.valueOf(entryDN));
+    return getRootConnection().processDelete(ByteString.valueOfUtf8(entryDN));
   }
 
   private DeleteOperation processDelete(String entryDN) throws DirectoryException
@@ -653,7 +653,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation =
-        newDeleteOperation(null, ByteString.valueOf("o=test"));
+        newDeleteOperation(null, ByteString.valueOfUtf8("o=test"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     LocalizableMessage.raw("testCancelBeforeStartup"));
@@ -673,7 +673,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     DeleteOperation deleteOperation =
-        newDeleteOperation(null, ByteString.valueOf("o=test"));
+        newDeleteOperation(null, ByteString.valueOfUtf8("o=test"));
     deleteOperation.run();
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -727,8 +727,8 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -739,7 +739,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
     message = new LDAPMessage(2, deleteRequest,
          DisconnectClientPlugin.createDisconnectControlList("PreParse"));
     w.writeMessage(message);
@@ -774,8 +774,8 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -786,7 +786,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
     message = new LDAPMessage(2, deleteRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
@@ -822,8 +822,8 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -834,7 +834,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
     message = new LDAPMessage(2, deleteRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
@@ -870,8 +870,8 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -882,7 +882,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
     message = new LDAPMessage(2, deleteRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
@@ -1000,7 +1000,7 @@ responseLoop:
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
     DeleteOperation deleteOperation =
-        newDeleteOperation(controls, ByteString.valueOf("o=test"));
+        newDeleteOperation(controls, ByteString.valueOfUtf8("o=test"));
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));

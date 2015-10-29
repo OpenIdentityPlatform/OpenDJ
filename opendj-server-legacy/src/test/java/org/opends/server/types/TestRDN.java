@@ -75,8 +75,8 @@ public final class TestRDN extends TypesTestCase {
     AttributeType dummy = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
 
-    AV_DC_ORG = ByteString.valueOf("org");
-    AV_CN = ByteString.valueOf("hello world");
+    AV_DC_ORG = ByteString.valueOfUtf8("org");
+    AV_CN = ByteString.valueOfUtf8("hello world");
   }
 
 
@@ -187,7 +187,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testEscaping() {
-    RDN rdn = new RDN(AT_DC, ByteString.valueOf(" "));
+    RDN rdn = new RDN(AT_DC, ByteString.valueOfUtf8(" "));
     assertEquals(rdn.toString(), "dc=\\ ");
   }
 

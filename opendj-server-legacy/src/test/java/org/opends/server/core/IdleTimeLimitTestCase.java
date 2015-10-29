@@ -145,8 +145,8 @@ public class IdleTimeLimitTestCase
 
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage m = new LDAPMessage(1, bindRequest);
       w.writeMessage(m);
 
@@ -211,8 +211,8 @@ public class IdleTimeLimitTestCase
 
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOf("uid=test.user,o=test"), 3,
-           ByteString.valueOf("password"));
+           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
+           ByteString.valueOfUtf8("password"));
       LDAPMessage m = new LDAPMessage(1, bindRequest);
       w.writeMessage(m);
 

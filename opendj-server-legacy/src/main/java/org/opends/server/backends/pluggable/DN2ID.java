@@ -273,7 +273,7 @@ class DN2ID extends AbstractTree
     }
     catch (Exception e)
     {
-      return ByteString.valueOf(key.getBytes());
+      return ByteString.valueOfBytes(key.getBytes());
     }
   }
 

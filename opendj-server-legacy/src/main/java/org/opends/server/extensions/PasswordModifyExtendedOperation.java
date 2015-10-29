@@ -882,7 +882,7 @@ public class PasswordModifyExtendedOperation
   {
     return pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax()
         ? scheme.authPasswordMatches(oldPassword, components[1], components[2])
-        : scheme.passwordMatches(oldPassword, ByteString.valueOf(components[1]));
+        : scheme.passwordMatches(oldPassword, ByteString.valueOfUtf8(components[1]));
   }
 
   private boolean isSelfChange(ByteString userIdentity, Entry requestorEntry, DN userDN, ByteString oldPassword)

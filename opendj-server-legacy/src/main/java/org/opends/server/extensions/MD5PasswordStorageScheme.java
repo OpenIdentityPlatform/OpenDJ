@@ -159,7 +159,7 @@ public class MD5PasswordStorageScheme
       }
     }
 
-    return ByteString.valueOf(Base64.encode(digestBytes));
+    return ByteString.valueOfUtf8(Base64.encode(digestBytes));
   }
 
 
@@ -206,7 +206,7 @@ public class MD5PasswordStorageScheme
     buffer.append(Base64.encode(digestBytes));
 
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

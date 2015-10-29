@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -254,7 +254,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new AddOperationBasis(clientConnection, messageID, messageID, to(request.getControls()),
-        valueOf(request.getName()), to(request.getAllAttributes())));
+        valueOfObject(request.getName()), to(request.getAllAttributes())));
   }
 
   /** {@inheritDoc} */
@@ -273,7 +273,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     String userName = request.getName();
     byte[] password = ((SimpleBindRequest) request).getPassword();
     return enqueueOperation(new BindOperationBasis(clientConnection, messageID, messageID, to(request.getControls()),
-        "3", ByteString.valueOf(userName), ByteString.wrap(password)));
+        "3", ByteString.valueOfUtf8(userName), ByteString.wrap(password)));
   }
 
   /** {@inheritDoc} */
@@ -311,7 +311,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new CompareOperationBasis(clientConnection, messageID, messageID,
-        to(request.getControls()), valueOf(request.getName()),
+        to(request.getControls()), valueOfObject(request.getName()),
         request.getAttributeDescription().getAttributeType().getOID(),
         request.getAssertionValue()));
   }
@@ -323,7 +323,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new DeleteOperationBasis(clientConnection, messageID, messageID,
-        to(request.getControls()), valueOf(request.getName())));
+        to(request.getControls()), valueOfObject(request.getName())));
   }
 
   /** {@inheritDoc} */

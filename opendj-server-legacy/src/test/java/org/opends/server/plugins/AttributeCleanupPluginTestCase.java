@@ -253,10 +253,10 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * sn: Surname
      */
     ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("top"));
-    values.add(ByteString.valueOf("person"));
-    values.add(ByteString.valueOf("organizationalperson"));
-    values.add(ByteString.valueOf("inetorgperson"));
+    values.add(ByteString.valueOfUtf8("top"));
+    values.add(ByteString.valueOfUtf8("person"));
+    values.add(ByteString.valueOfUtf8("organizationalperson"));
+    values.add(ByteString.valueOfUtf8("inetorgperson"));
 
     List<RawAttribute> rawAttributes = new ArrayList<>();
     rawAttributes.add(RawAttribute.create("objectClass", values));
@@ -269,7 +269,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
                             1,
                             1,
                             null,
-                            ByteString.valueOf("dn: uid=test,dc=example,dc=com"),
+                            ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
                             rawAttributes);
 
     /* Process the operation. The processing should continue. */
@@ -351,10 +351,10 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      */
 
     ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOf("top"));
-    values.add(ByteString.valueOf("person"));
-    values.add(ByteString.valueOf("organizationalperson"));
-    values.add(ByteString.valueOf("inetorgperson"));
+    values.add(ByteString.valueOfUtf8("top"));
+    values.add(ByteString.valueOfUtf8("person"));
+    values.add(ByteString.valueOfUtf8("organizationalperson"));
+    values.add(ByteString.valueOfUtf8("inetorgperson"));
 
     List<RawAttribute> rawAttributes = new ArrayList<>();
 
@@ -370,7 +370,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
                             1,
                             1,
                             null,
-                            ByteString.valueOf("dn: uid=test,dc=example,dc=com"),
+                            ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
                             rawAttributes);
 
     /* Process the operation and expect the server to continue
@@ -461,7 +461,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
                                1,
                                1,
                                null,
-                               ByteString.valueOf("dn: uid=test,dc=example,dc=com"),
+                               ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
                                rawMods);
 
     /* Process the request. The result should be SUCCESS and the server
@@ -547,7 +547,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
                                1,
                                1,
                                null,
-                               ByteString.valueOf("dn: uid=test,dc=example,dc=com"),
+                               ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
                                rawMods);
 
     /* Process the MODIFY operation making sure the remaining number of
@@ -638,7 +638,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
                                1,
                                1,
                                null,
-                               ByteString.valueOf("dn: uid=test,dc=example,dc=com"),
+                               ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
                                rawMods);
 
     /* Process the MODIFY operation. */

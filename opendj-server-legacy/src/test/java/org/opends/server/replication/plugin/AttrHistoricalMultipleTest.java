@@ -101,9 +101,9 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
   @DataProvider(name = "attrInfo")
   public Object[][] createData()
   {
-    ByteString att1 = ByteString.valueOf("string");
-    ByteString att2 = ByteString.valueOf("value");
-    ByteString att3 = ByteString.valueOf("again");
+    ByteString att1 = ByteString.valueOfUtf8("string");
+    ByteString att2 = ByteString.valueOfUtf8("value");
+    ByteString att3 = ByteString.valueOfUtf8("again");
 
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
@@ -482,7 +482,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     ByteString[] results = new ByteString[strings.length];
     for (int i = 0; i < results.length; i++)
     {
-      results[i] = ByteString.valueOf(strings[i]);
+      results[i] = ByteString.valueOfUtf8(strings[i]);
     }
     return results;
   }

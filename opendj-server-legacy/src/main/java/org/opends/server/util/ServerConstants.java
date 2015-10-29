@@ -3135,17 +3135,17 @@ public final class ServerConstants
   /**
    * The value representing just one space character.
    */
-  public static final ByteString SINGLE_SPACE_VALUE = ByteString.valueOf(" ");
+  public static final ByteString SINGLE_SPACE_VALUE = ByteString.valueOfUtf8(" ");
 
   /**
    * The normalized true value.
    */
-  public static final ByteString TRUE_VALUE = ByteString.valueOf("TRUE");
+  public static final ByteString TRUE_VALUE = ByteString.valueOfUtf8("TRUE");
 
   /**
    * The normalized false value.
    */
-  public static final ByteString FALSE_VALUE = ByteString.valueOf("FALSE");
+  public static final ByteString FALSE_VALUE = ByteString.valueOfUtf8("FALSE");
 
   /**
    * The root Dn for the external change log.

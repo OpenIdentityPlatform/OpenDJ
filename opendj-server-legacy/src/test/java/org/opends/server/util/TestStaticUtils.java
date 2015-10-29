@@ -605,7 +605,7 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test(dataProvider = "needsBase64EncodingTestData")
   public void testNeedsBase64EncodingBytes(String s, boolean result)
       throws Exception {
-    ByteString bytes = s != null ? ByteString.valueOf(s) : null;
+    ByteString bytes = s != null ? ByteString.valueOfUtf8(s) : null;
     Assert.assertEquals(StaticUtils.needsBase64Encoding(bytes), result);
   }
 
@@ -1009,7 +1009,7 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test(dataProvider = "stringCaseConversionTestData")
   public void testToLowerCaseBytes(String input, String lower, String upper)
       throws Exception {
-    ByteString bytes = input != null ? ByteString.valueOf(input) : null;
+    ByteString bytes = input != null ? ByteString.valueOfUtf8(input) : null;
     StringBuilder buffer = new StringBuilder();
     StaticUtils.toLowerCase(bytes, buffer, false);
     Assert.assertEquals(buffer.toString(), input != null ? lower : "");
@@ -1085,7 +1085,7 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testToLowerCaseWithTrim(String input, String lower) throws Exception
   {
     StringBuilder sb = new StringBuilder();
-    ByteString bytes = input != null ? ByteString.valueOf(input) : null;
+    ByteString bytes = input != null ? ByteString.valueOfUtf8(input) : null;
     StaticUtils.toLowerCase(bytes, sb, true);
     Assert.assertEquals(sb.toString(), lower);
   }

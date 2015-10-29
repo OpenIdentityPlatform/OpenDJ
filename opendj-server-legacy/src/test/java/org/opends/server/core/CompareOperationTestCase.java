@@ -124,8 +124,8 @@ public class CompareOperationTestCase extends OperationTestCase
                            conn, InternalClientConnection.nextOperationID(),
                            InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(),
-                           ByteString.valueOf(entry.getName().toString()),
-                           "uid", ByteString.valueOf("rogasawara"))
+                           ByteString.valueOfUtf8(entry.getName().toString()),
+                           "uid", ByteString.valueOfUtf8("rogasawara"))
     };
   }
 
@@ -201,8 +201,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -226,8 +226,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawala"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawala"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -250,8 +250,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf("o=nonexistent,o=test"),
-                              "o", ByteString.valueOf("nonexistent"));
+                              ByteString.valueOfUtf8("o=nonexistent,o=test"),
+                              "o", ByteString.valueOfUtf8("nonexistent"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -273,8 +273,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf("rogasawara,o=test"),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8("rogasawara,o=test"),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -296,8 +296,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
-                              "description", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "description", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -320,9 +320,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
+                              ByteString.valueOfUtf8(entry.getName().toString()),
                               "NotAnAttribute",
-                              ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -343,9 +343,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
+                              ByteString.valueOfUtf8(entry.getName().toString()),
                               "name",
-                              ByteString.valueOf("Ogasawara"));
+                              ByteString.valueOfUtf8("Ogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -363,9 +363,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
+                              ByteString.valueOfUtf8(entry.getName().toString()),
                               "sn",
-                              ByteString.valueOf("Ogasawara"));
+                              ByteString.valueOfUtf8("Ogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -383,9 +383,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
+                              ByteString.valueOfUtf8(entry.getName().toString()),
                               "sn;lang-ja",
-                              ByteString.valueOf("Ogasawara"));
+                              ByteString.valueOfUtf8("Ogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -403,9 +403,9 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
-                              ByteString.valueOf(entry.getName().toString()),
+                              ByteString.valueOfUtf8(entry.getName().toString()),
                               "givenName;lAnG-En",
-                              ByteString.valueOf("Rodney"));
+                              ByteString.valueOfUtf8("Rodney"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -429,8 +429,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -457,8 +457,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -473,7 +473,7 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     Control authV1Control =
-         new ProxiedAuthV1Control(ByteString.valueOf(
+         new ProxiedAuthV1Control(ByteString.valueOfUtf8(
               "cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = newArrayList(authV1Control);
 
@@ -483,8 +483,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -501,7 +501,7 @@ public class CompareOperationTestCase extends OperationTestCase
 
     InvocationCounterPlugin.resetAllCounters();
 
-    Control authV1Control = new ProxiedAuthV1Control(ByteString.valueOf("cn=nonexistent,o=test"));
+    Control authV1Control = new ProxiedAuthV1Control(ByteString.valueOfUtf8("cn=nonexistent,o=test"));
     List<Control> controls = newArrayList(authV1Control);
 
     CompareOperationBasis compareOperation =
@@ -510,8 +510,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -526,7 +526,7 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     Control authV2Control =
-         new ProxiedAuthV2Control(ByteString.valueOf(
+         new ProxiedAuthV2Control(ByteString.valueOfUtf8(
                   "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = newArrayList(authV2Control);
 
@@ -536,8 +536,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -552,7 +552,7 @@ public class CompareOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    Control authV2Control = new ProxiedAuthV2Control(ByteString.valueOf("dn:cn=nonexistent,o=test"));
+    Control authV2Control = new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:cn=nonexistent,o=test"));
     List<Control> controls = newArrayList(authV2Control);
 
     CompareOperationBasis compareOperation =
@@ -561,8 +561,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -588,8 +588,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),
@@ -614,8 +614,8 @@ public class CompareOperationTestCase extends OperationTestCase
                               conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
-                              ByteString.valueOf(entry.getName().toString()),
-                              "uid", ByteString.valueOf("rogasawara"));
+                              ByteString.valueOfUtf8(entry.getName().toString()),
+                              "uid", ByteString.valueOfUtf8("rogasawara"));
 
     compareOperation.run();
     assertEquals(compareOperation.getResultCode(),

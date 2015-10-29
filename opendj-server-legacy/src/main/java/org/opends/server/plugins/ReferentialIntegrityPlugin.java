@@ -659,7 +659,7 @@ public class ReferentialIntegrityPlugin
     for(AttributeType attributeType : attributeTypes)
     {
       componentFilters.add(SearchFilter.createEqualityFilter(attributeType,
-          ByteString.valueOf(oldEntryDN.toString())));
+          ByteString.valueOfUtf8(oldEntryDN.toString())));
     }
 
     SearchFilter orFilter = SearchFilter.createORFilter(componentFilters);
@@ -746,7 +746,7 @@ public class ReferentialIntegrityPlugin
     {
       if(e.hasAttribute(type))
       {
-        ByteString value = ByteString.valueOf(oldEntryDN.toString());
+        ByteString value = ByteString.valueOfUtf8(oldEntryDN.toString());
         if (e.hasValue(type, null, value))
         {
           mods.add(new Modification(ModificationType.DELETE, Attributes

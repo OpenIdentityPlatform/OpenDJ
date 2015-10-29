@@ -171,7 +171,7 @@ public class LDAPToolUtils
     if(valString.charAt(0) == ':')
     {
       controlValue =
-          ByteString.valueOf(valString.substring(1, valString.length()));
+          ByteString.valueOfUtf8(valString.substring(1, valString.length()));
     } else if(valString.charAt(0) == '<')
     {
       // Read data from the file.
@@ -187,7 +187,7 @@ public class LDAPToolUtils
       }
     } else
     {
-      controlValue = ByteString.valueOf(valString);
+      controlValue = ByteString.valueOfUtf8(valString);
     }
 
     return new LDAPControl(controlOID, controlCriticality, controlValue);

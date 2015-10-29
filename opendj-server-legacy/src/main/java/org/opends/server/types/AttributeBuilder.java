@@ -1107,7 +1107,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public boolean add(String valueString)
   {
-    return add(ByteString.valueOf(valueString));
+    return add(ByteString.valueOfUtf8(valueString));
   }
 
 
@@ -1339,7 +1339,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public boolean remove(String valueString)
   {
-    return remove(ByteString.valueOf(valueString));
+    return remove(ByteString.valueOfUtf8(valueString));
   }
 
 
@@ -1413,7 +1413,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public void replace(String valueString)
   {
-    replace(ByteString.valueOf(valueString));
+    replace(ByteString.valueOfUtf8(valueString));
   }
 
 

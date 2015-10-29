@@ -173,7 +173,7 @@ public class LDAPDelete
   {
     ArrayList<Control> controls = deleteOptions.getControls();
     ProtocolOp protocolOp = null;
-    ByteString asn1OctetStr = ByteString.valueOf(line);
+    ByteString asn1OctetStr = ByteString.valueOfUtf8(line);
 
     protocolOp = new DeleteRequestProtocolOp(asn1OctetStr);
 

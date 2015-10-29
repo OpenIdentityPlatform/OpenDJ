@@ -206,7 +206,7 @@ public class UserAttr implements KeywordBindRule {
         InternalSearchOperation op = getRootConnection().processSearch(request);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
         if (!result.isEmpty()) {
-            ByteString val= ByteString.valueOf(attrVal);
+            ByteString val= ByteString.valueOfUtf8(attrVal);
             SearchResultEntry resultEntry = result.getFirst();
             if(resultEntry.hasValue(attrType, null, val)) {
                 Entry e=evalCtx.getResourceEntry();

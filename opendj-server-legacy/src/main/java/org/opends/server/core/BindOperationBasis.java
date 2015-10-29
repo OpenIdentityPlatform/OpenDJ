@@ -244,7 +244,7 @@ public class BindOperationBasis
   {
     if (bindDN != null)
     {
-      return ByteString.valueOf(bindDN.toString());
+      return ByteString.valueOfUtf8(bindDN.toString());
     }
     return ByteString.empty();
   }

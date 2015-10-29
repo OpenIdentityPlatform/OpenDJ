@@ -132,7 +132,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   protected String[] backendVlvIndexes = { "people" };
 
   private AttributeType modifyAttribute;
-  private final ByteString modifyValue = ByteString.valueOf("foo");
+  private final ByteString modifyValue = ByteString.valueOfUtf8("foo");
   private String backupPath;
   private BackupDirectory backupDirectory;
 
@@ -1183,7 +1183,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          txn.put(new TreeName("dc=test,dc=com", "id2entry"), ByteString.valueOf("key"), ByteString.valueOf("value"));
+          txn.put(new TreeName("dc=test,dc=com", "id2entry"), ByteString.valueOfUtf8("key"), ByteString.valueOfUtf8("value"));
         }
       });
     }

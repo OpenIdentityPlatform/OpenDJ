@@ -127,22 +127,22 @@ public class ModifyOperationTestCase
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
-    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
-    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
     ldapMods = newRawModifications(delete(ldapAttr));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
-    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
-    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
     ldapMods = newRawModifications(replace(ldapAttr));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
-    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
-    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
     String value2 = "bar";
     LDAPAttribute ldapAttr2 = new LDAPAttribute("description", value2);
@@ -150,16 +150,16 @@ public class ModifyOperationTestCase
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
-    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
-    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
     ldapAttr2 = new LDAPAttribute("cn", value2);
     ldapMods = newRawModifications(replace(ldapAttr), replace(ldapAttr2));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
-    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
-    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
 
 
@@ -279,10 +279,10 @@ public class ModifyOperationTestCase
     ByteString originalDN = modifyOperation.getRawEntryDN();
     assertNotNull(originalDN);
 
-    modifyOperation.setRawEntryDN(ByteString.valueOf("uid=test,o=test"));
+    modifyOperation.setRawEntryDN(ByteString.valueOfUtf8("uid=test,o=test"));
     assertNotNull(modifyOperation.getRawEntryDN());
     assertEquals(modifyOperation.getRawEntryDN(),
-                 ByteString.valueOf("uid=test,o=test"));
+                 ByteString.valueOfUtf8("uid=test,o=test"));
 
     modifyOperation.setRawEntryDN(originalDN);
     assertNotNull(modifyOperation.getRawEntryDN());
@@ -344,7 +344,7 @@ public class ModifyOperationTestCase
     ModifyOperation modifyOperation = newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
-    modifyOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
+    modifyOperation.setRawEntryDN(ByteString.valueOfUtf8("ou=Users,o=test"));
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -778,20 +778,20 @@ public class ModifyOperationTestCase
       List<RawModification> mods)
   {
     InternalClientConnection conn = getRootConnection();
-    return conn.processModify(ByteString.valueOf(entryDN), mods);
+    return conn.processModify(ByteString.valueOfUtf8(entryDN), mods);
   }
 
   private ModifyOperation processModify(String entryDN, RawModification... mods)
   {
     InternalClientConnection conn = getRootConnection();
-    return conn.processModify(ByteString.valueOf(entryDN), Arrays.asList(mods));
+    return conn.processModify(ByteString.valueOfUtf8(entryDN), Arrays.asList(mods));
   }
 
   private ModifyOperation processModify(String entryDN,
       List<RawModification> mods, List<Control> requestControls)
   {
     InternalClientConnection conn = getRootConnection();
-    return conn.processModify(ByteString.valueOf(entryDN), mods, requestControls);
+    return conn.processModify(ByteString.valueOfUtf8(entryDN), mods, requestControls);
   }
 
   /**
@@ -2340,8 +2340,8 @@ public class ModifyOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -2358,7 +2358,7 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user," + baseDN), mods);
+                  ByteString.valueOfUtf8("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -2480,8 +2480,8 @@ public class ModifyOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -2498,7 +2498,7 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user," + baseDN), mods);
+                  ByteString.valueOfUtf8("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -2626,8 +2626,8 @@ public class ModifyOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -2644,7 +2644,7 @@ public class ModifyOperationTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user," + baseDN), mods);
+                  ByteString.valueOfUtf8("uid=test.user," + baseDN), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -2736,7 +2736,7 @@ public class ModifyOperationTestCase
     List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyOperation modifyOperation =
-        newModifyOperation(null, ByteString.valueOf(baseDN), mods);
+        newModifyOperation(null, ByteString.valueOfUtf8(baseDN), mods);
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     LocalizableMessage.raw("testCancelBeforeStartup"));
@@ -2760,7 +2760,7 @@ public class ModifyOperationTestCase
     List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyOperation modifyOperation =
-        newModifyOperation(null, ByteString.valueOf(baseDN), mods);
+        newModifyOperation(null, ByteString.valueOfUtf8(baseDN), mods);
     modifyOperation.run();
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -2812,8 +2812,8 @@ public class ModifyOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -2828,7 +2828,7 @@ public class ModifyOperationTestCase
     List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectControlList("PreParse"));
     w.writeMessage(message);
@@ -2862,8 +2862,8 @@ public class ModifyOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -2878,7 +2878,7 @@ public class ModifyOperationTestCase
     List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
@@ -2913,8 +2913,8 @@ public class ModifyOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -2929,7 +2929,7 @@ public class ModifyOperationTestCase
     List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
@@ -2989,8 +2989,8 @@ responseLoop:
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -3004,7 +3004,7 @@ responseLoop:
     List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
     message = new LDAPMessage(2, modifyRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
@@ -3182,7 +3182,7 @@ responseLoop:
         RawModification.create(ModificationType.REPLACE, "description", "foo"));
 
     ModifyOperation modifyOperation =
-        newModifyOperation(controls, ByteString.valueOf("o=test"), mods);
+        newModifyOperation(controls, ByteString.valueOfUtf8("o=test"), mods);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));

@@ -292,7 +292,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       final Object result = mockProvider.assertExpectedEventWasReceived(event);
       if (result instanceof String)
       {
-        return ByteString.valueOf((String) result);
+        return ByteString.valueOfUtf8((String) result);
       }
       else
       {
@@ -1029,7 +1029,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       try
       {
         return GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ByteString
-            .valueOf(currentTime));
+            .valueOfUtf8(currentTime));
       }
       catch (DirectoryException e)
       {
@@ -1638,7 +1638,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Perform authentication.
     try
     {
-      state.passwordMatches(ByteString.valueOf(userPassword));
+      state.passwordMatches(ByteString.valueOfUtf8(userPassword));
       fail("password match unexpectedly succeeded");
     }
     catch (final DirectoryException e)
@@ -1713,7 +1713,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Perform authentication.
     try
     {
-      state.passwordMatches(ByteString.valueOf(userPassword));
+      state.passwordMatches(ByteString.valueOfUtf8(userPassword));
       fail("password match unexpectedly succeeded");
     }
     catch (final DirectoryException e)
@@ -1810,7 +1810,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Perform authentication.
     try
     {
-      state.passwordMatches(ByteString.valueOf(userPassword));
+      state.passwordMatches(ByteString.valueOfUtf8(userPassword));
       fail("password match unexpectedly succeeded");
     }
     catch (final DirectoryException e)
@@ -1957,7 +1957,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
 
       // Perform authentication.
-      assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+      assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
 
       state.finalizeStateAfterBind();
     }
@@ -2079,13 +2079,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       {
       case 0:
         // First attempt should succeed.
-        assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
         break;
       case 1:
         // Second attempt should fail.
         try
         {
-          state.passwordMatches(ByteString.valueOf(userPassword));
+          state.passwordMatches(ByteString.valueOfUtf8(userPassword));
           fail("password match unexpectedly succeeded");
         }
         catch (final DirectoryException e)
@@ -2099,7 +2099,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       case 2:
         // Third attempt should succeed, once the monitor has run.
         provider.runMonitorTasks();
-        assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
         break;
       }
 
@@ -2288,13 +2288,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       {
       case 0:
         // First attempt should succeed.
-        assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
         break;
       case 1:
         // Second attempt should fail.
         try
         {
-          state.passwordMatches(ByteString.valueOf(userPassword));
+          state.passwordMatches(ByteString.valueOfUtf8(userPassword));
           fail("password match unexpectedly succeeded");
         }
         catch (final DirectoryException e)
@@ -2308,7 +2308,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       case 2:
         // Third attempt should succeed, once the monitor has run.
         provider.runMonitorTasks();
-        assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
         break;
       }
 
@@ -2352,8 +2352,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.simpleBind(ByteString.valueOf(searchBindDNString),
-          ByteString.valueOf(userPassword));
+      connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
+          ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
     }
     catch (final DirectoryException e)
@@ -2396,8 +2396,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.simpleBind(ByteString.valueOf(searchBindDNString),
-          ByteString.valueOf(userPassword));
+      connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
+          ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
     }
     catch (final DirectoryException e)
@@ -2442,8 +2442,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.simpleBind(ByteString.valueOf(searchBindDNString),
-          ByteString.valueOf(userPassword));
+      connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
+          ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
     }
     catch (final DirectoryException e)
@@ -2486,8 +2486,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.simpleBind(ByteString.valueOf(searchBindDNString),
-          ByteString.valueOf(userPassword));
+      connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
+          ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
     }
     catch (final DirectoryException e)
@@ -2529,8 +2529,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.simpleBind(ByteString.valueOf(searchBindDNString),
-          ByteString.valueOf(userPassword));
+      connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
+          ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
     }
     catch (final DirectoryException e)
@@ -2570,8 +2570,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.simpleBind(ByteString.valueOf(searchBindDNString),
-          ByteString.valueOf(userPassword));
+      connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
+          ByteString.valueOfUtf8(userPassword));
     }
     finally
     {
@@ -2988,7 +2988,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       final ByteString username = connection.search(searchBindDN,
           SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
-      assertEquals(username, ByteString.valueOf(adDNString));
+      assertEquals(username, ByteString.valueOfUtf8(adDNString));
     }
     finally
     {
@@ -3206,7 +3206,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       assertEquals(state.getAuthenticationPolicy(), policy);
 
       // Perform authentication.
-      assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+      assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
 
       state.finalizeStateAfterBind();
     }
@@ -3305,15 +3305,15 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     switch (bindResultCode.asEnum())
     {
     case SUCCESS:
-      assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+      assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
       break;
     case INVALID_CREDENTIALS:
-      assertFalse(state.passwordMatches(ByteString.valueOf(userPassword)));
+      assertFalse(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
       break;
     default:
       try
       {
-        state.passwordMatches(ByteString.valueOf(userPassword));
+        state.passwordMatches(ByteString.valueOfUtf8(userPassword));
         fail("password match did not fail");
       }
       catch (final DirectoryException e)
@@ -3418,7 +3418,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Perform authentication.
     try
     {
-      state.passwordMatches(ByteString.valueOf(userPassword));
+      state.passwordMatches(ByteString.valueOfUtf8(userPassword));
       fail("password match unexpectedly succeeded");
     }
     catch (final DirectoryException e)
@@ -3506,7 +3506,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     assertEquals(state.getAuthenticationPolicy(), policy);
 
     // Perform authentication.
-    assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+    assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
 
     // There should be no more pending events.
     provider.assertAllExpectedEventsReceived();
@@ -3588,7 +3588,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     assertEquals(state.getAuthenticationPolicy(), policy);
 
     // Perform authentication.
-    assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+    assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
 
     // There should be no more pending events.
     provider.assertAllExpectedEventsReceived();
@@ -3663,7 +3663,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     assertEquals(state.getAuthenticationPolicy(), policy);
 
     // Perform authentication.
-    assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+    assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
 
     // There should be no more pending events.
     provider.assertAllExpectedEventsReceived();
@@ -3739,7 +3739,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
       try
       {
-        state.passwordMatches(ByteString.valueOf(userPassword));
+        state.passwordMatches(ByteString.valueOfUtf8(userPassword));
         fail("password match unexpectedly succeeded");
       }
       catch (final DirectoryException e)
@@ -3848,13 +3848,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       // Perform authentication.
       if (i < 2)
       {
-        assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
       }
       else
       {
         try
         {
-          state.passwordMatches(ByteString.valueOf(userPassword));
+          state.passwordMatches(ByteString.valueOfUtf8(userPassword));
           fail("password match unexpectedly succeeded");
         }
         catch (final DirectoryException e)
@@ -3969,7 +3969,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Perform authentication.
     try
     {
-      state.passwordMatches(ByteString.valueOf(userPassword));
+      state.passwordMatches(ByteString.valueOfUtf8(userPassword));
       fail("password match unexpectedly succeeded");
     }
     catch (final DirectoryException e)
@@ -3995,7 +3995,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     final AuthenticationPolicyState state2 = policy
         .createAuthenticationPolicyState(userEntry);
     assertEquals(state2.getAuthenticationPolicy(), policy);
-    assertTrue(state2.passwordMatches(ByteString.valueOf(userPassword)));
+    assertTrue(state2.passwordMatches(ByteString.valueOfUtf8(userPassword)));
     state2.finalizeStateAfterBind();
 
     // Run monitor which should still have nothing to do.
@@ -4066,8 +4066,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     // Authenticate three times, the third time was failing because the pool
     // would not retry the operation on a new connection.
-    ByteString username = ByteString.valueOf(searchBindDNString);
-    ByteString password = ByteString.valueOf("searchPassword");
+    ByteString username = ByteString.valueOfUtf8(searchBindDNString);
+    ByteString password = ByteString.valueOfUtf8("searchPassword");
 
     Connection c1 = pool.getConnection();
     c1.simpleBind(username, password);
@@ -4271,7 +4271,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     final AuthenticationPolicyState state = policy
         .createAuthenticationPolicyState(testUser);
     assertEquals(state.getAuthenticationPolicy(), policy);
-    assertEquals(state.passwordMatches(ByteString.valueOf(presentedPassword)),
+    assertEquals(state.passwordMatches(ByteString.valueOfUtf8(presentedPassword)),
         expectedBindResultIsSuccess);
     state.finalizeStateAfterBind();
 
@@ -4293,7 +4293,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       {
         assertFalse(newCachedPassword.equals(testCachedPassword));
         assertTrue(UserPasswordSyntax.isEncoded(ByteString
-            .valueOf(newCachedPassword)));
+            .valueOfUtf8(newCachedPassword)));
         assertEquals(newCachedPasswordTime, testCurrentTimeGMT);
       }
       else
@@ -4333,8 +4333,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   BindRequestProtocolOp newBindRequest(final String dn, final String password)
       throws LDAPException
   {
-    return new BindRequestProtocolOp(ByteString.valueOf(dn), 3,
-        ByteString.valueOf(password));
+    return new BindRequestProtocolOp(ByteString.valueOfUtf8(dn), 3,
+        ByteString.valueOfUtf8(password));
   }
 
 
@@ -4368,7 +4368,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       throws LDAPException
   {
     final int timeout = (int) (cfg.getConnectionTimeout() / 1000);
-    return new SearchRequestProtocolOp(ByteString.valueOf(dn),
+    return new SearchRequestProtocolOp(ByteString.valueOfUtf8(dn),
         SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS, 1, timeout,
         true, RawFilter.create(filter),
         LDAPPassThroughAuthenticationPolicyFactory.NO_ATTRIBUTES);

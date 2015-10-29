@@ -302,7 +302,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          new UniqueCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("password");
+    ByteString password = ByteString.valueOfUtf8("password");
     ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "password")));
@@ -371,7 +371,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          new UniqueCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("passw");
+    ByteString password = ByteString.valueOfUtf8("passw");
     ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "passw")));
@@ -439,7 +439,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          new UniqueCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("pasSw");
+    ByteString password = ByteString.valueOfUtf8("pasSw");
     ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "pasSw")));
@@ -508,7 +508,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          new UniqueCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("pasSw");
+    ByteString password = ByteString.valueOfUtf8("pasSw");
     ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "pasSw")));
@@ -575,7 +575,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          new UniqueCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("aaaaaaaa");
+    ByteString password = ByteString.valueOfUtf8("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));
@@ -643,7 +643,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          new UniqueCharactersPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString password = ByteString.valueOf("aaaaaaaa");
+    ByteString password = ByteString.valueOfUtf8("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("userpassword", "aaaaaaaa")));

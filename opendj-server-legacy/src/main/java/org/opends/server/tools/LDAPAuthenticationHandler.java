@@ -567,7 +567,7 @@ public class LDAPAuthenticationHandler
     }
     else
     {
-      saslCredentials = ByteString.valueOf(trace);
+      saslCredentials = ByteString.valueOfUtf8(trace);
     }
 
     BindRequestProtocolOp bindRequest =
@@ -908,7 +908,7 @@ public class LDAPAuthenticationHandler
     // Create and send the second bind request to the server.
     BindRequestProtocolOp bindRequest2 =
          new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_CRAM_MD5, ByteString.valueOf(buffer.toString()));
+             SASL_MECHANISM_CRAM_MD5, ByteString.valueOfUtf8(buffer.toString()));
     LDAPMessage requestMessage2 =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2,
                          requestControls);
@@ -1652,7 +1652,7 @@ public class LDAPAuthenticationHandler
     BindRequestProtocolOp bindRequest2 =
          new BindRequestProtocolOp(bindDN.toByteString(),
              SASL_MECHANISM_DIGEST_MD5,
-             ByteString.valueOf(credBuffer.toString()));
+             ByteString.valueOfUtf8(credBuffer.toString()));
     LDAPMessage requestMessage2 =
          new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2,
                          requestControls);
@@ -2874,7 +2874,7 @@ public class LDAPAuthenticationHandler
     credBuffer.append(bindPassword.toString());
 
     ByteString saslCredentials =
-        ByteString.valueOf(credBuffer.toString());
+        ByteString.valueOfUtf8(credBuffer.toString());
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(bindDN.toByteString(), SASL_MECHANISM_PLAIN,
                                 saslCredentials);

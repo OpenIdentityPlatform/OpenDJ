@@ -104,7 +104,7 @@ abstract class AbstractTree implements Tree
   @Override
   public ByteString generateKey(String key)
   {
-    return ByteString.valueOf(key.getBytes());
+    return ByteString.valueOfUtf8(key);
   }
 }
 

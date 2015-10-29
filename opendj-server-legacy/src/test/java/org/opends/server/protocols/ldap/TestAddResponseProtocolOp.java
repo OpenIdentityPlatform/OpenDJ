@@ -73,7 +73,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
 
     //Setup the DN to use in the response tests.
     AttributeType attribute = DirectoryServer.getAttributeTypeOrDefault("testAttribute");
-    ByteString attributeValue = ByteString.valueOf("testValue");
+    ByteString attributeValue = ByteString.valueOfUtf8("testValue");
     dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }
 

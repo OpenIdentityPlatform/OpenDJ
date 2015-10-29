@@ -115,15 +115,15 @@ public class PlainSASLMechanismHandlerTestCase
   {
     return new Object[][]
     {
-      new Object[] { ByteString.valueOf("a") },
-      new Object[] { ByteString.valueOf("ab") },
-      new Object[] { ByteString.valueOf("abc") },
-      new Object[] { ByteString.valueOf("abcd") },
-      new Object[] { ByteString.valueOf("abcde") },
-      new Object[] { ByteString.valueOf("abcdef") },
-      new Object[] { ByteString.valueOf("abcdefg") },
-      new Object[] { ByteString.valueOf("abcdefgh") },
-      new Object[] { ByteString.valueOf("The Quick Brown Fox Jumps Over " +
+      new Object[] { ByteString.valueOfUtf8("a") },
+      new Object[] { ByteString.valueOfUtf8("ab") },
+      new Object[] { ByteString.valueOfUtf8("abc") },
+      new Object[] { ByteString.valueOfUtf8("abcd") },
+      new Object[] { ByteString.valueOfUtf8("abcde") },
+      new Object[] { ByteString.valueOfUtf8("abcdef") },
+      new Object[] { ByteString.valueOfUtf8("abcdefg") },
+      new Object[] { ByteString.valueOfUtf8("abcdefgh") },
+      new Object[] { ByteString.valueOfUtf8("The Quick Brown Fox Jumps Over " +
                                          "The Lazy Dog") },
     };
   }
@@ -353,7 +353,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     ByteString rootCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());
@@ -408,20 +408,20 @@ public class PlainSASLMechanismHandlerTestCase
     {
       new Object[] { null },
       new Object[] { ByteString.empty() },
-      new Object[] { ByteString.valueOf("u:test.user") },
-      new Object[] { ByteString.valueOf("password") },
-      new Object[] { ByteString.valueOf("\u0000") },
-      new Object[] { ByteString.valueOf("\u0000\u0000") },
-      new Object[] { ByteString.valueOf("\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000u:test.user\u0000") },
-      new Object[] { ByteString.valueOf("\u0000dn:\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000dn:bogus\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000dn:cn=no such user" +
+      new Object[] { ByteString.valueOfUtf8("u:test.user") },
+      new Object[] { ByteString.valueOfUtf8("password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000") },
+      new Object[] { ByteString.valueOfUtf8("\u0000\u0000") },
+      new Object[] { ByteString.valueOfUtf8("\u0000password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000\u0000password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000u:test.user\u0000") },
+      new Object[] { ByteString.valueOfUtf8("\u0000dn:\u0000password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000dn:bogus\u0000password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000dn:cn=no such user" +
                                          "\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000u:\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000u:nosuchuser\u0000password") },
-      new Object[] { ByteString.valueOf("\u0000u:test.user\u0000" +
+      new Object[] { ByteString.valueOfUtf8("\u0000u:\u0000password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000u:nosuchuser\u0000password") },
+      new Object[] { ByteString.valueOfUtf8("\u0000u:test.user\u0000" +
                                          "wrongpassword") },
     };
   }

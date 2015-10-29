@@ -279,7 +279,7 @@ public class SimilarityBasedPasswordValidatorTestCase
     for (int i=0; i < 20; i++)
     {
       buffer.append('x');
-      ByteString password = ByteString.valueOf(buffer.toString());
+      ByteString password = ByteString.valueOfUtf8(buffer.toString());
 
       ArrayList<Modification> mods = newArrayList(
           new Modification(REPLACE, Attributes.create("userpassword", buffer.toString())));
@@ -349,11 +349,11 @@ public class SimilarityBasedPasswordValidatorTestCase
 
     StringBuilder buffer = new StringBuilder();
     HashSet<ByteString> currentPassword = new HashSet<>(3);
-    currentPassword.add(ByteString.valueOf("xxx"));
+    currentPassword.add(ByteString.valueOfUtf8("xxx"));
     for (int i=0; i < 7; i++)
     {
       buffer.append('x');
-      ByteString password = ByteString.valueOf(buffer.toString());
+      ByteString password = ByteString.valueOfUtf8(buffer.toString());
 
       ArrayList<Modification> mods = newArrayList(
           new Modification(REPLACE, Attributes.create("userpassword", buffer.toString())));

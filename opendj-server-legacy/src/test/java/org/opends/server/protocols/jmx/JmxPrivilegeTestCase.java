@@ -587,7 +587,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     CompareOperationBasis compareOp = new CompareOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
         targetDN, DirectoryServer.getAttributeTypeOrDefault("cn"),
-        ByteString.valueOf("PWReset Target"));
+        ByteString.valueOfUtf8("PWReset Target"));
     assertSuccess(hasProxyPrivilege, compareOp);
 
     // Test a search operation against the PWReset Target user.
@@ -630,7 +630,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     ArrayList<Control> controls = new ArrayList<>(1);
     controls.add(new ProxiedAuthV2Control(
-                          ByteString.valueOf("dn:cn=PWReset Target,o=test")));
+                          ByteString.valueOfUtf8("dn:cn=PWReset Target,o=test")));
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
@@ -694,13 +694,13 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
     ArrayList<Control> controls = new ArrayList<>(1);
-    controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
+    controls.add(new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:" + targetDN)));
 
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOp = new CompareOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
         targetDN, DirectoryServer.getAttributeTypeOrDefault("cn"),
-        ByteString.valueOf("PWReset Target"));
+        ByteString.valueOfUtf8("PWReset Target"));
     assertSuccess(hasProxyPrivilege, compareOp);
 
     // Test a search operation against the PWReset Target user.

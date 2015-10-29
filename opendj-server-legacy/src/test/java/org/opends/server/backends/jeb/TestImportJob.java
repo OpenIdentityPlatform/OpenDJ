@@ -472,7 +472,7 @@ public class TestImportJob extends JebTestCase
       assertNotNull(entry);
 
       AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("cn");
-      assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Annalee Bogard")));
+      assertTrue(entry.hasValue(attrType, null, ByteString.valueOfUtf8("Annalee Bogard")));
 
       assertEquals(verifyBackend(importtest1DN), 0);
     }

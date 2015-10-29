@@ -299,7 +299,7 @@ public class LDAPConnection
       }
       else
       {
-        bindDNBytes = ByteString.valueOf(bindDN);
+        bindDNBytes = ByteString.valueOfUtf8(bindDN);
       }
 
       ByteString bindPW;
@@ -309,7 +309,7 @@ public class LDAPConnection
       }
       else
       {
-        bindPW = ByteString.valueOf(bindPassword);
+        bindPW = ByteString.valueOfUtf8(bindPassword);
       }
 
       String result = null;

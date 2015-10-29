@@ -156,10 +156,10 @@ public class ModifyDNMsg extends ModifyCommonMsg
     ModifyDNOperation moddn =  new ModifyDNOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDN.toString()),
-        ByteString.valueOf(newRDN),
+        ByteString.valueOfUtf8(newDN.toString()),
+        ByteString.valueOfUtf8(newRDN),
         deleteOldRdn,
-        (newSuperior == null ? null : ByteString.valueOf(newSuperior)));
+        (newSuperior == null ? null : ByteString.valueOfUtf8(newSuperior)));
 
     for (Modification mod : decodeMods(encodedMods))
     {

@@ -153,7 +153,7 @@ public class DN2URI extends DatabaseContainer
 
   private Pair<String, DN> decodeURIAndDN(byte[] data) throws DirectoryException {
     try {
-      final ByteSequenceReader reader = ByteString.valueOf(data).asReader();
+      final ByteSequenceReader reader = ByteString.valueOfBytes(data).asReader();
       final String labeledURI = reader.readStringUtf8(getNextStringLength(reader));
       // skip the string separator
       reader.skip(1);

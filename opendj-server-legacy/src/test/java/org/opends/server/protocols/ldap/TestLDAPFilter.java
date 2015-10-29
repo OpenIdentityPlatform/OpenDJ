@@ -82,59 +82,59 @@ public class TestLDAPFilter extends LdapTestCase
   public Object[][] getFilterStrings() throws Exception
   {
     LDAPFilter equal = LDAPFilter.createEqualityFilter("objectClass",
-                                        ByteString.valueOf("\\test*(Value)"));
+                                        ByteString.valueOfUtf8("\\test*(Value)"));
     LDAPFilter equal2 = LDAPFilter.createEqualityFilter("objectClass",
-                                                      ByteString.valueOf(""));
+                                                      ByteString.valueOfUtf8(""));
     LDAPFilter approx = LDAPFilter.createApproximateFilter("sn",
-                                        ByteString.valueOf("\\test*(Value)"));
+                                        ByteString.valueOfUtf8("\\test*(Value)"));
     LDAPFilter greater = LDAPFilter.createGreaterOrEqualFilter("employeeNumber",
-                                        ByteString.valueOf("\\test*(Value)"));
+                                        ByteString.valueOfUtf8("\\test*(Value)"));
     LDAPFilter less = LDAPFilter.createLessOrEqualFilter("dob",
-                                        ByteString.valueOf("\\test*(Value)"));
+                                        ByteString.valueOfUtf8("\\test*(Value)"));
     LDAPFilter presense = LDAPFilter.createPresenceFilter("login");
 
     ArrayList<ByteString> any = new ArrayList<>(0);
-    ArrayList<ByteString> multiAny = newArrayList(ByteString.valueOf("\\wid*(get)"), ByteString.valueOf("*"));
+    ArrayList<ByteString> multiAny = newArrayList(ByteString.valueOfUtf8("\\wid*(get)"), ByteString.valueOfUtf8("*"));
 
     LDAPFilter substring1 = LDAPFilter.createSubstringFilter("givenName",
-                                                 ByteString.valueOf("\\Jo*()"),
+                                                 ByteString.valueOfUtf8("\\Jo*()"),
                                                       any,
-                                                 ByteString.valueOf("\\n*()"));
+                                                 ByteString.valueOfUtf8("\\n*()"));
     LDAPFilter substring2 = LDAPFilter.createSubstringFilter("givenName",
-                                                 ByteString.valueOf("\\Jo*()"),
+                                                 ByteString.valueOfUtf8("\\Jo*()"),
                                                       multiAny,
-                                                 ByteString.valueOf("\\n*()"));
+                                                 ByteString.valueOfUtf8("\\n*()"));
     LDAPFilter substring3 = LDAPFilter.createSubstringFilter("givenName",
-                                                      ByteString.valueOf(""),
+                                                      ByteString.valueOfUtf8(""),
                                                       any,
-                                                 ByteString.valueOf("\\n*()"));
+                                                 ByteString.valueOfUtf8("\\n*()"));
     LDAPFilter substring4 = LDAPFilter.createSubstringFilter("givenName",
-                                                 ByteString.valueOf("\\Jo*()"),
+                                                 ByteString.valueOfUtf8("\\Jo*()"),
                                                       any,
-                                                      ByteString.valueOf(""));
+                                                      ByteString.valueOfUtf8(""));
     LDAPFilter substring5 = LDAPFilter.createSubstringFilter("givenName",
-                                                      ByteString.valueOf(""),
+                                                      ByteString.valueOfUtf8(""),
                                                       multiAny,
-                                                      ByteString.valueOf(""));
+                                                      ByteString.valueOfUtf8(""));
     LDAPFilter extensible1 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 "cn",
-                                           ByteString.valueOf("\\John* (Doe)"),
+                                           ByteString.valueOfUtf8("\\John* (Doe)"),
                                                 false);
     LDAPFilter extensible2 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 "cn",
-                                           ByteString.valueOf("\\John* (Doe)"),
+                                           ByteString.valueOfUtf8("\\John* (Doe)"),
                                                 true);
     LDAPFilter extensible3 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 null,
-                                           ByteString.valueOf("\\John* (Doe)"),
+                                           ByteString.valueOfUtf8("\\John* (Doe)"),
                                                 true);
     LDAPFilter extensible4 = LDAPFilter.createExtensibleFilter(null,
                                                 "cn",
-                                           ByteString.valueOf("\\John* (Doe)"),
+                                           ByteString.valueOfUtf8("\\John* (Doe)"),
                                                 true);
     LDAPFilter extensible5 = LDAPFilter.createExtensibleFilter("2.4.6.8.19",
                                                 null,
-                                           ByteString.valueOf("\\John* (Doe)"),
+                                           ByteString.valueOfUtf8("\\John* (Doe)"),
                                                 false);
 
     ArrayList<RawFilter> list1 = new ArrayList<>();
@@ -198,7 +198,7 @@ public class TestLDAPFilter extends LdapTestCase
         {
             "(ds-sync-conflict=uid=\\5c+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab)",
             LDAPFilter.createEqualityFilter("ds-sync-conflict",
-                    ByteString.valueOf("uid=\\+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab")) },
+                    ByteString.valueOfUtf8("uid=\\+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab")) },
 
       // OPENDJ-735
       { "(&)", LDAPFilter.createANDFilter(new ArrayList<RawFilter>()) },

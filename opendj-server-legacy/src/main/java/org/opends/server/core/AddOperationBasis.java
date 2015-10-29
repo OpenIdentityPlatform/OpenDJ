@@ -148,7 +148,7 @@ public class AddOperationBasis
     this.userAttributes        = userAttributes;
     this.operationalAttributes = operationalAttributes;
 
-    rawEntryDN = ByteString.valueOf(entryDN.toString());
+    rawEntryDN = ByteString.valueOfUtf8(entryDN.toString());
 
     ArrayList<String> values = new ArrayList<>(objectClasses.values());
     rawAttributes = new ArrayList<>();

@@ -321,8 +321,8 @@ public final class TestLDIFReader extends UtilTestCase {
           .valueOf("cn=john, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOf("john")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOf("smith")));
+      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOfUtf8("john")));
+      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOfUtf8("smith")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -353,7 +353,7 @@ public final class TestLDIFReader extends UtilTestCase {
     try {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOf("once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOfUtf8("once upon a time in the west")));
     } finally {
       reader.close();
     }
@@ -377,7 +377,7 @@ public final class TestLDIFReader extends UtilTestCase {
     try {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOf("once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOfUtf8("once upon a time in the west")));
     } finally {
       reader.close();
     }
@@ -409,8 +409,8 @@ public final class TestLDIFReader extends UtilTestCase {
           .valueOf("cn=anne, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOf("anne")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOf("other")));
+      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOfUtf8("anne")));
+      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOfUtf8("other")));
 
       Assert.assertNull(reader.readEntry());
 

@@ -114,7 +114,7 @@ public class TripleDESPasswordStorageScheme
       byte[] encodedBytes = cryptoManager.encrypt(CIPHER_TRANSFORMATION_3DES,
                                                   KEY_SIZE_3DES,
                                                   plaintextBytes);
-      return ByteString.valueOf(Base64.encode(encodedBytes));
+      return ByteString.valueOfUtf8(Base64.encode(encodedBytes));
     }
     catch (Exception e)
     {
@@ -173,7 +173,7 @@ public class TripleDESPasswordStorageScheme
       }
     }
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

@@ -212,7 +212,7 @@ public class ServerState implements Iterable<CSN>
     final ArrayList<ByteString> values = new ArrayList<>(0);
     for (CSN csn : serverIdToCSN.values())
     {
-      values.add(ByteString.valueOf(csn.toString()));
+      values.add(ByteString.valueOfUtf8(csn.toString()));
     }
     return values;
   }

@@ -773,7 +773,8 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
         // Try this alternative:
         AttributeType attrType =
             getInfo().getServerDescriptor().getSchema().getAttributeType(attr.toString().toLowerCase());
-        return new LDAPFilter(SearchFilter.createEqualityFilter(attrType, ByteString.valueOf(filterText))).toString();
+        ByteString filterBytes = ByteString.valueOfUtf8(filterText);
+        return new LDAPFilter(SearchFilter.createEqualityFilter(attrType, filterBytes)).toString();
       }
     }
     else

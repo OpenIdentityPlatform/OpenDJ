@@ -252,8 +252,8 @@ public final class TimeBasedMatchingRuleTest
   {
     MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(
             EXT_PARTIAL_DATE_TIME_NAME.toLowerCase());
-    Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOf(assertionValue));
-    assertEquals(assertion.matches(ByteString.valueOf(attributeValue)), ConditionResult.TRUE);
+    Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOfUtf8(assertionValue));
+    assertEquals(assertion.matches(ByteString.valueOfLong(attributeValue)), ConditionResult.TRUE);
   }
 
 
@@ -268,7 +268,7 @@ public final class TimeBasedMatchingRuleTest
             DirectoryServer.getMatchingRule(EXT_OMR_RELATIVE_TIME_LT_ALT_NAME.toLowerCase());
     try
     {
-      relativeTimeLTRule.getAssertion(ByteString.valueOf(assertion));
+      relativeTimeLTRule.getAssertion(ByteString.valueOfUtf8(assertion));
       // An invalid value can't get away without throwing exception.
       assertTrue(isValid);
     }
@@ -291,7 +291,7 @@ public final class TimeBasedMatchingRuleTest
             DirectoryServer.getMatchingRule(EXT_PARTIAL_DATE_TIME_OID);
     try
     {
-      partialDTRule.getAssertion(ByteString.valueOf(assertion));
+      partialDTRule.getAssertion(ByteString.valueOfUtf8(assertion));
       assertTrue(isValid);
     }
     catch (DecodeException e)

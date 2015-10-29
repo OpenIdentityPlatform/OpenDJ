@@ -146,7 +146,7 @@ public class PBKDF2PasswordStorageScheme
     byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes, iterations,random);
     byte[] hashPlusSalt = concatenateHashPlusSalt(saltBytes, digestBytes);
 
-    return ByteString.valueOf(iterations + ":" + Base64.encode(hashPlusSalt));
+    return ByteString.valueOfUtf8(iterations + ":" + Base64.encode(hashPlusSalt));
   }
 
   /** {@inheritDoc} */
@@ -154,7 +154,7 @@ public class PBKDF2PasswordStorageScheme
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
       throws DirectoryException
   {
-    return ByteString.valueOf('{' + STORAGE_SCHEME_NAME_PBKDF2 + '}' + encodePassword(plaintext));
+    return ByteString.valueOfUtf8('{' + STORAGE_SCHEME_NAME_PBKDF2 + '}' + encodePassword(plaintext));
   }
 
   /** {@inheritDoc} */
@@ -219,7 +219,7 @@ public class PBKDF2PasswordStorageScheme
     byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes, iterations,random);
 
     // Encode and return the value.
-    return ByteString.valueOf(AUTH_PASSWORD_SCHEME_NAME_PBKDF2 + '$'
+    return ByteString.valueOfUtf8(AUTH_PASSWORD_SCHEME_NAME_PBKDF2 + '$'
         + iterations + ':' + Base64.encode(saltBytes) + '$' + Base64.encode(digestBytes));
   }
 

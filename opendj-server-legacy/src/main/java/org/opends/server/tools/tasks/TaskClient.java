@@ -266,7 +266,7 @@ public class TaskClient {
     ArrayList<Control> controls = new ArrayList<>();
     ArrayList<RawAttribute> attributes = getTaskAttributes(information);
 
-    ByteString entryDN = ByteString.valueOf(getTaskDN(attributes));
+    ByteString entryDN = ByteString.valueOfUtf8(getTaskDN(attributes));
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN, attributes);
     LDAPMessage requestMessage =
          new LDAPMessage(nextMessageID.getAndIncrement(), addRequest, controls);
@@ -316,7 +316,7 @@ public class TaskClient {
     List<Entry> entries = new ArrayList<>();
 
     writeSearch(new SearchRequestProtocolOp(
-        ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
+        ByteString.valueOfUtf8(ConfigConstants.DN_TASK_ROOT),
             SearchScope.WHOLE_SUBTREE,
             DereferenceAliasesPolicy.NEVER,
             Integer.MAX_VALUE,
@@ -368,7 +368,7 @@ public class TaskClient {
     Entry entry = null;
 
     writeSearch(new SearchRequestProtocolOp(
-        ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
+        ByteString.valueOfUtf8(ConfigConstants.DN_TASK_ROOT),
             SearchScope.WHOLE_SUBTREE,
             DereferenceAliasesPolicy.NEVER,
             Integer.MAX_VALUE,
@@ -422,7 +422,7 @@ public class TaskClient {
     if (state != null) {
       if (!TaskState.isDone(state)) {
 
-        ByteString dn = ByteString.valueOf(entry.getDN().toString());
+        ByteString dn = ByteString.valueOfUtf8(entry.getDN().toString());
 
         ArrayList<RawModification> mods = new ArrayList<>();
 
@@ -468,7 +468,7 @@ public class TaskClient {
         }
       } else if (TaskState.isRecurring(state)) {
 
-        ByteString dn = ByteString.valueOf(entry.getDN().toString());
+        ByteString dn = ByteString.valueOfUtf8(entry.getDN().toString());
         DeleteRequestProtocolOp deleteRequest =
           new DeleteRequestProtocolOp(dn);
 

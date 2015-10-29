@@ -315,7 +315,7 @@ public final class PasswordPolicyFactory implements
       {
         if (requireChangeBy != null)
         {
-          ByteString valueString = ByteString.valueOf(requireChangeBy);
+          ByteString valueString = ByteString.valueOfUtf8(requireChangeBy);
           requireChangeByTime = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
         }
       }

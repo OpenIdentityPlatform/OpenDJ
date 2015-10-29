@@ -164,8 +164,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
-                             ByteString.valueOf("password"), requestControls,
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+                             ByteString.valueOfUtf8("password"), requestControls,
                              responseControls);
 
     s.close();
@@ -251,7 +251,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
                                ByteString.empty(), requestControls,
                                responseControls);
     }
@@ -286,8 +286,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     try
     {
-      authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
-                               ByteString.valueOf("wrongPassword"),
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+                               ByteString.valueOfUtf8("wrongPassword"),
                                requestControls, responseControls);
     }
     finally
@@ -320,8 +320,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
-                             ByteString.valueOf("password"),
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+                             ByteString.valueOfUtf8("password"),
                              requestControls, responseControls);
 
     s.close();
@@ -714,7 +714,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -769,7 +769,7 @@ public class LDAPAuthenticationHandlerTestCase
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "CRAM-MD5", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -807,7 +807,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -849,7 +849,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -905,7 +905,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("invalidPassword"),
+                             ByteString.valueOfUtf8("invalidPassword"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -959,7 +959,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -997,7 +997,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1034,7 +1034,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1077,7 +1077,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1123,7 +1123,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "CRAM-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1180,7 +1180,7 @@ public class LDAPAuthenticationHandlerTestCase
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "CRAM-MD5", saslProperties, requestControls,
                            responseControls);
     s.close();
@@ -1241,7 +1241,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1298,7 +1298,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -1350,7 +1350,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -1385,7 +1385,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1422,7 +1422,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1462,7 +1462,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1503,7 +1503,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1543,7 +1543,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1589,7 +1589,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1647,7 +1647,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -1694,7 +1694,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1744,7 +1744,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1793,7 +1793,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1844,7 +1844,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1894,7 +1894,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1944,7 +1944,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -1989,7 +1989,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2036,7 +2036,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2097,7 +2097,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("wrongPassword"),
+                             ByteString.valueOfUtf8("wrongPassword"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2156,7 +2156,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("password"),
                              "DIGEST-MD5", saslProperties, requestControls,
                              responseControls);
     }
@@ -2214,7 +2214,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
 
@@ -3069,7 +3069,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3121,7 +3121,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"), "PLAIN",
+                           ByteString.valueOfUtf8("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3155,7 +3155,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3191,7 +3191,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3232,7 +3232,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3272,7 +3272,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3317,7 +3317,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3361,7 +3361,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3401,7 +3401,7 @@ public class LDAPAuthenticationHandlerTestCase
     try
     {
       authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOf("password"), "PLAIN",
+                             ByteString.valueOfUtf8("password"), "PLAIN",
                              saslProperties, requestControls, responseControls);
     }
     finally
@@ -3440,7 +3440,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"), "PLAIN",
+                           ByteString.valueOfUtf8("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3487,7 +3487,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("wrongPassword"), "PLAIN",
+                           ByteString.valueOfUtf8("wrongPassword"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3537,7 +3537,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"), "PLAIN",
+                           ByteString.valueOfUtf8("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
 
     s.close();
@@ -3618,8 +3618,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
-                             ByteString.valueOf("password"), requestControls,
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+                             ByteString.valueOfUtf8("password"), requestControls,
                              responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 
@@ -3662,8 +3662,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("uid=test.user,o=test"),
-                             ByteString.valueOf("password"), requestControls,
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=test.user,o=test"),
+                             ByteString.valueOfUtf8("password"), requestControls,
                              responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 
@@ -3753,7 +3753,7 @@ public class LDAPAuthenticationHandlerTestCase
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "CRAM-MD5", saslProperties, requestControls,
                            responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
@@ -3806,7 +3806,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"),
+                           ByteString.valueOfUtf8("password"),
                            "DIGEST-MD5", saslProperties, requestControls,
                            responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
@@ -3910,7 +3910,7 @@ public class LDAPAuthenticationHandlerTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(r, w, "localhost", messageID);
     authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOf("password"), "PLAIN",
+                           ByteString.valueOfUtf8("password"), "PLAIN",
                            saslProperties, requestControls, responseControls);
     assertNotNull(authHandler.requestAuthorizationIdentity());
 

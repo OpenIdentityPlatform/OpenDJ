@@ -50,8 +50,8 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
     ASN1Writer simpleWriter = ASN1.getWriter(simpleBuilder);
     ByteStringBuilder saslBuilder = new ByteStringBuilder();
     ASN1Writer saslWriter = ASN1.getWriter(saslBuilder);
-    ByteString bindDn=ByteString.valueOf(dn);
-    ByteString pw=ByteString.valueOf(pwd);
+    ByteString bindDn=ByteString.valueOfUtf8(dn);
+    ByteString pw=ByteString.valueOfUtf8(pwd);
     BindRequestProtocolOp simple =
       new BindRequestProtocolOp(bindDn, 3, pw);
     BindRequestProtocolOp sasl =
@@ -97,8 +97,8 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
   @Test
   public void testBindRequestToString() throws Exception
   {
-    ByteString bindDn=ByteString.valueOf(dn);
-    ByteString pw=ByteString.valueOf(pwd);
+    ByteString bindDn=ByteString.valueOfUtf8(dn);
+    ByteString pw=ByteString.valueOfUtf8(pwd);
     BindRequestProtocolOp sasl =
       new BindRequestProtocolOp(bindDn, SASL_MECHANISM_PLAIN, pw);
     StringBuilder sb = new StringBuilder();

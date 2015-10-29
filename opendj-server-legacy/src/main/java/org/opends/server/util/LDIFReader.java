@@ -1592,7 +1592,7 @@ public class LDIFReader implements Closeable
         // The rest of the line should be the value. Skip over any
         // spaces and take the rest of the line as the value.
         int pos = findFirstNonSpaceCharPosition(line, colonPos + 1);
-        value = ByteString.valueOf(line.substring(pos));
+        value = ByteString.valueOfUtf8(line.substring(pos));
       }
     }
     return value;

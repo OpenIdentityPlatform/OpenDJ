@@ -95,8 +95,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -110,7 +110,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     attrList.add(RawAttribute.create("o", "test"));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(ByteString.valueOf("o=test"), attrList);
+         new AddRequestProtocolOp(ByteString.valueOfUtf8("o=test"), attrList);
     writer.writeMessage(new LDAPMessage(2, addRequest));
 
     message = reader.readMessage();
@@ -188,8 +188,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -199,8 +199,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
 
 
     CompareRequestProtocolOp compareRequest =
-         new CompareRequestProtocolOp(ByteString.valueOf("o=test"), "o",
-                                      ByteString.valueOf("test"));
+         new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o",
+                                      ByteString.valueOfUtf8("test"));
     writer.writeMessage(new LDAPMessage(2, compareRequest));
 
     message = reader.readMessage();
@@ -272,8 +272,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -283,7 +283,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
 
 
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
     writer.writeMessage(new LDAPMessage(2, deleteRequest));
 
     message = reader.readMessage();
@@ -346,8 +346,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -393,8 +393,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -407,7 +407,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     mods.add(RawModification.create(ModificationType.REPLACE, "description", "foo"));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
     writer.writeMessage(new LDAPMessage(2, modifyRequest));
 
     message = reader.readMessage();
@@ -482,8 +482,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -493,8 +493,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
 
 
     ModifyDNRequestProtocolOp modifyDNRequest =
-         new ModifyDNRequestProtocolOp(ByteString.valueOf("ou=People,o=test"),
-                                       ByteString.valueOf("ou=Users"), true);
+         new ModifyDNRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"),
+                                       ByteString.valueOfUtf8("ou=Users"), true);
     writer.writeMessage(new LDAPMessage(2, modifyDNRequest));
 
     message = reader.readMessage();
@@ -571,8 +571,8 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     LDAPWriter writer = new LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     writer.writeMessage(message);
 
@@ -582,7 +582,7 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
 
 
     SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
+         new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferenceAliasesPolicy.NEVER,
                                      0, 0, false,

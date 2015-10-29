@@ -990,7 +990,7 @@ public class CharacterSetPasswordValidatorTestCase
          new CharacterSetPasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString pwOS = ByteString.valueOf(password);
+    ByteString pwOS = ByteString.valueOfUtf8(password);
     ArrayList<Modification> mods = newArrayList(
         new Modification(REPLACE, Attributes.create("userpassword", password)));
 

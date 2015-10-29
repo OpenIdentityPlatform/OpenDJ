@@ -135,7 +135,7 @@ public class PasswordValidatorTestCase
                  0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
-                 ByteString.valueOf("newPassword"));
+                 ByteString.valueOfUtf8("newPassword"));
     assertFalse(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
   }
 
@@ -186,7 +186,7 @@ public class PasswordValidatorTestCase
     assertNotEquals(returnCode, 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
-                 ByteString.valueOf("newPassword"));
+                 ByteString.valueOfUtf8("newPassword"));
     assertFalse(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
 
     TestPasswordValidator.setNextReturnValue(true);
@@ -286,7 +286,7 @@ public class PasswordValidatorTestCase
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
     assertEquals(currentPasswords.iterator().next(),
-                 ByteString.valueOf("password"));
+                 ByteString.valueOfUtf8("password"));
   }
 
 
@@ -338,7 +338,7 @@ public class PasswordValidatorTestCase
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
     assertEquals(currentPasswords.iterator().next(),
-                 ByteString.valueOf("password"));
+                 ByteString.valueOfUtf8("password"));
   }
 
 
@@ -391,7 +391,7 @@ public class PasswordValidatorTestCase
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
     assertEquals(currentPasswords.iterator().next(),
-                 ByteString.valueOf("password"));
+                 ByteString.valueOfUtf8("password"));
   }
 
 
@@ -431,8 +431,8 @@ public class PasswordValidatorTestCase
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               ByteString.valueOf("uid=test.user,o=test"),
-                                3, ByteString.valueOf("password"));
+               ByteString.valueOfUtf8("uid=test.user,o=test"),
+                                3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -446,7 +446,7 @@ public class PasswordValidatorTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user,o=test"), mods);
+                  ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -456,7 +456,7 @@ public class PasswordValidatorTestCase
     assertEquals(modifyResponse.getResultCode(), 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
-                 ByteString.valueOf("newPassword"));
+                 ByteString.valueOfUtf8("newPassword"));
     assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
   }
 
@@ -497,8 +497,8 @@ public class PasswordValidatorTestCase
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               ByteString.valueOf("uid=test.user,o=test"),
-                                3, ByteString.valueOf("password"));
+               ByteString.valueOfUtf8("uid=test.user,o=test"),
+                                3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -513,7 +513,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextReturnValue(false);
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user,o=test"), mods);
+                  ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -523,7 +523,7 @@ public class PasswordValidatorTestCase
     assertNotEquals(modifyResponse.getResultCode(), 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
-                 ByteString.valueOf("newPassword"));
+                 ByteString.valueOfUtf8("newPassword"));
     assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
 
     TestPasswordValidator.setNextReturnValue(true);
@@ -567,8 +567,8 @@ public class PasswordValidatorTestCase
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               ByteString.valueOf("uid=test.user,o=test"),
-                                3, ByteString.valueOf("password"));
+               ByteString.valueOfUtf8("uid=test.user,o=test"),
+                                3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -585,7 +585,7 @@ public class PasswordValidatorTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user,o=test"), mods);
+                  ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -599,7 +599,7 @@ public class PasswordValidatorTestCase
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
     assertEquals(currentPasswords.iterator().next(),
-                 ByteString.valueOf("password"));
+                 ByteString.valueOfUtf8("password"));
   }
 
 
@@ -642,8 +642,8 @@ public class PasswordValidatorTestCase
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               ByteString.valueOf("uid=test.user,o=test"),
-                                3, ByteString.valueOf("password"));
+               ByteString.valueOfUtf8("uid=test.user,o=test"),
+                                3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -657,7 +657,7 @@ public class PasswordValidatorTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user,o=test"), mods);
+                  ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -671,7 +671,7 @@ public class PasswordValidatorTestCase
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
     assertEquals(currentPasswords.iterator().next(),
-                 ByteString.valueOf("password"));
+                 ByteString.valueOfUtf8("password"));
   }
 
 
@@ -714,8 +714,8 @@ public class PasswordValidatorTestCase
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
-               ByteString.valueOf("uid=test.user,o=test"),
-                                3, ByteString.valueOf("password"));
+               ByteString.valueOfUtf8("uid=test.user,o=test"),
+                                3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -732,7 +732,7 @@ public class PasswordValidatorTestCase
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(
-                  ByteString.valueOf("uid=test.user,o=test"), mods);
+                  ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
     message = new LDAPMessage(2, modifyRequest);
     w.writeMessage(message);
 
@@ -746,7 +746,7 @@ public class PasswordValidatorTestCase
     assertFalse(currentPasswords.isEmpty());
     assertEquals(currentPasswords.size(), 1);
     assertEquals(currentPasswords.iterator().next(),
-                 ByteString.valueOf("password"));
+                 ByteString.valueOfUtf8("password"));
   }
 }
 

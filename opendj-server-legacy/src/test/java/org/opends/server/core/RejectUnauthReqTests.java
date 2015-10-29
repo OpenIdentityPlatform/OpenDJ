@@ -401,8 +401,8 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     InternalClientConnection conn = new InternalClientConnection(
         new AuthenticationInfo());
-    ByteString user = ByteString.valueOf("cn=Directory Manager");
-    ByteString password = ByteString.valueOf("password");
+    ByteString user = ByteString.valueOfUtf8("cn=Directory Manager");
+    ByteString password = ByteString.valueOfUtf8("password");
     BindOperation bindOperation = conn.processSimpleBind(user, password);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -447,8 +447,8 @@ public class RejectUnauthReqTests extends CoreTestCase
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
         reader, writer, "localhost", nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
-        ByteString.valueOf("password"), new ArrayList<Control>(),
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+        ByteString.valueOfUtf8("password"), new ArrayList<Control>(),
         new ArrayList<Control>());
     ByteString authzID = authHandler.requestAuthorizationIdentity();
     assertNotNull(authzID);
@@ -649,8 +649,8 @@ public class RejectUnauthReqTests extends CoreTestCase
 
       InternalClientConnection conn = new InternalClientConnection(
           new AuthenticationInfo());
-      ByteString user = ByteString.valueOf("cn=Directory Manager");
-      ByteString password = ByteString.valueOf("password");
+      ByteString user = ByteString.valueOfUtf8("cn=Directory Manager");
+      ByteString password = ByteString.valueOfUtf8("password");
       // Unauthenticated BIND request.
       BindOperation bindOperation = conn.processSimpleBind(DN.rootDN(), null);
       assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);

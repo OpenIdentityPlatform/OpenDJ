@@ -198,8 +198,8 @@ public class VLVKeyComparator implements DatabaseComparator
         return -1;
       }
 
-      final ByteString val1 = ByteString.valueOf(b1Bytes);
-      final ByteString val2 = ByteString.valueOf(b2Bytes);
+      final ByteString val1 = ByteString.valueOfBytes(b1Bytes);
+      final ByteString val2 = ByteString.valueOfBytes(b2Bytes);
       final int result = ascending[j] ? val1.compareTo(val2) : val2.compareTo(val1);
       if(result != 0)
       {

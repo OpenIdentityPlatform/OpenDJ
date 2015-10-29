@@ -3788,7 +3788,7 @@ public class Entry
 
     // First, append the DN.
     StringBuilder dnLine = new StringBuilder("dn");
-    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
+    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOfUtf8(dn.toString()));
     ldifLines.add(dnLine);
 
     // Next, add the set of objectclasses.
@@ -3900,7 +3900,7 @@ public class Entry
 
     // First, write the DN.  It will always be included.
     StringBuilder dnLine = new StringBuilder("dn");
-    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
+    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOfUtf8(dn.toString()));
     LDIFWriter.writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 

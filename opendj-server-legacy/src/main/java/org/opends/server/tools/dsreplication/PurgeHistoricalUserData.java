@@ -229,7 +229,7 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
         while (values.hasMore())
         {
           Object v = values.next();
-          rawValues.add(ByteString.valueOf(v.toString()));
+          rawValues.add(ByteString.valueOfUtf8(v.toString()));
         }
         RawAttribute rAttr = RawAttribute.create(attr.getID(), rawValues);
         rawAttrs.add(rAttr);

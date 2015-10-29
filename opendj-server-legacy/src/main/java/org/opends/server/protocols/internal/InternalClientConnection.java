@@ -666,7 +666,7 @@ public final class InternalClientConnection
   public AddOperation processAdd(String rawEntryDN,
                                  List<RawAttribute> rawAttributes)
   {
-    return processAdd(ByteString.valueOf(rawEntryDN), rawAttributes, null);
+    return processAdd(ByteString.valueOfUtf8(rawEntryDN), rawAttributes, null);
   }
 
 
@@ -879,8 +879,8 @@ public final class InternalClientConnection
   public BindOperation processSimpleBind(String rawBindDN,
                                          String password)
   {
-    return processSimpleBind(ByteString.valueOf(rawBindDN),
-        ByteString.valueOf(password), null);
+    return processSimpleBind(ByteString.valueOfUtf8(rawBindDN),
+        ByteString.valueOfUtf8(password), null);
   }
 
 
@@ -903,8 +903,8 @@ public final class InternalClientConnection
                                          String password,
                                          List<Control> controls)
   {
-    return processSimpleBind(ByteString.valueOf(rawBindDN),
-        ByteString.valueOf(password), controls);
+    return processSimpleBind(ByteString.valueOfUtf8(rawBindDN),
+        ByteString.valueOfUtf8(password), controls);
   }
 
 
@@ -1137,8 +1137,8 @@ public final class InternalClientConnection
                                          String attributeType,
                                          String assertionValue)
   {
-    return processCompare(ByteString.valueOf(rawEntryDN), attributeType,
-        ByteString.valueOf(assertionValue), null);
+    return processCompare(ByteString.valueOfUtf8(rawEntryDN), attributeType,
+        ByteString.valueOfUtf8(assertionValue), null);
   }
 
 
@@ -1164,8 +1164,8 @@ public final class InternalClientConnection
                                          String assertionValue,
                                          List<Control> controls)
   {
-    return processCompare(ByteString.valueOf(rawEntryDN), attributeType,
-        ByteString.valueOf(assertionValue), controls);
+    return processCompare(ByteString.valueOfUtf8(rawEntryDN), attributeType,
+        ByteString.valueOfUtf8(assertionValue), controls);
   }
 
 
@@ -1296,7 +1296,7 @@ public final class InternalClientConnection
    */
   public DeleteOperation processDelete(String rawEntryDN)
   {
-    return processDelete(ByteString.valueOf(rawEntryDN), null);
+    return processDelete(ByteString.valueOfUtf8(rawEntryDN), null);
   }
 
 
@@ -1316,7 +1316,7 @@ public final class InternalClientConnection
   public DeleteOperation processDelete(String rawEntryDN,
                                        List<Control> controls)
   {
-    return processDelete(ByteString.valueOf(rawEntryDN), controls);
+    return processDelete(ByteString.valueOfUtf8(rawEntryDN), controls);
   }
 
 
@@ -1494,7 +1494,7 @@ public final class InternalClientConnection
   public ModifyOperation processModify(String rawEntryDN,
                               List<RawModification> rawModifications)
   {
-    return processModify(ByteString.valueOf(rawEntryDN),
+    return processModify(ByteString.valueOfUtf8(rawEntryDN),
                          rawModifications, null);
   }
 
@@ -1519,7 +1519,7 @@ public final class InternalClientConnection
                               List<RawModification> rawModifications,
                               List<Control> controls)
   {
-    return processModify(ByteString.valueOf(rawEntryDN),
+    return processModify(ByteString.valueOfUtf8(rawEntryDN),
                          rawModifications, controls);
   }
 
@@ -1662,8 +1662,8 @@ public final class InternalClientConnection
                                            String rawNewRDN,
                                            boolean deleteOldRDN)
   {
-    return processModifyDN(ByteString.valueOf(rawEntryDN),
-        ByteString.valueOf(rawNewRDN),
+    return processModifyDN(ByteString.valueOfUtf8(rawEntryDN),
+        ByteString.valueOfUtf8(rawNewRDN),
                            deleteOldRDN, null, null);
   }
 
@@ -1689,8 +1689,8 @@ public final class InternalClientConnection
                                            boolean deleteOldRDN,
                                            List<Control> controls)
   {
-    return processModifyDN(ByteString.valueOf(rawEntryDN),
-        ByteString.valueOf(rawNewRDN),
+    return processModifyDN(ByteString.valueOfUtf8(rawEntryDN),
+        ByteString.valueOfUtf8(rawNewRDN),
                            deleteOldRDN, null, controls);
   }
 
@@ -1740,9 +1740,9 @@ public final class InternalClientConnection
                                            boolean deleteOldRDN,
                                            String rawNewSuperior)
   {
-    return processModifyDN(ByteString.valueOf(rawEntryDN),
-        ByteString.valueOf(rawNewRDN), deleteOldRDN,
-        ByteString.valueOf(rawNewSuperior), null);
+    return processModifyDN(ByteString.valueOfUtf8(rawEntryDN),
+        ByteString.valueOfUtf8(rawNewRDN), deleteOldRDN,
+        ByteString.valueOfUtf8(rawNewSuperior), null);
   }
 
 
@@ -1771,9 +1771,9 @@ public final class InternalClientConnection
                                            String rawNewSuperior,
                                            List<Control> controls)
   {
-    return processModifyDN(ByteString.valueOf(rawEntryDN),
-        ByteString.valueOf(rawNewRDN), deleteOldRDN,
-        ByteString.valueOf(rawNewSuperior), controls);
+    return processModifyDN(ByteString.valueOfUtf8(rawEntryDN),
+        ByteString.valueOfUtf8(rawNewRDN), deleteOldRDN,
+        ByteString.valueOfUtf8(rawNewSuperior), controls);
   }
 
 

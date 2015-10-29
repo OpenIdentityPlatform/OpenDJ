@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 @Test(groups = { "precommit", "pluggablebackend", "unit" }, sequential=true)
 public class EntryIDSetTest extends DirectoryServerTestCase
 {
-  private final static ByteString KEY = ByteString.valueOf("test");
+  private final static ByteString KEY = ByteString.valueOfUtf8("test");
 
   @Test(expectedExceptions = NullPointerException.class)
   public void testDefinedCannotCreateWithNull()
@@ -181,7 +181,7 @@ public class EntryIDSetTest extends DirectoryServerTestCase
     assertThat(codec.decode(KEY, string).isDefined()).isFalse();
     assertThat(codec.decode(KEY, string).size()).isEqualTo(Long.MAX_VALUE);
 
-    string = codec.encode(newUndefinedSetWithKey(ByteString.valueOf("none")));
+    string = codec.encode(newUndefinedSetWithKey(ByteString.valueOfUtf8("none")));
     assertThat(codec.decode(KEY, string).isDefined()).isFalse();
     assertThat(codec.decode(KEY, string).size()).isEqualTo(Long.MAX_VALUE);
   }

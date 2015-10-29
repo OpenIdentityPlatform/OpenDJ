@@ -610,7 +610,7 @@ public final class IntegerConfigAttribute
       }
 
       String valueString = String.valueOf(value);
-      ByteString attrValue = ByteString.valueOf(valueString);
+      ByteString attrValue = ByteString.valueOfUtf8(valueString);
       if (valueSet.contains(attrValue))
       {
         LocalizableMessage message = ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
@@ -664,7 +664,7 @@ public final class IntegerConfigAttribute
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
     for (long value : values)
     {
-      valueSet.add(ByteString.valueOf(String.valueOf(value)));
+      valueSet.add(ByteString.valueOfUtf8(String.valueOf(value)));
     }
     return valueSet;
   }
@@ -799,7 +799,7 @@ public final class IntegerConfigAttribute
         continue;
       }
 
-      valueSet.add(ByteString.valueOf(valueString));
+      valueSet.add(ByteString.valueOfUtf8(valueString));
     }
 
     // If this method was configured to continue on error, then it is possible

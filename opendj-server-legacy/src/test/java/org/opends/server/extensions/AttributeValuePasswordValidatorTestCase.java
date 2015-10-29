@@ -434,7 +434,7 @@ public class AttributeValuePasswordValidatorTestCase
          new AttributeValuePasswordValidator();
     validator.initializePasswordValidator(configuration);
 
-    ByteString pwOS = ByteString.valueOf(password);
+    ByteString pwOS = ByteString.valueOfUtf8(password);
     ArrayList<Modification> mods = CollectionUtils.newArrayList(
         new Modification(ModificationType.REPLACE, Attributes.create("userpassword", password)));
 

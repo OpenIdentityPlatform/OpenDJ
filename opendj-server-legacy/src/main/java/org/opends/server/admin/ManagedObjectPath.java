@@ -151,7 +151,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       // Now add the single RDN representing the named instance.
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeTypeOrDefault(type.toLowerCase());
-      ByteString avalue = ByteString.valueOf(name);
+      ByteString avalue = ByteString.valueOfUtf8(name);
       dn = dn.child(RDN.create(atype, avalue));
     }
 
@@ -168,7 +168,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       // Now add the single RDN representing the instance.
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeTypeOrDefault(type.toLowerCase());
-      ByteString avalue = ByteString.valueOf(d.getName());
+      ByteString avalue = ByteString.valueOfUtf8(d.getName());
       dn = dn.child(RDN.create(atype, avalue));
     }
 

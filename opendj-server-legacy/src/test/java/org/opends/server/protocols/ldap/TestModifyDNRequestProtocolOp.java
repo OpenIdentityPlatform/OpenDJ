@@ -56,37 +56,37 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
    * The DN for modify DN requests in this test case.
    */
   private static final ByteString dn =
-      ByteString.valueOf("dc=example,dc=com");
+      ByteString.valueOfUtf8("dc=example,dc=com");
 
   /**
    * The alt DN for modify DN requests in this test case.
    */
   private static final ByteString altDn =
-      ByteString.valueOf("dc=alt,dc=example,dc=com");
+      ByteString.valueOfUtf8("dc=alt,dc=example,dc=com");
 
   /**
    * The new DN for modify DN requests in this test case.
    */
   private static final ByteString newRdn =
-      ByteString.valueOf("dc=example-new");
+      ByteString.valueOfUtf8("dc=example-new");
 
   /**
    * The alt new DN for modify DN requests in this test case.
    */
   private static final ByteString altNewRdn =
-      ByteString.valueOf("ou=alt,dc=example-new");
+      ByteString.valueOfUtf8("ou=alt,dc=example-new");
 
   /**
    * The new superiour DN for modify DN requests in this test case.
    */
   private static final ByteString newSuperiorDn =
-      ByteString.valueOf("dc=widget,dc=com");
+      ByteString.valueOfUtf8("dc=widget,dc=com");
 
   /**
    * The alt new superiour DN for modify DN requests in this test case.
    */
   private static final ByteString altNewSuperiorDn =
-      ByteString.valueOf("dc=alt,dc=widget,dc=com");
+      ByteString.valueOfUtf8("dc=alt,dc=widget,dc=com");
 
   /**
    * Test to make sure the class processes the right LDAP op type.

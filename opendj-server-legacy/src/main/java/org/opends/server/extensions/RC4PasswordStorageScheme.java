@@ -113,7 +113,7 @@ public class RC4PasswordStorageScheme
       byte[] encodedBytes = cryptoManager.encrypt(CIPHER_TRANSFORMATION_RC4,
                                                   KEY_SIZE_RC4,
                                                   plaintextBytes);
-      return ByteString.valueOf(Base64.encode(encodedBytes));
+      return ByteString.valueOfUtf8(Base64.encode(encodedBytes));
     }
     catch (Exception e)
     {
@@ -172,7 +172,7 @@ public class RC4PasswordStorageScheme
       }
     }
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

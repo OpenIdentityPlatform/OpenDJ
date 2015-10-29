@@ -250,8 +250,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     cfg.getBaseDN().toArray(newBaseDNs);
     this.baseDNs = newBaseDNs;
 
-    creatorsName  = ByteString.valueOf(newBaseDNs[0].toString());
-    modifiersName = ByteString.valueOf(newBaseDNs[0].toString());
+    creatorsName  = ByteString.valueOfUtf8(newBaseDNs[0].toString());
+    modifiersName = ByteString.valueOfUtf8(newBaseDNs[0].toString());
 
     long createTime = DirectoryServer.getSchema().getOldestModificationTime();
     createTimestamp =
@@ -1152,7 +1152,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       authzDN = DN.rootDN();
     }
 
-    modifiersName = ByteString.valueOf(authzDN.toString());
+    modifiersName = ByteString.valueOfUtf8(authzDN.toString());
     modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
                            System.currentTimeMillis());
   }
@@ -2870,7 +2870,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       if (schemaFile.equals(getSchemaFile(ldapSyntax)))
       {
-        values.add(ByteString.valueOf(ldapSyntax.toString()));
+        values.add(ByteString.valueOfUtf8(ldapSyntax.toString()));
       }
     }
 
@@ -2934,7 +2934,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         if (schemaFile.equals(getSchemaFile(nf)))
         {
-          values.add(ByteString.valueOf(nf.toString()));
+          values.add(ByteString.valueOfUtf8(nf.toString()));
         }
       }
     }
@@ -2955,7 +2955,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       if (schemaFile.equals(getSchemaFile(dcr)))
       {
-        values.add(ByteString.valueOf(dcr.toString()));
+        values.add(ByteString.valueOfUtf8(dcr.toString()));
       }
     }
 
@@ -2997,7 +2997,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       if (schemaFile.equals(getSchemaFile(mru)))
       {
-        values.add(ByteString.valueOf(mru.toString()));
+        values.add(ByteString.valueOfUtf8(mru.toString()));
       }
     }
 
@@ -3077,7 +3077,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                               addedTypes, depth+1);
     }
 
-    values.add(ByteString.valueOf(attributeType.toString()));
+    values.add(ByteString.valueOfUtf8(attributeType.toString()));
     addedTypes.add(attributeType);
   }
 
@@ -3127,7 +3127,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                    addedClasses, depth+1);
       }
     }
-    values.add(ByteString.valueOf(objectClass.toString()));
+    values.add(ByteString.valueOfUtf8(objectClass.toString()));
     addedClasses.add(objectClass);
   }
 
@@ -3177,7 +3177,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    values.add(ByteString.valueOf(ditStructureRule.toString()));
+    values.add(ByteString.valueOfUtf8(ditStructureRule.toString()));
     addedDSRs.add(ditStructureRule);
   }
 

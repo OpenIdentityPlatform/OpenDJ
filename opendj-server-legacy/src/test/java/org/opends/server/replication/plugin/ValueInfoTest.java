@@ -47,9 +47,9 @@ public class ValueInfoTest extends ReplicationTestCase
    */
   @DataProvider(name = "valueInfo")
   public Object[][] createData() {
-    ByteString att1 = ByteString.valueOf("string");
-    ByteString att2 = ByteString.valueOf("value");
-    ByteString att3 = ByteString.valueOf("again");
+    ByteString att1 = ByteString.valueOfUtf8("string");
+    ByteString att2 = ByteString.valueOfUtf8("value");
+    ByteString att3 = ByteString.valueOfUtf8("again");
 
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
@@ -74,7 +74,7 @@ public class ValueInfoTest extends ReplicationTestCase
   {
     AttrValueHistorical valInfo1 = new AttrValueHistorical(value, csnUpdate, csnDelete);
     AttrValueHistorical valInfo2 = new AttrValueHistorical(value, csnUpdate, csnUpdate);
-    AttrValueHistorical valInfo3 = new AttrValueHistorical(ByteString.valueOf("Test"),
+    AttrValueHistorical valInfo3 = new AttrValueHistorical(ByteString.valueOfUtf8("Test"),
             csnUpdate, csnUpdate);
 
     // Check equals

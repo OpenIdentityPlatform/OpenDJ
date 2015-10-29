@@ -73,7 +73,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
   {
     Syntax syntax = new BitStringSyntax().getSDKSyntax(CoreSchema.getInstance());
 
-    ByteString byteStringValue = ByteString.valueOf(value);
+    ByteString byteStringValue = ByteString.valueOfUtf8(value);
 
     LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     Boolean liveResult =

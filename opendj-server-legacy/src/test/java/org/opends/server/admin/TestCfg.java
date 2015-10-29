@@ -99,7 +99,7 @@ public final class TestCfg {
           + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
           + "ds-cfg-filter $ ds-cfg-conflict-behavior ) "
           + "X-ORIGIN 'OpenDS Directory Server' )";
-      ByteString b = ByteString.valueOf(ocd);
+      ByteString b = ByteString.valueOfUtf8(ocd);
 
       TEST_PARENT_OCD = ObjectClassSyntax.decodeObjectClass(b, DirectoryServer
           .getSchema(), false);
@@ -114,7 +114,7 @@ public final class TestCfg {
           + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
           + "ds-cfg-filter $ ds-cfg-conflict-behavior $"
           + "ds-cfg-rotation-policy) " + "X-ORIGIN 'OpenDS Directory Server' )";
-      ByteString b = ByteString.valueOf(ocd);
+      ByteString b = ByteString.valueOfUtf8(ocd);
 
       TEST_CHILD_OCD = ObjectClassSyntax.decodeObjectClass(b, DirectoryServer
           .getSchema(), false);

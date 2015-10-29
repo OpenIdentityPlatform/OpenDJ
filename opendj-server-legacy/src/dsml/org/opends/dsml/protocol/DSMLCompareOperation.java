@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -92,7 +92,7 @@ public class DSMLCompareOperation
     String attrName = attrValAssertion.getName();
     Object assertion = attrValAssertion.getValue();
     ByteString attrValue = ByteStringUtility.convertValue(assertion);
-    ByteString dnStr = ByteString.valueOf(compareRequest.getDn());
+    ByteString dnStr = ByteString.valueOfUtf8(compareRequest.getDn());
 
     // Create and send the LDAP compare request to the server.
     ProtocolOp op = new CompareRequestProtocolOp(dnStr, attrName, attrValue);

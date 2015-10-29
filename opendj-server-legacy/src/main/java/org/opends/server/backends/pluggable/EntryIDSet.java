@@ -51,7 +51,7 @@ final class EntryIDSet implements Iterable<EntryID>
   public static final EntryIDSetCodec CODEC_V1 = new EntryIDSetCodecV1();
   public static final EntryIDSetCodec CODEC_V2 = new EntryIDSetCodecV2();
 
-  private static final ByteSequence NO_KEY = ByteString.valueOf("<none>");
+  private static final ByteSequence NO_KEY = ByteString.valueOfUtf8("<none>");
   private static final long[] EMPTY_LONG_ARRAY = new long[0];
   private static final long[] NO_ENTRY_IDS_RANGE = new long[] { 0, 0 };
 

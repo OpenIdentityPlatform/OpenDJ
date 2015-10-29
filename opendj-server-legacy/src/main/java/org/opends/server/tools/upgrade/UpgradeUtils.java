@@ -696,7 +696,7 @@ final class UpgradeUtils
     Assertion assertion;
     try
     {
-      assertion = mrule.getAssertion(ByteString.valueOf(oid));
+      assertion = mrule.getAssertion(ByteString.valueOfUtf8(oid));
       for (final ByteString value : attribute)
       {
         final ByteString nvalue = mrule.normalizeAttributeValue(value);

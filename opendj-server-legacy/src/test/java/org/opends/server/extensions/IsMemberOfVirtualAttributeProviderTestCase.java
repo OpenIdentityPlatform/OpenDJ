@@ -133,9 +133,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertFalse(a.isEmpty());
-      assertTrue(a.contains(ByteString.valueOf("cn=test static group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("invalid")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test static group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("invalid")));
     }
 
     delete("cn=test static group,ou=groups,o=test");
@@ -191,9 +191,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertFalse(a.isEmpty());
-      assertTrue(a.contains(ByteString.valueOf("cn=test static group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("invalid")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test static group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("invalid")));
     }
 
     delete("cn=test static group,ou=groups,o=test");
@@ -248,9 +248,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertFalse(a.isEmpty());
-      assertTrue(a.contains(ByteString.valueOf("cn=test dynamic group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("invalid")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test dynamic group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("invalid")));
     }
 
     delete("cn=test dynamic group,ou=groups,o=test");
@@ -329,11 +329,11 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 2);
 
       assertFalse(a.isEmpty());
-      assertTrue(a.contains(ByteString.valueOf("cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.contains(ByteString.valueOf("cn=test group 3,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("invalid")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test group 1,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=test group 2,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test group 3,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("invalid")));
     }
 
     delete("cn=test group 1,ou=groups,o=test",
@@ -432,14 +432,14 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 4);
 
       assertFalse(a.isEmpty());
-      assertTrue(a.contains(ByteString.valueOf("cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.contains(ByteString.valueOf("cn=test group 3,ou=groups,o=test")));
-      assertTrue(a.contains(ByteString.valueOf("cn=test group 4,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=test group 5,ou=groups,o=test")));
-      assertTrue(a.contains(ByteString.valueOf("cn=test group 6,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(ByteString.valueOf("invalid")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test group 1,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=test group 2,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test group 3,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test group 4,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=test group 5,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=test group 6,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOfUtf8("invalid")));
     }
 
     delete("cn=test group 1,ou=groups,o=test",
@@ -486,7 +486,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = buildRule(provider);
 
-    LinkedList<ByteString> subAny = newLinkedList(ByteString.valueOf("="));
+    LinkedList<ByteString> subAny = newLinkedList(ByteString.valueOfUtf8("="));
 
     assertEquals(provider.matchesSubstring(entry, rule, null, subAny, null),
                  ConditionResult.UNDEFINED);
@@ -515,7 +515,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = buildRule(provider);
 
-    ByteString value = ByteString.valueOf("o=test2");
+    ByteString value = ByteString.valueOfUtf8("o=test2");
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -543,7 +543,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = buildRule(provider);
 
-    ByteString value = ByteString.valueOf("o=test2");
+    ByteString value = ByteString.valueOfUtf8("o=test2");
     assertEquals(provider.lessThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -571,7 +571,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = buildRule(provider);
 
-    ByteString value = ByteString.valueOf("o=test2");
+    ByteString value = ByteString.valueOfUtf8("o=test2");
     assertEquals(provider.approximatelyEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }

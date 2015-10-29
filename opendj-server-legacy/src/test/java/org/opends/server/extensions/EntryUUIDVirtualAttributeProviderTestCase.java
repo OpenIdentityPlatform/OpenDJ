@@ -129,7 +129,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(ByteString.valueOf(uuidString)));
+      assertTrue(a.contains(ByteString.valueOfUtf8(uuidString)));
     }
   }
 
@@ -165,7 +165,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertFalse(a.contains(ByteString.valueOf(uuidString)));
+      assertFalse(a.contains(ByteString.valueOfUtf8(uuidString)));
     }
   }
 
@@ -412,7 +412,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(ByteString.valueOf(uuidString)));
+    assertTrue(values.contains(ByteString.valueOfUtf8(uuidString)));
   }
 
 
@@ -450,7 +450,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
 
     Entry entry = makeEntry();
     VirtualAttributeRule rule = getRule(provider);
-    assertTrue(provider.hasValue(entry, rule, ByteString.valueOf(uuidString)));
+    assertTrue(provider.hasValue(entry, rule, ByteString.valueOfUtf8(uuidString)));
   }
 
   /**
@@ -467,7 +467,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
 
     Entry entry = makeEntry();
     VirtualAttributeRule rule = getRule(provider);
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("wrong")));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOfUtf8("wrong")));
   }
 
   private Entry makeEntry() throws Exception

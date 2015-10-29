@@ -99,8 +99,8 @@ public class BindOperationTestCase
                         noControls, "3", nullOS, nullOS),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3",
-                        ByteString.valueOf("cn=Directory Manager"),
-                        ByteString.valueOf("password")),
+                        ByteString.valueOfUtf8("cn=Directory Manager"),
+                        ByteString.valueOfUtf8("password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.rootDN(), ByteString.empty()),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
@@ -119,7 +119,7 @@ public class BindOperationTestCase
                         noControls, "3", nullDN, nullOS),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.valueOf("cn=Directory Manager"),
-                        ByteString.valueOf("password"))
+                        ByteString.valueOfUtf8("password"))
     };
 
     Object[][] array = new Object[simpleBinds.length][1];
@@ -163,16 +163,16 @@ public class BindOperationTestCase
                         noControls, "3", nullOS, "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", ByteString.empty(), "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", ByteString.empty(), "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullOS, "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullOS, "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.rootDN(), "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
@@ -183,16 +183,16 @@ public class BindOperationTestCase
                         noControls, "3", nullDN, "EXTERNAL", null),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", DN.rootDN(), "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", DN.rootDN(), "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         null, "3", nullDN, "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password")),
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
       new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                         noControls, "3", nullDN, "PLAIN",
-                        ByteString.valueOf("\u0000u:test.user\u0000password"))
+                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password"))
     };
 
     Object[][] array = new Object[saslBinds.length][1];
@@ -330,8 +330,8 @@ public class BindOperationTestCase
     o.setRawBindDN(ByteString.empty());
     assertEquals(o.getRawBindDN(), ByteString.empty());
 
-    o.setRawBindDN(ByteString.valueOf("cn=Directory Manager"));
-    assertEquals(o.getRawBindDN(), ByteString.valueOf("cn=Directory Manager"));
+    o.setRawBindDN(ByteString.valueOfUtf8("cn=Directory Manager"));
+    assertEquals(o.getRawBindDN(), ByteString.valueOfUtf8("cn=Directory Manager"));
 
     o.setRawBindDN(originalRawBindDN);
     assertEquals(o.getRawBindDN(), originalRawBindDN);
@@ -356,8 +356,8 @@ public class BindOperationTestCase
     o.setRawBindDN(ByteString.empty());
     assertEquals(o.getRawBindDN(), ByteString.empty());
 
-    o.setRawBindDN(ByteString.valueOf("cn=Directory Manager"));
-    assertEquals(o.getRawBindDN(), ByteString.valueOf("cn=Directory Manager"));
+    o.setRawBindDN(ByteString.valueOfUtf8("cn=Directory Manager"));
+    assertEquals(o.getRawBindDN(), ByteString.valueOfUtf8("cn=Directory Manager"));
 
     o.setRawBindDN(originalRawBindDN);
     assertEquals(o.getRawBindDN(), originalRawBindDN);
@@ -495,7 +495,7 @@ public class BindOperationTestCase
     assertNull(o.getSASLCredentials());
 
     o.setSASLCredentials("PLAIN",
-         ByteString.valueOf("\u0000u:test.user\u0000password"));
+         ByteString.valueOfUtf8("\u0000u:test.user\u0000password"));
     assertEquals(o.getAuthenticationType(), AuthenticationType.SASL);
     assertNotNull(o.getSASLMechanism());
     assertNotNull(o.getSASLCredentials());
@@ -540,7 +540,7 @@ public class BindOperationTestCase
     assertEquals(o.getAuthenticationType(), AuthenticationType.SASL);
     assertNull(o.getSimplePassword());
 
-    o.setSimplePassword(ByteString.valueOf("password"));
+    o.setSimplePassword(ByteString.valueOfUtf8("password"));
     assertEquals(o.getAuthenticationType(), AuthenticationType.SIMPLE);
     assertNotNull(o.getSimplePassword());
 
@@ -618,7 +618,7 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
                        conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
@@ -653,8 +653,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getUserEntryDN());
   }
@@ -686,7 +686,7 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
@@ -708,8 +708,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(bindOperation.getProcessingStartTime() > 0);
     assertTrue(bindOperation.getProcessingStopTime() >=
@@ -731,7 +731,7 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
@@ -785,8 +785,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 //    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
@@ -811,7 +811,7 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
@@ -987,8 +987,8 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
          DisconnectClientPlugin.createDisconnectControlList("PreParse"));
     w.writeMessage(message);
@@ -1023,8 +1023,8 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PreOperation"));
@@ -1060,8 +1060,8 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PostOperation"));
@@ -1097,8 +1097,8 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
          DisconnectClientPlugin.createDisconnectControlList(
               "PostResponse"));
@@ -1132,7 +1132,7 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
@@ -1169,7 +1169,7 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
@@ -1207,7 +1207,7 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
@@ -1245,7 +1245,7 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
@@ -1348,8 +1348,8 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
          ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
     w.writeMessage(message);
@@ -1380,8 +1380,8 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest,
          ShortCircuitPlugin.createShortCircuitControlList(80,
                                                               "PreOperation"));
@@ -1412,7 +1412,7 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
@@ -1445,7 +1445,7 @@ public class BindOperationTestCase
     TestCaseUtils.configureSocket(s);
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
@@ -1473,8 +1473,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("invaliddn"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("invaliddn"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1490,10 +1490,10 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperation bindOperation =
-         conn.processSASLBind(ByteString.valueOf("invaliddn"), "PLAIN",
+         conn.processSASLBind(ByteString.valueOfUtf8("invaliddn"), "PLAIN",
                               saslCreds);
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
@@ -1538,7 +1538,7 @@ public class BindOperationTestCase
     requestControls.add(new LDAPControl("1.2.3.4", true));
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
@@ -1589,7 +1589,7 @@ public class BindOperationTestCase
     requestControls.add(new LDAPControl("1.2.3.4", false));
 
     ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     BindOperationBasis bindOperation =
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
@@ -1617,8 +1617,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("uid=test,o=test"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1641,7 +1641,7 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
                                 ByteString.empty());
     assertEquals(bindOperation.getResultCode(),
                            ResultCode.UNWILLING_TO_PERFORM);
@@ -1672,7 +1672,7 @@ public class BindOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
                                 ByteString.empty());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -1707,8 +1707,8 @@ public class BindOperationTestCase
 
     InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("uid=test,o=test"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1737,8 +1737,8 @@ public class BindOperationTestCase
          InternalClientConnection.getRootConnection();
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("uid=test,ou=people,dc=example,dc=com"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("uid=test,ou=people,dc=example,dc=com"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.REFERRAL);
 
     List<String> referralURLs = bindOperation.getReferralURLs();
@@ -1760,8 +1760,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1778,8 +1778,8 @@ public class BindOperationTestCase
          new InternalClientConnection(new AuthenticationInfo());
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertThat(bindOperation.getErrorMessage()).isEmpty();
 
@@ -1791,8 +1791,8 @@ public class BindOperationTestCase
       "--set", "return-bind-error-messages:true");
 
     bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertTrue(bindOperation.getErrorMessage().length() > 0);
 
@@ -1804,8 +1804,8 @@ public class BindOperationTestCase
       "--set", "return-bind-error-messages:false");
 
     bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("wrongpassword"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertThat(bindOperation.getErrorMessage()).isEmpty();
   }
@@ -1844,8 +1844,8 @@ public class BindOperationTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf(dnString),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8(dnString),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -1862,8 +1862,8 @@ public class BindOperationTestCase
     // for previous ops to complete.
     TestCaseUtils.quiesceServer();
     bindRequest = new BindRequestProtocolOp(
-                           ByteString.valueOf("cn=Directory Manager"), 3,
-                           ByteString.valueOf("password"));
+                           ByteString.valueOfUtf8("cn=Directory Manager"), 3,
+                           ByteString.valueOfUtf8("password"));
     message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -1917,8 +1917,8 @@ public class BindOperationTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf(dnString),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8(dnString),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -1993,8 +1993,8 @@ public class BindOperationTestCase
     LDAPWriter w = new LDAPWriter(s);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf(dnString),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8(dnString),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 

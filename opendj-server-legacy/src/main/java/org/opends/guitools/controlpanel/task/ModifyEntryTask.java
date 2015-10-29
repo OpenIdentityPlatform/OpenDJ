@@ -674,13 +674,13 @@ public class ModifyEntryTask extends Task
   {
     if (value instanceof String)
     {
-      return ByteString.valueOf((String) value);
+      return ByteString.valueOfUtf8((String) value);
     }
     else if (value instanceof byte[])
     {
       return ByteString.wrap((byte[]) value);
     }
-    return ByteString.valueOf(String.valueOf(value));
+    return ByteString.valueOfUtf8(String.valueOf(value));
   }
 
   /**

@@ -1309,9 +1309,9 @@ public final class TestCaseUtils {
 
       BindRequestProtocolOp bindRequest =
         new BindRequestProtocolOp(
-                 ByteString.valueOf(dn),
+                 ByteString.valueOfUtf8(dn),
                  3,
-                 ByteString.valueOf(pw));
+                 ByteString.valueOfUtf8(pw));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       message.write(w);
 

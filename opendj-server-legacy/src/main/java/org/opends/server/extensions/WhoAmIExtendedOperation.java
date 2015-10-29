@@ -146,7 +146,7 @@ public class WhoAmIExtendedOperation
       authzID = "dn:" + authzDN;
     }
 
-    operation.setResponseValue(ByteString.valueOf(authzID));
+    operation.setResponseValue(ByteString.valueOfUtf8(authzID));
     operation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
         getClass(), "authzID", authzID));
     operation.setResultCode(ResultCode.SUCCESS);

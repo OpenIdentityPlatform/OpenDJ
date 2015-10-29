@@ -252,7 +252,7 @@ public class RandomPasswordGenerator
       }
     }
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

@@ -419,7 +419,7 @@ public final class StringConfigAttribute
         throw new ConfigException(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       }
 
-      ByteString attrValue = ByteString.valueOf(value);
+      ByteString attrValue = ByteString.valueOfUtf8(value);
       if (valueSet.contains(attrValue))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value));
@@ -535,7 +535,7 @@ public final class StringConfigAttribute
         continue;
       }
 
-      valueSet.add(ByteString.valueOf(valueString));
+      valueSet.add(ByteString.valueOfUtf8(valueString));
     }
 
     // If this method was configured to continue on error, then it is possible

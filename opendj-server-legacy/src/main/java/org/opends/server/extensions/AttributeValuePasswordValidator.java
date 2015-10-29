@@ -166,8 +166,8 @@ public class AttributeValuePasswordValidator
         continue;
       }
 
-      ByteString vf = ByteString.valueOf(password);
-      ByteString vr = ByteString.valueOf(reversed);
+      ByteString vf = ByteString.valueOfUtf8(password);
+      ByteString vr = ByteString.valueOfUtf8(reversed);
 
       for (Attribute a : attrList)
       {

@@ -132,7 +132,7 @@ public class ModifyOperationBasis
     this.entryDN       = entryDN;
     this.modifications = modifications;
 
-    rawEntryDN = ByteString.valueOf(entryDN.toString());
+    rawEntryDN = ByteString.valueOfUtf8(entryDN.toString());
 
     rawModifications = new ArrayList<>(modifications.size());
     for (Modification m : modifications)

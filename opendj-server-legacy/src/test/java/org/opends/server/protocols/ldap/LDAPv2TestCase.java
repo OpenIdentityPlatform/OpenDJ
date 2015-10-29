@@ -91,8 +91,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -134,8 +134,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -177,8 +177,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -191,7 +191,7 @@ public class LDAPv2TestCase
       addAttrs.add(RawAttribute.create("ou", "People"));
 
       AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"), addAttrs);
+           new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), addAttrs);
       ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, addRequest, controls);
@@ -228,8 +228,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       LDAPMessage message = new LDAPMessage(1, bindRequest, controls);
@@ -266,8 +266,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -276,8 +276,8 @@ public class LDAPv2TestCase
       assertEquals(bindResponse.getResultCode(), 0);
 
       CompareRequestProtocolOp compareRequest =
-           new CompareRequestProtocolOp(ByteString.valueOf("o=test"),
-                                        "o", ByteString.valueOf("test"));
+           new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
+                                        "o", ByteString.valueOfUtf8("test"));
       ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, compareRequest, controls);
@@ -316,8 +316,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -326,7 +326,7 @@ public class LDAPv2TestCase
       assertEquals(bindResponse.getResultCode(), 0);
 
       DeleteRequestProtocolOp deleteRequest =
-           new DeleteRequestProtocolOp(ByteString.valueOf("o=test"));
+           new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
       ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, deleteRequest, controls);
@@ -365,8 +365,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -378,7 +378,7 @@ public class LDAPv2TestCase
       mods.add(RawModification.create(ModificationType.REPLACE, "description", "foo"));
 
       ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
+           new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
       ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, modifyRequest, controls);
@@ -417,8 +417,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -427,8 +427,8 @@ public class LDAPv2TestCase
       assertEquals(bindResponse.getResultCode(), 0);
 
       ModifyDNRequestProtocolOp modifyDNRequest =
-           new ModifyDNRequestProtocolOp(ByteString.valueOf("o=test"),
-                                         ByteString.valueOf("cn=test"), false);
+           new ModifyDNRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
+                                         ByteString.valueOfUtf8("cn=test"), false);
       ArrayList<Control> controls = new ArrayList<>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, modifyDNRequest, controls);
@@ -467,8 +467,8 @@ public class LDAPv2TestCase
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 

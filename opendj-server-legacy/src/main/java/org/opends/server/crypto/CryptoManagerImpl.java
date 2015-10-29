@@ -470,7 +470,7 @@ public class CryptoManagerImpl
   static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
     // Construct the key entry DN.
-    final ByteString distinguishedValue = ByteString.valueOf(ADS_CERTIFICATE_ALIAS);
+    final ByteString distinguishedValue = ByteString.valueOfUtf8(ADS_CERTIFICATE_ALIAS);
     final DN entryDN = localTruststoreDN.child(RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
@@ -594,7 +594,7 @@ public class CryptoManagerImpl
     final byte[] instanceKeyCertificate = getInstanceKeyCertificateFromLocalTruststore();
     final String instanceKeyID = getInstanceKeyID(instanceKeyCertificate);
     // Construct the key entry DN.
-    final ByteString distinguishedValue = ByteString.valueOf(instanceKeyID);
+    final ByteString distinguishedValue = ByteString.valueOfUtf8(instanceKeyID);
     final DN entryDN = instanceKeysDN.child(
          RDN.create(attrKeyID, distinguishedValue));
 
@@ -1575,7 +1575,7 @@ public class CryptoManagerImpl
     {
       // Construct the key entry DN.
       ByteString distinguishedValue =
-           ByteString.valueOf(keyEntry.getKeyID().getStringValue());
+           ByteString.valueOfUtf8(keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.child(
            RDN.create(attrKeyID, distinguishedValue));
 
@@ -2096,7 +2096,7 @@ public class CryptoManagerImpl
     {
       // Construct the key entry DN.
       ByteString distinguishedValue =
-           ByteString.valueOf(keyEntry.getKeyID().getStringValue());
+           ByteString.valueOfUtf8(keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.child(
            RDN.create(attrKeyID, distinguishedValue));
 

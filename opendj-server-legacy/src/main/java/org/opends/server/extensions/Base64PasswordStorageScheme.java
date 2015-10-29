@@ -94,7 +94,7 @@ public class Base64PasswordStorageScheme
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    return ByteString.valueOf(Base64.encode(plaintext));
+    return ByteString.valueOfUtf8(Base64.encode(plaintext));
   }
 
 
@@ -110,7 +110,7 @@ public class Base64PasswordStorageScheme
     buffer.append('}');
     buffer.append(Base64.encode(plaintext));
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

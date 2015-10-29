@@ -107,7 +107,7 @@ public class DeleteOperationBasis
     super(clientConnection, operationID, messageID, requestControls);
 
     this.entryDN = entryDN;
-    rawEntryDN = ByteString.valueOf(entryDN.toString());
+    rawEntryDN = ByteString.valueOfUtf8(entryDN.toString());
   }
 
   @Override

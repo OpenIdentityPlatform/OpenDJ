@@ -180,7 +180,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     X500Principal peerPrincipal = peerCertificate.getSubjectX500Principal();
     String peerName = peerPrincipal.getName(X500Principal.RFC2253);
     SearchFilter filter = SearchFilter.createEqualityFilter(
-        subjectAttributeType, ByteString.valueOf(peerName));
+        subjectAttributeType, ByteString.valueOfUtf8(peerName));
 
 
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the

@@ -617,7 +617,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5,
-                              ByteString.valueOf("invalid"));
+                              ByteString.valueOfUtf8("invalid"));
     assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -642,7 +642,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
 
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5,
-                              ByteString.valueOf("malformed"));
+                              ByteString.valueOfUtf8("malformed"));
     assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -666,7 +666,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     ByteString creds =
-         ByteString.valueOf("dn:cn=Directory Manager malformeddigest");
+         ByteString.valueOfUtf8("dn:cn=Directory Manager malformeddigest");
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, creds);
     assertNotEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -693,7 +693,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
                  ResultCode.SASL_BIND_IN_PROGRESS);
 
     ByteString creds =
-         ByteString.valueOf("dn:cn=Directory Manager " +
+         ByteString.valueOfUtf8("dn:cn=Directory Manager " +
                           "malformedcredswiththerightlength");
     bindOperation =
          conn.processSASLBind(DN.rootDN(), SASL_MECHANISM_CRAM_MD5, creds);

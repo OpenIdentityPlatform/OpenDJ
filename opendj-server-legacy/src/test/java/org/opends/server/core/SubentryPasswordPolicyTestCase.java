@@ -423,7 +423,7 @@ public class SubentryPasswordPolicyTestCase
     // for the user entry.
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
-            ByteString.valueOf(defaultPolicy.getDN().toString())));
+            ByteString.valueOfUtf8(defaultPolicy.getDN().toString())));
 
     // Add new subentry policy with the
     // scope to apply to the user entry.
@@ -445,7 +445,7 @@ public class SubentryPasswordPolicyTestCase
     assertNotNull(testEntry);
 
     assertTrue(testEntry.hasAttribute(attrType));
-    assertTrue(testEntry.hasValue(attrType, null, ByteString.valueOf("cn=Temp Policy," + SUFFIX)));
+    assertTrue(testEntry.hasValue(attrType, null, ByteString.valueOfUtf8("cn=Temp Policy," + SUFFIX)));
 
     // Remove subentry policy and make sure
     // default policy is in effect again.
@@ -457,6 +457,6 @@ public class SubentryPasswordPolicyTestCase
 
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
-            ByteString.valueOf(defaultPolicy.getDN().toString())));
+            ByteString.valueOfUtf8(defaultPolicy.getDN().toString())));
   }
 }

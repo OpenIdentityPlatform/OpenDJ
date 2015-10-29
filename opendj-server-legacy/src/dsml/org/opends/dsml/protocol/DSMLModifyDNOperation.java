@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -87,20 +87,20 @@ public class DSMLModifyDNOperation
   {
     LDAPResult modDNResponse = objFactory.createLDAPResult();
     modDNResponse.setRequestID(modifyDNRequest.getRequestID());
-    ByteString dnStr = ByteString.valueOf(modifyDNRequest.getDn());
+    ByteString dnStr = ByteString.valueOfUtf8(modifyDNRequest.getDn());
     ProtocolOp op = null;
 
     if (modifyDNRequest.getNewSuperior() != null)
     {
       op = new ModifyDNRequestProtocolOp(dnStr, ByteString
-          .valueOf(modifyDNRequest.getNewrdn()), modifyDNRequest
-          .isDeleteoldrdn(), ByteString.valueOf(modifyDNRequest
+          .valueOfUtf8(modifyDNRequest.getNewrdn()), modifyDNRequest
+          .isDeleteoldrdn(), ByteString.valueOfUtf8(modifyDNRequest
           .getNewSuperior()));
     }
     else
     {
       op = new ModifyDNRequestProtocolOp(dnStr, ByteString
-          .valueOf(modifyDNRequest.getNewrdn()), modifyDNRequest
+          .valueOfUtf8(modifyDNRequest.getNewrdn()), modifyDNRequest
           .isDeleteoldrdn());
     }
 

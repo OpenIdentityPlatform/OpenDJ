@@ -224,7 +224,7 @@ public class LDAPCompare
           throws IOException, LDAPException
   {
     ArrayList<Control> controls = compareOptions.getControls();
-    ByteString dnOctetStr = ByteString.valueOf(line);
+    ByteString dnOctetStr = ByteString.valueOfUtf8(line);
     ByteString attrValOctetStr = ByteString.wrap(attributeVal);
 
     ProtocolOp protocolOp = new CompareRequestProtocolOp(dnOctetStr,

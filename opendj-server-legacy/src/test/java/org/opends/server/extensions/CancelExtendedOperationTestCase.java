@@ -112,8 +112,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -130,7 +130,7 @@ public class CancelExtendedOperationTestCase
     attributes.add(new LDAPAttribute("ou", "People"));
 
     AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(ByteString.valueOf("ou=People,o=test"), attributes);
+         new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), attributes);
     message = new LDAPMessage(2, addRequest,
         DelayPreOpPlugin.createDelayControlList(5000));
     w.writeMessage(message);
@@ -197,8 +197,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -211,8 +211,8 @@ public class CancelExtendedOperationTestCase
     // the delay request control so it won't complete before we can send the
     // cancel request.
     CompareRequestProtocolOp compareRequest =
-         new CompareRequestProtocolOp(ByteString.valueOf("o=test"), "o",
-                                      ByteString.valueOf("test"));
+         new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o",
+                                      ByteString.valueOfUtf8("test"));
     message = new LDAPMessage(2, compareRequest,
         DelayPreOpPlugin.createDelayControlList(5000));
     w.writeMessage(message);
@@ -285,8 +285,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -299,7 +299,7 @@ public class CancelExtendedOperationTestCase
     // the delay request control so it won't complete before we can send the
     // cancel request.
     DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOf("cn=test,o=test"));
+         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("cn=test,o=test"));
     message = new LDAPMessage(2, deleteRequest,
         DelayPreOpPlugin.createDelayControlList(5000));
     w.writeMessage(message);
@@ -367,8 +367,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -437,8 +437,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -455,7 +455,7 @@ public class CancelExtendedOperationTestCase
         new LDAPAttribute("description", "foo")));
 
     ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
+         new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
     message = new LDAPMessage(2, modifyRequest,
         DelayPreOpPlugin.createDelayControlList(5000));
     w.writeMessage(message);
@@ -528,8 +528,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -542,8 +542,8 @@ public class CancelExtendedOperationTestCase
     // include the delay request control so it won't complete before we can send
     // the cancel request.
     ModifyDNRequestProtocolOp modifyDNRequest =
-         new ModifyDNRequestProtocolOp(ByteString.valueOf("cn=test,o=test"),
-                                       ByteString.valueOf("cn=test2"), true);
+         new ModifyDNRequestProtocolOp(ByteString.valueOfUtf8("cn=test,o=test"),
+                                       ByteString.valueOfUtf8("cn=test2"), true);
     message = new LDAPMessage(2, modifyDNRequest,
         DelayPreOpPlugin.createDelayControlList(5000));
     w.writeMessage(message);
@@ -611,8 +611,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -625,7 +625,7 @@ public class CancelExtendedOperationTestCase
     // the delay request control so it won't complete before we can send the
     // cancel request.
     SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
+         new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
                                      SearchScope.BASE_OBJECT,
                                      DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
@@ -698,8 +698,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -755,8 +755,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -806,8 +806,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 
@@ -819,7 +819,7 @@ public class CancelExtendedOperationTestCase
     // Create a cancel request and send it to the server.
     ExtendedRequestProtocolOp extendedRequest =
          new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST,
-                                       ByteString.valueOf("malformed"));
+                                       ByteString.valueOfUtf8("malformed"));
     message = new LDAPMessage(3, extendedRequest);
     w.writeMessage(message);
 
@@ -856,8 +856,8 @@ public class CancelExtendedOperationTestCase
         new org.opends.server.tools.LDAPWriter(socket);
 
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
-                                   3, ByteString.valueOf("password"));
+         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                   3, ByteString.valueOfUtf8("password"));
     LDAPMessage message = new LDAPMessage(1, bindRequest);
     w.writeMessage(message);
 

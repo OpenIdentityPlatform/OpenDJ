@@ -269,7 +269,7 @@ class PersistentServerState
 
     ModifyOperationBasis op = new ModifyOperationBasis(getRootConnection(),
           nextOperationID(), nextMessageID(), null,
-          ByteString.valueOf(serverStateEntryDN.toString()),
+          ByteString.valueOfUtf8(serverStateEntryDN.toString()),
           Collections.singletonList(mod));
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);

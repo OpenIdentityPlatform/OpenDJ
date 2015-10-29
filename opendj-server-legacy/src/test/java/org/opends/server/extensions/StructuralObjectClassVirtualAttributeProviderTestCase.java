@@ -156,7 +156,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(ByteString.valueOf(e.getStructuralObjectClass().getNameOrOID())));
+      assertTrue(a.contains(ByteString.valueOfUtf8(e.getStructuralObjectClass().getNameOrOID())));
     }
   }
 
@@ -414,7 +414,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
     Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(ByteString.valueOf(entry.getStructuralObjectClass().getNameOrOID())));
+    assertTrue(values.contains(ByteString.valueOfUtf8(entry.getStructuralObjectClass().getNameOrOID())));
   }
 
 
@@ -479,7 +479,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertTrue(provider.hasValue(entry, rule,
-        ByteString.valueOf(entry.getStructuralObjectClass().getNameOrOID())));
+        ByteString.valueOfUtf8(entry.getStructuralObjectClass().getNameOrOID())));
   }
 
 
@@ -511,6 +511,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("inetorgperson")));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOfUtf8("inetorgperson")));
   }
 }

@@ -248,8 +248,8 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
-                    ByteString.valueOf("cn=Directory Manager"), 2,
-                    ByteString.valueOf("password"));
+                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
+                    ByteString.valueOfUtf8("password"));
       LDAPMessage message = new LDAPMessage(1, bindRequest);
       w.writeMessage(message);
 
@@ -267,7 +267,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
                                        ByteString.wrap(Base64.decode(CERT))));
 
       AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(ByteString.valueOf("uid=user.7,o=test"),
+           new AddRequestProtocolOp(ByteString.valueOfUtf8("uid=user.7,o=test"),
                                     addAttrs);
       message = new LDAPMessage(2, addRequest);
       w.writeMessage(message);
@@ -282,7 +282,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       attrs.add("sn");
       attrs.add("userCertificate;binary");
       SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
+         new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,

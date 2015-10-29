@@ -805,14 +805,14 @@ public class ExactMatchIdentityMapperTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Create a modification to change the map attribute from uid to cn.
-    ArrayList<ByteString> values = newArrayList(ByteString.valueOf("cn"));
+    ArrayList<ByteString> values = newArrayList(ByteString.valueOfUtf8("cn"));
 
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-attribute",
                                                     values)));
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -826,9 +826,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the configuration back to the way it was.
-    values.set(0, ByteString.valueOf("uid"));
+    values.set(0, ByteString.valueOfUtf8("uid"));
     modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -883,14 +883,14 @@ public class ExactMatchIdentityMapperTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Create a modification to set the map base DN to "dc=example,dc=com".
-    ArrayList<ByteString> values = newArrayList(ByteString.valueOf("dc=example,dc=com"));
+    ArrayList<ByteString> values = newArrayList(ByteString.valueOfUtf8("dc=example,dc=com"));
 
     ArrayList<RawModification> mods = new ArrayList<>();
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("ds-cfg-match-base-dn",
                                                     values)));
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -900,9 +900,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the base DN to "o=test".
-    values.set(0, ByteString.valueOf("o=test"));
+    values.set(0, ByteString.valueOfUtf8("o=test"));
     modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -915,7 +915,7 @@ public class ExactMatchIdentityMapperTestCase
     // Change the configuration back to its original setting.
     values.clear();
     modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -945,7 +945,7 @@ public class ExactMatchIdentityMapperTestCase
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -969,7 +969,7 @@ public class ExactMatchIdentityMapperTestCase
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -993,7 +993,7 @@ public class ExactMatchIdentityMapperTestCase
          InternalClientConnection.getRootConnection();
     String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(mapperDNString), mods);
+         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
     assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }

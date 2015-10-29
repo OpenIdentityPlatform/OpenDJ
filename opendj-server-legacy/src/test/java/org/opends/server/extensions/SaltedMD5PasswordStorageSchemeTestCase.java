@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -88,7 +88,7 @@ public class SaltedMD5PasswordStorageSchemeTestCase
 
     scheme.initializePasswordStorageScheme(configuration);
     // The stored value has a 12 byte salt instead of the default 8
-    assertTrue(scheme.passwordMatches(ByteString.valueOf("password"),
-      ByteString.valueOf("so5s1vK3oEi4uL/oVY3bqs5LRlKjgMN+u4A4bw==")));
+    assertTrue(scheme.passwordMatches(ByteString.valueOfUtf8("password"),
+      ByteString.valueOfUtf8("so5s1vK3oEi4uL/oVY3bqs5LRlKjgMN+u4A4bw==")));
   }
 }

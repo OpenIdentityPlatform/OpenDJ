@@ -201,7 +201,7 @@ class BlockLogWriter<K extends Comparable<K>, V> implements Closeable
         dataRemaining -= distanceToBlockStart;
       }
       // append the offset to the record
-      writer.write(ByteString.valueOf(cumulatedDistanceToBeginning));
+      writer.write(ByteString.valueOfInt(cumulatedDistanceToBeginning));
 
       // next step
       distanceToBlockStart = dataSizeForOneBlock;

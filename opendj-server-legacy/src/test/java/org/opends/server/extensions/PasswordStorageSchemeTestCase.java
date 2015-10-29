@@ -120,26 +120,26 @@ public abstract class PasswordStorageSchemeTestCase
     return new Object[][]
     {
       new Object[] { ByteString.empty() },
-      new Object[] { ByteString.valueOf("") },
-      new Object[] { ByteString.valueOf("\u0000") },
-      new Object[] { ByteString.valueOf("\t") },
-      new Object[] { ByteString.valueOf("\n") },
-      new Object[] { ByteString.valueOf("\r\n") },
-      new Object[] { ByteString.valueOf(" ") },
-      new Object[] { ByteString.valueOf("Test1\tTest2\tTest3") },
-      new Object[] { ByteString.valueOf("Test1\nTest2\nTest3") },
-      new Object[] { ByteString.valueOf("Test1\r\nTest2\r\nTest3") },
-      new Object[] { ByteString.valueOf("a") },
-      new Object[] { ByteString.valueOf("ab") },
-      new Object[] { ByteString.valueOf("abc") },
-      new Object[] { ByteString.valueOf("abcd") },
-      new Object[] { ByteString.valueOf("abcde") },
-      new Object[] { ByteString.valueOf("abcdef") },
-      new Object[] { ByteString.valueOf("abcdefg") },
-      new Object[] { ByteString.valueOf("abcdefgh") },
-      new Object[] { ByteString.valueOf("The Quick Brown Fox Jumps Over " +
+      new Object[] { ByteString.valueOfUtf8("") },
+      new Object[] { ByteString.valueOfUtf8("\u0000") },
+      new Object[] { ByteString.valueOfUtf8("\t") },
+      new Object[] { ByteString.valueOfUtf8("\n") },
+      new Object[] { ByteString.valueOfUtf8("\r\n") },
+      new Object[] { ByteString.valueOfUtf8(" ") },
+      new Object[] { ByteString.valueOfUtf8("Test1\tTest2\tTest3") },
+      new Object[] { ByteString.valueOfUtf8("Test1\nTest2\nTest3") },
+      new Object[] { ByteString.valueOfUtf8("Test1\r\nTest2\r\nTest3") },
+      new Object[] { ByteString.valueOfUtf8("a") },
+      new Object[] { ByteString.valueOfUtf8("ab") },
+      new Object[] { ByteString.valueOfUtf8("abc") },
+      new Object[] { ByteString.valueOfUtf8("abcd") },
+      new Object[] { ByteString.valueOfUtf8("abcde") },
+      new Object[] { ByteString.valueOfUtf8("abcdef") },
+      new Object[] { ByteString.valueOfUtf8("abcdefg") },
+      new Object[] { ByteString.valueOfUtf8("abcdefgh") },
+      new Object[] { ByteString.valueOfUtf8("The Quick Brown Fox Jumps Over " +
                                          "The Lazy Dog") },
-      new Object[] { ByteString.valueOf("\u00BFD\u00F3nde est\u00E1 el " +
+      new Object[] { ByteString.valueOfUtf8("\u00BFD\u00F3nde est\u00E1 el " +
                                          "ba\u00F1o?") }
     };
   }
@@ -170,7 +170,7 @@ public abstract class PasswordStorageSchemeTestCase
     assertNotNull(encodedPassword);
     assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
     assertFalse(scheme.passwordMatches(plaintext,
-                                       ByteString.valueOf("garbage")));
+                                       ByteString.valueOfUtf8("garbage")));
 
     ByteString schemeEncodedPassword =
          scheme.encodePasswordWithScheme(plaintext);
@@ -239,9 +239,9 @@ public abstract class PasswordStorageSchemeTestCase
       // or other characters that will cause LDIF parsing errors.
       // We really don't need many test cases here, since that functionality
       // is tested above.
-      new Object[] { ByteString.valueOf("a") },
-      new Object[] { ByteString.valueOf("abcdefgh") },
-      new Object[] { ByteString.valueOf("abcdefghi") },
+      new Object[] { ByteString.valueOfUtf8("a") },
+      new Object[] { ByteString.valueOfUtf8("abcdefgh") },
+      new Object[] { ByteString.valueOfUtf8("abcdefghi") },
     };
   }
 
@@ -392,7 +392,7 @@ public abstract class PasswordStorageSchemeTestCase
     if (passwordString != null)
     {
       String[] pwComps = UserPasswordSyntax.decodeUserPassword(passwordString);
-      ByteString encodedPassword = ByteString.valueOf(pwComps[1]);
+      ByteString encodedPassword = ByteString.valueOfUtf8(pwComps[1]);
 
       assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
     }

@@ -251,7 +251,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       Attribute attribute = description.get(0);
       assertEquals(attribute.size(), 1);
       assertFalse(attribute.hasOptions());
-      assertTrue(attribute.contains(ByteString.valueOf("inherited description")));
+      assertTrue(attribute.contains(ByteString.valueOfUtf8("inherited description")));
     }
     finally
     {
@@ -336,7 +336,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
-      assertTrue(entry.hasValue(attrType, null, ByteString.valueOf(value)));
+      assertTrue(entry.hasValue(attrType, null, ByteString.valueOfUtf8(value)));
     }
   }
 
@@ -347,7 +347,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
-      assertFalse(entry.hasValue(attrType, null, ByteString.valueOf(value)));
+      assertFalse(entry.hasValue(attrType, null, ByteString.valueOfUtf8(value)));
     }
   }
 
@@ -369,7 +369,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(searchOperation.getEntriesSent(), 1);
     AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("collectiveattributesubentries");
     Entry e = searchOperation.getSearchEntries().getFirst();
-    assertTrue(e.hasValue(attrType, null, ByteString.valueOf(collectiveSubentry.getName())));
+    assertTrue(e.hasValue(attrType, null, ByteString.valueOfObject(collectiveSubentry.getName())));
   }
 
   @Test
@@ -404,7 +404,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     InternalClientConnection conn = getRootConnection();
     List<RawModification> mods = newRawModifications(DELETE, attrType);
-    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toString()), mods);
+    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOfUtf8(e.getName().toString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -412,7 +412,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     InternalClientConnection conn = getRootConnection();
     List<RawModification> mods = newRawModifications(REPLACE, attrType, newValue);
-    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toString()), mods);
+    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOfUtf8(e.getName().toString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

@@ -311,7 +311,7 @@ public class InternalClientConnectionTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ByteString dn = ByteString.valueOf("cn=test,o=test");
+    ByteString dn = ByteString.valueOfUtf8("cn=test,o=test");
 
     ArrayList<RawAttribute> attrs = new ArrayList<>();
     attrs.add(new LDAPAttribute("objectClass", newArrayList("top", "device")));
@@ -354,8 +354,8 @@ public class InternalClientConnectionTestCase
   {
     InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("password"));
+         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -374,7 +374,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
          conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("password"));
+                                ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -391,7 +391,7 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     ByteString creds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
@@ -412,7 +412,7 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     ByteString creds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
+         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
 
     InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
@@ -441,8 +441,8 @@ public class InternalClientConnectionTestCase
 
     InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
-         conn.processCompare(ByteString.valueOf("cn=test,o=test"), "cn",
-                             ByteString.valueOf("test"));
+         conn.processCompare(ByteString.valueOfUtf8("cn=test,o=test"), "cn",
+                             ByteString.valueOfUtf8("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }
 
@@ -468,7 +468,7 @@ public class InternalClientConnectionTestCase
     CompareOperation compareOperation =
          conn.processCompare(DN.valueOf("cn=test,o=test"),
                              DirectoryServer.getAttributeTypeOrDefault("cn"),
-                             ByteString.valueOf("test"));
+                             ByteString.valueOfUtf8("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }
 
@@ -491,7 +491,7 @@ public class InternalClientConnectionTestCase
                                       "cn: test");
 
     DeleteOperation deleteOperation =
-         getRootConnection().processDelete(ByteString.valueOf("cn=test,o=test"));
+         getRootConnection().processDelete(ByteString.valueOfUtf8("cn=test,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -559,7 +559,7 @@ public class InternalClientConnectionTestCase
 
     InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf("cn=test,o=test"), mods);
+         conn.processModify(ByteString.valueOfUtf8("cn=test,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -611,8 +611,8 @@ public class InternalClientConnectionTestCase
 
     InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(ByteString.valueOf("cn=test,o=test"),
-                              ByteString.valueOf("cn=test2"), true);
+         conn.processModifyDN(ByteString.valueOfUtf8("cn=test,o=test"),
+                              ByteString.valueOfUtf8("cn=test2"), true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -636,9 +636,9 @@ public class InternalClientConnectionTestCase
 
     InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(ByteString.valueOf("cn=test,o=test"),
-                              ByteString.valueOf("cn=test2"), true,
-                              ByteString.valueOf("dc=example,dc=com"));
+         conn.processModifyDN(ByteString.valueOfUtf8("cn=test,o=test"),
+                              ByteString.valueOfUtf8("cn=test2"), true,
+                              ByteString.valueOfUtf8("dc=example,dc=com"));
     assertEquals(modifyDNOperation.getResultCode(),
                  ResultCode.UNWILLING_TO_PERFORM);
   }

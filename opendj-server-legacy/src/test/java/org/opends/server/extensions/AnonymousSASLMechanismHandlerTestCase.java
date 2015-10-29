@@ -194,7 +194,7 @@ public class AnonymousSASLMechanismHandlerTestCase
          new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS,
-                           ByteString.valueOf("Internal Trace String"));
+                           ByteString.valueOfUtf8("Internal Trace String"));
     handler.processSASLBind(bindOperation);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 

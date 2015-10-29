@@ -134,7 +134,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(ByteString.valueOf("cn=schema")));
+      assertTrue(a.contains(ByteString.valueOfUtf8("cn=schema")));
     }
   }
 
@@ -390,7 +390,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(ByteString.valueOf("cn=schema")));
+    assertTrue(values.contains(ByteString.valueOfUtf8("cn=schema")));
   }
 
 
@@ -456,7 +456,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertTrue(provider.hasValue(entry, rule, ByteString.valueOf("cn=schema")));
+    assertTrue(provider.hasValue(entry, rule, ByteString.valueOfUtf8("cn=schema")));
   }
 
 
@@ -488,6 +488,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("cn=not schema")));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOfUtf8("cn=not schema")));
   }
 }

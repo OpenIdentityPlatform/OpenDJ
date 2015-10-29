@@ -169,8 +169,8 @@ public class ModifyDNOperationBasis
     this.deleteOldRDN = deleteOldRDN;
     this.newSuperior  = newSuperior;
 
-    rawEntryDN = ByteString.valueOf(entryDN.toString());
-    rawNewRDN  = ByteString.valueOf(newRDN.toString());
+    rawEntryDN = ByteString.valueOfUtf8(entryDN.toString());
+    rawNewRDN  = ByteString.valueOfUtf8(newRDN.toString());
 
     if (newSuperior == null)
     {
@@ -178,7 +178,7 @@ public class ModifyDNOperationBasis
     }
     else
     {
-      rawNewSuperior = ByteString.valueOf(newSuperior.toString());
+      rawNewSuperior = ByteString.valueOfUtf8(newSuperior.toString());
     }
 
     responseControls = new ArrayList<>();

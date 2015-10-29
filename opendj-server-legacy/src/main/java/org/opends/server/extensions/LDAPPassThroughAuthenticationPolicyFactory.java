@@ -460,8 +460,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         try
         {
-          connection.simpleBind(ByteString.valueOf(username.toString()),
-              ByteString.valueOf(password));
+          connection.simpleBind(ByteString.valueOfUtf8(username.toString()),
+              ByteString.valueOfUtf8(password));
         }
         catch (final DirectoryException e)
         {
@@ -924,7 +924,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // Create the search request and send it to the server.
         final SearchRequestProtocolOp searchRequest =
           new SearchRequestProtocolOp(
-            ByteString.valueOf(baseDN.toString()), scope,
+            ByteString.valueOfUtf8(baseDN.toString()), scope,
             DereferenceAliasesPolicy.ALWAYS, 1 /* size limit */,
             (timeoutMS / 1000), true /* types only */,
             RawFilter.create(filter), NO_ATTRIBUTES);
@@ -948,7 +948,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                 .getSearchResultEntryProtocolOp();
             if (username == null)
             {
-              username = ByteString.valueOf(searchEntry.getDN().toString());
+              username = ByteString.valueOfUtf8(searchEntry.getDN().toString());
             }
             resultCount++;
             break;
@@ -1605,7 +1605,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
           case UNMAPPED:
             // The bind DN is the name of the user's entry.
-            username = ByteString.valueOf(userEntry.getName().toString());
+            username = ByteString.valueOfUtf8(userEntry.getName().toString());
             break;
           case MAPPED_BIND:
             // The bind DN is contained in an attribute in the user's entry.
@@ -1869,7 +1869,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           if (scheme != null)
           {
             return scheme.passwordMatches(password,
-                ByteString.valueOf(userPwComponents[1]));
+                ByteString.valueOfUtf8(userPwComponents[1]));
           }
         }
         catch (DirectoryException e)

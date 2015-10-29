@@ -596,7 +596,7 @@ public class StopDS
     // Construct the add request to send to the server.
     String taskID = UUID.randomUUID().toString();
     ByteString entryDN =
-        ByteString.valueOf(ATTR_TASK_ID + "=" + taskID + "," +
+        ByteString.valueOfUtf8(ATTR_TASK_ID + "=" + taskID + "," +
                             SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
 
     ArrayList<RawAttribute> attributes = new ArrayList<>();
@@ -624,7 +624,7 @@ public class StopDS
     if (proxyAuthzID.isPresent())
     {
       controls.add(new ProxiedAuthV2Control(
-          ByteString.valueOf(proxyAuthzID.getValue())));
+          ByteString.valueOfUtf8(proxyAuthzID.getValue())));
     }
 
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN, attributes);

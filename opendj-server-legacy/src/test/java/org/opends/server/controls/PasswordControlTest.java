@@ -242,7 +242,7 @@ public class PasswordControlTest
     assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRED);
 
     control = new LDAPControl(OID_NS_PASSWORD_EXPIRED, isCritical,
-        ByteString.valueOf("value"));
+        ByteString.valueOfUtf8("value"));
     try
     {
       pec = PasswordExpiredControl.DECODER.decode(control.isCritical(), control.getValue());
@@ -314,7 +314,7 @@ public class PasswordControlTest
     }
 
     control = new LDAPControl(OID_NS_PASSWORD_EXPIRING, isCritical,
-        ByteString.valueOf("Wrong value"));
+        ByteString.valueOfUtf8("Wrong value"));
     try
     {
       pec = PasswordExpiringControl.DECODER.decode(control.isCritical(), control.getValue());
@@ -381,7 +381,7 @@ public class PasswordControlTest
     assertEquals(pec.getOID(),OID_PASSWORD_POLICY_CONTROL);
 
     control = new LDAPControl(OID_PASSWORD_POLICY_CONTROL,
-        isCritical, ByteString.valueOf("value"));
+        isCritical, ByteString.valueOfUtf8("value"));
     try
     {
       pec = PasswordPolicyRequestControl.DECODER.decode(control.isCritical(), control.getValue());

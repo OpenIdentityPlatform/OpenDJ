@@ -110,7 +110,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
     // normalize the 2 provided values
     try
     {
-      rule.normalizeAttributeValue(ByteString.valueOf(value));
+      rule.normalizeAttributeValue(ByteString.valueOfUtf8(value));
       fail("The matching rule : " + rule.getNameOrOID()
           + " should detect that value \"" + value + "\" is invalid");
     }
@@ -141,8 +141,8 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+      rule.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
+    Assertion assertion = rule.getAssertion(ByteString.valueOfUtf8(value2));
 
     ConditionResult liveResult = assertion.matches(normalizedValue1);
     assertEquals(liveResult, ConditionResult.valueOf(result));

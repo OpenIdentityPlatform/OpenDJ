@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -435,7 +435,7 @@ public class AciList {
           for(Aci aci : hashEntry.getValue()) {
             try {
                Aci newAci =
-                 Aci.decode(ByteString.valueOf(aci.toString()), relocateDN);
+                 Aci.decode(ByteString.valueOfUtf8(aci.toString()), relocateDN);
                acis.add(newAci);
             } catch (AciException ex) {
               //This should never happen since only a copy of the

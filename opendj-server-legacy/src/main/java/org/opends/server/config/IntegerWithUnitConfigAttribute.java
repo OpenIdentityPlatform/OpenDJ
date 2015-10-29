@@ -778,7 +778,7 @@ public final class IntegerWithUnitConfigAttribute
         continue;
       }
 
-      valueSet.add(ByteString.valueOf(valueString));
+      valueSet.add(ByteString.valueOfUtf8(valueString));
     }
 
 

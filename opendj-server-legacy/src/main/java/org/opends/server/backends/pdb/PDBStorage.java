@@ -588,7 +588,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ex = getNewExchange(treeName, true);
         // Work around a problem with forced shutdown right after tree creation.
         // Tree operations are not part of the journal, so force a couple operations to be able to recover.
-        ByteString dummyKey = ByteString.valueOf(DUMMY_RECORD);
+        ByteString dummyKey = ByteString.valueOfUtf8(DUMMY_RECORD);
         put(treeName, dummyKey, ByteString.empty());
         delete(treeName, dummyKey);
       }

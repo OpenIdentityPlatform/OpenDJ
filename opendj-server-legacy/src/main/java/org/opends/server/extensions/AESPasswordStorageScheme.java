@@ -108,7 +108,7 @@ public class AESPasswordStorageScheme
       byte[] encodedBytes = cryptoManager.encrypt(CIPHER_TRANSFORMATION_AES,
                                                   KEY_SIZE_AES,
                                                   plaintextBytes);
-      return ByteString.valueOf(Base64.encode(encodedBytes));
+      return ByteString.valueOfUtf8(Base64.encode(encodedBytes));
     }
     catch (Exception e)
     {
@@ -164,7 +164,7 @@ public class AESPasswordStorageScheme
       }
     }
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
   /** {@inheritDoc} */

@@ -190,7 +190,7 @@ public class ProxiedAuthV1Control
 
     this.authorizationDN = authorizationDN;
 
-    rawAuthorizationDN = ByteString.valueOf(authorizationDN.toString());
+    rawAuthorizationDN = ByteString.valueOfUtf8(authorizationDN.toString());
   }
 
 

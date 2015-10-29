@@ -241,7 +241,7 @@ public class TaskUtils
     ArrayList<RawModification> modList = CollectionUtils.<RawModification> newArrayList(m);
 
     String backendDNString = configEntryDN.toString();
-    ByteString rawEntryDN = ByteString.valueOf(backendDNString);
+    ByteString rawEntryDN = ByteString.valueOfUtf8(backendDNString);
     ModifyOperation internalModify = getRootConnection().processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();
@@ -284,7 +284,7 @@ public class TaskUtils
     ArrayList<RawModification> modList = CollectionUtils.<RawModification> newArrayList(m);
 
     String backendDNString = configEntryDN.toString();
-    ByteString rawEntryDN = ByteString.valueOf(backendDNString);
+    ByteString rawEntryDN = ByteString.valueOfUtf8(backendDNString);
     ModifyOperation internalModify = getRootConnection().processModify(rawEntryDN, modList);
 
     ResultCode resultCode = internalModify.getResultCode();

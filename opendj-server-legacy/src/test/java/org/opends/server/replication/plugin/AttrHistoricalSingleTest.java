@@ -393,7 +393,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   private void assertAttributeValue(Entry entry, String expectedValue)
   {
     ByteString actualValue = getActualValue(entry.getAttribute(toLowerCase(ATTRIBUTE_NAME)));
-    assertEquals(actualValue, expectedValue != null ? ByteString.valueOf(expectedValue) : null);
+    assertEquals(actualValue, expectedValue != null ? ByteString.valueOfUtf8(expectedValue) : null);
   }
 
   private void verifyModSuppressed(Iterator<Modification> it)

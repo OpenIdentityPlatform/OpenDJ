@@ -59,13 +59,13 @@ public class TestDeleteRequestProtocolOp extends LdapTestCase
    * The DN for delete requests in this test case.
    */
   private static final ByteString dn =
-      ByteString.valueOf("dc=example,dc=com");
+      ByteString.valueOfUtf8("dc=example,dc=com");
 
   /**
    * The alternative DN for delete requests in this test case.
    */
   private static final ByteString dnAlt =
-      ByteString.valueOf("dc=sun,dc=com");
+      ByteString.valueOfUtf8("dc=sun,dc=com");
 
   /**
    * Test the constructors to make sure the right objects are constructed.

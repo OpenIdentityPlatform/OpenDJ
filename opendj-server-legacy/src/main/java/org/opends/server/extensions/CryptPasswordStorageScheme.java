@@ -183,7 +183,7 @@ public class CryptPasswordStorageScheme
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
-    return ByteString.valueOf(output);
+    return ByteString.valueOfUtf8(output);
   }
 
   private ByteString sha256CryptEncodePassword(ByteSequence plaintext)
@@ -210,7 +210,7 @@ public class CryptPasswordStorageScheme
         Arrays.fill(plaintextBytes, (byte) 0);
       }
     }
-    return ByteString.valueOf(output);
+    return ByteString.valueOfUtf8(output);
   }
 
   private ByteString sha512CryptEncodePassword(ByteSequence plaintext)
@@ -237,7 +237,7 @@ public class CryptPasswordStorageScheme
         Arrays.fill(plaintextBytes, (byte) 0);
       }
     }
-    return ByteString.valueOf(output);
+    return ByteString.valueOfUtf8(output);
   }
 
   /** {@inheritDoc} */
@@ -278,7 +278,7 @@ public class CryptPasswordStorageScheme
 
     buffer.append(encodePassword(plaintext));
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
   /**

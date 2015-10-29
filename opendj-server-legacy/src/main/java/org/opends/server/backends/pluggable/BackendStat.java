@@ -157,7 +157,7 @@ public class BackendStat
     @Override
     public ByteString getTreeKey(String data)
     {
-      return ByteString.valueOf(data);
+      return ByteString.valueOfUtf8(data);
     }
 
     @Override

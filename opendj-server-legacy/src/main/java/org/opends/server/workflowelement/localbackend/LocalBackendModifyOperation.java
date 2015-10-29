@@ -1166,7 +1166,7 @@ public class LocalBackendModifyOperation
     } else {
       String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
       PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(toLowerCase(components[0]));
-      return scheme != null && scheme.passwordMatches(val, ByteString.valueOf(components[1]));
+      return scheme != null && scheme.passwordMatches(val, ByteString.valueOfUtf8(components[1]));
     }
   }
 

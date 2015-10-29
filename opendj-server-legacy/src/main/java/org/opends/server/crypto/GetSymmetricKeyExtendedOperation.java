@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.crypto;
 
@@ -156,7 +156,7 @@ public class GetSymmetricKeyExtendedOperation
 
       operation.setResponseOID(
            ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP);
-      operation.setResponseValue(ByteString.valueOf(responseSymmetricKey));
+      operation.setResponseValue(ByteString.valueOfUtf8(responseSymmetricKey));
       operation.setResultCode(ResultCode.SUCCESS);
     }
     catch (CryptoManagerException e)

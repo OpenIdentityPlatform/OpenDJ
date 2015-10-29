@@ -260,7 +260,7 @@ public class SearchOperationBasis
     this.filter      = filter;
     this.attributes  = attributes != null ? attributes : new LinkedHashSet<String>(0);
 
-    rawBaseDN = ByteString.valueOf(baseDN.toString());
+    rawBaseDN = ByteString.valueOfUtf8(baseDN.toString());
     rawFilter = new LDAPFilter(filter);
 
     this.sizeLimit = getSizeLimit(sizeLimit, clientConnection);
@@ -596,7 +596,7 @@ public class SearchOperationBasis
            filteredEntry.getObjectClasses().values().iterator();
       while (ocIterator.hasNext())
       {
-        ByteString ocName = ByteString.valueOf(ocIterator.next());
+        ByteString ocName = ByteString.valueOfUtf8(ocIterator.next());
         if (! matchedValuesControl.valueMatches(attrType, ocName))
         {
           ocIterator.remove();

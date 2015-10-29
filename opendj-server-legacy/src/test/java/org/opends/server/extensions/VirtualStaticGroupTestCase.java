@@ -636,8 +636,8 @@ public class VirtualStaticGroupTestCase
     assertNotNull(values);
     assertFalse(values.isEmpty());
     assertTrue(provider.hasValue(entry, rule));
-    assertTrue(provider.hasValue(entry, rule, ByteString.valueOf(u1.toString())));
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf(ne.toString())));
+    assertTrue(provider.hasValue(entry, rule, ByteString.valueOfUtf8(u1.toString())));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOfUtf8(ne.toString())));
     assertEquals(provider.matchesSubstring(entry, rule, null, null, null),
                  ConditionResult.UNDEFINED);
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, null),
@@ -692,8 +692,8 @@ public class VirtualStaticGroupTestCase
     assertNotNull(values);
     assertTrue(values.isEmpty());
     assertFalse(provider.hasValue(entry, rule));
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf(u1.toString())));
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf(ne.toString())));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOfUtf8(u1.toString())));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOfUtf8(ne.toString())));
     assertEquals(provider.matchesSubstring(entry, rule, null, null, null),
                  ConditionResult.UNDEFINED);
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, null),
@@ -746,7 +746,7 @@ public class VirtualStaticGroupTestCase
 
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 4);
-    assertTrue(a.contains(ByteString.valueOf(u1.toString())));
+    assertTrue(a.contains(ByteString.valueOfUtf8(u1.toString())));
 
     cleanUp();
   }
@@ -775,7 +775,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 1);
 
-    ByteString v = ByteString.valueOf(u4.toString());
+    ByteString v = ByteString.valueOfUtf8(u4.toString());
     assertTrue(a.contains(v));
 
     LinkedList<Modification> mods = newLinkedList(new Modification(ModificationType.ADD,
@@ -811,7 +811,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 1);
 
-    ByteString v = ByteString.valueOf(u4.toString());
+    ByteString v = ByteString.valueOfUtf8(u4.toString());
     assertTrue(a.contains(v));
 
 
@@ -832,7 +832,7 @@ public class VirtualStaticGroupTestCase
     a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 0);
 
-    v = ByteString.valueOf(u4.toString());
+    v = ByteString.valueOfUtf8(u4.toString());
     assertTrue(a.contains(v));
 
 

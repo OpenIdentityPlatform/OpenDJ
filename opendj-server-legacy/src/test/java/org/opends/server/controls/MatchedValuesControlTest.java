@@ -107,16 +107,16 @@ public class MatchedValuesControlTest
       // excepted behavior
     }
 
-    MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOf(value));
+    MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOfUtf8(value));
     assertNotNull(mvf);
     assertEquals(mvf.getRawAttributeType(), type);
-    assertEquals(mvf.getRawAssertionValue(), ByteString.valueOf(value));
+    assertEquals(mvf.getRawAssertionValue(), ByteString.valueOfUtf8(value));
     assertEquals(mvf.getMatchType(), MatchedValuesFilter.EQUALITY_MATCH_TYPE);
     checkEncodeDecode(mvf);
 
     try
     {
-      MatchedValuesFilter.createEqualityFilter((String) null, ByteString.valueOf(value));
+      MatchedValuesFilter.createEqualityFilter((String) null, ByteString.valueOfUtf8(value));
       fail("Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -129,7 +129,7 @@ public class MatchedValuesControlTest
     ByteString attVal = null;
     if (attType != null)
     {
-      attVal = ByteString.valueOf(value);
+      attVal = ByteString.valueOfUtf8(value);
     }
 
     try
@@ -205,13 +205,13 @@ public class MatchedValuesControlTest
     // input parameter
     String             rawAttTypeTest = type;
     AttributeType         attTypeTest = DirectoryServer.getAttributeTypeOrNull(type);
-    ByteString            subInitialTest = ByteString.valueOf(subInitial);
+    ByteString            subInitialTest = ByteString.valueOfUtf8(subInitial);
     List<ByteString> subAnyTest = new ArrayList<>(subAny.size());
     for (String s : subAny)
     {
-      subAnyTest.add(ByteString.valueOf(s));
+      subAnyTest.add(ByteString.valueOfUtf8(s));
     }
-    ByteString subFinalTest = ByteString.valueOf(subFinal);
+    ByteString subFinalTest = ByteString.valueOfUtf8(subFinal);
 
     // test parameter
     AttributeType    attTypeCurrent;
@@ -363,17 +363,17 @@ public class MatchedValuesControlTest
     {
       MatchedValuesFilter mvf;
       mvf = MatchedValuesFilter.createGreaterOrEqualFilter(type,
-          ByteString.valueOf(value));
+          ByteString.valueOfUtf8(value));
       assertNotNull(mvf);
       assertEquals(mvf.getRawAttributeType(), type);
-      assertEquals(mvf.getRawAssertionValue(), ByteString.valueOf(value));
+      assertEquals(mvf.getRawAssertionValue(), ByteString.valueOfUtf8(value));
       assertEquals(mvf.getMatchType(),
           MatchedValuesFilter.GREATER_OR_EQUAL_TYPE);
     }
 
     try
     {
-      MatchedValuesFilter.createGreaterOrEqualFilter((String) null, ByteString.valueOf(value));
+      MatchedValuesFilter.createGreaterOrEqualFilter((String) null, ByteString.valueOfUtf8(value));
       fail("Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -386,7 +386,7 @@ public class MatchedValuesControlTest
     ByteString attVal = null;
     if (attType != null)
     {
-      attVal = ByteString.valueOf(value);
+      attVal = ByteString.valueOfUtf8(value);
     }
 
     try
@@ -461,16 +461,16 @@ public class MatchedValuesControlTest
     // Check type, value
     MatchedValuesFilter mvf;
     mvf = MatchedValuesFilter.createLessOrEqualFilter(type,
-        ByteString.valueOf(value));
+        ByteString.valueOfUtf8(value));
     assertNotNull(mvf);
     assertEquals(mvf.getRawAttributeType(), type);
-    assertEquals(mvf.getRawAssertionValue(), ByteString.valueOf(value));
+    assertEquals(mvf.getRawAssertionValue(), ByteString.valueOfUtf8(value));
     assertEquals(mvf.getMatchType(), MatchedValuesFilter.LESS_OR_EQUAL_TYPE);
 
     try
     {
       mvf = MatchedValuesFilter.createLessOrEqualFilter((String) null,
-          ByteString.valueOf(value));
+          ByteString.valueOfUtf8(value));
     }
     catch (NullPointerException e)
     {
@@ -482,7 +482,7 @@ public class MatchedValuesControlTest
     ByteString attVal = null ;
     if (attType != null)
     {
-      attVal = ByteString.valueOf(value);
+      attVal = ByteString.valueOfUtf8(value);
     }
 
     try
@@ -606,15 +606,15 @@ public class MatchedValuesControlTest
     // Check type, value
     MatchedValuesFilter mvf;
     mvf = MatchedValuesFilter.createApproximateFilter(type,
-        ByteString.valueOf(value));
+        ByteString.valueOfUtf8(value));
     assertNotNull(mvf);
     assertEquals(mvf.getRawAttributeType(), type);
-    assertEquals(mvf.getRawAssertionValue(), ByteString.valueOf(value));
+    assertEquals(mvf.getRawAssertionValue(), ByteString.valueOfUtf8(value));
     assertEquals(mvf.getMatchType(), MatchedValuesFilter.APPROXIMATE_MATCH_TYPE);
 
     try
     {
-      MatchedValuesFilter.createApproximateFilter((String) null, ByteString.valueOf(value));
+      MatchedValuesFilter.createApproximateFilter((String) null, ByteString.valueOfUtf8(value));
       fail("Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -627,7 +627,7 @@ public class MatchedValuesControlTest
     ByteString attVal = null ;
     if (attType != null)
     {
-      attVal = ByteString.valueOf(value);
+      attVal = ByteString.valueOfUtf8(value);
     }
 
     try
@@ -706,7 +706,7 @@ public class MatchedValuesControlTest
     String          rawAttTypeTest = type ;
     AttributeType      attTypeTest = DirectoryServer.getAttributeTypeOrNull(type) ;
     String             matchingRuleIdTest = matchingRule.getOID() ;
-    ByteString    attValueTest = (attTypeTest == null) ? null : ByteString.valueOf(value);
+    ByteString    attValueTest = (attTypeTest == null) ? null : ByteString.valueOfUtf8(value);
     // parameter used for the test.
     String          rawAttTypeTestCurrent;
     AttributeType      attTypeTestCurrent ;
@@ -815,7 +815,7 @@ public class MatchedValuesControlTest
                                          String assertion)
   {
     AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("usercertificate");
-    MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOf(assertion));
+    MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOfUtf8(assertion));
     assertTrue(mvf.valueMatches(attrType, value));
   }
 }

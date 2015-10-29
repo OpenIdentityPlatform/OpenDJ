@@ -114,7 +114,7 @@ public class BlowfishPasswordStorageScheme
       byte[] encodedBytes =
            cryptoManager.encrypt(CIPHER_TRANSFORMATION_BLOWFISH,
                                  KEY_SIZE_BLOWFISH, plaintextBytes);
-      return ByteString.valueOf(Base64.encode(encodedBytes));
+      return ByteString.valueOfUtf8(Base64.encode(encodedBytes));
     }
     catch (Exception e)
     {
@@ -173,7 +173,7 @@ public class BlowfishPasswordStorageScheme
       }
     }
 
-    return ByteString.valueOf(buffer);
+    return ByteString.valueOfUtf8(buffer);
   }
 
 

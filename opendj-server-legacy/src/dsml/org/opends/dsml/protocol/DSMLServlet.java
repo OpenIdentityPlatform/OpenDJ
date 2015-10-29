@@ -255,7 +255,7 @@ public class DSMLServlet extends HttpServlet {
     attributes.add(SchemaConstants.NO_ATTRIBUTES);
     ArrayList<org.opends.server.types.Control> controls = new ArrayList<>(1);
     org.opends.server.types.Control proxyAuthzControl =
-        new ProxiedAuthV2Control(true, ByteString.valueOf(authorizationID));
+        new ProxiedAuthV2Control(true, ByteString.valueOfUtf8(authorizationID));
     controls.add(proxyAuthzControl);
 
     try

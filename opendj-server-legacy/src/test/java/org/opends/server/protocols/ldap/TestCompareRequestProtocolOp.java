@@ -51,10 +51,10 @@ public class TestCompareRequestProtocolOp extends LdapTestCase
 
   /** The DN for compare requests in this test case. */
   private static final ByteString dn =
-      ByteString.valueOf("dc=example,dc=com");
+      ByteString.valueOfUtf8("dc=example,dc=com");
 
   /** The assertion value for this compare request. */
-  private ByteString assertionValue = ByteString.valueOf("=test");
+  private ByteString assertionValue = ByteString.valueOfUtf8("=test");
 
   /** The attribute type for this compare request. */
   private String attributeType = "testAttribute";

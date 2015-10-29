@@ -76,7 +76,7 @@ public abstract class AttributeSyntaxTest extends SchemaTestCase
     LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     // test the valueIsAcceptable method
     Boolean liveResult =
-      syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
+      syntax.valueIsAcceptable(ByteString.valueOfUtf8(value), reason);
 
     assertSame(liveResult, result, syntax + ".valueIsAcceptable gave bad result for " + value + " reason : " + reason);
   }

@@ -117,7 +117,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
             entry.addControl(control);
         }
         entry.addAttribute(new LinkedAttribute("test", "value1"));
-        entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOf("myValue")));
+        entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOfUtf8("myValue")));
 
         SearchResultEntry result = to(entry);
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
@@ -135,7 +135,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
             new LinkedHashMapEntry(org.forgerock.opendj.ldap.DN
                 .valueOf("uid=scarter,ou=People,dc=example,dc=com"));
         entry.addAttribute(new LinkedAttribute("test", "value1"));
-        entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOf("myValue")));
+        entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOfUtf8("myValue")));
 
         org.opends.server.types.Entry result = to(entry);
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
@@ -255,7 +255,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         assertThat(srvAttribute.getValues().get(0).toString()).isEqualTo("value1");
 
         org.forgerock.opendj.ldap.Attribute attribute2 =
-                new LinkedAttribute("Another", ByteString.valueOf("myValue"));
+                new LinkedAttribute("Another", ByteString.valueOfUtf8("myValue"));
 
         org.opends.server.types.RawAttribute srvAttribute2 = to(attribute2);
         assertThat(srvAttribute2.getAttributeType()).isEqualTo("Another");
@@ -273,7 +273,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         assertThat(srvAttribute.iterator().next().toString()).isEqualTo("value1");
 
         org.forgerock.opendj.ldap.Attribute attribute2 =
-                new LinkedAttribute("Another", ByteString.valueOf("myValue"));
+                new LinkedAttribute("Another", ByteString.valueOfUtf8("myValue"));
 
         org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
         assertThat(srvAttribute2.getAttributeType().getNameOrOID()).isEqualTo("Another");
@@ -344,8 +344,8 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public final void testToRawModification() {
         org.forgerock.opendj.ldap.Attribute attribute =
-                new LinkedAttribute("test", ByteString.valueOf("value1"), ByteString
-                        .valueOf("value2"));
+                new LinkedAttribute("test", ByteString.valueOfUtf8("value1"), ByteString
+                        .valueOfUtf8("value2"));
 
         Modification mod = new Modification(ModificationType.ADD, attribute);
 
@@ -362,8 +362,8 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public final void testToModification() {
         org.forgerock.opendj.ldap.Attribute attribute =
-                new LinkedAttribute("test", ByteString.valueOf("value1"), ByteString
-                        .valueOf("value2"));
+                new LinkedAttribute("test", ByteString.valueOfUtf8("value1"), ByteString
+                        .valueOfUtf8("value2"));
 
         Modification mod = new Modification(ModificationType.ADD, attribute);
 
@@ -446,7 +446,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public static void testFromLDAPControl() {
         org.opends.server.protocols.ldap.LDAPControl ldapControl =
-                new LDAPControl("1.2.3.4", false, ByteString.valueOf("myData"));
+                new LDAPControl("1.2.3.4", false, ByteString.valueOfUtf8("myData"));
         Control sdkControl = from(ldapControl);
 
         Control expectedSdkControl = GenericControl.newControl("1.2.3.4", false, "myData");
@@ -476,7 +476,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public static void testFromControl() {
         final org.opends.server.types.Control control =
-                new LDAPControl("1.2.3.4", false, ByteString.valueOf("myData"));
+                new LDAPControl("1.2.3.4", false, ByteString.valueOfUtf8("myData"));
         Control sdkControl = from(control);
 
         Control expectedSdkControl = GenericControl.newControl("1.2.3.4", false, "myData");
@@ -513,7 +513,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         final GenericBindRequest genericBindRequest = bindClient.nextBindRequest();
 
         assertThat(getCredentials(genericBindRequest.getAuthenticationValue())).isEqualTo(
-                ByteString.valueOf("\u0000u:user.0\u0000password"));
+                ByteString.valueOfUtf8("\u0000u:user.0\u0000password"));
     }
 
     /**

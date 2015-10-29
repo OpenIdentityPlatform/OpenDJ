@@ -64,7 +64,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
 
   private Object[] generateValues(String password) throws Exception
   {
-    ByteString bytePassword = ByteString.valueOf(password);
+    ByteString bytePassword = ByteString.valueOfUtf8(password);
     SaltedMD5PasswordStorageScheme scheme = new SaltedMD5PasswordStorageScheme();
 
     ConfigEntry configEntry =
@@ -110,7 +110,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
   @Test(dataProvider= "equalityMatchingRuleInvalidValues", expectedExceptions = { DecodeException.class })
   public void equalityMatchingRulesInvalidValues(String value) throws Exception
   {
-    getRule().normalizeAttributeValue(ByteString.valueOf(value));
+    getRule().normalizeAttributeValue(ByteString.valueOfUtf8(value));
   }
 
   /** Test the valuesMatch method used for extensible filters. */
@@ -121,8 +121,8 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+      rule.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
+    Assertion assertion = rule.getAssertion(ByteString.valueOfUtf8(value2));
 
     ConditionResult liveResult = assertion.matches(normalizedValue1);
     assertEquals(liveResult, ConditionResult.valueOf(result));

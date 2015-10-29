@@ -474,7 +474,7 @@ public final class MultiChoiceConfigAttribute
         throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(value, getName()));
       }
 
-      ByteString attrValue = ByteString.valueOf(value);
+      ByteString attrValue = ByteString.valueOfUtf8(value);
       if (valueSet.contains(attrValue))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value));
@@ -605,7 +605,7 @@ public final class MultiChoiceConfigAttribute
         continue;
       }
 
-      valueSet.add(ByteString.valueOf(valueString));
+      valueSet.add(ByteString.valueOfUtf8(valueString));
     }
 
     // If this method was configured to continue on error, then it is possible

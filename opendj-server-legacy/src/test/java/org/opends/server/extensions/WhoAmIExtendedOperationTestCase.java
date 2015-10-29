@@ -164,8 +164,8 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("cn=Directory Manager"),
-                             ByteString.valueOf("password"),
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+                             ByteString.valueOfUtf8("password"),
                              new ArrayList<Control>(),
                              new ArrayList<Control>());
     ByteString authzID = authHandler.requestAuthorizationIdentity();
@@ -240,8 +240,8 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("uid=test.user,o=test"),
-                             ByteString.valueOf("password"),
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=test.user,o=test"),
+                             ByteString.valueOfUtf8("password"),
                              new ArrayList<Control>(),
                              new ArrayList<Control>());
     ByteString authzID = authHandler.requestAuthorizationIdentity();
@@ -311,7 +311,7 @@ public class WhoAmIExtendedOperationTestCase
     saslProperties.put("authzID", newArrayList("dn:uid=test.user,o=test"));
 
     authHandler.doSASLPlain(ByteString.empty(),
-                            ByteString.valueOf("password"), saslProperties,
+                            ByteString.valueOfUtf8("password"), saslProperties,
                             new ArrayList<Control>(),
                             new ArrayList<Control>());
     ByteString authzID = authHandler.requestAuthorizationIdentity();
@@ -377,8 +377,8 @@ public class WhoAmIExtendedOperationTestCase
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOf("uid=proxy.user,o=test"),
-                             ByteString.valueOf("password"),
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=proxy.user,o=test"),
+                             ByteString.valueOfUtf8("password"),
                              new ArrayList<Control>(),
                              new ArrayList<Control>());
     ByteString authzID = authHandler.requestAuthorizationIdentity();
@@ -391,7 +391,7 @@ public class WhoAmIExtendedOperationTestCase
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
     ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new ProxiedAuthV2Control(
-         ByteString.valueOf("dn:uid=test.user,o=test")));
+         ByteString.valueOfUtf8("dn:uid=test.user,o=test")));
     LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                           extendedRequest, requestControls);
     writer.writeMessage(message);
@@ -464,8 +464,8 @@ public class WhoAmIExtendedOperationTestCase
          new LDAPAuthenticationHandler(reader, writer, "localhost",
                                        nextMessageID);
     authHandler.doSimpleBind(3,
-                             ByteString.valueOf("uid=cantproxy.user,o=test"),
-                             ByteString.valueOf("password"),
+                             ByteString.valueOfUtf8("uid=cantproxy.user,o=test"),
+                             ByteString.valueOfUtf8("password"),
                              new ArrayList<Control>(),
                              new ArrayList<Control>());
     ByteString authzID = authHandler.requestAuthorizationIdentity();
@@ -478,7 +478,7 @@ public class WhoAmIExtendedOperationTestCase
          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
     ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new ProxiedAuthV2Control(
-         ByteString.valueOf("dn:uid=test.user,o=test")));
+         ByteString.valueOfUtf8("dn:uid=test.user,o=test")));
     LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                           extendedRequest, requestControls);
     writer.writeMessage(message);

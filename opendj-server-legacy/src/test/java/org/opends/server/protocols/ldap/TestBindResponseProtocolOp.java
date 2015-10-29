@@ -75,7 +75,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         referralURLs.add(url);
         DN responseDn = DN.valueOf(dn);
         ByteString serverSASLCredentials =
-            ByteString.valueOf(saslCreds);
+            ByteString.valueOfUtf8(saslCreds);
         BindResponseProtocolOp r =
             new BindResponseProtocolOp(okCode.intValue(),
                     message, responseDn, referralURLs,
@@ -146,7 +146,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
     public void testBindResponseBadReferral() throws Exception {
       DN responseDn = DN.valueOf(dn);
       ByteString serverSASLCredentials =
-          ByteString.valueOf(saslCreds);
+          ByteString.valueOfUtf8(saslCreds);
 
       ByteStringBuilder bsb = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(bsb);
@@ -177,7 +177,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         referralURLs.add(url);
         DN responseDn = DN.valueOf(dn);
         ByteString serverSASLCredentials =
-            ByteString.valueOf(saslCreds);
+            ByteString.valueOfUtf8(saslCreds);
 
         BindResponseProtocolOp saslOkResp =
             new BindResponseProtocolOp(okCode.intValue(),

@@ -532,7 +532,7 @@ public class DSMLSearchOperation
     }
 
     SearchRequestProtocolOp protocolOp = new SearchRequestProtocolOp(ByteString
-        .valueOf(searchRequest.getDn()), scope, derefPolicy,
+        .valueOfUtf8(searchRequest.getDn()), scope, derefPolicy,
         (int) searchRequest.getSizeLimit(), (int) searchRequest.getTimeLimit(),
         searchRequest.isTypesOnly(), filter, attributes);
     try

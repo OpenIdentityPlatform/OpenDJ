@@ -194,10 +194,10 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
     try {
       return new Object [][] {
         {ByteString.wrap(Base64.decode(validcert1)), true},
-        {ByteString.valueOf(validcert1), false},
+        {ByteString.valueOfUtf8(validcert1), false},
         {ByteString.wrap(Base64.decode(invalidcert1)), false},
         {ByteString.wrap(Base64.decode(brokencert1)), false},
-        {ByteString.valueOf("invalid"), false}
+        {ByteString.valueOfUtf8("invalid"), false}
       };
     }
     catch (Exception e)

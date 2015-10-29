@@ -148,7 +148,7 @@ public final class Attributes
    */
   public static Attribute create(AttributeType attributeType, String name, String valueString)
   {
-    return create(attributeType, name, ByteString.valueOf(valueString));
+    return create(attributeType, name, ByteString.valueOfUtf8(valueString));
   }
 
   /**

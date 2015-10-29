@@ -413,7 +413,7 @@ public final class DNConfigAttribute
         throw new ConfigException(ERR_CONFIG_ATTR_DN_NULL.get(getName()));
       }
 
-      ByteString attrValue = ByteString.valueOf(value.toString());
+      ByteString attrValue = ByteString.valueOfUtf8(value.toString());
       if (valueSet.contains(attrValue))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(getName(), value));
@@ -452,7 +452,7 @@ public final class DNConfigAttribute
     {
       return new LinkedHashSet<>(0);
     }
-    return newLinkedHashSet(ByteString.valueOf(value.toString()));
+    return newLinkedHashSet(ByteString.valueOfUtf8(value.toString()));
   }
 
 
@@ -474,7 +474,7 @@ public final class DNConfigAttribute
     LinkedHashSet<ByteString> valueSet = new LinkedHashSet<>(values.size());
     for (DN value : values)
     {
-      valueSet.add(ByteString.valueOf(value.toString()));
+      valueSet.add(ByteString.valueOfUtf8(value.toString()));
     }
     return valueSet;
   }
@@ -600,7 +600,7 @@ public final class DNConfigAttribute
         continue;
       }
 
-      valueSet.add(ByteString.valueOf(dn.toString()));
+      valueSet.add(ByteString.valueOfUtf8(dn.toString()));
     }
 
     // If this method was configured to continue on error, then it is possible

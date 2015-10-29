@@ -375,13 +375,13 @@ public class AciEffectiveRights {
       //Write right is more complicated. Create a dummy value and set that as
       //the attribute's value. Call the special writeRightsString method, rather
       //than rightsString.
-      ByteString val= ByteString.valueOf("dum###Val");
+      ByteString val= ByteString.valueOfUtf8("dum###Val");
       container.setCurrentAttributeValue(val);
       evalInfo.append(attributeLevelWriteRights(container, handler, skipCheck));
       addAttrLevelRightsInfo(container, mask, a, retEntry, "write");
       evalInfo.append(',');
       //Perform both selfwrite_add and selfwrite_delete and append results.
-      ByteString val1 = ByteString.valueOf(container.getClientDN().toString());
+      ByteString val1 = ByteString.valueOfUtf8(container.getClientDN().toString());
       if(!specificAttr)
       {
         container.setCurrentAttributeType(dnAttributeType);

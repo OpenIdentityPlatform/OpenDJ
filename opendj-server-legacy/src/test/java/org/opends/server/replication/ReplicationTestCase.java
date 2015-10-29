@@ -555,7 +555,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         List<Attribute> attrList = newEntry.getAttribute(attrTypeStr);
         Assertions.assertThat(attrList).isNotEmpty();
         Attribute attr = attrList.get(0);
-        boolean foundAttributeValue = attr.contains(ByteString.valueOf(valueString));
+        boolean foundAttributeValue = attr.contains(ByteString.valueOfUtf8(valueString));
         assertEquals(foundAttributeValue, expectedAttributeValueFound, foundMsg);
         return null;
       }

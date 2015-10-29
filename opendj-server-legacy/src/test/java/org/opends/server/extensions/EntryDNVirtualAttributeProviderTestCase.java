@@ -134,7 +134,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     {
       assertFalse(a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(ByteString.valueOf(entryDN.toString())));
+      assertTrue(a.contains(ByteString.valueOfUtf8(entryDN.toString())));
     }
   }
 
@@ -384,7 +384,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     Attribute values = provider.getValues(entry, getRule(provider));
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(ByteString.valueOf("o=test")));
+    assertTrue(values.contains(ByteString.valueOfUtf8("o=test")));
   }
 
 
@@ -434,7 +434,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    assertTrue(provider.hasValue(entry, getRule(provider), ByteString.valueOf("o=test")));
+    assertTrue(provider.hasValue(entry, getRule(provider), ByteString.valueOfUtf8("o=test")));
   }
 
 
@@ -470,7 +470,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    assertFalse(provider.hasValue(entry, getRule(provider), ByteString.valueOf("o=not test")));
+    assertFalse(provider.hasValue(entry, getRule(provider), ByteString.valueOfUtf8("o=not test")));
   }
 
 
@@ -495,7 +495,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    LinkedList<ByteString> subAny = newLinkedList(ByteString.valueOf("="));
+    LinkedList<ByteString> subAny = newLinkedList(ByteString.valueOfUtf8("="));
 
     assertEquals(provider.matchesSubstring(entry, getRule(provider), null, subAny, null),
                  ConditionResult.UNDEFINED);
@@ -523,7 +523,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    ByteString value = ByteString.valueOf("o=test2");
+    ByteString value = ByteString.valueOfUtf8("o=test2");
     assertEquals(provider.greaterThanOrEqualTo(entry, getRule(provider), value),
                  ConditionResult.UNDEFINED);
   }
@@ -550,7 +550,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    ByteString value = ByteString.valueOf("o=test2");
+    ByteString value = ByteString.valueOfUtf8("o=test2");
     assertEquals(provider.lessThanOrEqualTo(entry, getRule(provider), value),
                  ConditionResult.UNDEFINED);
   }
@@ -577,7 +577,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    ByteString value = ByteString.valueOf("o=test2");
+    ByteString value = ByteString.valueOfUtf8("o=test2");
     assertEquals(provider.approximatelyEqualTo(entry, getRule(provider), value),
                  ConditionResult.UNDEFINED);
   }

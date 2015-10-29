@@ -235,7 +235,7 @@ public class GeneralizedTimeSyntax
    */
   public static ByteString createGeneralizedTimeValue(long time)
   {
-    return ByteString.valueOf(format(time));
+    return ByteString.valueOfUtf8(format(time));
   }
 
   /**

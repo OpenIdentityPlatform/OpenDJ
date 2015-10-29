@@ -272,11 +272,11 @@ public final class BSDMD5Crypt {
     {
       if (argv.length == 2)
       {
-        System.out.println(BSDMD5Crypt.crypt(ByteString.valueOf(argv[0]),
+        System.out.println(BSDMD5Crypt.crypt(ByteString.valueOfUtf8(argv[0]),
                 argv[1]));
       } else
       {
-        System.out.println(BSDMD5Crypt.crypt(ByteString.valueOf(argv[0])));
+        System.out.println(BSDMD5Crypt.crypt(ByteString.valueOfUtf8(argv[0])));
       }
     } catch (Exception e)
     {

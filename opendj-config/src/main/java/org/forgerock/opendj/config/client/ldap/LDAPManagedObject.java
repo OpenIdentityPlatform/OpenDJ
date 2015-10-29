@@ -228,7 +228,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
     private void addObjectClassesToEntry(List<String> objectClasses, Entry entry) {
         for (String objectClass : objectClasses) {
             Attribute attr = new LinkedAttribute("objectClass");
-            attr.add(ByteString.valueOf(objectClass));
+            attr.add(ByteString.valueOfUtf8(objectClass));
             entry.addAttribute(attr);
         }
     }

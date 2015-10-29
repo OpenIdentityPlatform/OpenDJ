@@ -578,7 +578,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
     description.filterType = filterType;
     description.attributeType = DirectoryServer.getAttributeTypeOrNull(attributeType);
-    description.assertionValue = ByteString.valueOf(attributeValue);
+    description.assertionValue = ByteString.valueOfUtf8(attributeValue);
 
     if (filterType == FilterType.EQUALITY) {
       description.searchFilter = SearchFilter.createEqualityFilter(description.attributeType,
@@ -641,16 +641,16 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     description.filterType = FilterType.SUBSTRING;
     description.attributeType = DirectoryServer.getAttributeTypeOrNull(attributeType);
 
-    description.subInitialElement = ByteString.valueOf(subInitial);
+    description.subInitialElement = ByteString.valueOfUtf8(subInitial);
     description.subAnyElements = new ArrayList<>();
     if (subAny != null)
     {
       for (String s : subAny)
       {
-        description.subAnyElements.add(ByteString.valueOf(s));
+        description.subAnyElements.add(ByteString.valueOfUtf8(s));
       }
     }
-    description.subFinalElement = ByteString.valueOf(subFinal);
+    description.subFinalElement = ByteString.valueOfUtf8(subFinal);
 
     description.searchFilter = SearchFilter.createSubstringFilter(description.attributeType,
             description.subInitialElement,

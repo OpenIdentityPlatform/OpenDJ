@@ -450,7 +450,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
   private void assertAcceptable(RepeatedCharactersPasswordValidator validator, String value, Entry userEntry,
       boolean expectedResult) throws DirectoryException
   {
-    ByteString password = ByteString.valueOf(value);
+    ByteString password = ByteString.valueOfUtf8(value);
     ModifyOperationBasis modifyOperation = replaceUserPasswordAttribute(value);
 
     LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();

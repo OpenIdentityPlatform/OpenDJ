@@ -684,7 +684,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
             valuesToRemove = new LinkedHashSet<>();
           }
 
-          valuesToRemove.add(ByteString.valueOf(GeneralizedTimeSyntax.format(l)));
+          valuesToRemove.add(ByteString.valueOfUtf8(GeneralizedTimeSyntax.format(l)));
         }
       }
 
@@ -2172,7 +2172,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     return passwordPolicy.isAuthPasswordSyntax()
         ? scheme.getAuthPasswordPlaintextValue(pwComponents[1], pwComponents[2])
-        : scheme.getPlaintextValue(ByteString.valueOf(pwComponents[1]));
+        : scheme.getPlaintextValue(ByteString.valueOfUtf8(pwComponents[1]));
   }
 
   @Override
@@ -2476,7 +2476,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     return passwordPolicy.isAuthPasswordSyntax()
         ? scheme.authPasswordMatches(password, pwComponents[1], pwComponents[2])
-        : scheme.passwordMatches(password, ByteString.valueOf(pwComponents[1]));
+        : scheme.passwordMatches(password, ByteString.valueOfUtf8(pwComponents[1]));
   }
 
   private ByteString encodePassword(ByteString password, PasswordStorageScheme<?> s) throws DirectoryException
@@ -2622,8 +2622,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           {
             try
             {
-              long timestamp =
-                   GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ByteString.valueOf(histStr.substring(0, hashPos)));
+              ByteString timeValue = ByteString.valueOfUtf8(histStr.substring(0, hashPos));
+              long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(timeValue);
               historyMap.put(timestamp, v);
             }
             catch (Exception e)
@@ -2729,7 +2729,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     String[] userPWComponents = UserPasswordSyntax.decodeUserPassword(encodedUserPassword);
     PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
-    return scheme.passwordMatches(password, ByteString.valueOf(userPWComponents[1]));
+    return scheme.passwordMatches(password, ByteString.valueOfUtf8(userPWComponents[1]));
   }
 
   private boolean logResult(String passwordType, boolean passwordMatches)
@@ -3051,7 +3051,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     InternalClientConnection conn = getRootConnection();
-    ModifyOperation internalModify = conn.processModify(ByteString.valueOf(userDNString), modList);
+    ModifyOperation internalModify = conn.processModify(ByteString.valueOfUtf8(userDNString), modList);
 
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)

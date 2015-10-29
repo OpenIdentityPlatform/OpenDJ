@@ -149,7 +149,7 @@ public class CompareOperationBasis
     this.assertionValue = assertionValue;
 
     responseControls       = new ArrayList<>();
-    rawEntryDN             = ByteString.valueOf(entryDN.toString());
+    rawEntryDN             = ByteString.valueOfUtf8(entryDN.toString());
     rawAttributeType       = attributeType.getNameOrOID();
     cancelRequest          = null;
     proxiedAuthorizationDN = null;

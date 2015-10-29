@@ -542,7 +542,7 @@ public class BackupBackend
     userAttrs.put(t, asList(t, v));
 
     t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_BACKEND_DN);
-    userAttrs.put(t, asList(t, ByteString.valueOf(backupDirectory.getConfigEntryDN().toString())));
+    userAttrs.put(t, asList(t, ByteString.valueOfUtf8(backupDirectory.getConfigEntryDN().toString())));
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
     e.processVirtualAttributes();
@@ -631,7 +631,7 @@ public class BackupBackend
     if (backupDate != null) {
       t = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DATE);
       userAttrs.put(t,
-          asList(t, ByteString.valueOf(GeneralizedTimeSyntax.format(backupDate))));
+          asList(t, ByteString.valueOfUtf8(GeneralizedTimeSyntax.format(backupDate))));
     }
 
     putBoolean(userAttrs, ATTR_BACKUP_COMPRESSED, backupInfo.isCompressed());
@@ -660,7 +660,7 @@ public class BackupBackend
     if (properties != null && !properties.isEmpty()) {
       for (Map.Entry<String, String> e : properties.entrySet()) {
         t = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(e.getKey()));
-        userAttrs.put(t, asList(t, ByteString.valueOf(e.getValue())));
+        userAttrs.put(t, asList(t, ByteString.valueOfUtf8(e.getValue())));
       }
     }
 
@@ -988,7 +988,7 @@ public class BackupBackend
   public static DN makeChildDN(DN parentDN, AttributeType rdnAttrType,
                                String rdnStringValue)
   {
-    ByteString attrValue = ByteString.valueOf(rdnStringValue);
+    ByteString attrValue = ByteString.valueOfUtf8(rdnStringValue);
     return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
 }

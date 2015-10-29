@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -133,7 +133,7 @@ public class ModifyMsg extends ModifyCommonMsg
     ModifyOperation mod = new ModifyOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDN.toString()), ldapmods);
+        ByteString.valueOfUtf8(newDN.toString()), ldapmods);
     ModifyContext ctx = new ModifyContext(getCSN(), getEntryUUID());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;

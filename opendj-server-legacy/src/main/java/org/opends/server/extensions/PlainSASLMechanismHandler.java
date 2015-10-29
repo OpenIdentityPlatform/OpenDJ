@@ -443,7 +443,7 @@ public class PlainSASLMechanismHandler
         return;
       }
 
-      if (!authState.passwordMatches(ByteString.valueOf(password)))
+      if (!authState.passwordMatches(ByteString.valueOfUtf8(password)))
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
         LocalizableMessage message = ERR_SASLPLAIN_INVALID_PASSWORD.get();

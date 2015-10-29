@@ -201,7 +201,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       try
       {
         SortedSet<ByteString> keys = new TreeSet<>();
-        indexer.createKeys(Schema.getDefaultSchema(), ByteString.valueOf(key.getBytes()), keys);
+        indexer.createKeys(Schema.getDefaultSchema(), ByteString.valueOfUtf8(key), keys);
         return keys.first();
       }
       catch (DecodeException e)
@@ -212,7 +212,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   }
 
   /** The key bytes used for the presence index as a {@link ByteString}. */
-  static final ByteString PRESENCE_KEY = ByteString.valueOf("+");
+  static final ByteString PRESENCE_KEY = ByteString.valueOfUtf8("+");
 
   /** A special indexer for generating presence indexes. */
   private static final Indexer PRESENCE_INDEXER = new Indexer()

@@ -55,7 +55,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   /** The protocol op type for add responses. */
   private static final byte OP_TYPE_ADD_RESPONSE = 0x69;
   /** The DN for add requests in this test case. */
-  private static final ByteString dn = ByteString.valueOf("dc=example,dc=com");
+  private static final ByteString dn = ByteString.valueOfUtf8("dc=example,dc=com");
 
   /**
    * Generate attributes for use in test cases. Attributes will have names
@@ -364,7 +364,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     List<RawAttribute> attributes =
         generateAttributes(numAttributes, numValues, " test");
 
-    ByteString dnNeedsBase64 = ByteString.valueOf("dc=example,dc=com ");
+    ByteString dnNeedsBase64 = ByteString.valueOfUtf8("dc=example,dc=com ");
 
     AddRequestProtocolOp addRequest =
         new AddRequestProtocolOp(dnNeedsBase64, attributes);
