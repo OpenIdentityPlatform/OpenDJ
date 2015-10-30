@@ -34,7 +34,6 @@
     </parent>
 
     <artifactId>opendj-copyright-maven-plugin</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
     <name>OpenDJ Copyright Check Maven Plugin</name>
     <description>Checks ForgeRock source file copyrights.</description>
 

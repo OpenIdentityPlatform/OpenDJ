@@ -160,6 +160,18 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.forgerock.opendj</groupId>
+                    <artifactId>opendj-copyright-maven-plugin</artifactId>
+                    <version>${project.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.forgerock.opendj</groupId>
+                    <artifactId>opendj-doc-maven-plugin</artifactId>
+                    <version>${project.version}</version>
+                </plugin>
+
+                <plugin>
                     <inherited>true</inherited>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -353,6 +365,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Commons -->
             <dependency>
                 <groupId>org.forgerock.commons</groupId>
                 <artifactId>forgerock-bom</artifactId>
@@ -360,19 +373,52 @@
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
+            <dependency>
+                <groupId>org.forgerock</groupId>
+                <artifactId>forgerock-build-tools</artifactId>
+                <version>${forgerock-build-tools.version}</version>
+                <scope>test</scope>
+            </dependency>
 
+            <!-- I18N framework -->
             <dependency>
                 <groupId>org.forgerock.commons</groupId>
                 <artifactId>i18n-core</artifactId>
                 <version>${i18n-framework.version}</version>
-                <scope>compile</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.forgerock.commons</groupId>
                 <artifactId>i18n-slf4j</artifactId>
                 <version>${i18n-framework.version}</version>
-                <scope>compile</scope>
+            </dependency>
+
+            <!-- OpenDJ SDK -->
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-cli</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-core</artifactId>
+                <type>test-jar</type>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-grizzly</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-rest2ldap</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -382,6 +428,12 @@
         <dependency>
             <groupId>org.easytesting</groupId>
             <artifactId>fest-assert</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -426,7 +478,6 @@
                     <plugin>
                         <groupId>org.forgerock.opendj</groupId>
                         <artifactId>opendj-copyright-maven-plugin</artifactId>
-                        <version>3.0.0-SNAPSHOT</version>
                         <executions>
                             <execution>
                                 <id>check-copyright</id>
@@ -447,7 +498,6 @@
                     <plugin>
                         <groupId>org.forgerock.opendj</groupId>
                         <artifactId>opendj-copyright-maven-plugin</artifactId>
-                        <version>3.0.0-SNAPSHOT</version>
                         <executions>
                             <execution>
                                 <id>check-copyright</id>
