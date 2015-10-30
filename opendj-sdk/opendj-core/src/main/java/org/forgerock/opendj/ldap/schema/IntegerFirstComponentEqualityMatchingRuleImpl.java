@@ -54,36 +54,27 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
     }
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
-            throws DecodeException {
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException {
         try {
             final String definition = assertionValue.toString();
-            final SubstringReader reader = new SubstringReader(definition);
-            final int intValue = SchemaUtils.readRuleID(reader);
-            return defaultAssertion(ByteString.valueOfInt(intValue));
+            return defaultAssertion(normalizeRuleID(new SubstringReader(definition)));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
-
-            final LocalizableMessage message =
-                    ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(assertionValue.toString());
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(assertionValue));
         }
     }
 
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
-            throws DecodeException {
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);
 
-        // We'll do this a character at a time. First, skip over any leading
-        // whitespace.
+        // We'll do this a character at a time. First, skip over any leading whitespace.
         reader.skipWhitespaces();
 
         if (reader.remaining() <= 0) {
-            // This means that the value was empty or contained only
-            // whitespace. That is illegal.
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
-            throw DecodeException.error(message);
+            // This means that the value was empty or contained only whitespace.
+            // That is illegal.
+            throw DecodeException.error(ERR_ATTR_SYNTAX_EMPTY_VALUE.get());
         }
 
         // The next character must be an open parenthesis.
@@ -98,6 +89,10 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.
-        return ByteString.valueOfObject(SchemaUtils.readRuleID(reader));
+        return normalizeRuleID(reader);
+    }
+
+    private ByteString normalizeRuleID(final SubstringReader reader) throws DecodeException {
+        return ByteString.valueOfInt(SchemaUtils.readRuleID(reader));
     }
 }

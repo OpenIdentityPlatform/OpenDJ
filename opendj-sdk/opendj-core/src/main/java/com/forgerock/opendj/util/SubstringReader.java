@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -149,5 +149,13 @@ public class SubstringReader {
             pos++;
         }
         return skipped;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "("
+                + "source=" + source
+                + ", remaining=" + source.substring(pos, length)
+                + ")";
     }
 }
