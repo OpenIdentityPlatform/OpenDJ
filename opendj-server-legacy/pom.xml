@@ -30,7 +30,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-server-parent</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-M4</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -2419,7 +2419,7 @@
                 simplest and fastest directory servers to deploy and manage.
               </description>
               <requires>
-                <require>jre >= 1.7</require>
+                <require>jre &gt;= 1.7</require>
               </requires>
 
               <defineStatements>
