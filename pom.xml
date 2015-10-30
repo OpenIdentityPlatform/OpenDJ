@@ -102,11 +102,7 @@
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
     <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
 
-    <!--
-     | Until final release the SDK and server share the same version. Re-using the
-     | project.version here avoids the need to update it before releasing milestones.
-     -->
-    <opendj-sdk.version>${project.version}</opendj-sdk.version>
+    <opendj-sdk.version>3.0.0-M4</opendj-sdk.version>
     <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
     <i18n-framework.version>1.4.2</i18n-framework.version>
     <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
