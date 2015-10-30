@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -318,12 +320,33 @@ public final class ByteSequenceReader {
      *             If there are fewer bytes remaining in this reader than are
      *             required to satisfy the request.
      */
-    public long readCompactUnsigned() {
+    public long readCompactUnsignedLong() {
         try {
             return PackedLong.readCompactUnsignedLong(asInputStream());
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Relative read method for reading a compacted int value.
+     * Compaction allows to reduce number of bytes needed to hold int types
+     * depending on its value (i.e: if value < 128, value will be encoded using one byte only).
+     * Reads the next bytes at this reader's current position, composing them into an int value
+     * according to big-endian byte order, and then increments the position by the size of the
+     * encoded int.
+     *
+     * @return The int value at this reader's current position.
+     * @throws IndexOutOfBoundsException
+     *             If there are fewer bytes remaining in this reader than are
+     *             required to satisfy the request.
+     */
+    public int readCompactUnsignedInt() {
+        long l = readCompactUnsignedLong();
+        if (l > Integer.MAX_VALUE) {
+            throw new IllegalStateException(ERR_INVALID_COMPACTED_UNSIGNED_INT.get(Integer.MAX_VALUE, l).toString());
+        }
+        return (int) l;
     }
 
     /**

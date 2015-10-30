@@ -295,7 +295,7 @@ final class TimeBasedMatchingRulesImpl {
                     int assertHour = reader.readByte();
                     int assertDay = reader.readByte();
                     int assertMonth = reader.readByte();
-                    int assertYear = (int) reader.readCompactUnsigned();
+                    int assertYear = reader.readCompactUnsignedInt();
 
                     List<T> queries = new ArrayList<>();
                     if (assertSecond >= 0) {
@@ -506,7 +506,7 @@ final class TimeBasedMatchingRulesImpl {
             int assertHour = r.readByte();
             int assertDay = r.readByte();
             int assertMonth = r.readByte();
-            int assertYear = (int) r.readCompactUnsigned();
+            int assertYear = r.readCompactUnsignedInt();
 
             // All the non-zero and non -1 values should match.
             return ConditionResult.valueOf(

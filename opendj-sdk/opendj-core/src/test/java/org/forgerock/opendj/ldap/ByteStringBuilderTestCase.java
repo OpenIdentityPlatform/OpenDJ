@@ -87,7 +87,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
 
     @Test(dataProvider = "unsignedLongValues")
     public void testCanAppendCompactPositiveValue(long value) {
-        assertThat(new ByteStringBuilder().appendCompactUnsigned(value).asReader().readCompactUnsigned())
+        assertThat(new ByteStringBuilder().appendCompactUnsigned(value).asReader().readCompactUnsignedLong())
             .isEqualTo(value);
     }
 
