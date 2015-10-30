@@ -66,7 +66,7 @@ final class ID2Count extends AbstractTree
           @Override
           public EntryID apply(ByteString value) throws Exception
           {
-            return new EntryID(value.asReader().readCompactUnsigned());
+            return new EntryID(value.asReader().readCompactUnsignedLong());
           }
         }, new CursorTransformer.ValueTransformer<ByteString, ByteString, Long, NeverThrowsException>()
         {
@@ -164,8 +164,8 @@ final class ID2Count extends AbstractTree
   public String keyToString(ByteString key)
   {
     ByteSequenceReader keyReader = key.asReader();
-    long keyID = keyReader.readCompactUnsigned();
-    long shardBucket = keyReader.readCompactUnsigned();
+    long keyID = keyReader.readCompactUnsignedLong();
+    long shardBucket = keyReader.readCompactUnsignedLong();
     return (keyID == TOTAL_COUNT_ENTRY_ID.longValue() ? "Total Children Count" : keyID) + "#" + shardBucket;
   }
 
