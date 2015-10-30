@@ -102,9 +102,14 @@
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
     <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
 
+    <!--
+     | Until final release the SDK and server share the same version. Re-using the
+     | project.version here avoids the need to update it before releasing milestones.
+     -->
+    <opendj-sdk.version>${project.version}</opendj-sdk.version>
     <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
-    <i18n-framework.version>1.4.2-SNAPSHOT</i18n-framework.version>
-    <forgerock-doc-plugin.version>3.1.0-SNAPSHOT</forgerock-doc-plugin.version>
+    <i18n-framework.version>1.4.2</i18n-framework.version>
+    <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
 
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
@@ -143,6 +148,21 @@
     </plugins>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj-copyright-maven-plugin</artifactId>
+          <version>${opendj-sdk.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj-doc-maven-plugin</artifactId>
+          <version>${opendj-sdk.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj-maven-plugin</artifactId>
+          <version>${project.version}</version>
+        </plugin>
         <plugin>
           <inherited>true</inherited>
           <groupId>org.apache.maven.plugins</groupId>
@@ -248,7 +268,7 @@
                   <pluginExecutionFilter>
                     <groupId>org.forgerock.opendj</groupId>
                     <artifactId>opendj-maven-plugin</artifactId>
-                    <versionRange>[1.0.0-SNAPSHOT,)</versionRange>
+                    <versionRange>[1.0.0,)</versionRange>
                     <goals>
                       <goal>generate-config</goal>
                     </goals>
@@ -351,6 +371,7 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Commons -->
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-bom</artifactId>
@@ -358,28 +379,83 @@
         <scope>import</scope>
         <type>pom</type>
       </dependency>
+      <dependency>
+        <groupId>org.forgerock</groupId>
+        <artifactId>forgerock-build-tools</artifactId>
+        <version>${forgerock-build-tools.version}</version>
+        <scope>test</scope>
+      </dependency>
 
+      <!-- I18N framework -->
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-core</artifactId>
         <version>${i18n-framework.version}</version>
-        <scope>compile</scope>
       </dependency>
-
       <dependency>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-slf4j</artifactId>
         <version>${i18n-framework.version}</version>
-        <scope>compile</scope>
+      </dependency>
+
+      <!-- OpenDJ SDK -->
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-cli</artifactId>
+        <version>${opendj-sdk.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-core</artifactId>
+        <version>${opendj-sdk.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-core</artifactId>
+        <type>test-jar</type>
+        <version>${opendj-sdk.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-grizzly</artifactId>
+        <version>${opendj-sdk.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-rest2ldap</artifactId>
+        <version>${opendj-sdk.version}</version>
+      </dependency>
+
+      <!-- OpenDJ Server -->
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-config</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-legacy</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-server</artifactId>
+        <version>${project.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
-
 
   <dependencies>
     <dependency>
       <groupId>org.easytesting</groupId>
       <artifactId>fest-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -421,7 +497,6 @@
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-copyright-maven-plugin</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
             <executions>
                 <execution>
                     <id>check-copyright</id>
@@ -442,7 +517,6 @@
             <plugin>
               <groupId>org.forgerock.opendj</groupId>
               <artifactId>opendj-copyright-maven-plugin</artifactId>
-              <version>3.0.0-SNAPSHOT</version>
               <executions>
                   <execution>
                     <id>check-copyright</id>

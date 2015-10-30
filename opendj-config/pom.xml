@@ -44,13 +44,6 @@
       <artifactId>i18n-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>i18n-slf4j</artifactId>
     </dependency>
@@ -61,18 +54,20 @@
     <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
-      <version>${forgerock-build-tools.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <!-- We need to override testNG version to make test works (see OPENDJ-2389) -->
@@ -153,7 +148,6 @@
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
-        <version>${project.version}</version>
         <executions>
           <execution>
             <id>generate-config</id>

@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !      Copyright 2013-2015 ForgeRock AS
-  !    
+  !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
   </parent>
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server</name>
-  <description> 
+  <description>
     OpenDJ LDAP embedded directory server.
   </description>
   <packaging>jar</packaging>
@@ -51,17 +51,14 @@
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-grizzly</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-config</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.forgerock.commons</groupId>
@@ -79,19 +76,15 @@
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
       <type>test-jar</type>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
-      <version>${forgerock-build-tools.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
   <build>
@@ -195,7 +188,7 @@
             <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
           </links>
         </configuration>
-      </plugin>      
+      </plugin>
     </plugins>
   </reporting>
 </project>

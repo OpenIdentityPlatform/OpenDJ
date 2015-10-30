@@ -70,10 +70,6 @@
     <docGuideAdminUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideAdminUrl>
     <locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</locales>
 
-    <!-- Dependencies version properties -->
-    <project.version>3.0.0-SNAPSHOT</project.version>
-    <i18n.version>1.4.2-SNAPSHOT</i18n.version>
-
     <!-- Other properties -->
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
@@ -95,8 +91,12 @@
     <!-- ForgeRock libraries -->
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-cli</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-rest2ldap</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -107,26 +107,16 @@
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-config</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-server</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-cli</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
-      <version>${forgerock-build-tools.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -188,22 +178,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
       <type>test-jar</type>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -224,7 +201,7 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-persistit-core</artifactId>
-      <version>4.1.0-SNAPSHOT</version>
+      <version>4.2.0</version>
     </dependency>
   </dependencies>
 
@@ -525,7 +502,6 @@
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
-        <version>${project.version}</version>
         <executions>
           <execution>
             <id>generate-bootstrap-manifest</id>
@@ -1631,7 +1607,6 @@
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-doc-maven-plugin</artifactId>
-            <version>${project.version}</version>
             <executions>
               <execution>
                 <id>generate-man-pages</id>
@@ -2045,7 +2020,6 @@
           <plugin>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-doc-maven-plugin</artifactId>
-            <version>${project.version}</version>
             <!--
               Configuration reference generation requires
               that opendj-config be on the runtime classpath for the plugin.

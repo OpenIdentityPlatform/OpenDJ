@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !      Copyright 2014-2015 ForgeRock AS
-  !    
+  !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -33,7 +33,7 @@
   </parent>
   <artifactId>opendj-server-example-plugin</artifactId>
   <name>OpenDJ Server Example Plugin</name>
-  <description> 
+  <description>
     An example OpenDJ Server plugin illustrating how custom components may be developed for OpenDJ.
   </description>
   <packaging>jar</packaging>
@@ -41,12 +41,10 @@
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-config</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.forgerock.commons</groupId>
@@ -80,7 +78,6 @@
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
-        <version>${project.version}</version>
         <executions>
           <execution>
             <id>generate-config</id>
