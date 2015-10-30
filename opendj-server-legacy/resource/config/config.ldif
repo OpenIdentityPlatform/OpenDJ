@@ -67,6 +67,7 @@ ds-cfg-allowed-task: org.opends.server.tasks.RebuildTask
 ds-cfg-allowed-task: org.opends.server.tasks.RestoreTask
 ds-cfg-allowed-task: org.opends.server.tasks.ShutdownTask
 ds-cfg-allowed-task: org.opends.server.tasks.PurgeConflictsHistoricalTask
+ds-cfg-allowed-task: org.opends.server.tasks.ResetChangeNumberTask
 
 dn: cn=Schema Providers,cn=config
 objectClass: top

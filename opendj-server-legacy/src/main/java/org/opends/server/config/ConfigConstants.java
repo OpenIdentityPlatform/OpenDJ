@@ -4421,5 +4421,16 @@ public final class ConfigConstants
   public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_COUNT =
        NAME_PREFIX_TASK + "purge-conflicts-historical-purged-values-count";
 
+  /** The name of the objectclass that will be used for a Directory Server reset change number task definition. */
+  public static final String OC_RESET_CHANGE_NUMBER_TASK = NAME_PREFIX_TASK + "reset-change-number";
+
+  /** The name of the attribute in a reset change number task that specifies the change number for the first change. */
+  public static final String ATTR_TASK_RESET_CHANGE_NUMBER_TO= NAME_PREFIX_TASK + "reset-change-number-to";
+
+  /** The name of the attribute in a reset change number task that specifies the csn of the new first change. */
+  public static final String ATTR_TASK_RESET_CHANGE_NUMBER_CSN = NAME_PREFIX_TASK + "reset-change-number-csn";
+
+  /** The name of the attribute in a reset change number task that specifies the basedn where the csn applies. */
+  public static final String ATTR_TASK_RESET_CHANGE_NUMBER_BASE_DN = NAME_PREFIX_TASK + "reset-change-number-base-dn";
 }
 

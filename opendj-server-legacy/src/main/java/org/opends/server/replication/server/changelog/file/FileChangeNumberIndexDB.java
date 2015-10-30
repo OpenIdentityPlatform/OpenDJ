@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -117,6 +118,10 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
 
   private final AtomicBoolean shutdown = new AtomicBoolean(false);
 
+  private final ReentrantReadWriteLock resetCNisRunningLock = new ReentrantReadWriteLock(false);
+
+  private final FileChangelogDB changelogDB;
+
   /**
    * Creates a new JEChangeNumberIndexDB associated to a given LDAP server.
    *
@@ -124,8 +129,9 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
    * server for this domain.
    * @throws ChangelogException If a database problem happened
    */
-  FileChangeNumberIndexDB(ReplicationEnvironment replicationEnv) throws ChangelogException
+  FileChangeNumberIndexDB(FileChangelogDB changelogDB, ReplicationEnvironment replicationEnv) throws ChangelogException
   {
+    this.changelogDB = changelogDB;
     log = replicationEnv.getOrCreateCNIndexDB();
     final ChangeNumberIndexRecord newestRecord = readLastRecord();
     newestChangeNumber = getChangeNumber(newestRecord);
@@ -192,14 +198,30 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
 
   private long nextChangeNumber()
   {
-    return lastGeneratedChangeNumber.incrementAndGet();
+    resetCNisRunningLock.readLock().lock();
+    try {
+      long lgcn = lastGeneratedChangeNumber.incrementAndGet();
+      return lgcn;
+    }
+    finally
+    {
+      resetCNisRunningLock.readLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public long getLastGeneratedChangeNumber()
   {
-    return lastGeneratedChangeNumber.get();
+    resetCNisRunningLock.readLock().lock();
+    try {
+      long lgcn = lastGeneratedChangeNumber.get();
+      return lgcn;
+    }
+    finally
+    {
+      resetCNisRunningLock.readLock().unlock();
+    }
   }
 
   /**
@@ -351,6 +373,31 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
   {
     log.clear();
     newestChangeNumber = NO_KEY;
+  }
+
+  /**
+   * Same as {@code clear()}, with the addition of also resetting last GeneratedChangeNumber counter to the provided
+   * value.
+   * @param newStart
+   *            the new changeNumber for for the first change in the changelog
+   */
+  public void clearAndSetChangeNumber(long newStart) throws ChangelogException
+  {
+    resetCNisRunningLock.writeLock().lock();
+    try{
+      clear();
+      lastGeneratedChangeNumber.set(newStart - 1);
+    }
+    finally
+    {
+      resetCNisRunningLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public void resetChangeNumberTo(long newFirstCN, DN baseDN, CSN newFirstCSN) throws ChangelogException
+  {
+    changelogDB.resetChangeNumberIndex(newFirstCN, baseDN, newFirstCSN);
   }
 
   /** Parser of records persisted in the FileChangeNumberIndex log. */

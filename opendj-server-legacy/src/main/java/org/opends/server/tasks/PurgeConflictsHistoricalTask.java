@@ -77,15 +77,6 @@ public class PurgeConflictsHistoricalTask extends Task
   private TaskState initState;
 
 
-  private static void debugInfo(String s)
-  {
-    if (logger.isTraceEnabled())
-    {
-      System.out.println(LocalizableMessage.raw(s));
-      logger.trace(s);
-    }
-  }
-
   /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
@@ -146,12 +137,8 @@ public class PurgeConflictsHistoricalTask extends Task
   protected TaskState runTask()
   {
     Boolean purgeCompletedInTime = false;
-    if (logger.isTraceEnabled())
-    {
-      debugInfo("[PURGE] PurgeConflictsHistoricalTask is starting "
-          + "on domain: " + domain.getBaseDN()
-          + "max duration (sec):" + purgeTaskMaxDurationInSec);
-    }
+    logger.trace("PurgeConflictsHistoricalTask is starting on domain: %s max duration (sec): %d",
+        domain.getBaseDN(), purgeTaskMaxDurationInSec);
     try
     {
       replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COMPLETED_IN_TIME, purgeCompletedInTime.toString());
@@ -166,7 +153,7 @@ public class PurgeConflictsHistoricalTask extends Task
     }
     catch(DirectoryException de)
     {
-      debugInfo("[PURGE] PurgeConflictsHistoricalTask exception " + de.getLocalizedMessage());
+      logger.trace("PurgeConflictsHistoricalTask exception %s", de.getLocalizedMessage());
       if (de.getResultCode() != ResultCode.ADMIN_LIMIT_EXCEEDED)
       {
         // Error raised at submission time
@@ -185,20 +172,17 @@ public class PurgeConflictsHistoricalTask extends Task
         // sets in the attributes the last stats values
         replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COUNT, String.valueOf(purgeCount));
         replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CSN, lastCSN.toStringUI());
-        debugInfo("[PURGE] PurgeConflictsHistoricalTask write  attrs ");
+        logger.trace("PurgeConflictsHistoricalTask write attrs %d", purgeCount);
       }
       catch(Exception e)
       {
-        debugInfo("[PURGE] PurgeConflictsHistoricalTask exception " + e.getLocalizedMessage());
+        logger.trace("PurgeConflictsHistoricalTask exception %s", e.getLocalizedMessage());
         initState = TaskState.STOPPED_BY_ERROR;
       }
     }
 
-    if (logger.isTraceEnabled())
-    {
-      debugInfo("[PURGE] PurgeConflictsHistoricalTask is ending with state:" + initState +
-            " completedInTime:" + purgeCompletedInTime);
-    }
+    logger.trace("PurgeConflictsHistoricalTask is ending with state: %s completedInTime: %s",
+        initState, purgeCompletedInTime);
     return initState;
   }
 
@@ -231,12 +215,12 @@ public class PurgeConflictsHistoricalTask extends Task
       {
         replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COUNT, String.valueOf(purgeCount));
         replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CSN, lastCSN.toStringUI());
-        debugInfo("[PURGE] PurgeConflictsHistoricalTask write  attrs " + purgeCount);
+        logger.trace("PurgeConflictsHistoricalTask write attrs %d", purgeCount);
       }
     }
     catch(DirectoryException de)
     {
-      debugInfo("[PURGE] PurgeConflictsHistoricalTask exception " + de.getLocalizedMessage());
+      logger.trace("PurgeConflictsHistoricalTask exception %s", de.getLocalizedMessage());
       initState = TaskState.STOPPED_BY_ERROR;
     }
   }

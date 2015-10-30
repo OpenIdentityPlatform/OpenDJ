@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
+import static org.opends.messages.ReplicationMessages.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -373,6 +375,12 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
   {
     db.clear();
     newestChangeNumber = NO_KEY;
+  }
+
+  @Override
+  public void resetChangeNumberTo(long newFirstCN, DN baseDN, CSN newFirstCSN) throws ChangelogException
+  {
+    throw new ChangelogException(ERR_CHANGELOG_RESET_CHANGE_NUMBER_UNSUPPORTED.get());
   }
 
 }

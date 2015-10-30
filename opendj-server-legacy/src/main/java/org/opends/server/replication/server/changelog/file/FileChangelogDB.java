@@ -57,6 +57,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
@@ -344,38 +345,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       return;
     }
 
+    shutdownCNIndexerAndPurger();
+
     // Remember the first exception because :
     // - we want to try to remove everything we want to remove
     // - then throw the first encountered exception
     ChangelogException firstException = null;
-
-    final ChangeNumberIndexer indexer = cnIndexer.getAndSet(null);
-    if (indexer != null)
-    {
-      indexer.initiateShutdown();
-    }
-    final ChangelogDBPurger purger = cnPurger.getAndSet(null);
-    if (purger != null)
-    {
-      purger.initiateShutdown();
-    }
-
-    // wait for shutdown of the threads holding cursors
-    try
-    {
-      if (indexer != null)
-      {
-        indexer.join();
-      }
-      if (purger != null)
-      {
-        purger.join();
-      }
-    }
-    catch (InterruptedException e)
-    {
-      // do nothing: we are already shutting down
-    }
 
     // now we can safely shutdown all DBs
     try
@@ -408,6 +383,37 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     if (firstException != null)
     {
       throw firstException;
+    }
+  }
+
+  private void shutdownCNIndexerAndPurger()
+  {
+    final ChangeNumberIndexer indexer = cnIndexer.getAndSet(null);
+    if (indexer != null)
+    {
+      indexer.initiateShutdown();
+    }
+    final ChangelogDBPurger purger = cnPurger.getAndSet(null);
+    if (purger != null)
+    {
+      purger.initiateShutdown();
+    }
+
+    // wait for shutdown of the threads holding cursors
+    try
+    {
+      if (indexer != null)
+      {
+        indexer.join();
+      }
+      if (purger != null)
+      {
+        purger.join();
+      }
+    }
+    catch (InterruptedException e)
+    {
+      // do nothing: we are already shutting down
     }
   }
 
@@ -578,20 +584,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     if (purgeDelayInMillis > 0)
     {
-      final ChangelogDBPurger newPurger = new ChangelogDBPurger();
-      if (cnPurger.compareAndSet(null, newPurger))
-      { // no purger was running, run this new one
-        newPurger.start();
-      }
-      else
-      { // a purger was already running, just wake that one up
-        // to verify if some entries can be purged with the new purge delay
-        final ChangelogDBPurger currentPurger = cnPurger.get();
-        synchronized (currentPurger)
-        {
-          currentPurger.notify();
-        }
-      }
+      startCNPurger();
     }
     else
     {
@@ -599,6 +592,24 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       if (purgerToStop != null)
       { // stop this purger
         purgerToStop.initiateShutdown();
+      }
+    }
+  }
+
+  private void startCNPurger()
+  {
+    final ChangelogDBPurger newPurger = new ChangelogDBPurger();
+    if (cnPurger.compareAndSet(null, newPurger))
+    { // no purger was running, run this new one
+      newPurger.start();
+    }
+    else
+    { // a purger was already running, just wake that one up
+      // to verify if some entries can be purged
+      final ChangelogDBPurger currentPurger = cnPurger.get();
+      synchronized (currentPurger)
+      {
+        currentPurger.notify();
       }
     }
   }
@@ -622,6 +633,35 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
+  void resetChangeNumberIndex(long newFirstCN, DN baseDN, CSN newFirstCSN) throws ChangelogException
+  {
+    if (!config.isComputeChangeNumber())
+    {
+      throw new ChangelogException(ERR_REPLICATION_CHANGE_NUMBER_DISABLED.get(baseDN));
+    }
+    if (!getDomainNewestCSNs(baseDN).cover(newFirstCSN))
+    {
+      throw new ChangelogException(ERR_CHANGELOG_RESET_CHANGE_NUMBER_CHANGE_NOT_PRESENT.get(newFirstCN, baseDN,
+          newFirstCSN));
+    }
+    if (getDomainOldestCSNs(baseDN).getCSN(newFirstCSN.getServerId()).isNewerThan(newFirstCSN))
+    {
+      throw new ChangelogException(ERR_CHANGELOG_RESET_CHANGE_NUMBER_CSN_TOO_OLD.get(newFirstCN, newFirstCSN));
+    }
+
+    shutdownCNIndexerAndPurger();
+    synchronized (cnIndexDBLock)
+    {
+      cnIndexDB.clearAndSetChangeNumber(newFirstCN);
+      cnIndexDB.addRecord(new ChangeNumberIndexRecord(newFirstCN, baseDN, newFirstCSN));
+    }
+    startIndexer();
+    if (purgeDelayInMillis > 0)
+    {
+      startCNPurger();
+    }
+  }
+
   private void startIndexer()
   {
     final ChangeNumberIndexer indexer = new ChangeNumberIndexer(this, replicationEnv);
@@ -631,7 +671,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ChangeNumberIndexDB getChangeNumberIndexDB()
   {
@@ -641,7 +680,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       {
         try
         {
-          cnIndexDB = new FileChangeNumberIndexDB(replicationEnv);
+          cnIndexDB = new FileChangeNumberIndexDB(this, replicationEnv);
         }
         catch (Exception e)
         {

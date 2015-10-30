@@ -21,10 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
+import org.opends.server.replication.common.CSN;
+import org.opends.server.types.DN;
 
 /**
  * This class stores an index of all the changes seen by this server in the form
@@ -98,4 +100,16 @@ public interface ChangeNumberIndexDB
   DBCursor<ChangeNumberIndexRecord> getCursorFrom(long startChangeNumber)
       throws ChangelogException;
 
+  /**
+   * Resets ChangeNumber index to the given number and CSN.
+   * @param newFirstCN
+   *          the new change number to appear as first change in the external changelog
+   * @param baseDN
+   *          the new record for the first change
+   * @param newFirstCSN
+   *          the CSN of the new first change
+   * @throws ChangelogException
+   *          if an error occurs during reset
+   */
+  void resetChangeNumberTo(long newFirstCN, DN baseDN, CSN newFirstCSN) throws ChangelogException;
 }
