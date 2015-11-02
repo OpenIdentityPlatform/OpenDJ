@@ -2,11 +2,12 @@ OpenDJ man pages
 
 This Maven module contains OpenDJ man pages generation for OpenDJ package distribution.
 man pages are available for the following tools:
+
+* backendstat
 * backup
 * base64
 * control-panel
 * create-rc-script
-* backendtool
 * dsconfig
 * dsjavaproperties
 * dsreplication
@@ -22,7 +23,8 @@ man pages are available for the following tools:
 * ldifmodify
 * ldifsearch
 * list-backends
-* make-ldif 
+* make-ldif
+* make-ldif-template
 * manage-account
 * manage-tasks
 * rebuild-index
@@ -33,4 +35,4 @@ man pages are available for the following tools:
 * stop-ds
 * uninstall
 * upgrade
-* verify-index 
+* verify-index
