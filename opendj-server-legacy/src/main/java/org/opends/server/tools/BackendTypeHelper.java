@@ -26,12 +26,14 @@
 package org.opends.server.tools;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
@@ -164,26 +166,48 @@ public class BackendTypeHelper
 
     backends = new LinkedList<>();
 
-    // Add the JE backend if it is supported in this release.
-    try
-    {
-      Class.forName("org.opends.server.backends.jeb.BackendImpl");
-      backends.add(LocalDBBackendCfgDefn.getInstance());
-    }
-    catch (ClassNotFoundException ignored)
-    {
-      // Ignore: JE backend not supported.
-    }
+    addLocalDBBackendIfSupported();
 
     for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
     {
       // Filtering out only the non-abstract backends to avoid users attempt to create abstract ones
       if (backendType instanceof ManagedObjectDefinition)
       {
-        backends.add((ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
+        final DefinedDefaultBehaviorProvider<String> defaultBehaviorProvider =
+                (DefinedDefaultBehaviorProvider<String>) backendType.getPropertyDefinition("java-class")
+                                                                    .getDefaultBehaviorProvider();
+        final Iterator<String> defaultBackendClassNameIterator = defaultBehaviorProvider.getDefaultValues().iterator();
+        if (!defaultBackendClassNameIterator.hasNext())
+        {
+          return;
+        }
+        addToBackendListIfClassExists(defaultBackendClassNameIterator.next(),
+                (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
       }
     }
   }
+
+  @RemoveOnceLocalDBBackendIsPluggable
+  private void addLocalDBBackendIfSupported()
+  {
+    addToBackendListIfClassExists(
+            "org.opends.server.backends.jeb.BackendImpl", LocalDBBackendCfgDefn.getInstance());
+  }
+
+  private void addToBackendListIfClassExists(final String backendClassName,
+          final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendToAdd)
+  {
+    try
+    {
+      Class.forName(backendClassName);
+      backends.add(backendToAdd);
+    }
+    catch (ClassNotFoundException ignored)
+    {
+      // The backend is not supported in the running version.
+    }
+  }
+
 
   ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> retrieveBackendTypeFromName(
       final String backendTypeStr)

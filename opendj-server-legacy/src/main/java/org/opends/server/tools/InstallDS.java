@@ -1288,7 +1288,21 @@ public class InstallDS extends ConsoleApplication
           argParser.backendTypeArg.getValue(), backendTypeHelper.getPrintableBackendTypeNames()));
     }
 
+    return promptForBackendType();
+  }
+
+  private ManagedObjectDefinition<? extends BackendCfgClient,? extends BackendCfg> promptForBackendType()
+  {
+    println();
     int backendTypeIndex = 1;
+    final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backendTypes =
+            backendTypeHelper.getBackendTypes();
+    if (backendTypes.size() == 1) {
+      final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType = backendTypes.get(0);
+      println(INFO_INSTALLDS_BACKEND_TYPE_USED.get(backendType.getUserFriendlyName()));
+      return backendType;
+    }
+
     try
     {
       final MenuResult<Integer> m = getBackendTypeMenu().run();
@@ -1302,7 +1316,7 @@ public class InstallDS extends ConsoleApplication
       logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
 
-    return backendTypeHelper.getBackendTypes().get(backendTypeIndex - 1);
+    return backendTypes.get(backendTypeIndex - 1);
   }
 
   private Menu<Integer> getBackendTypeMenu()
