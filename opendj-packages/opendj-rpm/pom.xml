@@ -154,6 +154,10 @@
                             </mapping>
 
                             <mapping>
+                                <directory>${rpm.prefix}/legal-notices</directory>
+                            </mapping>
+
+                            <mapping>
                                 <directory>${rpm.prefix}/lib</directory>
                             </mapping>
 
@@ -167,6 +171,18 @@
 
                             <mapping>
                                 <directory>${rpm.prefix}/share/man</directory>
+                            </mapping>
+
+                            <mapping>
+                                <directory>${rpm.prefix}/share/man/META-INF</directory>
+                            </mapping>
+
+                            <mapping>
+                                <directory>${rpm.prefix}/share/man/man1</directory>
+                            </mapping>
+
+                            <mapping>
+                                <directory>${rpm.prefix}/share/man/man5</directory>
                             </mapping>
 
                             <mapping>
