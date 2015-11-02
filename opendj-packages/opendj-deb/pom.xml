@@ -204,7 +204,7 @@
                                         <src>${project.build.directory}/${product.name.lowercase}</src>
                                         <type>directory</type>
                                         <includes>
-                                            legal-notices/**, copyright, example-plugin.zip, changelog.Debian.gz
+                                            copyright, example-plugin.zip, changelog.Debian.gz
                                         </includes>
                                         <mapper>
                                             <type>perm</type>
@@ -234,7 +234,6 @@
                                             bin/*,
                                             template/**/*,
                                             lib/*.sh,
-                                            legal-notices/**,
                                             setup,
                                             uninstall,
                                             upgrade,
