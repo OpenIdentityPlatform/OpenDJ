@@ -26,34 +26,41 @@
  */
 package org.opends.server.schema;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
-import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
+import org.opends.server.types.FilterType;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * This class tests various time-based matching rules.
- */
+/** This class tests various time-based matching rules. */
 @SuppressWarnings("javadoc")
 public final class TimeBasedMatchingRuleTest
         extends SchemaTestCase
@@ -112,24 +119,33 @@ public final class TimeBasedMatchingRuleTest
     assertEquals(0, resultCode);
   }
 
+  @DataProvider
+  public Object[][] relativeTime()
+  {
+    return new Object[][] {
+      // relativeTime less than expired events
+      { TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_LT_OID + ":=-60m", new DN[] { user1, user2, } },
+      // relativeTime less than future events
+      { TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_LT_OID + ":=1d", new DN[] { user1, user2, user3, user5, } },
+      // relativeTime greater than expired events
+      { TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=-1h", new DN[] { user3, user4, user5, } },
+      // relativeTime greater than future events
+      { TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=0s", new DN[] { user3, user4, } },
+    };
+  }
 
-
-  /**
-   * Test to search using the less-than relative time matching rule for expired events.
-   */
-  @Test
-  public void testRTLessThanExpiredEvents() throws Exception
+  /** Test to search using the relative time matching rule. */
+  @Test(dataProvider = "relativeTime")
+  public void testRelativeTimeUsingSearch(String filterString, DN[] expectedDNs) throws Exception
   {
     try
     {
       populateEntries();
 
-      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_LT_OID + ":=-60m";
-      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
+      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filterString);
       InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(dnFoundInEntryList(entries,user1,user2));
+      assertThat(toNames(searchOperation.getSearchEntries())).containsOnly(expectedDNs);
     }
     finally
     {
@@ -137,83 +153,44 @@ public final class TimeBasedMatchingRuleTest
     }
   }
 
-
-
-  /**
-   * Test to search using the less-than relative time matching rule for future events.
-   */
-  @Test
-  public void testRTLessThanFutureEvents() throws Exception
+  @Test(dataProvider = "relativeTime")
+  public void testRelativeTimeUsingAssertion(String filterString, DN[] expectedDNs) throws Exception
   {
-    try
-    {
-      populateEntries();
-
-      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_LT_OID + ":=1d";
-      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
-      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(entries.size() == 4 && dnFoundInEntryList(entries,user1,user2,user3,user5));
-    }
-    finally
-    {
-      TestCaseUtils.clearJEBackend("userRoot");
-    }
+    SearchFilter filter = SearchFilter.createFilterFromString(filterString);
+    assertThat(getMatchingEntryDNs(filter)).containsOnly(expectedDNs);
   }
 
-
-
-  /**
-   * Test to search using the greater-than relative time matching rule for expired events.
-   */
-  @Test
-  public void testRTGreaterThanExpiredEvents() throws Exception
+  private Collection<DN> getMatchingEntryDNs(SearchFilter filter) throws Exception
   {
-    try
-    {
-      populateEntries();
+    AttributeType attrType = filter.getAttributeType();
+    MatchingRule rule = DirectoryServer.getMatchingRule(filter.getMatchingRuleID());
+    Assertion assertion = rule.getAssertion(filter.getAssertionValue());
 
-      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=-1h";
-      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
-      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      Assertions.assertThat(entries).hasSize(3);
-      assertTrue(dnFoundInEntryList(entries, user3, user4, user5));
-    }
-    finally
+    Collection<DN> results = new ArrayList<>();
+    for (Entry entry : makeEntries())
     {
-      TestCaseUtils.clearJEBackend("userRoot");
+      Attribute attribute = entry.getExactAttribute(attrType, Collections.<String> emptySet());
+      if (attribute != null)
+      {
+        ByteString attrValue = rule.normalizeAttributeValue(attribute.iterator().next());
+        if (assertion.matches(attrValue).toBoolean())
+        {
+          results.add(entry.getName());
+        }
+      }
     }
+    return results;
   }
 
-
-
-    /**
-   * Test to search using the greater-than relative time matching rule for future events.
-   */
-  @Test
-  public void testRTGreaterThanFutureEvents() throws Exception
+  /** Test to search using the relative time matching rule with index. */
+  @Test(dataProvider = "relativeTime")
+  public void testRelativeTimeWithIndex(String filterString, DN[] expectedDNs) throws Exception
   {
-    try
-    {
-      populateEntries();
-
-      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=0s";
-      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
-      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(entries.size()==2 && dnFoundInEntryList(entries,user3,user4));
-    }
-    finally
-    {
-      TestCaseUtils.clearJEBackend("userRoot");
-    }
+    FakeEntryIndex index = new FakeEntryIndex(TIME_ATTR);
+    index.addAll(makeEntries());
+    Collection<Entry> entries = index.evaluateFilter(filterString);
+    assertThat(toNames(entries)).containsOnly(expectedDNs);
   }
-
-
 
    /**
     * Test to search using the partial date and time matching rule
@@ -233,8 +210,7 @@ public final class TimeBasedMatchingRuleTest
       SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
       InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(entries.size()==1 && dnFoundInEntryList(entries,user6));
+      assertThat(toNames(searchOperation.getSearchEntries())).containsOnly(user6);
     }
     finally
     {
@@ -242,25 +218,46 @@ public final class TimeBasedMatchingRuleTest
     }
   }
 
+  private List<DN> toNames(Collection<? extends Entry> entries)
+  {
+    List<DN> results = new ArrayList<>();
+    for (Entry entry : entries)
+    {
+      results.add(entry.getName());
+    }
+    return results;
+  }
 
   /**
    * Test to match the attribute and the assertion values using a partial date and time
    * matching rule.
    */
   @Test(dataProvider="partialDateTimeValues")
-  public void testPartialDateNTimeMatch(long attributeValue,String assertionValue) throws Exception
+  public void testPartialDateNTimeMatch(long timeInMillis, String generalizedTime, String assertionValue)
+      throws Exception
   {
     MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(
             EXT_PARTIAL_DATE_TIME_NAME.toLowerCase());
     Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOfUtf8(assertionValue));
-    assertEquals(assertion.matches(ByteString.valueOfLong(attributeValue)), ConditionResult.TRUE);
+    assertEquals(assertion.matches(ByteString.valueOfLong(timeInMillis)), ConditionResult.TRUE);
+  }
+
+  @Test(dataProvider="partialDateTimeValues")
+  public void testPartialDateNTimeMatchViaIndex(long timeInMillis, String generalizedTime, String assertionValue)
+      throws Exception
+  {
+    ByteString attrValue = ByteString.valueOfUtf8(generalizedTime);
+    ByteString assertValue = ByteString.valueOfUtf8(assertionValue);
+
+    FakeByteStringIndex fakeIndex = new FakeByteStringIndex(EXT_PARTIAL_DATE_TIME_NAME);
+    fakeIndex.add(attrValue);
+    Set<ByteString> attrValues = fakeIndex.evaluateAssertionValue(assertValue, FilterType.EXTENSIBLE_MATCH);
+    assertThat(attrValues).containsOnly(attrValue);
   }
 
 
 
-  /**
-   * Tests the assertion syntax of the relative time matching rules.
-   */
+  /** Tests the assertion syntax of the relative time matching rules. */
   @Test(dataProvider= "relativeTimeValues")
   public void testRelativeTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
@@ -281,9 +278,7 @@ public final class TimeBasedMatchingRuleTest
 
 
 
-  /**
-   * Tests the assertion syntax of the partial date and time matching rules.
-   */
+  /** Tests the assertion syntax of the partial date and time matching rules. */
   @Test(dataProvider= "partialDateTimeSyntaxes")
   public void testPartialDateTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
@@ -303,9 +298,7 @@ public final class TimeBasedMatchingRuleTest
 
 
 
-  /**
-   * Generates data for testing relative time matching rule assertion syntax.
-   */
+  /** Generates data for testing relative time matching rule assertion syntax. */
   @DataProvider(name="relativeTimeValues")
   private Object[][] createRelativeTimeValues()
   {
@@ -322,43 +315,42 @@ public final class TimeBasedMatchingRuleTest
       {"12w-2d",false},
       {"1s2s",false},
       {"1d4s5d",false}
-
     };
   }
 
 
-  /**
-   * Generates the data for testing partial time date and time values.
-   */
-  @DataProvider(name="partialDateTimeValues")
-  private Object[][] createPartialDateTimeValues()
+  /** Generates the data for testing partial time date and time values. */
+  @DataProvider
+  private Object[][] partialDateTimeValues()
   {
+    SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMddHHmmssZ");
     GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
     c.setLenient(false);
     c.clear();
+    sdf.setCalendar(c);
     c.set(Calendar.HOUR_OF_DAY,23);
     c.set(Calendar.MINUTE,0);
     c.set(Calendar.SECOND,0);
     long time1 = c.getTimeInMillis();
+    String format1 = sdf.format(c.getTime());
     c.set(Calendar.HOUR_OF_DAY,00);
     c.set(Calendar.MINUTE,59);
     c.set(Calendar.SECOND,59);
     long time2 = c.getTimeInMillis();
+    String format2 = sdf.format(c.getTime());
 
     return new Object[][] {
-      {time1,"0s"},
-      {time1,"0m"},
-      {time1,"23h"},
-      {time2,"59m59s"},
-      {time2,"0h59m59s"}
+      { time1, format1, "0s" },
+      { time1, format1, "0m" },
+      { time1, format1, "23h" },
+      { time2, format2, "59m59s" },
+      { time2, format2, "0h59m59s" }
     };
   }
 
 
 
-  /**
-   * Generates data for testing partial date and time assertion syntax.
-   */
+  /** Generates data for testing partial date and time assertion syntax. */
   @DataProvider(name="partialDateTimeSyntaxes")
   private Object[][] createPartialDateTimeSyntaxes()
   {
@@ -407,37 +399,20 @@ public final class TimeBasedMatchingRuleTest
     };
   }
 
-  /** Validate if the args are found in the entries list. */
-  private boolean dnFoundInEntryList(List<SearchResultEntry> entries, DN... dns)
-  {
-    for (DN dn : dns)
-    {
-      assertTrue(find(entries, dn), "Could not find dn " + dn + " in list " + entries);
-    }
-    return true;
-  }
-
-  private boolean find(List<SearchResultEntry> entries, DN dn)
-  {
-    for (SearchResultEntry entry : entries)
-    {
-      if (entry.getName().equals(dn))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /** Creates the entries. */
   private void populateEntries() throws Exception
   {
-    //Get the current time from the TimeThread. Using the current time from new
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.addEntries(makeEntries());
+  }
+
+  private List<Entry> makeEntries() throws Exception
+  {
+    // Get the current time from the TimeThread. Using the current time from new
     // calendar may fail if the time thread using a stale time.
     long currentTime = TimeThread.getTime();
 
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
-    TestCaseUtils.addEntries(
+    return TestCaseUtils.makeEntries(
       "dn: cn=user1,dc=example,dc=com",
       "objectclass: person",
       "objectclass: testoc",
@@ -495,4 +470,4 @@ public final class TimeBasedMatchingRuleTest
       DATE_ATTR + ": 20000101000000Z" // Jan 1st 2000
     );
   }
-  }
+}
