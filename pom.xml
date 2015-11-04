@@ -108,6 +108,9 @@
     <i18n-framework.version>1.4.2</i18n-framework.version>
     <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
 
+    <!-- Product information properties -->
+    <product.name>OpenDJ</product.name>
+
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
     <!--

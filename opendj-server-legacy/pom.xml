@@ -60,7 +60,6 @@
     <jars.dir>${project.build.directory}/jars</jars.dir>
 
     <!-- Product information properties -->
-    <shortProductName>OpenDJ</shortProductName>
     <lowerCaseProductName>opendj</lowerCaseProductName>
     <patchFixIds />
     <isDebugBuild>false</isDebugBuild>
@@ -290,6 +289,19 @@
             </lifecycleMappingMetadata>
           </configuration>
         </plugin>
+
+        <!-- Define template for jar generation -->
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+            <outputDirectory>${jars.dir}</outputDirectory>
+            <finalName>${product.name}</finalName>
+            <archive>
+              <addMavenDescriptor>false</addMavenDescriptor>
+              <index>true</index>
+            </archive>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -510,7 +522,7 @@
             </goals>
             <configuration>
               <classPathProperty>classpath.bootstrap</classPathProperty>
-              <productJarName>${shortProductName}</productJarName>
+              <productJarName>${product.name}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
               <excludes>
                 <exclude>org.slf4j:slf4j-jdk14</exclude>
@@ -528,7 +540,7 @@
             </goals>
             <configuration>
               <classPathProperty>classpath.bootstrap-client</classPathProperty>
-              <productJarName>${shortProductName}</productJarName>
+              <productJarName>${product.name}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
               <additionalJars>
                  <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
@@ -728,17 +740,17 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>bootstrap</finalName>
               <includes>
                 <include>nothing</include>
               </includes>
               <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>false</index>
                 <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap</manifestFile>
               </archive>
             </configuration>
           </execution>
+
           <!-- Package boostrap-client jar - contains only a manifest with classpath for clients -->
           <execution>
             <id>build-bootstrap-client-jar</id>
@@ -747,17 +759,17 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>bootstrap-client</finalName>
               <includes>
                 <include>nothing</include>
               </includes>
               <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>false</index>
                 <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap-client</manifestFile>
               </archive>
             </configuration>
           </execution>
+
           <!-- Package build-tools jar -->
           <execution>
             <id>create-build-tools-jar</id>
@@ -766,7 +778,6 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>build-tools</finalName>
               <includes>
                 <include>**/messages/Severity.class</include>
@@ -778,8 +789,12 @@
                 <include>**/server/types/StabilityLevel.class</include>
                 <include>**/build/tools/*</include>
               </includes>
+              <archive>
+                <index>false</index>
+              </archive>
             </configuration>
           </execution>
+
           <!-- Package quicksetup jar -->
           <execution>
             <id>build-quicksetup-jar</id>
@@ -788,7 +803,6 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>quicksetup</finalName>
               <includes>
                 <include>**/quicksetup/**</include>
@@ -805,8 +819,12 @@
                 <include>**/org/opends/messages/QuickSetupMessages.class</include>
                 <include>**/org/opends/server/types/OpenDsException.class</include>
               </includes>
+              <archive>
+                <index>false</index>
+              </archive>
             </configuration>
           </execution>
+
           <!-- Package OpenDJ SL4J Logger Adapter jar -->
           <execution>
             <id>build-opendj-slf4j-adapter-jar</id>
@@ -815,18 +833,18 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>opendj-slf4j-adapter</finalName>
               <includes>
                 <include>**/org/slf4j/**</include>
                 <include>**/org/opends/server/loggers/slf4j/**</include>
               </includes>
               <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>false</index>
                 <manifestFile>${project.build.directory}/slf4j-adapter-manifest/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
           </execution>
+
           <!-- Package JE backend and changelog jar -->
           <execution>
             <id>build-opendj-je-backend-changelog-jar</id>
@@ -835,14 +853,17 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
               <finalName>opendj-je-backend-changelog</finalName>
               <includes>
                 <include>org/opends/server/backends/jeb/**</include>
                 <include>org/opends/server/replication/server/changelog/je/**</include>
               </includes>
+              <archive>
+                <index>false</index>
+              </archive>
             </configuration>
           </execution>
+
           <!-- Build localized jars (one per supported locale) -->
           <!-- (is there a way to avoid all these repeated executions ?) -->
           <execution>
@@ -852,18 +873,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_ca_ES</finalName>
               <includes>
                 <include>**/*_ca_ES.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-de-jar</id>
             <phase>prepare-package</phase>
@@ -871,18 +886,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_de</finalName>
               <includes>
                 <include>**/*_de.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-es-jar</id>
             <phase>prepare-package</phase>
@@ -890,18 +899,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_es</finalName>
               <includes>
                 <include>**/*_es.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-fr-jar</id>
             <phase>prepare-package</phase>
@@ -909,18 +912,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_fr</finalName>
               <includes>
                 <include>**/*_fr.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-ja-jar</id>
             <phase>prepare-package</phase>
@@ -928,18 +925,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_ja</finalName>
               <includes>
                 <include>**/*_ja.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-ko-jar</id>
             <phase>prepare-package</phase>
@@ -947,18 +938,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_ko</finalName>
               <includes>
                 <include>**/*_ko.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-pl-jar</id>
             <phase>prepare-package</phase>
@@ -966,18 +951,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_pl</finalName>
               <includes>
                 <include>**/*_pl.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-zh-CN-jar</id>
             <phase>prepare-package</phase>
@@ -985,18 +964,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_zh_CN</finalName>
               <includes>
                 <include>**/*_zh_CN.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <execution>
             <id>build-zh-TW-jar</id>
             <phase>prepare-package</phase>
@@ -1004,18 +977,12 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}_zh_TW</finalName>
               <includes>
                 <include>**/*_zh_TW.properties</include>
               </includes>
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
-                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-              </archive>
             </configuration>
           </execution>
+
           <!-- Main jar -->
           <execution>
             <id>default-jar</id>
@@ -1024,8 +991,6 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <outputDirectory>${jars.dir}</outputDirectory>
-              <finalName>${shortProductName}</finalName>
               <excludes>
                 <exclude>*.app/**</exclude>
                 <exclude>java-stubs/**</exclude>
@@ -1047,8 +1012,6 @@
                 <exclude>org/opends/server/replication/server/changelog/je/**</exclude>
               </excludes>
               <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-                <index>true</index>
                 <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
               </archive>
             </configuration>
@@ -1110,7 +1073,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
-              <finalName>${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML</finalName>
+              <finalName>${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML</finalName>
               <outputDirectory>${project.build.directory}/package</outputDirectory>
               <appendAssemblyId>false</appendAssemblyId>
               <addMavenDescriptor>false</addMavenDescriptor>
@@ -1188,14 +1151,14 @@
             </goals>
             <configuration>
               <target>
-                <zip destfile="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
+                <zip destfile="${project.build.directory}/package/${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
                   <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="**/*" excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="644" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh" filemode="755" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="bin/*" filemode="755" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="755" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
                 </zip>
-                <attachartifact file="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip" type="zip" />
+                <attachartifact file="${project.build.directory}/package/${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip" type="zip" />
               </target>
             </configuration>
           </execution>
