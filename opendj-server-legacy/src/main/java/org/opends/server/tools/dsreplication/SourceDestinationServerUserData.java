@@ -22,17 +22,19 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Poritions Copyright 2015 ForgeRock AS.
  */
 
 package org.opends.server.tools.dsreplication;
+
+import org.opends.server.types.HostPort;
 
 /**
  * This class is used to store the information provided by the user to
  * initialize replication.  It is required because when we are in interactive
  * mode the ReplicationCliArgumentParser is not enough.
- *
  */
-public class InitializeReplicationUserData extends ReplicationUserData
+public class SourceDestinationServerUserData extends ReplicationUserData
 {
   private String hostNameSource;
   private int portSource;
@@ -81,7 +83,25 @@ public class InitializeReplicationUserData extends ReplicationUserData
    */
   public String getHostNameDestination()
   {
-    return hostNameDestination;
+    return new HostPort(hostNameDestination, portDestination).toString();
+  }
+
+  /**
+   * Returns a host:port string for the source server.
+   * @return a host:port string for the source server
+   */
+  public String getSourceHostPort()
+  {
+    return new HostPort(hostNameSource, portSource).toString();
+  }
+
+  /**
+   * Returns a host:port string for the destination server.
+   * @return a host:port string for the destination server
+   */
+  public String getDestinationHostPort()
+  {
+    return hostNameDestination + ":" + portDestination;
   }
 
   /**
@@ -111,4 +131,21 @@ public class InitializeReplicationUserData extends ReplicationUserData
     this.portDestination = portDestination;
   }
 
+  /**
+   * Returns a {@link HostPort} representing the source server.
+   * @return a {@link HostPort} representing the source server
+   */
+  public HostPort getSource()
+  {
+    return new HostPort(hostNameSource, portSource);
+  }
+
+  /**
+   * Returns a {@link HostPort} representing the destination server.
+   * @return a {@link HostPort} representing the destination server
+   */
+  public HostPort getDestination()
+  {
+    return new HostPort(hostNameDestination, portDestination);
+  }
 }

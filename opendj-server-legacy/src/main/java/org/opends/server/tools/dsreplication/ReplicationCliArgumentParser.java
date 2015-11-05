@@ -122,6 +122,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand initializeAllReplicationSubCmd;
   private SubCommand postExternalInitializationSubCmd;
   private SubCommand preExternalInitializationSubCmd;
+  private SubCommand resetChangelogNumber;
   private SubCommand statusReplicationSubCmd;
   private SubCommand purgeHistoricalSubCmd;
 
@@ -195,6 +196,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /** The 'maximumDuration' argument for the purge of historical. */
   IntegerArgument maximumDurationArg;
 
+  /** the 'change-number' argument for task reset-changenumber. */
+  IntegerArgument resetChangeNumber;
+
   /** The text of the enable replication subcommand. */
   static final String ENABLE_REPLICATION_SUBCMD_NAME = "enable";
   /** The text of the disable replication subcommand. */
@@ -207,6 +211,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   static final String PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME = "pre-external-initialization";
   /** The text of the initialize all replication subcommand. */
   static final String POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME = "post-external-initialization";
+  /** The text of the reset changenumber subcommand. */
+  static final String RESET_CHANGE_NUMBER_SUBCMD_NAME = "reset-change-number";
 
   /** The text of the status replication subcommand. */
   static final String STATUS_REPLICATION_SUBCMD_NAME = "status";
@@ -226,9 +232,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   ReplicationCliArgumentParser(String mainClassName)
   {
     super(mainClassName,
-        INFO_REPLICATION_TOOL_DESCRIPTION.get(ENABLE_REPLICATION_SUBCMD_NAME,
-            INITIALIZE_REPLICATION_SUBCMD_NAME),
-            false);
+        INFO_REPLICATION_TOOL_DESCRIPTION.get(ENABLE_REPLICATION_SUBCMD_NAME, INITIALIZE_REPLICATION_SUBCMD_NAME),
+        false);
     setShortToolDescription(REF_SHORT_DESC_DSREPLICATION.get());
     setVersionHandler(new DirectoryServerVersionHandler());
   }
@@ -257,10 +262,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     }
     createEnableReplicationSubCommand();
     createDisableReplicationSubCommand();
+    createRelatedServersOptions();
     createInitializeReplicationSubCommand();
     createInitializeAllReplicationSubCommand();
     createPreExternalInitializationSubCommand();
     createPostExternalInitializationSubCommand();
+    createResetChangeNumberSubCommand();
     createStatusReplicationSubCommand();
     createPurgeHistoricalSubCommand();
   }
@@ -328,6 +335,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       // Check that we have the required data
       if (!baseDNsArg.isPresent() &&
           !isStatusReplicationSubcommand() &&
+          !isResetChangeNumber() &&
           !disableAllArg.isPresent() &&
           !disableReplicationServerArg.isPresent())
       {
@@ -696,8 +704,18 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Creates the initialize replication subcommand and all the specific options
    * for the subcommand.
    */
-  private void createInitializeReplicationSubCommand()
-  throws ArgumentException
+  private void createInitializeReplicationSubCommand() throws ArgumentException
+  {
+    initializeReplicationSubCmd = new SubCommand(this, INITIALIZE_REPLICATION_SUBCMD_NAME,
+        INFO_DESCRIPTION_SUBCMD_INITIALIZE_REPLICATION.get(INITIALIZE_ALL_REPLICATION_SUBCMD_NAME));
+
+    Argument[] argsToAdd = {
+        hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg
+    };
+    setSubCommandArguments(initializeReplicationSubCmd, argsToAdd);
+  }
+
+  private void createRelatedServersOptions() throws ArgumentException
   {
     hostNameSourceArg = new StringArgument("hostSource", OPTION_SHORT_HOST,
         "hostSource", false, false, true, INFO_HOST_PLACEHOLDER.get(),
@@ -723,21 +741,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         true, 1,
         true, 65336,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
-
-    initializeReplicationSubCmd = new SubCommand(this,
-        INITIALIZE_REPLICATION_SUBCMD_NAME,
-        INFO_DESCRIPTION_SUBCMD_INITIALIZE_REPLICATION.get(
-            INITIALIZE_ALL_REPLICATION_SUBCMD_NAME));
-
-    Argument[] argsToAdd = {
-        hostNameSourceArg, portSourceArg, hostNameDestinationArg,
-        portDestinationArg
-    };
-    for (Argument arg : argsToAdd)
-    {
-      arg.setPropertyName(arg.getLongIdentifier());
-      initializeReplicationSubCmd.addArgument(arg);
-    }
   }
 
   /**
@@ -817,6 +820,33 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     }
   }
 
+  private void createResetChangeNumberSubCommand() throws ArgumentException
+  {
+    resetChangelogNumber = new SubCommand(this, RESET_CHANGE_NUMBER_SUBCMD_NAME,
+        INFO_DESCRIPTION_RESET_CHANGE_NUMBER.get());
+
+    resetChangeNumber = newChangeNumberArgument();
+    Argument[] argsToAdd = {
+        hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg, resetChangeNumber
+    };
+    setSubCommandArguments(resetChangelogNumber, argsToAdd);
+  }
+
+  private void setSubCommandArguments(SubCommand subCommand, Argument[] argsToAdd) throws ArgumentException
+  {
+    for (Argument arg : argsToAdd)
+    {
+      arg.setPropertyName(arg.getLongIdentifier());
+      subCommand.addArgument(arg);
+    }
+  }
+
+  IntegerArgument newChangeNumberArgument() throws ArgumentException
+  {
+    return new IntegerArgument("change-number", null, "change-number",
+        false, true, INFO_CHANGE_NUMBER_PLACEHOLDER.get(), INFO_DESCRIPTION_START_CHANGE_NUMBER.get());
+  }
+
   /**
    * Creates the status replication subcommand and all the specific options
    * for the subcommand.  Note: this method assumes that
@@ -890,8 +920,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Tells whether the user specified to have an interactive operation or not.
    * This method must be called after calling parseArguments.
-   * @return <CODE>true</CODE> if the user specified to have an interactive
-   * operation and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user specified to have an interactive
+   * operation and {@code false} otherwise.
    */
   public boolean isInteractive()
   {
@@ -901,8 +931,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Tells whether the user specified to have a quite operation or not.
    * This method must be called after calling parseArguments.
-   * @return <CODE>true</CODE> if the user specified to have a quite operation
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user specified to have a quite operation
+   * and {@code false} otherwise.
    */
   public boolean isQuiet()
   {
@@ -912,8 +942,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Tells whether the user specified to have a script-friendly output or not.
    * This method must be called after calling parseArguments.
-   * @return <CODE>true</CODE> if the user specified to have a script-friendly
-   * output and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user specified to have a script-friendly
+   * output and {@code false} otherwise.
    */
   public boolean isScriptFriendly()
   {
@@ -931,8 +961,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getBindPasswordAdmin()
   {
-    return getBindPassword(secureArgsList.bindPasswordArg,
-        secureArgsList.bindPasswordFileArg);
+    return getBindPassword(secureArgsList.bindPasswordArg, secureArgsList.bindPasswordFileArg);
   }
 
   /**
@@ -989,8 +1018,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user asked to skip the replication port checks (if the
    * ports are free) or not.
-   * @return <CODE>true</CODE> the user asked to skip the replication port
-   * checks (if the ports are free) and <CODE>false</CODE> otherwise.
+   * @return {@code true} the user asked to skip the replication port
+   * checks (if the ports are free) and {@code false} otherwise.
    */
   boolean skipReplicationPortCheck()
   {
@@ -999,8 +1028,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Returns whether the user asked to not replicate the schema between servers.
-   * @return <CODE>true</CODE> if the user asked to not replicate schema and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user asked to not replicate schema and
+   * {@code false} otherwise.
    */
   boolean noSchemaReplication()
   {
@@ -1010,8 +1039,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user asked to use the second server to initialize the
    * schema of the first server.
-   * @return <CODE>true</CODE> if the user asked to use the second server to
-   * initialize the schema of the first server and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user asked to use the second server to
+   * initialize the schema of the first server and {@code false} otherwise.
    */
   boolean useSecondServerAsSchemaSource()
   {
@@ -1487,29 +1516,15 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     }
     else  if (isInitializeReplicationSubcommand())
     {
-      validateInitializeReplicationOptions(buf);
-    }
-    else if (isInitializeAllReplicationSubcommand())
-    {
-      validateInitializeAllReplicationOptions(buf);
-    }
-    else if (isPreExternalInitializationSubcommand())
-    {
-      validatePreExternalInitializationOptions(buf);
-    }
-    else if (isPostExternalInitializationSubcommand())
-    {
-      validatePostExternalInitializationOptions(buf);
+      validateSourceAndDestinationServersOptions(buf);
     }
     else if (isPurgeHistoricalSubcommand())
     {
       validatePurgeHistoricalOptions(buf);
     }
-    else
+    else if (isResetChangeNumber())
     {
-      // This can occur if the user did not provide any subcommand.  We assume
-      // that the error informing of this will be generated in
-      // validateGlobalOptions.
+      validateSourceAndDestinationServersOptions(buf);
     }
   }
 
@@ -1545,8 +1560,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the enable replication
    * or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * enable replication and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * enable replication and {@code false} otherwise.
    */
   public boolean isEnableReplicationSubcommand()
   {
@@ -1556,8 +1571,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the disable replication
    * or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * disable replication and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * disable replication and {@code false} otherwise.
    */
   public boolean isDisableReplicationSubcommand()
   {
@@ -1565,10 +1580,19 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns whether the user specified the reset changelog numbering subcommand.
+   * @return {@code true} if the user wanted to reset change number
+   */
+  public boolean isResetChangeNumber()
+  {
+    return isSubcommand(RESET_CHANGE_NUMBER_SUBCMD_NAME);
+  }
+
+  /**
    * Returns whether the user provided subcommand is the status replication
    * or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * status replication and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * status replication and {@code false} otherwise.
    */
   public boolean isStatusReplicationSubcommand()
   {
@@ -1578,8 +1602,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the purge historical
    * or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * purge historical and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * purge historical and {@code false} otherwise.
    */
   public boolean isPurgeHistoricalSubcommand()
   {
@@ -1589,8 +1613,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the initialize all
    * replication or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * initialize all replication and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * initialize all replication and {@code false} otherwise.
    */
   public boolean isInitializeAllReplicationSubcommand()
   {
@@ -1600,8 +1624,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the pre external
    * initialization or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * pre external initialization and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * pre external initialization and {@code false} otherwise.
    */
   public boolean isPreExternalInitializationSubcommand()
   {
@@ -1611,8 +1635,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the post external
    * initialization or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * post external initialization and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * post external initialization and {@code false} otherwise.
    */
   public boolean isPostExternalInitializationSubcommand()
   {
@@ -1622,8 +1646,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * Returns whether the user provided subcommand is the initialize replication
    * or not.
-   * @return <CODE>true</CODE> if the user provided subcommand is the
-   * initialize replication and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user provided subcommand is the
+   * initialize replication and {@code false} otherwise.
    */
   public boolean isInitializeReplicationSubcommand()
   {
@@ -1634,8 +1658,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Returns whether the command-line subcommand has the name provided
    * or not.
    * @param name the name of the subcommand.
-   * @return <CODE>true</CODE> if command-line subcommand has the name provided
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if command-line subcommand has the name provided
+   * and {@code false} otherwise.
    */
   private boolean isSubcommand(String name)
   {
@@ -1721,50 +1745,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Checks the initialize all replication subcommand options and updates the
-   * provided LocalizableMessageBuilder with the errors that were encountered with the
-   * subcommand options.
-   *
-   * This method assumes that the method parseArguments for the parser has
-   * already been called.
-   * @param buf the LocalizableMessageBuilder object where we add the error messages
-   * describing the errors encountered.
-   */
-  private void validateInitializeAllReplicationOptions(LocalizableMessageBuilder buf)
-  {
-  }
-
-  /**
-   * Checks the pre external initialization subcommand options and updates the
-   * provided LocalizableMessageBuilder with the errors that were encountered with the
-   * subcommand options.
-   *
-   * This method assumes that the method parseArguments for the parser has
-   * already been called.
-   * @param buf the LocalizableMessageBuilder object where we add the error messages
-   * describing the errors encountered.
-   */
-  private void validatePreExternalInitializationOptions(LocalizableMessageBuilder buf)
-  {
-    validateInitializeAllReplicationOptions(buf);
-  }
-
-  /**
-   * Checks the post external initialization subcommand options and updates the
-   * provided LocalizableMessageBuilder with the errors that were encountered with the
-   * subcommand options.
-   *
-   * This method assumes that the method parseArguments for the parser has
-   * already been called.
-   * @param buf the LocalizableMessageBuilder object where we add the error messages
-   * describing the errors encountered.
-   */
-  private void validatePostExternalInitializationOptions(LocalizableMessageBuilder buf)
-  {
-    validateInitializeAllReplicationOptions(buf);
-  }
-
-  /**
    * Checks the status replication subcommand options and updates the provided
    * LocalizableMessageBuilder with the errors that were encountered with the subcommand
    * options.
@@ -1794,13 +1774,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  private void validateInitializeReplicationOptions(LocalizableMessageBuilder buf)
+  private void validateSourceAndDestinationServersOptions(LocalizableMessageBuilder buf)
   {
     if (hostNameSourceArg.getValue().equalsIgnoreCase(hostNameDestinationArg.getValue())
         && !isInteractive()
         && portSourceArg.getValue().equals(portDestinationArg.getValue()))
     {
-      LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
+      LocalizableMessage message = ERR_SOURCE_DESTINATION_INITIALIZE_SAME_SERVER_PORT.get(
           hostNameSourceArg.getValue(), portSourceArg.getValue());
       addMessage(buf, message);
     }
@@ -1906,5 +1886,24 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public int getMaximumDurationOrDefault()
   {
     return getValueOrDefault(maximumDurationArg);
+  }
+
+  /**
+   * Returns the changenumber specified as argument.
+   * @return the changenumber specified as argument
+   */
+  public int getResetChangeNumber()
+  {
+    return getValue(resetChangeNumber);
+  }
+
+  /**
+   * Sets the start change number value.
+   * @param changeNumber the new value of the option
+   */
+  public void setResetChangeNumber(String changeNumber)
+  {
+    resetChangeNumber.setPresent(true);
+    resetChangeNumber.addValue(changeNumber);
   }
 }
