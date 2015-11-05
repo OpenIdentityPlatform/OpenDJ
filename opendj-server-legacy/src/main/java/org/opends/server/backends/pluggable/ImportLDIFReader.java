@@ -190,6 +190,7 @@ final class ImportLDIFReader extends LDIFReader
       // Create the entry and see if it is one that should be included in the import
       final Entry entry = createEntry(lines, entryDN, checkSchema);
       if (entry == null
+          || !isIncludedInImport(entry, lines)
           || !invokeImportPlugins(entry, lines)
           || (checkSchema && !isValidAgainstSchema(entry, lines)))
       {
@@ -227,6 +228,28 @@ final class ImportLDIFReader extends LDIFReader
         toAttributesMap(userAttrBuilders), toAttributesMap(operationalAttrBuilders));
     logger.trace("readEntry(), created entry: %s", entry);
     return entry;
+  }
+
+  private boolean isIncludedInImport(Entry entry, LinkedList<StringBuilder> entryLines)
+  {
+    final DN entryDN = entry.getName();
+    try
+    {
+      if (!importConfig.includeEntry(entry))
+      {
+        logger.trace("Skipping entry %s because the DN is not one that "
+            + "should be included based on the include and exclude filters.", entryDN);
+        logToSkipWriter(entryLines, ERR_LDIF_SKIP.get(entryDN));
+        return false;
+      }
+      return true;
+    }
+    catch (Exception e)
+    {
+      logToSkipWriter(entryLines,
+          ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.get(entryDN, lastEntryLineNumber, e));
+      return false;
+    }
   }
 
   private boolean invokeImportPlugins(final Entry entry, LinkedList<StringBuilder> lines)
