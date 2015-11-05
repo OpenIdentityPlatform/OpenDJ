@@ -39,6 +39,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.security.KeyStoreException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -215,27 +216,27 @@ public class SecurityOptionsDialog extends JDialog
         ops = SecurityOptions.createJKSCertificateOptions(
             tfKeystorePath.getText(),
             String.valueOf(tfKeystorePwd.getPassword()), enableSSL,
-            enableStartTLS, sslPort, selectedAlias);
+            enableStartTLS, sslPort, Arrays.asList(selectedAlias));
       }
       else if (rbJCEKS.isSelected())
       {
         ops = SecurityOptions.createJCEKSCertificateOptions(
             tfKeystorePath.getText(),
             String.valueOf(tfKeystorePwd.getPassword()), enableSSL,
-            enableStartTLS, sslPort, selectedAlias);
+            enableStartTLS, sslPort, Arrays.asList(selectedAlias));
       }
       else if (rbPKCS11.isSelected())
       {
         ops = SecurityOptions.createPKCS11CertificateOptions(
             String.valueOf(tfKeystorePwd.getPassword()), enableSSL,
-            enableStartTLS, sslPort, selectedAlias);
+            enableStartTLS, sslPort, Arrays.asList(selectedAlias));
       }
       else if (rbPKCS12.isSelected())
       {
         ops = SecurityOptions.createPKCS12CertificateOptions(
             tfKeystorePath.getText(),
             String.valueOf(tfKeystorePwd.getPassword()), enableSSL,
-            enableStartTLS, sslPort, selectedAlias);
+            enableStartTLS, sslPort, Arrays.asList(selectedAlias));
       }
       else
       {

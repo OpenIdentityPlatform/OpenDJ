@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -901,18 +902,18 @@ public class InstallDS extends ConsoleApplication
       certType = SecurityOptions.CertificateType.NO_CERTIFICATE;
     }
 
-    String certNickname = argParser.certNicknameArg.getValue();
+    Collection<String> certNicknames = argParser.certNicknameArg.getValues();
     if (pathToCertificat != null)
     {
-      checkCertificateInKeystore(certType, pathToCertificat, pwd, certNickname, errorMessages, keystoreAliases);
-      if (certNickname == null && !keystoreAliases.isEmpty())
+      checkCertificateInKeystore(certType, pathToCertificat, pwd, certNicknames, errorMessages, keystoreAliases);
+      if (certNicknames.isEmpty() && !keystoreAliases.isEmpty())
       {
-        certNickname = keystoreAliases.getFirst();
+        certNicknames = Arrays.asList(keystoreAliases.getFirst());
       }
     }
 
     final SecurityOptions securityOptions = SecurityOptions.createOptionsForCertificatType(
-        certType, pathToCertificat, pwd, enableSSL, enableStartTLS, sslPort, certNickname);
+        certType, pathToCertificat, pwd, enableSSL, enableStartTLS, sslPort, certNicknames);
     uData.setSecurityOptions(securityOptions);
   }
 
@@ -1860,8 +1861,8 @@ public class InstallDS extends ConsoleApplication
    *          the path of the key store.
    * @param pwd
    *          the password (PIN) to access the key store.
-   * @param certNickname
-   *          the certificate nickname that we are looking for (or null if we
+   * @param certNicknames
+   *          the certificate nicknames that we are looking for (or null if we
    *          just one to get the one that is in the key store).
    * @param errorMessages
    *          the list that will be updated with the errors encountered.
@@ -1870,7 +1871,7 @@ public class InstallDS extends ConsoleApplication
    *          store.
    */
   public static void checkCertificateInKeystore(SecurityOptions.CertificateType type, String path, String pwd,
-      String certNickname, Collection<LocalizableMessage> errorMessages, Collection<String> nicknameList)
+      Collection<String> certNicknames, Collection<LocalizableMessage> errorMessages, Collection<String> nicknameList)
   {
     boolean errorWithPath = false;
     if (type != SecurityOptions.CertificateType.PKCS11)
@@ -1951,11 +1952,15 @@ public class InstallDS extends ConsoleApplication
         {
           Collections.addAll(nicknameList, aliases);
           final String aliasString = joinAsString(", ", nicknameList);
-          if (certNickname != null)
+          if (certNicknames.isEmpty() && aliases.length > 1)
+          {
+            errorMessages.add(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME.get(aliasString));
+          }
+          for (String certNickname : certNicknames)
           {
             // Check if the certificate alias is in the list.
             boolean found = false;
-            for (int i=0; i<aliases.length && !found; i++)
+            for (int i = 0; i < aliases.length && !found; i++)
             {
               found = aliases[i].equalsIgnoreCase(certNickname);
             }
@@ -1963,10 +1968,6 @@ public class InstallDS extends ConsoleApplication
             {
               errorMessages.add(ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND.get(aliasString));
             }
-          }
-          else if (aliases.length > 1)
-          {
-            errorMessages.add(ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME.get(aliasString));
           }
         }
       }
@@ -2028,7 +2029,7 @@ public class InstallDS extends ConsoleApplication
   {
     SecurityOptions securityOptions;
     String path;
-    String certNickname = argParser.certNicknameArg.getValue();
+    Collection<String> certNicknames = argParser.certNicknameArg.getValues();
     String pwd = argParser.getKeyStorePassword();
     if (pwd != null && pwd.length() == 0)
     {
@@ -2109,8 +2110,7 @@ public class InstallDS extends ConsoleApplication
         {
           errorMessages.clear();
           keystoreAliases.clear();
-          checkCertificateInKeystore(type, path, pwd, certNickname,
-              errorMessages, keystoreAliases);
+          checkCertificateInKeystore(type, path, pwd, certNicknames, errorMessages, keystoreAliases);
           if (!errorMessages.isEmpty())
           {
             // Reset password: this might be a new keystore
@@ -2142,41 +2142,34 @@ public class InstallDS extends ConsoleApplication
         {
           println();
         }
-        certNickname = promptForCertificateNickname(keystoreAliases);
+        certNicknames = promptForCertificateNickname(keystoreAliases);
       }
       errorMessages.clear();
       keystoreAliases.clear();
-      checkCertificateInKeystore(type, path, pwd, certNickname, errorMessages,
+      checkCertificateInKeystore(type, path, pwd, certNicknames, errorMessages,
           keystoreAliases);
       firstTry = false;
     }
-    if (certNickname == null && !keystoreAliases.isEmpty())
+    if (certNicknames.isEmpty() && !keystoreAliases.isEmpty())
     {
-      certNickname = keystoreAliases.getFirst();
+      certNicknames = Arrays.asList(keystoreAliases.getFirst());
     }
     switch (type)
     {
-      case JKS:
-        securityOptions = SecurityOptions.createJKSCertificateOptions(
-        path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
-        break;
-      case JCEKS:
-        securityOptions = SecurityOptions.createJCEKSCertificateOptions(
-        path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
-        break;
-      case PKCS12:
-        securityOptions = SecurityOptions.createPKCS12CertificateOptions(
-            path, pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
-        break;
-      case PKCS11:
-        securityOptions = SecurityOptions.createPKCS11CertificateOptions(
-            pwd, enableSSL, enableStartTLS, ldapsPort, certNickname);
-        break;
-      default:
-        throw new IllegalStateException(
-            "Called createSecurityOptionsPrompting with invalid type: "+type);
+    case JKS:
+      return SecurityOptions.createJKSCertificateOptions(path, pwd, enableSSL, enableStartTLS, ldapsPort,
+          certNicknames);
+    case JCEKS:
+      return SecurityOptions.createJCEKSCertificateOptions(path, pwd, enableSSL, enableStartTLS, ldapsPort,
+          certNicknames);
+    case PKCS12:
+      return SecurityOptions.createPKCS12CertificateOptions(path, pwd, enableSSL, enableStartTLS, ldapsPort,
+          certNicknames);
+    case PKCS11:
+      return SecurityOptions.createPKCS11CertificateOptions(pwd, enableSSL, enableStartTLS, ldapsPort, certNicknames);
+    default:
+      throw new IllegalStateException("Called createSecurityOptionsPrompting with invalid type: " + type);
     }
-    return securityOptions;
   }
 
   /**
@@ -2351,10 +2344,10 @@ public class InstallDS extends ConsoleApplication
    *          the list of certificates the user must choose from.
    * @return the chosen certificate nickname.
    */
-  private String promptForCertificateNickname(List<String> nicknames)
+  private Collection<String> promptForCertificateNickname(List<String> nicknames)
   {
-    String nickname = null;
-    while (nickname == null)
+    Collection<String> choosenNicknames = new ArrayList<>();
+    while (choosenNicknames.isEmpty())
     {
       for (final String n : nicknames)
       {
@@ -2362,8 +2355,7 @@ public class InstallDS extends ConsoleApplication
         {
           if (confirmAction(INFO_INSTALLDS_PROMPT_CERTNICKNAME.get(n), true))
           {
-            nickname = n;
-            break;
+            choosenNicknames.add(n);
           }
         }
         catch (final ClientException ce)
@@ -2372,7 +2364,7 @@ public class InstallDS extends ConsoleApplication
         }
       }
     }
-    return nickname;
+    return choosenNicknames;
   }
 
   /**

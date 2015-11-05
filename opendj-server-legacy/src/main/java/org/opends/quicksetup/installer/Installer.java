@@ -845,7 +845,8 @@ public abstract class Installer extends GuiApplication
     argList.add("--adminConnectorPort");
     argList.add(String.valueOf(getUserData().getAdminConnectorPort()));
 
-    SecurityOptions sec = getUserData().getSecurityOptions();
+    final SecurityOptions sec = getUserData().getSecurityOptions();
+    configureCertificate(sec);
     // TODO: even if the user does not configure SSL maybe we should choose
     // a secure port that is not being used and that we can actually use.
     if (sec.getEnableSSL())
@@ -957,7 +958,6 @@ public abstract class Installer extends GuiApplication
     invokeLongOperation(thread);
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
-    configureCertificate(sec);
   }
 
   private void configureCertificate(SecurityOptions sec) throws ApplicationException
@@ -979,7 +979,7 @@ public abstract class Installer extends GuiApplication
         String pwd = getSelfSignedCertificatePwd();
         final CertificateManager certManager =
             new CertificateManager(getSelfSignedKeystorePath(), CertificateManager.KEY_STORE_TYPE_JKS, pwd);
-        for (String alias : SELF_SIGNED_CERT_ALIASES)
+        for (String alias : sec.getAliasesToUse())
         {
           final KeyType keyType = KeyType.getTypeOrDefault(alias);
           certManager.generateSelfSignedCertificate(keyType, alias, getSelfSignedCertificateSubjectDN(keyType),
@@ -1030,11 +1030,12 @@ public abstract class Installer extends GuiApplication
       final String trustStoreType, final SecurityOptions sec) throws Exception
   {
     final String keystorePassword = sec.getKeystorePassword();
-    final String keyStoreAlias = sec.getAliasToUse();
-
     CertificateManager certManager = new CertificateManager(keyStorePath, keyStoreType, keystorePassword);
-    SetupUtils.exportCertificate(certManager, keyStoreAlias, getTemporaryCertificatePath());
-    configureTrustStore(trustStoreType, keyStoreAlias, keystorePassword);
+    for (String keyStoreAlias : sec.getAliasesToUse())
+    {
+      SetupUtils.exportCertificate(certManager, keyStoreAlias, getTemporaryCertificatePath());
+      configureTrustStore(trustStoreType, keyStoreAlias, keystorePassword);
+    }
   }
 
   private void configureTrustStore(final String type, final String keyStoreAlias, final String password)
@@ -1051,7 +1052,7 @@ public abstract class Installer extends GuiApplication
 
   private void addCertificateArguments(SecurityOptions sec, List<String> argList)
   {
-    final String aliasInKeyStore = sec.getAliasToUse();
+    final Collection<String> aliasInKeyStore = sec.getAliasesToUse();
 
     switch (sec.getCertificateType())
     {
@@ -1085,8 +1086,8 @@ public abstract class Installer extends GuiApplication
     }
   }
 
-  private void addCertificateArguments(List<String> argList, SecurityOptions sec, String aliasInKeyStore,
-      String keyStoreDN, String trustStoreDN)
+  private static void addCertificateArguments(List<String> argList, SecurityOptions sec,
+      Collection<String> aliasesInKeyStore, String keyStoreDN, String trustStoreDN)
   {
     argList.add("-k");
     argList.add(keyStoreDN);
@@ -1097,10 +1098,10 @@ public abstract class Installer extends GuiApplication
       argList.add("-m");
       argList.add(sec.getKeystorePath());
     }
-    if (aliasInKeyStore != null)
+    for(String alias : aliasesInKeyStore)
     {
       argList.add("-a");
-      argList.add(aliasInKeyStore);
+      argList.add(alias);
     }
   }
 

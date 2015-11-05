@@ -30,6 +30,8 @@ package org.opends.server.util;
 
 
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -115,6 +117,22 @@ public final class Platform
       this.keySize = keySize;
       this.keyAlgorithm = keyAlgorithm;
       this.signatureAlgorithm = signatureAlgorithm;
+    }
+
+    /**
+     * Check whether or not, this key type is supported by the current JVM.
+     * @return true if this key type is supported, false otherwise.
+     */
+    public boolean isSupported()
+    {
+      try
+      {
+        return KeyPairGenerator.getInstance(keyAlgorithm.toUpperCase()) != null;
+      }
+      catch (NoSuchAlgorithmException e)
+      {
+        return false;
+      }
     }
 
     /**

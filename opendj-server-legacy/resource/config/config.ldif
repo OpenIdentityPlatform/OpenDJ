@@ -335,7 +335,6 @@ ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: false
 ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-ssl-cert-nickname: server-cert
-ds-cfg-ssl-cert-nickname: server-cert-ec
 
 dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
 objectClass: top
@@ -360,7 +359,6 @@ ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: true
 ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-ssl-cert-nickname: server-cert
-ds-cfg-ssl-cert-nickname: server-cert-ec
 ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
 ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
 
@@ -384,7 +382,6 @@ ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-use-ssl: false
 ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-ssl-cert-nickname: server-cert
-ds-cfg-ssl-cert-nickname: server-cert-ec
 ds-cfg-config-file: config/http-config.json
 ds-cfg-authentication-required: true
 
@@ -408,7 +405,6 @@ ds-cfg-enabled: false
 ds-cfg-use-ssl: false
 ds-cfg-listen-port: 1689
 ds-cfg-ssl-cert-nickname: server-cert
-ds-cfg-ssl-cert-nickname: server-cert-ec
 
 dn: cn=Entry Caches,cn=config
 objectClass: top
@@ -2460,7 +2456,6 @@ cn: Administration Connector
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-listen-port: 4444
 ds-cfg-ssl-cert-nickname: admin-cert
-ds-cfg-ssl-cert-nickname: admin-cert-ec
 ds-cfg-key-manager-provider: cn=Administration,cn=Key Manager Providers,cn=config
 ds-cfg-trust-manager-provider: cn=Administration,cn=Trust Manager Providers,cn=config
 

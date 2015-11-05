@@ -379,7 +379,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     certNicknameArg = new StringArgument(
         OPTION_LONG_CERT_NICKNAME.toLowerCase(),
         OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
-        false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
+        false, true, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
         OPTION_LONG_CERT_NICKNAME,
         INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get());
     addDefaultArgument(certNicknameArg);

@@ -203,6 +203,10 @@ public class ConfigureDS
   /** The DN of the configuration entry defining the LDAPS connection handler. */
   private static final String DN_LDAPS_CONNECTION_HANDLER = "cn=LDAPS Connection Handler," + DN_CONNHANDLER_BASE;
 
+  /** The DN of the configuration entry defining the HTTP connection handler. */
+  private static final String DN_HTTP_CONNECTION_HANDLER =
+      "cn=HTTP Connection Handler,cn=Connection Handlers,cn=config";
+
   /** The DN of the configuration entry defining the JMX connection handler. */
   private static final String DN_JMX_CONNECTION_HANDLER = "cn=JMX Connection Handler," + DN_CONNHANDLER_BASE;
 
@@ -272,7 +276,7 @@ public class ConfigureDS
   private StringArgument rootPassword;
   private StringArgument keyManagerProviderDN;
   private StringArgument trustManagerProviderDN;
-  private StringArgument certNickName;
+  private StringArgument certNickNames;
   private StringArgument keyManagerPath;
   private StringArgument serverRoot;
   private StringArgument backendType;
@@ -439,11 +443,11 @@ public class ConfigureDS
           null, null, INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH.get());
       argParser.addArgument(keyManagerPath);
 
-      certNickName = new StringArgument(
+      certNickNames = new StringArgument(
           "certnickname", 'a', "certNickName",
-          false, false, true, INFO_NICKNAME_PLACEHOLDER.get(),
+          false, true, true, INFO_NICKNAME_PLACEHOLDER.get(),
           null, null, INFO_CONFIGDS_DESCRIPTION_CERTNICKNAME.get());
-      argParser.addArgument(certNickName);
+      argParser.addArgument(certNickNames);
 
       baseDNString = new StringArgument(
           "basedn", OPTION_SHORT_BASEDN, OPTION_LONG_BASEDN,
@@ -883,6 +887,7 @@ public class ConfigureDS
 
       putKeyManagerConfigAttribute(enableStartTLS, DN_LDAP_CONNECTION_HANDLER);
       putKeyManagerConfigAttribute(ldapsPort, DN_LDAPS_CONNECTION_HANDLER);
+      putKeyManagerConfigAttribute(ldapsPort, DN_HTTP_CONNECTION_HANDLER);
 
       if (keyManagerPath.isPresent())
       {
@@ -942,26 +947,29 @@ public class ConfigureDS
       }
       putTrustManagerAttribute(enableStartTLS, DN_LDAP_CONNECTION_HANDLER);
       putTrustManagerAttribute(ldapsPort, DN_LDAPS_CONNECTION_HANDLER);
+      putTrustManagerAttribute(ldapsPort, DN_HTTP_CONNECTION_HANDLER);
     }
 
-    if (certNickName.isPresent())
+    if (certNickNames.isPresent())
     {
-      final StringConfigAttribute certNickNameAttr = new StringConfigAttribute(
+      final StringConfigAttribute certNickNamesAttr = new StringConfigAttribute(
           ATTR_SSL_CERT_NICKNAME, INFO_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
-          false, false, true, certNickName.getValue());
-      updateCertNicknameEntry(ldapPort, DN_LDAP_CONNECTION_HANDLER, certNickNameAttr);
-      updateCertNicknameEntry(ldapsPort, DN_LDAPS_CONNECTION_HANDLER, certNickNameAttr);
+          false, true, true, certNickNames.getValues());
+      updateCertNicknameEntry(ldapPort, DN_LDAP_CONNECTION_HANDLER, certNickNamesAttr);
+      updateCertNicknameEntry(ldapsPort, DN_LDAPS_CONNECTION_HANDLER, certNickNamesAttr);
+      updateCertNicknameEntry(certNickNames, DN_HTTP_CONNECTION_HANDLER, certNickNamesAttr);
 
-      final StringConfigAttribute certNickNameJmxAttr = new StringConfigAttribute(
+      final StringConfigAttribute certNickNamesJmxAttr = new StringConfigAttribute(
           ATTR_SSL_CERT_NICKNAME, INFO_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
-          false, false, true, certNickName.getValue());
-      updateCertNicknameEntry(jmxPort, DN_JMX_CONNECTION_HANDLER, certNickNameJmxAttr);
+          false, false, true, certNickNames.getValues());
+      updateCertNicknameEntry(jmxPort, DN_JMX_CONNECTION_HANDLER, certNickNamesJmxAttr);
     }
     else
     {
       // Use the key manager specified for connection handlers
       removeSSLCertNicknameAttribute(DN_LDAP_CONNECTION_HANDLER);
       removeSSLCertNicknameAttribute(DN_LDAPS_CONNECTION_HANDLER);
+      removeSSLCertNicknameAttribute(DN_HTTP_CONNECTION_HANDLER);
       removeSSLCertNicknameAttribute(DN_JMX_CONNECTION_HANDLER);
     }
   }

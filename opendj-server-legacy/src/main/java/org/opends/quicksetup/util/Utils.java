@@ -1842,67 +1842,27 @@ public class Utils
     case JKS:
       cmdLine.add("--useJavaKeystore");
       cmdLine.add(userData.getSecurityOptions().getKeystorePath());
-      if (userData.getSecurityOptions().getKeystorePassword() != null)
-      {
-        cmdLine.add("--keyStorePassword");
-        cmdLine.add(OBFUSCATED_VALUE);
-      }
-
-      if (userData.getSecurityOptions().getAliasToUse() != null)
-      {
-        cmdLine.add("--certNickname");
-        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
-      }
+      addKeyStoreAndCert(userData.getSecurityOptions(), cmdLine);
       break;
 
     case JCEKS:
       cmdLine.add("--useJCEKS");
       cmdLine.add(userData.getSecurityOptions().getKeystorePath());
 
-      if (userData.getSecurityOptions().getKeystorePassword() != null)
-      {
-        cmdLine.add("--keyStorePassword");
-        cmdLine.add(OBFUSCATED_VALUE);
-      }
-
-      if (userData.getSecurityOptions().getAliasToUse() != null)
-      {
-        cmdLine.add("--certNickname");
-        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
-      }
+      addKeyStoreAndCert(userData.getSecurityOptions(), cmdLine);
       break;
 
     case PKCS12:
       cmdLine.add("--usePkcs12keyStore");
       cmdLine.add(userData.getSecurityOptions().getKeystorePath());
 
-      if (userData.getSecurityOptions().getKeystorePassword() != null)
-      {
-        cmdLine.add("--keyStorePassword");
-        cmdLine.add(OBFUSCATED_VALUE);
-      }
-
-      if (userData.getSecurityOptions().getAliasToUse() != null)
-      {
-        cmdLine.add("--certNickname");
-        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
-      }
+      addKeyStoreAndCert(userData.getSecurityOptions(), cmdLine);
       break;
 
     case PKCS11:
       cmdLine.add("--usePkcs11Keystore");
 
-      if (userData.getSecurityOptions().getKeystorePassword() != null)
-      {
-        cmdLine.add("--keyStorePassword");
-        cmdLine.add(OBFUSCATED_VALUE);
-      }
-
-      if (userData.getSecurityOptions().getAliasToUse() != null)
-      {
-        cmdLine.add("--certNickname");
-        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
-      }
+      addKeyStoreAndCert(userData.getSecurityOptions(), cmdLine);
       break;
 
     default:
@@ -1910,6 +1870,21 @@ public class Utils
     }
 
     return cmdLine;
+  }
+
+  private static void addKeyStoreAndCert(final SecurityOptions securityOptions, final List<String> cmdLine)
+  {
+    if (securityOptions.getKeystorePassword() != null)
+    {
+      cmdLine.add("--keyStorePassword");
+      cmdLine.add(OBFUSCATED_VALUE);
+    }
+
+    for(String alias : securityOptions.getAliasesToUse())
+    {
+      cmdLine.add("--certNickname");
+      cmdLine.add(alias);
+    }
   }
 
   /**

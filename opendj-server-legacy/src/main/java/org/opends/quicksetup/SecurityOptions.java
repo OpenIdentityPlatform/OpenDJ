@@ -26,6 +26,10 @@
  */
 package org.opends.quicksetup;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Class used to describe the Security Options specified by the user.
@@ -77,7 +81,7 @@ public class SecurityOptions
   private CertificateType certificateType;
   private String keyStorePath;
   private String keyStorePassword;
-  private String aliasToUse;
+  private Set<String> aliasesToUse = new TreeSet<>();
 
   private SecurityOptions()
   {
@@ -115,7 +119,8 @@ public class SecurityOptions
   public static SecurityOptions createSelfSignedCertificateOptions(
           boolean enableSSL, boolean enableStartTLS, int sslPort)
   {
-    return createSelfSignedCertificateOptions(enableSSL, enableStartTLS, sslPort, SELF_SIGNED_CERT_ALIAS);
+    return createSelfSignedCertificateOptions(enableSSL, enableStartTLS, sslPort,
+        Arrays.asList(SELF_SIGNED_CERT_ALIAS));
   }
 
   /**
@@ -128,16 +133,16 @@ public class SecurityOptions
    *          whether Start TLS is enabled or not.
    * @param sslPort
    *          the value of the LDAPS port.
-   * @param aliasToUse
-   *          the alias of the certificate in the key store to be used.
+   * @param aliasesToUse
+   *          the aliases of the certificates in the key store to be used.
    * @return a new instance of a SecurityOptions using a self-signed
    *         certificate.
    */
   public static SecurityOptions createSelfSignedCertificateOptions(boolean enableSSL, boolean enableStartTLS,
-      int sslPort, String aliasToUse)
+      int sslPort, Collection<String> aliasesToUse)
   {
       return createOptionsForCertificatType(
-              CertificateType.SELF_SIGNED_CERTIFICATE, null, null, enableSSL, enableStartTLS, sslPort, aliasToUse);
+              CertificateType.SELF_SIGNED_CERTIFICATE, null, null, enableSSL, enableStartTLS, sslPort, aliasesToUse);
   }
 
   /**
@@ -153,15 +158,15 @@ public class SecurityOptions
    *          whether Start TLS is enabled or not.
    * @param sslPort
    *          the value of the LDAPS port.
-   * @param aliasToUse
-   *          the alias of the certificate in the key store to be used.
+   * @param aliasesToUse
+   *          the aliases of the certificates in the key store to be used.
    * @return a new instance of a SecurityOptions using a Java Key Store.
    */
   public static SecurityOptions createJKSCertificateOptions(String keystorePath, String keystorePwd, boolean enableSSL,
-      boolean enableStartTLS, int sslPort, String aliasToUse)
+      boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
   {
     return createOptionsForCertificatType(
-            CertificateType.JKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
+            CertificateType.JKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasesToUse);
   }
 
   /**
@@ -177,15 +182,15 @@ public class SecurityOptions
    *          whether Start TLS is enabled or not.
    * @param sslPort
    *          the value of the LDAPS port.
-   * @param aliasToUse
-   *          the alias of the certificate in the keystore to be used.
+   * @param aliasesToUse
+   *          the aliases of the certificates in the keystore to be used.
    * @return a new instance of a SecurityOptions using a JCE Key Store.
    */
   public static SecurityOptions createJCEKSCertificateOptions(String keystorePath, String keystorePwd,
-      boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+      boolean enableSSL, boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
   {
     return createOptionsForCertificatType(
-            CertificateType.JCEKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
+            CertificateType.JCEKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasesToUse);
   }
 
 
@@ -200,15 +205,15 @@ public class SecurityOptions
    *          whether Start TLS is enabled or not.
    * @param sslPort
    *          the value of the LDAPS port.
-   * @param aliasToUse
-   *          the alias of the certificate in the keystore to be used.
+   * @param aliasesToUse
+   *          the aliases of the certificates in the keystore to be used.
    * @return a new instance of a SecurityOptions using a PKCS#11 Key Store.
    */
   public static SecurityOptions createPKCS11CertificateOptions(String keystorePwd, boolean enableSSL,
-      boolean enableStartTLS, int sslPort, String aliasToUse)
+      boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
   {
     return createOptionsForCertificatType(
-            CertificateType.PKCS11, null, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
+            CertificateType.PKCS11, null, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasesToUse);
   }
 
   /**
@@ -224,15 +229,15 @@ public class SecurityOptions
    *          whether Start TLS is enabled or not.
    * @param sslPort
    *          the value of the LDAPS port.
-   * @param aliasToUse
-   *          the alias of the certificate in the keystore to be used.
+   * @param aliasesToUse
+   *          the aliases of the certificates in the keystore to be used.
    * @return a new instance of a SecurityOptions using a PKCS#12 Key Store.
    */
   public static SecurityOptions createPKCS12CertificateOptions( String keystorePath, String keystorePwd,
-          boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+          boolean enableSSL, boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
   {
     return createOptionsForCertificatType(
-            CertificateType.PKCS12, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasToUse);
+            CertificateType.PKCS12, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasesToUse);
   }
 
   /**
@@ -251,12 +256,12 @@ public class SecurityOptions
    *          Whether Start TLS is enabled or not.
    * @param sslPort
    *          The value of the LDAPS port.
-   * @param aliasToUse
-   *          The alias of the certificate in the keystore to be used.
+   * @param aliasesToUse
+   *          The aliases of the certificates in the keystore to be used.
    * @return a new instance of a SecurityOptions.
    */
   public static SecurityOptions createOptionsForCertificatType(CertificateType certType, String keystorePath,
-      String keystorePwd, boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+      String keystorePwd, boolean enableSSL, boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
   {
       if (certType == CertificateType.NO_CERTIFICATE)
       {
@@ -273,7 +278,7 @@ public class SecurityOptions
         ops.setKeyStorePassword(keystorePwd);
       }
       ops.setCertificateType(certType);
-      updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort, aliasToUse);
+      updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort, aliasesToUse);
       return ops;
   }
 
@@ -378,7 +383,7 @@ public class SecurityOptions
    * @param aliasToUse the name of the alias to be used.
    */
   private static void updateCertificateOptions(SecurityOptions ops,
-      boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+      boolean enableSSL, boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
   {
     if (!enableSSL && !enableStartTLS)
     {
@@ -388,7 +393,7 @@ public class SecurityOptions
     ops.setEnableSSL(enableSSL);
     ops.setEnableStartTLS(enableStartTLS);
     ops.setSslPort(sslPort);
-    ops.setAliasToUse(aliasToUse);
+    ops.setAliasToUse(aliasesToUse);
   }
 
   /**
@@ -413,18 +418,19 @@ public class SecurityOptions
    * Returns the alias of the certificate in the key store to be used.
    * @return the alias of the certificate in the key store to be used.
    */
-  public String getAliasToUse()
+  public Set<String> getAliasesToUse()
   {
-    return aliasToUse;
+    return aliasesToUse;
   }
 
   /**
-   * Sets the certificate alias name.
-   * @param aliasToUse the certificate alias name.
+   * Sets the certificates aliases name.
+   * @param aliasesToUse the certificates aliases name.
    */
-  void setAliasToUse(String aliasToUse)
+  void setAliasToUse(Collection<String> aliasesToUse)
   {
-    this.aliasToUse = aliasToUse;
+    this.aliasesToUse.clear();
+    this.aliasesToUse.addAll(aliasesToUse);
   }
 
 }
