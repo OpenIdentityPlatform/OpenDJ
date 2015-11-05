@@ -873,6 +873,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>ca_ES</classifier>
               <includes>
                 <include>**/*_ca_ES.properties</include>
               </includes>
@@ -886,6 +887,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>de</classifier>
               <includes>
                 <include>**/*_de.properties</include>
               </includes>
@@ -899,6 +901,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>es</classifier>
               <includes>
                 <include>**/*_es.properties</include>
               </includes>
@@ -912,6 +915,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>fr</classifier>
               <includes>
                 <include>**/*_fr.properties</include>
               </includes>
@@ -925,6 +929,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>ja</classifier>
               <includes>
                 <include>**/*_ja.properties</include>
               </includes>
@@ -938,6 +943,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>ko</classifier>
               <includes>
                 <include>**/*_ko.properties</include>
               </includes>
@@ -951,6 +957,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>pl</classifier>
               <includes>
                 <include>**/*_pl.properties</include>
               </includes>
@@ -964,6 +971,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>zh_CN</classifier>
               <includes>
                 <include>**/*_zh_CN.properties</include>
               </includes>
@@ -977,6 +985,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
+              <classifier>zh_TW</classifier>
               <includes>
                 <include>**/*_zh_TW.properties</include>
               </includes>
