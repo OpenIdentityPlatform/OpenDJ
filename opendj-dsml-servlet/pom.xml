@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! legal-notices/CDDLv1_0.txt.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-server-parent</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>opendj-dsml-servlet</artifactId>
+    <name>OpenDJ DSML Gateway</name>
+    <description>OpenDJ DSML Gateway</description>
+    <packaging>war</packaging>
+
+    <properties>
+    </properties>
+
+    <dependencies>
+        <!-- External dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- ForgeRock librairies -->
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>i18n-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>i18n-slf4j</artifactId>
+        </dependency>
+
+        <!-- OpenDJ SDK dependencies -->
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-cli</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-core</artifactId>
+        </dependency>
+
+        <!-- OpenDJ Server dependencies -->
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <type>jar</type>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>ca_ES</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>de</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>es</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>fr</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>ja</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>ko</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>pl</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>zh_CN</classifier>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <classifier>zh_TW</classifier>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Parse version to generate properties (major.version, minor.version, ...) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <id>set-additional-system-properties</id>
+                        <goals>
+                            <goal>set-system-properties</goal>
+                        </goals>
+                        <configuration>
+                            <properties>
+                                <property>
+                                    <name>javax.xml.accessExternalSchema</name>
+                                    <value>all</value>
+                                </property>
+                            </properties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Generate DSML code from XML files -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>prepare-dsml-library</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/gen</outputDirectory>
+                            <schemaDirectory>${basedir}/resources/schema</schemaDirectory>
+                            <schemaFiles>DSMLv2.xsd</schemaFiles>
+                            <packageName>org.opends.dsml.protocol</packageName>
+                            <bindingDirectory>${basedir}/resources/schema</bindingDirectory>
+                            <bindingFiles>bindings.xjb</bindingFiles>
+                            <target>2.1</target>
+                            <npa>true</npa>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- WAR artefact is build by the assembly plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <warName>${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML</warName>
+                    <webResources>
+                        <!-- Include CDDLv1_0.txt and binary license file (if exists) -->
+                        <resource>
+                            <targetPath>WEB-INF/legal-notices</targetPath>
+                            <directory>${basedir}/../legal-notices</directory>
+                            <excludes>
+                                <exclude>README.txt</exclude>
+                            </excludes>
+                        </resource>
+
+                        <!-- Include THIRDPARTYREADME.txt -->
+                        <resource>
+                            <targetPath>WEB-INF/legal-notices</targetPath>
+                            <directory>legal-notices</directory>
+                            <includes>
+                                <include>THIRDPARTYREADME.txt</include>
+                            </includes>
+                        </resource>
+
+                        <!-- Add web and sun-web.xml -->
+                        <resource>
+                            <targetPath>WEB-INF</targetPath>
+                            <directory>resources/webapp</directory>
+                        </resource>
+
+                        <!-- Add schema file -->
+                        <resource>
+                            <targetPath>WEB-INF/classes/resources</targetPath>
+                            <directory>${basedir}/resources/schema</directory>
+                            <includes>
+                                <include>DSMLv2.xsd</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+
+                    <!-- Excludes transitive dependencies -->
+                    <packagingExcludes>
+                        WEB-INF/lib/activation-*.jar,
+                        WEB-INF/lib/chf-*.jar,
+                        WEB-INF/lib/forgerock-persistit*.jar,
+                        WEB-INF/lib/grizzly-*.jar,
+                        WEB-INF/lib/jackson-*.jar,
+                        WEB-INF/lib/javax*.jar,
+                        WEB-INF/lib/je*.jar,
+                        WEB-INF/lib/json-*.jar,
+                        WEB-INF/lib/opendj-grizzly*.jar,
+                        WEB-INF/lib/opendj-rest2ldap*.jar,
+                        WEB-INF/lib/opendj-server-${project.version}*.jar
+                    </packagingExcludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+    <!--
+       Profile to run precommit tasks: checkstyle, copyright (TODO), SVN eol check (TODO),
+       unit-tests
+
+       Tests are not run by default due to running time (average of 8-10 minutes).
+    -->
+
+        <profile>
+            <id>precommit</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <version>2.14</version>
+                        <executions>
+                            <!-- Disable default from parent -->
+                            <execution>
+                                <id>check-src-and-tests</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>checkstyle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

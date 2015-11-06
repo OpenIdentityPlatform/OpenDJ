@@ -149,31 +149,6 @@ public class PackageInfoTestCase
 
   /**
    * Retrieves a set of File objects that point to directories that contain
-   * DSML gateway source.
-   *
-   * @return  A set of File objects that point to directories that contain
-   *          DSML gateway source.
-   */
-  @DataProvider(name = "dsmlSourceDirectories")
-  public Object[][] getDSMLSourceDirectories()
-  {
-    File dsmlSourceRoot = new File(sourceRoot, "dsml");
-    ArrayList<File> sourceDirs = new ArrayList<>();
-    getSourceDirectories(dsmlSourceRoot, sourceDirs);
-
-    Object[][] returnArray = new Object[sourceDirs.size()][1];
-    for (int i=0; i < returnArray.length; i++)
-    {
-      returnArray[i][0] = sourceDirs.get(i);
-    }
-
-    return returnArray;
-  }
-
-
-
-  /**
-   * Retrieves a set of File objects that point to directories that contain
    * GUI tools source.
    *
    * @return  A set of File objects that point to directories that contain
@@ -321,21 +296,6 @@ public class PackageInfoTestCase
    */
   @Test(dataProvider="buildToolsSourceDirectories")
   public void testBuildToolsPackageInfoExists(File sourceDirectory)
-         throws Exception
-  {
-    checkPackageInfoFileExistsInternal(sourceDirectory);
-  }
-
-
-
-  /**
-   * Ensure that all DSML gateway source file packages include a
-   * package-info.java file.
-   *
-   * @param  sourceDirectory  The directory for which to make the determination.
-   */
-  @Test(dataProvider="dsmlSourceDirectories")
-  public void testDSMLPackageInfoExists(File sourceDirectory)
          throws Exception
   {
     checkPackageInfoFileExistsInternal(sourceDirectory);

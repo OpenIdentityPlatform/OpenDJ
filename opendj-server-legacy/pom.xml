@@ -306,30 +306,6 @@
     </pluginManagement>
 
     <plugins>
-
-      <plugin>
-        <!-- Ensure that our usage of the jaxb2-maven-plugin is JDK 8 compatible -->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>properties-maven-plugin</artifactId>
-        <version>1.0-alpha-2</version>
-        <configuration>
-          <properties>
-            <property>
-              <name>javax.xml.accessExternalSchema</name>
-              <value>all</value>
-            </property>
-          </properties>
-        </configuration>
-        <executions>
-          <execution>
-            <id>set-additional-system-properties</id>
-            <goals>
-              <goal>set-system-properties</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Clean classes generated outside the build directory -->
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
@@ -596,7 +572,6 @@
                 <source>src/messages/src</source>
                 <source>src/admin/generated</source>
                 <source>src/build-tools</source>
-                <source>src/dsml</source>
                 <source>${project.build.directory}/java-stubs</source>
               </sources>
             </configuration>
@@ -1005,7 +980,6 @@
                 <exclude>java-stubs/**</exclude>
                 <exclude>bootstrap/**</exclude>
                 <exclude>META-INF/**</exclude>
-                <exclude>org/opends/dsml/**</exclude>
                 <exclude>**/*_ca_ES.properties</exclude>
                 <exclude>**/*_de.properties</exclude>
                 <exclude>**/*_es.properties</exclude>
@@ -1072,26 +1046,6 @@
               <archive>
                 <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap</manifestFile>
               </archive>
-            </configuration>
-          </execution>
-          <!-- Package DSML war -->
-          <execution>
-            <id>build-dsml-war</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML</finalName>
-              <outputDirectory>${project.build.directory}/package</outputDirectory>
-              <appendAssemblyId>false</appendAssemblyId>
-              <addMavenDescriptor>false</addMavenDescriptor>
-              <descriptors>
-                <descriptor>src/main/assembly/dsml-war-assembly.xml</descriptor>
-              </descriptors>
-              <formats>
-                <format>war</format>
-              </formats>
             </configuration>
           </execution>
         </executions>
@@ -1204,31 +1158,6 @@
         </configuration>
       </plugin>
 
-      <!-- Generate DSML code from XML files -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>prepare-dsml-library</id>
-            <goals>
-              <goal>xjc</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/dsml/gen</outputDirectory>
-              <schemaDirectory>${basedir}/resource/dsml/schema</schemaDirectory>
-              <schemaFiles>DSMLv2.xsd</schemaFiles>
-              <packageName>org.opends.dsml.protocol</packageName>
-              <bindingDirectory>${basedir}/resource/dsml/schema</bindingDirectory>
-              <bindingFiles>bindings.xjb</bindingFiles>
-              <target>2.1</target>
-              <npa>true</npa>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>cobertura-maven-plugin</artifactId>
@@ -1268,7 +1197,7 @@
               <execution>
                 <id>check-src-and-tests-alternative</id>
                 <configuration>
-                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**,**/dsml/protocol/**</excludes>
+                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**</excludes>
                   <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
                   <headerLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opendj.sourceheader</headerLocation>
                   <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>

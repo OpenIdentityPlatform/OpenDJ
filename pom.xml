@@ -90,6 +90,7 @@
       <url>${siteDistributionURL}</url>
     </site>
   </distributionManagement>
+
   <modules>
     <module>opendj-maven-plugin</module>
     <module>opendj-config</module>
@@ -98,7 +99,9 @@
     <module>opendj-server-example-plugin</module>
     <module>opendj-legacy</module>
     <module>opendj-server-legacy</module>
+    <module>opendj-dsml-servlet</module>
   </modules>
+
   <properties>
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
     <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
