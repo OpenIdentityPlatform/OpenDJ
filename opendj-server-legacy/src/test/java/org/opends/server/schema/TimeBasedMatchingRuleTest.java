@@ -36,12 +36,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -54,8 +55,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.testng.Assert.*;
@@ -71,7 +70,6 @@ public final class TimeBasedMatchingRuleTest
   private DN user3;
   private DN user4;
   private DN user5;
-  private DN user6;
 
   private static final String TIME_ATTR = "test-time";
   private static final String DATE_ATTR = "test-date";
@@ -87,16 +85,11 @@ public final class TimeBasedMatchingRuleTest
   public void startServer()
          throws Exception
   {
-    TestCaseUtils.startServer();
-
-    TestCaseUtils.initializeTestBackend(true);
-
     user1 = DN.valueOf("cn=user1,dc=example,dc=com");
     user2 = DN.valueOf("cn=user2,dc=example,dc=com");
     user3 = DN.valueOf("cn=user3,dc=example,dc=com");
     user4 = DN.valueOf("cn=user4,dc=example,dc=com");
     user5 = DN.valueOf("cn=user5,dc=example,dc=com");
-    user6 = DN.valueOf("cn=user6,dc=example,dc=com");
 
     /*
     Extend the schema and add an attribute which is based on
@@ -132,25 +125,6 @@ public final class TimeBasedMatchingRuleTest
       // relativeTime greater than future events
       { TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=0s", new DN[] { user3, user4, } },
     };
-  }
-
-  /** Test to search using the relative time matching rule. */
-  @Test(dataProvider = "relativeTime")
-  public void testRelativeTimeUsingSearch(String filterString, DN[] expectedDNs) throws Exception
-  {
-    try
-    {
-      populateEntries();
-
-      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filterString);
-      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      assertThat(toNames(searchOperation.getSearchEntries())).containsOnly(expectedDNs);
-    }
-    finally
-    {
-      TestCaseUtils.clearJEBackend("userRoot");
-    }
   }
 
   @Test(dataProvider = "relativeTime")
@@ -190,32 +164,6 @@ public final class TimeBasedMatchingRuleTest
     index.addAll(makeEntries());
     Collection<Entry> entries = index.evaluateFilter(filterString);
     assertThat(toNames(entries)).containsOnly(expectedDNs);
-  }
-
-   /**
-    * Test to search using the partial date and time matching rule
-    * for an assertion value.
-    * Dates for this test are hardcoded to avoid test failures depending
-    * on when the tests are launched.
-    */
-  @Test
-  public void testPartialDateNTimeMatchingRuleUsingSearch() throws Exception
-  {
-    try
-    {
-      populateEntries();
-
-      String assertion = "01D11M";
-      String filter = DATE_ATTR + ":" + EXT_PARTIAL_DATE_TIME_OID + ":=" + assertion;
-      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
-      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-      assertThat(toNames(searchOperation.getSearchEntries())).containsOnly(user6);
-    }
-    finally
-    {
-      TestCaseUtils.clearJEBackend("userRoot");
-    }
   }
 
   private List<DN> toNames(Collection<? extends Entry> entries)
@@ -299,8 +247,8 @@ public final class TimeBasedMatchingRuleTest
 
 
   /** Generates data for testing relative time matching rule assertion syntax. */
-  @DataProvider(name="relativeTimeValues")
-  private Object[][] createRelativeTimeValues()
+  @DataProvider
+  public Object[][] relativeTimeValues()
   {
     return new Object[][] {
       {"1s",true},
@@ -321,7 +269,7 @@ public final class TimeBasedMatchingRuleTest
 
   /** Generates the data for testing partial time date and time values. */
   @DataProvider
-  private Object[][] partialDateTimeValues()
+  public Object[][] partialDateTimeValues()
   {
     SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMddHHmmssZ");
     GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -344,15 +292,16 @@ public final class TimeBasedMatchingRuleTest
       { time1, format1, "0m" },
       { time1, format1, "23h" },
       { time2, format2, "59m59s" },
-      { time2, format2, "0h59m59s" }
+      { time2, format2, "0h59m59s" },
+      { time2, format2, "01D01M" },
     };
   }
 
 
 
   /** Generates data for testing partial date and time assertion syntax. */
-  @DataProvider(name="partialDateTimeSyntaxes")
-  private Object[][] createPartialDateTimeSyntaxes()
+  @DataProvider
+  public Object[][] partialDateTimeSyntaxes()
   {
    //Get the current time.
    GregorianCalendar cal =
@@ -397,13 +346,6 @@ public final class TimeBasedMatchingRuleTest
       {year+"Y"+date+"D",true},
       {month+"M"+year+"Y"+date+"D",true}
     };
-  }
-
-  /** Creates the entries. */
-  private void populateEntries() throws Exception
-  {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
-    TestCaseUtils.addEntries(makeEntries());
   }
 
   private List<Entry> makeEntries() throws Exception
