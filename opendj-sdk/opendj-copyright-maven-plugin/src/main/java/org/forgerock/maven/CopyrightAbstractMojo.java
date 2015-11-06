@@ -90,6 +90,10 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     @Parameter(required = true, defaultValue = "${project.scm.connection}")
     private String scmRepositoryUrl;
 
+    /**
+     * List of file patterns for which copyright check and/or update will be skipped.
+     * Pattern can contain the following wildcards (*, ?, **{@literal /}).
+     */
     @Parameter(required = false)
     private List<String> disabledFiles;
 
@@ -254,7 +258,16 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     }
 
     private boolean fileIsDisabled(final String scmFilePath) {
-        return disabledFiles != null && disabledFiles.contains(scmFilePath);
+        if (disabledFiles == null) {
+            return false;
+        }
+        for (final String disableFile : disabledFiles) {
+            String regexp = disableFile.replace("**/", "(.+/)+").replace("?", ".?").replace("*", ".*?");
+            if (scmFilePath.matches(regexp)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Examines the provided files list to determine whether each changed file copyright is acceptable. */
