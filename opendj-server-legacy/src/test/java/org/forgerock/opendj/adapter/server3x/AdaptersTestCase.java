@@ -26,6 +26,8 @@
 package org.forgerock.opendj.adapter.server3x;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 
 import java.security.GeneralSecurityException;
 import java.util.NoSuchElementException;
@@ -71,6 +73,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.Options;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterClass;
@@ -111,18 +114,20 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @DataProvider
     public Object[][] rootConnectionFactories() {
         return new Object[][] {
-            { Connections.newAuthenticatedConnectionFactory(
-                   new LDAPConnectionFactory("localhost", getServerLdapPort()),
-                   Requests.newSimpleBindRequest("cn=directory manager", "password".toCharArray())) },
+            { new LDAPConnectionFactory("localhost",
+                                        getServerLdapPort(),
+                                        Options.defaultOptions()
+                                               .set(AUTHN_BIND_REQUEST,
+                                                    newSimpleBindRequest("cn=directory manager",
+                                                                                  "password".toCharArray()))) },
             { Adapters.newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
     }
 
     /**
-     * Launched before the tests, this function starts the server and
-     * adds data.
+     * Launched before the tests, this function starts the server and adds data.
      *
      * @throws Exception
-     *             If the server could not be initialized.
+     *         If the server could not be initialized.
      */
     @BeforeClass
     public void startServer() throws Exception {

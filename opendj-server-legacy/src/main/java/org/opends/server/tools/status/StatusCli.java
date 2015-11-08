@@ -71,6 +71,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.util.Options;
+import org.forgerock.util.time.Duration;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -1174,8 +1175,7 @@ public class StatusCli extends ConsoleApplication
     // This connection should always be secure. useSSL = true.
     Connection connection = null;
     final Options options = Options.defaultOptions();
-    options.set(CONNECT_TIMEOUT_IN_MILLISECONDS,
-        TimeUnit.MILLISECONDS.toMillis((long) ci.getConnectTimeout()));
+    options.set(CONNECT_TIMEOUT, new Duration((long) ci.getConnectTimeout(), TimeUnit.MILLISECONDS));
     LDAPConnectionFactory factory = null;
     while (true)
     {
@@ -1184,7 +1184,7 @@ public class StatusCli extends ConsoleApplication
         final SSLContextBuilder sslBuilder = new SSLContextBuilder();
         sslBuilder.setTrustManager(trustManager == null ? TrustManagers.trustAll() : trustManager);
         sslBuilder.setKeyManager(keyManager);
-        options.set(USE_STARTTLS, ci.useStartTLS());
+        options.set(SSL_USE_STARTTLS, ci.useStartTLS());
         options.set(SSL_CONTEXT, sslBuilder.getSSLContext());
 
         factory = new LDAPConnectionFactory(hostName, portNumber, options);
