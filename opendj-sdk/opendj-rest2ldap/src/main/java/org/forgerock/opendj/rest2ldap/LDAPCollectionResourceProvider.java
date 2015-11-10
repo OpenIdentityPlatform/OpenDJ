@@ -163,7 +163,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                         addRequest.addAttribute(attribute);
                                     }
                                     try {
-                                        nameStrategy.setResourceId(requestState, getBaseDN(requestState),
+                                        nameStrategy.setResourceId(requestState, getBaseDN(),
                                                 request.getNewResourceId(), addRequest);
                                     } catch (final ResourceException e) {
                                         return Promises.newExceptionPromise(e);
@@ -207,7 +207,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                                     ldapExceptionToResourceException());
 
                         } catch (final Exception e) {
-                            return Promises.newExceptionPromise((asResourceException(e)));
+                            return Promises.newExceptionPromise(asResourceException(e));
                         }
                     }
                 }).thenFinally(close(requestState));
@@ -293,10 +293,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Promise<ResourceResponse, ResourceException> apply(final Connection connection)
                             throws ResourceException {
-                        final String[] attributes = getLDAPAttributes(requestState, request.getFields());
-                        final SearchRequest searchRequest =
-                                nameStrategy.createSearchRequest(requestState, getBaseDN(requestState), resourceId)
-                                            .addAttribute(attributes);
+                        SearchRequest searchRequest = searchRequest(requestState, resourceId, request.getFields());
                         return connection.searchSingleEntryAsync(searchRequest)
                                          .thenAsync(postEmptyPatchAsyncFunction(requestState, request),
                                                     ldapExceptionToResourceException());
@@ -528,7 +525,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 final Filter searchFilter = ldapFilter == Filter.alwaysTrue() ? Filter.objectClassPresent()
                                                                               : ldapFilter;
                 final SearchRequest searchRequest = newSearchRequest(
-                        getBaseDN(requestState), SearchScope.SINGLE_LEVEL, searchFilter, attributes);
+                        getBaseDN(), SearchScope.SINGLE_LEVEL, searchFilter, attributes);
 
                 // Add the page results control. We can support the page offset by
                 // reading the next offset pages, or offset x page size resources.
@@ -682,14 +679,11 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     public Promise<ResourceResponse, ResourceException> apply(Connection connection)
                             throws ResourceException {
                         // Do the search.
-                        final String[] attributes = getLDAPAttributes(requestState, request.getFields());
-                        final SearchRequest request =
-                                nameStrategy.createSearchRequest(requestState, getBaseDN(requestState), resourceId)
-                                            .addAttribute(attributes);
-
-                        return connection.searchSingleEntryAsync(request)
+                        SearchRequest searchRequest = searchRequest(requestState, resourceId, request.getFields());
+                        return connection.searchSingleEntryAsync(searchRequest)
                                     .thenAsync(
                                         new AsyncFunction<SearchResultEntry, ResourceResponse, ResourceException>() {
+                                            @Override
                                             public Promise<ResourceResponse, ResourceException> apply(
                                                     SearchResultEntry entry) throws ResourceException {
                                                 return adaptEntry(requestState, entry);
@@ -712,11 +706,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Promise<ResourceResponse, ResourceException> apply(final Connection connection)
                             throws ResourceException {
-                        final String[] attributes = getLDAPAttributes(
-                                requestState, Collections.<JsonPointer> emptyList());
-                        final SearchRequest searchRequest = nameStrategy.createSearchRequest(
-                                requestState, getBaseDN(requestState), resourceId).addAttribute(attributes);
-
+                        List<JsonPointer> attrs = Collections.emptyList();
+                        SearchRequest searchRequest = searchRequest(requestState, resourceId, attrs);
                         return connection.searchSingleEntryAsync(searchRequest)
                                 .thenAsync(new AsyncFunction<SearchResultEntry, ResourceResponse, ResourceException>() {
                                     @Override
@@ -801,34 +792,33 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 final String ldapAttribute =
                         (etagAttribute != null && revision != null) ? etagAttribute.toString() : "1.1";
                 final SearchRequest searchRequest =
-                        nameStrategy.createSearchRequest(requestState, getBaseDN(requestState), resourceId)
+                        nameStrategy.createSearchRequest(requestState, getBaseDN(), resourceId)
                                     .addAttribute(ldapAttribute);
                 if (searchRequest.getScope().equals(SearchScope.BASE_OBJECT)) {
                     // There's no point in doing a search because we already know the DN.
                     return Promises.newResultPromise(searchRequest.getName());
-                } else {
-                    return connection.searchSingleEntryAsync(searchRequest)
-                            .thenAsync(new AsyncFunction<SearchResultEntry, DN, ResourceException>() {
-                                @Override
-                                public Promise<DN, ResourceException> apply(SearchResultEntry entry)
-                                        throws ResourceException {
-                                    try {
-                                        // Fail-fast if there is a version mismatch.
-                                        ensureMVCCVersionMatches(entry, revision);
-                                        // Perform update operation.
-                                        return Promises.newResultPromise(entry.getName());
-                                    } catch (final Exception e) {
-                                        return Promises.newExceptionPromise(asResourceException(e));
-                                    }
-                                }
-                            }, new AsyncFunction<LdapException, DN, ResourceException>() {
-                                @Override
-                                public Promise<DN, ResourceException> apply(LdapException ldapException)
-                                        throws ResourceException {
-                                    return Promises.newExceptionPromise(asResourceException(ldapException));
-                                }
-                            });
                 }
+                return connection.searchSingleEntryAsync(searchRequest)
+                        .thenAsync(new AsyncFunction<SearchResultEntry, DN, ResourceException>() {
+                            @Override
+                            public Promise<DN, ResourceException> apply(SearchResultEntry entry)
+                                    throws ResourceException {
+                                try {
+                                    // Fail-fast if there is a version mismatch.
+                                    ensureMVCCVersionMatches(entry, revision);
+                                    // Perform update operation.
+                                    return Promises.newResultPromise(entry.getName());
+                                } catch (final Exception e) {
+                                    return Promises.newExceptionPromise(asResourceException(e));
+                                }
+                            }
+                        }, new AsyncFunction<LdapException, DN, ResourceException>() {
+                            @Override
+                            public Promise<DN, ResourceException> apply(LdapException ldapException)
+                                    throws ResourceException {
+                                return Promises.newExceptionPromise(asResourceException(ldapException));
+                            }
+                        });
             }
         };
     }
@@ -856,7 +846,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         }
     }
 
-    private DN getBaseDN(final RequestState requestState) {
+    private DN getBaseDN() {
         return baseDN;
     }
 
@@ -946,6 +936,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 return Promises.newExceptionPromise(asResourceException(ldapException));
             }
         };
+    }
+
+    private SearchRequest searchRequest(
+            final RequestState requestState, final String resourceId, final List<JsonPointer> requestedAttributes) {
+        final String[] attributes = getLDAPAttributes(requestState, requestedAttributes);
+        return nameStrategy.createSearchRequest(requestState, getBaseDN(), resourceId).addAttribute(attributes);
     }
 
     private RequestState wrap(final Context context) {
