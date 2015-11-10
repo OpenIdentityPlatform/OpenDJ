@@ -27,10 +27,12 @@ import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.CollectionResourceProvider;
@@ -79,12 +82,17 @@ import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
+import org.forgerock.services.context.ClientContext;
 import org.forgerock.services.context.Context;
+import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.ExceptionHandler;
@@ -134,8 +142,82 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     @Override
     public Promise<ActionResponse, ResourceException> actionInstance(
             final Context context, final String resourceId, final ActionRequest request) {
+        String actionId = request.getAction();
+        if (actionId.equals("passwordModify")) {
+            return passwordModify(context, resourceId, request);
+        }
         return Promises.<ActionResponse, ResourceException> newExceptionPromise(
-                                                            new NotSupportedException("Not yet implemented"));
+                new NotSupportedException("The action '" + actionId + "' is not supported"));
+    }
+
+    private Promise<ActionResponse, ResourceException> passwordModify(
+            final Context context, final String resourceId, final ActionRequest request) {
+        if (!context.containsContext(ClientContext.class)
+                || !context.asContext(ClientContext.class).isSecure()) {
+            return Promises.newExceptionPromise(ResourceException.newResourceException(
+                    ResourceException.FORBIDDEN, "Password modify requires a secure connection."));
+        }
+        if (!context.containsContext(SecurityContext.class)
+                || context.asContext(SecurityContext.class).getAuthenticationId() == null) {
+            return Promises.newExceptionPromise(ResourceException.newResourceException(
+                    ResourceException.FORBIDDEN, "Password modify requires user to be authenticated."));
+        }
+
+        final JsonValue jsonContent = request.getContent();
+        final String oldPassword;
+        final String newPassword;
+        try {
+            oldPassword = jsonContent.get("oldPassword").asString();
+            newPassword = jsonContent.get("newPassword").asString();
+        } catch (JsonValueException e) {
+            return Promises.newExceptionPromise(
+                    ResourceException.newResourceException(ResourceException.BAD_REQUEST, e.getLocalizedMessage(), e));
+        }
+
+        final RequestState requestState = wrap(context);
+        return requestState.getConnection()
+                .thenAsync(new AsyncFunction<Connection, ActionResponse, ResourceException>() {
+                    @Override
+                    public Promise<ActionResponse, ResourceException> apply(final Connection connection)
+                            throws ResourceException {
+                        List<JsonPointer> attrs = Collections.emptyList();
+                        return connection.searchSingleEntryAsync(searchRequest(requestState, resourceId, attrs))
+                                .thenAsync(new AsyncFunction<SearchResultEntry, ActionResponse, ResourceException>() {
+                                    @Override
+                                    public Promise<ActionResponse, ResourceException> apply(
+                                              final SearchResultEntry entry) {
+                                        PasswordModifyExtendedRequest pwdModifyRequest =
+                                                Requests.newPasswordModifyExtendedRequest();
+                                        pwdModifyRequest.setUserIdentity("dn: " + entry.getName());
+                                        pwdModifyRequest.setOldPassword(asBytes(oldPassword));
+                                        pwdModifyRequest.setNewPassword(asBytes(newPassword));
+                                        return connection.extendedRequestAsync(pwdModifyRequest)
+                                            .thenAsync(new AsyncFunction<PasswordModifyExtendedResult,
+                                                    ActionResponse, ResourceException>() {
+                                                @Override
+                                                public Promise<ActionResponse, ResourceException> apply(
+                                                        PasswordModifyExtendedResult value) throws ResourceException {
+                                                    JsonValue result = new JsonValue(new LinkedHashMap<>());
+                                                    byte[] generatedPwd = value.getGeneratedPassword();
+                                                    if (generatedPwd != null) {
+                                                        result = result.put("generatedPassword", ByteString.valueOfBytes(generatedPwd).toString());
+                                                    }
+                                                    return Responses.newActionResponse(result).asPromise();
+                                                }
+                                            }, ldapExceptionToResourceException());
+                                    }
+                                }, ldapExceptionToResourceException());
+                    }
+
+                    private AsyncFunction<LdapException, ActionResponse, ResourceException>
+                    ldapExceptionToResourceException() {
+                        return ldapToResourceException();
+                    }
+                }).thenFinally(close(requestState));
+    }
+
+    private byte[] asBytes(final String s) {
+        return s != null ? s.getBytes(StandardCharsets.UTF_8) : null;
     }
 
     @Override
@@ -928,11 +1010,14 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     }
 
     private AsyncFunction<LdapException, ResourceResponse, ResourceException> ldapExceptionToResourceException() {
+        return ldapToResourceException();
+    }
+
+    private <R> AsyncFunction<LdapException, R, ResourceException> ldapToResourceException() {
         // The handler which will be invoked for the LDAP add result.
-        return new AsyncFunction<LdapException, ResourceResponse, ResourceException>() {
+        return new AsyncFunction<LdapException, R, ResourceException>() {
             @Override
-            public Promise<ResourceResponse, ResourceException> apply(final LdapException ldapException)
-                    throws ResourceException {
+            public Promise<R, ResourceException> apply(final LdapException ldapException) throws ResourceException {
                 return Promises.newExceptionPromise(asResourceException(ldapException));
             }
         };
