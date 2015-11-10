@@ -43,31 +43,37 @@
     <dt>Release Notes</dt>
     <dd>
      <a href="./doc/bootstrap/release-notes/index.html">HTML</a>,
-     <a href="./doc/OpenDJ-Release-Notes.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Release-Notes.pdf">PDF</a>
+    </dd>
+
+    <dt>Release Notes (OEM Edition)</dt>
+    <dd>
+     <a href="./doc/bootstrap/oem-release-notes/index.html">HTML</a>,
+     <a href="./doc/OpenDJ-${project.version}-Oem-Release-Notes.pdf">PDF</a>
     </dd>
 
     <dt>Installation Guide</dt>
     <dd>
      <a href="./doc/bootstrap/install-guide/index.html">HTML</a>,
-     <a href="./doc/OpenDJ-Install-Guide.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Install-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Administration Guide</dt>
     <dd>
      <a href="./doc/bootstrap/admin-guide/index.html">HTML</a>,
-     <a href="./doc/OpenDJ-Admin-Guide.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Admin-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Server Dev Guide</dt>
     <dd>
      <a href="./doc/bootstrap/server-dev-guide/index.html">HTML</a>,
-     <a href="./doc/OpenDJ-Server-Dev-Guide.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Server-Dev-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Reference</dt>
     <dd>
      <a href="./doc/bootstrap/reference/index.html">HTML</a>,
-     <a href="./doc/OpenDJ-Reference.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Reference.pdf">PDF</a>
     </dd>
 
     <dt>Configuration Reference</dt>
@@ -79,13 +85,13 @@
     <dt>SDK Developer Guide</dt>
     <dd>
      <a href="./doc/bootstrap/dev-guide/index.html">HTML</a>,
-     <a href="./doc/OpenDJ-Dev-Guide.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Dev-Guide.pdf">PDF</a>
     </dd>
 
     <dt>SDK Release Notes</dt>
     <dd>
      <a href="./doc/bootstrap/sdk-release-notes/index.html">HTML</a>
-     <a href="./doc/OpenDJ-Sdk-Release-Notes.pdf">PDF</a>
+     <a href="./doc/OpenDJ-${project.version}-Sdk-Release-Notes.pdf">PDF</a>
     </dd>
 
     <dt>LDAP SDK Javadoc</dt>
