@@ -27,6 +27,8 @@ package org.opends.server.tools.upgrade;
 
 import static javax.security.auth.callback.ConfirmationCallback.NO;
 import static javax.security.auth.callback.ConfirmationCallback.YES;
+import static javax.security.auth.callback.TextOutputCallback.*;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copy;
 import static org.opends.server.tools.upgrade.Installation.CURRENT_CONFIG_FILE_NAME;
@@ -126,8 +128,7 @@ public final class UpgradeTasks
         final LocalizableMessage msg = INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName);
         logger.debug(msg);
 
-        final ProgressNotificationCallback pnc =
-            new ProgressNotificationCallback(0, msg, 0);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, msg, 0);
 
         final File schemaFileTemplate =
             new File(templateConfigSchemaDirectory, fileName);
@@ -171,8 +172,7 @@ public final class UpgradeTasks
         final LocalizableMessage msg = INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName);
         logger.debug(msg);
 
-        final ProgressNotificationCallback pnc =
-            new ProgressNotificationCallback(0, msg, 0);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, msg, 0);
 
         final File configFile = new File(templateConfigDirectory, fileName);
 
@@ -263,8 +263,7 @@ public final class UpgradeTasks
       {
         logger.debug(summary);
 
-        final ProgressNotificationCallback pnc =
-            new ProgressNotificationCallback(0, summary, 20);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 20);
         context.notifyProgress(pnc);
 
         final File schemaFileTemplate =
@@ -317,8 +316,7 @@ public final class UpgradeTasks
       {
         logger.debug(summary);
 
-        final ProgressNotificationCallback pnc =
-            new ProgressNotificationCallback(0, summary, 20);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 20);
         context.notifyProgress(pnc);
 
         final File schemaFileTemplate =
@@ -368,7 +366,7 @@ public final class UpgradeTasks
       {
         logger.debug(summary);
 
-        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, summary, 50);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 50);
         context.notifyProgress(pnc);
 
         int returnValue = JavaPropertiesTool.mainCLI("--quiet");
@@ -640,8 +638,7 @@ public final class UpgradeTasks
           return;
         }
         // Startup message.
-        ProgressNotificationCallback pnc =
-            new ProgressNotificationCallback(0, message, 25);
+        ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, message, 25);
         logger.debug(message);
         context.notifyProgress(pnc);
 
@@ -717,7 +714,7 @@ public final class UpgradeTasks
         final LocalizableMessage msg = INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get();
         logger.debug(msg);
 
-        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, msg, 20);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, msg, 20);
         context.notifyProgress(pnc);
 
         try
@@ -759,8 +756,7 @@ public final class UpgradeTasks
         final File snmpDir = UpgradeUtils.configSnmpSecurityDirectory;
         if (snmpDir.exists())
         {
-          ProgressNotificationCallback pnc =
-              new ProgressNotificationCallback(0, summary, 0);
+          ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 0);
           try
           {
             final File oldSnmpConfig = new File(snmpDir, "opends-snmp.security");
@@ -800,7 +796,7 @@ public final class UpgradeTasks
       public void perform(UpgradeContext context) throws ClientException
       {
         LocalizableMessage msg = UPGRADE_TASK_DELETE_FILE.get(file);
-        ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, msg, 0);
+        ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, msg, 0);
         context.notifyProgress(pnc);
         try
         {
@@ -809,8 +805,7 @@ public final class UpgradeTasks
         }
         catch (Exception e)
         {
-          logger.error(LocalizableMessage.raw(e.getMessage()));
-          context.notifyProgress(pnc.setProgress(-1));
+          manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
         }
       }
     };
@@ -881,8 +876,7 @@ public final class UpgradeTasks
             backends.add(backend);
           }
         } catch (IOException e) {
-          throw new ClientException(ReturnCode.APPLICATION_ERROR,
-                                    INFO_UPGRADE_TASK_MIGRATE_JE_CONFIG_READ_FAIL.get(), e);
+          throw new ClientException(ReturnCode.APPLICATION_ERROR, INFO_UPGRADE_TASK_MIGRATE_CONFIG_READ_FAIL.get(), e);
         }
       }
 
@@ -891,8 +885,8 @@ public final class UpgradeTasks
         for (DN baseDN : backend.baseDNs) {
           final String oldName = oldName(baseDN);
           if (!existingDatabases.contains(oldName)) {
-            throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION,
-                                      INFO_UPGRADE_TASK_MIGRATE_JE_UGLY_DN.get(backend.id, baseDN));
+            LocalizableMessage msg = INFO_UPGRADE_TASK_MIGRATE_JE_UGLY_DN.get(backend.id, baseDN);
+            throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
           }
         }
       }
@@ -924,7 +918,7 @@ public final class UpgradeTasks
         for (Backend backend : backends) {
           if (backend.isEnabled) {
             ProgressNotificationCallback pnc = new ProgressNotificationCallback(
-                    0, INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_1.get(backend.id), 0);
+                    INFORMATION, INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_1.get(backend.id), 0);
             context.notifyProgress(pnc);
             try {
               JEHelper.migrateDatabases(backend.envDir, backend.renamedDbs);
@@ -935,7 +929,7 @@ public final class UpgradeTasks
           } else {
             // Skip backends which have been disabled.
             final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
-                    0, INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_5.get(backend.id), 0);
+                    INFORMATION, INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_5.get(backend.id), 0);
             context.notifyProgress(pnc);
             context.notifyProgress(pnc.setProgress(100));
           }
@@ -1071,9 +1065,7 @@ public final class UpgradeTasks
   {
     displayTaskLogInformation(summary.toString(), filter, ldif);
 
-    final ProgressNotificationCallback pnc =
-        new ProgressNotificationCallback(0, summary, 20);
-
+    final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 20);
     context.notifyProgress(pnc);
 
     try
@@ -1144,8 +1136,7 @@ public final class UpgradeTasks
         }
 
         LocalizableMessage msg = INFO_UPGRADE_TASK_DELETE_CHANGELOG_SUMMARY.get(replicationDbDir);
-        ProgressNotificationCallback pnc =
-           new ProgressNotificationCallback(0, msg, 0);
+        ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, msg, 0);
         context.notifyProgress(pnc);
         try
         {
