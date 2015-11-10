@@ -63,3 +63,11 @@ else if [ "$1" == "2" ] ; then
     fi
     fi
 fi
+
+# Add OpenDJ man pages to MANPATH
+MAN_CONFIG_FILE=/etc/man.config
+MANPATH_DIRECTIVE=MANPATH
+grep -q "$MANPATH_DIRECTIVE.*opendj" $MAN_CONFIG_FILE 2> /dev/null
+if [ $? -ne 0 ]; then
+    echo "$MANPATH_DIRECTIVE %{_prefix}/share/man" >> $MAN_CONFIG_FILE
+fi
