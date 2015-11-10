@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! legal-notices/CDDLv1_0.txt.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-packages</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <module>opendj-deb-standard</module>
+        <module>opendj-deb-oem</module>
+    </modules>
+
+    <artifactId>opendj-deb</artifactId>
+    <name>OpenDJ Debian Packages Parent</name>
+
+    <description>
+        This module contains configuration and generic plugin calls to generate Debian OpenDJ packages.
+    </description>
+
+    <properties>
+        <deb.prefix>/opt/${product.name.lowercase}</deb.prefix>
+        <deb.docprefix>/usr/share/doc/${product.name.lowercase}</deb.docprefix>
+        <deb.release>1</deb.release>
+        <deb.maintainer>opendj@forgerock.org</deb.maintainer>
+        <manpage.dir>${project.build.directory}/dependency/man</manpage.dir>
+        <deb.doc.homepage.url>http://opendj.forgerock.org/</deb.doc.homepage.url>
+        <deb.product.name/>
+        <deb.product.name.lowercase/>
+        <deb.resources.path/>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Unpack man pages -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>unpack-man-pages</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>org.forgerock.opendj</groupId>
+                                        <artifactId>opendj-man-pages</artifactId>
+                                        <version>${project.version}</version>
+                                        <outputDirectory>${project.build.directory}/dependency/man</outputDirectory>
+                                        <classifier>server-man-pages</classifier>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Filter deb install and remove scripts -->
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>copy-deb-scripts</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>copy-resources</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.directory}/deb/control</outputDirectory>
+                                <resources>
+                                    <resource>
+                                        <directory>${deb.resources.path}/control</directory>
+                                        <filtering>true</filtering>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Generates changelog.Debian.gz file -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>gzip-changelog</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <target>
+                                    <gzip src="${deb.resources.path}/changelog"
+                                          destfile="${project.build.directory}/deb/changelog.Debian.gz"/>
+                                </target>
+                            </configuration>
+                        </execution>
+
+                        <execution>
+                            <id>gzip-man-pages</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <target>
+                                    <apply executable="gzip"><!-- Must we also build these packages on Windows? -->
+                                        <arg value="-9"/>
+                                        <fileset dir="${manpage.dir}"/>
+                                    </apply>
+                                </target>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Generates the deb package -->
+                <plugin>
+                    <groupId>org.vafer</groupId>
+                    <artifactId>jdeb</artifactId>
+                    <version>1.3</version>
+                    <executions>
+                        <execution>
+                            <id>generate-deb-package</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jdeb</goal>
+                            </goals>
+                            <configuration>
+                                <deb>
+                                    ${project.build.directory}/${deb.product.name.lowercase}_${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${deb.release}.${maven.build.timestamp}_all.deb
+                                </deb>
+                                <controlDir>${project.build.directory}/deb/control</controlDir>
+                                <dataSet>
+                                    <!-- OpenDJ service file -->
+                                    <data>
+                                        <src>${sysv.file.location}</src>
+                                        <type>file</type>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>/etc/init.d</prefix>
+                                            <filemode>755</filemode>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- Debian copyright file in documentation -->
+                                    <data>
+                                        <src>${basedir}/resources/copyright</src>
+                                        <type>file</type>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.docprefix}</prefix>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- Debian changelog file in documentation -->
+                                    <data>
+                                        <src>${project.build.directory}/deb/changelog.Debian.gz</src>
+                                        <type>file</type>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.docprefix}</prefix>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- OpenDJ archive documentation files -->
+                                    <data>
+                                        <src>${project.build.directory}/${product.name.lowercase}</src>
+                                        <type>directory</type>
+                                        <includes>
+                                            legal-notices/**, copyright, example-plugin.zip, changelog.Debian.gz
+                                        </includes>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.docprefix}</prefix>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- OpenDJ man pages -->
+                                    <data>
+                                        <src>${manpage.dir}</src>
+                                        <type>directory</type>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.prefix}/share/man</prefix>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- OpenDJ archive files without specific permission -->
+                                    <data>
+                                        <src>${project.build.directory}/${product.name.lowercase}</src>
+                                        <type>directory</type>
+                                        <excludes>
+                                            **/bat/**,
+                                            **/*.app/**,
+                                            **/*.bat*,
+                                            **/*.exe*,
+                                            bin/*,
+                                            template/**/*,
+                                            lib/*.sh,
+                                            legal-notices/**,
+                                            setup,
+                                            uninstall,
+                                            upgrade,
+                                            copyright,
+                                            README,
+                                            example-plugin.zip,
+                                            opendj
+                                        </excludes>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.prefix}</prefix>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- OpenDJ archive files with specific permission -->
+                                    <data>
+                                        <src>${project.build.directory}/${product.name.lowercase}</src>
+                                        <type>directory</type>
+                                        <includes>
+                                            lib/*.sh,
+                                            bin/*,
+                                            setup,
+                                            uninstall,
+                                            upgrade
+                                        </includes>
+                                        <excludes>bin/ControlPanel.app/**</excludes>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.prefix}</prefix>
+                                            <filemode>755</filemode>
+                                        </mapper>
+                                    </data>
+
+                                    <!-- OpenDJ archive template folder -->
+                                    <data>
+                                        <src>${project.build.directory}/${product.name.lowercase}</src>
+                                        <type>directory</type>
+                                        <includes>template/**/*</includes>
+                                        <mapper>
+                                            <type>perm</type>
+                                            <prefix>${deb.prefix}</prefix>
+                                            <filemode>444</filemode>
+                                        </mapper>
+                                    </data>
+                                </dataSet>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
