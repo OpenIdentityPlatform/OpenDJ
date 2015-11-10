@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! legal-notices/CDDLv1_0.txt.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2015 ForgeRock AS.
+  !
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-msi</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>opendj-msi-standard</artifactId>
+    <name>OpenDJ MSI Standard Package</name>
+
+    <packaging>pom</packaging>
+
+    <description>
+        This module generates an OpenDJ MSI package.
+    </description>
+
+    <properties>
+        <msi.resources>${basedir}/resources/msi</msi.resources>
+        <package.dir>${project.build.directory}/${product.name.lowercase}</package.dir>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>build-msi-plugin</id>
+            <activation>
+                <os><family>windows</family></os>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>build-msi-package</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Package the Directory Server for the MSI distribution. -->
+                                    <target>
+                                        <mkdir dir="${project.build.directory}/msi/files" />
+                                        <copy toDir="${project.build.directory}/msi/files">
+                                            <fileset dir="${package.dir}">
+                                                <!-- Exclude Mac apps -->
+                                                <exclude name="QuickSetup.app/**"/>
+                                                <exclude name="Uninstall.app/**"/>
+
+                                                <!-- Exclude shell scripts -->
+                                                <exclude name="bin/**"/>
+                                                <exclude name="setup"/>
+                                                <exclude name="uninstall"/>
+                                                <exclude name="upgrade"/>
+                                                <exclude name="**/*.sh"/>
+                                            </fileset>
+                                        </copy>
+
+                                        <mkdir dir="${project.build.directory}/msi/build" />
+                                        <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}/msi/build"/>
+                                        <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}/msi/build"/>
+                                        <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}/msi/build"/>
+                                        <mkdir dir="${project.build.directory}/msi/dist" />
+
+                                        <!-- Construct a .wxs file from the directory structure -->
+                                        <exec executable="heat.exe" dir="${project.build.directory}/msi/files">
+                                            <arg value="dir"/>
+                                            <arg value="."/>
+                                            <arg value="-nologo"/>
+                                            <arg value="-cg"/> <arg value="all"/>
+                                            <arg value="-gg"/>
+                                            <arg value="-sfrag"/>
+                                            <arg value="-srd"/>
+                                            <arg value="-ke"/>
+                                            <arg value="-dr"/> <arg value="OPENDJ"/>
+                                            <arg value="-var"/> <arg value="var.src"/>
+                                            <arg value="-template"/> <arg value="fragment"/>
+                                            <arg value="-o"/> <arg value="${project.build.directory}/msi/build/payload.wxs"/>
+                                        </exec>
+
+                                        <!-- Compile all .wxs files into .wixobj files (fast) -->
+                                        <exec executable="candle.exe" dir="${project.build.directory}/msi">
+                                            <arg value="-nologo"/>
+                                            <arg value="-out"/> <arg value="${project.build.directory}/msi/build/"/>
+                                            <arg value="-dsrc=files"/>
+                                            <arg value="-dname=${product.name}"/>
+                                            <arg value="-dmajor=${parsedVersion.majorVersion}"/>
+                                            <arg value="-dminor=${parsedVersion.minorVersion}"/>
+                                            <arg value="-dpoint=${parsedVersion.incrementalVersion}"/>
+                                            <arg value="build/package.wxs"/>
+                                            <arg value="build/payload.wxs"/>
+                                        </exec>
+
+                                        <!-- Build the package (slow) -->
+                                        <exec executable="light.exe" dir="${project.build.directory}/msi">
+                                            <arg value="-nologo"/>
+                                            <arg value="-ext"/> <arg value="WixUIExtension"/>
+                                            <arg value="-out"/> <arg value="dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi"/>
+                                            <arg value="build/package.wixobj"/>
+                                            <arg value="build/payload.wixobj"/>
+                                        </exec>
+
+                                        <!-- Attach msi artifact to the build -->
+                                        <attachartifact file="${project.build.directory}/msi/dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
