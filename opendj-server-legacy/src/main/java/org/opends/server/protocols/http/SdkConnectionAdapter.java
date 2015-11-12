@@ -25,6 +25,11 @@
  */
 package org.opends.server.protocols.http;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.*;
+
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,9 +39,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.LdapPromise;
-import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -54,6 +58,7 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.opends.server.core.AbandonOperation;
 import org.opends.server.core.AbandonOperationBasis;
 import org.opends.server.core.AddOperation;
@@ -91,11 +96,6 @@ import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
-
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
-import static org.forgerock.opendj.ldap.ByteString.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.*;
 
 /**
  * Adapter class between LDAP SDK's {@link org.forgerock.opendj.ldap.Connection}
@@ -239,7 +239,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     throw new RuntimeException("Not implemented for operation " + operation);
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<Void> abandonAsync(AbandonRequest request)
   {
@@ -248,7 +247,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         to(request.getControls()), request.getRequestID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler)
   {
@@ -257,14 +255,12 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         valueOfObject(request.getName()), to(request.getAllAttributes())));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addConnectionEventListener(ConnectionEventListener listener)
   {
     // not useful so far
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<BindResult> bindAsync(BindRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
@@ -276,7 +272,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         "3", ByteString.valueOfUtf8(userName), ByteString.wrap(password)));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close(UnbindRequest request, String reason)
   {
@@ -284,9 +279,8 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     if (authInfo != null && authInfo.isAuthenticated())
     {
       final int messageID = nextMessageID.getAndIncrement();
-      final UnbindOperationBasis operation =
-          new UnbindOperationBasis(clientConnection, messageID, messageID,
-              to(request.getControls()));
+      final UnbindOperationBasis operation = new UnbindOperationBasis(
+          clientConnection, messageID, messageID, to(request.getControls()));
       operation.setInnerOperation(this.clientConnection.isInnerConnection());
 
       // run synchronous
@@ -304,7 +298,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     isClosed = true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<CompareResult> compareAsync(CompareRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
@@ -316,7 +309,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         request.getAssertionValue()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<Result> deleteAsync(DeleteRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
@@ -326,7 +318,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         to(request.getControls()), valueOfObject(request.getName())));
   }
 
-  /** {@inheritDoc} */
   @Override
   public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
       IntermediateResponseHandler intermediateResponseHandler)
@@ -347,21 +338,18 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     return queueingStrategy;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isClosed()
   {
     return isClosed;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isValid()
   {
     return this.clientConnection.isConnectionValid();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<Result> modifyAsync(ModifyRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
@@ -372,7 +360,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         toModifications(request.getModifications())));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
@@ -384,14 +371,12 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
             .getNewSuperior())));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeConnectionEventListener(ConnectionEventListener listener)
   {
     // not useful so far
   }
 
-  /** {@inheritDoc} */
   @Override
   public LdapPromise<Result> searchAsync(final SearchRequest request,
       final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler)
@@ -405,7 +390,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
         new LinkedHashSet<String>(request.getAttributes())), entryHandler);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

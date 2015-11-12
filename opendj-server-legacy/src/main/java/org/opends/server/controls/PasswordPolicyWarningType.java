@@ -48,8 +48,6 @@ public enum PasswordPolicyWarningType
   TIME_BEFORE_EXPIRATION((byte) 0x80,
                      INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION.get()),
 
-
-
   /**
    * The warning type that will be used to indicate that the user is
    * authenticating using a grace login and to provide the number of grace
@@ -58,8 +56,6 @@ public enum PasswordPolicyWarningType
   GRACE_LOGINS_REMAINING((byte) 0x81,
                      INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING.get());
 
-
-
   /** A lookup table for resolving a warning type from its BER type. */
   private static final Map<Byte, PasswordPolicyWarningType> TABLE = new HashMap<>();
   static
@@ -67,22 +63,13 @@ public enum PasswordPolicyWarningType
     for (PasswordPolicyWarningType value : PasswordPolicyWarningType.values())
     {
       TABLE.put(value.type, value);
-      TABLE.put(value.type, value);
     }
   }
 
-
-
-  /**
-   * The BER type to use for the associated element in the password policy
-   * control.
-   */
+  /** The BER type to use for the associated element in the password policy control. */
   private final byte type;
-
   /** The message ID for the description of this password policy error type. */
   private final LocalizableMessage description;
-
-
 
   /**
    * Creates a new instance of a password policy warning type with the provided
@@ -99,8 +86,6 @@ public enum PasswordPolicyWarningType
     this.description   = description;
   }
 
-
-
   /**
    * Retrieves the BER type to use for the associated element in the password
    * policy control.
@@ -112,8 +97,6 @@ public enum PasswordPolicyWarningType
   {
     return type;
   }
-
-
 
   /**
    * Retrieves the password policy warning type for the provided BER type.
@@ -129,8 +112,6 @@ public enum PasswordPolicyWarningType
     return TABLE.get(Byte.valueOf(type));
   }
 
-
-
   /**
    * Retrieves a string representation of this password policy warning type.
    *
@@ -139,7 +120,6 @@ public enum PasswordPolicyWarningType
   @Override
   public String toString()
   {
-    return description == null ? null : description.toString();
+    return description != null ? description.toString() : null;
   }
 }
-

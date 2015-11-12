@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.controls.PasswordPolicyErrorType.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.types.AccountStatusNotificationType.*;
@@ -56,7 +57,6 @@ import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandler
 import org.opends.server.api.*;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
@@ -82,13 +82,10 @@ public class PasswordModifyExtendedOperation
 
   /** The name of the attachment which will be used to store the fully resolved target entry. */
   public static final String AUTHZ_DN_ATTACHMENT;
-
   /** The name of the attachment which will be used to store the password attribute. */
   public static final String PWD_ATTRIBUTE_ATTACHMENT;
-
   /** The clear text password, which may not be present if the provided password was pre-encoded. */
   public static final String CLEAR_PWD_ATTACHMENT;
-
   /** A list containing the encoded passwords: plugins can perform changes atomically via CAS. */
   public static final String ENCODED_PWD_ATTACHMENT;
 
@@ -121,21 +118,6 @@ public class PasswordModifyExtendedOperation
     super(newHashSet(OID_LDAP_NOOP_OPENLDAP_ASSIGNED, OID_PASSWORD_POLICY_CONTROL));
   }
 
-
-  /**
-   * Initializes this extended operation handler based on the information in the provided configuration.
-   * It should also register itself with the Directory Server for the particular kinds of extended operations
-   * that it will process.
-   *
-   * @param   config      The configuration that contains the information
-   *                      to use to initialize this extended operation handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server configuration.
-   */
   @Override
   public void initializeExtendedOperationHandler(PasswordModifyExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
@@ -146,8 +128,7 @@ public class PasswordModifyExtendedOperation
       identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
       if (identityMapper == null)
       {
-        LocalizableMessage message = ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(identityMapperDN, config.dn());
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(identityMapperDN, config.dn()));
       }
     }
     catch (Exception e)
@@ -167,11 +148,6 @@ public class PasswordModifyExtendedOperation
     super.initializeExtendedOperationHandler(config);
   }
 
-
-  /**
-   * Performs any finalization that may be necessary for this extended operation handler.
-   * By default, no finalization is performed.
-   */
   @Override
   public void finalizeExtendedOperationHandler()
   {
@@ -180,12 +156,6 @@ public class PasswordModifyExtendedOperation
     super.finalizeExtendedOperationHandler();
   }
 
-
-  /**
-   * Processes the provided extended operation.
-   *
-   * @param  operation  The extended operation to be processed.
-   */
   @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
@@ -197,9 +167,6 @@ public class PasswordModifyExtendedOperation
     // Look at the set of controls included in the request, if there are any.
     boolean                   noOpRequested        = false;
     boolean                   pwPolicyRequested    = false;
-    int                       pwPolicyWarningValue = 0;
-    PasswordPolicyErrorType   pwPolicyErrorType    = null;
-    PasswordPolicyWarningType pwPolicyWarningType  = null;
     List<Control> controls = operation.getRequestControls();
     if (controls != null)
     {
@@ -252,8 +219,7 @@ public class PasswordModifyExtendedOperation
     // Get the entry for the user that issued the request.
     Entry requestorEntry = operation.getAuthorizationEntry();
 
-    // See if a user identity was provided.  If so, then try to resolve it to
-    // an actual user.
+    // See if a user identity was provided.  If so, then try to resolve it to an actual user.
     DN userDN = null;
     Entry userEntry = null;
     DNLock userLock = null;
@@ -425,12 +391,7 @@ public class PasswordModifyExtendedOperation
       // See if the account is locked.  If so, then reject the request.
       if (pwPolicyState.isDisabled())
       {
-        if (pwPolicyRequested)
-        {
-          pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
-          operation.addResponseControl(
-               new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-        }
+        addPwPolicyErrorResponseControl(operation, pwPolicyRequested, ACCOUNT_LOCKED);
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_DISABLED.get());
@@ -438,12 +399,7 @@ public class PasswordModifyExtendedOperation
       }
       else if (selfChange && pwPolicyState.isLocked())
       {
-        if (pwPolicyRequested)
-        {
-          pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
-          operation.addResponseControl(
-               new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-        }
+        addPwPolicyErrorResponseControl(operation, pwPolicyRequested, ACCOUNT_LOCKED);
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_LOCKED.get());
@@ -457,16 +413,10 @@ public class PasswordModifyExtendedOperation
         if (selfChange
             && pwPolicyState.getAuthenticationPolicy().isPasswordChangeRequiresCurrentPassword())
         {
+          addPwPolicyErrorResponseControl(operation, pwPolicyRequested, MUST_SUPPLY_OLD_PASSWORD);
+
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
           operation.appendErrorMessage(ERR_EXTOP_PASSMOD_REQUIRE_CURRENT_PW.get());
-
-          if (pwPolicyRequested)
-          {
-            pwPolicyErrorType = PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
-            operation.addResponseControl(
-                 new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-          }
-
           return;
         }
       }
@@ -506,12 +456,7 @@ public class PasswordModifyExtendedOperation
       if (selfChange
           && !pwPolicyState.getAuthenticationPolicy().isAllowUserPasswordChanges())
       {
-        if (pwPolicyRequested)
-        {
-          pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-          operation.addResponseControl(
-               new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-        }
+        addPwPolicyErrorResponseControl(operation, pwPolicyRequested, PASSWORD_MOD_NOT_ALLOWED);
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
@@ -530,12 +475,7 @@ public class PasswordModifyExtendedOperation
       // If it's a self-change request and the user is within the minimum age, then reject it.
       if (selfChange && pwPolicyState.isWithinMinimumAge())
       {
-        if (pwPolicyRequested)
-        {
-          pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
-          operation.addResponseControl(
-               new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-        }
+        addPwPolicyErrorResponseControl(operation, pwPolicyRequested, PASSWORD_TOO_YOUNG);
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
@@ -547,12 +487,7 @@ public class PasswordModifyExtendedOperation
           && pwPolicyState.isPasswordExpired()
           && !pwPolicyState.getAuthenticationPolicy().isAllowExpiredPasswordChanges())
       {
-        if (pwPolicyRequested)
-        {
-          pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_EXPIRED;
-          operation.addResponseControl(
-               new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-        }
+        addPwPolicyErrorResponseControl(operation, pwPolicyRequested, PasswordPolicyErrorType.PASSWORD_EXPIRED);
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
@@ -626,12 +561,7 @@ public class PasswordModifyExtendedOperation
           LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (!pwPolicyState.passwordIsAcceptable(operation, userEntry, newPassword, clearPasswords, invalidReason))
           {
-            if (pwPolicyRequested)
-            {
-              pwPolicyErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-              operation.addResponseControl(
-                  new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-            }
+            addPwPolicyErrorResponseControl(operation, pwPolicyRequested, INSUFFICIENT_PASSWORD_QUALITY);
 
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             operation.appendErrorMessage(ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(invalidReason));
@@ -825,34 +755,9 @@ public class PasswordModifyExtendedOperation
         operation.getClientConnection().setMustChangePassword(false);
       }
 
-      // If the password policy control was requested, then add the appropriate response control.
-      if (pwPolicyRequested)
-      {
-        operation.addResponseControl(
-             new PasswordPolicyResponseControl(pwPolicyWarningType, pwPolicyWarningValue, pwPolicyErrorType));
-      }
+      addPwPolicyErrorResponseControl(operation, pwPolicyRequested, null);
 
-      // Handle Account Status Notifications that may be needed.
-      // They are not handled by the backend for internal operations.
-      List<ByteString> currentPasswords = null;
-      if (oldPassword != null)
-      {
-        currentPasswords = newArrayList(oldPassword);
-      }
-      List<ByteString> newPasswords = newArrayList(newPassword);
-
-      Map<AccountStatusNotificationProperty, List<String>> notifProperties =
-          AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords);
-      if (selfChange)
-      {
-        pwPolicyState.generateAccountStatusNotification(
-            PASSWORD_CHANGED, userEntry, INFO_MODIFY_PASSWORD_CHANGED.get(), notifProperties);
-      }
-      else
-      {
-        pwPolicyState.generateAccountStatusNotification(
-            PASSWORD_RESET, userEntry, INFO_MODIFY_PASSWORD_RESET.get(), notifProperties);
-      }
+      generateAccountStatusNotification(oldPassword, newPassword, userEntry, pwPolicyState, selfChange);
     }
     finally
     {
@@ -860,6 +765,39 @@ public class PasswordModifyExtendedOperation
       {
         userLock.unlock();
       }
+    }
+  }
+
+  private void addPwPolicyErrorResponseControl(ExtendedOperation operation, boolean pwPolicyRequested,
+      PasswordPolicyErrorType pwPolicyErrorType)
+  {
+    if (pwPolicyRequested)
+    {
+      operation.addResponseControl(new PasswordPolicyResponseControl(null, 0, pwPolicyErrorType));
+    }
+  }
+
+  private void generateAccountStatusNotification(ByteString oldPassword, ByteString newPassword, Entry userEntry,
+      PasswordPolicyState pwPolicyState, boolean selfChange)
+  {
+    List<ByteString> currentPasswords = null;
+    if (oldPassword != null)
+    {
+      currentPasswords = newArrayList(oldPassword);
+    }
+    List<ByteString> newPasswords = newArrayList(newPassword);
+
+    Map<AccountStatusNotificationProperty, List<String>> notifProperties =
+        AccountStatusNotification.createProperties(pwPolicyState, false, -1, currentPasswords, newPasswords);
+    if (selfChange)
+    {
+      pwPolicyState.generateAccountStatusNotification(
+          PASSWORD_CHANGED, userEntry, INFO_MODIFY_PASSWORD_CHANGED.get(), notifProperties);
+    }
+    else
+    {
+      pwPolicyState.generateAccountStatusNotification(
+          PASSWORD_RESET, userEntry, INFO_MODIFY_PASSWORD_RESET.get(), notifProperties);
     }
   }
 
@@ -973,7 +911,6 @@ public class PasswordModifyExtendedOperation
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ExtendedOperationHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -982,19 +919,6 @@ public class PasswordModifyExtendedOperation
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable configuration for this component.
-   * If it does not, then detailed information about the problem(s) should be added to the provided list.
-   *
-   * @param  config          The configuration entry for which to make the determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about why the provided entry does not
-   *                              have an acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable configuration for this component,
-   *          or <CODE>false</CODE> if not.
-   */
   @Override
   public boolean isConfigurationChangeAcceptable(PasswordModifyExtendedOperationHandlerCfg config,
                                                  List<LocalizableMessage> unacceptableReasons)
@@ -1020,19 +944,6 @@ public class PasswordModifyExtendedOperation
     }
   }
 
-
-
-  /**
-   * Makes a best-effort attempt to apply the configuration contained in the provided entry.
-   * Information about the result of this processing should be added to the provided message list.
-   * Information should always be added to this list if a configuration change could not be applied.
-   * If detailed results are requested, then information about the changes applied successfully (and optionally
-   * about parameters that were not changed) should also be included.
-   *
-   * @param  config      The entry containing the new configuration to apply for this component.
-   *
-   * @return  Information about the result of the configuration update.
-   */
   @Override
   public ConfigChangeResult applyConfigurationChange(PasswordModifyExtendedOperationHandlerCfg config)
   {
@@ -1073,14 +984,12 @@ public class PasswordModifyExtendedOperation
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationOID()
   {
     return OID_PASSWORD_MODIFY_REQUEST;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
