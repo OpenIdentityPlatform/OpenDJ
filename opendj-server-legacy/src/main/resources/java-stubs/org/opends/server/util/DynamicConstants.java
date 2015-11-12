@@ -46,7 +46,7 @@ public final class DynamicConstants
   /**
    * The short product name for the Directory Server.
    */
-  public static String SHORT_NAME = "${shortProductName}";
+  public static String SHORT_NAME = "${product.name}";
 
   /**
    * The major version number for the Directory Server.

@@ -39,7 +39,6 @@
   <packaging>jar</packaging>
   <properties>
     <!-- Product information properties -->
-    <shortProductName>OpenDJ</shortProductName>
     <patchFixIds />
     <isDebugBuild>false</isDebugBuild>
     <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
