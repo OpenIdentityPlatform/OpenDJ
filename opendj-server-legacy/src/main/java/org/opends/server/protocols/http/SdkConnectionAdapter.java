@@ -323,9 +323,10 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    return enqueueOperation(new ExtendedOperationBasis(this.clientConnection, messageID, messageID,
-        to(request.getControls()), request.getOID(),
-        request.getValue()));
+    ExtendedOperation op = new ExtendedOperationBasis(
+        clientConnection, messageID, messageID, to(request.getControls()), request.getOID(), request.getValue());
+    op.setAuthorizationEntry(clientConnection.getAuthenticationInfo().getAuthorizationEntry());
+    return enqueueOperation(op);
   }
 
   /**

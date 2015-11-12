@@ -55,6 +55,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.services.context.Context;
+import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
@@ -230,7 +231,8 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
         clientConnection.setAuthUser(userName);
         try
         {
-          return doFilter(context, request, next, connection);
+          SecurityContext securityContext = new SecurityContext(context, userName, null);
+          return doFilter(securityContext, request, next, connection);
         }
         catch (Exception e)
         {

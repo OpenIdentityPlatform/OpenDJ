@@ -43,9 +43,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.CollectionResourceProvider;
+import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.RequestHandler;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.http.CrestHttp;
+import org.forgerock.json.resource.http.HttpContextFactory;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
@@ -63,7 +67,6 @@ class LdapHttpApplication implements HttpApplication
   /** Http Handler which sets a connection to an OpenDJ server. */
   private static class LdapHttpHandler implements Handler
   {
-
     private final Handler delegate;
 
     /**
@@ -75,7 +78,15 @@ class LdapHttpApplication implements HttpApplication
      */
     public LdapHttpHandler(final JsonValue configuration)
     {
-      delegate = CrestHttp.newHttpHandler(createRouter(configuration));
+      ConnectionFactory connectionFactory = Resources.newInternalConnectionFactory(createRouter(configuration));
+      delegate = CrestHttp.newHttpHandler(connectionFactory, new HttpContextFactory()
+      {
+        @Override
+        public Context createContext(Context parentContext, Request request) throws ResourceException
+        {
+          return parentContext;
+        }
+      });
     }
 
     private RequestHandler createRouter(final JsonValue configuration)
@@ -93,12 +104,12 @@ class LdapHttpApplication implements HttpApplication
       }
       return router;
     }
+
     @Override
     public final Promise<Response, NeverThrowsException> handle(final Context context, final Request request)
     {
       return delegate.handle(context, request);
     }
-
   }
 
   private HTTPConnectionHandler connectionHandler;

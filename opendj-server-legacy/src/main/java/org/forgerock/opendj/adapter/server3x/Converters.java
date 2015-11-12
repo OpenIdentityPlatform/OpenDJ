@@ -25,7 +25,11 @@
  */
 package org.forgerock.opendj.adapter.server3x;
 
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.IOException;
@@ -51,6 +55,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.GenericControl;
+import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -70,10 +75,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.util.ServerConstants;
 
-/**
- * Common utility methods.
- */
+/** Common utility methods. */
 public final class Converters {
 
     /** Prevent instantiation. */
@@ -691,16 +695,45 @@ public final class Converters {
         return getResponseResult(operation, newSDKResult(operation));
     }
 
-    private static Result newSDKResult(final Operation operation) {
+    private static Result newSDKResult(final Operation operation) throws LdapException {
         ResultCode rc = operation.getResultCode();
         if (operation instanceof BindOperation) {
             return Responses.newBindResult(rc);
         } else if (operation instanceof CompareOperation) {
             return Responses.newCompareResult(rc);
         } else if (operation instanceof ExtendedOperation) {
-            return Responses.newGenericExtendedResult(rc);
+            ExtendedOperation extendedOperation = (ExtendedOperation) operation;
+            switch (extendedOperation.getRequestOID()) {
+            case ServerConstants.OID_PASSWORD_MODIFY_REQUEST:
+                PasswordModifyExtendedResult result = Responses.newPasswordModifyExtendedResult(rc);
+                ByteString generatedPwd = getGeneratedPassword(extendedOperation);
+                if (generatedPwd != null) {
+                    result.setGeneratedPassword(generatedPwd.toByteArray());
+                }
+                return result;
+
+            default:
+                return Responses.newGenericExtendedResult(rc);
+            }
         }
         return Responses.newResult(rc);
+    }
+
+    private static ByteString getGeneratedPassword(ExtendedOperation op) throws LdapException {
+        // FIXME this code is duplicated with code in the SDK
+        // see PasswordModifyExtendedRequestImpl#ResultDecoder#decodeExtendedResult()
+        ByteString responseValue = op.getResponseValue();
+        if (responseValue != null) {
+            try {
+                ASN1Reader reader = ASN1.getReader(responseValue);
+                reader.readStartSequence();
+                return reader.readOctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD);
+            } catch (IOException e) {
+                throw LdapException.newLdapException(ResultCode.PROTOCOL_ERROR,
+                        ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST.get(getExceptionMessage(e)), e);
+            }
+        }
+        return null;
     }
 
     /**
