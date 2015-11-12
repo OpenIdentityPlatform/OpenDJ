@@ -2500,40 +2500,20 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          clear0(txn);
+          for (Tree tree : listTrees())
+          {
+            tree.delete(txn);
+            if (tree instanceof Index)
+            {
+              ((Index) tree).setTrusted(txn, true);
+            }
+          }
         }
       });
     }
     catch (Exception e)
     {
       throw new StorageRuntimeException(e);
-    }
-  }
-
-  private void clear0(WriteableTransaction txn) throws StorageRuntimeException
-  {
-    final List<Tree> allTrees = listTrees();
-    try
-    {
-      for (Tree tree : allTrees)
-      {
-        tree.delete(txn);
-      }
-    }
-    finally
-    {
-      for(Tree tree : allTrees)
-      {
-        tree.open(txn, true);
-      }
-
-      for (Tree tree : allTrees)
-      {
-        if (tree instanceof Index)
-        {
-          ((Index) tree).setTrusted(txn, true);
-        }
-      }
     }
   }
 

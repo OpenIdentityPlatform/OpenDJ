@@ -767,8 +767,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   public void testSubTreeSearchAgainstAnIndexWithUnrecognizedMatchingRule() throws Exception
   {
     SearchRequest request = newSearchRequest(testBaseDN, SearchScope.WHOLE_SUBTREE, "entryUUID=xxx*");
-    List<SearchResultEntry> result = runSearch(request, false);
-    assertThat(result).isEmpty();
+    assertThat(runSearch(request, false)).isEmpty();
   }
 
   @Test(dependsOnMethods = "testAdd")
@@ -865,7 +864,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     // Move the entire subtree to another name and move it back.
     DN prevDN = DN.valueOf("ou=People," + testBaseDN);
     DN newDN = DN.valueOf("ou=users," + testBaseDN);
-    Entry renameEntry = backend.getEntry(prevDN);
+    Entry renameEntry = backend.getEntry(prevDN).duplicate(false);
 
     renameEntry.setDN(newDN);
     backend.renameEntry(prevDN, renameEntry, null);
@@ -987,16 +986,12 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       public void run(WriteableTransaction txn) throws Exception
       {
         entryContainer.getDN2ID().delete(txn);
-        entryContainer.getDN2ID().open(txn, true);
         entryContainer.getDN2URI().delete(txn);
-        entryContainer.getDN2URI().open(txn, true);
         entryContainer.getID2ChildrenCount().delete(txn);
-        entryContainer.getID2ChildrenCount().open(txn, true);
         for(VLVIndex idx : entryContainer.getVLVIndexes())
         {
           idx.setTrusted(txn, false);
           idx.delete(txn);
-          idx.open(txn, true);
         }
         for(AttributeIndex attribute : entryContainer.getAttributeIndexes())
         {
@@ -1004,7 +999,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
           {
             idx.setTrusted(txn, false);
             idx.delete(txn);
-            idx.open(txn, true);
           }
         }
       }
