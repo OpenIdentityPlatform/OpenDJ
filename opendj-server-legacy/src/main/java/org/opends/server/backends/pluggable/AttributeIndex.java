@@ -76,7 +76,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Type of the index filter. */
-  static enum IndexFilterType
+  enum IndexFilterType
   {
     /** Equality. */
     EQUALITY(IndexType.EQUALITY),
@@ -93,7 +93,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
     private final IndexType indexType;
 
-    private IndexFilterType(IndexType indexType)
+    IndexFilterType(IndexType indexType)
     {
       this.indexType = indexType;
     }
