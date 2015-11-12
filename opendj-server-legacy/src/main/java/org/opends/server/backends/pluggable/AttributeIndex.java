@@ -672,41 +672,59 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       IndexFilterType indexFilterType, SearchFilter filter) throws DecodeException
   {
     MatchingRule rule;
-    Assertion assertion;
     switch (indexFilterType)
     {
     case EQUALITY:
       rule = filter.getAttributeType().getEqualityMatchingRule();
-      assertion = rule.getAssertion(filter.getAssertionValue());
-      return assertion.createIndexQuery(indexQueryFactory);
+      if (rule != null) {
+        Assertion assertion = rule.getAssertion(filter.getAssertionValue());
+        return assertion.createIndexQuery(indexQueryFactory);
+      }
+      break;
 
     case PRESENCE:
       return indexQueryFactory.createMatchAllQuery();
 
     case GREATER_OR_EQUAL:
       rule = filter.getAttributeType().getOrderingMatchingRule();
-      assertion = rule.getGreaterOrEqualAssertion(filter.getAssertionValue());
-      return assertion.createIndexQuery(indexQueryFactory);
+      if (rule != null) {
+        Assertion assertion = rule.getGreaterOrEqualAssertion(filter.getAssertionValue());
+        return assertion.createIndexQuery(indexQueryFactory);
+      }
+      break;
 
     case LESS_OR_EQUAL:
       rule = filter.getAttributeType().getOrderingMatchingRule();
-      assertion = rule.getLessOrEqualAssertion(filter.getAssertionValue());
-      return assertion.createIndexQuery(indexQueryFactory);
+      if (rule != null) {
+        Assertion assertion = rule.getLessOrEqualAssertion(filter.getAssertionValue());
+        return assertion.createIndexQuery(indexQueryFactory);
+      }
+      break;
 
     case SUBSTRING:
       rule = filter.getAttributeType().getSubstringMatchingRule();
-      assertion = rule.getSubstringAssertion(
-          filter.getSubInitialElement(), filter.getSubAnyElements(), filter.getSubFinalElement());
-      return assertion.createIndexQuery(indexQueryFactory);
+      if (rule != null) {
+        Assertion assertion = rule.getSubstringAssertion(filter.getSubInitialElement(),
+                                                         filter.getSubAnyElements(),
+                                                         filter.getSubFinalElement());
+        return assertion.createIndexQuery(indexQueryFactory);
+      }
+      break;
 
     case APPROXIMATE:
       rule = filter.getAttributeType().getApproximateMatchingRule();
-      assertion = rule.getAssertion(filter.getAssertionValue());
-      return assertion.createIndexQuery(indexQueryFactory);
+      if (rule != null) {
+        Assertion assertion = rule.getAssertion(filter.getAssertionValue());
+        return assertion.createIndexQuery(indexQueryFactory);
+      }
+      break;
 
     default:
-      return null;
+      break;
     }
+
+    // The filter is undefined.
+    return indexQueryFactory.createMatchAllQuery();
   }
 
   /**

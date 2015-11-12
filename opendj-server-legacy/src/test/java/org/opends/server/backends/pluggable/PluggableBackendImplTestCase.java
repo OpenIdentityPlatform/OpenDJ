@@ -763,6 +763,14 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     subTreeSearch(true);
   }
 
+  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  public void testSubTreeSearchAgainstAnIndexWithUnrecognizedMatchingRule() throws Exception
+  {
+    SearchRequest request = newSearchRequest(testBaseDN, SearchScope.WHOLE_SUBTREE, "entryUUID=xxx*");
+    List<SearchResultEntry> result = runSearch(request, false);
+    assertThat(result).isEmpty();
+  }
+
   @Test(dependsOnMethods = "testAdd")
   public void testSearchIsConsideredUnindexedBasedOnLookThroughLimit() throws DirectoryException {
     final int nbEntries = topEntries.size() + entries.size() + workEntries.size();
