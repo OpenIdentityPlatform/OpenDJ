@@ -44,12 +44,24 @@ final class GeneralizedTimeEqualityMatchingRuleImpl extends AbstractEqualityMatc
         super(EMR_GENERALIZED_TIME_NAME);
     }
 
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
-            throws DecodeException {
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
+        return normalizeAttributeValue(value);
+    }
+
+    static ByteString normalizeAttributeValue(final ByteSequence value) throws DecodeException {
         try {
-            return ByteString.valueOfLong(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
+            final GeneralizedTime time = GeneralizedTime.valueOf(value.toString());
+            return createNormalizedAttributeValue(time.getTimeInMillis());
         } catch (LocalizedIllegalArgumentException e) {
             throw DecodeException.error(e.getMessageObject());
         }
+    }
+
+    static ByteString createNormalizedAttributeValue(final long timeInMillis) {
+        /* Dates older than 1970 will be negative and will sort after dates more recent than 1970 due to twos
+         * complement encoding. Therefore mangle the time in order to ensure that it is positive for all valid values
+         * of a generalized time.
+         */
+        return ByteString.valueOfLong(timeInMillis - GeneralizedTime.MIN_GENERALIZED_TIME_MS);
     }
 }

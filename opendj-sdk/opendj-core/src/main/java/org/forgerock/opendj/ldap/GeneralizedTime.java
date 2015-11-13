@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2013 ForgeRock AS.
+ *      Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -58,6 +58,12 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
     /** UTC TimeZone is assumed to never change over JVM lifetime. */
     private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone.getTimeZone("UTC");
 
+    /** The smallest time representable using the generalized time syntax. */
+    public static final GeneralizedTime MIN_GENERALIZED_TIME = valueOf("00010101000000Z");
+
+    /** The smallest time in milli-seconds representable using the generalized time syntax. */
+    public static final long MIN_GENERALIZED_TIME_MS = MIN_GENERALIZED_TIME.getTimeInMillis();
+
     /**
      * Returns a generalized time whose value is the current time, using the
      * default time zone and locale.
@@ -80,7 +86,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      */
     public static GeneralizedTime valueOf(final Calendar calendar) {
         Reject.ifNull(calendar);
-        return new GeneralizedTime((Calendar) calendar.clone(), null, -1L, null);
+        return new GeneralizedTime((Calendar) calendar.clone(), null, Long.MIN_VALUE, null);
     }
 
     /**
@@ -95,7 +101,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      */
     public static GeneralizedTime valueOf(final Date date) {
         Reject.ifNull(date);
-        return new GeneralizedTime(null, (Date) date.clone(), -1L, null);
+        return new GeneralizedTime(null, (Date) date.clone(), Long.MIN_VALUE, null);
     }
 
     /**
@@ -108,7 +114,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      *         since the epoch.
      */
     public static GeneralizedTime valueOf(final long timeMS) {
-        Reject.ifFalse(timeMS >= 0, "timeMS must be >= 0");
+        Reject.ifTrue(timeMS < MIN_GENERALIZED_TIME_MS, "timeMS is too old to represent as a generalized time");
         return new GeneralizedTime(null, null, timeMS, null);
     }
 
@@ -548,7 +554,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             calendar.setTimeZone(tz);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, 0);
-            return new GeneralizedTime(calendar, null, -1L, value);
+            return new GeneralizedTime(calendar, null, Long.MIN_VALUE, value);
         } catch (final Exception e) {
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
@@ -665,7 +671,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             calendar.setTimeZone(timeZone);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, additionalMilliseconds);
-            return new GeneralizedTime(calendar, null, -1L, value);
+            return new GeneralizedTime(calendar, null, Long.MIN_VALUE, value);
         } catch (final Exception e) {
             // This should only happen if the provided date wasn't legal
             // (e.g., September 31).
@@ -841,7 +847,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      */
     public long getTimeInMillis() {
         long tmpTimeMS = timeMS;
-        if (tmpTimeMS == -1) {
+        if (tmpTimeMS == Long.MIN_VALUE) {
             if (date != null) {
                 tmpTimeMS = date.getTime();
             } else {

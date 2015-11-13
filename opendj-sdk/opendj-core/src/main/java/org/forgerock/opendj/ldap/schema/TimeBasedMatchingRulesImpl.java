@@ -34,7 +34,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
@@ -51,6 +50,7 @@ import org.forgerock.util.time.TimeService;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.DecodeException.*;
+import static org.forgerock.opendj.ldap.schema.GeneralizedTimeEqualityMatchingRuleImpl.createNormalizedAttributeValue;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /** Implementations of time-based matching rules. */
@@ -105,11 +105,7 @@ final class TimeBasedMatchingRulesImpl {
 
         @Override
         public final ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
-            try {
-                return ByteString.valueOfLong(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
-            } catch (final LocalizedIllegalArgumentException e) {
-                throw error(e.getMessageObject());
-            }
+            return GeneralizedTimeEqualityMatchingRuleImpl.normalizeAttributeValue(value);
         }
 
         /** Utility method to convert the provided integer and the provided byte representing a digit to an integer. */
@@ -216,7 +212,7 @@ final class TimeBasedMatchingRulesImpl {
 
             long delta = (second + minute * 60 + hour * 3600 + day * 24 * 3600 + week * 7 * 24 * 3600) * 1000;
             long now = timeService.now();
-            return ByteString.valueOfLong(signed ? now - delta : now + delta);
+            return createNormalizedAttributeValue(signed ? now - delta : now + delta);
         }
 
     }
@@ -491,7 +487,7 @@ final class TimeBasedMatchingRulesImpl {
             // Build the information from the attribute value.
             GregorianCalendar cal = new GregorianCalendar(TIME_ZONE_UTC);
             cal.setLenient(false);
-            cal.setTimeInMillis(((ByteString) attributeValue).toLong());
+            cal.setTimeInMillis(attributeValue.toByteString().toLong() + GeneralizedTime.MIN_GENERALIZED_TIME_MS);
             int second = cal.get(Calendar.SECOND);
             int minute = cal.get(Calendar.MINUTE);
             int hour = cal.get(Calendar.HOUR_OF_DAY);

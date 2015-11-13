@@ -108,6 +108,8 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
             { nowGT, "-2w", ConditionResult.FALSE },
             { nowGT, "-10m", ConditionResult.FALSE },
             { nowGT, "-1s", ConditionResult.FALSE },
+            // OPENDJ-2397 - dates before 1970 have negative ms.
+            {"19000101010203Z", "1d", ConditionResult.TRUE},
         };
     }
 

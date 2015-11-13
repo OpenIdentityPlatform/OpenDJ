@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -73,6 +74,9 @@ public class GeneralizedTimeOrderingMatchingRuleTest extends OrderingMatchingRul
             {"20060912180129.000Z", "20060912180130.001Z", -1},
             {"20060912180129.1Z",   "20060912180130.2Z",   -1},
             {"20060912180129.11Z",  "20060912180130.12Z",  -1},
+            // OPENDJ-2397 - dates before 1970 have negative ms.
+            {"19000101010203Z",     "20000101010203Z",     -1},
+            {"20000101010203Z",     "19000101010203Z",      1},
         };
     }
 
