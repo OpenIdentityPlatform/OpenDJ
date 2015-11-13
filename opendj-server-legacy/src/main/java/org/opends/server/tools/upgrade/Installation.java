@@ -169,4 +169,7 @@ final class Installation
    */
   static final String BACKUP = "backup";
 
+  /** The relative path to the lib directory. */
+  static final String LIB_RELATIVE_PATH = "lib";
+
 }

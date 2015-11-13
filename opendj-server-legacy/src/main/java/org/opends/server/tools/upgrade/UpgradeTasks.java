@@ -420,27 +420,26 @@ public final class UpgradeTasks
    *          The group of tasks to invoke if the user agrees.
    * @return An upgrade task which will only be invoked if the user confirms agreement.
    */
-  public static UpgradeTask requireConfirmation(final LocalizableMessage message, final UpgradeTask... tasks)
+  static UpgradeTask requireConfirmation(
+          final LocalizableMessage message, final int defaultResponse, final UpgradeTask... tasks)
   {
     return conditionalUpgradeTasks(new UpgradeCondition()
     {
       @Override
       public boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException
       {
-        return context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(message), YES) == YES;
+        return context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(message), defaultResponse) == YES;
       }
     }, tasks);
   }
 
-  /**
-   * Determines whether conditional tasks should be performed.
-   */
-  private static interface UpgradeCondition
+  /** Determines whether conditional tasks should be performed. */
+  interface UpgradeCondition
   {
     boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException;
   }
 
-  private static UpgradeTask conditionalUpgradeTasks(final UpgradeCondition condition, final UpgradeTask... tasks)
+  static UpgradeTask conditionalUpgradeTasks(final UpgradeCondition condition, final UpgradeTask... tasks)
   {
     return new AbstractUpgradeTask()
     {
@@ -937,12 +936,7 @@ public final class UpgradeTasks
       }
 
       private boolean isJeLibraryAvailable() {
-        try {
-          Class.forName("com.sleepycat.je.Environment");
-          return true;
-        } catch (Exception e) {
-          return false;
-        }
+        return isClassAvailable("com.sleepycat.je.Environment");
       }
 
       private String newName(final DN baseDN) {
@@ -960,6 +954,89 @@ public final class UpgradeTasks
         return builder.toString();
       }
     };
+  }
+
+  /**
+   * Creates backups of the local DB backends directories by renaming adding them a ".bak" suffix.
+   *  e.g "userRoot" would become "userRoot.bak"
+   */
+  static UpgradeTask renameLocalDBBackendDirectories()
+  {
+    return new AbstractUpgradeTask()
+    {
+      private boolean reimportRequired = false;
+
+      @Override
+      public void perform(UpgradeContext context) throws ClientException
+      {
+        try
+        {
+          Filter filter = Filter.equality("objectclass", "ds-cfg-local-db-backend");
+          SearchRequest findLocalDBBackends = Requests.newSearchRequest(DN.rootDN(), SearchScope.WHOLE_SUBTREE, filter);
+          try (final EntryReader jeBackends = searchConfigFile(findLocalDBBackends))
+          {
+            while (jeBackends.hasNext())
+            {
+              Upgrade.setHasPostUpgradeTask(true);
+              reimportRequired = true;
+
+              Entry jeBackend = jeBackends.readEntry();
+              File dbParent = UpgradeUtils.getFileForPath(jeBackend.parseAttribute("ds-cfg-db-directory").asString());
+              String id = jeBackend.parseAttribute("ds-cfg-backend-id").asString();
+
+              // Use canonical paths so that the progress message is more readable.
+              File dbDirectory = new File(dbParent, id).getCanonicalFile();
+              File dbDirectoryBackup = new File(dbParent, id + ".bak").getCanonicalFile();
+              if (dbDirectory.exists() && !dbDirectoryBackup.exists())
+              {
+                LocalizableMessage msg = INFO_UPGRADE_TASK_RENAME_JE_DB_DIR.get(dbDirectory, dbDirectoryBackup);
+                ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, msg, 0);
+                context.notifyProgress(pnc);
+                boolean renameSucceeded = dbDirectory.renameTo(dbDirectoryBackup);
+                context.notifyProgress(pnc.setProgress(renameSucceeded ? 100 : -1));
+              }
+            }
+          }
+        }
+        catch (Exception e)
+        {
+          logger.error(LocalizableMessage.raw(e.getMessage()));
+        }
+      }
+
+      @Override
+      public void postUpgrade(UpgradeContext context) throws ClientException
+      {
+        postponePostUpgrade(context);
+      }
+
+      @Override
+      public void postponePostUpgrade(UpgradeContext context) throws ClientException
+      {
+        if (reimportRequired)
+        {
+          context.notify(INFO_UPGRADE_TASK_RENAME_JE_DB_DIR_WARNING.get(), TextOutputCallback.WARNING);
+        }
+      }
+    };
+  }
+
+  static boolean isOEMVersion()
+  {
+    return !isClassAvailable("org.opends.server.backends.jeb.JEBackend");
+  }
+
+  private static boolean isClassAvailable(final String className)
+  {
+    try
+    {
+      Class.forName(className);
+      return true;
+    }
+    catch (Exception e)
+    {
+      return false;
+    }
   }
 
   /** This inner classes causes JE to be lazily linked and prevents runtime errors if JE is not in the classpath. */

@@ -91,6 +91,9 @@ final class UpgradeUtils
       configDirectory + File.separator + Installation.SNMP_PATH_RELATIVE
           + File.separator + Installation.SECURITY_PATH_RELATIVE);
 
+  /** The lib folder of the current installation. */
+  static final File libDirectory = new File(getInstallationPath(), Installation.LIB_RELATIVE_PATH);
+
   /** The bin folder of the current installation. */
   static final File binDirectory = new File(getInstallationPath(), Installation.UNIX_BINARIES_PATH_RELATIVE);
 
@@ -263,6 +266,12 @@ final class UpgradeUtils
       final String relativePath)
   {
     return getPath(new File(new File(parentPath), relativePath));
+  }
+
+  static File getFileForPath(String path)
+  {
+    final File f = new File(path);
+    return f.isAbsolute() ? f : new File(getInstancePath() + File.separator + path);
   }
 
   /**
