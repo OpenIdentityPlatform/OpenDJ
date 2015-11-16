@@ -69,13 +69,9 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
-import org.forgerock.opendj.server.config.client.LocalDBBackendCfgClient;
-import org.forgerock.opendj.server.config.client.LocalDBVLVIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
-import org.forgerock.opendj.server.config.meta.LocalDBVLVIndexCfgDefn;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -91,7 +87,6 @@ import org.opends.guitools.controlpanel.ui.renderer.VLVSortOrderRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AttributeType;
@@ -1106,17 +1101,9 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     final LDAPProfile ldapProfile = LDAPProfile.getInstance();
     try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
     {
-      final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
-      if (backend instanceof LocalDBBackendCfgClient)
-      {
-        updateLocalDBVLVIndexOffline((LocalDBBackendCfgClient) backend, vlvIndexName, indexToModify, baseDN, filter,
-            searchScope, sortOrder);
-      }
-      else
-      {
-        updateVLVBackendIndexOnline((PluggableBackendCfgClient) backend, vlvIndexName, indexToModify, baseDN, filter,
-            searchScope, sortOrder);
-      }
+      final PluggableBackendCfgClient backend =
+          (PluggableBackendCfgClient) context.getRootConfiguration().getBackend(backendName);
+      updateVLVBackendIndexOnline(backend, vlvIndexName, indexToModify, baseDN, filter, searchScope, sortOrder);
     }
     catch (final Exception e)
     {
@@ -1156,39 +1143,4 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     index.commit();
     Utilities.throwFirstFrom(exceptions);
   }
-
-  @RemoveOnceLocalDBBackendIsPluggable
-  private void updateLocalDBVLVIndexOffline(final LocalDBBackendCfgClient backend, final String vlvIndexName,
-      final VLVIndexDescriptor indexToModify, final DN baseDN, final String filter, final SearchScope searchScope,
-      final List<VLVSortOrder> sortOrder) throws Exception
-  {
-    final boolean isCreation = indexToModify == null;
-    final List<PropertyException> exceptions = new ArrayList<>();
-    final LocalDBVLVIndexCfgClient index =
-        isCreation ? backend.createLocalDBVLVIndex(LocalDBVLVIndexCfgDefn.getInstance(), vlvIndexName, exceptions)
-                   : backend.getLocalDBVLVIndex(vlvIndexName);
-
-    if (isCreation || !indexToModify.getBaseDN().equals(baseDN))
-    {
-      index.setBaseDN(baseDN);
-    }
-
-    if (isCreation || !indexToModify.getFilter().equals(filter))
-    {
-      index.setFilter(filter);
-    }
-
-    if (isCreation || !indexToModify.getScope().equals(searchScope))
-    {
-      index.setScope(Converters.from(VLVIndexDescriptor.getLocalDBVLVIndexScope(searchScope)));
-    }
-
-    if (isCreation || !indexToModify.getSortOrder().equals(sortOrder))
-    {
-      index.setSortOrder(getSortOrderStringValue(sortOrder));
-    }
-    index.commit();
-    Utilities.throwFirstFrom(exceptions);
-  }
-
 }

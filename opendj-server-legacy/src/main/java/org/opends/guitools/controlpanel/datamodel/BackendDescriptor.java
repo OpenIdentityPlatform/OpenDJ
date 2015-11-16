@@ -32,7 +32,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.admin.ads.ADSContext;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 
 /** The class that describes the backend configuration. */
 public class BackendDescriptor
@@ -53,9 +52,6 @@ public class BackendDescriptor
   {
     /** The backend is a backup backend. */
     BACKUP,
-    /** The backend is a local backend. */
-    @RemoveOnceLocalDBBackendIsPluggable
-    LOCAL_DB,
     /** The backend is a LDIF backend. */
     LDIF,
     /** The backend is a memory backend. */

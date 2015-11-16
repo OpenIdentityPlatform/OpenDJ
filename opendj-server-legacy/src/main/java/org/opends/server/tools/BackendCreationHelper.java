@@ -26,7 +26,6 @@
 package org.opends.server.tools;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,23 +37,16 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
-import org.forgerock.opendj.server.config.client.LocalDBBackendCfgClient;
-import org.forgerock.opendj.server.config.client.LocalDBIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
-import org.forgerock.opendj.server.config.meta.LocalDBIndexCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 
-/**
- * Utility class which can be used by tools to create a new backend with default indexes.
- */
+/** Utility class which can be used by tools to create a new backend with default indexes. */
 public class BackendCreationHelper
 {
   /** Describes an attribute index which should be created during installation. */
@@ -162,14 +154,7 @@ public class BackendCreationHelper
       backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
       backendCfgClient.commit();
 
-      if (backendType instanceof LocalDBBackendCfgDefn)
-      {
-        addJEDefaultIndexes((LocalDBBackendCfgClient) backendCfgClient);
-      }
-      else
-      {
-        addBackendDefaultIndexes((PluggableBackendCfgClient) backendCfgClient);
-      }
+      addBackendDefaultIndexes((PluggableBackendCfgClient) backendCfgClient);
   }
 
   private static void addBackendDefaultIndexes(PluggableBackendCfgClient backendCfgClient) throws Exception
@@ -190,25 +175,4 @@ public class BackendCreationHelper
       index.commit();
     }
   }
-
-  @RemoveOnceLocalDBBackendIsPluggable
-  private static void addJEDefaultIndexes(final LocalDBBackendCfgClient jeBackendCfgClient) throws Exception
-  {
-    for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
-    {
-      final LocalDBIndexCfgClient jeIndex =
-          jeBackendCfgClient.createLocalDBIndex(LocalDBIndexCfgDefn.getInstance(), defaultIndex.name, null);
-
-      final List<LocalDBIndexCfgDefn.IndexType> indexTypes = new ArrayList<>();
-      indexTypes.add(LocalDBIndexCfgDefn.IndexType.EQUALITY);
-      if (defaultIndex.shouldCreateSubstringIndex)
-      {
-        indexTypes.add(LocalDBIndexCfgDefn.IndexType.SUBSTRING);
-      }
-      jeIndex.setIndexType(indexTypes);
-
-      jeIndex.commit();
-    }
-  }
-
 }

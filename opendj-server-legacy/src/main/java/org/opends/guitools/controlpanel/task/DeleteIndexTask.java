@@ -51,10 +51,8 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.BackendCfgClient;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
@@ -295,14 +293,7 @@ public class DeleteIndexTask extends Task
     final RootCfgClient root = mCtx.getRootConfiguration();
     final BackendCfgClient backend = root.getBackend(index.getBackend().getBackendID());
 
-    if (backend instanceof LocalDBBackendCfgClient)
-    {
-      removeLocalDBIndex((LocalDBBackendCfgClient) backend, index);
-    }
-    else
-    {
-      removeBackendIndex((PluggableBackendCfgClient) backend, index);
-    }
+    removeBackendIndex((PluggableBackendCfgClient) backend, index);
     backend.commit();
   }
 
@@ -317,21 +308,6 @@ public class DeleteIndexTask extends Task
     else
     {
       backend.removeBackendIndex(indexName);
-    }
-  }
-
-  @RemoveOnceLocalDBBackendIsPluggable
-  private void removeLocalDBIndex(final LocalDBBackendCfgClient backend, final AbstractIndexDescriptor index)
-      throws OpenDsException
-  {
-    final String indexName = index.getName();
-    if (isVLVIndex(index))
-    {
-      backend.removeLocalDBVLVIndex(indexName);
-    }
-    else
-    {
-      backend.removeLocalDBIndex(indexName);
     }
   }
 
@@ -405,11 +381,11 @@ public class DeleteIndexTask extends Task
     final List<String> args = new ArrayList<>();
     if (isVLVIndex(index))
     {
-      args.add("delete-local-db-vlv-index");
+      args.add("delete-backend-vlv-index");
     }
     else
     {
-      args.add("delete-local-db-index");
+      args.add("delete-backend-index");
     }
     args.add("--backend-name");
     args.add(index.getBackend().getBackendID());

@@ -90,15 +90,11 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.BackendCfgClient;
 import org.opends.server.admin.std.client.BackendIndexCfgClient;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
-import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.BackendCfgDefn;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.BackendCreationHelper;
@@ -1048,34 +1044,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
       final String backendName = getBackendName();
       displayCreateAdditionalIndexesDsConfigCmdLine();
       final RootCfgClient root = getRootConfigurationClient();
-      if (isLocalDBBackend())
-      {
-        addJEDefaultIndexes((LocalDBBackendCfgClient) root.getBackend(backendName));
-      }
-      else
-      {
-        addBackendDefaultIndexes((PluggableBackendCfgClient) root.getBackend(backendName));
-      }
+      addBackendDefaultIndexes((PluggableBackendCfgClient) root.getBackend(backendName));
       displayCreateAdditionalIndexesDone();
-    }
-
-    @RemoveOnceLocalDBBackendIsPluggable
-    private void addJEDefaultIndexes(final LocalDBBackendCfgClient jeBackendCfgClient) throws AdminException
-    {
-      for (DefaultIndex defaultIndex : BackendCreationHelper.DEFAULT_INDEXES)
-      {
-        final LocalDBIndexCfgClient jeIndex =
-            jeBackendCfgClient.createLocalDBIndex(LocalDBIndexCfgDefn.getInstance(), defaultIndex.getName(), null);
-
-        final List<LocalDBIndexCfgDefn.IndexType> indexTypes = new LinkedList<>();
-        indexTypes.add(LocalDBIndexCfgDefn.IndexType.EQUALITY);
-        if (defaultIndex.shouldCreateSubstringIndex())
-        {
-          indexTypes.add(LocalDBIndexCfgDefn.IndexType.SUBSTRING);
-        }
-        jeIndex.setIndexType(indexTypes);
-        jeIndex.commit();
-      }
     }
 
     private void addBackendDefaultIndexes(PluggableBackendCfgClient backendCfgClient) throws AdminException
@@ -1171,7 +1141,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     private List<String> getCreateIndexCommandLineArguments(final DefaultIndex defaultIndex)
     {
       final List<String> args = new ArrayList<>();
-      args.add(isLocalDBBackend() ? "create-local-db-index" : "create-backend-index");
+      args.add("create-backend-index");
       args.add("--backend-name");
       args.add(getBackendName());
       args.add("--type");
@@ -1203,13 +1173,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
               Utilities.getProgressDone(ColorAndFontConstants.progressFont) + "<br><br>");
         }
       });
-    }
-
-    @RemoveOnceLocalDBBackendIsPluggable
-    private boolean isLocalDBBackend()
-    {
-      return getSelectedBackendType().getBackend()
-          instanceof org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
     }
 
     /**

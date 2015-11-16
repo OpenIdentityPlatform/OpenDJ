@@ -47,8 +47,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
-import org.opends.guitools.controlpanel.datamodel.
- DBEnvironmentMonitoringTableModel;
+import org.opends.guitools.controlpanel.datamodel.DBEnvironmentMonitoringTableModel;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.ServerConstants;
@@ -73,16 +72,14 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
   private MonitoringAttributesViewPanel<String> operationViewPanel;
   private GenericDialog operationViewDlg;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public DBEnvironmentMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return table;
@@ -114,6 +111,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
       Utilities.createButton(INFO_CTRL_PANEL_OPERATIONS_VIEW.get());
     showOperations.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         operationViewClicked();
@@ -173,8 +171,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     {
       for (BackendDescriptor backend : server.getBackends())
       {
-        if (backend.getType() == BackendDescriptor.Type.LOCAL_DB
-            || backend.getType() == BackendDescriptor.Type.PLUGGABLE)
+        if (backend.getType() == BackendDescriptor.Type.PLUGGABLE)
         {
           dbBackends.add(backend);
           if (updateAttributes)

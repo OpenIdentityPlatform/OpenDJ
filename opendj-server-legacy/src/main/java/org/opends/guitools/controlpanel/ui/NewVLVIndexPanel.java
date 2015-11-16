@@ -59,12 +59,8 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.BackendCfgClient;
 import org.opends.server.admin.std.client.BackendVLVIndexCfgClient;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
-import org.opends.server.admin.std.client.LocalDBVLVIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
@@ -305,12 +301,6 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
     {
       final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       final BackendCfgClient backend = mCtx.getRootConfiguration().getBackend(backendName.getText());
-
-      if (backend instanceof LocalDBBackendCfgClient)
-      {
-        createLocalDBVLVIndexOnline((LocalDBBackendCfgClient) backend);
-        return;
-      }
       createBackendVLVIndexOnline((PluggableBackendCfgClient) backend);
     }
 
@@ -324,21 +314,6 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       index.setSortOrder(sortOrderStringValue);
       index.setBaseDN(DN.valueOf(getBaseDN()));
       index.setScope(VLVIndexDescriptor.getBackendVLVIndexScope(getScope()));
-      index.commit();
-      Utilities.throwFirstFrom(exceptions);
-    }
-
-    @RemoveOnceLocalDBBackendIsPluggable
-    private void createLocalDBVLVIndexOnline(final LocalDBBackendCfgClient backend) throws OpenDsException
-    {
-      final List<PropertyException> exceptions = new ArrayList<>();
-      final LocalDBVLVIndexCfgClient index =
-          backend.createLocalDBVLVIndex(LocalDBVLVIndexCfgDefn.getInstance(), name.getText(), exceptions);
-
-      index.setFilter(filterValue);
-      index.setSortOrder(sortOrderStringValue);
-      index.setBaseDN(DN.valueOf(getBaseDN()));
-      index.setScope(VLVIndexDescriptor.getLocalDBVLVIndexScope(getScope()));
       index.commit();
       Utilities.throwFirstFrom(exceptions);
     }
@@ -408,7 +383,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
     private List<String> getDSConfigCommandLineArguments()
     {
       final List<String> args = new ArrayList<>();
-      args.add("create-local-db-vlv-index");
+      args.add("create-backend-vlv-index");
       args.add("--backend-name");
       args.add(backendID);
       args.add("--type");
@@ -424,7 +399,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       args.add("filter:" + filterValue);
 
       args.add("--set");
-      args.add("scope:" + VLVIndexDescriptor.getLocalDBVLVIndexScope(searchScope));
+      args.add("scope:" + VLVIndexDescriptor.getBackendVLVIndexScope(searchScope));
 
       args.add("--set");
       args.add("sort-order:" + sortOrderStringValue);

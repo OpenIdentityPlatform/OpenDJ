@@ -26,6 +26,9 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.guitools.controlpanel.ui.ControlCenterMainPane.*;
+import static org.opends.messages.AdminToolMessages.*;
+
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -106,9 +109,6 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.guitools.controlpanel.ui.ControlCenterMainPane.*;
-import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * An abstract class that contains a number of methods that are shared by all
@@ -1434,8 +1434,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       Set<String> dns = new HashSet<>();
       for (BackendDescriptor backend : desc.getBackends())
       {
-        if (backend.getType() == BackendDescriptor.Type.LOCAL_DB
-            || backend.getType() == BackendDescriptor.Type.PLUGGABLE)
+        if (backend.getType() == BackendDescriptor.Type.PLUGGABLE)
         {
           for (BaseDNDescriptor baseDN : backend.getBaseDns())
           {

@@ -57,7 +57,9 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.backends.MemoryBackend;
-import org.opends.server.backends.jeb.*;
+import org.opends.server.backends.pluggable.BackendImpl;
+import org.opends.server.backends.pluggable.EntryContainer;
+import org.opends.server.backends.pluggable.RootContainer;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -865,22 +867,6 @@ public final class TestCaseUtils {
         for (EntryContainer ec : rootContainer.getEntryContainers())
         {
           ec.clear();
-          assertEquals(ec.getHighestEntryID().longValue(), 0L);
-        }
-        rootContainer.resetNextEntryID();
-        return true;
-      }
-    }
-    else if (b instanceof org.opends.server.backends.pluggable.BackendImpl)
-    {
-      final org.opends.server.backends.pluggable.BackendImpl backend =
-          (org.opends.server.backends.pluggable.BackendImpl) b;
-      final org.opends.server.backends.pluggable.RootContainer rootContainer = backend.getRootContainer();
-      if (rootContainer != null)
-      {
-        for (org.opends.server.backends.pluggable.EntryContainer ec : rootContainer.getEntryContainers())
-        {
-          ec.clear();
           // assertEquals(ec.getHighestEntryID().longValue(), 0L);
         }
         rootContainer.resetNextEntryID();
@@ -888,36 +874,6 @@ public final class TestCaseUtils {
       }
     }
     return false;
-  }
-
-  /**
-   * This was used to track down which test was trashing the indexes. We left it
-   * here because it might be useful again.
-   */
-  public static void printUntrustedIndexes()
-  {
-    try {
-      BackendImpl backend = (BackendImpl)DirectoryServer.getBackend("userRoot");
-      if (backend == null) {
-        return;
-      }
-      RootContainer rootContainer = backend.getRootContainer();
-      for (EntryContainer ec : rootContainer.getEntryContainers())
-      {
-        List<DatabaseContainer> databases = new ArrayList<>();
-        ec.listDatabases(databases);
-        for (DatabaseContainer dbContainer: databases) {
-          if (dbContainer instanceof Index) {
-            Index index = (Index)dbContainer;
-            if (!index.isTrusted()) {
-              originalSystemErr.println("ERROR:  The index " + index + " is no longer trusted.");
-            }
-          }
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace(originalSystemErr);
-    }
   }
 
   /**
@@ -931,19 +887,14 @@ public final class TestCaseUtils {
    */
   public static File createTemporaryDirectory(String prefix)
       throws IOException {
-    File tempDirectory = File.createTempFile(prefix, null);
-
-    if (!tempDirectory.delete()) {
-      throw new IOException("Unable to delete temporary file: "
-          + tempDirectory);
+    File tmpDir = File.createTempFile(prefix, null);
+    if (!tmpDir.delete()) {
+      throw new IOException("Unable to delete temporary file: " + tmpDir);
     }
-
-    if (!tempDirectory.mkdir()) {
-      throw new IOException("Unable to create temporary directory: "
-          + tempDirectory);
+    if (!tmpDir.mkdir()) {
+      throw new IOException("Unable to create temporary directory: " + tmpDir);
     }
-
-    return tempDirectory;
+    return tmpDir;
   }
 
   /**

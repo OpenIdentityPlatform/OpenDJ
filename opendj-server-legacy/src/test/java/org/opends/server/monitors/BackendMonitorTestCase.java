@@ -22,36 +22,26 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.monitors;
-
-
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 
-
-
-/**
- * This class defines a set of tests for the
- * org.opends.server.monitors.DatabaseEnvironmentMonitor class.
- */
-public class DatabaseEnvironmentMonitorTestCase
-       extends GenericMonitorTestCase
+/** This class defines a set of tests for the {@link BackendMonitor} class. */
+public class BackendMonitorTestCase extends GenericMonitorTestCase
 {
   /**
    * Creates a new instance of this test case class.
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  public DatabaseEnvironmentMonitorTestCase()
-         throws Exception
+  public BackendMonitorTestCase() throws Exception
   {
     super(null);
   }
-
-
 
   /**
    * Retrieves an initialized instance of the associated monitor provider.
@@ -60,14 +50,14 @@ public class DatabaseEnvironmentMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Override
   protected MonitorProvider getMonitorInstance()
          throws Exception
   {
-    String monitorName = "userroot database environment";
+    String monitorName = "userroot backend";
     MonitorProvider<? extends MonitorProviderCfg> provider =
          DirectoryServer.getMonitorProvider(monitorName);
     provider.initializeMonitorProvider(null);
     return provider;
   }
 }
-

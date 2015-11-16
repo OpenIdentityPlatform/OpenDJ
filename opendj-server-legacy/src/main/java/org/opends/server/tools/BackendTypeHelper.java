@@ -36,11 +36,9 @@ import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.meta.LocalDBBackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 
 /**
@@ -130,10 +128,6 @@ public class BackendTypeHelper
         ? extends org.opends.server.admin.std.server.BackendCfg> getLegacyConfigurationFrameworkBackend()
     {
       Utilities.initializeLegacyConfigurationFramework();
-      if (isLocalDBBackend())
-      {
-        return org.opends.server.admin.std.meta.LocalDBBackendCfgDefn.getInstance();
-      }
 
       for (org.opends.server.admin.AbstractManagedObjectDefinition<?, ?> oldConfigBackend :
         org.opends.server.admin.std.meta.PluggableBackendCfgDefn.getInstance().getAllChildren())
@@ -148,12 +142,6 @@ public class BackendTypeHelper
       throw new IllegalArgumentException("Impossible to find the equivalent backend type in old config framework: "
           + getBackend().getName());
     }
-
-    @RemoveOnceLocalDBBackendIsPluggable
-    private boolean isLocalDBBackend()
-    {
-      return getBackend().getName().equals(LocalDBBackendCfgDefn.getInstance().getName());
-    }
   }
 
   private final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
@@ -165,8 +153,6 @@ public class BackendTypeHelper
     Utilities.initializeConfigurationFramework();
 
     backends = new LinkedList<>();
-
-    addLocalDBBackendIfSupported();
 
     for (AbstractManagedObjectDefinition<?, ?> backendType : PluggableBackendCfgDefn.getInstance().getAllChildren())
     {
@@ -185,13 +171,6 @@ public class BackendTypeHelper
                 (ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>) backendType);
       }
     }
-  }
-
-  @RemoveOnceLocalDBBackendIsPluggable
-  private void addLocalDBBackendIfSupported()
-  {
-    addToBackendListIfClassExists(
-            "org.opends.server.backends.jeb.BackendImpl", LocalDBBackendCfgDefn.getInstance());
   }
 
   private void addToBackendListIfClassExists(final String backendClassName,

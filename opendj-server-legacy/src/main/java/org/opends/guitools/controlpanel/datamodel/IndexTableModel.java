@@ -43,7 +43,7 @@ public class IndexTableModel extends AbstractIndexTableModel
 
   private static final long serialVersionUID = 6979651281772979301L;
 
-  /** {@inheritDoc} */
+  @Override
   protected String[] getColumnNames()
   {
     return new String[] {
@@ -63,6 +63,7 @@ public class IndexTableModel extends AbstractIndexTableModel
    * are equivalent in terms of sorting and -1 if the second descriptor must
    * be put before the first descriptor.
    */
+  @Override
   public int compare(AbstractIndexDescriptor index1,
       AbstractIndexDescriptor index2)
   {
@@ -91,7 +92,7 @@ public class IndexTableModel extends AbstractIndexTableModel
     return result;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String[] getLine(AbstractIndexDescriptor index)
   {
     IndexDescriptor i = (IndexDescriptor)index;
@@ -144,37 +145,35 @@ public class IndexTableModel extends AbstractIndexTableModel
     StringBuilder sb = new StringBuilder();
     for (IndexTypeDescriptor type : index.getTypes())
     {
-      LocalizableMessage v;
-      switch (type)
-      {
-      case SUBSTRING:
-        v = INFO_CTRL_PANEL_INDEX_SUBSTRING.get();
-        break;
-      case ORDERING:
-        v = INFO_CTRL_PANEL_INDEX_ORDERING.get();
-        break;
-      case PRESENCE:
-        v = INFO_CTRL_PANEL_INDEX_PRESENCE.get();
-        break;
-      case EQUALITY:
-        v = INFO_CTRL_PANEL_INDEX_EQUALITY.get();
-        break;
-      case APPROXIMATE:
-        v = INFO_CTRL_PANEL_INDEX_APPROXIMATE.get();
-        break;
-      default:
-        throw new RuntimeException("Unknown index type: "+type);
-      }
       if (sb.length() > 0)
       {
         sb.append(", ");
       }
-      sb.append(v);
+      sb.append(getIndexName(type));
     }
     if (sb.length() == 0)
     {
       sb.append(INFO_NOT_APPLICABLE_LABEL.get());
     }
     return sb.toString();
+  }
+
+  private LocalizableMessage getIndexName(IndexTypeDescriptor type)
+  {
+    switch (type)
+    {
+    case SUBSTRING:
+      return INFO_CTRL_PANEL_INDEX_SUBSTRING.get();
+    case ORDERING:
+      return INFO_CTRL_PANEL_INDEX_ORDERING.get();
+    case PRESENCE:
+      return INFO_CTRL_PANEL_INDEX_PRESENCE.get();
+    case EQUALITY:
+      return INFO_CTRL_PANEL_INDEX_EQUALITY.get();
+    case APPROXIMATE:
+      return INFO_CTRL_PANEL_INDEX_APPROXIMATE.get();
+    default:
+      throw new RuntimeException("Unknown index type: "+type);
+    }
   }
 }

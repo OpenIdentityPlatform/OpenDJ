@@ -422,9 +422,9 @@ dn: ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
+objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 ds-cfg-backend-id: unindexedRoot
 ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: dc=unindexed,dc=jeb
@@ -440,9 +440,9 @@ dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
+objectClass: ds-cfg-je-backend
 ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 ds-cfg-backend-id: userRoot
 ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: dc=example,dc=com
@@ -481,14 +481,14 @@ cn: Index
 dn: ds-cfg-attribute=aci,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: aci
 ds-cfg-index-type: presence
 
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: cn
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
@@ -496,28 +496,28 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-sync-hist
 ds-cfg-index-type: ordering
 
 dn: ds-cfg-attribute=ds-sync-conflict,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-sync-conflict
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=entryUUID,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: entryUUID
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: givenName
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
@@ -525,7 +525,7 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mail
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
@@ -533,21 +533,21 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: member
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=objectClass,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: objectClass
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: sn
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
@@ -555,7 +555,7 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: telephoneNumber
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
@@ -563,14 +563,14 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uid
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uniqueMember,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uniqueMember
 ds-cfg-index-type: equality
 
@@ -583,77 +583,77 @@ cn: VLV Index
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: oncRpcNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: bootParameter
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: employeeNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-subject-dn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-fingerprint
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: manager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: seeAlso
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mobile
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: facsimileTelephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: pager
 ds-cfg-index-type: equality
 
@@ -666,7 +666,7 @@ cn: Index
 dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mail
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -677,119 +677,119 @@ ds-cfg-index-type: approximate
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: oncRpcNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: bootParameter
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: employeeNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-subject-dn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-fingerprint
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: manager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: seeAlso
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mobile
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: facsimileTelephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: pager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: cn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: sn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: member
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uniuqeMember,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uniqueMember
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: telephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uid
 ds-cfg-index-type: equality
 
@@ -797,9 +797,9 @@ dn: ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
+objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 ds-cfg-backend-id: rebuildRoot
 ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: dc=rebuild, dc=jeb
@@ -820,7 +820,7 @@ cn: VLV Index
 dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-vlv-index
+objectClass: ds-cfg-backend-vlv-index
 ds-cfg-name: testvlvindex
 ds-cfg-base-dn: dc=rebuild, dc=jeb
 ds-cfg-scope: whole-subtree
@@ -836,7 +836,7 @@ cn: Index
 dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mail
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -847,119 +847,119 @@ ds-cfg-index-type: approximate
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: oncRpcNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: bootParameter
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: employeeNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-subject-dn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-fingerprint
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: manager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: seeAlso
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mobile
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: facsimileTelephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: pager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uid
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: cn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: sn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: member
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uniuqeMember,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uniqueMember
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: telephoneNumber
 ds-cfg-index-type: equality
 
@@ -967,9 +967,9 @@ dn: ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
+objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 ds-cfg-backend-id: importRoot
 ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: dc=importtest, dc=com
@@ -991,7 +991,7 @@ cn: VLV Index
 dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-vlv-index
+objectClass: ds-cfg-backend-vlv-index
 ds-cfg-name: testvlvindex
 ds-cfg-base-dn: dc=com
 ds-cfg-scope: whole-subtree
@@ -1007,126 +1007,126 @@ cn: Index
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: oncRpcNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: bootParameter
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: employeeNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mail
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-subject-dn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-fingerprint
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: manager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: seeAlso
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mobile
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: facsimileTelephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: pager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: cn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: sn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: member
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uniuqeMember,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uniqueMember
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: telephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uid
 ds-cfg-index-type: equality
 
@@ -1134,9 +1134,9 @@ dn: ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
+objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 ds-cfg-backend-id: verifyRoot
 ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: dc=verify, dc=jeb
@@ -1157,7 +1157,7 @@ cn: VLV Index
 dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-vlv-index
+objectClass: ds-cfg-backend-vlv-index
 ds-cfg-name: testvlvindex
 ds-cfg-base-dn: dc=verify, dc=jeb
 ds-cfg-scope: whole-subtree
@@ -1173,7 +1173,7 @@ cn: Index
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: cn
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1182,7 +1182,7 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: givenName
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1191,7 +1191,7 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mail
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1201,21 +1201,21 @@ ds-cfg-index-type: ordering
 dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: member
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uniqueMember,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uniqueMember
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: sn
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1224,7 +1224,7 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: telephoneNumber
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1233,98 +1233,98 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uid
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-sync-hist
 ds-cfg-index-type: ordering
 
 dn: ds-cfg-attribute=entryuuid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: entryuuid
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: oncRpcNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: bootParameter
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: employeeNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-subject-dn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-fingerprint
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: manager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: seeAlso
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mobile
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: facsimileTelephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: pager
 ds-cfg-index-type: equality
 
@@ -1332,9 +1332,9 @@ dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
-objectClass: ds-cfg-local-db-backend
+objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
-ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 ds-cfg-backend-id: indexRoot
 ds-cfg-writability-mode: enabled
 ds-cfg-base-dn: dc=test,dc=com
@@ -1357,13 +1357,12 @@ cn: VLV Index
 dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-vlv-index
+objectClass: ds-cfg-backend-vlv-index
 ds-cfg-name: testvlvindex
 ds-cfg-base-dn: dc=vlvtest,dc=com
 ds-cfg-scope: whole-subtree
 ds-cfg-filter: (objectClass=*)
 ds-cfg-sort-order: givenname -sn +uid
-ds-cfg-max-block-size: 7
 
 dn: cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
@@ -1374,7 +1373,7 @@ cn: Index
 dn: ds-cfg-attribute=name,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: name
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1386,7 +1385,7 @@ ds-cfg-index-entry-limit: 4000
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: cn
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1397,7 +1396,7 @@ ds-cfg-index-type: approximate
 dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: employeeNumber
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1407,7 +1406,7 @@ ds-cfg-index-type: ordering
 dn: ds-cfg-attribute=title,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: title
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1417,7 +1416,7 @@ ds-cfg-index-type: ordering
 dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: givenName
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1427,7 +1426,7 @@ ds-cfg-index-type: ordering
 dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mail
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1439,21 +1438,21 @@ ds-cfg-index-entry-limit: 1
 dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: member
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=uniqueMember,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uniqueMember
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: sn
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1462,7 +1461,7 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: telephoneNumber
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
@@ -1471,77 +1470,77 @@ ds-cfg-index-type: substring
 dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: uid
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: oncRpcNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: bootParameter
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-subject-dn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: ds-certificate-fingerprint
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: manager
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: seeAlso
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: mobile
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: facsimileTelephoneNumber
 ds-cfg-index-type: equality
 
 dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
-objectClass: ds-cfg-local-db-index
+objectClass: ds-cfg-backend-index
 ds-cfg-attribute: pager
 ds-cfg-index-type: equality
 

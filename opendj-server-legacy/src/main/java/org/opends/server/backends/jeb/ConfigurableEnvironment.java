@@ -26,9 +26,20 @@
  */
 package org.opends.server.backends.jeb;
 
+import static com.sleepycat.je.EnvironmentConfig.*;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,10 +52,8 @@ import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
@@ -53,11 +62,6 @@ import org.opends.server.types.DN;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
-
-import static com.sleepycat.je.EnvironmentConfig.*;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
 
 /** This class maps JE properties to configuration attributes. */
 public class ConfigurableEnvironment
@@ -191,14 +195,6 @@ public class ConfigurableEnvironment
 
   /** A map of JE property names to the corresponding configuration attribute. */
   private static HashMap<String, String> attrMap = new HashMap<>();
-  /**
-   * A map of configuration attribute names to the corresponding configuration object getter method.
-   */
-  @RemoveOnceLocalDBBackendIsPluggable
-  private static Map<String, Method> localDbMethodMap = new HashMap<>();
-  /** A map of configuration attribute names to the corresponding configuration PropertyDefinition. */
-  @RemoveOnceLocalDBBackendIsPluggable
-  private static Map<String, PropertyDefinition<?>> localDbDefnMap = new HashMap<>();
 
   /**
    * A map of configuration attribute names to the corresponding configuration object getter method.
@@ -245,26 +241,8 @@ public class ConfigurableEnvironment
     String baseName = attrName.substring(7);
     String methodBaseName = propNametoCamlCase(baseName);
 
-    registerLocalDbProp(attrName, methodBaseName);
     registerJebProp(attrName, methodBaseName);
     attrMap.put(propertyName, attrName);
-  }
-
-  @RemoveOnceLocalDBBackendIsPluggable
-  private static void registerLocalDbProp(String attrName, String methodBaseName) throws Exception
-  {
-    Class<LocalDBBackendCfg> configClass = LocalDBBackendCfg.class;
-    LocalDBBackendCfgDefn defn = LocalDBBackendCfgDefn.getInstance();
-    Class<? extends LocalDBBackendCfgDefn> defClass = defn.getClass();
-
-    String propName = "get" + methodBaseName + "PropertyDefinition";
-    PropertyDefinition<?> propDefn = (PropertyDefinition<?>) defClass.getMethod(propName).invoke(defn);
-
-    String methodPrefix = propDefn instanceof BooleanPropertyDefinition ? "is" : "get";
-    String methodName = methodPrefix + methodBaseName;
-
-    localDbDefnMap.put(attrName, propDefn);
-    localDbMethodMap.put(attrName, configClass.getMethod(methodName));
   }
 
   private static void registerJebProp(String attrName, String methodBaseName) throws Exception
@@ -303,9 +281,8 @@ public class ConfigurableEnvironment
   {
     try
     {
-      final boolean isLocalDb = cfg instanceof LocalDBBackendCfg;
-      PropertyDefinition<?> propDefn = (isLocalDb ? localDbDefnMap : jebDefnMap).get(attrName);
-      Method method = (isLocalDb ? localDbMethodMap : jebMethodMap).get(attrName);
+      PropertyDefinition<?> propDefn = jebDefnMap.get(attrName);
+      Method method = jebMethodMap.get(attrName);
 
       if (propDefn instanceof DurationPropertyDefinition)
       {
@@ -443,30 +420,6 @@ public class ConfigurableEnvironment
    * entry.
    */
   public static EnvironmentConfig parseConfigEntry(JEBackendCfg cfg) throws ConfigException
-  {
-    validateDbCacheSize(cfg.getDBCacheSize());
-
-    EnvironmentConfig envConfig = defaultConfig();
-    setDurability(envConfig, cfg.isDBTxnNoSync(), cfg.isDBTxnWriteNoSync());
-    setJEProperties(cfg, envConfig, cfg.dn().rdn().getAttributeValue(0));
-    setDBLoggingLevel(envConfig, cfg.getDBLoggingLevel(), cfg.dn(), cfg.isDBLoggingFileHandlerOn());
-
-    // See if there are any native JE properties specified in the config
-    // and if so try to parse, evaluate and set them.
-    return setJEProperties(envConfig, cfg.getJEProperty(), attrMap);
-  }
-
-  /**
-   * Parse a configuration associated with a JE environment and create an
-   * environment config from it.
-   *
-   * @param cfg The configuration to be parsed.
-   * @return An environment config instance corresponding to the config entry.
-   * @throws ConfigException If there is an error in the provided configuration
-   * entry.
-   */
-  @RemoveOnceLocalDBBackendIsPluggable
-  public static EnvironmentConfig parseConfigEntry(LocalDBBackendCfg cfg) throws ConfigException
   {
     validateDbCacheSize(cfg.getDBCacheSize());
 

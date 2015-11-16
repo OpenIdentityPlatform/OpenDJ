@@ -2164,12 +2164,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.371
   EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.372
-  NAME 'ds-cfg-max-block-size'
-  EQUALITY integerMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.373
   NAME 'ds-cfg-state-update-failure-policy'
   EQUALITY caseIgnoreMatch
@@ -3883,54 +3877,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.5
          ds-cfg-enabled $
          ds-cfg-writability-mode )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
-  NAME 'ds-cfg-local-db-backend'
-  SUP ds-cfg-backend
-  STRUCTURAL
-  MUST ds-cfg-db-directory
-  MAY ( ds-cfg-index-entry-limit $
-        ds-cfg-preload-time-limit $
-        ds-cfg-import-thread-count $
-        ds-cfg-import-queue-size $
-        ds-cfg-entries-compressed $
-        ds-cfg-db-directory-permissions $
-        ds-cfg-db-cache-percent $
-        ds-cfg-db-cache-size $
-        ds-cfg-db-txn-no-sync $
-        ds-cfg-db-txn-write-no-sync $
-        ds-cfg-db-run-cleaner $
-        ds-cfg-db-cleaner-min-utilization $
-        ds-cfg-db-evictor-lru-only $
-        ds-cfg-db-evictor-core-threads $
-        ds-cfg-db-evictor-max-threads $
-        ds-cfg-db-evictor-keep-alive $
-        ds-cfg-db-evictor-nodes-per-scan $
-        ds-cfg-db-log-file-max $
-        ds-cfg-db-log-filecache-size $
-        ds-cfg-db-logging-file-handler-on $
-        ds-cfg-db-logging-level $
-        ds-cfg-db-checkpointer-bytes-interval $
-        ds-cfg-db-checkpointer-wakeup-interval $
-        ds-cfg-db-num-lock-tables $
-        ds-cfg-db-num-cleaner-threads $
-        ds-cfg-compact-encoding $
-        ds-cfg-je-property $
-        ds-cfg-disk-full-threshold $
-        ds-cfg-disk-low-threshold $
-        ds-cfg-index-filter-analyzer-enabled $
-        ds-cfg-index-filter-analyzer-max-filters $
-        ds-cfg-subordinate-indexes-enabled )
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.7
-  NAME 'ds-cfg-local-db-index'
-  SUP top
-  STRUCTURAL
-  MUST ( ds-cfg-attribute $
-         ds-cfg-index-type )
-  MAY ( ds-cfg-index-entry-limit $
-              ds-cfg-substring-length $
-              ds-cfg-index-extensible-matching-rule )
-  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.8
   NAME 'ds-cfg-schema-backend'
   SUP ds-cfg-backend
@@ -5046,17 +4992,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.113
   SUP ds-cfg-attribute-syntax
   STRUCTURAL
   MAY ds-cfg-strip-syntax-min-upper-bound
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.114
-  NAME 'ds-cfg-local-db-vlv-index'
-  SUP top
-  STRUCTURAL
-  MUST ( ds-cfg-base-dn $
-         ds-cfg-scope $
-         ds-cfg-filter $
-         ds-cfg-sort-order $
-         ds-cfg-name )
-  MAY ds-cfg-max-block-size
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.115
   NAME 'ds-cfg-smtp-alert-handler'

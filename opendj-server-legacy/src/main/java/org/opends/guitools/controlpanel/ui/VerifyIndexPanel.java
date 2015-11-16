@@ -98,7 +98,6 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -109,14 +108,12 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     info.addIndexModifiedListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void indexModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
@@ -242,21 +239,18 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     listener.itemStateChanged(null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VERIFY_INDEXES_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -305,7 +299,6 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     });
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -315,7 +308,6 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     super.cancelClicked();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -388,12 +380,10 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   protected boolean displayBackend(BackendDescriptor backend)
   {
-    return !backend.isConfigBackend() && (backend.getType() == BackendDescriptor.Type.LOCAL_DB
-                                          || backend.getType() == BackendDescriptor.Type.PLUGGABLE);
+    return !backend.isConfigBackend() && backend.getType() == BackendDescriptor.Type.PLUGGABLE;
   }
 
   private String getSelectedBaseDN()
@@ -479,21 +469,18 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       this.baseDN = getSelectedBaseDN();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Type getType()
     {
       return Type.VERIFY_INDEXES;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_VERIFY_INDEX_TASK_DESCRIPTION.get(baseDN);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -517,7 +504,6 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       return canLaunch;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -538,7 +524,6 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected List<String> getCommandLineArguments()
     {
@@ -577,7 +562,6 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
       return index.getName();
     }
 
-    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {

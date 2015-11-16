@@ -32,8 +32,6 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.types.DN;
 
 /**
@@ -201,34 +199,6 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
   }
 
   /**
-   * Returns the equivalent {@code LocalDBVLVIndexCfgDefn.Scope} to the provided
-   * search scope.
-   *
-   * @param scope
-   *          The {@code SearchScope} to convert.
-   * @return the equivalent {@code LocalDBVLVIndexCfgDefn.Scope} to the provided
-   *         search scope.
-   */
-  @RemoveOnceLocalDBBackendIsPluggable
-  public static LocalDBVLVIndexCfgDefn.Scope getLocalDBVLVIndexScope(final SearchScope scope)
-  {
-    switch (scope.asEnum())
-    {
-    case BASE_OBJECT:
-      return LocalDBVLVIndexCfgDefn.Scope.BASE_OBJECT;
-    case SINGLE_LEVEL:
-      return LocalDBVLVIndexCfgDefn.Scope.SINGLE_LEVEL;
-    case SUBORDINATES:
-      return LocalDBVLVIndexCfgDefn.Scope.SUBORDINATE_SUBTREE;
-    case WHOLE_SUBTREE:
-      return LocalDBVLVIndexCfgDefn.Scope.WHOLE_SUBTREE;
-    case UNKNOWN:
-    default:
-      throw new IllegalArgumentException("Unsupported SearchScope: " + scope);
-    }
-  }
-
-  /**
    * Convert the provided {@code BackendVLVIndexCfgDefn.Scope} to
    * {@code SearchScope}.
    *
@@ -253,32 +223,4 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
       throw new IllegalArgumentException("Unsupported BackendVLVIndexCfgDefn.Scope: " + scope);
     }
   }
-
-  /**
-   * Convert the provided {@code LocalDBVLVIndexCfgDefn.Scope} to
-   * {@code SearchScope}.
-   *
-   * @param scope
-   *          The scope to convert.
-   * @return the provided {@code LocalDBVLVIndexCfgDefn.Scope} to
-   *         {@code SearchScope}
-   */
-  @RemoveOnceLocalDBBackendIsPluggable
-  public static SearchScope toSearchScope(final LocalDBVLVIndexCfgDefn.Scope scope)
-  {
-    switch (scope)
-    {
-    case BASE_OBJECT:
-      return SearchScope.BASE_OBJECT;
-    case SINGLE_LEVEL:
-      return SearchScope.SINGLE_LEVEL;
-    case SUBORDINATE_SUBTREE:
-      return SearchScope.SUBORDINATES;
-    case WHOLE_SUBTREE:
-      return SearchScope.WHOLE_SUBTREE;
-    default:
-      throw new IllegalArgumentException("Unsupported LocalDBVLVIndexCfgDefn.Scope: " + scope);
-    }
-  }
-
 }

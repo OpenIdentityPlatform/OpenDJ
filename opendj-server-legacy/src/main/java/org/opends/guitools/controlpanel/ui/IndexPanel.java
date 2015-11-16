@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -56,7 +55,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
@@ -73,10 +71,7 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.BackendCfgClient;
 import org.opends.server.admin.std.client.BackendIndexCfgClient;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
-import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -89,7 +84,6 @@ import org.opends.server.types.OpenDsException;
 public class IndexPanel extends AbstractIndexPanel
 {
   private static final long serialVersionUID = 1439500626486823366L;
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private IndexDescriptor index;
   private ScrollPaneBorderListener scrollListener;
@@ -98,9 +92,7 @@ public class IndexPanel extends AbstractIndexPanel
 
   private ModifyIndexTask newModifyTask;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public IndexPanel()
   {
     super();
@@ -156,7 +148,7 @@ public class IndexPanel extends AbstractIndexPanel
     buttonPanel.add(deleteIndex, gbc);
     deleteIndex.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteIndex();
@@ -172,6 +164,7 @@ public class IndexPanel extends AbstractIndexPanel
     buttonPanel.add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         saveIndex(false);
@@ -180,16 +173,19 @@ public class IndexPanel extends AbstractIndexPanel
 
     entryLimit.getDocument().addDocumentListener(new DocumentListener()
     {
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         checkSaveButton();
       }
 
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         checkSaveButton();
@@ -198,6 +194,7 @@ public class IndexPanel extends AbstractIndexPanel
 
     ActionListener listener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         checkSaveButton();
@@ -209,19 +206,19 @@ public class IndexPanel extends AbstractIndexPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_INDEX_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return entryLimit;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -231,6 +228,7 @@ public class IndexPanel extends AbstractIndexPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         checkSaveButton();
@@ -239,7 +237,7 @@ public class IndexPanel extends AbstractIndexPanel
     });
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
@@ -429,9 +427,9 @@ public class IndexPanel extends AbstractIndexPanel
 
     JComponent[] comps = {entryLimit, lType, typesPanel, lEntryLimit};
 
-    for (int i = 0; i < comps.length; i++)
+    for (JComponent comp : comps)
     {
-      comps[i].setVisible(!index.isDatabaseIndex());
+      comp.setVisible(!index.isDatabaseIndex());
     }
 
     AttributeType attr = index.getAttributeType();
@@ -516,26 +514,26 @@ public class IndexPanel extends AbstractIndexPanel
       indexToModify = index;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.MODIFY_INDEX;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_MODIFY_INDEX_TASK_DESCRIPTION.get(attributeName,
           backendName);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
@@ -582,6 +580,7 @@ public class IndexPanel extends AbstractIndexPanel
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               StringBuilder sb = new StringBuilder();
@@ -597,6 +596,7 @@ public class IndexPanel extends AbstractIndexPanel
 
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -617,6 +617,7 @@ public class IndexPanel extends AbstractIndexPanel
 
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -646,11 +647,6 @@ public class IndexPanel extends AbstractIndexPanel
     {
       final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       final BackendCfgClient backend = mCtx.getRootConfiguration().getBackend(backendName);
-      if (backend instanceof LocalDBBackendCfgClient)
-      {
-        modifyLocalDBIndexOnline((LocalDBBackendCfgClient) backend);
-        return;
-      }
       modifyBackendIndexOnline((PluggableBackendCfgClient) backend);
     }
 
@@ -669,29 +665,13 @@ public class IndexPanel extends AbstractIndexPanel
       index.commit();
     }
 
-    @RemoveOnceLocalDBBackendIsPluggable
-    private void modifyLocalDBIndexOnline(final LocalDBBackendCfgClient backend) throws OpenDsException
-    {
-      final LocalDBIndexCfgClient index = backend.getLocalDBIndex(attributeName);
-      if (!indexTypes.equals(indexToModify.getTypes()))
-      {
-        index.setIndexType(IndexTypeDescriptor.toLocalDBIndexTypes(indexTypes));
-      }
-
-      if (entryLimitValue != index.getIndexEntryLimit())
-      {
-        index.setIndexEntryLimit(entryLimitValue);
-      }
-      index.commit();
-    }
-
-    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<>();
@@ -716,7 +696,7 @@ public class IndexPanel extends AbstractIndexPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -740,7 +720,7 @@ public class IndexPanel extends AbstractIndexPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void postOperation()
     {
       if (lastException == null && state == State.FINISHED_SUCCESSFULLY)
@@ -752,7 +732,7 @@ public class IndexPanel extends AbstractIndexPanel
     private List<String> getDSConfigCommandLineArguments()
     {
       List<String> args = new ArrayList<>();
-      args.add("set-local-db-index-prop");
+      args.add("set-backend-index-prop");
       args.add("--backend-name");
       args.add(backendName);
 
@@ -787,7 +767,7 @@ public class IndexPanel extends AbstractIndexPanel
         for (IndexTypeDescriptor newType : toAdd)
         {
           args.add("--add");
-          args.add("index-type:" + newType.toLocalDBIndexType());
+          args.add("index-type:" + newType.toBackendIndexType());
         }
       }
       if (entryLimitValue != indexToModify.getEntryLimit())

@@ -63,12 +63,8 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.BackendCfgClient;
 import org.opends.server.admin.std.client.BackendIndexCfgClient;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
-import org.opends.server.admin.std.client.LocalDBIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -479,11 +475,6 @@ public class NewIndexPanel extends AbstractIndexPanel
     {
       final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
       final BackendCfgClient backend = mCtx.getRootConfiguration().getBackend(backendName.getText());
-      if (backend instanceof LocalDBBackendCfgClient)
-      {
-        createLocalDBIndexOnline((LocalDBBackendCfgClient) backend);
-        return;
-      }
       createBackendIndexOnline((PluggableBackendCfgClient) backend);
     }
 
@@ -493,21 +484,6 @@ public class NewIndexPanel extends AbstractIndexPanel
       final BackendIndexCfgClient index = backend.createBackendIndex(
           BackendIndexCfgDefn.getInstance(), attributeName, exceptions);
       index.setIndexType(IndexTypeDescriptor.toBackendIndexTypes(indexTypes));
-      if (entryLimitValue != index.getIndexEntryLimit())
-      {
-        index.setIndexEntryLimit(entryLimitValue);
-      }
-      index.commit();
-      Utilities.throwFirstFrom(exceptions);
-    }
-
-    @RemoveOnceLocalDBBackendIsPluggable
-    private void createLocalDBIndexOnline(final LocalDBBackendCfgClient backend) throws OpenDsException
-    {
-      final List<PropertyException> exceptions = new ArrayList<>();
-      final LocalDBIndexCfgClient index = backend.createLocalDBIndex(
-          LocalDBIndexCfgDefn.getInstance(), attributeName, exceptions);
-      index.setIndexType(IndexTypeDescriptor.toLocalDBIndexTypes(indexTypes));
       if (entryLimitValue != index.getIndexEntryLimit())
       {
         index.setIndexEntryLimit(entryLimitValue);
@@ -578,7 +554,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     private ArrayList<String> getDSConfigCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<>();
-      args.add("create-local-db-index");
+      args.add("create-backend-index");
       args.add("--backend-name");
       args.add(backendName.getText());
       args.add("--type");
@@ -590,7 +566,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       for (IndexTypeDescriptor type : indexTypes)
       {
         args.add("--set");
-        args.add("index-type:" + type.toLocalDBIndexType());
+        args.add("index-type:" + type.toBackendIndexType());
       }
       args.add("--set");
       args.add("index-entry-limit:" + entryLimitValue);

@@ -60,9 +60,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
-import org.forgerock.opendj.server.config.meta.LocalDBVLVIndexCfgDefn;
 import org.forgerock.util.Reject;
-import org.opends.server.backends.jeb.RemoveOnceLocalDBBackendIsPluggable;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.ExtendedOperation;
@@ -783,32 +781,4 @@ public final class Converters {
         throw new IllegalArgumentException("Impossible to convert the unknown scope: " + scope);
       }
     }
-
-    /**
-     * Converts from OpenDJ server
-     * {@link org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope} to
-     * {@link org.forgerock.opendj.server.config.meta.LocalDBVLVIndexCfgDefn.Scope}.
-     *
-     * @param scope
-     *          The scope value.
-     * @return The converted scope value.
-     */
-    @RemoveOnceLocalDBBackendIsPluggable
-    public static LocalDBVLVIndexCfgDefn.Scope from(
-        final org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope scope) {
-      Reject.ifNull(scope, "Provided scope to convert is null");
-      switch (scope) {
-      case BASE_OBJECT:
-        return LocalDBVLVIndexCfgDefn.Scope.BASE_OBJECT;
-      case SINGLE_LEVEL:
-        return LocalDBVLVIndexCfgDefn.Scope.SINGLE_LEVEL;
-      case SUBORDINATE_SUBTREE:
-        return LocalDBVLVIndexCfgDefn.Scope.SUBORDINATE_SUBTREE;
-      case WHOLE_SUBTREE:
-        return LocalDBVLVIndexCfgDefn.Scope.WHOLE_SUBTREE;
-      default:
-        throw new IllegalArgumentException("Impossible to convert the unknown scope: " + scope);
-      }
-    }
-
 }

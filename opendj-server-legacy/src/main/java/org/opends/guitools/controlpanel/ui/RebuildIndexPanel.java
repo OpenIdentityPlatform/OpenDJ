@@ -87,14 +87,12 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void indexModified(final IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void backendIndexesModified(final IndexModifiedEvent ev)
   {
@@ -168,7 +166,6 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setInfo(final ControlPanelInfo info)
   {
@@ -179,21 +176,18 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     info.addIndexModifiedListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_REBUILD_INDEXES_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(final ConfigurationChangeEvent ev)
   {
@@ -269,7 +263,6 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -278,7 +271,6 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     super.cancelClicked();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -346,12 +338,10 @@ public class RebuildIndexPanel extends StatusGenericPanel implements IndexModifi
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   protected boolean displayBackend(final BackendDescriptor backend)
   {
-    return !backend.isConfigBackend() && (backend.getType() == BackendDescriptor.Type.LOCAL_DB
-                                           || backend.getType() == BackendDescriptor.Type.PLUGGABLE);
+    return !backend.isConfigBackend() && backend.getType() == BackendDescriptor.Type.PLUGGABLE;
   }
 
   private String getSelectedBaseDN()

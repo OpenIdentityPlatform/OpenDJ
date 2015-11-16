@@ -25,15 +25,14 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.*;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.util.Utils.*;
-
-import static com.forgerock.opendj.cli.CliMessages.*;
 
 import java.io.PrintStream;
 
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.backends.jeb.DBTest;
 import org.opends.server.tools.dsreplication.ReplicationCliMain;
 import org.opends.server.tools.makeldif.MakeLDIF;
 import org.opends.server.tools.status.StatusCli;
@@ -107,12 +106,6 @@ public class ArgumentParserToolsTestCase extends ToolsTestCase
   public void testCreateRCScript(final String[] args)
   {
     assertToolFailsWithUsage(CreateRCScript.main(args, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArgs")
-  public void testDBTest(final String[] args)
-  {
-    assertToolFailsWithUsage(DBTest.main(args, false, outStream, errStream));
   }
 
   @Test(dataProvider = "invalidArgs")

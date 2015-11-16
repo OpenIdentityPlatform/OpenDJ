@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -58,7 +57,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
+import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
 import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
@@ -129,19 +128,19 @@ public class DeleteBaseDNAndBackendTask extends Task
     this.backendsToDelete.addAll(backendsToDelete);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return !baseDNsToDelete.isEmpty() ? Type.DELETE_BASEDN : Type.DELETE_BACKEND;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     StringBuilder sb = new StringBuilder();
@@ -198,7 +197,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     return LocalizableMessage.raw(sb.toString());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -251,6 +250,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               getProgressDialog().appendProgressHtml("<br><br>");
@@ -268,6 +268,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               List<String> args =
@@ -281,6 +282,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         }
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             if (baseDNs.size() == 1)
@@ -318,6 +320,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         final int fNumberDeleted = numberDeleted;
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -334,6 +337,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               getProgressDialog().appendProgressHtml("<br><br>");
@@ -349,6 +353,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               List<String> args =
@@ -362,6 +367,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         }
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -383,6 +389,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         final int fNumberDeleted = numberDeleted;
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -468,8 +475,8 @@ public class DeleteBaseDNAndBackendTask extends Task
     ManagementContext mCtx = LDAPManagementContext.createFromContext(
         JNDIDirContextAdaptor.adapt(ctx));
     RootCfgClient root = mCtx.getRootConfiguration();
-    LocalDBBackendCfgClient backend =
-      (LocalDBBackendCfgClient)root.getBackend(
+    PluggableBackendCfgClient backend =
+      (PluggableBackendCfgClient)root.getBackend(
           baseDNs.iterator().next().getBackend().getBackendID());
     SortedSet<DN> oldBaseDNs = backend.getBaseDN();
     SortedSet<DN> newBaseDNs = new TreeSet<>(oldBaseDNs);
@@ -513,13 +520,13 @@ public class DeleteBaseDNAndBackendTask extends Task
     root.commit();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<>();
@@ -539,7 +546,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -693,6 +700,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               List<String> args =
@@ -707,6 +715,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         }
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().appendProgressHtml(
@@ -718,6 +727,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       }
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(
