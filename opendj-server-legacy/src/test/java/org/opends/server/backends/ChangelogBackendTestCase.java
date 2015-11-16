@@ -198,7 +198,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     ReplServerFakeConfiguration config = new ReplServerFakeConfiguration(
           replicationServerPort,
           "ChangelogBackendTestDB",
-          replicationDbImplementation,
           0,         // purge delay
           71,        // server id
           0,         // queue size

@@ -26,14 +26,14 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Tests that we can dynamically modify the configuration of replicationServer.
@@ -55,9 +55,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       int[] ports = TestCaseUtils.findFreePorts(2);
 
       // instantiate a Replication server using the first port number.
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(
-            ports[0], null, replicationDbImplementation, 0, 1, 0, 0, null);
+      ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(ports[0], null, 0, 1, 0, 0, null);
       replicationServer = new ReplicationServer(conf);
 
       // Most of the configuration change are trivial to apply.
@@ -65,10 +63,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       // build a new ReplServerFakeConfiguration with a new server port
       // apply this new configuration and check that it is now possible to
       // connect to this new portnumber.
-      ReplServerFakeConfiguration newconf =
-        new ReplServerFakeConfiguration(
-            ports[1], null, replicationDbImplementation, 0, 1, 0, 0, null);
-
+      ReplServerFakeConfiguration newconf = new ReplServerFakeConfiguration(ports[1], null, 0, 1, 0, 0, null);
       replicationServer.applyConfigurationChange(newconf);
 
       ReplicationBroker broker = openReplicationSession(

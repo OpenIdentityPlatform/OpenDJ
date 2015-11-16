@@ -26,6 +26,9 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -33,16 +36,12 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Some real connections from clients that should end up with a server with
@@ -297,14 +296,11 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
 
     String dir = "groupIdHandshakeTest" + serverId + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, replicationDbImplementation, 0, serverId, 0,
-            100, replServers, groupId, 1000, 5000);
+        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100, replServers, groupId, 1000, 5000);
     return new ReplicationServer(conf);
   }
 
-  /**
-   * Creates a new ReplicationDomain.
-   */
+  /** Creates a new ReplicationDomain. */
   private LDAPReplicationDomain createReplicationDomain(int serverId,
       int groupId, String testCase) throws Exception
   {
@@ -506,8 +502,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       otherReplServers.add("localhost:" + rs2Port);
       String dir = "groupIdHandshakeTest" + RS3_ID + testCase + "Db";
       ReplServerFakeConfiguration rsConfWithNewGid =
-        new ReplServerFakeConfiguration(rs3Port, dir, replicationDbImplementation, 0, RS3_ID, 0,
-        100, otherReplServers, 1, 1000, 5000);
+          new ReplServerFakeConfiguration(rs3Port, dir, 0, RS3_ID, 0, 100, otherReplServers, 1, 1000, 5000);
       rs3.applyConfigurationChange(rsConfWithNewGid);
 
       /**
@@ -517,8 +512,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       otherReplServers.add("localhost:" + rs2Port);
       otherReplServers.add("localhost:" + rs3Port);
       dir = "groupIdHandshakeTest" + RS1_ID + testCase + "Db";
-      rsConfWithNewGid = new ReplServerFakeConfiguration(rs1Port, dir, ReplicationDBImplementation.JE, 0,
-        RS1_ID, 0, 100, otherReplServers, 3, 1000, 5000);
+      rsConfWithNewGid =
+          new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID, 0, 100, otherReplServers, 3, 1000, 5000);
       rs1.applyConfigurationChange(rsConfWithNewGid);
       checkConnection(30, DS1_ID, RS3_ID,
         "Change GID of RS3 to 1 and RS1 to 3, DS1 should reconnect to RS3 with GID=1");

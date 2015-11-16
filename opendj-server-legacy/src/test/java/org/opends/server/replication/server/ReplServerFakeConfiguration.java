@@ -33,7 +33,6 @@ import java.util.TreeSet;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.types.DN;
 
@@ -70,19 +69,12 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /** The monitoring publisher period. */
   private long monitoringPeriod = 3000;
   private boolean computeChangenumber;
-  
-  /** The DB implementation to use for replication changelog. */
-  private final ReplicationDBImplementation dbImpl;
 
-  /**
-   * Constructor without group id, assured info and weight.
-   */
+  /** Constructor without group id, assured info and weight. */
   public ReplServerFakeConfiguration(
-      int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
-      int serverId, int queueSize, int windowSize, SortedSet<String> servers)
+      int port, String dirName, int purgeDelay, int serverId, int queueSize, int windowSize, SortedSet<String> servers)
   {
     this.port    = port;
-    this.dbImpl = dbImpl;
     this.dirName = dirName != null ? dirName : "changelogDb";
 
     if (purgeDelay == 0)
@@ -121,30 +113,25 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
    * Constructor with group id and assured info.
    */
   public ReplServerFakeConfiguration(
-      int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
-      int serverId, int queueSize, int windowSize,
+      int port, String dirName, int purgeDelay, int serverId, int queueSize, int windowSize,
       SortedSet<String> servers, int groupId, long assuredTimeout, int degradedStatusThreshold)
   {
-    this(port, dirName, dbImpl, purgeDelay, serverId, queueSize, windowSize, servers);
+    this(port, dirName, purgeDelay, serverId, queueSize, windowSize, servers);
     this.groupId = groupId;
     this.assuredTimeout = assuredTimeout;
     this.degradedStatusThreshold = degradedStatusThreshold;
   }
 
-  /**
-   * Constructor with group id, assured info and weight.
-   */
+  /** Constructor with group id, assured info and weight. */
   public ReplServerFakeConfiguration(
-      int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
-      int serverId, int queueSize, int windowSize,
+      int port, String dirName, int purgeDelay, int serverId, int queueSize, int windowSize,
       SortedSet<String> servers, int groupId, long assuredTimeout, int degradedStatusThreshold, int weight)
   {
-    this(port, dirName, dbImpl, purgeDelay, serverId, queueSize, windowSize,
+    this(port, dirName, purgeDelay, serverId, queueSize, windowSize,
       servers, groupId, assuredTimeout, degradedStatusThreshold);
     this.weight = weight;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addChangeListener(
       ConfigurationChangeListener<ReplicationServerCfg> listener)
@@ -152,82 +139,69 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     // not supported
   }
 
-  /** {@inheritDoc} */
   @Override
   public Class<? extends ReplicationServerCfg> configurationClass()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getReplicationDBDirectory()
   {
     return dirName;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getReplicationPort()
   {
     return port;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getReplicationPurgeDelay()
   {
     return purgeDelay;
   }
 
-  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getReplicationServer()
   {
      return servers;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getReplicationServerId()
   {
     return serverId;
   }
 
-  /** {@inheritDoc} */
   @Override
   public InetAddress getSourceAddress() { return null; }
 
-  /** {@inheritDoc} */
   @Override
   public int getQueueSize()
   {
     return queueSize;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getWindowSize()
   {
     return windowSize;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void removeChangeListener(
-      ConfigurationChangeListener<ReplicationServerCfg> listener)
+  public void removeChangeListener(ConfigurationChangeListener<ReplicationServerCfg> listener)
   {
     // not supported
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN dn()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   public ServerManagedObject<? extends Configuration> managedObject() {
     return null;
   }
@@ -281,11 +255,5 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   public void setComputeChangeNumber(boolean computeChangenumber)
   {
     this.computeChangenumber = computeChangenumber;
-  }
-
-  @Override
-  public ReplicationDBImplementation getReplicationDBImplementation()
-  {
-    return dbImpl;
   }
 }

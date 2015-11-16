@@ -25,9 +25,12 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.file.FileReplicaDBTest.*;
+import static org.testng.Assert.*;
+
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -39,10 +42,6 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.replication.server.changelog.file.FileReplicaDBTest.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class FileChangeNumberIndexDBTest extends ReplicationTestCase
@@ -96,14 +95,18 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
       assertEquals(cnIndexDB.count(), 3, "Db count");
       assertFalse(cnIndexDB.isEmpty());
 
-      DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1);
-      assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
-
-      cursor = cnIndexDB.getCursorFrom(cn2);
-      assertCursorReadsInOrder(cursor, cn2, cn3);
-
-      cursor = cnIndexDB.getCursorFrom(cn3);
-      assertCursorReadsInOrder(cursor, cn3);
+      try (DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1))
+      {
+        assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
+      }
+      try (DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn2))
+      {
+        assertCursorReadsInOrder(cursor, cn2, cn3);
+      }
+      try (DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn3))
+      {
+        assertCursorReadsInOrder(cursor, cn3);
+      }
     }
     finally
     {
@@ -205,12 +208,6 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     return cnIndexDB.addRecord(new ChangeNumberIndexRecord(baseDN, csn));
   }
 
-  private void assertEqualTo(ChangeNumberIndexRecord record, CSN csn, DN baseDN)
-  {
-    assertEquals(record.getCSN(), csn);
-    assertEquals(record.getBaseDN(), baseDN);
-  }
-
   private FileChangeNumberIndexDB getCNIndexDB(ReplicationServer rs) throws ChangelogException
   {
     final FileChangelogDB changelogDB = (FileChangelogDB) rs.getChangelogDB();
@@ -241,27 +238,19 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
   {
     TestCaseUtils.startServer();
     final int port = TestCaseUtils.findFreePort();
-    final ReplServerFakeConfiguration cfg =
-        new ReplServerFakeConfiguration(port, null, ReplicationDBImplementation.LOG, 0, 2, 0, 100, null);
+    final ReplServerFakeConfiguration cfg = new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null);
     cfg.setComputeChangeNumber(true);
     return new ReplicationServer(cfg);
   }
 
-  private void assertCursorReadsInOrder(DBCursor<ChangeNumberIndexRecord> cursor,
-      long... cns) throws ChangelogException
+  private void assertCursorReadsInOrder(DBCursor<ChangeNumberIndexRecord> cursor, long... cns)
+      throws ChangelogException
   {
-    try
+    for (long cn : cns)
     {
-      for (long cn : cns)
-      {
-        assertTrue(cursor.next());
-        assertEquals(cursor.getRecord().getChangeNumber(), cn);
-      }
-      assertFalse(cursor.next());
+      assertTrue(cursor.next());
+      assertEquals(cursor.getRecord().getChangeNumber(), cn);
     }
-    finally
-    {
-      cursor.close();
-    }
+    assertFalse(cursor.next());
   }
 }

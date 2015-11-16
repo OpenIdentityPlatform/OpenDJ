@@ -56,10 +56,6 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
 
   @BeforeSuite
   public final void suppressOutput() {
-    System.out.println("Replication DB implementation used in tests: '" +
-        ReplicationTestCase.replicationDbImplementation + "'.");
-    System.out.flush();
-
     TestCaseUtils.suppressOutput();
   }
 
@@ -147,9 +143,7 @@ public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
     while (DirectoryServerTestCase.class.isAssignableFrom(cls) &&
            !DirectoryServerTestCase.class.equals(cls))
     {
-      Field fields[] = cls.getDeclaredFields();
-      for (int i = 0; i < fields.length; i++) {
-        Field field = fields[i];
+      for (Field field : cls.getDeclaredFields()) {
         int modifiers = field.getModifiers();
         Class<?> fieldClass = field.getType();
 

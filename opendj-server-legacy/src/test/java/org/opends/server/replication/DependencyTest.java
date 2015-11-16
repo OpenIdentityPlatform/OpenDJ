@@ -420,9 +420,8 @@ public class DependencyTest extends ReplicationTestCase
   private ReplicationServer newReplicationServer(int replServerId, int windowSize, String dirName) throws Exception
   {
     int replServerPort = TestCaseUtils.findFreePort();
-    ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(
-        replServerPort, dirName, replicationDbImplementation, 0, replServerId, 0, windowSize, null);
-    return new ReplicationServer(conf);
+    return new ReplicationServer(new ReplServerFakeConfiguration(
+        replServerPort, dirName, 0, replServerId, 0, windowSize, null));
   }
 
   private LDAPReplicationDomain startNewLDAPReplicationDomain(ReplicationServer replServer, DN baseDN, int serverId,

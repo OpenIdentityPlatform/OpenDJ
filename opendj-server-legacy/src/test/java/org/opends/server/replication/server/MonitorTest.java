@@ -26,13 +26,20 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.ByteArrayOutputStream;
 import java.net.SocketException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -48,9 +55,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Tests for the replicationServer code.
@@ -173,9 +177,7 @@ public class MonitorTest extends ReplicationTestCase
     }
     int chPort = getChangelogPort(changelogId);
     String chDir = "monitorTest" + changelogId + suffix + "Db";
-    ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(chPort, chDir, replicationDbImplementation, 0, changelogId, 0,
-            100, servers);
+    ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(chPort, chDir, 0, changelogId, 0, 100, servers);
     final DN testBaseDN = this.baseDN;
     ReplicationServer replicationServer = new ReplicationServer(conf, new DSRSShutdownSync(), new ECLEnabledDomainPredicate()
     {

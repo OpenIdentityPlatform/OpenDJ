@@ -35,8 +35,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -533,9 +531,8 @@ public class FileReplicaDBTest extends ReplicationTestCase
       throws IOException, ConfigException
   {
     final int changelogPort = findFreePort();
-    final ReplicationServerCfg conf = new ReplServerFakeConfiguration(
-        changelogPort, null, ReplicationDBImplementation.LOG, 0, 2, queueSize, windowSize, null);
-    return new ReplicationServer(conf);
+    return new ReplicationServer(
+        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null));
   }
 
   private FileReplicaDB newReplicaDB(ReplicationServer rs) throws Exception

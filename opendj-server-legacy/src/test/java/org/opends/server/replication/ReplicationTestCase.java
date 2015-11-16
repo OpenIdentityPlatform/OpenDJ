@@ -44,7 +44,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
@@ -64,7 +63,6 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.file.FileChangelogDB;
-import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -121,9 +119,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected Entry replServerEntry;
 
   private static final String REPLICATION_DB_IMPL_PROPERTY = "org.opends.test.replicationDbImpl";
-
-  public static ReplicationDBImplementation replicationDbImplementation = ReplicationDBImplementation.valueOf(
-      System.getProperty(REPLICATION_DB_IMPL_PROPERTY, ReplicationDBImplementation.LOG.name()));
 
   /** Replication monitor stats. */
   private DN monitorDN;
@@ -376,16 +371,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected void clearChangelogDB(ReplicationServer rs) throws Exception
   {
-    if (rs == null)
-    {
-      return;
-    }
-
-    if (replicationDbImplementation == ReplicationDBImplementation.JE)
-    {
-      ((JEChangelogDB) rs.getChangelogDB()).clearDB();
-    }
-    else
+    if (rs != null)
     {
       ((FileChangelogDB) rs.getChangelogDB()).clearDB();
     }
@@ -581,7 +567,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         return null;
       }
     });
-    
+
     Entry entry = DirectoryServer.getEntry(dn);
     if (entry != null)
     {
@@ -933,10 +919,5 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         return searchOp;
       }
     });
-  }
-
-  protected static void setReplicationDBImplementation(ReplicationDBImplementation impl)
-  {
-    replicationDbImplementation = impl;
   }
 }

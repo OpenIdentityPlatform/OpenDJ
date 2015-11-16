@@ -343,9 +343,8 @@ public class GenerationIdTest extends ReplicationTestCase
     }
     int rsPort = getRSPort(replServerId);
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
-    ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, rsDir, replicationDbImplementation, 0, replServerId, 0, 100, servers);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
+    ReplicationServer replicationServer = new ReplicationServer(
+        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 100, servers));
     Thread.sleep(1000);
     return replicationServer;
   }

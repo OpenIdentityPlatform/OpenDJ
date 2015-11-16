@@ -43,7 +43,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
@@ -65,7 +64,6 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.server.changelog.file.FileChangelogDB;
-import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -173,16 +171,7 @@ public final class ReplicationServer
     this.domainPredicate = predicate;
 
     enableExternalChangeLog();
-    ReplicationDBImplementation dbImpl = cfg.getReplicationDBImplementation();
-    logger.trace("Using %s as DB implementation for changelog DB", dbImpl);
-    if (dbImpl == ReplicationDBImplementation.JE)
-    {
-      this.changelogDB = new JEChangelogDB(this, cfg);
-    }
-    else
-    {
-      this.changelogDB = new FileChangelogDB(this, cfg);
-    }
+    this.changelogDB = new FileChangelogDB(this, cfg);
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();

@@ -562,11 +562,7 @@ public final class Upgrade
 
     /** See OPENDJ-1742 */
     register("3.0.0",
-        clearReplicationDbDirectory(),
-        modifyConfigEntry(INFO_UPGRADE_TASK_ENABLED_FILE_BASED_CHANGELOG.get(),
-            "(objectClass=ds-cfg-replication-server)",
-            "replace: ds-cfg-replication-db-implementation",
-            "ds-cfg-replication-db-implementation: log"));
+        clearReplicationDbDirectory());
 
     /**
      * All upgrades will refresh the server configuration schema and generate a new upgrade folder.

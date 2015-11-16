@@ -26,22 +26,26 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test in real situations the algorithm for load balancing the DSs connections
@@ -154,9 +158,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
-    ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(rsPort[rsIndex], dir, replicationDbImplementation, 0, rsIndex+501, 0,
-      100, replServers, 1, 1000, 5000, weight);
+    ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(
+        rsPort[rsIndex], dir, 0, rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
     return new ReplicationServer(conf);
   }
 
@@ -186,8 +189,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
-    return new ReplServerFakeConfiguration(rsPort[rsIndex], dir, replicationDbImplementation,
-        0, rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
+    return new ReplServerFakeConfiguration(
+        rsPort[rsIndex], dir, 0, rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
   }
 
   /**

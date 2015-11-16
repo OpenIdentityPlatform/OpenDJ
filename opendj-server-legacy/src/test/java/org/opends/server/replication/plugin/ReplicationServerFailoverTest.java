@@ -26,23 +26,23 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test if the replication domain is able to switch of replication server
@@ -360,10 +360,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     }
 
     String dir = "replicationServerFailoverTest" + serverId + suffix + "Db";
-    ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, replicationDbImplementation, 0, serverId, 0,
-            100, replServers);
-    return new ReplicationServer(conf);
+    return new ReplicationServer(new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100, replServers));
   }
 
   /**

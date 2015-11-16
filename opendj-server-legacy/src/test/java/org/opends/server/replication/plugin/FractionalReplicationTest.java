@@ -525,10 +525,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     SortedSet<String> replServers = new TreeSet<>();
 
     String dir = testName + RS_ID + testCase + "Db";
-    ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, dir, replicationDbImplementation, 0, RS_ID, 0,
-            100, replServers);
-    replicationServer = new ReplicationServer(conf);
+    replicationServer = new ReplicationServer(
+        new ReplServerFakeConfiguration(replServerPort, dir, 0, RS_ID, 0, 100, replServers));
   }
 
   private static final String REPLICATION_GENERATION_ID =
