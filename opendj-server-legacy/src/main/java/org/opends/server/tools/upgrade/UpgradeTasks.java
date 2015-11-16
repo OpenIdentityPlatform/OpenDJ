@@ -795,7 +795,7 @@ public final class UpgradeTasks
       @Override
       public void perform(UpgradeContext context) throws ClientException
       {
-        LocalizableMessage msg = UPGRADE_TASK_DELETE_FILE.get(file);
+        LocalizableMessage msg = INFO_UPGRADE_TASK_DELETE_FILE.get(file);
         ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, msg, 0);
         context.notifyProgress(pnc);
         try
