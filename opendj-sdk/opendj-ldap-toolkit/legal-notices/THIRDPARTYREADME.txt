@@ -4,9 +4,26 @@ DO NOT TRANSLATE OR LOCALIZE
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
+Version: forgerock-util.jar (3.0.0)
+Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+
 Version: grizzly-framework.jar (2.3.14)
 Copyright: Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
 
+Version: i18n-core.jar (1.4.2)
+Copyright: Copyright (c) 2011-2014 ForgeRock AS.
+
+Version: i18n-slf4j.jar (1.4.2)
+Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+
+Version: opendj-cli.jar (3.0.0)
+Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+
+Version: opendj-core.jar (3.0.0)
+Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+
+Version: opendj-grizzly.jar (3.0.0)
+Copyright: Copyright (c) 2013-2015 ForgeRock AS.
 
 ==================
 Full license text:
@@ -147,10 +164,10 @@ As between Initial Developer and the Contributors, each party is responsible for
 The MIT License (MIT)
 ***************************************************************************
 
-Version: slf4j-api.jar (1.7.5)
+Version: slf4j-api.jar (1.7.12)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
-Version: slf4j-jdk14.jar (1.7.5)
+Version: slf4j-jdk14.jar (1.7.12)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
 ==================
