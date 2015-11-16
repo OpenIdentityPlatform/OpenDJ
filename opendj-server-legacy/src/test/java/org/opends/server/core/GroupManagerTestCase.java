@@ -26,8 +26,6 @@
  */
 package org.opends.server.core;
 
-
-
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -2145,7 +2143,7 @@ public class GroupManagerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
 
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
@@ -2244,7 +2242,7 @@ public class GroupManagerTestCase
    */
   @Test
   public void testSubtreeDelete() throws Exception {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addSubtreeGroupTestEntries();
@@ -2292,8 +2290,7 @@ public class GroupManagerTestCase
             DN.valueOf("cn=group2,ou=groups,dc=example,dc=com"));
     assertNull(group3);
 
-    // Cleanup.
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
   /**
@@ -2303,7 +2300,7 @@ public class GroupManagerTestCase
    */
   @Test
   public void testSubtreeModify() throws Exception {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addSubtreeGroupTestEntries();
@@ -2363,8 +2360,7 @@ public class GroupManagerTestCase
     assertNotNull(newGroup3);
     assertTrue(conn.isMemberOf(newGroup3, null));
 
-    // Cleanup.
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
   /**

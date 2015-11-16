@@ -865,7 +865,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     // We need a backend with a real configuration in cn=config as at import time
     // the real domain will check for backend existence in cn=config. So we use
     // dc=example,dc=com for this particular test.
-    clearJEBackend("userRoot");
+    clearBackend("userRoot");
 
     try
     {
@@ -1103,7 +1103,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     // We need a backend with a real configuration in cn=config as at import time
     // the real domain will check for backend existence in cn=config. So we use
     // dc=example,dc=com for this particular test.
-    clearJEBackend("userRoot");
+    clearBackend("userRoot");
 
     try
     {

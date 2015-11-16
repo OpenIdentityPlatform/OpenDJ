@@ -557,7 +557,7 @@ public final class TestCaseUtils {
   {
     for (Backend<?> backend : DirectoryServer.getBackends().values()) {
       if (backend instanceof BackendImpl) {
-        clearJEBackend(backend.getBackendID());
+        clearBackend(backend.getBackendID());
       }
     }
   }
@@ -830,23 +830,23 @@ public final class TestCaseUtils {
   }
 
   /**
-   * Clears all the entries from the JE backend determined by the backend id passed into the method.
+   * Clears all the entries from the backend determined by the backend id passed into the method.
    *
    * @throws Exception If an unexpected problem occurs.
    */
-  public static void clearJEBackend(String backendId) throws Exception
+  public static void clearBackend(String backendId) throws Exception
   {
-    clearJEBackend(backendId, null);
+    clearBackend(backendId, null);
   }
 
   /**
-   * Clears all the entries from the JE backend determined by the backend id passed into the method.
+   * Clears all the entries from the backend determined by the backend id passed into the method.
    *
    * @param backendId  The backend id to clear
    * @param baseDN   If not null, the suffix of the backend to create
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void clearJEBackend(String backendId, String baseDN) throws Exception
+  public static void clearBackend(String backendId, String baseDN) throws Exception
   {
     Backend<?> b = DirectoryServer.getBackend(backendId);
     if (clearBackend(b) && baseDN != null)

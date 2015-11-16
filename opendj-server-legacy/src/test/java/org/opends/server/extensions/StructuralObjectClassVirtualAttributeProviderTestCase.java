@@ -75,7 +75,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     structuralObjectClassType = DirectoryServer.getAttributeTypeOrNull("structuralobjectclass");
     assertNotNull(structuralObjectClassType);

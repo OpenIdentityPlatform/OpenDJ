@@ -82,7 +82,7 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
     String backendBaseDNName = "ds-cfg-base-dn";
 
     // Initialize a backend with a base entry.
-    TestCaseUtils.clearJEBackend("userRoot", suffix);
+    TestCaseUtils.clearBackend("userRoot", suffix);
 
     // Check that suffix is accessible while suffix2 is not.
     searchEntry(suffix, ResultCode.SUCCESS);

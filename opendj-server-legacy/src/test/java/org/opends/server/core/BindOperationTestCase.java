@@ -1723,7 +1723,7 @@ public class BindOperationTestCase
   @Test
   public void testSimpleBindReferral() throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntry(
          "dn: ou=people,dc=example,dc=com",
@@ -1890,7 +1890,7 @@ public class BindOperationTestCase
          throws Exception
   {
     TestCaseUtils.restartServer();
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: ou=people,dc=example,dc=com",
       "objectClass: organizationalUnit",
@@ -1948,8 +1948,7 @@ public class BindOperationTestCase
 
     s.close();
 
-    // Cleanup.
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
 
@@ -1966,7 +1965,7 @@ public class BindOperationTestCase
          throws Exception
   {
     TestCaseUtils.restartServer();
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: ou=people,dc=example,dc=com",
       "objectClass: organizationalUnit",
@@ -2034,8 +2033,7 @@ public class BindOperationTestCase
 
     s.close();
 
-    // Cleanup.
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
 

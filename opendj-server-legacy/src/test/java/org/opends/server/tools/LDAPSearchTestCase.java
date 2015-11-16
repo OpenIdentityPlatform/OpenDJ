@@ -1510,7 +1510,7 @@ public class LDAPSearchTestCase
   public void testSimplePagedResults()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: cn=device 1,dc=example,dc=com",
@@ -1567,7 +1567,7 @@ public class LDAPSearchTestCase
   public void testSortWithPagedResults()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1707,7 +1707,7 @@ public class LDAPSearchTestCase
   public void testSortValidGivenNameAscending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1768,7 +1768,7 @@ public class LDAPSearchTestCase
   public void testSortValidGivenNameDescending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1829,7 +1829,7 @@ public class LDAPSearchTestCase
   public void testSortValidGivenNameAscendingCaseExactOrderingMatch()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1890,7 +1890,7 @@ public class LDAPSearchTestCase
   public void testSortValidSnAscendingGivenNameAscending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1951,7 +1951,7 @@ public class LDAPSearchTestCase
   public void testSortValidSnAscendingGivenNameDescending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -2012,7 +2012,7 @@ public class LDAPSearchTestCase
   public void testSortEmptySortOrder()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2042,7 +2042,7 @@ public class LDAPSearchTestCase
   public void testSortSortOrderMissingType()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2072,7 +2072,7 @@ public class LDAPSearchTestCase
   public void testSortSortOrderMissingMatchingRule()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2101,7 +2101,7 @@ public class LDAPSearchTestCase
   public void testSortUndefinedAttribute()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2131,7 +2131,7 @@ public class LDAPSearchTestCase
   public void testSortUndefinedOrderingRule()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2192,7 +2192,7 @@ public class LDAPSearchTestCase
   {
     // Test is supposed to fail in parsing arguments. But we do not
     // want it to fail because there no backend to search in.
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2222,7 +2222,7 @@ public class LDAPSearchTestCase
   public void testSortWithVLVAndPagedResults()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2341,7 +2341,7 @@ public class LDAPSearchTestCase
   public void testSortWithVLV()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",

@@ -829,7 +829,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     replaceAttrEntry(configDN, dsConfigUpdateInterval,"0 seconds");
     TestCaseUtils.initializeTestBackend(true);
     addTestEntries("o=test");
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     addTestEntries("dc=example,dc=com");
   }
 
@@ -849,7 +849,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     //unit tests.
     replaceAttrEntry(configDN, dsConfigAttrType,"seeAlso");
     replaceAttrEntry(configDN, dsConfigUpdateInterval,"0 seconds");
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
   /**

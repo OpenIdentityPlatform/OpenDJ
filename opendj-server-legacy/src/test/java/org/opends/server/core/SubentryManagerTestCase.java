@@ -82,7 +82,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
     addTestEntries();
   }
 
@@ -100,7 +100,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     subentryList = manager.getCollectiveSubentries(testEntry.getName());
     assertThat(subentryList).isEmpty();
 
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
   @BeforeMethod

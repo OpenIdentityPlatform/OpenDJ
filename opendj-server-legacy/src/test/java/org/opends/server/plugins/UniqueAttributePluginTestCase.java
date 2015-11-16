@@ -73,7 +73,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
 
     //Add entries to two backends to test public naming context.
     addTestEntries("o=test", 't');
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     addTestEntries("dc=example,dc=com", 'x');
     uidConfigDN=DN.valueOf("cn=UID Unique Attribute ,cn=Plugins,cn=config");
     testConfigDN=DN.valueOf("cn=Test Unique Attribute,cn=Plugins,cn=config");
@@ -104,7 +104,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   @AfterClass
   public void tearDown() throws Exception {
     clearConfigEntries();
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
     clearAcis("o=test");
     TestCaseUtils.clearMemoryBackend(TestCaseUtils.TEST_BACKEND_ID);
   }

@@ -74,7 +74,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     Reporter.log("Running aciTestCaseSetup");
 
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.initializeTestBackend(true);
 
     // Save Global ACI.
@@ -96,7 +96,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   {
     Reporter.log("Running aciTestCaseTearDown");
 
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
     TestCaseUtils.initializeTestBackend(true);
 
     // Restore Global ACI.

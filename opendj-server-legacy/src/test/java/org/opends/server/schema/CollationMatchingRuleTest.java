@@ -347,7 +347,7 @@ public final class CollationMatchingRuleTest
     }
     finally
     {
-      TestCaseUtils.clearJEBackend("userRoot");
+      TestCaseUtils.clearBackend("userRoot");
     }
   }
 
@@ -364,7 +364,7 @@ public final class CollationMatchingRuleTest
 
   private void populateEntriesForControl() throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: cn=user1,dc=example,dc=com",
       "objectclass: inetorgperson",

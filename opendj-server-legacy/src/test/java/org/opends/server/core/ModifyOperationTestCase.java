@@ -3683,7 +3683,7 @@ responseLoop:
   public void testCompressedSchemaRefresh() throws Exception
   {
     String baseDN = "dc=example,dc=com";
-    TestCaseUtils.clearJEBackend("userRoot", baseDN);
+    TestCaseUtils.clearBackend("userRoot", baseDN);
     TestCaseUtils.addEntry("dn: cn=Test User," + baseDN,
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "sn: User", "cn: Test User");

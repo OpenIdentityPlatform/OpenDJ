@@ -72,7 +72,7 @@ public class SearchOperationTestCase extends OperationTestCase
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend("userRoot","dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot","dc=example,dc=com");
 
     DN suffixDN = DN.valueOf(SUFFIX);
     if (!DirectoryServer.entryExists(suffixDN))

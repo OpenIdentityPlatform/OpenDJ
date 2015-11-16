@@ -162,7 +162,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
         "postalAddress: Aarika Atpco$59208 Elm Street$Youngstown, HI  57377",
         "description: This is the description for Aarika Atpco.");
 
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
 
     TestCaseUtils.addEntries(entries);
   }

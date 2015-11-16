@@ -61,7 +61,7 @@ public class SubentryPasswordPolicyTestCase
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
 
     // Add suffix entry.
     DN suffixDN = DN.valueOf(SUFFIX);
@@ -104,7 +104,7 @@ public class SubentryPasswordPolicyTestCase
   @AfterClass
   public void cleanUp() throws Exception
   {
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
   }
 
   /**

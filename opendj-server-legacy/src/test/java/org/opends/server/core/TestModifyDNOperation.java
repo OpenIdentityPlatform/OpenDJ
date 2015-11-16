@@ -86,7 +86,7 @@ public class TestModifyDNOperation extends OperationTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend("userRoot");
+    TestCaseUtils.clearBackend("userRoot");
 
     // Add the example.com entry
     TestCaseUtils.addEntry(
@@ -926,7 +926,7 @@ public class TestModifyDNOperation extends OperationTestCase
     try
     {
       InvocationCounterPlugin.resetAllCounters();
-      TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
       TestCaseUtils.addEntries(
         "dn: ou=People,dc=example,dc=com",
@@ -992,7 +992,7 @@ public class TestModifyDNOperation extends OperationTestCase
     try
     {
       InvocationCounterPlugin.resetAllCounters();
-      TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
       TestCaseUtils.addEntries(
         "dn: ou=Org 1,dc=example,dc=com",

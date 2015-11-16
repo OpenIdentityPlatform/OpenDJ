@@ -74,7 +74,7 @@ public class EntryDNVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
     entryDNType = DirectoryServer.getAttributeTypeOrNull("entrydn");
     assertNotNull(entryDNType);
