@@ -69,7 +69,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.forgerock.opendj</groupId>
-                                    <artifactId>opendj-oem-zip</artifactId>
+                                    <artifactId>opendj-zip-oem</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                     <overWrite>true</overWrite>
