@@ -3816,7 +3816,7 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.152
   EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
-  X-ORIGIN 'OpenDJ Directory Server' )  
+  X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.153
   NAME 'ds-cfg-csv-eol-symbols'
   EQUALITY caseIgnoreMatch
@@ -3833,6 +3833,12 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.155
   NAME 'ds-cfg-trust-transaction-ids'
   EQUALITY booleanMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.156
+  NAME 'ds-cfg-bcrypt-cost'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
@@ -5865,4 +5871,10 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.31
   SUP ds-cfg-http-access-log-publisher
   STRUCTURAL
   MUST ( ds-cfg-config-file )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.32
+  NAME 'ds-cfg-bcrypt-password-storage-scheme'
+  SUP ds-cfg-password-storage-scheme
+  STRUCTURAL
+  MAY ds-cfg-bcrypt-cost
   X-ORIGIN 'OpenDJ Directory Server' )

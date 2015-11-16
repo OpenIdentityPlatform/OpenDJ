@@ -574,6 +574,18 @@ public final class Upgrade
     register("3.0.0",
         clearReplicationDbDirectory());
 
+    /** See OPENDJ-2435 */
+    register("3.0.0",
+        addConfigEntry(INFO_UPGRADE_TASK_BCRYPT_SCHEME_SUMMARY.get(),
+            "dn: cn=Bcrypt,cn=Password Storage Schemes,cn=config",
+            "changetype: add",
+            "objectClass: top",
+            "objectClass: ds-cfg-password-storage-scheme",
+            "objectClass: ds-cfg-bcrypt-password-storage-scheme",
+            "cn: Bcrypt",
+            "ds-cfg-java-class: org.opends.server.extensions.BcryptPasswordStorageScheme",
+            "ds-cfg-enabled: true"));
+
     /**
      * All upgrades will refresh the server configuration schema and generate a new upgrade folder.
      */

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -240,6 +240,15 @@ public class ExtensionsConstants
    * reversible).
    */
   public static final String STORAGE_SCHEME_NAME_BASE64 = "BASE64";
+
+
+
+  /**
+   * The password storage scheme name that will be used for passwords that are
+   * stored in base64-encoded form (virtually no protection, but the value is
+   * reversible).
+   */
+  public static final String STORAGE_SCHEME_NAME_BCRYPT = "BCRYPT";
 
 
 

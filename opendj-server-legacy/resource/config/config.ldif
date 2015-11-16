@@ -1113,6 +1113,14 @@ cn: Base64
 ds-cfg-java-class: org.opends.server.extensions.Base64PasswordStorageScheme
 ds-cfg-enabled: true
 
+dn: cn=Bcrypt,cn=Password Storage Schemes,cn=config
+objectClass: top
+objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-bcrypt-password-storage-scheme
+cn: Bcrypt
+ds-cfg-java-class: org.opends.server.extensions.BcryptPasswordStorageScheme
+ds-cfg-enabled: true
+
 dn: cn=Clear,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
