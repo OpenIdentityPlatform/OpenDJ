@@ -118,11 +118,9 @@ public final class Search {
         } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
-            return;
         } catch (final IOException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
-            return;
         } finally {
             if (connection != null) {
                 connection.close();
