@@ -200,7 +200,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                     JsonValue result = new JsonValue(new LinkedHashMap<>());
                                                     byte[] generatedPwd = value.getGeneratedPassword();
                                                     if (generatedPwd != null) {
-                                                        result = result.put("generatedPassword", ByteString.valueOfBytes(generatedPwd).toString());
+                                                        result = result.put("generatedPassword",
+                                                                ByteString.valueOfBytes(generatedPwd).toString());
                                                     }
                                                     return Responses.newActionResponse(result).asPromise();
                                                 }
