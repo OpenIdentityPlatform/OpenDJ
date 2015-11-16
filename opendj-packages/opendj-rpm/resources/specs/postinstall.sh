@@ -43,7 +43,7 @@ else if [ "$1" == "2" ] ; then
     echo "Post Install - upgrade install"
     # Only if the instance has been configured
     if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ] ; then
-        "%{_prefix}"/./upgrade -n --acceptLicense
+        "%{_prefix}"/./upgrade -n --force --acceptLicense
         # If upgrade is ok, checks the server status flag for restart
         if [ "$?" == "0" ] && [ -f "%{_prefix}"/logs/status ] ; then
             echo ""

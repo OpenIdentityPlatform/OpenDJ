@@ -39,7 +39,7 @@ if [ "$1" = "configure" ] && [ ! -z "$2" ] ; then
     # For being secure, we check the buildinfo file too.
     if [ -f ${deb.prefix}/config/buildinfo ] ; then
         echo *Starting upgrade...
-        ${deb.prefix}/./upgrade -n --acceptLicense
+        ${deb.prefix}/./upgrade -n --force --acceptLicense
         echo
 
         if [ "$?" -eq 0 ] ; then
