@@ -269,6 +269,10 @@ public class ReplicationBroker
   {
     synchronized (startStopLock)
     {
+      if (!shutdown)
+      {
+        return;
+      }
       shutdown = false;
       this.rcvWindow = getMaxRcvWindow();
       connectAsDataServer();
@@ -2660,13 +2664,17 @@ public class ReplicationBroker
   /** Stop the server. */
   public void stop()
   {
-    if (logger.isTraceEnabled())
+    if (logger.isTraceEnabled() && !shutdown)
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
     }
 
     synchronized (startStopLock)
     {
+      if (shutdown)
+      {
+        return;
+      }
       domain.publishReplicaOfflineMsg();
       shutdown = true;
       setConnectedRS(ConnectedRS.stopped());

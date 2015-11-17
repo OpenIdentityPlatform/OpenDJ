@@ -2942,8 +2942,12 @@ public abstract class ReplicationDomain
   {
     synchronized (sessionLock)
     {
-      final String threadName = "Replica DS(" + getServerId()
-          + ") listener for domain \"" + getBaseDN() + "\"";
+      if (listenerThread != null)
+      {
+        return;
+      }
+
+      final String threadName = "Replica DS(" + getServerId() + ") listener for domain \"" + getBaseDN() + "\"";
 
       listenerThread = new DirectoryThread(new Runnable()
       {
