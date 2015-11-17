@@ -44,8 +44,7 @@ public class QuickSetupLog
   private static FileHandler FILE_HANDLER;
 
   /**
-   * Creates a new file handler for writing log messages to the file indicated
-   * by <code>file</code>.
+   * Creates a new file handler for writing log messages to the file indicated by <code>file</code>.
    *
    * @param file
    *          log file to which log messages will be written
@@ -68,8 +67,7 @@ public class QuickSetupLog
   }
 
   /**
-   * Creates a new file handler for writing log messages of a given package to
-   * the file indicated by <code>file</code>.
+   * Creates a new file handler for writing log messages of a given package to the file indicated by <code>file</code>.
    *
    * @param file
    *          log file to which log messages will be written.
@@ -113,6 +111,16 @@ public class QuickSetupLog
   public static boolean isInitialized()
   {
     return LOG_FILE != null;
+  }
+
+  /** Closes the log file and deletes it. */
+  public static void closeAndDeleteLogFile()
+  {
+    if (LOG_FILE != null)
+    {
+      FILE_HANDLER.close();
+      LOG_FILE.delete();
+    }
   }
 
   private static String getInitialLogRecord()

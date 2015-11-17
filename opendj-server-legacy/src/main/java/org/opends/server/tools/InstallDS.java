@@ -309,7 +309,12 @@ public class InstallDS extends ConsoleApplication
 
     final InstallDS install = new InstallDS(out, err, inStream);
 
-    return install.execute(args);
+    int retCode = install.execute(args);
+    if (retCode == 0)
+    {
+      QuickSetupLog.closeAndDeleteLogFile();
+    }
+    return retCode;
   }
 
   /**

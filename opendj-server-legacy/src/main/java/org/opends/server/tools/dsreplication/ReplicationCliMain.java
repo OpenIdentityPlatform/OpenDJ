@@ -365,6 +365,11 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     ReplicationCliMain replicationCli = new ReplicationCliMain(out, err);
     ReplicationCliReturnCode result = replicationCli.execute(args, initializeServer);
+    if (result.getReturnCode() == 0)
+    {
+      // Delete the temp log file, in case of success.
+      ControlPanelLog.closeAndDeleteLogFile();
+    }
     return result.getReturnCode();
   }
 

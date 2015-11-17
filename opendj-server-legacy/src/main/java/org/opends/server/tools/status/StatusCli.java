@@ -201,7 +201,12 @@ public class StatusCli extends ConsoleApplication
     }
 
     final StatusCli statusCli = new StatusCli(out, err, inStream);
-    return statusCli.execute(args);
+    int retCode = statusCli.execute(args);
+    if (retCode == 0)
+    {
+      ControlPanelLog.closeAndDeleteLogFile();
+    }
+    return retCode;
   }
 
   /**

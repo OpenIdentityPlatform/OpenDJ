@@ -47,8 +47,7 @@ public class ControlPanelLog
   private static FileHandler fileHandler;
 
   /**
-   * Creates a new file handler for writing log messages to the file indicated
-   * by <code>file</code>.
+   * Creates a new file handler for writing log messages to the file indicated by <code>file</code>.
    * @param file log file to which log messages will be written
    * @throws IOException if something goes wrong
    */
@@ -76,9 +75,8 @@ public class ControlPanelLog
   }
 
   /**
-   * Writes messages under a given package in the file handler defined when
-   * calling initLogFileHandler.  Note that initLogFileHandler should be called
-   * before calling this method.
+   * Writes messages under a given package in the file handler defined when calling initLogFileHandler.
+   * Note that initLogFileHandler should be called before calling this method.
    * @param packageName the package name.
    * @throws IOException if something goes wrong
    */
@@ -108,12 +106,21 @@ public class ControlPanelLog
     return logFile != null;
   }
 
-  private static String getInitialLogRecord() {
+  /** Closes the log file and deletes it. */
+  public static void closeAndDeleteLogFile()
+  {
+    if (logFile != null)
+    {
+      fileHandler.close();
+      logFile.delete();
+    }
+  }
+
+  private static String getInitialLogRecord()
+  {
     StringBuilder sb = new StringBuilder()
             .append("Application launched " +
-                    DateFormat.getDateTimeInstance(DateFormat.LONG,
-                                                   DateFormat.LONG).
-                            format(new Date()));
+                    DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date()));
     return sb.toString();
   }
 

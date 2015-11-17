@@ -100,6 +100,7 @@ public class ControlPanelLauncher
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
+      ControlPanelLog.closeAndDeleteLogFile();
       System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
     }
 
@@ -143,6 +144,7 @@ public class ControlPanelLauncher
         System.exit(exitCode);
       }
     }
+    ControlPanelLog.closeAndDeleteLogFile();
   }
 
   /**
