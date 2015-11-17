@@ -39,6 +39,12 @@
 
     <packaging>bundle</packaging>
 
+    <properties>
+        <opendj.osgi.import.additional>
+            org.forgerock.opendj.*;provide:=true
+        </opendj.osgi.import.additional>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
@@ -77,13 +83,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-
-    <properties>
-        <opendj.osgi.import.additional>
-            org.forgerock.opendj.*;provide:=true
-        </opendj.osgi.import.additional>
-    </properties>
 
 
     <build>
