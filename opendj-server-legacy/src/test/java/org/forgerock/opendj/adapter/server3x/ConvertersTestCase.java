@@ -53,7 +53,9 @@ import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
+import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.server.DirectoryServerTestCase;
@@ -75,6 +77,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.CollectionUtils;
+import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -532,21 +535,18 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
                 ByteString.empty());
     }
 
-    @DataProvider(name = "operation result type")
-    public Object[][] getOperationResultTypes() {
+    @DataProvider
+    public Object[][] operationResultTypes() {
         return new Object[][] {
             { BindOperation.class, BindResult.class },
             { CompareOperation.class, CompareResult.class },
-            { ExtendedOperation.class, GenericExtendedResult.class },
             { SearchOperation.class, Result.class },
         };
     }
 
-    /**
-     * Tests the type of the result based on the type of the provided operation.
-     */
-    @Test(dataProvider = "operation result type")
-    public static <O extends Operation, R extends Result> void testGetResponseResultAndResultType(
+    /** Tests the type of the result based on the type of the provided operation. */
+    @Test(dataProvider = "operationResultTypes")
+    public <O extends Operation, R extends Result> void testGetResponseResultAndResultType(
         Class<O> operationType, Class<R> resultType) throws Exception {
         // Given
         O operation = mock(operationType);
@@ -554,8 +554,30 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         // When
         Result result = getResponseResult(operation);
         // Then
-        assertThat(result.getResultCode()).isEqualTo(
-            org.forgerock.opendj.ldap.ResultCode.SUCCESS);
+        assertThat(result.getResultCode()).isEqualTo(org.forgerock.opendj.ldap.ResultCode.SUCCESS);
+        assertThat(result).isInstanceOf(resultType);
+    }
+
+    @DataProvider
+    public Object[][] operationExtendedResultTypes() {
+        return new Object[][] {
+                { "", GenericExtendedResult.class },
+                { ServerConstants.OID_PASSWORD_MODIFY_REQUEST , PasswordModifyExtendedResult.class }
+        };
+    }
+
+    /** Tests the type of the result based on the type of the provided operation. */
+    @Test(dataProvider = "operationExtendedResultTypes")
+    public <R extends ExtendedResult> void testGetResponseResultAndResultType(
+            String requestOID, Class<R> resultType) throws Exception {
+        // Given
+        ExtendedOperation operation = mock(ExtendedOperation.class);
+        when(operation.getResultCode()).thenReturn(ResultCode.SUCCESS);
+        when(operation.getRequestOID()).thenReturn(requestOID);
+        // When
+        Result result = getResponseResult(operation);
+        // Then
+        assertThat(result.getResultCode()).isEqualTo(org.forgerock.opendj.ldap.ResultCode.SUCCESS);
         assertThat(result).isInstanceOf(resultType);
     }
 
