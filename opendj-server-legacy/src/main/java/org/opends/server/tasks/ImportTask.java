@@ -194,6 +194,10 @@ public class ImportTask extends Task
           s = f.getAbsolutePath();
         }
       }
+      if (!f.canRead()) {
+        LocalizableMessage message = ERR_LDIFIMPORT_LDIF_FILE_DOESNT_EXIST.get(s);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
       ldifFiles.add(s);
     }
 
