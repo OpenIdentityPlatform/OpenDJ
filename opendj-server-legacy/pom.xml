@@ -1305,6 +1305,7 @@
         <snmp.dir>${basedir}/src/snmp</snmp.dir>
         <snmp.gen.dir>${snmp.dir}/generated</snmp.gen.dir>
         <snmp.mib.dir>${snmp.dir}/resource/mib</snmp.mib.dir>
+        <snmp.jar.name>snmp-mib2605</snmp.jar.name>
       </properties>
 
       <dependencies>
@@ -1424,7 +1425,7 @@
             </executions>
           </plugin>
 
-          <!-- Creates snmp-mib2605 jar file -->
+          <!-- Creates snmp jar file -->
           <plugin>
             <artifactId>maven-jar-plugin</artifactId>
             <executions>
@@ -1436,7 +1437,7 @@
                 </goals>
                 <configuration>
                   <outputDirectory>${jars.dir}</outputDirectory>
-                  <finalName>snmp-mib2605</finalName>
+                  <finalName>${snmp.jar.name}</finalName>
                   <includes>
                     <include>org/opends/server/snmp/**</include>
                     <include>admin/extension.manifest</include>
@@ -1445,7 +1446,7 @@
                     <index>true</index>
                     <addMavenDescriptor>false</addMavenDescriptor>
                     <manifestEntries>
-                      <Extension-Name>snmp-mib2605</Extension-Name>
+                      <Extension-Name>${snmp.jar.name}</Extension-Name>
                       <Implementation-Version>${project.version}</Implementation-Version>
                       <Revision-Number>${buildRevision}</Revision-Number>
                     </manifestEntries>

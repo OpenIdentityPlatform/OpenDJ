@@ -49,7 +49,7 @@
 		</file>
 		<!-- Adds generated snmp jar -->
 		<file>
-			<source>${jars.dir}/snmp-mib2605.jar</source>
+			<source>${jars.dir}/${snmp.jar.name}.jar</source>
 			<outputDirectory>lib/extensions</outputDirectory>
 		</file>
 	</files>

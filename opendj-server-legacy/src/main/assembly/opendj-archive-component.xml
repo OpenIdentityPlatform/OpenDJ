@@ -291,6 +291,7 @@
       <outputDirectory>lib</outputDirectory>
       <excludes>
         <exclude>build-tools.jar</exclude>
+        <exclude>${snmp.jar.name}.jar</exclude>
       </excludes>
     </fileSet>
     <fileSet>
