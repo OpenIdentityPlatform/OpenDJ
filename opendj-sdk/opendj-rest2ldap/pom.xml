@@ -22,6 +22,7 @@
         <artifactId>opendj-sdk-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
         <version>3.0.0-SNAPSHOT</version>
+        <relativePath>../opendj-sdk-parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>opendj-rest2ldap</artifactId>
@@ -43,7 +44,6 @@
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -59,7 +59,6 @@
         <dependency>
             <groupId>org.forgerock</groupId>
             <artifactId>forgerock-build-tools</artifactId>
-            <version>${forgerock-build-tools.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
