@@ -502,10 +502,10 @@
               <supportedLocales>${locales}</supportedLocales>
               <excludes>
                 <exclude>org.slf4j:slf4j-jdk14</exclude>
+                <exclude>com.sleepycat:je</exclude>
               </excludes>
               <additionalJars>
                  <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
-                 <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
               </additionalJars>
             </configuration>
           </execution>
@@ -518,9 +518,9 @@
               <classPathProperty>classpath.bootstrap-client</classPathProperty>
               <productJarName>${product.name}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
-              <additionalJars>
-                 <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
-              </additionalJars>
+              <excludes>
+                 <exclude>com.sleepycat:je</exclude>
+              </excludes>
             </configuration>
           </execution>
 
