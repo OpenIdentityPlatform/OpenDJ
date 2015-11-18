@@ -267,6 +267,10 @@ public class SecurityOptions
       {
         return createNoCertificateOptions();
       }
+      else if ( certType.equals(CertificateType.SELF_SIGNED_CERTIFICATE) && aliasesToUse.isEmpty() )
+      {
+        aliasesToUse = Arrays.asList(SELF_SIGNED_CERT_ALIAS);
+      }
 
       SecurityOptions ops = new SecurityOptions();
       if (keystorePath != null)
