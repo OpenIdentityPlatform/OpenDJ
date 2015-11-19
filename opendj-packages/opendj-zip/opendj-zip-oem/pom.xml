@@ -47,17 +47,152 @@
     <properties>
         <!-- Comma separated list of file patterns to remove from standard archive -->
         <oem.file.exclusion.list>
+            ${product.name.lowercase}/lib/bootstrap.jar,
+            ${product.name.lowercase}/lib/bootstrap-client.jar,
             ${product.name.lowercase}/lib/je.jar,
             ${product.name.lowercase}/lib/opendj-je-backend-changelog.jar,
             ${product.name.lowercase}/legal-notices/THIRDPARTYREADME.txt
         </oem.file.exclusion.list>
+        <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
     </properties>
+
+    <dependencies>
+        <!--
+          ! Add this dependency to have opendj-server-legacy dependencies in
+          ! our classpath to build boostrap.jar and boostrap-client.jar
+        -->
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-server-legacy</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.sleepycat</groupId>
+                    <artifactId>je</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <productJarName>${product.name}</productJarName>
+                    <supportedLocales>${product.locales}</supportedLocales>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>generate-bootstrap-manifest</id>
+                        <goals>
+                            <goal>generate-manifest</goal>
+                        </goals>
+                        <configuration>
+                            <classPathProperty>classpath.bootstrap</classPathProperty>
+                            <excludes>
+                                <exclude>org.slf4j:slf4j-jdk14</exclude>
+                                <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+                            </excludes>
+                            <additionalJars>
+                                <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
+                            </additionalJars>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generate-bootstrap-client-manifest</id>
+                        <goals>
+                            <goal>generate-manifest</goal>
+                        </goals>
+                        <configuration>
+                            <classPathProperty>classpath.bootstrap-client</classPathProperty>
+                            <excludes>
+                                <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                        <index>false</index>
+                    </archive>
+                    <includes>
+                        <include>nothing</include>
+                    </includes>
+                </configuration>
+
+                <executions>
+                    <!-- Package bootstrap jar - contains only a manifest with classpath for the server -->
+                    <execution>
+                        <id>build-bootstrap-jar</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>bootstrap</finalName>
+                            <archive>
+                                <index>false</index>
+                                <manifestFile>
+                                    ${project.build.outputDirectory}/bootstrap/manifest-bootstrap
+                                </manifestFile>
+                            </archive>
+                        </configuration>
+                    </execution>
+
+                    <!-- Package bootstrap-client jar - contains only a manifest with classpath for clients -->
+                    <execution>
+                        <id>build-bootstrap-client-jar</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>bootstrap-client</finalName>
+                            <archive>
+                                <index>false</index>
+                                <manifestFile>
+                                    ${project.build.outputDirectory}/bootstrap/manifest-bootstrap-client
+                                </manifestFile>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -92,7 +227,9 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>${product.name}-OEM-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</finalName>
+                            <finalName>
+                                ${product.name}-OEM-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}
+                            </finalName>
                             <descriptors>
                                 <descriptor>src/main/assembly/opendj-zip-oem-archive-assembly.xml</descriptor>
                             </descriptors>

@@ -131,6 +131,7 @@
         <product.name>OpenDJ</product.name>
         <product.name.lowercase>opendj</product.name.lowercase>
         <legal.folder>legal-notices</legal.folder>
+        <lib.folder>lib</lib.folder>
         <!-- Location of the opendj service file for linux based packages. -->
         <sysv.file.location/>
     </properties>

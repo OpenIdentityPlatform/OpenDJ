@@ -42,5 +42,17 @@
             <source>${basedir}/${legal.folder}/THIRDPARTYREADME.txt</source>
             <outputDirectory>${legal.folder}</outputDirectory>
         </file>
+
+        <!-- bootstrap.jar OEM file -->
+        <file>
+            <source>${project.build.directory}/bootstrap.jar</source>
+            <outputDirectory>${lib.folder}</outputDirectory>
+        </file>
+
+        <!-- bootstrap-client OEM file -->
+        <file>
+            <source>${project.build.directory}/bootstrap-client.jar</source>
+            <outputDirectory>${lib.folder}</outputDirectory>
+        </file>
     </files>
 </assembly>
