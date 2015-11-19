@@ -96,6 +96,7 @@ test-output/
 
 # OpenDJ specific ignores
 /opendj-server-legacy/bin/
+/opendj-server-legacy/src/snmp/generated/
 /opendj-server-legacy/src/admin/generated/
 /opendj-server-legacy/src/messages/generated/
 /opendj-server-legacy/maven-eclipse.xml
