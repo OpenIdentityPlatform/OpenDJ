@@ -1414,9 +1414,9 @@ public class Utils
     }
     catch (Exception ex)
     {
-      logger.error(LocalizableMessage.raw(ex.getMessage()), ex);
-      return defaultValue;
+      //do nothing.
     }
+    return defaultValue;
   }
 
   /**
