@@ -50,6 +50,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
+import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 
@@ -333,6 +334,18 @@ public class DynamicGroup
   public boolean mayAlterMemberList()
   {
     return false;
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void updateMembers(List<Modification> modifications)
+         throws UnsupportedOperationException, DirectoryException
+  {
+    // Dynamic groups don't support altering the member list.
+    LocalizableMessage message = ERR_DYNAMICGROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get();
+    throw new UnsupportedOperationException(message.toString());
   }
 
 

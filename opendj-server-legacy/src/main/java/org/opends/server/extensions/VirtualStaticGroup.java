@@ -47,6 +47,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
+import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 
@@ -385,7 +386,15 @@ public class VirtualStaticGroup
     return false;
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public void updateMembers(List<Modification> modifications)
+         throws UnsupportedOperationException, DirectoryException
+  {
+    // Virtual static groups don't support altering the member list.
+    LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_ALTERING_MEMBERS_NOT_SUPPORTED.get(groupEntryDN);
+    throw new UnsupportedOperationException(message.toString());
+  }
 
   /** {@inheritDoc} */
   @Override

@@ -31,6 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -42,6 +44,7 @@ import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
 import org.opends.server.api.Group;
@@ -104,6 +107,9 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   /** Passed to the group manager to see if the nested group list needs to be refreshed. */
   private long nestedGroupRefreshToken = DirectoryServer.getGroupManager().refreshToken();
 
+  /** Read/write lock protecting memberDNs and nestedGroups. */
+  private ReadWriteLock lock = new ReentrantReadWriteLock();
+
   private ServerContext serverContext;
 
   /**
@@ -129,7 +135,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       LinkedHashSet<CompactDn> memberDNs)
   {
     super();
-    ifNull(groupEntryDN, memberAttributeType, memberDNs);
+    Reject.ifNull(groupEntryDN, memberAttributeType, memberDNs);
 
     this.serverContext       = serverContext;
     this.groupEntryDN        = groupEntryDN;
@@ -149,7 +155,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   @Override
   public StaticGroup newInstance(ServerContext serverContext, Entry groupEntry) throws DirectoryException
   {
-    ifNull(groupEntry);
+    Reject.ifNull(groupEntry);
 
     // Determine whether it is a groupOfNames, groupOfEntries or
     // groupOfUniqueNames entry.  If not, then that's a problem.
@@ -239,7 +245,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   @Override
   public boolean isGroupDefinition(Entry entry)
   {
-    ifNull(entry);
+    Reject.ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
     if (hasObjectClass(entry, OC_VIRTUAL_STATIC_GROUP))
@@ -295,12 +301,23 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   @Override
   public List<DN> getNestedGroupDNs()
   {
-    try {
+    try
+    {
        reloadIfNeeded();
-    } catch (DirectoryException ex) {
+    }
+    catch (DirectoryException ex)
+    {
       return Collections.<DN>emptyList();
     }
-    return nestedGroups;
+    lock.readLock().lock();
+    try
+    {
+      return nestedGroups;
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
@@ -308,9 +325,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    ifNull(nestedGroupDN);
+    Reject.ifNull(nestedGroupDN);
 
-    synchronized (this)
+    lock.writeLock().lock();
+    try
     {
       if (nestedGroups.contains(nestedGroupDN))
       {
@@ -335,6 +353,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       newMemberDNs.add(toCompactDn(nestedGroupDN));
       memberDNs = newMemberDNs;
     }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
@@ -342,9 +364,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-    ifNull(nestedGroupDN);
+    Reject.ifNull(nestedGroupDN);
 
-    synchronized (this)
+    lock.writeLock().lock();
+    try
     {
       if (! nestedGroups.contains(nestedGroupDN))
       {
@@ -369,6 +392,10 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       newMemberDNs.remove(toCompactDn(nestedGroupDN));
       memberDNs = newMemberDNs;
     }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
@@ -377,24 +404,32 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   {
     reloadIfNeeded();
     CompactDn compactUserDN = toCompactDn(userDN);
-    if (memberDNs.contains(compactUserDN))
+    lock.readLock().lock();
+    try
     {
-      return true;
-    }
-    else if (!examinedGroups.add(getGroupDN()))
-    {
-      return false;
-    }
-    else
-    {
-      for(DN nestedGroupDN : nestedGroups)
+      if (memberDNs.contains(compactUserDN))
       {
-        Group<? extends GroupImplementationCfg> group = getGroupManager().getGroupInstance(nestedGroupDN);
-        if (group != null && group.isMember(userDN, examinedGroups))
+        return true;
+      }
+      else if (!examinedGroups.add(getGroupDN()))
+      {
+        return false;
+      }
+      else
+      {
+        for (DN nestedGroupDN : nestedGroups)
         {
-          return true;
+          Group<? extends GroupImplementationCfg> group = getGroupManager().getGroupInstance(nestedGroupDN);
+          if (group != null && group.isMember(userDN, examinedGroups))
+          {
+            return true;
+          }
         }
       }
+    }
+    finally
+    {
+      lock.readLock().unlock();
     }
     return false;
   }
@@ -417,14 +452,18 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     //the current token.
     if (DirectoryServer.getGroupManager().hasInstancesChanged(nestedGroupRefreshToken))
     {
-      synchronized (this)
+      lock.writeLock().lock();
+      try
       {
         Group<?> thisGroup = DirectoryServer.getGroupManager().getGroupInstance(groupEntryDN);
         // Check if the group itself has been removed
-        if (thisGroup == null) {
+        if (thisGroup == null)
+        {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                   ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(groupEntryDN));
-        } else if (thisGroup != this) {
+        }
+        else if (thisGroup != this)
+        {
           LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<>();
           MemberList memberList = thisGroup.getMembers();
           while (memberList.hasMoreMembers())
@@ -440,18 +479,21 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
           }
           memberDNs = newMemberDNs;
         }
-        LinkedList<DN> newNestedGroups = new LinkedList<>();
+        nestedGroups.clear();
         for (CompactDn compactDn : memberDNs)
         {
           DN dn = fromCompactDn(compactDn);
           Group<?> group = DirectoryServer.getGroupManager().getGroupInstance(dn);
           if (group != null)
           {
-            newNestedGroups.add(group.getGroupDN());
+            nestedGroups.add(group.getGroupDN());
           }
         }
         nestedGroupRefreshToken = DirectoryServer.getGroupManager().refreshToken();
-        nestedGroups=newNestedGroups;
+      }
+      finally
+      {
+        lock.writeLock().unlock();
       }
     }
   }
@@ -461,7 +503,15 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   public MemberList getMembers() throws DirectoryException
   {
     reloadIfNeeded();
-    return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
+    lock.readLock().lock();
+    try
+    {
+      return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
@@ -469,11 +519,19 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   public MemberList getMembers(DN baseDN, SearchScope scope, SearchFilter filter) throws DirectoryException
   {
     reloadIfNeeded();
-    if (baseDN == null && filter == null)
+    lock.readLock().lock();
+    try
     {
-      return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
+      if (baseDN == null && filter == null)
+      {
+        return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
+      }
+      return new FilteredStaticGroupMemberList(groupEntryDN, memberDNs, baseDN, scope, filter);
     }
-    return new FilteredStaticGroupMemberList(groupEntryDN, memberDNs, baseDN, scope, filter);
+    finally
+    {
+      lock.readLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
@@ -485,11 +543,80 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
   /** {@inheritDoc} */
   @Override
+  public void updateMembers(List<Modification> modifications)
+         throws UnsupportedOperationException, DirectoryException
+  {
+    Reject.ifNull(memberDNs);
+    Reject.ifNull(nestedGroups);
+
+    reloadIfNeeded();
+    lock.writeLock().lock();
+    try
+    {
+      for (Modification mod : modifications)
+      {
+        Attribute attribute = mod.getAttribute();
+        if (attribute.getAttributeType().equals(memberAttributeType))
+        {
+          switch (mod.getModificationType().asEnum())
+          {
+            case ADD:
+              for (ByteString v : attribute)
+              {
+                DN member = DN.decode(v);
+                memberDNs.add(toCompactDn(member));
+                if (DirectoryServer.getGroupManager().getGroupInstance(member) != null)
+                {
+                  nestedGroups.add(member);
+                }
+              }
+              break;
+            case DELETE:
+              if (attribute.isEmpty())
+              {
+                memberDNs.clear();
+                nestedGroups.clear();
+              }
+              else
+              {
+                for (ByteString v : attribute)
+                {
+                  DN member = DN.decode(v);
+                  memberDNs.remove(toCompactDn(member));
+                  nestedGroups.remove(member);
+                }
+              }
+              break;
+            case REPLACE:
+              memberDNs.clear();
+              nestedGroups.clear();
+              for (ByteString v : attribute)
+              {
+                DN member = DN.decode(v);
+                memberDNs.add(toCompactDn(member));
+                if (DirectoryServer.getGroupManager().getGroupInstance(member) != null)
+                {
+                  nestedGroups.add(member);
+                }
+              }
+              break;
+          }
+        }
+      }
+    }
+    finally {
+      lock.writeLock().unlock();
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public void addMember(Entry userEntry) throws UnsupportedOperationException, DirectoryException
   {
-    ifNull(userEntry);
+    Reject.ifNull(userEntry);
 
-    synchronized (this)
+    lock.writeLock().lock();
+    try
     {
       DN userDN = userEntry.getName();
       CompactDn compactUserDN = toCompactDn(userDN);
@@ -512,16 +639,21 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       newMemberDNs.add(compactUserDN);
       memberDNs = newMemberDNs;
     }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public void removeMember(DN userDN) throws UnsupportedOperationException, DirectoryException
   {
-    ifNull(userDN);
+    Reject.ifNull(userDN);
 
     CompactDn compactUserDN = toCompactDn(userDN);
-    synchronized (this)
+    lock.writeLock().lock();
+    try
     {
       if (! memberDNs.contains(compactUserDN))
       {
@@ -541,11 +673,16 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       newMemberDNs.remove(compactUserDN);
       memberDNs = newMemberDNs;
       //If it is in the nested group list remove it.
-      if(nestedGroups.contains(userDN)) {
+      if (nestedGroups.contains(userDN))
+      {
         LinkedList<DN> newNestedGroups = new LinkedList<>(nestedGroups);
         newNestedGroups.remove(userDN);
         nestedGroups = newNestedGroups;
       }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 

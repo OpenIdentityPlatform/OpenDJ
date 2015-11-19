@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -76,6 +77,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.operation.PluginOperation;
@@ -128,7 +130,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   private DITCacheMap<Group<?>> groupInstances;
 
   /** Lock to protect internal data structures. */
-  private final ReentrantReadWriteLock lock;
+  private final ReadWriteLock lock;
 
   /** Dummy configuration DN for Group Manager. */
   private static final String CONFIG_DN = "cn=Group Manager,cn=config";
@@ -767,13 +769,36 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
   /**
+   * Scan the list of provided modifications looking for any changes to the objectClass,
+   * which might change the entry to another kind of group, or even to a non-group.
+   *
+   * @param modifications  List of modifications to the current group
+   *
+   * @return {@code true} if the objectClass is changed in any way, {@code false} otherwise.
+   */
+  private boolean updatesObjectClass(List<Modification> modifications)
+  {
+    for (Modification mod : modifications)
+    {
+      if (mod.getAttribute().getAttributeType().isObjectClass())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
    * In this case, if the entry is associated with a registered
    * group instance, then that instance will be recreated from
    * the contents of the provided entry and re-registered with
    * the group manager.
    */
   private void doPostModify(PluginOperation modifyOperation,
-          Entry oldEntry, Entry newEntry)
+          Entry oldEntry, Entry newEntry,
+          List<Modification> modifications)
   {
     if (hasGroupMembershipUpdateControl(modifyOperation))
     {
@@ -798,15 +823,26 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      if (groupInstances.containsKey(oldEntry.getName()))
+      Group<?> group = groupInstances.get(oldEntry.getName());
+      if (group != null)
       {
-        if (! oldEntry.getName().equals(newEntry.getName()))
+        if (!oldEntry.getName().equals(newEntry.getName())
+            || !group.mayAlterMemberList()
+            || updatesObjectClass(modifications))
         {
-          // This should never happen, but check for it anyway.
           groupInstances.remove(oldEntry.getName());
+          // This updates the refreshToken
+          createAndRegisterGroup(newEntry);
         }
-        createAndRegisterGroup(newEntry);
+        else
+        {
+          group.updateMembers(modifications);
+        }
       }
+    }
+    catch (UnsupportedOperationException | DirectoryException e)
+    {
+      logger.traceException(e);
     }
     finally
     {
@@ -901,7 +937,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
     {
       doPostModify(modifyOperation,
             modifyOperation.getCurrentEntry(),
-            modifyOperation.getModifiedEntry());
+            modifyOperation.getModifiedEntry(),
+            modifyOperation.getModifications());
     }
 
     // If we've gotten here, then everything is acceptable.
@@ -959,7 +996,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     Entry modEntry = modifyOperation.getModifiedEntry();
     if (entry != null && modEntry != null)
     {
-      doPostModify(modifyOperation, entry, modEntry);
+      doPostModify(modifyOperation, entry, modEntry, modifyOperation.getModifications());
     }
   }
 
