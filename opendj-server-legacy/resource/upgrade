@@ -22,7 +22,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2013-2014 ForgeRock AS
+#      Copyright 2013-2015 ForgeRock AS
 
 
 # This script may be used to perform a backup of a Directory Server backend.
@@ -33,11 +33,25 @@ SCRIPT_NAME="upgrade"
 export SCRIPT_NAME
 
 SCRIPT_DIR=`dirname "${0}"`
-DIR_CLASSES="${SCRIPT_DIR}/classes"
+
+INSTALL_ROOT=${SCRIPT_DIR}
+export INSTALL_ROOT
+
+# Set environment variables
+SCRIPT_UTIL_CMD=set-environment-vars
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
+then
+  exit ${RETURN_CODE}
+fi
+
+DIR_CLASSES="${INSTANCE_ROOT}/classes"
 # The upgrade is not compatible with patches. If the folder is not empty
 # we renamed it as "classes.disabled", and the upgrade process should be launched properly.
 if [ "`(ls -A ${DIR_CLASSES})`" ]; then
-    mv -f ${DIR_CLASSES} "${SCRIPT_DIR}/classes.disabled"
+    mv -f ${DIR_CLASSES} "${INSTANCE_ROOT}/classes.disabled"
     mkdir ${DIR_CLASSES}
 fi
 

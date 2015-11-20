@@ -53,9 +53,6 @@ class LicenseFile
    */
   private static final String LEGAL_FOLDER_NAME = "legal-notices";
 
-  /** List of possible folder of the accepted license file. */
-  private static final String[] ACCEPTED_LICENSE_FOLDER_NAMES = new String[] { LEGAL_FOLDER_NAME, "Legal" };
-
   /**
    * The accepted license file name.
    */
@@ -65,7 +62,7 @@ class LicenseFile
    * Try to find the local instance path from system property or environment. If
    * both are null, return the provided fallback value.
    */
-  private static String getInstanceRootPathFromSystem(final String fallBackValue)
+  private static String getInstallRootPathFromSystem(final String fallBackValue)
   {
     final String[] possibleValues = new String[] {
       System.getProperty(INSTALL_ROOT_SYSTEM_PROPERTY), System.getenv(INSTALL_ROOT_SYSTEM_PROPERTY) };
@@ -82,7 +79,7 @@ class LicenseFile
   /** Get the directory in which legal files are stored. */
   private static String getLegalDirectory()
   {
-    return getInstanceRootPathFromSystem("") + File.separatorChar + LEGAL_FOLDER_NAME;
+    return getInstallRootPathFromSystem(".") + File.separator + LEGAL_FOLDER_NAME;
   }
 
   /**
@@ -90,7 +87,7 @@ class LicenseFile
    */
   private static String getInstanceLegalDirectory()
   {
-    final String instanceDirname = UpgradeUtils.getInstancePathFromInstallPath(getInstanceRootPathFromSystem("."));
+    final String instanceDirname = UpgradeUtils.getInstancePathFromInstallPath(getInstallRootPathFromSystem("."));
     final String instanceLegalDirName = instanceDirname + File.separator + LEGAL_FOLDER_NAME;
     final File instanceLegalDir = new File(instanceLegalDirName);
     if (!instanceLegalDir.exists())
@@ -115,7 +112,7 @@ class LicenseFile
    */
   private static String getName()
   {
-    return getLegalDirectory() + File.separatorChar + LICENSE_FILE_NAME;
+    return getLegalDirectory() + File.separator + LICENSE_FILE_NAME;
   }
 
   /**
@@ -212,11 +209,10 @@ class LicenseFile
     {
       try
       {
-        new File(getInstanceLegalDirectory() + File.separatorChar
-            + ACCEPTED_LICENSE_FILE_NAME).createNewFile();
+        new File(getInstanceLegalDirectory(), ACCEPTED_LICENSE_FILE_NAME).createNewFile();
       }
       catch (IOException e)
-      {
+      { // do  nothing
       }
     }
   }
@@ -229,16 +225,7 @@ class LicenseFile
    */
   public static boolean isAlreadyApproved()
   {
-    for (final String folderName : ACCEPTED_LICENSE_FOLDER_NAMES)
-    {
-      final File f = new File(getInstanceRootPathFromSystem(".") + File.separatorChar + folderName
-          + File.separatorChar + ACCEPTED_LICENSE_FILE_NAME);
-      if (f.exists())
-      {
-        return true;
-      }
-    }
-    return false;
+    return new File(getInstanceLegalDirectory(), ACCEPTED_LICENSE_FILE_NAME).exists();
   }
 
 }

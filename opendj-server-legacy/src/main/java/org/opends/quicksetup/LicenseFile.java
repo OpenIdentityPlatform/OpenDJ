@@ -46,6 +46,7 @@ import org.opends.server.util.StaticUtils;
  */
 public class LicenseFile
 {
+  private static final String INSTALL_ROOT_SYSTEM_PROPERTY = "INSTALL_ROOT";
 
   /**
    * The license file name in Legal directory.
@@ -65,24 +66,26 @@ public class LicenseFile
   /**
    * Get the directory in which legal files are stored.
    */
-  private static String getInstanceLegalDirectory()
-  {
-    String instanceLegalDirName;
-    String installDirName = System.getProperty("INSTALL_ROOT");
-
+  private static String getInstallDirectory() {
+    String installDirName = System.getProperty(INSTALL_ROOT_SYSTEM_PROPERTY);
     if (installDirName == null)
     {
-      installDirName = System.getenv("INSTALL_ROOT");
+      installDirName = System.getenv(INSTALL_ROOT_SYSTEM_PROPERTY);
     }
-
     if (installDirName == null)
     {
       installDirName = ".";
     }
+    return installDirName;
+  }
 
-    String instanceDirname =
-        Utils.getInstancePathFromInstallPath(installDirName);
-    instanceLegalDirName = instanceDirname + File.separator + LEGAL_FOLDER_NAME;
+  /**
+   * Get the directory in which approved legal files are stored.
+   */
+  private static String getInstanceLegalDirectory()
+  {
+    String instanceLegalDirName = Utils.getInstancePathFromInstallPath(getInstallDirectory())
+        + File.separator + LEGAL_FOLDER_NAME;
     File instanceLegalDir = new File(instanceLegalDirName);
     if (!instanceLegalDir.exists())
     {
@@ -106,8 +109,7 @@ public class LicenseFile
    */
   private static String getName()
   {
-    return getInstanceLegalDirectory() + File.separatorChar
-        + LICENSE_FILE_NAME;
+    return getInstallDirectory() + File.separator + LEGAL_FOLDER_NAME + File.separator + LICENSE_FILE_NAME;
   }
 
   /**
@@ -141,7 +143,7 @@ public class LicenseFile
    */
   public static String getText()
   {
-    InputStream input = null;
+    InputStream input;
     try
     {
       input = new FileInputStream(getFile());
@@ -154,26 +156,22 @@ public class LicenseFile
 
     // Reads the inputstream content.
     final StringBuilder sb = new StringBuilder();
-    if (input != null)
+    try
     {
-      try
-      {
-        final BufferedReader br =
-            new BufferedReader(new InputStreamReader(input));
-        String read = br.readLine();
+      final BufferedReader br = new BufferedReader(new InputStreamReader(input));
+      String read = br.readLine();
 
-        while (read != null)
-        {
-          sb.append(read);
-          sb.append(ServerConstants.EOL);
-          read = br.readLine();
-        }
-      }
-      catch (IOException ioe)
+      while (read != null)
       {
-        // Should not happen
-        return "";
+        sb.append(read);
+        sb.append(ServerConstants.EOL);
+        read = br.readLine();
       }
+    }
+    catch (IOException ioe)
+    {
+      // Should not happen
+      return "";
     }
     StaticUtils.close(input);
 
@@ -213,10 +211,17 @@ public class LicenseFile
   {
     if (getApproval() && installationPath != null)
     {
+      String instanceDirname = Utils.getInstancePathFromInstallPath(installationPath);
+      String instanceLegalDirName = instanceDirname + File.separator + LEGAL_FOLDER_NAME;
+      File instanceLegalDir = new File(instanceLegalDirName);
+
       try
       {
-        new File(installationPath + File.separatorChar + LEGAL_FOLDER_NAME
-            + File.separatorChar + ACCEPTED_LICENSE_FILE_NAME).createNewFile();
+        if (!instanceLegalDir.exists())
+        {
+          instanceLegalDir.mkdir();
+        }
+        new File(instanceLegalDir, ACCEPTED_LICENSE_FILE_NAME).createNewFile();
       }
       catch (IOException e)
       {
@@ -233,10 +238,7 @@ public class LicenseFile
    */
   public static boolean isAlreadyApproved()
   {
-    final File f =
-        new File(getInstanceLegalDirectory() + File.separatorChar
-            + ACCEPTED_LICENSE_FILE_NAME);
-    return f.exists();
+    return new File(getInstanceLegalDirectory(), ACCEPTED_LICENSE_FILE_NAME).exists();
   }
 
 }
