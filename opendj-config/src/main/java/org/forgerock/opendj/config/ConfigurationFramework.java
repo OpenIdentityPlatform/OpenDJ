@@ -44,6 +44,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,7 +59,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.forgerock.util.Reject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,24 +69,20 @@ import com.forgerock.opendj.ldap.config.AdminMessages;
  * <ul>
  * <li>loading core components during application initialization
  * <li>loading extensions during and after application initialization
- * <li>changing the property validation strategy based on whether the
- * application is a client or server.
+ * <li>changing the property validation strategy based on whether the application is a client or server.
  * </ul>
  * This class defines a class loader which will be used for loading components.
- * For extensions which define their own extended configuration definitions, the
- * class loader will make sure that the configuration definition classes are
- * loaded and initialized.
+ * For extensions which define their own extended configuration definitions, the class loader
+ * will make sure that the configuration definition classes are loaded and initialized.
  * <p>
- * Initially the configuration framework is disabled, and calls to the
- * {@link #getClassLoader()} will return the system default class loader.
+ * Initially the configuration framework is disabled, and calls to the {@link #getClassLoader()}
+ * will return the system default class loader.
  * <p>
- * Applications <b>MUST NOT</b> maintain persistent references to the class
- * loader as it can change at run-time.
+ * Applications <b>MUST NOT</b> maintain persistent references to the class loader as it can change at run-time.
  */
 public final class ConfigurationFramework {
     /**
-     * Private URLClassLoader implementation. This is only required so that we
-     * can provide access to the addURL method.
+     * Private URLClassLoader implementation. This is only required so that we can provide access to the addURL method.
      */
     private static final class MyURLClassLoader extends URLClassLoader {
 
@@ -143,8 +140,7 @@ public final class ConfigurationFramework {
     private static final String REVISION_NUMBER = "Revision-Number";
 
     /**
-     * The attribute names for build information is name, version and revision
-     * number.
+     * The attribute names for build information is name, version and revision number.
      */
     private static final String[] BUILD_INFORMATION_ATTRIBUTE_NAMES = new String[] {
         Attributes.Name.EXTENSION_NAME.toString(),
@@ -163,8 +159,7 @@ public final class ConfigurationFramework {
     private Set<File> jarFiles = new HashSet<>();
 
     /**
-     * Underlying class loader used to load classes and resources (null
-     * if disabled).
+     * Underlying class loader used to load classes and resources (null if disabled).
      * <p>
      * We contain a reference to the URLClassLoader rather than
      * sub-class it so that it is possible to replace the loader at
@@ -184,58 +179,12 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Loads the named extensions into the configuration framework.
-     *
-     * @param extensions
-     *            The names of the extensions to be loaded. The names should not
-     *            contain any path elements and must be located within the
-     *            extensions folder.
-     * @throws ConfigException
-     *             If one of the extensions could not be loaded and initialized.
-     * @throws IllegalStateException
-     *             If the configuration framework has not yet been initialized.
-     * @throws IllegalArgumentException
-     *             If one of the extension names was not a single relative path
-     *             name element or was an absolute path.
-     */
-    public synchronized void addExtension(final String... extensions) throws ConfigException {
-        Reject.ifNull(extensions);
-        ensureInitialized();
-
-        final File libPath = new File(instancePath, LIB_DIR);
-        final File extensionsPath = new File(libPath, EXTENSIONS_DIR);
-
-        final ArrayList<File> files = new ArrayList<>(extensions.length);
-        for (final String extension : extensions) {
-            final File file = new File(extensionsPath, extension);
-
-            // For security reasons we need to make sure that the file name
-            // passed in did not contain any path elements and names a file
-            // in the extensions folder.
-
-            // Can handle potential null parent.
-            if (!extensionsPath.equals(file.getParentFile())) {
-                throw new IllegalArgumentException("Illegal file name: " + extension);
-            }
-
-            // The file is valid.
-            files.add(file);
-        }
-
-        // Add the extensions.
-        addExtension(files.toArray(new File[files.size()]));
-    }
-
-    /**
-     * Returns the class loader which should be used for loading classes and
-     * resources. When this configuration framework is disabled, the system
-     * default class loader will be returned by default.
+     * Returns the class loader which should be used for loading classes and resources. When this configuration
+     * framework is disabled, the system default class loader will be returned by default.
      * <p>
-     * Applications <b>MUST NOT</b> maintain persistent references to the class
-     * loader as it can change at run-time.
+     * Applications <b>MUST NOT</b> maintain persistent references to the class loader as it can change at run-time.
      *
-     * @return Returns the class loader which should be used for loading classes
-     *         and resources.
+     * @return Returns the class loader which should be used for loading classes and resources.
      */
     public synchronized ClassLoader getClassLoader() {
         if (loader != null) {
@@ -246,14 +195,12 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Initializes the configuration framework using the application's class
-     * loader as the parent class loader, and the current working directory as
-     * the install and instance path.
+     * Initializes the configuration framework using the application's class loader as the parent class loader,
+     * and the current working directory as the install and instance path.
      *
      * @return The configuration framework.
      * @throws ConfigException
-     *             If the configuration framework could not initialize
-     *             successfully.
+     *             If the configuration framework could not initialize successfully.
      * @throws IllegalStateException
      *             If the configuration framework has already been initialized.
      */
@@ -262,16 +209,14 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Initializes the configuration framework using the application's class
-     * loader as the parent class loader, and the provided install/instance
-     * path.
+     * Initializes the configuration framework using the application's class loader
+     * as the parent class loader, and the provided install/instance path.
      *
      * @param installAndInstancePath
      *            The path where application binaries and data are located.
      * @return The configuration framework.
      * @throws ConfigException
-     *             If the configuration framework could not initialize
-     *             successfully.
+     *             If the configuration framework could not initialize successfully.
      * @throws IllegalStateException
      *             If the configuration framework has already been initialized.
      */
@@ -281,9 +226,8 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Initializes the configuration framework using the application's class
-     * loader as the parent class loader, and the provided install and instance
-     * paths.
+     * Initializes the configuration framework using the application's class loader
+     * as the parent class loader, and the provided install and instance paths.
      *
      * @param installPath
      *            The path where application binaries are located.
@@ -291,8 +235,7 @@ public final class ConfigurationFramework {
      *            The path where application data are located.
      * @return The configuration framework.
      * @throws ConfigException
-     *             If the configuration framework could not initialize
-     *             successfully.
+     *             If the configuration framework could not initialize successfully.
      * @throws IllegalStateException
      *             If the configuration framework has already been initialized.
      */
@@ -313,8 +256,7 @@ public final class ConfigurationFramework {
      *            The parent class loader.
      * @return The configuration framework.
      * @throws ConfigException
-     *             If the configuration framework could not initialize
-     *             successfully.
+     *             If the configuration framework could not initialize successfully.
      * @throws IllegalStateException
      *             If the configuration framework has already been initialized.
      */
@@ -341,8 +283,7 @@ public final class ConfigurationFramework {
      * value validation than server applications because they do not have
      * resources available such as the server schema.
      *
-     * @return {@code true} if the configuration framework is being used within
-     *         a client application.
+     * @return {@code true} if the configuration framework is being used within a client application.
      */
     public boolean isClient() {
         return isClient;
@@ -364,23 +305,20 @@ public final class ConfigurationFramework {
      *         <code>null</code> if there is no information available.
      */
     public String printExtensionInformation() {
-        final File extensionsPath =
-                new File(installPath + File.separator + LIB_DIR + File.separator + EXTENSIONS_DIR);
+        final File extensionsPath = buildExtensionPath(installPath);
 
-        if (!extensionsPath.exists() || !extensionsPath.isDirectory()) {
-            // no extensions' directory
-            return null;
+        final List<File> extensions = new ArrayList<>();
+
+        if (extensionsPath.exists() && extensionsPath.isDirectory()) {
+            extensions.addAll(listFiles(extensionsPath));
         }
 
-        final File[] extensions = extensionsPath.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(final File pathname) {
-                // only files with names ending with ".jar"
-                return pathname.isFile() && pathname.getName().endsWith(".jar");
-            }
-        });
+        File instanceExtensionsPath = buildExtensionPath(instancePath);
+        if (!extensionsPath.getAbsolutePath().equals(instanceExtensionsPath.getAbsolutePath())) {
+            extensions.addAll(listFiles(instanceExtensionsPath));
+        }
 
-        if (extensions.length == 0) {
+        if (extensions.isEmpty()) {
             return null;
         }
 
@@ -390,47 +328,47 @@ public final class ConfigurationFramework {
         // --
         // Name Build number Revision number
         ps.printf("--%s           %-20s %-20s %-20s%s", EOL, "Name", "Build number",
-                "Revision number", EOL);
+            "Revision number", EOL);
 
         for (final File extension : extensions) {
-            // retrieve MANIFEST entry and display name, build number and
-            // revision number
-            try {
-                final JarFile jarFile = new JarFile(extension);
-                final JarEntry entry = jarFile.getJarEntry(MANIFEST);
-                if (entry == null) {
-                    continue;
-                }
-
-                final String[] information = getBuildInformation(jarFile);
-
-                ps.append("Extension: ");
-                boolean addBlank = false;
-                for (final String name : information) {
-                    if (addBlank) {
-                        ps.append(addBlank ? " " : ""); // add blank if not
-                                                        // first append
-                    } else {
-                        addBlank = true;
-                    }
-
-                    ps.printf("%-20s", name);
-                }
-                ps.append(EOL);
-            } catch (final Exception e) {
-                // ignore extra information for this extension
-            }
+            printExtensionDetails(ps, extension);
         }
 
         return baos.toString();
+    }
+
+    private void printExtensionDetails(PrintStream ps, File extension) {
+        // retrieve MANIFEST entry and display name, build number and revision number
+        try {
+            JarFile jarFile = new JarFile(extension);
+            JarEntry entry = jarFile.getJarEntry(MANIFEST);
+            if (entry == null) {
+                return;
+            }
+
+            String[] information = getBuildInformation(jarFile);
+
+            ps.append("Extension: ");
+            boolean addBlank = false;
+            for (String name : information) {
+                if (addBlank) {
+                    ps.append(" ");
+                } else {
+                    addBlank = true;
+                }
+                ps.printf("%-20s", name);
+            }
+            ps.append(EOL);
+        } catch (Exception e) {
+            // ignore extra information for this extension
+        }
     }
 
     /**
      * Reloads the configuration framework.
      *
      * @throws ConfigException
-     *             If the configuration framework could not initialize
-     *             successfully.
+     *             If the configuration framework could not initialize successfully.
      * @throws IllegalStateException
      *             If the configuration framework has not yet been initialized.
      */
@@ -448,8 +386,7 @@ public final class ConfigurationFramework {
      * resources available such as the server schema.
      *
      * @param isClient
-     *            {@code true} if the configuration framework is being used
-     *            within a client application.
+     *            {@code true} if the configuration framework is being used within a client application.
      * @return The configuration framework.
      */
     public ConfigurationFramework setIsClient(final boolean isClient) {
@@ -457,7 +394,7 @@ public final class ConfigurationFramework {
         return this;
     }
 
-    private void addExtension(final File... extensions) throws ConfigException {
+    private void addExtension(final List<File> extensions) throws ConfigException {
         // First add the Jar files to the class loader.
         final List<JarFile> jars = new LinkedList<>();
         for (final File extension : extensions) {
@@ -502,8 +439,8 @@ public final class ConfigurationFramework {
      *
      * @param extension
      *            the jar file of the extension
-     * @return a String array containing the name, the build number and the
-     *         revision number of the extension given in argument
+     * @return a String array containing the name, the build number and the revision number
+     *            of the extension given in argument
      * @throws java.io.IOException
      *             thrown if the jar file has been closed.
      */
@@ -536,37 +473,29 @@ public final class ConfigurationFramework {
             loader = new MyURLClassLoader();
         }
 
-        // Forcefully load all configuration definition classes in
-        // OpenDS.jar.
+        // Forcefully load all configuration definition classes in OpenDS.jar.
         initializeCoreComponents();
 
         // Put extensions jars into the class loader and load all
         // configuration definition classes in that they contain.
         // First load the extension from the install directory, then
         // from the instance directory.
-        File libDir;
-        File installExtensionsPath;
-        File instanceExtensionsPath;
+        File installExtensionsPath  = buildExtensionPath(installPath);
+        File instanceExtensionsPath = buildExtensionPath(instancePath);
 
-        // load install dir extension
-        libDir = new File(installPath, LIB_DIR);
-        try {
-            installExtensionsPath = new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
-        } catch (final Exception e) {
-            installExtensionsPath = new File(libDir, EXTENSIONS_DIR);
-        }
         initializeAllExtensions(installExtensionsPath);
 
-        // load instance dir extension
-        libDir = new File(instancePath, LIB_DIR);
-        try {
-            instanceExtensionsPath = new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
-        } catch (final Exception e) {
-            instanceExtensionsPath = new File(libDir, EXTENSIONS_DIR);
-        }
-        if (!installExtensionsPath.getAbsolutePath().equals(
-                instanceExtensionsPath.getAbsolutePath())) {
+        if (!installExtensionsPath.getAbsolutePath().equals(instanceExtensionsPath.getAbsolutePath())) {
             initializeAllExtensions(instanceExtensionsPath);
+        }
+    }
+
+    private File buildExtensionPath(String directory)  {
+        File libDir = new File(directory, LIB_DIR);
+        try {
+            return new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
+        } catch (Exception e) {
+            return new File(libDir, EXTENSIONS_DIR);
         }
     }
 
@@ -584,40 +513,20 @@ public final class ConfigurationFramework {
     private void initializeAllExtensions(final File extensionsPath) throws ConfigException {
         try {
             if (!extensionsPath.exists()) {
-                // The extensions directory does not exist. This is not a
-                // critical problem.
-                adminLogger.error(ERR_ADMIN_NO_EXTENSIONS_DIR, String.valueOf(extensionsPath));
+                // The extensions directory does not exist. This is not a critical problem.
+                adminLogger.warn(WARN_ADMIN_NO_EXTENSIONS_DIR, String.valueOf(extensionsPath));
                 return;
             }
 
             if (!extensionsPath.isDirectory()) {
-                // The extensions directory is not a directory. This is more
-                // critical.
+                // The extensions directory is not a directory. This is more critical.
                 final LocalizableMessage message =
                         ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(String.valueOf(extensionsPath));
                 throw new ConfigException(message);
             }
 
-            // Get each extension file name.
-            final FileFilter filter = new FileFilter() {
-
-                /**
-                 * Must be a Jar file.
-                 */
-                @Override
-                public boolean accept(final File pathname) {
-                    if (!pathname.isFile()) {
-                        return false;
-                    }
-
-                    final String name = pathname.getName();
-                    return name.endsWith(".jar");
-                }
-
-            };
-
             // Add and initialize the extensions.
-            addExtension(extensionsPath.listFiles(filter));
+            addExtension(listFiles(extensionsPath));
         } catch (final ConfigException e) {
             debugLogger.trace("Unable to initialize all extensions", e);
             throw e;
@@ -628,6 +537,19 @@ public final class ConfigurationFramework {
                             stackTraceToSingleLineString(e, true));
             throw new ConfigException(message, e);
         }
+    }
+
+    private List<File> listFiles(File path) {
+        if (path.exists() && path.isDirectory()) {
+
+            return Arrays.asList(path.listFiles(new FileFilter() {
+                public boolean accept(File pathname) {
+                    // only files with names ending with ".jar"
+                    return pathname.isFile() && pathname.getName().endsWith(".jar");
+                }
+            }));
+        }
+        return Collections.emptyList();
     }
 
     /**
