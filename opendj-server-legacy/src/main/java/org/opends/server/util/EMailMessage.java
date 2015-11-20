@@ -230,9 +230,9 @@ public final class EMailMessage
 
 
   /**
-   * Retrieves the MIME Type for the body of this message
+   * Retrieves the MIME Type for the body of this message.
    *
-   * @return The MIME Type for this message
+   * @return The MIME Type for this message.
    */
    public String getBodyMIMEType()
    {
@@ -240,9 +240,9 @@ public final class EMailMessage
    }
 
   /**
-   * Specifies the MIME Type for the body of this message
+   * Specifies the MIME Type for the body of this message.
    *
-   * @param bodyMIMEType  The MIME Type for this message
+   * @param bodyMIMEType  The MIME Type for this message.
    */
   public void setBodyMIMEType(String bodyMIMEType)
   {
