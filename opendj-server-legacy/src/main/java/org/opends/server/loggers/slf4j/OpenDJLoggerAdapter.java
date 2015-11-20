@@ -34,6 +34,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.LoggingCategoryNames;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * OpenDJ implementation of a SLF4J Logger.
@@ -41,9 +42,25 @@ import org.slf4j.Marker;
  * Log calls at trace level are redirected to {@code DebugLogger}, while calls
  * at other levels are redirected to {@code ErrorLogger}.
  * <p>
- * Trace level calls are accepted with no Marker argument, while calls at other
- * level must be done with a Marker expected to be an instance of
- * {@code LocalizedMarker}.
+ * Trace-level calls do no expect a Marker argument. The marker argument is ignored if provided.
+ * <pre>
+ * Example of expected trace-level call:
+ *   logger.trace("This is an error message");
+ * </pre>
+ * <p>
+ * Non trace-level calls expect a Marker argument that is an instance of
+ * {@code LocalizedMarker}. This is the standard way for OpenDJ code.
+ * <pre>
+ * Example of expected non trace-level call:
+ *   LocalizableMessage message = ...
+ *   logger.error(new LocalizedMarker(message), message.toString(locale), t);
+ * </pre>
+ * <br>
+ * However, to support logger calls from external libraries, calls without a Marker are supported,
+ * by creating a raw LocalizableMessage on the fly.
+ * <p>
+ * Note that these methods are never called directly. Instead, OpenDJ code instantiates a LocalizedLogger
+ * which then delegates to the underlying SLF4J logger.
  */
 final class OpenDJLoggerAdapter implements Logger {
     /** Name of logger, used as the category. */
@@ -66,10 +83,15 @@ final class OpenDJLoggerAdapter implements Logger {
         this.name = LoggingCategoryNames.getCategoryName(name);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getName() {
         return name;
+    }
+
+    /** Format a message containing '{}' as arguments placeholder. */
+    private String formatMessage(String message, Object...args)
+    {
+      return MessageFormatter.arrayFormat(message, args).getMessage();
     }
 
     /** Trace with message only. */
@@ -99,369 +121,332 @@ final class OpenDJLoggerAdapter implements Logger {
     private void logError(Marker marker, Severity severity, Throwable throwable) {
         if (marker instanceof LocalizedMarker) {
             LocalizableMessage message = ((LocalizedMarker) marker).getMessage();
-            ErrorLogger.log(name, severity, message, throwable);
+            logError(message, severity, throwable);
         } else {
             throw new IllegalStateException("Expecting the marker to be an instance of LocalizedMarker");
         }
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Log a message to {@code ErrorLogger} with the provided message and severity.
+     * <p>
+     * This should be avoided, but when using an external library there can be calls
+     * with a String.
+     *
+     * @param message
+     *            The message as string.
+     * @param severity
+     *            The severity to use when logging message.
+     * @param throwable
+     *            Exception to log. May be {@code null}.
+     */
+    private void logError(String message, Severity severity, Throwable throwable) {
+      logError(LocalizableMessage.raw(message), severity, throwable);
+    }
+
+    /** Performs the actual logging to {@code ErrorLogger}. */
+    private void logError(LocalizableMessage message, Severity severity, Throwable throwable) {
+      ErrorLogger.log(name, severity, message, throwable);
+    }
+
+
     @Override
     public boolean isTraceEnabled() {
         return DebugLogger.debugEnabled() && tracer.enabled();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void trace(String msg) {
         logTraceMessage(msg);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void trace(Marker marker, String msg) {
         logTraceMessage(msg);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void trace(String msg, Throwable t) {
         logTraceException(msg, t);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void trace(Marker marker, String msg, Throwable t) {
         logTraceException(msg, t);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDebugEnabled() {
         return ErrorLogger.isEnabledFor(name, Severity.INFORMATION);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void debug(Marker marker, String msg) {
         logError(marker, Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void debug(Marker marker, String msg, Throwable t) {
         logError(marker, Severity.INFORMATION, t);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInfoEnabled() {
         return ErrorLogger.isEnabledFor(name, Severity.NOTICE);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void info(Marker marker, String msg) {
         logError(marker, Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void info(Marker marker, String msg, Throwable t) {
         logError(marker, Severity.NOTICE, t);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isWarnEnabled() {
         return ErrorLogger.isEnabledFor(name, Severity.WARNING);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void warn(Marker marker, String msg) {
         logError(marker, Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
         logError(marker, Severity.WARNING, t);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isErrorEnabled() {
         return ErrorLogger.isEnabledFor(name, Severity.ERROR);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void error(Marker marker, String msg) {
         logError(marker, Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void error(Marker marker, String msg, Throwable t) {
         logError(marker, Severity.ERROR, t);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isTraceEnabled(Marker marker) {
         return isTraceEnabled();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDebugEnabled(Marker marker) {
         return isDebugEnabled();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInfoEnabled(Marker marker) {
         return isInfoEnabled();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isWarnEnabled(Marker marker) {
         return isWarnEnabled();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isErrorEnabled(Marker marker) {
         return isErrorEnabled();
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void trace(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #trace(String) instead.");
+    public void trace(String message, Object arg) {
+      logTraceMessage(formatMessage(message, arg));
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void trace(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #trace(String) instead.");
+    public void trace(String message, Object arg1, Object arg2) {
+      logTraceMessage(formatMessage(message, arg1, arg2));
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void trace(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #trace(String) instead.");
+    public void trace(String message, Object... argArray) {
+      logTraceMessage(formatMessage(message, argArray));
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void trace(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #trace(Marker, String) instead.");
+    public void trace(Marker marker, String message, Object arg) {
+      logTraceMessage(formatMessage(message, arg));
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void trace(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #trace(Marker, String) instead.");
+    public void trace(Marker marker, String message, Object arg1, Object arg2) {
+      logTraceMessage(formatMessage(message, arg1, arg2));
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void trace(Marker marker, String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #trace(Marker, String) instead.");
+    public void trace(Marker marker, String message, Object... argArray) {
+      logTraceMessage(formatMessage(message, argArray));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void debug(String msg) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+      logError(msg, Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void debug(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+    public void debug(String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void debug(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+    public void debug(String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void debug(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+    public void debug(String message, Object... argArray) {
+      logError(formatMessage(message, argArray), Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void debug(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String, Throwable) instead.");
+      logError(msg, Severity.INFORMATION, t);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void debug(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+    public void debug(Marker marker, String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void debug(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+    public void debug(Marker marker, String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void debug(Marker marker, String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #debug(Marker, String) instead.");
+    public void debug(Marker marker, String message, Object... arguments) {
+      logError(formatMessage(message, arguments), Severity.INFORMATION, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void info(String msg) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+      logError(msg, Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void info(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+    public void info(String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void info(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+    public void info(String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void info(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+    public void info(String message, Object... argArray) {
+      logError(formatMessage(message, argArray), Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void info(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #info(Marker, String, Throwable) instead.");
+      logError(msg, Severity.NOTICE, t);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void info(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+    public void info(Marker marker, String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void info(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+    public void info(Marker marker, String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void info(Marker marker, String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #info(Marker, String) instead.");
+    public void info(Marker marker, String message, Object... arguments) {
+      logError(formatMessage(message, arguments), Severity.NOTICE, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void warn(String msg) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+      logError(msg, Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void warn(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+    public void warn(String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void warn(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+    public void warn(String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void warn(String format, Object... argArray) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+    public void warn(String message, Object... argArray) {
+      logError(formatMessage(message, argArray), Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void warn(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String, Throwable) instead.");
+      logError(msg, Severity.WARNING, t);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void warn(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+    public void warn(Marker marker, String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void warn(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+    public void warn(Marker marker, String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void warn(Marker marker, String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #warn(Marker, String) instead.");
+    public void warn(Marker marker, String message, Object... arguments) {
+      logError(formatMessage(message, arguments), Severity.WARNING, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void error(String msg) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+      logError(msg, Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void error(String format, Object arg) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+    public void error(String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void error(String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+    public void error(String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void error(String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+    public void error(String message, Object... arguments) {
+      logError(formatMessage(message, arguments), Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void error(String msg, Throwable t) {
-        throw new UnsupportedOperationException("Use #error(Marker, String, Throwable) instead.");
+      logError(msg, Severity.ERROR, t);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void error(Marker marker, String format, Object arg) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+    public void error(Marker marker, String message, Object arg) {
+      logError(formatMessage(message, arg), Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void error(Marker marker, String format, Object arg1, Object arg2) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+    public void error(Marker marker, String message, Object arg1, Object arg2) {
+      logError(formatMessage(message, arg1, arg2), Severity.ERROR, null);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void error(Marker marker, String format, Object... arguments) {
-        throw new UnsupportedOperationException("Use #error(Marker, String) instead.");
+    public void error(Marker marker, String message, Object... arguments) {
+      logError(formatMessage(message, arguments), Severity.ERROR, null);
     }
 }
