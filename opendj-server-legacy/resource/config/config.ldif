@@ -144,7 +144,7 @@ ds-cfg-enabled: false
 ds-cfg-sender-address: opends-notifications@example.com
 ds-cfg-email-address-attribute-type: mail
 ds-cfg-send-message-without-end-user-address: false
-ds-cdf-send-email-as-html: false
+ds-cfg-send-email-as-html: false
 ds-cfg-message-template-file: account-temporarily-locked:config/messages/account-temporarily-locked.template
 ds-cfg-message-template-file: account-permanently-locked:config/messages/account-permanently-locked.template
 ds-cfg-message-template-file: account-unlocked:config/messages/account-unlocked.template
