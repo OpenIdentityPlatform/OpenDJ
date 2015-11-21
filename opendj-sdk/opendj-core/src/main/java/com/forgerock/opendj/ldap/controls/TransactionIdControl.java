@@ -23,13 +23,15 @@
  *
  *      Copyright 2015 ForgeRock AS.
  */
-package org.forgerock.opendj.ldap.controls;
+package com.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.util.Reject;
 
 /**
