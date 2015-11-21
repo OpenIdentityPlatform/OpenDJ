@@ -55,6 +55,7 @@ class UpgradeLog
   private static File logFile;
   private static FileHandler fileHandler;
   static final String UPGRADELOGNAME = "upgrade.log";
+  static final String LOGDIR = "logs";
 
   /**
    * Creates a new file handler for writing log messages into
@@ -68,8 +69,7 @@ class UpgradeLog
 
     if (logFile == null)
     {
-      logFile = new File(
-          UpgradeUtils.getInstallationPath() + File.separator + UPGRADELOGNAME);
+      logFile = new File(UpgradeUtils.getInstancePath() + File.separator + LOGDIR + File.separator + UPGRADELOGNAME);
     }
     try
     {
