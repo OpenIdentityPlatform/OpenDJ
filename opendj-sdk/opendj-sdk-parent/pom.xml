@@ -77,15 +77,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- ForgeRock BOM -->
-            <dependency>
-                <groupId>org.forgerock.commons</groupId>
-                <artifactId>forgerock-bom</artifactId>
-                <version>1.0.0</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-
             <!-- Commons -->
             <dependency>
                 <groupId>org.forgerock</groupId>

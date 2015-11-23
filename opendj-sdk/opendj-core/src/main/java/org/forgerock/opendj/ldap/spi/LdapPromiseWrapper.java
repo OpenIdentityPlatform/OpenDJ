@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -121,8 +121,9 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     }
 
     @Override
-    public void thenOnRuntimeException(RuntimeExceptionHandler onRuntimeException) {
+    public LdapPromise<R> thenOnRuntimeException(RuntimeExceptionHandler onRuntimeException) {
         wrappedPromise.thenOnRuntimeException(onRuntimeException);
+        return this;
     }
 
     @Override
