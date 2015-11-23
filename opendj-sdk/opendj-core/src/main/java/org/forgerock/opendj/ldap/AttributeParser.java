@@ -358,7 +358,9 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public final <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
             final T... defaultValues) {
         return asSetOf(f, Arrays.asList(defaultValues));
     }

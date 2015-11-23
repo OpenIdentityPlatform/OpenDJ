@@ -20,11 +20,10 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -36,12 +35,7 @@ import org.testng.annotations.DataProvider;
  */
 @SuppressWarnings("javadoc")
 public class DataProviderIterator implements Iterator<Object[]> {
-
     private final Iterator<?> iter;
-
-    public DataProviderIterator(Iterator<?> iter) {
-        this.iter = iter;
-    }
 
     public DataProviderIterator(Iterable<?> iterable) {
         this.iter = iterable != null
@@ -49,28 +43,18 @@ public class DataProviderIterator implements Iterator<Object[]> {
                 : Collections.emptySet().iterator();
     }
 
-    public <T> DataProviderIterator(T... objs) {
-        this.iter = objs != null
-                ? Arrays.asList(objs).iterator()
-                : Collections.emptySet().iterator();
-    }
-
-    /** {@inheritDoc} */
     @Override
     public boolean hasNext() {
         return iter.hasNext();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Object[] next() {
         return new Object[] { iter.next() };
     }
 
-    /** {@inheritDoc} */
     @Override
     public void remove() {
         iter.remove();
     }
-
 }
