@@ -252,6 +252,7 @@ public class ReplicationBroker
     this.replSessionSecurity = replSessionSecurity;
     this.rcvWindow = getMaxRcvWindow();
     this.halfRcvWindow = rcvWindow / 2;
+    this.shutdown = true;
 
     /*
      * Only create a monitor if there is a replication domain (this is not the
