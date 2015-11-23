@@ -146,7 +146,7 @@
     </adm:profile>
   </adm:property>
   <adm:property name="send-email-as-html"
-                mandatory="true" advanced="true">
+                mandatory="false" advanced="true">
     <adm:synopsis>
       Indicates whether an email notification message should be sent as HTML.
     </adm:synopsis>
