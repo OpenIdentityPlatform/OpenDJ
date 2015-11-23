@@ -15,11 +15,13 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.json.resource.ResourceException.newResourceException;
+import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -45,7 +47,6 @@ import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
@@ -69,6 +70,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Options;
+import org.forgerock.util.time.Duration;
 
 /** Provides core factory methods and builders for constructing LDAP resource collections. */
 public final class Rest2LDAP {
@@ -829,7 +831,7 @@ public final class Rest2LDAP {
         } catch (final Throwable tmp) {
             resourceResultCode = ResourceException.INTERNAL_ERROR;
         }
-        return ResourceException.getException(resourceResultCode, t.getMessage(), t);
+        return newResourceException(resourceResultCode, t.getMessage(), t);
     }
 
     /**
@@ -976,36 +978,39 @@ public final class Rest2LDAP {
 
     private static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
                                                                 final ClassLoader providerClassLoader) {
+        final long heartBeatIntervalSeconds = configuration.get("heartBeatIntervalSeconds").defaultTo(30L).asLong();
+        final Duration heartBeatInterval = new Duration(Math.max(heartBeatIntervalSeconds, 1L), TimeUnit.SECONDS);
+
+        final long heartBeatTimeoutMillis = configuration.get("heartBeatTimeoutMilliSeconds").defaultTo(500L).asLong();
+        final Duration heartBeatTimeout = new Duration(Math.max(heartBeatTimeoutMillis, 100L), TimeUnit.MILLISECONDS);
+
+        final Options options = Options.defaultOptions()
+                                       .set(TRANSPORT_PROVIDER_CLASS_LOADER, providerClassLoader)
+                                       .set(HEARTBEAT_ENABLED, true)
+                                       .set(HEARTBEAT_INTERVAL, heartBeatInterval)
+                                       .set(HEARTBEAT_TIMEOUT, heartBeatTimeout)
         // Parse pool parameters,
         final int connectionPoolSize =
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
-        final int heartBeatIntervalSeconds =
-                Math.max(configuration.get("heartBeatIntervalSeconds").defaultTo(30).asInteger(), 1);
-        final int heartBeatTimeoutMilliSeconds =
-                Math.max(configuration.get("heartBeatTimeoutMilliSeconds").defaultTo(500)
-                        .asInteger(), 100);
 
         // Parse authentication parameters.
-        final BindRequest bindRequest;
         if (configuration.isDefined("authentication")) {
             final JsonValue authn = configuration.get("authentication");
             if (authn.isDefined("simple")) {
                 final JsonValue simple = authn.get("simple");
-                bindRequest =
+                final BindRequest bindRequest =
                         Requests.newSimpleBindRequest(simple.get("bindDN").required().asString(),
                                 simple.get("bindPassword").required().asString().toCharArray());
+                options.set(AUTHN_BIND_REQUEST, bindRequest);
             } else {
                 throw new IllegalArgumentException("Only simple authentication is supported");
             }
-        } else {
-            bindRequest = null;
         }
 
         // Parse SSL/StartTLS parameters.
         final ConnectionSecurity connectionSecurity =
                 configuration.get("connectionSecurity").defaultTo(ConnectionSecurity.NONE).asEnum(
                         ConnectionSecurity.class);
-        final Options options = Options.defaultOptions().set(PROVIDER_CLASS_LOADER, providerClassLoader);
         if (connectionSecurity != ConnectionSecurity.NONE) {
             try {
                 // Configure SSL.
@@ -1033,8 +1038,8 @@ public final class Rest2LDAP {
                     break;
                 }
                 options.set(SSL_CONTEXT, builder.getSSLContext());
-                options.set(USE_STARTTLS,
-                    connectionSecurity == ConnectionSecurity.STARTTLS);
+                options.set(SSL_USE_STARTTLS,
+                            connectionSecurity == ConnectionSecurity.STARTTLS);
             } catch (GeneralSecurityException | IOException e) {
                 // Rethrow as unchecked exception.
                 throw new IllegalArgumentException(e);
@@ -1046,25 +1051,17 @@ public final class Rest2LDAP {
         if (!primaryLDAPServers.isList() || primaryLDAPServers.size() == 0) {
             throw new IllegalArgumentException("No primaryLDAPServers");
         }
-        final ConnectionFactory primary =
-                parseLDAPServers(primaryLDAPServers, bindRequest, connectionPoolSize,
-                        heartBeatIntervalSeconds, heartBeatTimeoutMilliSeconds, options);
+        final ConnectionFactory primary = parseLDAPServers(primaryLDAPServers, connectionPoolSize, options);
 
         // Parse secondary data center(s).
         final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
-        final ConnectionFactory secondary;
+        ConnectionFactory secondary = null;
         if (secondaryLDAPServers.isList()) {
             if (secondaryLDAPServers.size() > 0) {
-                secondary =
-                        parseLDAPServers(secondaryLDAPServers, bindRequest, connectionPoolSize,
-                                heartBeatIntervalSeconds, heartBeatTimeoutMilliSeconds, options);
-            } else {
-                secondary = null;
+                secondary = parseLDAPServers(secondaryLDAPServers, connectionPoolSize, options);
             }
         } else if (!secondaryLDAPServers.isNull()) {
             throw new IllegalArgumentException("Invalid secondaryLDAPServers configuration");
-        } else {
-            secondary = null;
         }
 
         // Create fail-over.
@@ -1102,28 +1099,17 @@ public final class Rest2LDAP {
         }
     }
 
-    private static ConnectionFactory parseLDAPServers(final JsonValue config,
-            final BindRequest bindRequest, final int connectionPoolSize,
-            final int heartBeatIntervalSeconds, final int heartBeatTimeoutMilliSeconds,
-            final Options options) {
+    private static ConnectionFactory parseLDAPServers(JsonValue config, int poolSize, Options options) {
         final List<ConnectionFactory> servers = new ArrayList<>(config.size());
         for (final JsonValue server : config) {
             final String host = server.get("hostname").required().asString();
             final int port = server.get("port").required().asInteger();
-            ConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
-            factory =
-                    Connections.newHeartBeatConnectionFactory(factory,
-                            heartBeatIntervalSeconds * 1000, heartBeatTimeoutMilliSeconds,
-                            TimeUnit.MILLISECONDS);
-            if (bindRequest != null) {
-                factory = Connections.newAuthenticatedConnectionFactory(factory, bindRequest);
+            final ConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
+            if (poolSize > 1) {
+                servers.add(newCachedConnectionPool(factory, 0, poolSize, 60L, TimeUnit.SECONDS));
+            } else {
+                servers.add(factory);
             }
-            if (connectionPoolSize > 1) {
-                factory =
-                        Connections.newCachedConnectionPool(factory, 0, connectionPoolSize, 60L,
-                                TimeUnit.SECONDS);
-            }
-            servers.add(factory);
         }
         if (servers.size() > 1) {
             return Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(servers,

@@ -21,18 +21,16 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.Request;
-import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.IntermediateResponse;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.util.promise.Promise;
@@ -58,24 +56,8 @@ public abstract class ResultLdapPromiseImpl<R extends Request, S extends Result>
     private IntermediateResponseHandler intermediateResponseHandler;
     private volatile long timestamp;
 
-    ResultLdapPromiseImpl(final int requestID, final R request,
-            final IntermediateResponseHandler intermediateResponseHandler, final Connection connection) {
-        this(new PromiseImpl<S, LdapException>() {
-            @Override
-            protected final LdapException tryCancel(final boolean mayInterruptIfRunning) {
-                /*
-                 * This will abandon the request, but will also recursively cancel this
-                 * future. There is no risk of an infinite loop because the state of
-                 * this future has already been changed.
-                 */
-                connection.abandonAsync(Requests.newAbandonRequest(requestID));
-                return newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED);
-            }
-        }, requestID, request, intermediateResponseHandler, connection);
-    }
-
     ResultLdapPromiseImpl(final PromiseImpl<S, LdapException> impl, final int requestID, final R request,
-            final IntermediateResponseHandler intermediateResponseHandler, final Connection connection) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         super(impl, requestID);
         this.request = request;
         this.intermediateResponseHandler = intermediateResponseHandler;

@@ -106,12 +106,12 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
         this.connectionFactory = factory;
         this.options = Options.copyOf(options);
         final LDAPServerFilter serverFilter =
-                new LDAPServerFilter(this, options.get(DECODE_OPTIONS), options.get(MAX_REQUEST_SIZE_BYTES));
+                new LDAPServerFilter(this, options.get(LDAP_DECODE_OPTIONS), options.get(REQUEST_MAX_SIZE_IN_BYTES));
         final FilterChain ldapChain =
                 GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
         final TCPNIOBindingHandler bindingHandler =
                 TCPNIOBindingHandler.builder(this.transport.get()).processor(ldapChain).build();
-        this.serverConnection = bindingHandler.bind(address, options.get(BACKLOG));
+        this.serverConnection = bindingHandler.bind(address, options.get(CONNECT_MAX_BACKLOG));
 
         /*
          * Get the socket address now, ensuring that the host is the same as the

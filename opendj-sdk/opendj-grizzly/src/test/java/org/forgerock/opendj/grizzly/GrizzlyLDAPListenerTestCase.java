@@ -74,9 +74,11 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.util.Options.defaultOptions;
 import static org.mockito.Mockito.*;
 
 /**
@@ -242,8 +244,8 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
     @Test
     public void testCreateLDAPListenerWithCustomClassLoader() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
-        Options options = Options.defaultOptions().set(PROVIDER_CLASS_LOADER,
-                Thread.currentThread().getContextClassLoader());
+        Options options = defaultOptions().set(TRANSPORT_PROVIDER_CLASS_LOADER,
+                                                       Thread.currentThread().getContextClassLoader());
         LDAPListener listener = new LDAPListener(findFreeSocketAddress(),
                 mock(ServerConnectionFactory.class), options);
         listener.close();
@@ -256,7 +258,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
     @Test(expectedExceptions = { ProviderNotFoundException.class },
         expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPListenerFailureProviderNotFound() throws Exception {
-        Options options = Options.defaultOptions().set(TRANSPORT_PROVIDER, "unknown");
+        Options options = defaultOptions().set(TRANSPORT_PROVIDER, "unknown");
         LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mock(ServerConnectionFactory.class), options);
         listener.close();
     }
@@ -644,7 +646,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
                 new MockServerConnectionFactory(serverConnection);
-        final Options options = Options.defaultOptions().set(MAX_REQUEST_SIZE_BYTES, 2048);
+        final Options options = defaultOptions().set(REQUEST_MAX_SIZE_IN_BYTES, 2048);
         final LDAPListener listener = new LDAPListener(findFreeSocketAddress(), factory, options);
 
         Connection connection = null;

@@ -27,8 +27,31 @@
 
 package org.forgerock.opendj.grizzly;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.Connections.newFailoverLoadBalancer;
+import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
+import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
+import static org.forgerock.opendj.ldap.requests.Requests.newCRAMMD5SASLBindRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newDigestMD5SASLBindRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.newSuccessfulLdapPromise;
+import static org.forgerock.util.Options.defaultOptions;
+import static org.forgerock.util.time.Duration.duration;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -46,18 +69,16 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ConnectionPool;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
-import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPServer;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LdapPromise;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.LdapResultHandler;
-import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -66,9 +87,11 @@ import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.DigestMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -85,16 +108,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.ENABLED_CIPHER_SUITES;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
 
 /**
  * Tests the {@code ConnectionFactory} classes.
@@ -147,54 +160,59 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT, "(objectclass=*)", "cn");
 
         InetSocketAddress serverAddress = getServerSocketAddress();
-        factories[0][0] =
-                Connections.newHeartBeatConnectionFactory(new LDAPConnectionFactory(
-                        serverAddress.getHostName(), serverAddress.getPort()),
-                        1000, 2000, TimeUnit.MILLISECONDS, request);
+        factories[0][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
+                                                    serverAddress.getPort(),
+                                                    defaultOptions()
+                                                           .set(HEARTBEAT_ENABLED, true)
+                                                           .set(HEARTBEAT_INTERVAL, duration("1000 ms"))
+                                                           .set(HEARTBEAT_TIMEOUT, duration("2000 ms"))
+                                                           .set(HEARTBEAT_SEARCH_REQUEST, request));
 
         // InternalConnectionFactory
         factories[1][0] = Connections.newInternalConnectionFactory(LDAPServer.getInstance(), null);
 
         // AuthenticatedConnectionFactory
-        factories[2][0] =
-                Connections.newAuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                                serverAddress.getHostName(), serverAddress.getPort()),
-                        Requests.newSimpleBindRequest("", new char[0]));
+        final SimpleBindRequest anon = newSimpleBindRequest("", new char[0]);
+        factories[2][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
+                                                    serverAddress.getPort(),
+                                                    defaultOptions().set(AUTHN_BIND_REQUEST, anon));
 
         // AuthenticatedConnectionFactory with multi-stage SASL
-        factories[3][0] =
-                Connections.newAuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                                serverAddress.getHostName(), serverAddress.getPort()),
-                        Requests.newCRAMMD5SASLBindRequest("id:user", "password".toCharArray()));
+        final CRAMMD5SASLBindRequest crammd5 = newCRAMMD5SASLBindRequest("id:user", "password".toCharArray());
+        factories[3][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
+                                                    serverAddress.getPort(),
+                                                    defaultOptions().set(AUTHN_BIND_REQUEST, crammd5));
 
         // LDAPConnectionFactory with default options
         factories[4][0] = new LDAPConnectionFactory(serverAddress.getHostName(), serverAddress.getPort());
 
         // LDAPConnectionFactory with startTLS
-        SSLContext sslContext =
-                new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
-        Options options = Options.defaultOptions().set(ENABLED_CIPHER_SUITES,
-            new ArrayList<String>(Arrays.asList(
-                "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
-                "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
-                "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
-                "SSL_DH_anon_WITH_DES_CBC_SHA",
-                "SSL_DH_anon_WITH_RC4_128_MD5",
-                "TLS_DH_anon_WITH_AES_128_CBC_SHA",
-                "TLS_DH_anon_WITH_AES_256_CBC_SHA")));
-        factories[5][0] = new LDAPConnectionFactory(serverAddress.getHostName(), serverAddress.getPort(), options);
+        SSLContext sslContext = new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
+        final Options startTlsOptions = defaultOptions()
+                                   .set(SSL_CONTEXT, sslContext)
+                                   .set(SSL_USE_STARTTLS, true)
+                                   .set(SSL_ENABLED_CIPHER_SUITES,
+                                        asList("SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
+                                                      "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
+                                                      "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
+                                                      "SSL_DH_anon_WITH_DES_CBC_SHA",
+                                                      "SSL_DH_anon_WITH_RC4_128_MD5",
+                                                      "TLS_DH_anon_WITH_AES_128_CBC_SHA",
+                                                      "TLS_DH_anon_WITH_AES_256_CBC_SHA"));
+        factories[5][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
+                                                    serverAddress.getPort(),
+                                                    startTlsOptions);
 
         // startTLS + SASL confidentiality
         // Use IP address here so that DIGEST-MD5 host verification works if
         // local host name is not localhost (e.g. on some machines it might be
         // localhost.localdomain).
         // FIXME: enable QOP once OPENDJ-514 is fixed.
-        factories[6][0] =
-                Connections.newAuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                        serverAddress.getHostName(), serverAddress.getPort(), options),
-                        Requests.newDigestMD5SASLBindRequest(
-                            "id:user", "password".toCharArray()).setCipher(
-                                DigestMD5SASLBindRequest.CIPHER_LOW));
+        final DigestMD5SASLBindRequest digestmd5 = newDigestMD5SASLBindRequest("id:user", "password".toCharArray())
+                .setCipher(DigestMD5SASLBindRequest.CIPHER_LOW);
+        factories[6][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
+                                                    serverAddress.getPort(),
+                                                    Options.copyOf(startTlsOptions).set(AUTHN_BIND_REQUEST, digestmd5));
 
         // Connection pool and load balancing tests.
         InetSocketAddress offlineSocketAddress1 = findFreeSocketAddress();
@@ -213,7 +231,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                                 serverAddress.getPort()), "online");
 
         // Connection pools.
-        factories[7][0] = Connections.newFixedConnectionPool(onlineServer, 10);
+        factories[7][0] = newFixedConnectionPool(onlineServer, 10);
 
         // Round robin.
         factories[8][0] =
@@ -251,7 +269,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                                 offlineServer1, 10), Connections.newFixedConnectionPool(
                                 onlineServer, 10))));
 
-        factories[20][0] = Connections.newFixedConnectionPool(onlineServer, 10);
+        factories[20][0] = newFixedConnectionPool(onlineServer, 10);
 
         return factories;
     }
@@ -316,14 +334,14 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     }
 
     /**
-     * Verifies that LDAP connections take into consideration changes to the
-     * default schema post creation. See OPENDJ-159.
-     * <p>
-     * This test is disabled because it cannot be run in parallel with rest of
-     * the test suite, because it modifies the global default schema.
+     * Verifies that LDAP connections take into consideration changes to the default schema post creation. See
+     * OPENDJ-159.
+     * <p/>
+     * This test is disabled because it cannot be run in parallel with rest of the test suite, because it modifies the
+     * global default schema.
      *
      * @throws Exception
-     *             If an unexpected error occurred.
+     *         If an unexpected error occurred.
      */
     @Test(enabled = false)
     public void testSchemaUsage() throws Exception {
@@ -366,7 +384,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      * Tests connection pool closure.
      *
      * @throws Exception
-     *             If an unexpected exception occurred.
+     *         If an unexpected exception occurred.
      */
     @Test
     public void testConnectionPoolClose() throws Exception {
@@ -405,7 +423,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             }
         });
 
-        ConnectionPool pool = Connections.newFixedConnectionPool(mockFactory, size);
+        ConnectionPool pool = newFixedConnectionPool(mockFactory, size);
         Connection[] pooledConnections = new Connection[size];
         for (int i = 0; i < size; i++) {
             pooledConnections[i] = pool.getConnection();

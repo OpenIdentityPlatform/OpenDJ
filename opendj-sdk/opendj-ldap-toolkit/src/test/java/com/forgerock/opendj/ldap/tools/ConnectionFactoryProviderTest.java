@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -65,7 +65,7 @@ public class ConnectionFactoryProviderTest extends ToolsTestCase {
                 .getCanonicalPath();
         argParser.parseArguments(new String[] { "--useStartTLS", "--trustStorePath", trustStorePath });
 
-        ConnectionFactory factory = connectionFactoryProvider.getConnectionFactory();
+        ConnectionFactory factory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
 
         assertThat(factory).isNotNull();
     }

@@ -27,10 +27,13 @@
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,6 +68,7 @@ import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.util.Options;
+import org.forgerock.util.time.Duration;
 
 /**
  * A connection factory designed for use with command line tools.
@@ -134,8 +138,6 @@ public final class ConnectionFactoryProvider {
 
     /**  The basic connection factory. */
     private ConnectionFactory connFactory;
-    /** The authenticated connection factory. */
-    protected ConnectionFactory authenticatedConnFactory;
 
     /** The bind request to connect with. */
     private BindRequest bindRequest;
@@ -345,15 +347,34 @@ public final class ConnectionFactoryProvider {
     }
 
     /**
-     * Checks if any conflicting arguments are present, build the connection with selected arguments and returns the
-     * connection factory. If the application is interactive, it will prompt the user for missing parameters.
+     * Constructs a connection factory for pre-authenticated connections. Checks if any conflicting arguments are
+     * present, build the connection with selected arguments and returns the connection factory. If the application is
+     * interactive, it will prompt the user for missing parameters.
      *
      * @return The connection factory.
      * @throws ArgumentException
-     *             If an error occurs during the parsing of the arguments.
-     *             (conflicting arguments or if an error occurs during building SSL context).
+     *         If an error occurs during the parsing of the arguments (conflicting arguments or if an error occurs
+     *         during building SSL context).
      */
-    public ConnectionFactory getConnectionFactory() throws ArgumentException {
+    public ConnectionFactory getAuthenticatedConnectionFactory() throws ArgumentException {
+        return getConnectionFactory(true);
+    }
+
+    /**
+     * Constructs a connection factory for unauthenticated connections. Checks if any conflicting arguments are present,
+     * build the connection with selected arguments and returns the connection factory. If the application is
+     * interactive, it will prompt the user for missing parameters.
+     *
+     * @return The connection factory.
+     * @throws ArgumentException
+     *         If an error occurs during the parsing of the arguments (conflicting arguments or if an error occurs
+     *         during building SSL context).
+     */
+    public ConnectionFactory getUnauthenticatedConnectionFactory() throws ArgumentException {
+        return getConnectionFactory(false);
+    }
+
+    private ConnectionFactory getConnectionFactory(boolean usePreAuthentication) throws ArgumentException {
         if (connFactory == null) {
             port = portArg.isPresent() ? portArg.getIntValue() : 0;
 
@@ -415,13 +436,14 @@ public final class ConnectionFactoryProvider {
             }
 
             Options options = Options.defaultOptions();
-
             if (sslContext != null) {
                 options.set(SSL_CONTEXT, sslContext)
-                    .set(USE_STARTTLS, useStartTLSArg.isPresent());
+                    .set(SSL_USE_STARTTLS, useStartTLSArg.isPresent());
             }
-            options.set(CONNECT_TIMEOUT_IN_MILLISECONDS,
-                TimeUnit.MILLISECONDS.toMillis(getConnectTimeout()));
+            options.set(CONNECT_TIMEOUT, new Duration((long) getConnectTimeout(), TimeUnit.MILLISECONDS));
+            if (usePreAuthentication) {
+                options.set(AUTHN_BIND_REQUEST, getBindRequest());
+            }
             connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
         }
         return connFactory;
@@ -500,24 +522,6 @@ public final class ConnectionFactoryProvider {
                             .getLongIdentifier());
             throw new ArgumentException(message);
         }
-    }
-
-    /**
-     * Returns the authenticated connection factory.
-     *
-     * @return The authenticated connection factory.
-     * @throws ArgumentException
-     *             If an error occurs during parsing the arguments.
-     */
-    public ConnectionFactory getAuthenticatedConnectionFactory() throws ArgumentException {
-        if (authenticatedConnFactory == null) {
-            authenticatedConnFactory = getConnectionFactory();
-            final BindRequest bindRequest = getBindRequest();
-            if (bindRequest != null) {
-                authenticatedConnFactory = new AuthenticatedConnectionFactory(authenticatedConnFactory, bindRequest);
-            }
-        }
-        return authenticatedConnFactory;
     }
 
     /**

@@ -27,46 +27,41 @@
 
 package org.forgerock.opendj.grizzly;
 
-import java.io.IOException;
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_CONNECT_TIMEOUT;
+import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.buildFilterChain;
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.configureConnection;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.LDAP_DECODE_OPTIONS;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
+
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.net.ssl.SSLEngine;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TimeoutChecker;
 import org.forgerock.opendj.ldap.TimeoutEventListener;
-import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
-import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
+import org.forgerock.opendj.ldap.spi.LDAPConnectionImpl;
+import org.forgerock.util.Option;
 import org.forgerock.util.Options;
-import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
-import org.forgerock.util.promise.ResultHandler;
+import org.forgerock.util.time.Duration;
 import org.glassfish.grizzly.CompletionHandler;
-import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.SocketConnectorHandler;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
-
-import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.*;
-import static org.forgerock.opendj.grizzly.GrizzlyUtils.*;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.TimeoutChecker.*;
-
-import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
 
 /**
  * LDAP connection factory implementation using Grizzly for transport.
@@ -78,12 +73,11 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      * Adapts a Grizzly connection completion handler to an LDAP connection promise.
      */
     @SuppressWarnings("rawtypes")
-    private final class CompletionHandlerAdapter implements
-            CompletionHandler<org.glassfish.grizzly.Connection>, TimeoutEventListener {
-        private final PromiseImpl<Connection, LdapException> promise;
+    private final class CompletionHandlerAdapter implements CompletionHandler<Connection>, TimeoutEventListener {
+        private final PromiseImpl<LDAPConnectionImpl, LdapException> promise;
         private final long timeoutEndTime;
 
-        private CompletionHandlerAdapter(final PromiseImpl<Connection, LdapException> promise) {
+        private CompletionHandlerAdapter(final PromiseImpl<LDAPConnectionImpl, LdapException> promise) {
             this.promise = promise;
             final long timeoutMS = getTimeout();
             this.timeoutEndTime = timeoutMS > 0 ? System.currentTimeMillis() + timeoutMS : 0;
@@ -96,63 +90,13 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         }
 
         @Override
-        public void completed(final org.glassfish.grizzly.Connection result) {
+        public void completed(final Connection result) {
             // Adapt the connection.
             final GrizzlyLDAPConnection connection = adaptConnection(result);
-
-            // Plain connection.
-            if (options.get(SSL_CONTEXT) == null) {
-                thenOnResult(connection);
-                return;
-            }
-
-            // Start TLS or install SSL layer asynchronously.
-
-            // Give up immediately if the promise has been cancelled or timed out.
-            if (promise.isDone()) {
-                timeoutChecker.get().removeListener(this);
+            timeoutChecker.get().removeListener(this);
+            if (!promise.tryHandleResult(connection)) {
+                // The connection has been either cancelled or it has timed out.
                 connection.close();
-                return;
-            }
-
-            List<String> protocols = options.get(ENABLED_PROTOCOLS);
-            List<String> suites = options.get(ENABLED_CIPHER_SUITES);
-            if (options.get(USE_STARTTLS)) {
-                // Chain StartTLS extended request.
-                final StartTLSExtendedRequest startTLS =
-                        Requests.newStartTLSExtendedRequest(options.get(SSL_CONTEXT));
-                startTLS.addEnabledCipherSuite(suites.toArray(new String[suites.size()]));
-                startTLS.addEnabledProtocol(protocols.toArray(new String[protocols.size()]));
-
-                connection.extendedRequestAsync(startTLS).thenOnResult(new ResultHandler<ExtendedResult>() {
-                    @Override
-                    public void handleResult(final ExtendedResult result) {
-                        thenOnResult(connection);
-                    }
-                }).thenOnException(new ExceptionHandler<LdapException>() {
-                    @Override
-                    public void handleException(final LdapException error) {
-                        onException(connection, error);
-                    }
-                });
-            } else {
-                // Install SSL/TLS layer.
-                try {
-                    connection.startTLS(options.get(SSL_CONTEXT), protocols, suites,
-                        new EmptyCompletionHandler<SSLEngine>() {
-                            @Override
-                            public void completed(final SSLEngine result) {
-                                thenOnResult(connection);
-                            }
-
-                            @Override
-                            public void failed(final Throwable throwable) {
-                                onException(connection, throwable);
-                            }
-                        });
-                } catch (final IOException e) {
-                    onException(connection, e);
-                }
             }
         }
 
@@ -165,12 +109,11 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         }
 
         @Override
-        public void updated(final org.glassfish.grizzly.Connection result) {
+        public void updated(final Connection result) {
             // Ignore this.
         }
 
-        private GrizzlyLDAPConnection adaptConnection(
-                final org.glassfish.grizzly.Connection<?> connection) {
+        private GrizzlyLDAPConnection adaptConnection(final Connection<?> connection) {
             configureConnection(connection, logger, options);
 
             final GrizzlyLDAPConnection ldapConnection =
@@ -184,26 +127,10 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             if (!(t instanceof LdapException) && t instanceof ExecutionException) {
                 t = t.getCause() != null ? t.getCause() : t;
             }
-
             if (t instanceof LdapException) {
                 return (LdapException) t;
             } else {
                 return newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR, t.getMessage(), t);
-            }
-        }
-
-        private void onException(final GrizzlyLDAPConnection connection, final Throwable t) {
-            // Abort connection attempt due to error.
-            timeoutChecker.get().removeListener(this);
-            promise.handleException(adaptConnectionException(t));
-            connection.close();
-        }
-
-        private void thenOnResult(final GrizzlyLDAPConnection connection) {
-            timeoutChecker.get().removeListener(this);
-            if (!promise.tryHandleResult(connection)) {
-                // The connection has been either cancelled or it has timed out.
-                connection.close();
             }
         }
 
@@ -222,7 +149,8 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
 
         @Override
         public long getTimeout() {
-            return options.get(CONNECT_TIMEOUT_IN_MILLISECONDS);
+            final Duration duration = options.get(CONNECT_TIMEOUT);
+            return duration.isUnlimited() ? 0L : duration.to(TimeUnit.MILLISECONDS);
         }
     }
 
@@ -245,48 +173,32 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     private final AtomicBoolean isClosed = new AtomicBoolean();
 
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
-    private final ReferenceCountedObject<TimeoutChecker>.Reference timeoutChecker = TIMEOUT_CHECKER
-            .acquire();
+    private final ReferenceCountedObject<TimeoutChecker>.Reference timeoutChecker = TIMEOUT_CHECKER.acquire();
 
     /**
-     * Creates a new LDAP connection factory based on Grizzly which can be used
-     * to create connections to the Directory Server at the provided host and
-     * port address using provided connection options.
-     *  @param host
-     *            The hostname of the Directory Server to connect to.
+     * Grizzly TCP Transport NIO implementation to use for connections. If {@code null}, default transport will be
+     * used.
+     */
+    public static final Option<TCPNIOTransport> GRIZZLY_TRANSPORT = Option.of(TCPNIOTransport.class, null);
+
+    /**
+     * Creates a new LDAP connection factory based on Grizzly which can be used to create connections to the Directory
+     * Server at the provided host and port address using provided connection options.
+     *
+     * @param host
+     *         The hostname of the Directory Server to connect to.
      * @param port
-     *            The port number of the Directory Server to connect to.
+     *         The port number of the Directory Server to connect to.
      * @param options
-     *            The LDAP connection options to use when creating connections.
+     *         The LDAP connection options to use when creating connections.
      */
     public GrizzlyLDAPConnectionFactory(final String host, final int port, final Options options) {
-        this(host, port, options, null);
-    }
-
-    /**
-     * Creates a new LDAP connection factory based on Grizzly which can be used
-     * to create connections to the Directory Server at the provided host and
-     * port address using provided connection options and provided TCP
-     * transport.
-     *  @param host
-     *            The hostname of the Directory Server to connect to.
-     * @param port
-     *            The port number of the Directory Server to connect to.
-     * @param options
- *            The LDAP connection options to use when creating connections.
-     * @param transport
-*            Grizzly TCP Transport NIO implementation to use for
-*            connections. If {@code null}, default transport will be used.
-     */
-    public GrizzlyLDAPConnectionFactory(final String host, final int port, final Options options,
-                                        TCPNIOTransport transport) {
-        this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
+        this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.get(GRIZZLY_TRANSPORT));
         this.host = host;
         this.port = port;
         this.options = options;
-        this.clientFilter = new LDAPClientFilter(options.get(DECODE_OPTIONS), 0);
-        this.defaultFilterChain =
-                buildFilterChain(this.transport.get().getProcessor(), clientFilter);
+        this.clientFilter = new LDAPClientFilter(options.get(LDAP_DECODE_OPTIONS), 0);
+        this.defaultFilterChain = buildFilterChain(this.transport.get().getProcessor(), clientFilter);
     }
 
     @Override
@@ -297,21 +209,12 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     }
 
     @Override
-    public Connection getConnection() throws LdapException {
-        try {
-            return getConnectionAsync().getOrThrow();
-        } catch (final InterruptedException e) {
-            throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
-        }
-    }
-
-    @Override
-    public Promise<Connection, LdapException> getConnectionAsync() {
+    public Promise<LDAPConnectionImpl, LdapException> getConnectionAsync() {
         acquireTransportAndTimeoutChecker(); // Protect resources.
-        final SocketConnectorHandler connectorHandler =
-                TCPNIOConnectorHandler.builder(transport.get()).processor(defaultFilterChain)
-                        .build();
-        final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
+        final SocketConnectorHandler connectorHandler = TCPNIOConnectorHandler.builder(transport.get())
+                                                                              .processor(defaultFilterChain)
+                                                                              .build();
+        final PromiseImpl<LDAPConnectionImpl, LdapException> promise = PromiseImpl.create();
         connectorHandler.connect(getSocketAddress(), new CompletionHandlerAdapter(promise));
         return promise;
     }
@@ -329,11 +232,6 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     @Override
     public int getPort() {
         return port;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "(" + host + ':' + port + ')';
     }
 
     TimeoutChecker getTimeoutChecker() {

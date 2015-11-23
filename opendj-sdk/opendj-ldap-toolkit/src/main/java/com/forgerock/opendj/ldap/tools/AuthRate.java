@@ -202,6 +202,7 @@ public final class AuthRate extends ConsoleApplication {
                     break;
                 }
 
+                final BindRequest bindRequest = getBindRequest();
                 if (bindRequest instanceof SimpleBindRequest) {
                     final SimpleBindRequest o = (SimpleBindRequest) bindRequest;
                     if (br == null) {
@@ -315,7 +316,6 @@ public final class AuthRate extends ConsoleApplication {
         private SearchScope scope;
         private DereferenceAliasesPolicy dereferencesAliasesPolicy;
         private String[] attributes;
-        private BindRequest bindRequest;
         private int invalidCredPercent;
 
         private BindPerformanceRunner(final PerformanceRunnerOptions options)
@@ -479,11 +479,11 @@ public final class AuthRate extends ConsoleApplication {
                 return 0;
             }
 
-            connectionFactory = connectionFactoryProvider.getConnectionFactory();
+            connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
+            runner.setBindRequest(connectionFactoryProvider.getBindRequest());
             runner.validate();
 
-            runner.bindRequest = connectionFactoryProvider.getBindRequest();
-            if (runner.bindRequest == null) {
+            if (runner.getBindRequest() == null) {
                 throw new ArgumentException(LocalizableMessage
                         .raw("Authentication information must be provided to use this tool"));
             }

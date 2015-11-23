@@ -28,37 +28,23 @@ package org.forgerock.opendj.ldap.spi;
 
 import java.net.InetSocketAddress;
 
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Options;
 import org.forgerock.util.promise.Promise;
 
-import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Basic LDAP connection factory implementation to use for tests only.
  */
-public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryImpl {
-
-    private final Options options;
+final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryImpl {
     private final String host;
     private final int port;
 
-    /**
-     * Creates a new LDAP connection factory which does nothing.
-     *  @param host
-     *            The address of the Directory Server to connect to.
-     * @param port
-     *            The port of the Directory Server to connect to.
-     * @param options
-     */
-    public BasicLDAPConnectionFactory(final String host, final int port, final Options options) {
+    BasicLDAPConnectionFactory(final String host, final int port, final Options options) {
         this.host = host;
         this.port = port;
-        this.options = Options.copyOf(options);
     }
 
     @Override
@@ -67,24 +53,10 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
     }
 
     @Override
-    public Connection getConnection() throws LdapException {
-        try {
-            return getConnectionAsync().getOrThrow();
-        } catch (final InterruptedException e) {
-            throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
-        }
+    public Promise<LDAPConnectionImpl, LdapException> getConnectionAsync() {
+        return newResultPromise(mock(LDAPConnectionImpl.class));
     }
 
-    @Override
-    public Promise<Connection, LdapException> getConnectionAsync() {
-        return newResultPromise(mock(Connection.class));
-    }
-
-    /**
-     * Returns the address of the Directory Server.
-     *
-     * @return The address of the Directory Server.
-     */
     @Override
     public InetSocketAddress getSocketAddress() {
         return new InetSocketAddress(host, port);
@@ -103,9 +75,5 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(" + host + ':' + port + ')';
-    }
-
-    Options getLDAPOptions() {
-        return options;
     }
 }

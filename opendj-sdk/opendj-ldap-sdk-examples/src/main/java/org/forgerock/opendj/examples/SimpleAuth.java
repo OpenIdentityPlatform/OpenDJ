@@ -153,7 +153,7 @@ public final class SimpleAuth {
             options.set(SSL_CONTEXT, sslContext);
         }
 
-        options.set(USE_STARTTLS, useStartTLS);
+        options.set(SSL_USE_STARTTLS, useStartTLS);
 
         return options;
     }
@@ -208,7 +208,7 @@ public final class SimpleAuth {
                 new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
                         .getSSLContext();
         options.set(SSL_CONTEXT, sslContext);
-        options.set(USE_STARTTLS, useStartTLS);
+        options.set(SSL_USE_STARTTLS, useStartTLS);
         return options;
     }
     // --- JCite trust all ---

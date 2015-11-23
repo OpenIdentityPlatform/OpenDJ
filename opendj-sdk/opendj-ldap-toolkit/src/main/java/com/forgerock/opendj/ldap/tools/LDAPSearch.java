@@ -63,6 +63,7 @@ import org.forgerock.opendj.ldap.controls.ServerSideSortResponseControl;
 import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewRequestControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewResponseControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -83,6 +84,8 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
 
+import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
+import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static org.forgerock.util.Utils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -241,6 +244,7 @@ public final class LDAPSearch extends ConsoleApplication {
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPSEARCH.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
+        BindRequest bindRequest;
 
         BooleanArgument countEntries;
         BooleanArgument dontWrap;
@@ -444,7 +448,8 @@ public final class LDAPSearch extends ConsoleApplication {
                 return 0;
             }
 
-            connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
+            connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
+            bindRequest = connectionFactoryProvider.getBindRequest();
         } catch (final ArgumentException ae) {
             argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -823,16 +828,13 @@ public final class LDAPSearch extends ConsoleApplication {
             return 0;
         }
 
-        Connection connection;
+        Connection connection = null;
         try {
             connection = connectionFactory.getConnection();
-        } catch (final LdapException ere) {
-            return Utils.printErrorMessage(this, ere);
-        }
+            if (bindRequest != null) {
+                printPasswordPolicyResults(this, connection.bind(bindRequest));
+            }
 
-        Utils.printPasswordPolicyResults(this, connection);
-
-        try {
             int filterIndex = 0;
             ldifWriter = new LDIFEntryWriter(getOutputStream()).setWrapColumn(wrapColumn);
             final LDAPSearchResultHandler resultHandler = new LDAPSearchResultHandler();
@@ -920,7 +922,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 println();
             }
         } catch (final LdapException ere) {
-            return Utils.printErrorMessage(this, ere);
+            return printErrorMessage(this, ere);
         } finally {
             closeSilently(ldifWriter, connection);
         }

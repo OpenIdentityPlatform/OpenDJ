@@ -26,13 +26,12 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LdapException;
@@ -51,7 +50,6 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
-import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.util.StaticUtils;
 
 /**
@@ -196,84 +194,62 @@ final class Utils {
         return ere.getResult().getResultCode().intValue();
     }
 
-    static void printPasswordPolicyResults(final ConsoleApplication app, final Connection connection) {
-        if (connection instanceof AuthenticatedConnection) {
-            final AuthenticatedConnection conn = (AuthenticatedConnection) connection;
-            final BindResult result = conn.getAuthenticatedBindResult();
-
-            try {
-                final AuthorizationIdentityResponseControl control =
-                        result.getControl(AuthorizationIdentityResponseControl.DECODER,
-                                new DecodeOptions());
-                if (control != null) {
-                    final LocalizableMessage message =
-                            INFO_BIND_AUTHZID_RETURNED.get(control.getAuthorizationID());
-                    app.println(message);
-                }
-            } catch (final DecodeException e) {
-                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+    static void printPasswordPolicyResults(final ConsoleApplication app, final BindResult result) {
+        try {
+            final AuthorizationIdentityResponseControl control = result.getControl(
+                    AuthorizationIdentityResponseControl.DECODER, new DecodeOptions());
+            if (control != null) {
+                app.println(INFO_BIND_AUTHZID_RETURNED.get(control.getAuthorizationID()));
             }
+        } catch (final DecodeException e) {
+            app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+        }
 
-            try {
-                final PasswordExpiredResponseControl control =
-                        result.getControl(PasswordExpiredResponseControl.DECODER,
-                                new DecodeOptions());
-                if (control != null) {
-                    final LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
-                    app.println(message);
-                }
-            } catch (final DecodeException e) {
-                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+        try {
+            final PasswordExpiredResponseControl control = result.getControl(PasswordExpiredResponseControl.DECODER,
+                                                                             new DecodeOptions());
+            if (control != null) {
+                app.println(INFO_BIND_PASSWORD_EXPIRED.get());
             }
+        } catch (final DecodeException e) {
+            app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+        }
 
-            try {
-                final PasswordExpiringResponseControl control =
-                        result.getControl(PasswordExpiringResponseControl.DECODER,
-                                new DecodeOptions());
-                if (control != null) {
-                    final LocalizableMessage timeString =
-                            secondsToTimeString(control.getSecondsUntilExpiration());
-                    final LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
-                    app.println(message);
-                }
-            } catch (final DecodeException e) {
-                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+        try {
+            final PasswordExpiringResponseControl control = result.getControl(PasswordExpiringResponseControl.DECODER,
+                                                                              new DecodeOptions());
+            if (control != null) {
+                final LocalizableMessage timeString = secondsToTimeString(control.getSecondsUntilExpiration());
+                app.println(INFO_BIND_PASSWORD_EXPIRING.get(timeString));
             }
+        } catch (final DecodeException e) {
+            app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+        }
 
-            try {
-                final PasswordPolicyResponseControl control =
-                        result.getControl(PasswordPolicyResponseControl.DECODER,
-                                new DecodeOptions());
-                if (control != null) {
-                    final PasswordPolicyErrorType errorType = control.getErrorType();
-                    if (errorType == PasswordPolicyErrorType.PASSWORD_EXPIRED) {
-                        final LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
-                        app.println(message);
-                    } else if (errorType == PasswordPolicyErrorType.ACCOUNT_LOCKED) {
-                        final LocalizableMessage message = INFO_BIND_ACCOUNT_LOCKED.get();
-                        app.println(message);
-                    } else if (errorType == PasswordPolicyErrorType.CHANGE_AFTER_RESET) {
+        try {
+            final PasswordPolicyResponseControl control = result.getControl(PasswordPolicyResponseControl.DECODER,
+                                                                            new DecodeOptions());
+            if (control != null) {
+                final PasswordPolicyErrorType errorType = control.getErrorType();
+                if (errorType == PasswordPolicyErrorType.PASSWORD_EXPIRED) {
+                    app.println(INFO_BIND_PASSWORD_EXPIRED.get());
+                } else if (errorType == PasswordPolicyErrorType.ACCOUNT_LOCKED) {
+                    app.println(INFO_BIND_ACCOUNT_LOCKED.get());
+                } else if (errorType == PasswordPolicyErrorType.CHANGE_AFTER_RESET) {
 
-                        final LocalizableMessage message = INFO_BIND_MUST_CHANGE_PASSWORD.get();
-                        app.println(message);
-                    }
-
-                    final PasswordPolicyWarningType warningType = control.getWarningType();
-                    if (warningType == PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION) {
-                        final LocalizableMessage timeString =
-                                secondsToTimeString(control.getWarningValue());
-                        final LocalizableMessage message =
-                                INFO_BIND_PASSWORD_EXPIRING.get(timeString);
-                        app.println(message);
-                    } else if (warningType == PasswordPolicyWarningType.GRACE_LOGINS_REMAINING) {
-                        final LocalizableMessage message =
-                                INFO_BIND_GRACE_LOGINS_REMAINING.get(control.getWarningValue());
-                        app.println(message);
-                    }
+                    app.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
                 }
-            } catch (final DecodeException e) {
-                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+
+                final PasswordPolicyWarningType warningType = control.getWarningType();
+                if (warningType == PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION) {
+                    final LocalizableMessage timeString = secondsToTimeString(control.getWarningValue());
+                    app.println(INFO_BIND_PASSWORD_EXPIRING.get(timeString));
+                } else if (warningType == PasswordPolicyWarningType.GRACE_LOGINS_REMAINING) {
+                    app.println(INFO_BIND_GRACE_LOGINS_REMAINING.get(control.getWarningValue()));
+                }
             }
+        } catch (final DecodeException e) {
+            app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
         }
     }
 

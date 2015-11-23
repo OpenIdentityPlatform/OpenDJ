@@ -27,7 +27,10 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_ENABLED;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -43,7 +46,7 @@ import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
-import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.util.Options;
 
 /**
@@ -90,19 +93,25 @@ public final class Proxy {
         // Create load balancer.
         // --- JCite pools ---
         final List<ConnectionFactory> factories = new LinkedList<>();
+        final BindRequest bindRequest = newSimpleBindRequest(proxyDN, proxyPassword.toCharArray());
+        final Options factoryOptions = Options.defaultOptions()
+                                              .set(HEARTBEAT_ENABLED, true)
+                                              .set(AUTHN_BIND_REQUEST, bindRequest);
+
         final List<ConnectionFactory> bindFactories = new LinkedList<>();
+        final Options bindFactoryOptions = Options.defaultOptions().set(HEARTBEAT_ENABLED, true);
+
         for (int i = 4; i < args.length; i += 2) {
             final String remoteAddress = args[i];
             final int remotePort = Integer.parseInt(args[i + 1]);
 
-            factories.add(Connections.newCachedConnectionPool(Connections
-                    .newAuthenticatedConnectionFactory(Connections
-                            .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
-                                    remotePort)), Requests.newSimpleBindRequest(proxyDN,
-                            proxyPassword.toCharArray()))));
-            bindFactories.add(Connections.newCachedConnectionPool(Connections
-                    .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
-                            remotePort))));
+            factories.add(Connections.newCachedConnectionPool(new LDAPConnectionFactory(remoteAddress,
+                                                                                        remotePort,
+                                                                                        factoryOptions)));
+
+            bindFactories.add(Connections.newCachedConnectionPool(new LDAPConnectionFactory(remoteAddress,
+                                                                                            remotePort,
+                                                                                            bindFactoryOptions)));
         }
         // --- JCite pools ---
 
@@ -135,7 +144,7 @@ public final class Proxy {
 
         // --- JCite listener ---
         // Create listener.
-        final Options options = Options.defaultOptions().set(BACKLOG, 4096);
+        final Options options = Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096);
         LDAPListener listener = null;
         try {
             listener = new LDAPListener(localAddress, localPort, connectionHandler, options);

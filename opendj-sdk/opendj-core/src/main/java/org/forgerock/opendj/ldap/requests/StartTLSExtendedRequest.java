@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.net.ssl.SSLContext;
@@ -100,6 +101,22 @@ public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult>
     StartTLSExtendedRequest addEnabledCipherSuite(String... suites);
 
     /**
+     * Adds the cipher suites enabled for secure connections with the Directory
+     * Server. The suites must be supported by the SSLContext specified in
+     * {@link #setSSLContext(SSLContext)}. Following a successful call to this
+     * method, only the suites listed in the protocols parameter are enabled for
+     * use.
+     *
+     * @param suites
+     *            Names of all the suites to enable.
+     * @return A reference to this LDAP connection options.
+     * @throws UnsupportedOperationException
+     *             If this start TLS extended request does not permit the
+     *             enabled cipher suites to be set.
+     */
+    StartTLSExtendedRequest addEnabledCipherSuite(Collection<String> suites);
+
+    /**
      * Adds the protocol versions enabled for secure connections with the
      * Directory Server. The protocols must be supported by the SSLContext
      * specified in {@link #setSSLContext(SSLContext)}. Following a successful
@@ -114,6 +131,22 @@ public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult>
      *             enabled protocols to be set.
      */
     StartTLSExtendedRequest addEnabledProtocol(String... protocols);
+
+    /**
+     * Adds the protocol versions enabled for secure connections with the
+     * Directory Server. The protocols must be supported by the SSLContext
+     * specified in {@link #setSSLContext(SSLContext)}. Following a successful
+     * call to this method, only the protocols listed in the protocols parameter
+     * are enabled for use.
+     *
+     * @param protocols
+     *            Names of all the protocols to enable.
+     * @return A reference to this LDAP connection options.
+     * @throws UnsupportedOperationException
+     *             If this start TLS extended request does not permit the
+     *             enabled protocols to be set.
+     */
+    StartTLSExtendedRequest addEnabledProtocol(Collection<String> protocols);
 
     @Override
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)

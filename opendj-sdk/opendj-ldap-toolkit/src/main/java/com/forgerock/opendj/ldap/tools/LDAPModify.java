@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
+import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.FileInputStream;
@@ -56,6 +57,7 @@ import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -94,7 +96,7 @@ public final class LDAPModify extends ConsoleApplication {
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final LdapException ere) {
-                    return Utils.printErrorMessage(LDAPModify.this, ere);
+                    return printErrorMessage(LDAPModify.this, ere);
                 }
             }
             return ResultCode.SUCCESS.intValue();
@@ -130,7 +132,7 @@ public final class LDAPModify extends ConsoleApplication {
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final LdapException ere) {
-                    return Utils.printErrorMessage(LDAPModify.this, ere);
+                    return printErrorMessage(LDAPModify.this, ere);
                 }
             }
             return ResultCode.SUCCESS.intValue();
@@ -148,7 +150,7 @@ public final class LDAPModify extends ConsoleApplication {
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
                 } catch (final LdapException ere) {
-                    return Utils.printErrorMessage(LDAPModify.this, ere);
+                    return printErrorMessage(LDAPModify.this, ere);
                 }
             }
             return ResultCode.SUCCESS.intValue();
@@ -253,6 +255,7 @@ public final class LDAPModify extends ConsoleApplication {
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPMODIFY.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
+        BindRequest bindRequest;
 
         BooleanArgument continueOnError;
         // TODO: Remove this due to new LDIF reader api?
@@ -367,7 +370,8 @@ public final class LDAPModify extends ConsoleApplication {
                 return 0;
             }
 
-            connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
+            connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
+            bindRequest = connectionFactoryProvider.getBindRequest();
         } catch (final ArgumentException ae) {
             argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -383,12 +387,6 @@ public final class LDAPModify extends ConsoleApplication {
             errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
-
-        // modifyOptions.setShowOperations(noop.isPresent());
-        // modifyOptions.setVerbose(verbose.isPresent());
-        // modifyOptions.setContinueOnError(continueOnError.isPresent());
-        // modifyOptions.setEncoding(encodingStr.getValue());
-        // modifyOptions.setDefaultAdd(defaultAdd.isPresent());
 
         controls = new LinkedList<>();
         if (controlStr.isPresent()) {
@@ -453,20 +451,22 @@ public final class LDAPModify extends ConsoleApplication {
             controls.add(control);
         }
 
-        if (!noop.isPresent()) {
-            try {
-                connection = connectionFactory.getConnection();
-            } catch (final LdapException ere) {
-                return Utils.printErrorMessage(this, ere);
-            }
-        }
-
-        Utils.printPasswordPolicyResults(this, connection);
 
         writer = new LDIFEntryWriter(getOutputStream());
         final VisitorImpl visitor = new VisitorImpl();
         ChangeRecordReader reader = null;
         try {
+            if (!noop.isPresent()) {
+                try {
+                    connection = connectionFactory.getConnection();
+                    if (bindRequest != null) {
+                        printPasswordPolicyResults(this, connection.bind(bindRequest));
+                    }
+                } catch (final LdapException ere) {
+                    return printErrorMessage(this, ere);
+                }
+            }
+
             if (filename.isPresent()) {
                 try {
                     reader = new LDIFChangeRecordReader(new FileInputStream(filename.getValue()));

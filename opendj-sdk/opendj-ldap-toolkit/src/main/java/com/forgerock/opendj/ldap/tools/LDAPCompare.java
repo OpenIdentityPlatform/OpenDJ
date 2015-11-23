@@ -30,6 +30,8 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
+import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
+import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
@@ -52,6 +54,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -149,6 +152,7 @@ public final class LDAPCompare extends ConsoleApplication {
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPCOMPARE.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
+        BindRequest bindRequest;
 
         BooleanArgument continueOnError;
         BooleanArgument noop;
@@ -224,7 +228,8 @@ public final class LDAPCompare extends ConsoleApplication {
                 return 0;
             }
 
-            connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
+            connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
+            bindRequest = connectionFactoryProvider.getBindRequest();
         } catch (final ArgumentException ae) {
             argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -359,16 +364,18 @@ public final class LDAPCompare extends ConsoleApplication {
         }
 
         Connection connection = null;
-        if (!noop.isPresent()) {
-            try {
-                connection = connectionFactory.getConnection();
-            } catch (final LdapException ere) {
-                errPrintln(LocalizableMessage.raw(ere.getMessage()));
-                return ere.getResult().getResultCode().intValue();
-            }
-        }
-
         try {
+            if (!noop.isPresent()) {
+                try {
+                    connection = connectionFactory.getConnection();
+                    if (bindRequest != null) {
+                        printPasswordPolicyResults(this, connection.bind(bindRequest));
+                    }
+                } catch (final LdapException ere) {
+                    return printErrorMessage(this, ere);
+                }
+            }
+
             int result;
             if (rdr == null) {
                 for (final String dn : dnStrings) {

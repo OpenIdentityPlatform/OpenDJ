@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -113,6 +115,11 @@ final class StartTLSExtendedRequestImpl extends
 
     @Override
     public StartTLSExtendedRequest addEnabledCipherSuite(final String... suites) {
+        return addEnabledCipherSuite(Arrays.asList(suites));
+    }
+
+    @Override
+    public StartTLSExtendedRequest addEnabledCipherSuite(final Collection<String> suites) {
         for (final String suite : suites) {
             this.enabledCipherSuites.add(Reject.checkNotNull(suite));
         }
@@ -121,6 +128,11 @@ final class StartTLSExtendedRequestImpl extends
 
     @Override
     public StartTLSExtendedRequest addEnabledProtocol(final String... protocols) {
+        return addEnabledProtocol(Arrays.asList(protocols));
+    }
+
+    @Override
+    public StartTLSExtendedRequest addEnabledProtocol(final Collection<String> protocols) {
         for (final String protocol : protocols) {
             this.enabledProtocols.add(Reject.checkNotNull(protocol));
         }

@@ -198,9 +198,9 @@ final class GrizzlyUtils {
         final SocketChannel channel = (SocketChannel) ((TCPNIOConnection) connection).getChannel();
         final Socket socket = channel.socket();
         final boolean tcpNoDelay = options.get(TCP_NO_DELAY);
-        final boolean keepAlive = options.get(KEEPALIVE);
-        final boolean reuseAddress = options.get(REUSE_ADDRESS);
-        final int linger = options.get(LINGER);
+        final boolean keepAlive = options.get(SO_KEEPALIVE);
+        final boolean reuseAddress = options.get(SO_REUSE_ADDRESS);
+        final int linger = options.get(SO_LINGER_IN_SECONDS);
         try {
             socket.setTcpNoDelay(tcpNoDelay);
         } catch (final SocketException e) {

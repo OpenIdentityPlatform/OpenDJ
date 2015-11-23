@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -42,7 +42,6 @@ class PerformanceRunnerOptions {
     private boolean supportsGeneratorArgument = true;
 
     PerformanceRunnerOptions(ArgumentParser argParser, ConsoleApplication app) {
-        super();
         this.argParser = argParser;
         this.app = app;
     }

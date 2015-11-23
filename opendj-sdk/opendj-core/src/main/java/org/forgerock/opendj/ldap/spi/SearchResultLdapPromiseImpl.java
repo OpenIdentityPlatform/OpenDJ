@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.controls.ADNotificationRequestControl;
@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.promise.PromiseImpl;
 
 /**
  * Search result promise implementation.
@@ -47,13 +48,15 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
     private SearchResultHandler searchResultHandler;
     private final boolean isPersistentSearch;
 
-    SearchResultLdapPromiseImpl(final int requestID, final SearchRequest request,
-        final SearchResultHandler resultHandler, final IntermediateResponseHandler intermediateResponseHandler,
-        final Connection connection) {
-        super(requestID, request, intermediateResponseHandler, connection);
+    SearchResultLdapPromiseImpl(
+            final PromiseImpl<Result, LdapException> impl,
+            final int requestID,
+            final SearchRequest request,
+            final SearchResultHandler resultHandler,
+            final IntermediateResponseHandler intermediateResponseHandler) {
+        super(impl, requestID, request, intermediateResponseHandler);
         this.searchResultHandler = resultHandler;
-        this.isPersistentSearch =
-            request.containsControl(PersistentSearchRequestControl.OID)
+        this.isPersistentSearch = request.containsControl(PersistentSearchRequestControl.OID)
                 || request.containsControl(ADNotificationRequestControl.OID);
     }
 
@@ -90,8 +93,7 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
     }
 
     @Override
-    Result newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
-            final Throwable cause) {
+    Result newErrorResult(final ResultCode resultCode, final String diagnosticMessage, final Throwable cause) {
         return Responses.newResult(resultCode).setDiagnosticMessage(diagnosticMessage).setCause(cause);
     }
 

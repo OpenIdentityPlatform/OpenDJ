@@ -368,7 +368,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         private <R extends ExtendedResult> void handleExtendedResult0(
                 final GrizzlyLDAPConnection conn, final ExtendedResultLdapPromiseImpl<R> promise,
                 final ExtendedResult result) throws DecodeException {
-            final R decodedResponse = promise.decodeResult(result, conn.getLDAPOptions().get(DECODE_OPTIONS));
+            final R decodedResponse = promise.decodeResult(result, conn.getLDAPOptions().get(LDAP_DECODE_OPTIONS));
 
             if (result.getResultCode() == ResultCode.SUCCESS
                     && promise.getRequest() instanceof StartTLSExtendedRequest) {

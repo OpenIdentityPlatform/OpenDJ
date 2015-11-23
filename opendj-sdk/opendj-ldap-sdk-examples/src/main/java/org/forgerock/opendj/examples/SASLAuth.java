@@ -32,7 +32,7 @@
  */
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.USE_STARTTLS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 
 
@@ -129,7 +129,7 @@ public final class SASLAuth {
         SSLContext sslContext =
                 new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
         options.set(SSL_CONTEXT, sslContext);
-        options.set(USE_STARTTLS, true);
+        options.set(SSL_USE_STARTTLS, true);
         return options;
     }
 

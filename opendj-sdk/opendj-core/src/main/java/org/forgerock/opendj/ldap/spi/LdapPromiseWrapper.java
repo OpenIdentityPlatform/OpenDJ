@@ -63,6 +63,7 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
         this.requestID = requestID;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public int getRequestID() {
         return wrappedPromise instanceof LdapPromise ? ((LdapPromise<R>) wrappedPromise).getRequestID()
@@ -185,7 +186,6 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     }
 
     @Override
-    // @Checkstyle:ignore
     public LdapPromise<R> thenFinally(Runnable onResultOrException) {
         wrappedPromise.thenFinally(onResultOrException);
         return this;
@@ -195,7 +195,7 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     // @Checkstyle:ignore
     public <EOUT extends Exception> Promise<R, EOUT> thenCatchAsync(
             AsyncFunction<? super LdapException, R, EOUT> onException) {
-        return null;
+        return wrappedPromise.thenCatchAsync(onException);
     }
 
     public P getWrappedPromise() {

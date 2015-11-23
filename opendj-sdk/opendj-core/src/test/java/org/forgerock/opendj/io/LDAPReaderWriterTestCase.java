@@ -26,7 +26,7 @@
 package org.forgerock.opendj.io;
 
 import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.DECODE_OPTIONS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.LDAP_DECODE_OPTIONS;
 
 import java.io.IOException;
 
@@ -265,7 +265,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
                     ExtendedRequest<R> request) throws DecodeException, IOException {
                 CancelExtendedRequest cancelRequest =
                         CancelExtendedRequest.DECODER.decodeExtendedRequest(request,
-                            Options.defaultOptions().get(DECODE_OPTIONS));
+                            Options.defaultOptions().get(LDAP_DECODE_OPTIONS));
                 assertThat(cancelRequest.getOID()).isEqualTo(oidCancel);
                 assertThat(cancelRequest.getRequestID()).isEqualTo(requestID);
             }

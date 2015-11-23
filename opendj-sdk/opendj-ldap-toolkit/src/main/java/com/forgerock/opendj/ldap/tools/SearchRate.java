@@ -284,6 +284,7 @@ public final class SearchRate extends ConsoleApplication {
             }
 
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
+            runner.setBindRequest(connectionFactoryProvider.getBindRequest());
             runner.validate();
         } catch (final ArgumentException ae) {
             argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));

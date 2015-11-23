@@ -26,6 +26,7 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static java.util.Locale.ENGLISH;
 import static java.util.concurrent.TimeUnit.*;
 
@@ -54,13 +55,13 @@ import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapResultHandler;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
-import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -581,10 +582,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     }
                 } else {
                     connection = this.connection;
-                    if (!noRebind && connection instanceof AuthenticatedConnection) {
-                        final AuthenticatedConnection ac = (AuthenticatedConnection) connection;
+                    if (!noRebind && bindRequest != null) {
                         try {
-                            ac.rebindAsync().getOrThrow();
+                            connection.bindAsync(bindRequest).getOrThrow();
                         } catch (final InterruptedException e) {
                             // Ignore and check stop requested
                             continue;
@@ -684,6 +684,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private long maxDurationTime;
     private boolean isAsync;
     private boolean noRebind;
+    private BindRequest bindRequest;
     private int statsInterval;
     private final IntegerArgument numThreadsArgument;
     private final IntegerArgument maxDurationArgument;
@@ -920,12 +921,21 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             stopRequested = true;
         } catch (final LdapException e) {
             stopRequested = true;
-            app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
+            printErrorMessage(app, e);
+            return e.getResult().getResultCode().intValue();
         } finally {
             closeSilently(connections);
         }
 
         return 0;
+    }
+
+    void setBindRequest(final BindRequest request) {
+        this.bindRequest = request;
+    }
+
+    BindRequest getBindRequest() {
+        return bindRequest;
     }
 
     protected void joinAllWorkerThreads() throws InterruptedException {

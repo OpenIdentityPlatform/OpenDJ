@@ -26,11 +26,21 @@
  */
 package org.forgerock.opendj.grizzly;
 
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT;
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT;
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_REQUEST_TIMEOUT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.REQUEST_TIMEOUT;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.forgerock.opendj.ldap.ResultCode.CLIENT_SIDE_LOCAL_ERROR;
+import static org.forgerock.opendj.ldap.responses.Responses.newResult;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,7 +50,6 @@ import javax.net.ssl.SSLEngine;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.LDAPWriter;
-import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -61,6 +70,7 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.GenericBindRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
@@ -71,24 +81,23 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.ExtendedResultLdapPromiseImpl;
+import org.forgerock.opendj.ldap.spi.LDAPConnectionImpl;
 import org.forgerock.opendj.ldap.spi.ResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.SearchResultLdapPromiseImpl;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
+import org.forgerock.util.time.Duration;
 import org.glassfish.grizzly.CompletionHandler;
+import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
-
-import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
-
 /** LDAP connection implementation. */
-final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection implements TimeoutEventListener {
+final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventListener {
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs client
      * config. This prevents Grizzly from needlessly using JVM defaults which
@@ -112,6 +121,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
     private final AtomicInteger nextMsgID = new AtomicInteger(1);
     private final GrizzlyLDAPConnectionFactory factory;
     private final ConcurrentHashMap<Integer, ResultLdapPromiseImpl<?, ?>> pendingRequests = new ConcurrentHashMap<>();
+    private final long requestTimeoutMS;
     private final Object stateLock = new Object();
     /** Guarded by stateLock. */
     private Result connectionInvalidReason;
@@ -133,6 +143,8 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
             final GrizzlyLDAPConnectionFactory factory) {
         this.connection = connection;
         this.factory = factory;
+        final Duration requestTimeout = factory.getLDAPOptions().get(REQUEST_TIMEOUT);
+        this.requestTimeoutMS = requestTimeout.isUnlimited() ? 0 : requestTimeout.to(TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -303,6 +315,11 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         }
 
         return promise;
+    }
+
+    @Override
+    public void close() {
+        close(Requests.newUnbindRequest(), null);
     }
 
     @Override
@@ -548,17 +565,16 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public long handleTimeout(final long currentTime) {
-        final long timeout = factory.getLDAPOptions().get(TIMEOUT_IN_MILLISECONDS);
-        if (timeout <= 0) {
+        if (requestTimeoutMS <= 0) {
             return 0;
         }
 
-        long delay = timeout;
+        long delay = requestTimeoutMS;
         for (final ResultLdapPromiseImpl<?, ?> promise : pendingRequests.values()) {
             if (promise == null || !promise.checkForTimeout()) {
                 continue;
             }
-            final long diff = (promise.getTimestamp() + timeout) - currentTime;
+            final long diff = (promise.getTimestamp() + requestTimeoutMS) - currentTime;
             if (diff > 0) {
                 // Will expire in diff milliseconds.
                 delay = Math.min(delay, diff);
@@ -577,17 +593,17 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 logger.debug(LocalizableMessage.raw("Failing bind or StartTLS request due to timeout %s"
                         + "(connection will be invalidated): ", promise));
                 final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
-                        LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT.get(timeout).toString());
+                        LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT.get(requestTimeoutMS).toString());
                 promise.adaptErrorResult(result);
 
                 // Fail the connection.
                 final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
-                        LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT.get(timeout).toString());
+                        LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT.get(requestTimeoutMS).toString());
                 connectionErrorOccurred(errorResult);
             } else {
                 logger.debug(LocalizableMessage.raw("Failing request due to timeout: %s", promise));
                 final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
-                        LDAP_CONNECTION_REQUEST_TIMEOUT.get(timeout).toString());
+                        LDAP_CONNECTION_REQUEST_TIMEOUT.get(requestTimeoutMS).toString());
                 promise.adaptErrorResult(result);
 
                 /*
@@ -607,7 +623,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public long getTimeout() {
-        return factory.getLDAPOptions().get(TIMEOUT_IN_MILLISECONDS);
+        return requestTimeoutMS;
     }
 
     /**
@@ -769,8 +785,37 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         bindOrStartTLSInProgress.set(state);
     }
 
+    @Override
+    public Promise<Void, LdapException> enableTLS(
+            final SSLContext sslContext,
+            final List<String> sslEnabledProtocols,
+            final List<String> sslEnabledCipherSuites) {
+        final PromiseImpl<Void, LdapException> promise = PromiseImpl.create();
+        final EmptyCompletionHandler<SSLEngine> completionHandler = new EmptyCompletionHandler<SSLEngine>() {
+            @Override
+            public void completed(final SSLEngine result) {
+                promise.handleResult(null);
+            }
+
+            @Override
+            public void failed(final Throwable throwable) {
+                final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR)
+                        .setCause(throwable).setDiagnosticMessage("SSL handshake failed");
+                connectionErrorOccurred(errorResult);
+                promise.handleException(newLdapException(errorResult));
+            }
+        };
+
+        try {
+            startTLS(sslContext, sslEnabledProtocols, sslEnabledCipherSuites, completionHandler);
+        } catch (final IOException e) {
+            completionHandler.failed(e);
+        }
+        return promise;
+    }
+
     void startTLS(final SSLContext sslContext, final List<String> protocols, final List<String> cipherSuites,
-            final CompletionHandler<SSLEngine> completionHandler) throws IOException {
+                  final CompletionHandler<SSLEngine> completionHandler) throws IOException {
         synchronized (stateLock) {
             if (isTLSEnabled()) {
                 throw new IllegalStateException("TLS already enabled");

@@ -26,8 +26,9 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.ldap.TrustManagers.checkHostName;
 import static org.forgerock.util.Utils.closeSilently;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.USE_STARTTLS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 
 import org.forgerock.opendj.ldap.Connection;
@@ -158,10 +159,9 @@ public final class SimpleAuthAsync {
                                            final String storepass) {
         Options options = Options.defaultOptions();
         if (useSSL || useStartTLS) {
-            TrustManager trustManager = null;
             try {
-                trustManager = TrustManagers.checkValidityDates(
-                        TrustManagers.checkHostName(hostname,
+                TrustManager trustManager = TrustManagers.checkValidityDates(
+                        checkHostName(hostname,
                                 TrustManagers.checkUsingTrustStore(
                                         truststore, storepass.toCharArray(), null)));
                 if (trustManager != null) {
@@ -169,11 +169,12 @@ public final class SimpleAuthAsync {
                             .setTrustManager(trustManager).getSSLContext();
                     options.set(SSL_CONTEXT, sslContext);
                 }
+                options.set(SSL_USE_STARTTLS, useStartTLS);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
+                return null;
             }
-            options.set(USE_STARTTLS, useStartTLS);
         }
         return options;
     }
@@ -191,18 +192,19 @@ public final class SimpleAuthAsync {
      * @return SSL context options to trust all certificates without checking.
      */
     private static Options getTrustAllOptions() {
-        Options options = Options.defaultOptions();
         try {
+            Options options = Options.defaultOptions();
             SSLContext sslContext =
                     new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
                             .getSSLContext();
             options.set(SSL_CONTEXT, sslContext);
-            options.set(USE_STARTTLS, useStartTLS);
+            options.set(SSL_USE_STARTTLS, useStartTLS);
+            return options;
         } catch (GeneralSecurityException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
+            return null;
         }
-        return options;
     }
 
     private static String  host;

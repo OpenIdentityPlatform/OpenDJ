@@ -21,17 +21,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
+import java.io.Closeable;
 import java.net.InetSocketAddress;
 
-import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.util.promise.Promise;
 
 /**
- * Interface for all classes that actually implement
- * {@code LDAPConnectionFactory}.
+ * Interface for all classes that implement {@code LDAPConnectionFactory}.
  * <p>
  * An implementation class is provided by a {@code TransportProvider}.
  * <p>
@@ -40,7 +41,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
  * {@code TransportProvider} is declared in the provider-configuration file
  * {@code META-INF/services/org.forgerock.opendj.ldap.spi.TransportProvider}.
  */
-public interface LDAPConnectionFactoryImpl extends ConnectionFactory {
+public interface LDAPConnectionFactoryImpl extends Closeable {
 
     /**
      * Returns the address used by the connections created by this factory.
@@ -57,11 +58,24 @@ public interface LDAPConnectionFactoryImpl extends ConnectionFactory {
     String getHostName();
 
     /**
-     * Returns the remote port number used by the connections created by this
-     * factory.
+     * Returns the remote port number used by the connections created by this factory.
      *
      * @return The remote port number used by the connections.
      */
     int getPort();
 
+    /**
+     * Releases any resources associated with this connection factory implementation.
+     */
+    @Override
+    void close();
+
+    /**
+     * Asynchronously obtains a connection to the Directory Server associated
+     * with this connection factory. The returned {@code Promise} can be used to
+     * retrieve the completed connection.
+     *
+     * @return A promise which can be used to retrieve the connection.
+     */
+    Promise<LDAPConnectionImpl, LdapException> getConnectionAsync();
 }

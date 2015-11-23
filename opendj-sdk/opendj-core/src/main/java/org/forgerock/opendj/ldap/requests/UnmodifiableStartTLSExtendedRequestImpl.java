@@ -22,10 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,7 +46,17 @@ final class UnmodifiableStartTLSExtendedRequestImpl extends
     }
 
     @Override
+    public StartTLSExtendedRequest addEnabledCipherSuite(final Collection<String> suites) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public StartTLSExtendedRequest addEnabledCipherSuite(final String... suites) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public StartTLSExtendedRequest addEnabledProtocol(final Collection<String> protocols) {
         throw new UnsupportedOperationException();
     }
 

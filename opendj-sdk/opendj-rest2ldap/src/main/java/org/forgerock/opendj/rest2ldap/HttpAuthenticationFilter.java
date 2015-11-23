@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.json.resource.ResourceException.newResourceException;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.opendj.ldap.Connections.uncloseable;
@@ -194,7 +195,7 @@ final class HttpAuthenticationFilter implements org.forgerock.http.Filter, Close
             final char[] password;
             if (headerUsername != null) {
                 if (headerPassword == null || headerUsername.isEmpty() || headerPassword.isEmpty()) {
-                    throw ResourceException.getException(401);
+                    throw newResourceException(401);
                 }
                 username = headerUsername;
                 password = headerPassword.toCharArray();
@@ -202,21 +203,21 @@ final class HttpAuthenticationFilter implements org.forgerock.http.Filter, Close
                 final StringTokenizer st = new StringTokenizer(headerAuthorization);
                 final String method = st.nextToken();
                 if (method == null || !"BASIC".equalsIgnoreCase(method)) {
-                    throw ResourceException.getException(401);
+                    throw newResourceException(401);
                 }
                 final String b64Credentials = st.nextToken();
                 if (b64Credentials == null) {
-                    throw ResourceException.getException(401);
+                    throw newResourceException(401);
                 }
                 final String credentials = ByteString.valueOfBase64(b64Credentials).toString();
                 final String[] usernameAndPassword = credentials.split(":");
                 if (usernameAndPassword.length != 2) {
-                    throw ResourceException.getException(401);
+                    throw newResourceException(401);
                 }
                 username = usernameAndPassword[0];
                 password = usernameAndPassword[1].toCharArray();
             } else {
-                throw ResourceException.getException(401);
+                throw newResourceException(401);
             }
 
             // If we've got here then we have a username and password.

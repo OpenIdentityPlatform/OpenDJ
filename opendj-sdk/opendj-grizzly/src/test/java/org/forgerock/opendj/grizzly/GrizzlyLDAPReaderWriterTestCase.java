@@ -32,7 +32,7 @@ import org.forgerock.opendj.io.LDAPReaderWriterTestCase;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.util.Options;
 import org.glassfish.grizzly.memory.HeapMemoryManager;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.DECODE_OPTIONS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.LDAP_DECODE_OPTIONS;
 
 /**
  * Tests for LDAPWriter / LDAPReader classes using specific implementations of
@@ -47,7 +47,7 @@ public class GrizzlyLDAPReaderWriterTestCase extends LDAPReaderWriterTestCase {
 
     @Override
     protected LDAPReader<? extends ASN1Reader> getLDAPReader() {
-        return GrizzlyUtils.createReader(Options.defaultOptions().get(DECODE_OPTIONS), 0, new HeapMemoryManager());
+        return GrizzlyUtils.createReader(Options.defaultOptions().get(LDAP_DECODE_OPTIONS), 0, new HeapMemoryManager());
     }
 
     @Override

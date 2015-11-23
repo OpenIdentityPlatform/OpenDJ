@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -43,26 +42,14 @@ import org.forgerock.util.promise.PromiseImpl;
 public final class BindResultLdapPromiseImpl extends ResultLdapPromiseImpl<BindRequest, BindResult> {
     private final BindClient bindClient;
 
-    BindResultLdapPromiseImpl(final int requestID, final BindRequest request, final BindClient bindClient,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final Connection connection) {
-        super(new PromiseImpl<BindResult, LdapException>() {
-            protected LdapException tryCancel(boolean mayInterruptIfRunning) {
-                /*
-                 * No other operations can be performed while a bind is active.
-                 * Therefore it is not possible to cancel bind or requests,
-                 * since doing so will leave the connection in a state which
-                 * prevents other operations from being performed.
-                 */
-                return null;
-            }
-        }, requestID, request, intermediateResponseHandler, connection);
+    BindResultLdapPromiseImpl(
+            final PromiseImpl<BindResult, LdapException> impl,
+            final int requestID,
+            final BindRequest request,
+            final BindClient bindClient,
+            final IntermediateResponseHandler intermediateResponseHandler) {
+        super(impl, requestID, request, intermediateResponseHandler);
         this.bindClient = bindClient;
-    }
-
-    @Override
-    public boolean isBindOrStartTLS() {
-        return true;
     }
 
     /**
@@ -75,9 +62,12 @@ public final class BindResultLdapPromiseImpl extends ResultLdapPromiseImpl<BindR
     }
 
     @Override
-    BindResult newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
-            final Throwable cause) {
-        return Responses.newBindResult(resultCode).setDiagnosticMessage(diagnosticMessage)
-                .setCause(cause);
+    public boolean isBindOrStartTLS() {
+        return true;
+    }
+
+    @Override
+    BindResult newErrorResult(final ResultCode resultCode, final String diagnosticMessage, final Throwable cause) {
+        return Responses.newBindResult(resultCode).setDiagnosticMessage(diagnosticMessage).setCause(cause);
     }
 }

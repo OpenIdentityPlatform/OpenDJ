@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.LDAPListener.BACKLOG;
+import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -103,7 +103,7 @@ public final class Server {
         // Create listener.
         LDAPListener listener = null;
         try {
-            final Options options = Options.defaultOptions().set(BACKLOG, 4096);
+            final Options options = Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096);
 
             if (keyStoreFileName != null) {
                 // Configure SSL/TLS and enable it when connections are

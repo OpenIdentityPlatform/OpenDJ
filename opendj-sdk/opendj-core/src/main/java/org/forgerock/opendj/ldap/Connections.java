@@ -34,8 +34,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.forgerock.opendj.ldap.requests.BindRequest;
-import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Promise;
 
@@ -44,35 +43,6 @@ import org.forgerock.util.promise.Promise;
  * factories and connections.
  */
 public final class Connections {
-    /**
-     * Creates a new authenticated connection factory which will obtain
-     * connections using the provided connection factory and immediately perform
-     * the provided Bind request.
-     * <p>
-     * The connections returned by an authenticated connection factory support
-     * all operations with the exception of Bind requests. Attempts to perform a
-     * Bind will result in an {@code UnsupportedOperationException}.
-     * <p>
-     * If the Bind request fails for some reason (e.g. invalid credentials),
-     * then the connection attempt will fail and an {@link LdapException}
-     * will be thrown.
-     *
-     * @param factory
-     *            The connection factory to use for connecting to the Directory
-     *            Server.
-     * @param request
-     *            The Bind request to use for authentication.
-     * @return The new connection pool.
-     * @throws NullPointerException
-     *             If {@code factory} or {@code request} was {@code null}.
-     */
-    public static ConnectionFactory newAuthenticatedConnectionFactory(
-            final ConnectionFactory factory, final BindRequest request) {
-        Reject.ifNull(factory, request);
-
-        return new AuthenticatedConnectionFactory(factory, request);
-    }
-
     /**
      * Creates a new connection pool which creates new connections as needed
      * using the provided connection factory, but will reuse previously
@@ -240,113 +210,6 @@ public final class Connections {
     public static ConnectionPool newFixedConnectionPool(final ConnectionFactory factory,
             final int poolSize) {
         return new CachedConnectionPool(factory, poolSize, poolSize, 0L, null, null);
-    }
-
-    /**
-     * Creates a new heart-beat connection factory which will create connections
-     * using the provided connection factory and periodically ping any created
-     * connections in order to detect that they are still alive every 10 seconds
-     * using the default scheduler. Connections will be marked as having failed
-     * if a heart-beat takes longer than 3 seconds.
-     *
-     * @param factory
-     *            The connection factory to use for creating connections.
-     * @return The new heart-beat connection factory.
-     * @throws NullPointerException
-     *             If {@code factory} was {@code null}.
-     */
-    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory) {
-        return new HeartBeatConnectionFactory(factory, 10, 3, TimeUnit.SECONDS, null, null);
-    }
-
-    /**
-     * Creates a new heart-beat connection factory which will create connections
-     * using the provided connection factory and periodically ping any created
-     * connections in order to detect that they are still alive using the
-     * specified frequency and the default scheduler.
-     *
-     * @param factory
-     *            The connection factory to use for creating connections.
-     * @param interval
-     *            The interval between keepalive pings.
-     * @param timeout
-     *            The heart-beat timeout after which a connection will be marked
-     *            as failed.
-     * @param unit
-     *            The time unit for the interval between keepalive pings.
-     * @return The new heart-beat connection factory.
-     * @throws IllegalArgumentException
-     *             If {@code interval} was negative.
-     * @throws NullPointerException
-     *             If {@code factory} or {@code unit} was {@code null}.
-     */
-    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
-            final long interval, final long timeout, final TimeUnit unit) {
-        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, null, null);
-    }
-
-    /**
-     * Creates a new heart-beat connection factory which will create connections
-     * using the provided connection factory and periodically ping any created
-     * connections using the specified search request in order to detect that
-     * they are still alive.
-     *
-     * @param factory
-     *            The connection factory to use for creating connections.
-     * @param interval
-     *            The interval between keepalive pings.
-     * @param timeout
-     *            The heart-beat timeout after which a connection will be marked
-     *            as failed.
-     * @param unit
-     *            The time unit for the interval between keepalive pings.
-     * @param heartBeat
-     *            The search request to use for keepalive pings.
-     * @return The new heart-beat connection factory.
-     * @throws IllegalArgumentException
-     *             If {@code interval} was negative.
-     * @throws NullPointerException
-     *             If {@code factory}, {@code unit}, or {@code heartBeat} was
-     *             {@code null}.
-     */
-    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
-            final long interval, final long timeout, final TimeUnit unit,
-            final SearchRequest heartBeat) {
-        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat, null);
-    }
-
-    /**
-     * Creates a new heart-beat connection factory which will create connections
-     * using the provided connection factory and periodically ping any created
-     * connections using the specified search request in order to detect that
-     * they are still alive.
-     *
-     * @param factory
-     *            The connection factory to use for creating connections.
-     * @param interval
-     *            The interval between keepalive pings.
-     * @param timeout
-     *            The heart-beat timeout after which a connection will be marked
-     *            as failed.
-     * @param unit
-     *            The time unit for the interval between keepalive pings.
-     * @param heartBeat
-     *            The search request to use for keepalive pings.
-     * @param scheduler
-     *            The scheduler which should for periodically sending keepalive
-     *            pings.
-     * @return The new heart-beat connection factory.
-     * @throws IllegalArgumentException
-     *             If {@code interval} was negative.
-     * @throws NullPointerException
-     *             If {@code factory}, {@code unit}, or {@code heartBeat} was
-     *             {@code null}.
-     */
-    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
-            final long interval, final long timeout, final TimeUnit unit,
-            final SearchRequest heartBeat, final ScheduledExecutorService scheduler) {
-        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat,
-                scheduler);
     }
 
     /**
@@ -646,7 +509,7 @@ public final class Connections {
             public void close(org.forgerock.opendj.ldap.requests.UnbindRequest request,
                     String reason) {
                 // Do nothing.
-            };
+            }
         };
     }
 

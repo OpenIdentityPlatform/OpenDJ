@@ -100,13 +100,14 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      * Specifies the maximum queue length for incoming connections requests. If a
      * connection request arrives when the queue is full, the connection is refused.
      */
-    public static final Option<Integer> BACKLOG = Option.withDefault(50);
+    public static final Option<Integer> CONNECT_MAX_BACKLOG = Option.withDefault(50);
+
     /**
      * Specifies the maximum request size in bytes for incoming LDAP requests.
      * If an incoming request exceeds the limit then the connection will be aborted by the listener.
      * Default value is 5MiB.
      */
-    public static final Option<Integer> MAX_REQUEST_SIZE_BYTES = Option.withDefault(5 * 1024 * 1024);
+    public static final Option<Integer> REQUEST_MAX_SIZE_IN_BYTES = Option.withDefault(5 * 1024 * 1024);
 
     /**
      * We implement the factory using the pimpl idiom in order have
@@ -160,10 +161,8 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
         Reject.ifNull(factory, options);
-        final InetSocketAddress address = new InetSocketAddress(port);
-        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
-            options.get(PROVIDER_CLASS_LOADER));
-        this.impl = provider.getLDAPListener(address, factory, options);
+        this.provider = getTransportProvider(options);
+        this.impl = provider.getLDAPListener(new InetSocketAddress(port), factory, options);
     }
 
     /**
@@ -208,8 +207,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
         Reject.ifNull(address, factory, options);
-        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
-            options.get(PROVIDER_CLASS_LOADER));
+        this.provider = getTransportProvider(options);
         this.impl = provider.getLDAPListener(address, factory, options);
     }
 
@@ -260,8 +258,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
             final Options options) throws IOException {
         Reject.ifNull(host, factory, options);
         final InetSocketAddress address = new InetSocketAddress(host, port);
-        this.provider = getProvider(TransportProvider.class, options.get(TRANSPORT_PROVIDER),
-            options.get(PROVIDER_CLASS_LOADER));
+        this.provider = getTransportProvider(options);
         this.impl = provider.getLDAPListener(address, factory, options);
     }
 

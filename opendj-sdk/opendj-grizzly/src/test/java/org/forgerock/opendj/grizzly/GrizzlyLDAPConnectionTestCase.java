@@ -27,17 +27,16 @@
 package org.forgerock.opendj.grizzly;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.util.time.Duration.duration;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.TIMEOUT_IN_MILLISECONDS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.REQUEST_TIMEOUT;
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.RequestHandler;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -93,10 +92,11 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
          * Use a very long time out in order to prevent the timeout thread from
          * triggering the timeout.
          */
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(address.getHostName(),
-                address.getPort(), Options.defaultOptions().set(
-                    TIMEOUT_IN_MILLISECONDS, TimeUnit.SECONDS.toMillis((long) 100)));
-        GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnection();
+        GrizzlyLDAPConnectionFactory factory = new GrizzlyLDAPConnectionFactory(address.getHostName(),
+                                                                  address.getPort(),
+                                                                  Options.defaultOptions()
+                                                                         .set(REQUEST_TIMEOUT, duration("100 ms")));
+        GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnectionAsync().getOrThrow();
         try {
             SearchRequest request =
                     Requests.newSearchRequest("dc=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
@@ -106,7 +106,7 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
             SearchResultHandler searchHandler = mock(SearchResultHandler.class);
             @SuppressWarnings("unchecked")
             ExceptionHandler<LdapException> exceptionHandler = mock(ExceptionHandler.class);
-            connection.searchAsync(request, searchHandler).thenOnException(exceptionHandler);
+            connection.searchAsync(request, null, searchHandler).thenOnException(exceptionHandler);
 
             // Pass in a time which is guaranteed to trigger expiration.
             connection.handleTimeout(System.currentTimeMillis() + 1000000);

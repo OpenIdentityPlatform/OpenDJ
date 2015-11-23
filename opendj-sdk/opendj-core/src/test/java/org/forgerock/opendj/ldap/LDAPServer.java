@@ -550,7 +550,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
         sslContext = new SSLContextBuilder().getSSLContext();
         listener = new LDAPListener(findFreeSocketAddress(), getInstance(),
-                        Options.defaultOptions().set(BACKLOG, 4096));
+                        Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096));
         isRunning = true;
     }
 
