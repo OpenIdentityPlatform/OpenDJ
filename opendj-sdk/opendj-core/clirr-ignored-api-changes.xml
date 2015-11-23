@@ -577,4 +577,14 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>java.util.Set asSetOf(org.forgerock.opendj.ldap.Function, java.lang.Object[])</method>
     <justification>Method needs to be final in order to use SafeVarArgs annotation</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/FailoverLoadBalancingAlgorithm</className>
+    <differenceType>1001</differenceType>
+    <justification>Class instances are now created using Connections.newFailoverLoadBalancer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/RoundRobinLoadBalancingAlgorithm</className>
+    <differenceType>1001</differenceType>
+    <justification>Class instances are now created using Connections.newRoundRobinLoadBalancer</justification>
+  </difference>
 </differences>

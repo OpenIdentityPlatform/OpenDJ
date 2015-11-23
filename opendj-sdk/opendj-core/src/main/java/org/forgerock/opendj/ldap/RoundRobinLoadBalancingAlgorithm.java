@@ -22,167 +22,35 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.util.Options;
+
 /**
- * A round robin load balancing algorithm distributes connection requests across
- * a list of connection factories one at a time. When the end of the list is
- * reached, the algorithm starts again from the beginning.
- * <p>
- * This algorithm is typically used for load-balancing <i>within</i> data
- * centers, where load must be distributed equally across multiple data sources.
- * This algorithm contrasts with the {@link FailoverLoadBalancingAlgorithm}
- * which is used for load-balancing <i>between</i> data centers.
- * <p>
- * If a problem occurs that temporarily prevents connections from being obtained
- * for one of the connection factories, then this algorithm automatically
- * "fails over" to the next operational connection factory in the list. If none
- * of the connection factories are operational then a
- * {@code ConnectionException} is returned to the client.
- * <p>
- * The implementation periodically attempts to connect to failed connection
- * factories in order to determine if they have become available again.
- *
- * @see FailoverLoadBalancingAlgorithm
- * @see Connections#newLoadBalancer(LoadBalancingAlgorithm)
+ * A round robin load balancing algorithm distributes connection requests across a list of
+ * connection factories one at a time. When the end of the list is reached, the algorithm starts again from the
+ * beginning.
  */
-public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancingAlgorithm {
+final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancingAlgorithm {
     private final int maxIndex;
     private final AtomicInteger nextIndex = new AtomicInteger(-1);
 
-    /**
-     * Creates a new round robin load balancing algorithm which will monitor
-     * offline connection factories every 1 second using the default scheduler.
-     *
-     * @param factories
-     *            The ordered collection of connection factories.
-     */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories) {
-        this(factories, null, 1, TimeUnit.SECONDS, null);
-    }
-
-    /**
-     * Creates a new round robin load balancing algorithm which will monitor
-     * offline connection factories every 1 second using the default scheduler.
-     *
-     * @param factories
-     *            The ordered collection of connection factories.
-     * @param listener
-     *            The event listener which should be notified whenever a
-     *            connection factory changes state from online to offline or
-     *            vice-versa.
-     */
-    public RoundRobinLoadBalancingAlgorithm(
-            final Collection<? extends ConnectionFactory> factories,
-            final LoadBalancerEventListener listener) {
-        this(factories, listener, 1, TimeUnit.SECONDS, null);
-    }
-
-    /**
-     * Creates a new round robin load balancing algorithm which will monitor
-     * offline connection factories using the specified frequency using the
-     * default scheduler.
-     *
-     * @param factories
-     *            The connection factories.
-     * @param listener
-     *            The event listener which should be notified whenever a
-     *            connection factory changes state from online to offline or
-     *            vice-versa.
-     * @param interval
-     *            The interval between attempts to poll offline factories.
-     * @param unit
-     *            The time unit for the interval between attempts to poll
-     *            offline factories.
-     */
-    public RoundRobinLoadBalancingAlgorithm(
-            final Collection<? extends ConnectionFactory> factories,
-            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit) {
-        this(factories, null, interval, unit, null);
-    }
-
-    /**
-     * Creates a new round robin load balancing algorithm which will monitor
-     * offline connection factories using the specified frequency and scheduler.
-     *
-     * @param factories
-     *            The connection factories.
-     * @param listener
-     *            The event listener which should be notified whenever a
-     *            connection factory changes state from online to offline or
-     *            vice-versa.
-     * @param interval
-     *            The interval between attempts to poll offline factories.
-     * @param unit
-     *            The time unit for the interval between attempts to poll
-     *            offline factories.
-     * @param scheduler
-     *            The scheduler which should for periodically monitoring dead
-     *            connection factories to see if they are usable again.
-     */
-    public RoundRobinLoadBalancingAlgorithm(
-            final Collection<? extends ConnectionFactory> factories,
-            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
-            final ScheduledExecutorService scheduler) {
-        super(factories, listener, interval, unit, scheduler);
+    RoundRobinLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories, final Options options) {
+        super(factories, options);
         this.maxIndex = factories.size();
     }
 
-    /**
-     * Creates a new round robin load balancing algorithm which will monitor
-     * offline connection factories using the specified frequency using the
-     * default scheduler.
-     *
-     * @param factories
-     *            The connection factories.
-     * @param interval
-     *            The interval between attempts to poll offline factories.
-     * @param unit
-     *            The time unit for the interval between attempts to poll
-     *            offline factories.
-     */
-    public RoundRobinLoadBalancingAlgorithm(
-            final Collection<? extends ConnectionFactory> factories, final long interval,
-            final TimeUnit unit) {
-        this(factories, null, interval, unit, null);
-    }
-
-    /**
-     * Creates a new round robin load balancing algorithm which will monitor
-     * offline connection factories using the specified frequency and scheduler.
-     *
-     * @param factories
-     *            The connection factories.
-     * @param interval
-     *            The interval between attempts to poll offline factories.
-     * @param unit
-     *            The time unit for the interval between attempts to poll
-     *            offline factories.
-     * @param scheduler
-     *            The scheduler which should for periodically monitoring dead
-     *            connection factories to see if they are usable again.
-     */
-    public RoundRobinLoadBalancingAlgorithm(
-            final Collection<? extends ConnectionFactory> factories, final long interval,
-            final TimeUnit unit, final ScheduledExecutorService scheduler) {
-        this(factories, null, interval, unit, scheduler);
-    }
-
-    /** {@inheritDoc} */
     @Override
     String getAlgorithmName() {
         return "RoundRobin";
     }
 
-    /** {@inheritDoc} */
     @Override
     int getInitialConnectionFactoryIndex() {
         // A round robin pool of one connection factories is unlikely in

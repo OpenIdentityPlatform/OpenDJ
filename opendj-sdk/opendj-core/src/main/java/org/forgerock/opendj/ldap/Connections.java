@@ -31,6 +31,7 @@ import static org.forgerock.opendj.ldap.RequestHandlerFactoryAdapter.adaptReques
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -364,15 +365,79 @@ public final class Connections {
     }
 
     /**
-     * Creates a new load balancer which will obtain connections using the
-     * provided load balancing algorithm.
+     * Creates a new "round-robin" load-balance which will load-balance connections across the provided set of
+     * connection factories. A round robin load balancing algorithm distributes connection requests across a list of
+     * connection factories one at a time. When the end of the list is reached, the algorithm starts again from the
+     * beginning.
+     * <p/>
+     * This algorithm is typically used for load-balancing <i>within</i> data centers, where load must be distributed
+     * equally across multiple data sources. This algorithm contrasts with the {@link FailoverLoadBalancingAlgorithm}
+     * which is used for load-balancing <i>between</i> data centers.
+     * <p/>
+     * If a problem occurs that temporarily prevents connections from being obtained for one of the connection
+     * factories, then this algorithm automatically "fails over" to the next operational connection factory in the list.
+     * If none of the connection factories are operational then a {@code ConnectionException} is returned to the
+     * client.
+     * <p/>
+     * The implementation periodically attempts to connect to failed connection factories in order to determine if they
+     * have become available again.
+     *
+     * @param factories
+     *         The connection factories.
+     * @param options
+     *         This configuration options for the load-balancer. See {@link LoadBalancingAlgorithm} for common options.
+     * @return The new round-robin load balancer.
+     * @see #newFailoverLoadBalancer(Collection, Options)
+     * @see LoadBalancingAlgorithm
+     */
+    public static ConnectionFactory newRoundRobinLoadBalancer(
+            final Collection<? extends ConnectionFactory> factories, final Options options) {
+        return new LoadBalancer(new RoundRobinLoadBalancingAlgorithm(factories, options));
+    }
+
+    /**
+     * Creates a new "fail-over" load-balance which will load-balance connections across the provided set of connection
+     * factories. A fail-over load balancing algorithm provides fault tolerance across multiple underlying connection
+     * factories.
+     * <p/>
+     * This algorithm is typically used for load-balancing <i>between</i> data centers, where there is preference to
+     * always forward connection requests to the <i>closest available</i> data center. This algorithm contrasts with the
+     * {@link RoundRobinLoadBalancingAlgorithm} which is used for load-balancing <i>within</i> a data center.
+     * <p/>
+     * This algorithm selects connection factories based on the order in which they were provided during construction.
+     * More specifically, an attempt to obtain a connection factory will always return the <i>first operational</i>
+     * connection factory in the list. Applications should, therefore, organize the connection factories such that the
+     * <i>preferred</i> (usually the closest) connection factories appear before those which are less preferred.
+     * <p/>
+     * If a problem occurs that temporarily prevents connections from being obtained for one of the connection
+     * factories, then this algorithm automatically "fails over" to the next operational connection factory in the list.
+     * If none of the connection factories are operational then a {@code ConnectionException} is returned to the
+     * client.
+     * <p/>
+     * The implementation periodically attempts to connect to failed connection factories in order to determine if they
+     * have become available again.
+     *
+     * @param factories
+     *         The connection factories.
+     * @param options
+     *         This configuration options for the load-balancer. See {@link LoadBalancingAlgorithm} for common options.
+     * @return The new fail-over load balancer.
+     * @see #newRoundRobinLoadBalancer(Collection, Options)
+     * @see LoadBalancingAlgorithm
+     */
+    public static ConnectionFactory newFailoverLoadBalancer(
+            final Collection<? extends ConnectionFactory> factories, final Options options) {
+        return new LoadBalancer(new FailoverLoadBalancingAlgorithm(factories, options));
+    }
+
+    /**
+     * Creates a new load balancer which will obtain connections using the provided load balancing algorithm.
      *
      * @param algorithm
-     *            The load balancing algorithm which will be used to obtain the
-     *            next
+     *         The load balancing algorithm which will be used to obtain the next
      * @return The new load balancer.
      * @throws NullPointerException
-     *             If {@code algorithm} was {@code null}.
+     *         If {@code algorithm} was {@code null}.
      */
     public static ConnectionFactory newLoadBalancer(final LoadBalancingAlgorithm algorithm) {
         return new LoadBalancer(algorithm);

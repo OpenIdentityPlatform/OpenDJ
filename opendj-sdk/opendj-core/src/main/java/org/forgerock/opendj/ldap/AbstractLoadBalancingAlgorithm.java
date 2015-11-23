@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.Promise;
@@ -169,7 +170,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                         logger.debug(LocalizableMessage.raw("Starting monitoring thread"));
                         monitoringFuture =
                                 scheduler.get().scheduleWithFixedDelay(new MonitorRunnable(), 0,
-                                        monitoringInterval, monitoringIntervalTimeUnit);
+                                        monitoringIntervalMS, TimeUnit.MILLISECONDS);
                     }
                 }
             }
@@ -219,26 +220,6 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * A default event listener which just logs the event.
-     */
-    private static final LoadBalancerEventListener DEFAULT_LISTENER = new LoadBalancerEventListener() {
-
-        @Override
-        public void handleConnectionFactoryOnline(ConnectionFactory factory) {
-            // Transition from offline to online.
-            // TODO: I18N
-            logger.info(LocalizableMessage.raw("Connection factory '%s' is now operational", factory));
-        }
-
-        @Override
-        public void handleConnectionFactoryOffline(ConnectionFactory factory, LdapException error) {
-            // TODO: I18N
-            logger.warn(LocalizableMessage.raw("Connection factory '%s' is no longer operational: %s",
-                    factory, error.getMessage()));
-        }
-    };
-
     private final List<MonitoredConnectionFactory> monitoredFactories;
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
     private final Object stateLock = new Object();
@@ -265,28 +246,25 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
      * Guarded by stateLock.
      */
     private int offlineFactoriesCount;
-    private final long monitoringInterval;
-    private final TimeUnit monitoringIntervalTimeUnit;
+    private final long monitoringIntervalMS;
+
     /**
      * Guarded by stateLock.
      */
     private ScheduledFuture<?> monitoringFuture;
     private final AtomicBoolean isClosed = new AtomicBoolean();
 
-    AbstractLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories,
-            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
-            final ScheduledExecutorService scheduler) {
-        Reject.ifNull(factories, unit);
+    AbstractLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories, final Options options) {
+        Reject.ifNull(factories, options);
 
         this.monitoredFactories = new ArrayList<>(factories.size());
         int i = 0;
         for (final ConnectionFactory f : factories) {
             this.monitoredFactories.add(new MonitoredConnectionFactory(f, i++));
         }
-        this.scheduler = DEFAULT_SCHEDULER.acquireIfNull(scheduler);
-        this.monitoringInterval = interval;
-        this.monitoringIntervalTimeUnit = unit;
-        this.listener = listener != null ? listener : DEFAULT_LISTENER;
+        this.scheduler = DEFAULT_SCHEDULER.acquireIfNull(options.get(LOAD_BALANCER_SCHEDULER));
+        this.monitoringIntervalMS = options.get(LOAD_BALANCER_MONITORING_INTERVAL).to(TimeUnit.MILLISECONDS);
+        this.listener = options.get(LOAD_BALANCER_EVENT_LISTENER);
     }
 
     @Override

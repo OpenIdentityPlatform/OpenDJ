@@ -20,12 +20,17 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.CoreMessages.LOAD_BALANCER_EVENT_LISTENER_LOG_OFFLINE;
+import static com.forgerock.opendj.ldap.CoreMessages.LOAD_BALANCER_EVENT_LISTENER_LOG_ONLINE;
+
 import java.util.EventListener;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * An object that registers to be notified when a connection factory associated
@@ -34,8 +39,41 @@ import java.util.EventListener;
  * <b>NOTE:</b> load-balancer implementations must ensure that only one event is
  * sent at a time. Event listener implementations should not need to be thread
  * safe.
+ *
+ * @see LoadBalancingAlgorithm#LOAD_BALANCER_EVENT_LISTENER
  */
 public interface LoadBalancerEventListener extends EventListener {
+    /**
+     * An event listener implementation which logs events to the LoadBalancingAlgorithm logger. This event listener is
+     * the default implementation configured using the {@link LoadBalancingAlgorithm#LOAD_BALANCER_EVENT_LISTENER}
+     * option.
+     */
+    LoadBalancerEventListener LOG_EVENTS = new LoadBalancerEventListener() {
+        private final LocalizedLogger logger = LocalizedLogger.getLocalizedLogger(LoadBalancingAlgorithm.class);
+
+        @Override
+        public void handleConnectionFactoryOnline(final ConnectionFactory factory) {
+            logger.info(LOAD_BALANCER_EVENT_LISTENER_LOG_ONLINE.get(factory));
+        }
+
+        @Override
+        public void handleConnectionFactoryOffline(final ConnectionFactory factory, final LdapException error) {
+            logger.warn(LOAD_BALANCER_EVENT_LISTENER_LOG_OFFLINE.get(factory, error.getMessage()));
+        }
+    };
+
+    /** An event listener implementation which ignores all events. */
+    LoadBalancerEventListener NO_OP = new LoadBalancerEventListener() {
+        @Override
+        public void handleConnectionFactoryOnline(final ConnectionFactory factory) {
+            // Do nothing.
+        }
+
+        @Override
+        public void handleConnectionFactoryOffline(final ConnectionFactory factory, final LdapException error) {
+            // Do nothing.
+        }
+    };
 
     /**
      * Invoked when the load-balancer is unable to obtain a connection from the

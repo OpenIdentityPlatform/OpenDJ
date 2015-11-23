@@ -45,7 +45,6 @@ import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.LdapResultHandler;
-import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
@@ -72,9 +71,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
+import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
@@ -326,11 +327,10 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
             // Round robin.
             final ConnectionFactory loadBalancer =
-                    Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
-                            .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
-                                    offlineServer1, 10), Connections.newFixedConnectionPool(
-                                    offlineServer2, 10), Connections.newFixedConnectionPool(
-                                    onlineServer, 10))));
+                    newRoundRobinLoadBalancer(asList(newFixedConnectionPool(offlineServer1, 10),
+                                                     newFixedConnectionPool(offlineServer2, 10),
+                                                     newFixedConnectionPool(onlineServer, 10)),
+                                              defaultOptions());
 
             final MockServerConnection proxyServerConnection = new MockServerConnection();
             final MockServerConnectionFactory proxyServerConnectionFactory =
@@ -406,11 +406,10 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
             // Round robin.
             final ConnectionFactory loadBalancer =
-                    Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
-                            .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
-                                    offlineServer1, 10), Connections.newFixedConnectionPool(
-                                    offlineServer2, 10), Connections.newFixedConnectionPool(
-                                    onlineServer, 10))));
+                    newRoundRobinLoadBalancer(asList(newFixedConnectionPool(offlineServer1, 10),
+                                                     newFixedConnectionPool(offlineServer2, 10),
+                                                     newFixedConnectionPool(onlineServer, 10)),
+                                              defaultOptions());
 
             final MockServerConnection proxyServerConnection = new MockServerConnection() {
 

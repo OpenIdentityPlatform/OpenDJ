@@ -44,7 +44,6 @@ import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandlerFactory;
-import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.util.Options;
@@ -116,12 +115,8 @@ public final class Proxy {
         // --- JCite pools ---
 
         // --- JCite load balancer ---
-        final RoundRobinLoadBalancingAlgorithm algorithm =
-                new RoundRobinLoadBalancingAlgorithm(factories);
-        final RoundRobinLoadBalancingAlgorithm bindAlgorithm =
-                new RoundRobinLoadBalancingAlgorithm(bindFactories);
-        final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);
-        final ConnectionFactory bindFactory = Connections.newLoadBalancer(bindAlgorithm);
+        final ConnectionFactory factory = Connections.newRoundRobinLoadBalancer(factories, factoryOptions);
+        final ConnectionFactory bindFactory = Connections.newRoundRobinLoadBalancer(bindFactories, bindFactoryOptions);
         // --- JCite load balancer ---
 
         // --- JCite backend ---

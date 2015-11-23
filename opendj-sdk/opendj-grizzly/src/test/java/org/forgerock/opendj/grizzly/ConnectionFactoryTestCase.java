@@ -234,40 +234,26 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         factories[7][0] = newFixedConnectionPool(onlineServer, 10);
 
         // Round robin.
-        factories[8][0] =
-                Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-                        onlineServer, offlineServer1)));
+        factories[8][0] = newRoundRobinLoadBalancer(asList(onlineServer, offlineServer1), defaultOptions());
         factories[9][0] = factories[8][0];
         factories[10][0] = factories[8][0];
-        factories[11][0] =
-                Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-                        offlineServer1, onlineServer)));
-        factories[12][0] =
-                Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-                        offlineServer1, offlineServer2, onlineServer)));
-        factories[13][0] =
-                Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
-                        .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
-                                offlineServer1, 10), Connections.newFixedConnectionPool(
-                                onlineServer, 10))));
+        factories[11][0] = newRoundRobinLoadBalancer(asList(offlineServer1, onlineServer), defaultOptions());
+        factories[12][0] = newRoundRobinLoadBalancer(asList(offlineServer1, offlineServer2, onlineServer),
+                                                     defaultOptions());
+        factories[13][0] = newRoundRobinLoadBalancer(asList(newFixedConnectionPool(offlineServer1, 10),
+                                                            newFixedConnectionPool(onlineServer, 10)),
+                                                     defaultOptions());
 
         // Fail-over.
-        factories[14][0] =
-                Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-                        onlineServer, offlineServer1)));
+        factories[14][0] = newFailoverLoadBalancer(asList(onlineServer, offlineServer1), defaultOptions());
         factories[15][0] = factories[14][0];
         factories[16][0] = factories[14][0];
-        factories[17][0] =
-                Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-                        offlineServer1, onlineServer)));
-        factories[18][0] =
-                Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-                        offlineServer1, offlineServer2, onlineServer)));
-        factories[19][0] =
-                Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
-                        .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
-                                offlineServer1, 10), Connections.newFixedConnectionPool(
-                                onlineServer, 10))));
+        factories[17][0] = newFailoverLoadBalancer(asList(offlineServer1, onlineServer), defaultOptions());
+        factories[18][0] = newFailoverLoadBalancer(asList(offlineServer1, offlineServer2, onlineServer),
+                                                   defaultOptions());
+        factories[19][0] = newFailoverLoadBalancer(asList(newFixedConnectionPool(offlineServer1, 10),
+                                                          newFixedConnectionPool(onlineServer, 10)),
+                                                   defaultOptions());
 
         factories[20][0] = newFixedConnectionPool(onlineServer, 10);
 
@@ -698,10 +684,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             + "closing the connection factory causes NPE")
     public void testFactoryCloseBeforeConnectionClose() throws Exception {
         InetSocketAddress socketAddress = getServerSocketAddress();
-        final ConnectionFactory factory =
-                newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(newFixedConnectionPool(
-                        newHeartBeatConnectionFactory(new LDAPConnectionFactory(
-                                socketAddress.getHostName(), socketAddress.getPort())), 2))));
+        final LDAPConnectionFactory ldap = new LDAPConnectionFactory(socketAddress.getHostName(),
+                                                                     socketAddress.getPort(),
+                                                                     defaultOptions()
+                                                                            .set(HEARTBEAT_ENABLED, true));
+        final ConnectionPool pool = newFixedConnectionPool(ldap, 2);
+        final ConnectionFactory factory = newFailoverLoadBalancer(singletonList(pool), defaultOptions());
         Connection conn = null;
         try {
             conn = factory.getConnection();

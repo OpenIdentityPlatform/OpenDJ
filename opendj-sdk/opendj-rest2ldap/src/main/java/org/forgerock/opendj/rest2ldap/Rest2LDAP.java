@@ -15,9 +15,13 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Arrays.asList;
 import static org.forgerock.json.resource.ResourceException.newResourceException;
 import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
+import static org.forgerock.opendj.ldap.Connections.newFailoverLoadBalancer;
+import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_MONITORING_INTERVAL;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
@@ -26,7 +30,6 @@ import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,7 +54,6 @@ import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
@@ -59,7 +61,6 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
@@ -989,6 +990,8 @@ public final class Rest2LDAP {
                                        .set(HEARTBEAT_ENABLED, true)
                                        .set(HEARTBEAT_INTERVAL, heartBeatInterval)
                                        .set(HEARTBEAT_TIMEOUT, heartBeatTimeout)
+                                       .set(LOAD_BALANCER_MONITORING_INTERVAL, heartBeatInterval);
+
         // Parse pool parameters,
         final int connectionPoolSize =
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
@@ -1066,8 +1069,7 @@ public final class Rest2LDAP {
 
         // Create fail-over.
         if (secondary != null) {
-            return Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-                    primary, secondary), heartBeatIntervalSeconds, TimeUnit.SECONDS));
+            return newFailoverLoadBalancer(asList(primary, secondary), options);
         } else {
             return primary;
         }
@@ -1112,8 +1114,7 @@ public final class Rest2LDAP {
             }
         }
         if (servers.size() > 1) {
-            return Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(servers,
-                    heartBeatIntervalSeconds, TimeUnit.SECONDS));
+            return newRoundRobinLoadBalancer(servers, options);
         } else {
             return servers.get(0);
         }

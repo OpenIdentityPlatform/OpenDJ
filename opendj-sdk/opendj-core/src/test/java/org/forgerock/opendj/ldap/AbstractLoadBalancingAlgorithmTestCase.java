@@ -21,26 +21,34 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
-import java.util.concurrent.TimeUnit;
+import static java.util.Arrays.asList;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_EVENT_LISTENER;
+import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_MONITORING_INTERVAL;
+import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_SCHEDULER;
+import static org.forgerock.util.Options.defaultOptions;
+import static org.forgerock.util.promise.Promises.newExceptionPromise;
+import static org.forgerock.util.promise.Promises.newResultPromise;
+import static org.forgerock.util.time.Duration.duration;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import java.util.logging.Level;
 
+import org.forgerock.util.Options;
 import org.forgerock.util.promise.Promise;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static java.util.Arrays.*;
-
-import static org.fest.assertions.Assertions.*;
-import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.util.promise.Promises.*;
-import static org.mockito.Mockito.*;
 
 @SuppressWarnings("javadoc")
 public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
@@ -105,8 +113,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
         final LdapException secondError = newLdapException(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(second.getConnection()).thenThrow(secondError);
 
-        final ConnectionFactory loadBalancer =
-                newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(asList(first, second)));
+        final ConnectionFactory loadBalancer = newRoundRobinLoadBalancer(asList(first, second), defaultOptions());
 
         /*
          * Belt and braces check to ensure that factory methods don't return
@@ -147,9 +154,11 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
 
         final LoadBalancerEventListener listener = mock(LoadBalancerEventListener.class);
         final MockScheduler scheduler = new MockScheduler();
-        final ConnectionFactory loadBalancer =
-                newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(
-                        asList(firstAsync, secondAsync), listener, 1, TimeUnit.SECONDS, scheduler));
+        final Options options = defaultOptions()
+                                   .set(LOAD_BALANCER_EVENT_LISTENER, listener)
+                                   .set(LOAD_BALANCER_MONITORING_INTERVAL, duration("1 second"))
+                                   .set(LOAD_BALANCER_SCHEDULER, scheduler);
+        final ConnectionFactory loadBalancer = newRoundRobinLoadBalancer(asList(firstAsync, secondAsync), options);
 
         /*
          * Belt and braces check to ensure that factory methods don't return
