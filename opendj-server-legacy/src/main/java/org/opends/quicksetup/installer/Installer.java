@@ -846,7 +846,6 @@ public abstract class Installer extends GuiApplication
     argList.add(String.valueOf(getUserData().getAdminConnectorPort()));
 
     final SecurityOptions sec = getUserData().getSecurityOptions();
-    configureCertificate(sec);
     // TODO: even if the user does not configure SSL maybe we should choose
     // a secure port that is not being used and that we can actually use.
     if (sec.getEnableSSL())
@@ -958,6 +957,7 @@ public abstract class Installer extends GuiApplication
     invokeLongOperation(thread);
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
+    configureCertificate(sec);
   }
 
   private void configureCertificate(SecurityOptions sec) throws ApplicationException
