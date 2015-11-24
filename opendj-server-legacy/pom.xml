@@ -171,7 +171,7 @@
     <dependency>
       <groupId>org.glassfish.grizzly</groupId>
       <artifactId>grizzly-http-servlet</artifactId>
-      <version>2.3.16</version>
+      <version>${grizzly-framework.version}</version>
       <exclusions>
         <exclusion>
           <groupId>javax.servlet</groupId>
