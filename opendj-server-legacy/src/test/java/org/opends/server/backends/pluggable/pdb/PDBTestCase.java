@@ -50,7 +50,8 @@ public class PDBTestCase extends PluggableBackendImplTestCase<PDBBackendCfg>
   protected PDBBackendCfg createBackendCfg()
   {
     PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
-    when(backendCfg.getDBDirectory()).thenReturn(backendTestName);
+    when(backendCfg.getBackendId()).thenReturn("PDBTestCase");
+    when(backendCfg.getDBDirectory()).thenReturn("PDBTestCase");
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
     when(backendCfg.getDBCacheSize()).thenReturn(0L);
     when(backendCfg.getDBCachePercent()).thenReturn(20);

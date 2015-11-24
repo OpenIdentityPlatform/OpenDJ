@@ -46,7 +46,8 @@ public class JETestCase extends PluggableBackendImplTestCase<JEBackendCfg>
   protected JEBackendCfg createBackendCfg()
   {
     JEBackendCfg backendCfg = legacyMockCfg(JEBackendCfg.class);
-    when(backendCfg.getDBDirectory()).thenReturn(backendTestName);
+    when(backendCfg.getBackendId()).thenReturn("JETestCase");
+    when(backendCfg.getDBDirectory()).thenReturn("JETestCase");
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
     when(backendCfg.getDBCacheSize()).thenReturn(0L);
     when(backendCfg.getDBCachePercent()).thenReturn(20);

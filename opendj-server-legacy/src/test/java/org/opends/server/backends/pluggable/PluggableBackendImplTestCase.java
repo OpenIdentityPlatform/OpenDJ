@@ -36,19 +36,16 @@ import static org.opends.server.types.IndexType.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
-import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -78,7 +75,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -98,28 +94,23 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * BackendImpl Tester.
+ * Unit tests for pluggable backend implementations. The test methods have side-effects and must be run in-order.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
 public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg> extends DirectoryServerTestCase
 {
-  protected final String backendTestName = this.getClass().getName().replaceAll("[^.]*\\.", "");
+  private BackendImpl<C> backend;
+  private List<Entry> topEntries;
+  private List<Entry> entries;
+  private List<Entry> workEntries;
+  private DN testBaseDN;
+  private DN dnToDel;
+  private DN searchDN;
+  private DN badEntryDN;
+  private String backupID;
 
-  protected BackendImpl<C> backend;
-
-  protected List<Entry> topEntries;
-  protected List<Entry> entries;
-  protected List<Entry> workEntries;
-  protected DN testBaseDN;
-  protected DN dnToMod;
-  protected DN dnToDel;
-  protected DN searchDN;
-  protected DN badEntryDN;
-  protected String[] ldifTemplate;
-  protected int ldifNumberOfEntries;
-  protected String backupID;
-  protected Map<String, IndexType[]> backendIndexes = new HashMap<>();
+  private Map<String, IndexType[]> backendIndexes = new HashMap<>();
   {
     backendIndexes.put("entryUUID", new IndexType[] { IndexType.EQUALITY });
     backendIndexes.put("cn", new IndexType[] { IndexType.SUBSTRING });
@@ -127,13 +118,11 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backendIndexes.put("uid", new IndexType[] { IndexType.EQUALITY });
     backendIndexes.put("telephoneNumber", new IndexType[] { IndexType.EQUALITY, IndexType.SUBSTRING });
     backendIndexes.put("mail", new IndexType[] { IndexType.SUBSTRING });
-  };
+  }
 
-  protected String[] backendVlvIndexes = { "people" };
-
+  private String[] backendVlvIndexes = { "people" };
   private AttributeType modifyAttribute;
   private final ByteString modifyValue = ByteString.valueOfUtf8("foo");
-  private String backupPath;
   private BackupDirectory backupDirectory;
 
   /**
@@ -163,7 +152,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     C backendCfg = createBackendCfg();
     when(backendCfg.dn()).thenReturn(testBaseDN);
-    when(backendCfg.getBackendId()).thenReturn(backendTestName);
     when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes.keySet().toArray(new String[0]));
     when(backendCfg.listBackendVLVIndexes()).thenReturn(backendVlvIndexes);
@@ -555,52 +543,22 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
                 "postalAddress: Andaree Asawa$81028 Forest Street$Wheeling, IA  60905",
                 "description: This is the description for Andaree Asawa.");
 
-    dnToMod = workEntries.get(0).getName();
     dnToDel = workEntries.get(1).getName();
     searchDN = entries.get(1).getName();
     badEntryDN = testBaseDN.child(DN.valueOf("ou=bogus")).child(DN.valueOf("ou=dummy"));
     backupID = "backupID1";
 
-    ldifNumberOfEntries = 20;
-    ldifTemplate = new String [] {
-      "define suffix=" + testBaseDN,
-      "define maildomain=" + testBaseDN,
-      "define numusers = " + ldifNumberOfEntries,
-      "",
-      "branch: [suffix]",
-      "objectClass: domain",
-      "",
-      "branch: ou=People,[suffix]",
-      "objectClass: organizationalUnit",
-      "subordinateTemplate: person:[numusers]",
-      "",
-      "template: person",
-      "rdnAttr: uid",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "givenName: ABOVE LIMIT",
-      "sn: <last>",
-      "cn: {givenName} {sn}",
-      "initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}",
-      "employeeNumber: <sequential:0>",
-      "uid: user.{employeeNumber}",
-      "mail: {uid}@[maildomain]",
-      "userPassword: password",
-      "telephoneNumber: <random:telephone>",
-      "homePhone: <random:telephone>",
-      "pager: <random:telephone>",
-      "mobile: <random:telephone>",
-      "street: <random:numeric:5> <file:streets> Street",
-      "l: <file:cities>",
-      "st: <file:states>",
-      "postalCode: <random:numeric:5>",
-      "postalAddress: {cn}${street}${l}, {st}  {postalCode}",
-      "description: This is the description for {cn}.",
-      ""};
-    // Add suffix and branch entries
-    ldifNumberOfEntries += 2;
+    addEntriesToBackend(topEntries);
+    addEntriesToBackend(entries);
+    addEntriesToBackend(workEntries);
+  }
+
+  private void addEntriesToBackend(List<Entry> entries) throws Exception
+  {
+    for (Entry newEntry : entries)
+    {
+      backend.addEntry(newEntry, null);
+    }
   }
 
   @AfterClass
@@ -641,26 +599,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.getRootContainer().checkForEnoughResources(null);
   }
 
-  @Test
-  public void testAdd() throws Exception
-  {
-    addEntriesToBackend(topEntries);
-    addEntriesToBackend(entries);
-    addEntriesToBackend(workEntries);
-  }
-
-  /**
-   * Helper for add entries in a backend.
-   * @throws Exception
-   */
-  private void addEntriesToBackend(List<Entry> entries) throws Exception
-  {
-    for (Entry newEntry : entries)
-    {
-      backend.addEntry(newEntry, null);
-    }
-  }
-
   @Test(expectedExceptions = DirectoryException.class)
   public void testAddNoParent() throws Exception
   {
@@ -668,7 +606,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.addEntry(newEntry, null);
   }
 
-  @Test(dependsOnMethods = "testAdd")
+  @Test
   public void testUtilityAPIs()
   {
     assertEquals(backend.getEntryCount(), getTotalNumberOfLDIFEntries());
@@ -689,7 +627,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     return topEntries.size() + entries.size() + workEntries.size();
   }
 
-  @Test(dependsOnMethods = "testAdd")
+  @Test
   public void testHasSubordinates() throws Exception
   {
     assertEquals(backend.hasSubordinates(testBaseDN), ConditionResult.TRUE,
@@ -722,7 +660,65 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     }
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  @Test
+  public void testModifyEntry() throws Exception
+  {
+    Entry oldEntry = workEntries.get(0);
+    Entry newEntry = oldEntry.duplicate(false);
+
+    modifyAttribute = DirectoryServer.getAttributeTypeOrNull("jpegphoto");
+    newEntry.applyModifications(Arrays.asList(new Modification(ADD, create(modifyAttribute, modifyValue))));
+
+    backend.replaceEntry(oldEntry, newEntry, null);
+    assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, null, modifyValue));
+  }
+
+  @Test
+  public void testRenameEntry() throws Exception
+  {
+    // Move the entire subtree to another name and move it back.
+    DN prevDN = DN.valueOf("ou=People," + testBaseDN);
+    DN newDN = DN.valueOf("ou=users," + testBaseDN);
+    Entry renameEntry = backend.getEntry(prevDN).duplicate(false);
+
+    renameEntry.setDN(newDN);
+    backend.renameEntry(prevDN, renameEntry, null);
+    Entry dbEntry = backend.getEntry(newDN);
+    assertEquals(dbEntry.getName(), newDN, "Renamed entry is missing.");
+
+    renameEntry.setDN(prevDN);
+    backend.renameEntry(newDN, renameEntry, null);
+    dbEntry = backend.getEntry(prevDN);
+    assertEquals(dbEntry.getName(), prevDN, "Original entry has not been renamed");
+  }
+
+  @Test
+  public void testDeleteEntry() throws Exception
+  {
+    Entry deletedEntry = backend.getEntry(dnToDel).duplicate(false);
+    deleteEntry(dnToDel);
+    try
+    {
+      deleteEntry(dnToDel);
+      fail("Should have generated a DirectoryException");
+    }
+    catch (DirectoryException de)
+    {
+      // Expected exception, do nothing, test succeeds.
+    }
+    finally
+    {
+      backend.addEntry(deletedEntry, null);
+    }
+  }
+
+  private void deleteEntry(DN dn) throws Exception
+  {
+    backend.deleteEntry(dn, null);
+    assertNull(backend.getEntry(workEntries.get(1).getName()));
+  }
+
+  @Test
   public void testBaseSearch() throws Exception
   {
     baseSearch(false);
@@ -738,7 +734,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(result.get(0).getName(), testBaseDN, "Base Search on the suffix should return the suffix itself");
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  @Test
   public void testOneLevelSearch() throws Exception
   {
     oneLevelSearch(false);
@@ -756,21 +752,21 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         "One Level search should return the expected child");
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  @Test
   public void testSubTreeSearch() throws Exception
   {
     subTreeSearch(false);
     subTreeSearch(true);
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  @Test
   public void testSubTreeSearchAgainstAnIndexWithUnrecognizedMatchingRule() throws Exception
   {
     SearchRequest request = newSearchRequest(testBaseDN, SearchScope.WHOLE_SUBTREE, "entryUUID=xxx*");
     assertThat(runSearch(request, false)).isEmpty();
   }
 
-  @Test(dependsOnMethods = "testAdd")
+  @Test
   public void testSearchIsConsideredUnindexedBasedOnLookThroughLimit() throws DirectoryException {
     final int nbEntries = topEntries.size() + entries.size() + workEntries.size();
 
@@ -800,7 +796,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     List<SearchResultEntry> result = runSearch(request, useInternalConnection);
 
     // Sum of all entry sets minus a delete
-    assertEquals(result.size(), getTotalNumberOfLDIFEntries() - 1,
+    assertEquals(result.size(), getTotalNumberOfLDIFEntries(),
         "Subtree search should return a correct number of entries");
   }
 
@@ -820,8 +816,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     };
   }
 
-  @Test(dataProvider = "userEntrySearchData",
-      dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  @Test(dataProvider = "userEntrySearchData")
   public void testUserEntrySearch(boolean useInternalConnection, SearchScope scope, int expectedEntryCount)
       throws Exception
   {
@@ -836,105 +831,45 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     }
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
+  @Test
   public void testGetEntry() throws Exception
   {
-    Assertions.assertThat(getDbEntries(entries)).isEqualTo(entries);
-  }
-
-  private List<Entry> getDbEntries(List<Entry> entries) throws DirectoryException
-  {
-    List<Entry> result = new ArrayList<>(entries.size());
-    for (Entry currentEntry : entries)
+    for (Entry expected : entries)
     {
-      Entry dbEntry = backend.getEntry(currentEntry.getName());
-      result.add(filterOperationalAttributes(dbEntry));
-    }
-    return result;
-  }
+      Entry dbEntry = backend.getEntry(expected.getName());
+      Entry actual = new Entry(dbEntry.getName(), dbEntry.getObjectClasses(), dbEntry.getUserAttributes(), null);
 
-  private Entry filterOperationalAttributes(Entry e)
-  {
-    return new Entry(e.getName(), e.getObjectClasses(), e.getUserAttributes(), null);
-  }
+      // Remove the userPassword because it will have been encoded.
+      expected.removeAttribute(DirectoryServer.getAttributeTypeOrDefault("userpassword"));
+      actual.removeAttribute(DirectoryServer.getAttributeTypeOrDefault("userpassword"));
 
-  @Test(dependsOnMethods = { "testAdd", "testModifyEntry" })
-  public void testRenameEntry() throws Exception
-  {
-    // Move the entire subtree to another name and move it back.
-    DN prevDN = DN.valueOf("ou=People," + testBaseDN);
-    DN newDN = DN.valueOf("ou=users," + testBaseDN);
-    Entry renameEntry = backend.getEntry(prevDN).duplicate(false);
-
-    renameEntry.setDN(newDN);
-    backend.renameEntry(prevDN, renameEntry, null);
-    Entry dbEntry = backend.getEntry(newDN);
-    assertEquals(dbEntry.getName(), newDN, "Renamed entry is missing.");
-
-    renameEntry.setDN(prevDN);
-    backend.renameEntry(newDN, renameEntry, null);
-    dbEntry = backend.getEntry(prevDN);
-    assertEquals(dbEntry.getName(), prevDN, "Original entry has not been renamed");
-  }
-
-  @Test(dependsOnMethods = "testAdd")
-  public void testModifyEntry() throws Exception
-  {
-    Entry oldEntry = workEntries.get(0);
-    Entry newEntry = oldEntry.duplicate(false);
-
-    modifyAttribute = DirectoryServer.getAttributeTypeOrNull("jpegphoto");
-    newEntry.applyModifications(Arrays.asList(new Modification(ADD, create(modifyAttribute, modifyValue))));
-
-    backend.replaceEntry(oldEntry, newEntry, null);
-    assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, null, modifyValue));
-  }
-
-  @Test(dependsOnMethods = { "testAdd", "testRenameEntry", "testHasSubordinates", "testUtilityAPIs" })
-  public void testDeleteEntry() throws Exception
-  {
-    deleteEntry(dnToDel);
-  }
-
-  @Test(dependsOnMethods = "testDeleteEntry")
-  public void testDeleteAlreadyDeletedEntry() throws Exception
-  {
-    try
-    {
-      deleteEntry(dnToDel);
-      fail("Should have generated a DirectoryException");
-    }
-    catch (DirectoryException de)
-    {
-      // Expected exception, do nothing, test succeeds.
+      assertThat(actual).isEqualTo(expected);
     }
   }
 
-  private void deleteEntry(DN dn) throws Exception
+  @Test
+  public void testExportLDIFAndImportLDIF() throws Exception
   {
-    backend.deleteEntry(dn, null);
-    assertNull(backend.getEntry(workEntries.get(1).getName()));
-  }
+    assertTrue(backend.supports(BackendOperation.LDIF_EXPORT), "Export not supported");
+    ByteArrayOutputStream ldifOutputContent = new ByteArrayOutputStream();
+    try (final LDIFExportConfig exportConfig = new LDIFExportConfig(ldifOutputContent))
+    {
+      exportConfig.setIncludeOperationalAttributes(true);
+      backend.exportLDIF(exportConfig);
+    }
 
-  @Test(dependsOnMethods = { "testBaseSearch", "testOneLevelSearch", "testSubTreeSearch", "testUserEntrySearch" })
-  public void testImportLDIF() throws Exception
-  {
-    assertTrue(backend.supports(BackendOperation.LDIF_IMPORT), "Import not supported");
+    String ldifString = ldifOutputContent.toString();
+    assertEquals(ldifString.contains(testBaseDN.toString()), true, "Export without rootDN");
+    assertEquals(ldifString.contains(searchDN.toString()), true, "Export without rootDN");
+
 
     // Import wants the backend to be configured but not initialized. Finalizing resets the status.
+    assertTrue(backend.supports(BackendOperation.LDIF_IMPORT), "Import not supported");
     backend.finalizeBackend();
 
-    assertNotNull(ldifTemplate, "Import requires an LDIF template");
-
-    String makeLDIFPath =
-        System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator + "resource" + File.separator
-        + "MakeLDIF";
-    TemplateFile templateFile = new TemplateFile(makeLDIFPath, new Random());
-    templateFile.parse(ldifTemplate, null);
-
+    ByteArrayInputStream ldifImportContent = new ByteArrayInputStream(ldifOutputContent.toByteArray());
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
-
-    try (final LDIFImportConfig importConf = new LDIFImportConfig(templateFile))
+    try (final LDIFImportConfig importConf = new LDIFImportConfig(ldifImportContent))
     {
       importConf.setInvokeImportPlugins(true);
       importConf.setClearBackend(true);
@@ -948,12 +883,15 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
                  "No entries should be rejected. Content was:\n" + rejectedEntries.toString());
 
     backend.openBackend();
-    assertEquals(backend.getEntryCount(), ldifNumberOfEntries, "Not enough entries in DIT.");
+    assertEquals(backend.getEntryCount(), getTotalNumberOfLDIFEntries(), "Not enough entries in DIT.");
     /** +1 for the testBaseDN itself */
-    assertEquals(backend.getNumberOfEntriesInBaseDN(testBaseDN), ldifNumberOfEntries, "Not enough entries in DIT.");
-    assertEquals(backend.getNumberOfChildren(testBaseDN), 1, "Not enough entries in DIT.");
+    assertEquals(backend.getNumberOfEntriesInBaseDN(testBaseDN), getTotalNumberOfLDIFEntries(),
+                 "Not enough entries in DIT.");
+    assertEquals(backend.getNumberOfChildren(testBaseDN), 1,
+                 "Not enough entries in DIT.");
     /** -2 for baseDn and People entry */
-    assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), ldifNumberOfEntries - 2, "Not enough entries in DIT.");
+    assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), getTotalNumberOfLDIFEntries() - 2,
+                 "Not enough entries in DIT.");
 
     VerifyConfig config = new VerifyConfig();
     config.setBaseDN(DN.valueOf("dc=test,dc=com"));
@@ -974,7 +912,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertThat(backend.verifyBackend(config)).isEqualTo(0);
   }
 
-  @Test(dependsOnMethods = "testImportLDIF")
+  @Test
   public void testRebuildAllIndex() throws Exception
   {
     final EntryContainer entryContainer =  backend.getRootContainer().getEntryContainers().iterator().next();
@@ -1032,7 +970,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertThat(backend.verifyBackend(config)).isEqualTo(0);
   }
 
-  @Test(dependsOnMethods = "testImportLDIF")
+  @Test
   public void testRebuildDegradedIndex() throws Exception
   {
     final EntryContainer entryContainer =  backend.getRootContainer().getEntryContainers().iterator().next();
@@ -1082,12 +1020,9 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       config.addCleanIndex(indexName);
     }
     assertThat(backend.verifyBackend(config)).isEqualTo(0);
-
-    // Put back the backend in its original state for the following tests
-//    backend.openBackend();
   }
 
-  @Test(dependsOnMethods = "testImportLDIF")
+  @Test
   public void testVerifyID2ChildrenCount() throws Exception
   {
     final Storage storage = backend.getRootContainer().getStorage();
@@ -1124,42 +1059,19 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertThat(backend.verifyBackend(config)).isEqualTo(1);
   }
 
-  @Test(dependsOnMethods = "testImportLDIF")
-  public void testBackup() throws Exception
+  @Test
+  public void testBackupAndRestore() throws Exception
   {
     assertEquals(backend.supports(BackendOperation.BACKUP), true, "Skip Backup");
     assertNotNull(backupID, "Need to setup a backupID");
 
-    backupPath = TestCaseUtils.createTemporaryDirectory("backup").getAbsolutePath();
+    final String backupPath = TestCaseUtils.createTemporaryDirectory("backup").getAbsolutePath();
     backupDirectory = new BackupDirectory(backupPath, testBaseDN);
     BackupConfig backupConf = new BackupConfig(backupDirectory, backupID, false);
     backend.createBackup(backupConf);
-  }
 
-  @Test(dependsOnMethods = "testBackup")
-  public void testRestore() throws Exception
-  {
     assertTrue(backend.supports(BackendOperation.RESTORE), "Skip Restore");
-
     backend.restoreBackup(new RestoreConfig(backupDirectory, backupID, true));
-  }
-
-  @Test(dependsOnMethods = "testRestore")
-  public void testExportLDIF() throws Exception
-  {
-    assertTrue(backend.supports(BackendOperation.LDIF_EXPORT), "Export not supported");
-
-    ByteArrayOutputStream ldifData = new ByteArrayOutputStream();
-    try (final LDIFExportConfig exportConfig = new LDIFExportConfig(ldifData))
-    {
-      exportConfig.setIncludeOperationalAttributes(true);
-      exportConfig.setIncludeVirtualAttributes(true);
-      backend.exportLDIF(exportConfig);
-    }
-
-    String ldifString = ldifData.toString();
-    assertEquals(ldifString.contains(testBaseDN.toString()), true, "Export without rootDN");
-    assertEquals(ldifString.contains(searchDN.toString()), true, "Export without rootDN");
   }
 
   @Test(expectedExceptions=ReadOnlyStorageException.class)
@@ -1167,7 +1079,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   {
     C backendCfg = createBackendCfg();
     when(backendCfg.dn()).thenReturn(testBaseDN);
-    when(backendCfg.getBackendId()).thenReturn(backendTestName);
     when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
     when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
