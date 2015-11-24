@@ -36,8 +36,10 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -65,8 +67,12 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.directory}/docbkx-sources/shared")
     private File outputDirectory;
 
+    /** Holds descriptions for ACIs. */
+    private Map<String, String> descriptions;
+
     /** Holds documentation for an ACI. */
     private class Aci {
+        String name;
         String description;
         String definition;
     }
@@ -82,7 +88,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
-            readAcis();
+            readAcis(getAciDescriptions());
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
@@ -96,10 +102,35 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     }
 
     /**
-     * Reads {@code ds-cfg-global-aci} values from {@code config.ldif} into the list of Acis.
+     * Populates map of {@code ds-cfg-global-aci} descriptions from comments in {@code config.ldif}.
+     * Keys are ACI names. Values are descriptions.
+     * <br>
+     * The format expected for ACI description comments is the following:
+     * {@code # @aci name: description},
+     * where {@code name} matches the name embedded in the ACI,
+     * and {@code description} is a longer description.
      * @throws IOException  Failed to read the LDIF.
      */
-    private void readAcis() throws IOException {
+    private Map<String, String> getAciDescriptions() throws IOException {
+        final Map<String, String> descriptions = new HashMap<>();
+        BufferedReader reader = new BufferedReader(new FileReader(configDotLdif));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith("# @aci ")) {
+                String[] split = line.replace("# @aci ", "").split(":", 2);
+                descriptions.put(split[0], split[1]);
+            }
+        }
+        return descriptions;
+    }
+
+    /**
+     * Reads {@code ds-cfg-global-aci} values from {@code config.ldif} into the list of Acis.
+     * @param descriptions Long descriptions from comments in {@code config.ldif}.
+     *                     Keys are ACI names. Values are descriptions.
+     * @throws IOException  Failed to read the LDIF.
+     */
+    private void readAcis(Map<String, String> descriptions) throws IOException {
         LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(configDotLdif));
         reader.setIncludeBranch(DN.valueOf("cn=Access Control Handler,cn=config"));
 
@@ -107,11 +138,31 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
             Entry entry = reader.readEntry();
             for (String attribute : entry.parseAttribute("ds-cfg-global-aci").asSetOfString()) {
                 Aci aci = new Aci();
-                aci.description = getDescription(attribute);
+                aci.name = getName(attribute);
+                if (descriptions != null) {
+                    aci.description = descriptions.get(aci.name);
+                }
                 aci.definition = attribute;
                 allGlobalAcis.add(aci);
             }
         }
+    }
+
+    /**
+     * Returns the user-friendly name embedded in the ACI.
+     * @param aci   The string representation of the ACI value.
+     * @return  The user-friendly name embedded in the ACI,
+     *          or an empty string if no name is found.
+     */
+    private String getName(String aci) {
+        // Extract the user-friendly string in
+        // {@code ...version 3.0; acl "user-friendly name"...}.
+        Pattern pattern = Pattern.compile(".+version 3.0; ?acl \"([^\"]+)\".+");
+        Matcher matcher = pattern.matcher(aci);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
     }
 
     /**
@@ -124,6 +175,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
         map.put("lang", locale);
         map.put("title", DOC_GLOBAL_ACIS_TABLE_TITLE.get());
         map.put("summary", DOC_GLOBAL_ACIS_TABLE_SUMMARY.get());
+        map.put("nameTitle", DOC_GLOBAL_ACIS_NAME_COLUMN_TITLE.get());
         map.put("descTitle", DOC_GLOBAL_ACIS_DESCRIPTION_COLUMN_TITLE.get());
         map.put("defTitle", DOC_GLOBAL_ACIS_DEFINITION_COLUMN_TITLE.get());
         map.put("acis", getDefaultGlobalAciList());
@@ -138,27 +190,11 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
         final List<Map<String, Object>> globalAciList = new LinkedList<>();
         for (final Aci aci : allGlobalAcis) {
             final Map<String, Object> map = new HashMap<>();
+            map.put("name", aci.name);
             map.put("description", aci.description);
             map.put("definition", aci.definition);
             globalAciList.add(map);
         }
         return globalAciList;
-    }
-
-    /**
-     * Returns the user-friendly description embedded in the ACI.
-     * @param aci   The string representation of the ACI value.
-     * @return  The user-friendly description embedded in the ACI,
-     *          or an empty string if no description is found.
-     */
-    private String getDescription(String aci) {
-        // Extract the user-friendly string in
-        // {@code ...version 3.0; acl "user-friendly string"...}.
-        Pattern pattern = Pattern.compile(".+version 3.0; ?acl \"([^\"]+)\".+");
-        Matcher matcher = pattern.matcher(aci);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return "";
     }
 }

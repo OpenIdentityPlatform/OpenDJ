@@ -38,25 +38,30 @@
   </para>
  </textobject>
 
- <tgroup cols="2">
+ <tgroup cols="3">
   <colspec colnum="1" colwidth="1*"/>
   <colspec colnum="2" colwidth="2*" />
+  <colspec colnum="3" colwidth="2*" />
 
   <thead>
    <row>
+    <entry>${nameTitle}</entry>
     <entry>${descTitle}</entry>
     <entry>${defTitle}</entry>
    </row>
   </thead>
 
   <tbody>
-   <#list acis?sort_by("description") as aci>
+   <#list acis?sort_by("name") as aci>
    <row valign="top">
     <entry>
-     ${aci.description}<!-- In English in config.ldif by default -->
+     <para>${aci.name}</para>        <!-- In English in config.ldif by default -->
     </entry>
     <entry>
-     <literallayout>${aci.definition}</literallayout>
+     <para>${aci.description}</para> <!-- In English in config.ldif by default -->
+    </entry>
+    <entry>
+     <para><literal>${aci.definition}</literal></para>
     </entry>
    </row>
    </#list>
