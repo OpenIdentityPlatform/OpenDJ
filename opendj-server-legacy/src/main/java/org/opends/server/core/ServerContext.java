@@ -27,6 +27,7 @@ package org.opends.server.core;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.opends.server.loggers.CommonAudit;
 import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
@@ -107,4 +108,11 @@ public interface ServerContext
    * @return the Disk Space Monioring service
    */
   DiskSpaceMonitor getDiskSpaceMonitor();
+
+  /**
+   * Returns the common audit manager.
+   *
+   * @return the common audit manager
+   */
+  CommonAudit getCommonAudit();
 }

@@ -49,6 +49,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
@@ -299,7 +300,7 @@ public final class JmxConnectionHandler extends
 
   /** {@inheritDoc} */
   @Override
-  public void initializeConnectionHandler(JMXConnectionHandlerCfg config)
+  public void initializeConnectionHandler(ServerContext serverContext, JMXConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
     // Configuration is ok.

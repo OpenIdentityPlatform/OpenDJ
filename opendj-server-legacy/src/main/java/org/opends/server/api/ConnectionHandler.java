@@ -27,13 +27,16 @@
 package org.opends.server.api;
 
 import static org.opends.messages.ProtocolMessages.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.types.DN;
@@ -191,6 +194,8 @@ public abstract class ConnectionHandler
    * Initializes this connection handler provider based on the
    * information in the provided connection handler configuration.
    *
+   * @param serverContext
+   *            The server context.
    * @param configuration
    *          The connection handler configuration that contains the
    *          information to use to initialize this connection
@@ -203,7 +208,7 @@ public abstract class ConnectionHandler
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  public abstract void initializeConnectionHandler(T configuration)
+  public abstract void initializeConnectionHandler(ServerContext serverContext, T configuration)
       throws ConfigException, InitializationException;
 
 

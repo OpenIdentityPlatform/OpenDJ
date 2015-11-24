@@ -36,6 +36,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -80,6 +81,7 @@ import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
@@ -161,6 +163,8 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
   /** The SSL engine configurator is used for obtaining default SSL parameters. */
   private SSLEngineConfigurator sslEngineConfigurator;
+
+  private ServerContext serverContext;
 
   /** Default constructor. It is invoked by reflection to create this {@link ConnectionHandler}. */
   public HTTPConnectionHandler()
@@ -419,9 +423,10 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   }
 
   @Override
-  public void initializeConnectionHandler(HTTPConnectionHandlerCfg config)
+  public void initializeConnectionHandler(ServerContext serverContext, HTTPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     this.enabled = config.isEnabled();
 
     if (friendlyName == null)
@@ -782,7 +787,8 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   {
     // Create and deploy the Web app context
     final WebappContext ctx = new WebappContext(servletName);
-    ctx.addServlet(servletName, new HttpFrameworkServlet(new LdapHttpApplication(this))).addMapping(urlPatterns);
+    ctx.addServlet(servletName,
+        new HttpFrameworkServlet(new LdapHttpApplication(serverContext, this))).addMapping(urlPatterns);
     ctx.deploy(this.httpServer);
   }
 

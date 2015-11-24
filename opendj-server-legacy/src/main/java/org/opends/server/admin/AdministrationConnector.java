@@ -116,6 +116,8 @@ public final class AdministrationConnector implements
   private static final SSLClientAuthPolicy ADMIN_SSL_CLIENT_AUTH_POLICY =
     SSLClientAuthPolicy.DISABLED;
 
+  private final ServerContext serverContext;
+
   /**
    * Initializes this administration connector provider based on the
    * information in the provided administration connector
@@ -142,7 +144,7 @@ public final class AdministrationConnector implements
     // Administration Connector uses the LDAP connection handler implementation
     adminConnectionHandler = new LDAPConnectionHandler(
         new SynchronousStrategy(), FRIENDLY_NAME);
-    adminConnectionHandler.initializeConnectionHandler(new LDAPConnectionCfgAdapter(config));
+    adminConnectionHandler.initializeConnectionHandler(serverContext, new LDAPConnectionCfgAdapter(config));
     adminConnectionHandler.setAdminConnectionHandler();
 
     // Register this as a change listener.
@@ -150,10 +152,15 @@ public final class AdministrationConnector implements
   }
 
 
-  /** Create an instance of the administration connector. */
-  public AdministrationConnector()
+  /**
+   * Creates an instance of the administration connector.
+   *
+   * @param serverContext
+   *            The server context.
+   **/
+  public AdministrationConnector(ServerContext serverContext)
   {
-    // Do nothing.
+    this.serverContext = serverContext;
   }
 
   /**

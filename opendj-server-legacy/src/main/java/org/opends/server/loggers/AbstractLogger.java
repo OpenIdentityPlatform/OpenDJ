@@ -26,6 +26,7 @@
  */
 package org.opends.server.loggers;
 
+import static org.opends.server.loggers.CommonAudit.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -185,7 +186,7 @@ public abstract class AbstractLogger
   private final Arg3<Object, Object, Object>
       invalidLoggerClassErrorMessage;
 
-  ServerContext serverContext;
+  private ServerContext serverContext;
 
   /**
    * The constructor for this class.
@@ -226,11 +227,18 @@ public abstract class AbstractLogger
     {
       config.addChangeListener((ConfigurationChangeListener) this);
 
-      if(config.isEnabled())
+      if (config.isEnabled())
       {
-        addLogPublisher(getLogPublisher(config));
+        final P logPublisher = isCommonAuditConfig(config) ?
+            getLogPublisherForCommonAudit(config) : getLogPublisher(config);
+        addLogPublisher(logPublisher);
       }
     }
+  }
+
+  ServerContext getServerContext()
+  {
+    return serverContext;
   }
 
   /** {@inheritDoc} */
@@ -263,7 +271,9 @@ public abstract class AbstractLogger
     {
       try
       {
-        addLogPublisher(getLogPublisher(config));
+        final P logPublisher = isCommonAuditConfig(config) ?
+            getLogPublisherForCommonAudit(config) : getLogPublisher(config);
+        addLogPublisher(logPublisher);
       }
       catch(ConfigException e)
       {
@@ -274,8 +284,7 @@ public abstract class AbstractLogger
       catch (Exception e)
       {
         LocalizedLogger.getLoggerForThisClass().traceException(e);
-        ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
-            config.dn(), stackTraceToSingleLineString(e)));
+        ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(config.dn(), stackTraceToSingleLineString(e)));
         ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
     }
@@ -301,9 +310,9 @@ public abstract class AbstractLogger
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     P logPublisher = findLogPublisher(config.dn());
-    if(logPublisher == null)
+    if (logPublisher == null)
     {
-      if(config.isEnabled())
+      if (config.isEnabled())
       {
         // Needs to be added and enabled.
         return applyConfigurationAdd(config);
@@ -311,26 +320,38 @@ public abstract class AbstractLogger
     }
     else
     {
-      if(config.isEnabled())
+      if (config.isEnabled())
       {
-        // The publisher is currently active, so we don't need to do anything.
         // Changes to the class name cannot be
         // applied dynamically, so if the class name did change then
         // indicate that administrative action is required for that
         // change to take effect.
         String className = config.getJavaClass();
-        if(!className.equals(logPublisher.getClass().getName()))
+        if (!className.equals(logPublisher.getClass().getName()))
         {
           ccr.setAdminActionRequired(true);
+        }
+        try
+        {
+          if (isCommonAuditConfig(config))
+          {
+            serverContext.getCommonAudit().addOrUpdatePublisher(config);
+          } // else the publisher is currently active, so we don't need to do
+            // anything.
+        }
+        catch (Exception e)
+        {
+          LocalizedLogger.getLoggerForThisClass().traceException(e);
+          ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_UPDATE_LOGGER.get(config.dn(), stackTraceToSingleLineString(e)));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
       else
       {
         // The publisher is being disabled so shut down and remove.
-        removeLogPublisher(logPublisher);
+        return applyConfigurationDelete(config);
       }
     }
-
     return ccr;
   }
 
@@ -342,7 +363,6 @@ public abstract class AbstractLogger
     return findLogPublisher(config.dn()) != null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(C config)
   {
@@ -352,6 +372,19 @@ public abstract class AbstractLogger
     if(logPublisher != null)
     {
       removeLogPublisher(logPublisher);
+      try
+      {
+        if (isCommonAuditConfig(config))
+        {
+          serverContext.getCommonAudit().removePublisher(config);
+        }
+      }
+      catch (ConfigException e)
+      {
+        LocalizedLogger.getLoggerForThisClass().traceException(e);
+        ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_DELETE_LOGGER.get(config.dn(), stackTraceToSingleLineString(e)));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      }
     }
     else
     {
@@ -389,6 +422,16 @@ public abstract class AbstractLogger
       throw new ConfigException(
           invalidLoggerClassErrorMessage.get(className, config.dn(), e), e);
     }
+  }
+
+  private P getLogPublisherForCommonAudit(C config) throws InitializationException, ConfigException
+  {
+    CommonAudit commonAudit = serverContext.getCommonAudit();
+    commonAudit.addOrUpdatePublisher(config);
+    P logPublisher = getLogPublisher(config);
+    CommonAuditLogPublisher publisher = (CommonAuditLogPublisher) logPublisher;
+    publisher.setRequestHandler(commonAudit.getRequestHandler(config));
+    return logPublisher;
   }
 
 }

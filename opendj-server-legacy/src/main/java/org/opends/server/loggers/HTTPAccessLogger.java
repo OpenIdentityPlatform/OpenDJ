@@ -128,6 +128,7 @@ public class HTTPAccessLogger extends AbstractLogger
   public final synchronized void removeAllLogPublishers()
   {
     loggerStorage.removeAllLogPublishers();
+    getServerContext().getCommonAudit().shutdown();
   }
 
 }

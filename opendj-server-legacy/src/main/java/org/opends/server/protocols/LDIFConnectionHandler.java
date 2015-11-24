@@ -42,6 +42,7 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -122,7 +123,7 @@ public final class LDIFConnectionHandler
 
   /** {@inheritDoc} */
   @Override
-  public void initializeConnectionHandler(LDIFConnectionHandlerCfg
+  public void initializeConnectionHandler(ServerContext serverContext, LDIFConnectionHandlerCfg
                                                configuration)
   {
     String ldifDirectoryPath = configuration.getLDIFDirectory();

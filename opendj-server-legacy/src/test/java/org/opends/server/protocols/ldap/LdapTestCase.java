@@ -26,6 +26,8 @@
  */
 package org.opends.server.protocols.ldap ;
 
+import static org.mockito.Mockito.mock;
+
 import static org.opends.server.config.ConfigConstants.*;
 
 import java.util.Iterator;
@@ -36,6 +38,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -112,7 +115,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
     handlerEntry.addAttribute(a, null);
     LDAPConnectionHandlerCfg config = getConfiguration(handlerEntry);
     LDAPConnectionHandler handler = new LDAPConnectionHandler();
-    handler.initializeConnectionHandler(config);
+    handler.initializeConnectionHandler(mock(ServerContext.class), config);
     return handler;
   }
 

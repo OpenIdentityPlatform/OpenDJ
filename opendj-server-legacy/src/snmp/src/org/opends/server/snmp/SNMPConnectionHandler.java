@@ -47,6 +47,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ProtocolMessages.*;
@@ -95,8 +96,8 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
-    public void initializeConnectionHandler(
-            SNMPConnectionHandlerCfg configuration)
+    @Override
+    public void initializeConnectionHandler(ServerContext serverContext, SNMPConnectionHandlerCfg configuration)
             throws ConfigException, InitializationException {
 
         if (configuration == null) {
@@ -207,6 +208,7 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationChangeAcceptable(
             SNMPConnectionHandlerCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
@@ -217,6 +219,7 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationChange(
             SNMPConnectionHandlerCfg configuration) {
         if ((this.isOperational) && (this.provider!=null)){
@@ -228,6 +231,7 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public DN getComponentEntryDN() {
         return this.currentConfig.dn();
     }
@@ -235,6 +239,7 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getClassName() {
         return SNMPConnectionHandler.class.getName();
     }
@@ -242,6 +247,7 @@ public final class SNMPConnectionHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public LinkedHashMap<String, String> getAlerts() {
         LinkedHashMap<String, String> alerts =
           new LinkedHashMap<String, String>();

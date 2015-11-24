@@ -138,6 +138,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.CommonAudit;
 import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
@@ -726,6 +727,9 @@ public final class DirectoryServer
   /** Entry point for server configuration. */
   private org.forgerock.opendj.config.server.ServerManagementContext serverManagementContext;
 
+  /** Entry point to common audit service, where all audit events must be published. */
+  private CommonAudit commonAudit;
+
   /** Class that prints the version of OpenDJ server to System.out. */
   public static final class DirectoryServerVersionHandler implements VersionHandler
   {
@@ -823,6 +827,12 @@ public final class DirectoryServer
     public DiskSpaceMonitor getDiskSpaceMonitor()
     {
       return directoryServer.diskSpaceMonitor;
+    }
+
+    @Override
+    public CommonAudit getCommonAudit()
+    {
+      return directoryServer.commonAudit;
     }
   }
 
@@ -1354,6 +1364,7 @@ public final class DirectoryServer
       retentionPolicyConfigManager = new LogRetentionPolicyConfigManager(serverContext);
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
 
+      commonAudit = new CommonAudit();
       loggerConfigManager = new LoggerConfigManager(serverContext);
       loggerConfigManager.initializeLoggerConfig();
 

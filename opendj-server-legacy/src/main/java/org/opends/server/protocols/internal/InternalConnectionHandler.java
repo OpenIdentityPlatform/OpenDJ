@@ -29,12 +29,14 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
 import java.util.Collection;
 import java.util.LinkedList;
 
 import org.opends.server.admin.std.server.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
@@ -108,6 +110,7 @@ public final class InternalConnectionHandler
    * Initializes this connection handler provider based on the
    * information in the provided connection handler configuration.
    *
+   * @param  serverContext  The server context.
    * @param  configuration  The connection handler configuration that
    *                        contains the information to use to
    *                        initialize this connection handler.
@@ -123,8 +126,7 @@ public final class InternalConnectionHandler
    *                                   configuration.
    */
   @Override
-  public void initializeConnectionHandler(
-                   ConnectionHandlerCfg configuration)
+  public void initializeConnectionHandler(ServerContext serverContext, ConnectionHandlerCfg configuration)
       throws ConfigException, InitializationException
   {
     this.configuration = configuration;

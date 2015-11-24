@@ -605,6 +605,26 @@ ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation P
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
+dn: cn=Common Audit Csv File Access Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-access-log-publisher
+objectClass: ds-cfg-csv-file-access-log-publisher
+cn: Csv File Access Logger
+ds-cfg-java-class: org.opends.server.loggers.CsvFileAccessLogPublisher
+ds-cfg-enabled: false
+ds-cfg-log-directory: logs
+ds-cfg-suppress-internal-operations: true
+ds-cfg-suppress-synchronization-operations: false
+ds-cfg-log-control-oids: false
+ds-cfg-asynchronous: true
+ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+ds-cfg-tamper-evident: false
+ds-cfg-key-store-file: config/audit-keystore
+ds-cfg-key-store-pin-file: config/audit-keystore.pin
+
 dn: cn=File-Based HTTP Access Logger,cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-log-publisher
@@ -619,6 +639,23 @@ ds-cfg-asynchronous: true
 ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
+dn: cn=Common Audit Csv File HTTP Access Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-http-access-log-publisher
+objectClass: ds-cfg-csv-file-http-access-log-publisher
+cn: Csv File HTTP Access Logger
+ds-cfg-java-class: org.opends.server.loggers.CommonAuditHTTPAccessLogPublisher
+ds-cfg-enabled: false
+ds-cfg-log-directory: logs
+ds-cfg-asynchronous: true
+ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+ds-cfg-tamper-evident: false
+ds-cfg-key-store-file: config/audit-keystore
+ds-cfg-key-store-pin-file: config/audit-keystore.pin
 
 dn: cn=File-Based Audit Logger,cn=Loggers,cn=config
 objectClass: top

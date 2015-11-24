@@ -294,7 +294,7 @@ public class ConnectionHandlerConfigManager implements
     AdministrationConnectorCfg administrationConnectorCfg =
       root.getAdministrationConnector();
 
-    AdministrationConnector ac = new AdministrationConnector();
+    AdministrationConnector ac = new AdministrationConnector(serverContext);
     ac.initializeAdministrationConnector(administrationConnectorCfg);
 
     // Put this connection handler in the hash so that we will be
@@ -354,7 +354,7 @@ public class ConnectionHandlerConfigManager implements
           pd.loadClass(className, ConnectionHandler.class);
       ConnectionHandler<T> connectionHandler = theClass.newInstance();
 
-      connectionHandler.initializeConnectionHandler(config);
+      connectionHandler.initializeConnectionHandler(serverContext, config);
 
       return connectionHandler;
     } catch (Exception e) {

@@ -125,6 +125,11 @@
 
     <dependency>
       <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-util</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
       <artifactId>json-resource</artifactId>
     </dependency>
 
@@ -142,6 +147,19 @@
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-http-servlet</artifactId>
     </dependency>
+ 
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-core</artifactId>
+    </dependency>  
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-handler-csv</artifactId>
+    </dependency>  
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-json</artifactId>
+    </dependency>  
 
     <!-- servlet and mail -->
     <dependency>

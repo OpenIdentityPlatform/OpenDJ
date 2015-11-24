@@ -58,6 +58,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.QueueingStrategy;
+import org.opends.server.core.ServerContext;
 import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
@@ -642,7 +643,7 @@ public final class LDAPConnectionHandler extends
 
   /** {@inheritDoc} */
   @Override
-  public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
+  public void initializeConnectionHandler(ServerContext serverContext, LDAPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
   {
     if (friendlyName == null)

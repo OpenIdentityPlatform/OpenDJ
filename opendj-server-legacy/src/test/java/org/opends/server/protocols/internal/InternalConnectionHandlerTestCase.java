@@ -28,11 +28,13 @@ package org.opends.server.protocols.internal;
 
 
 
+import static org.mockito.Mockito.mock;
+
 import java.util.Collection;
 
 import org.testng.annotations.Test;
-
 import org.opends.server.api.ClientConnection;
+import org.opends.server.core.ServerContext;
 
 import static org.testng.Assert.*;
 
@@ -57,7 +59,7 @@ public class InternalConnectionHandlerTestCase
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
     assertNotNull(handler);
 
-    handler.initializeConnectionHandler(null);
+    handler.initializeConnectionHandler(mock(ServerContext.class), null);
   }
 
 

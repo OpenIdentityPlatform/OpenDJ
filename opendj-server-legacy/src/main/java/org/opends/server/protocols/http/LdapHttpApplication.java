@@ -34,6 +34,7 @@ import java.io.FileReader;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
+import org.forgerock.http.filter.TransactionIdInboundFilter;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Request;
@@ -57,7 +58,10 @@ import org.forgerock.services.context.Context;
 import org.forgerock.util.Factory;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.time.TimeService;
 import org.opends.messages.ProtocolMessages;
+import org.opends.server.core.ServerContext;
+import org.opends.server.util.DynamicConstants;
 
 /** Main class of the HTTP Connection Handler web application */
 class LdapHttpApplication implements HttpApplication
@@ -115,9 +119,11 @@ class LdapHttpApplication implements HttpApplication
   private HTTPConnectionHandler connectionHandler;
   private LdapHttpHandler handler;
   private CollectClientConnectionsFilter filter;
+  private final ServerContext serverContext;
 
-  LdapHttpApplication(HTTPConnectionHandler connectionHandler)
+  LdapHttpApplication(ServerContext serverContext, HTTPConnectionHandler connectionHandler)
   {
+    this.serverContext = serverContext;
     this.connectionHandler = connectionHandler;
   }
 
@@ -132,7 +138,15 @@ class LdapHttpApplication implements HttpApplication
       handler = new LdapHttpHandler(configuration);
       filter = new CollectClientConnectionsFilter(connectionHandler, getAuthenticationConfig(configuration));
       configuration.verifyAllKeysAccessed();
-      return Handlers.chainOf(handler, filter);
+
+      TransactionIdInboundFilter transactionIdFilter = new TransactionIdInboundFilter();
+      RequestHandler requestHandler = serverContext.getCommonAudit().getAuditServiceForHttpAccessLog();
+      CommonAuditHttpAccessAuditFilter httpAccessFilter =
+          new CommonAuditHttpAccessAuditFilter(DynamicConstants.PRODUCT_NAME, requestHandler, TimeService.SYSTEM);
+      CommonAuditHttpAccessCheckEnabledFilter checkFilter =
+          new CommonAuditHttpAccessCheckEnabledFilter(serverContext, httpAccessFilter);
+
+      return Handlers.chainOf(handler, transactionIdFilter, checkFilter, filter);
     }
     catch (final Exception e)
     {
