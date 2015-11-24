@@ -60,6 +60,7 @@
     <properties>
         <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
         <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
+        <grizzly-framework.version>2.3.23</grizzly-framework.version>
 
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional />
