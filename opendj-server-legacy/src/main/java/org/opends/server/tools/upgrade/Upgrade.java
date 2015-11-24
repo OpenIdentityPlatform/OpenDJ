@@ -568,9 +568,8 @@ public final class Upgrade
             "replace: ds-cfg-replication-db-implementation",
             "ds-cfg-replication-db-implementation: log"));
 
-    /*
-     * All upgrades will refresh the server configuration schema and generate
-     * a new upgrade folder.
+    /**
+     * All upgrades will refresh the server configuration schema and generate a new upgrade folder.
      */
     registerLast(
         copySchemaFile("02-config.ldif"),
@@ -581,18 +580,17 @@ public final class Upgrade
   }
 
   /**
-   * Returns a list containing all the tasks which are required in order to
-   * upgrade from {@code fromVersion} to {@code toVersion}.
+   * Returns a list containing all the tasks which are required in order to upgrade
+   * from {@code fromVersion} to {@code toVersion}.
    *
    * @param fromVersion
    *          The old version.
    * @param toVersion
    *          The new version.
-   * @return A list containing all the tasks which are required in order to
-   *         upgrade from {@code fromVersion} to {@code toVersion}.
+   * @return A list containing all the tasks which are required in order to upgrade
+   *         from {@code fromVersion} to {@code toVersion}.
    */
-  private static List<UpgradeTask> getUpgradeTasks(
-      final BuildVersion fromVersion, final BuildVersion toVersion)
+  private static List<UpgradeTask> getUpgradeTasks(final BuildVersion fromVersion, final BuildVersion toVersion)
   {
     final List<UpgradeTask> tasks = new LinkedList<>();
     for (final List<UpgradeTask> subList : TASKS.subMap(fromVersion, false,
@@ -605,8 +603,7 @@ public final class Upgrade
   }
 
   /**
-   * Upgrades the server from {@code fromVersion} to {@code toVersion} located
-   * in the upgrade context.
+   * Upgrades the server from {@code fromVersion} to {@code toVersion} located in the upgrade context.
    *
    * @param context
    *          The context of the upgrade.
@@ -623,9 +620,7 @@ public final class Upgrade
     checkIfServerIsRunning(context);
 
     context.notify(INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
-    context.notify(
-        INFO_UPGRADE_SUMMARY.get(context.getFromVersion(), context.getToVersion()),
-        NOTICE_CALLBACK);
+    context.notify(INFO_UPGRADE_SUMMARY.get(context.getFromVersion(), context.getToVersion()), NOTICE_CALLBACK);
     context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeLog.getLogFilePath()), NOTICE_CALLBACK);
 
     // Checks License.
@@ -633,9 +628,7 @@ public final class Upgrade
 
     logWarnAboutPatchesFolder();
 
-    /*
-     * Get the list of required upgrade tasks.
-     */
+    // Get the list of required upgrade tasks.
     final List<UpgradeTask> tasks =
         getUpgradeTasks(context.getFromVersion(), context.getToVersion());
     if (tasks.isEmpty())
@@ -646,9 +639,7 @@ public final class Upgrade
 
     try
     {
-      /*
-       * Let tasks interact with the user in order to obtain user's selection.
-       */
+      // Let tasks interact with the user in order to obtain user's selection.
       context.notify(INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
       for (final UpgradeTask task : tasks)
       {
@@ -664,9 +655,7 @@ public final class Upgrade
         throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
       }
 
-      /*
-       * Perform the upgrade tasks.
-       */
+      // Perform the upgrade tasks.
       context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(), TITLE_CALLBACK);
       for (final UpgradeTask task : tasks)
       {
@@ -676,9 +665,8 @@ public final class Upgrade
       if (UpgradeTasks.countErrors == 0)
       {
         /*
-         * The end of a successful upgrade is marked up with the build info file
-         * update and the license, if present, requires the creation of an
-         * approval file.
+         * The end of a successful upgrade is marked up with the build info file update and the license,
+         * if present, requires the creation of an approval file.
          */
         changeBuildInfoVersion(context);
 
@@ -686,17 +674,13 @@ public final class Upgrade
       }
       else
       {
-        context.notify(ERR_UPGRADE_FAILS.get(UpgradeTasks.countErrors),
-            TITLE_CALLBACK);
+        context.notify(ERR_UPGRADE_FAILS.get(UpgradeTasks.countErrors), TITLE_CALLBACK);
       }
 
-      /*
-       * Performs the post upgrade tasks.
-       */
+      // Performs the post upgrade tasks.
       if (hasPostUpgradeTask && UpgradeTasks.countErrors == 0)
       {
-        context
-            .notify(INFO_UPGRADE_PERFORMING_POST_TASKS.get(), TITLE_CALLBACK);
+        context.notify(INFO_UPGRADE_PERFORMING_POST_TASKS.get(), TITLE_CALLBACK);
         performPostUpgradeTasks(context, tasks);
         context.notify(INFO_UPGRADE_POST_TASKS_COMPLETE.get(), TITLE_CALLBACK);
       }
@@ -719,8 +703,8 @@ public final class Upgrade
     }
   }
 
-  private static void performPostUpgradeTasks(final UpgradeContext context,
-      final List<UpgradeTask> tasks) throws ClientException
+  private static void performPostUpgradeTasks(final UpgradeContext context, final List<UpgradeTask> tasks)
+      throws ClientException
   {
     boolean isOk = true;
     for (final UpgradeTask task : tasks)
@@ -775,8 +759,7 @@ public final class Upgrade
     final StringBuilder failureReason = new StringBuilder();
     try
     {
-      // Assume that if we cannot acquire the lock file the server is
-      // running.
+      // Assume that if we cannot acquire the lock file the server is running.
       if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
         final LocalizableMessage message = ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get();
@@ -803,12 +786,8 @@ public final class Upgrade
   {
     if (context.getFromVersion().equals(context.getToVersion()))
     {
-      /*
-       * If the server is already up to date then treat it as a successful
-       * upgrade so that upgrade is idempotent.
-       */
-      final LocalizableMessage message =
-          ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion());
+      // If the server is already up to date then treat it as a successful upgrade so that upgrade is idempotent.
+      final LocalizableMessage message = ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion());
       context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(ReturnCode.SUCCESS, message);
     }
@@ -816,8 +795,8 @@ public final class Upgrade
     // The upgrade only supports version >= 2.4.5.
     if (context.getFromVersion().compareTo(UPGRADESUPPORTSVERSIONFROM) < 0)
     {
-      final LocalizableMessage message = INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(
-              UPGRADESUPPORTSVERSIONFROM, UPGRADESUPPORTSVERSIONFROM);
+      final LocalizableMessage message =
+          INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(UPGRADESUPPORTSVERSIONFROM, UPGRADESUPPORTSVERSIONFROM);
       context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
@@ -830,8 +809,6 @@ public final class Upgrade
    *          The current context which running the upgrade.
    * @throws ClientException
    *           If an exception occurs when displaying the message.
-   * @throws IOException
-   *           If an exception occurs when trying to write the file.
    */
   private static void changeBuildInfoVersion(final UpgradeContext context)
       throws ClientException
@@ -840,14 +817,12 @@ public final class Upgrade
     try
     {
       buildInfo =
-          new FileWriter(new File(UpgradeUtils.configDirectory,
-              Installation.BUILDINFO_RELATIVE_PATH), false);
+          new FileWriter(new File(UpgradeUtils.configDirectory, Installation.BUILDINFO_RELATIVE_PATH), false);
 
       // Write the new version
       buildInfo.write(context.getToVersion().toString());
 
-      context.notify(INFO_UPGRADE_SUCCESSFUL.get(
-          context.getFromVersion(), context.getToVersion()), TITLE_CALLBACK);
+      context.notify(INFO_UPGRADE_SUCCESSFUL.get(context.getFromVersion(), context.getToVersion()), TITLE_CALLBACK);
     }
     catch (IOException e)
     {
@@ -873,14 +848,13 @@ public final class Upgrade
       {
         final int answer;
 
-        // The force cannot answer yes to the license's question,
-        // which is not a task even if it requires a user interaction OR
-        // -an accept license mode to continue the process.
+        // The force cannot answer yes to the license's question, which is not a task even if it requires a user
+        // interaction OR -an accept license mode to continue the process.
         if (context.isForceUpgradeMode())
         {
           answer = NO;
-          context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
-              + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
+          context.notify(
+              LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " " + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
         }
         else
         {
@@ -899,8 +873,8 @@ public final class Upgrade
       else
       {
         // We automatically accept the license with this option.
-        context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
-            + INFO_PROMPT_YES_COMPLETE_ANSWER.get()));
+        context.notify(
+            LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " " + INFO_PROMPT_YES_COMPLETE_ANSWER.get()));
         LicenseFile.setApproval(true);
       }
     }
