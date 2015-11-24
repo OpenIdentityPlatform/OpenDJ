@@ -91,7 +91,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
     user(givenNames("William", "Bill"),    surname("Beak"),        employeeNumber(4)),
     user(givenNames(),                     surname("Prince"),      employeeNumber(5)),
     user(givenNames("Charlie"),            surname("Chalk"),       employeeNumber(6)),
-    user(givenNames("Albert"),             surname("Einstein"),    employeeNumber(7)),
+    user(givenNames("Albert"),             surname("DEinstein"),   employeeNumber(7)),
     user(givenNames("Mini"),               surname("Mouse"),       employeeNumber(8)),
   };
   // @formatter:on
@@ -107,6 +107,9 @@ public class ControlsTestCase extends DirectoryServerTestCase
   /** Unindexed: ordered by ascending sn and ascending employee number then entryID */
   private static final String SORT_ORDER_3 = "sn employeeNumber";
 
+  /** Indexed: ordered by ascending givenName then entryID */
+  private static final String SORT_ORDER_4 = "surname:caseExactOrderingMatch";
+
   /** Ordered by {@link #SORT_ORDER_1} */
   private static final List<Integer> USERS_BY_ENTRY_ID = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8);
 
@@ -118,6 +121,9 @@ public class ControlsTestCase extends DirectoryServerTestCase
 
   /** Unindexed: ordered by {@link #SORT_ORDER_3} */
   private static final List<Integer> USERS_BY_SORT_ORDER_3 = Arrays.asList(4, 6, 1, 7, 3, 8, 5, 2, 0);
+
+  /** Unindexed: ordered by {@link #SORT_ORDER_4} */
+  private static final List<Integer> USERS_BY_SORT_ORDER_4 = Arrays.asList(4, 6, 7, 3, 8, 5, 2, 0, 1);
 
   private PDBBackend backend;
 
@@ -442,6 +448,14 @@ public class ControlsTestCase extends DirectoryServerTestCase
         assertion("zz"),                                // after all
         USERS_BY_SORT_ORDER_3.subList(9, 9),            // nothing
         expectedPosition(10)
+      },
+      {
+        SORT_ORDER_4,
+        beforeCount(0),
+        afterCount(10),
+        assertion("A"),                                 // before all
+        USERS_BY_SORT_ORDER_4,                          // everything
+        expectedPosition(1)
       },
     };
     // @formatter:on

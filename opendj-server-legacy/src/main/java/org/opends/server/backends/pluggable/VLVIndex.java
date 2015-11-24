@@ -178,6 +178,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   public synchronized boolean isConfigurationChangeAcceptable(final BackendVLVIndexCfg cfg,
       final List<LocalizableMessage> unacceptableReasons)
   {
+    // TODO JNR remove duplication
     try
     {
       SearchFilter.createFilterFromString(cfg.getFilter());
@@ -324,6 +325,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       {
         throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], getName()));
       }
+      // TODO Add ordering matching rule null check
       sortKeys[i] = new SortKey(attrType, ascending);
     }
     return sortKeys;
@@ -606,7 +608,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
        * include some escaped bytes as well. 10 extra bytes should accommodate most inputs.
        */
       final ByteStringBuilder encodedPrimaryKey = new ByteStringBuilder(assertion.length() + 10);
-      final MatchingRule matchingRule = primarySortKey.getAttributeType().getOrderingMatchingRule();
+      final MatchingRule matchingRule = primarySortKey.getEffectiveOrderingRule();
       final ByteString normalizedAttributeValue = matchingRule.normalizeAttributeValue(assertion);
       encodeVLVKeyValue(normalizedAttributeValue, encodedPrimaryKey, primarySortKey.ascending());
       return encodedPrimaryKey;
@@ -767,7 +769,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     for (final SortKey sortKey : sortOrder.getSortKeys())
     {
       final AttributeType attributeType = sortKey.getAttributeType();
-      final MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
+      final MatchingRule matchingRule = sortKey.getEffectiveOrderingRule();
       final List<Attribute> attrList = entry.getAttribute(attributeType);
       ByteString sortValue = null;
       if (attrList != null)

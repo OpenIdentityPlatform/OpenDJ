@@ -279,6 +279,7 @@ public class EntryContainer
     @Override
     public boolean isConfigurationAddAcceptable(BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
+      // TODO JNR remove du-plication
       try
       {
         SearchFilter.createFilterFromString(cfg.getFilter());
@@ -316,6 +317,7 @@ public class EntryContainer
           unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));
           return false;
         }
+        // TODO Add ordering matching rule null check
         sortKeys[i] = new SortKey(attrType, ascending[i]);
       }
 

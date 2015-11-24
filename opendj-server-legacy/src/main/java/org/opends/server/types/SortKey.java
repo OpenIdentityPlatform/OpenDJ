@@ -51,10 +51,8 @@ public final class SortKey
 
   /** The attribute type for this sort key. */
   private AttributeType attributeType;
-
   /** The indication of whether the sort should be ascending. */
   private boolean ascending;
-
   /** The ordering matching rule to use with this sort key. */
   private MatchingRule orderingRule;
 
@@ -69,10 +67,7 @@ public final class SortKey
    */
   public SortKey(AttributeType attributeType, boolean ascending)
   {
-    this.attributeType = attributeType;
-    this.ascending     = ascending;
-
-    orderingRule = null;
+    this(attributeType, ascending, null);
   }
 
 
@@ -132,7 +127,15 @@ public final class SortKey
     return orderingRule;
   }
 
-
+  /**
+   * Retrieves the ordering matching rule to use with this sort key.
+   *
+   * @return The ordering matching rule to use with this sort key.
+   */
+  public MatchingRule getEffectiveOrderingRule()
+  {
+    return orderingRule != null ? orderingRule : attributeType.getOrderingMatchingRule();
+  }
 
   /**
    * Compares the provided values using this sort key.

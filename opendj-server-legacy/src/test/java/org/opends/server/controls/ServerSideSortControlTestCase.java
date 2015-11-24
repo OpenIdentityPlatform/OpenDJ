@@ -27,6 +27,7 @@
 package org.opends.server.controls;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +35,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -289,29 +289,16 @@ public class ServerSideSortControlTestCase
   public void testInternalSearchGivenNameAscending()
          throws Exception
   {
-    populateDB();
-
-    InternalClientConnection conn = getRootConnection();
-
-    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
-        .addControl(new ServerSideSortRequestControl("givenName"));
-    InternalSearchOperation internalSearch = conn.processSearch(request);
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
-    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
-    expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
-    expectedDNOrder.add(margaretJonesDN);   // Maggie
-    expectedDNOrder.add(maryJonesDN);       // Mary
-    expectedDNOrder.add(samZweckDN);        // Sam
-    expectedDNOrder.add(zorroDN);           // No first name
-
-    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
-
-    assertNoAttributeTypeForSort(internalSearch);
+    testInternalSearchWithSort("givenName",
+        aaccfJohnsonDN,    // Aaccf
+        aaronZimmermanDN,  // Aaron
+        albertZimmermanDN, // Albert, lower entry ID
+        albertSmithDN,     // Albert, higher entry ID
+        lowercaseMcGeeDN,  // lowercase
+        margaretJonesDN,   // Maggie
+        maryJonesDN,       // Mary
+        samZweckDN,        // Sam
+        zorroDN);          // No first name
   }
 
   /**
@@ -324,27 +311,16 @@ public class ServerSideSortControlTestCase
   @Test
   public void testInternalSearchGivenNameAscendingCaseExact() throws Exception
   {
-    populateDB();
-
-    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
-        .addControl(new ServerSideSortRequestControl("givenName:caseExactOrderingMatch"));
-    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
-    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
-    expectedDNOrder.add(margaretJonesDN);   // Maggie
-    expectedDNOrder.add(maryJonesDN);       // Mary
-    expectedDNOrder.add(samZweckDN);        // Sam
-    expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
-    expectedDNOrder.add(zorroDN);           // No first name
-
-    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
-
-    assertNoAttributeTypeForSort(internalSearch);
+    testInternalSearchWithSort("givenName:caseExactOrderingMatch",
+        aaccfJohnsonDN,    // Aaccf
+        aaronZimmermanDN,  // Aaron
+        albertZimmermanDN, // Albert, lower entry ID
+        albertSmithDN,     // Albert, higher entry ID
+        margaretJonesDN,   // Maggie
+        maryJonesDN,       // Mary
+        samZweckDN,        // Sam
+        lowercaseMcGeeDN,  // lowercase
+        zorroDN);          // No first name
   }
 
   /**
@@ -356,30 +332,17 @@ public class ServerSideSortControlTestCase
   @Test
   public void testInternalSearchGivenNameDescending() throws Exception
   {
-    populateDB();
-
-    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
-        .addControl(new ServerSideSortRequestControl("-givenName"));
-    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(aaronZimmermanDN);  // Zeke
-    expectedDNOrder.add(samZweckDN);        // Sam
-    expectedDNOrder.add(maryJonesDN);       // Mary
-    expectedDNOrder.add(margaretJonesDN);   // Margaret
-    expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
-    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
-    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(zorroDN);           // No first name
-
-    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
-
-    assertNoAttributeTypeForSort(internalSearch);
+    testInternalSearchWithSort("-givenName",
+        zorroDN,           // No first name
+        samZweckDN,        // Sam
+        maryJonesDN,       // Mary
+        margaretJonesDN,   // Margaret
+        lowercaseMcGeeDN,  // lowercase
+        albertZimmermanDN, // Albert, lower entry ID
+        albertSmithDN,     // Albert, higher entry ID
+        aaronZimmermanDN,  // Aaron
+        aaccfJohnsonDN);   // Aaccf
   }
-
-
 
   /**
    * Tests performing an internal search using the server-side sort control to
@@ -391,31 +354,17 @@ public class ServerSideSortControlTestCase
   @Test
   public void testInternalSearchGivenNameDescendingCaseExact() throws Exception
   {
-    populateDB();
-
-    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
-        .addControl(new ServerSideSortRequestControl("-givenName:caseExactOrderingMatch"));
-
-    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
-    expectedDNOrder.add(aaronZimmermanDN);  // Zeke
-    expectedDNOrder.add(samZweckDN);        // Sam
-    expectedDNOrder.add(maryJonesDN);       // Mary
-    expectedDNOrder.add(margaretJonesDN);   // Margaret
-    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
-    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(zorroDN);           // No first name
-
-    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
-
-    assertNoAttributeTypeForSort(internalSearch);
+    testInternalSearchWithSort("-givenName:caseExactOrderingMatch",
+        zorroDN,           // No first name
+        lowercaseMcGeeDN,  // lowercase
+        samZweckDN,        // Sam
+        maryJonesDN,       // Mary
+        margaretJonesDN,   // Margaret
+        albertZimmermanDN, // Albert, lower entry ID
+        albertSmithDN,     // Albert, higher entry ID
+        aaronZimmermanDN,  // Aaron
+        aaccfJohnsonDN);   // Aaccf
   }
-
-
 
   /**
    * Tests performing an internal search using the server-side sort control to
@@ -426,27 +375,16 @@ public class ServerSideSortControlTestCase
   @Test
   public void testInternalSearchGivenNameAscendingSnAscending() throws Exception
   {
-    populateDB();
-
-    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
-        .addControl(new ServerSideSortRequestControl("givenName,sn"));
-    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertSmithDN);     // Albert, lower sn
-    expectedDNOrder.add(albertZimmermanDN); // Albert, higher sn
-    expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
-    expectedDNOrder.add(margaretJonesDN);   // Maggie
-    expectedDNOrder.add(maryJonesDN);       // Mary
-    expectedDNOrder.add(samZweckDN);        // Sam
-    expectedDNOrder.add(zorroDN);           // No first name
-
-    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
-
-    assertNoAttributeTypeForSort(internalSearch);
+    testInternalSearchWithSort("givenName,sn",
+        aaccfJohnsonDN,    // Aaccf
+        aaronZimmermanDN,  // Aaron
+        albertSmithDN,     // Albert, lower sn
+        albertZimmermanDN, // Albert, higher sn
+        lowercaseMcGeeDN,  // lowercase
+        margaretJonesDN,   // Maggie
+        maryJonesDN,       // Mary
+        samZweckDN,        // Sam
+        zorroDN);          // No first name
   }
 
   /**
@@ -459,25 +397,28 @@ public class ServerSideSortControlTestCase
   public void testInternalSearchGivenNameAscendingSnDescending()
          throws Exception
   {
+    testInternalSearchWithSort("givenName,-sn",
+        aaccfJohnsonDN,    // Aaccf
+        aaronZimmermanDN,  // Aaron
+        albertZimmermanDN, // Albert, higher sn
+        albertSmithDN,     // Albert, lower sn
+        lowercaseMcGeeDN,  // lowercase
+        margaretJonesDN,   // Maggie
+        maryJonesDN,       // Mary
+        samZweckDN,        // Sam
+        zorroDN);          // No first name
+  }
+
+  private void testInternalSearchWithSort(String sortOrderString, DN... expectedDNOrder) throws Exception
+  {
     populateDB();
 
     SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
-        .addControl(new ServerSideSortRequestControl("givenName,-sn"));
+        .addControl(new ServerSideSortRequestControl(sortOrderString));
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, higher sn
-    expectedDNOrder.add(albertSmithDN);     // Albert, lower sn
-    expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
-    expectedDNOrder.add(margaretJonesDN);   // Maggie
-    expectedDNOrder.add(maryJonesDN);       // Mary
-    expectedDNOrder.add(samZweckDN);        // Sam
-    expectedDNOrder.add(zorroDN);           // No first name
-
-    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
+    assertEquals(getDNs(internalSearch.getSearchEntries()), Arrays.asList(expectedDNOrder));
 
     assertNoAttributeTypeForSort(internalSearch);
   }
