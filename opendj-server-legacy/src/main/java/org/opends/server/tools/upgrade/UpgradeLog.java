@@ -69,7 +69,8 @@ class UpgradeLog
 
     if (logFile == null)
     {
-      logFile = new File(UpgradeUtils.getInstancePath() + File.separator + LOGDIR + File.separator + UPGRADELOGNAME);
+      logFile = new File(UpgradeUtils.getInstancePath() + File.separator + Installation.LOGS_PATH_RELATIVE
+          + File.separator + UPGRADELOGNAME);
     }
     try
     {
@@ -86,7 +87,7 @@ class UpgradeLog
       public String format(LogRecord record)
       {
         // Format the log ~like the errors logger.
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         final SimpleDateFormat dateFormat =
             new SimpleDateFormat("[dd/MMM/yyyy:HH:mm:ss Z]");
         sb.append(dateFormat.format(record.getMillis())).append(SPACE);
@@ -129,6 +130,18 @@ class UpgradeLog
     {
       throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_INVALID_LOG_FILE.get(e
           .getMessage()));
+    }
+  }
+
+  static String getLogFilePath()
+  {
+    try
+    {
+      return logFile.getCanonicalPath();
+    }
+    catch (IOException e)
+    {
+      return logFile.getPath();
     }
   }
 }

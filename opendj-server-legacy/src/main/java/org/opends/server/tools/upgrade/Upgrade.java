@@ -626,9 +626,7 @@ public final class Upgrade
     context.notify(
         INFO_UPGRADE_SUMMARY.get(context.getFromVersion(), context.getToVersion()),
         NOTICE_CALLBACK);
-    context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
-        .getInstallationPath()
-        + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
+    context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeLog.getLogFilePath()), NOTICE_CALLBACK);
 
     // Checks License.
     checkLicence(context);
@@ -716,8 +714,7 @@ public final class Upgrade
     }
     finally
     {
-      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils.getInstallationPath()
-          + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
+      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeLog.getLogFilePath()), NOTICE_CALLBACK);
       logger.info(INFO_UPGRADE_PROCESS_END);
     }
   }
