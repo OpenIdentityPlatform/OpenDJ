@@ -625,7 +625,7 @@ class DN2URI extends AbstractTree
     {
       // Initialize the cursor very close to the starting value then
       // step forward until we pass the ending value.
-      boolean success = cursor.positionToKey(suffix);
+      boolean success = cursor.positionToKeyOrNext(suffix);
       while (success && cursor.getKey().compareTo(end) < 0)
       {
         // We have found a subordinate referral.

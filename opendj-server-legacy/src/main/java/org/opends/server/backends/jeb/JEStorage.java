@@ -228,6 +228,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         {
           return false;
         }
+        else if (index == 0)
+        {
+          return true;
+        }
 
         // equivalent to READ_UNCOMMITTED
         long skipped = cursor.skipNext(index, dbKey, dbValue, null);
