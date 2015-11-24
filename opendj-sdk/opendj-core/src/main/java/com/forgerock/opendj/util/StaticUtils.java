@@ -41,7 +41,6 @@ import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
@@ -119,12 +118,7 @@ public final class StaticUtils {
 
                 @Override
                 protected void destroyInstance(ScheduledExecutorService instance) {
-                    instance.shutdown();
-                    try {
-                        instance.awaitTermination(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
+                    instance.shutdownNow();
                 }
             };
 

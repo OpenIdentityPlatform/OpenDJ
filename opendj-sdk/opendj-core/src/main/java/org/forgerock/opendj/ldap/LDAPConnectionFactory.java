@@ -453,8 +453,9 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
         // Register the connect timeout timer.
         final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
         final AtomicReference<LDAPConnectionImpl> connectionHolder = new AtomicReference<>();
+        final ScheduledFuture<?> timeoutFuture;
         if (connectTimeoutMS > 0) {
-            scheduler.get().schedule(new Runnable() {
+            timeoutFuture = scheduler.get().schedule(new Runnable() {
                 @Override
                 public void run() {
                     if (promise.tryHandleException(newConnectTimeoutError())) {
@@ -463,6 +464,8 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
                     }
                 }
             }, connectTimeoutMS, TimeUnit.MILLISECONDS);
+        } else {
+            timeoutFuture = null;
         }
 
         // Now connect, negotiate SSL, etc.
@@ -482,6 +485,9 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
             .thenOnResult(new ResultHandler<Result>() {
                 @Override
                 public void handleResult(Result result) {
+                    if (timeoutFuture != null) {
+                        timeoutFuture.cancel(false);
+                    }
                     final LDAPConnectionImpl connection = connectionHolder.get();
                     final ConnectionImpl connectionImpl = new ConnectionImpl(connection);
                     if (!promise.tryHandleResult(registerConnection(connectionImpl))) {
@@ -492,6 +498,9 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
             .thenOnException(new ExceptionHandler<LdapException>() {
                 @Override
                 public void handleException(final LdapException e) {
+                    if (timeoutFuture != null) {
+                        timeoutFuture.cancel(false);
+                    }
                     final LdapException connectException;
                     if (e instanceof ConnectionException || e instanceof AuthenticationException) {
                         connectException = e;
