@@ -30,7 +30,6 @@ package org.opends.server.backends.pluggable;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
 import static org.opends.server.backends.pluggable.VLVIndex.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -43,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -800,16 +798,15 @@ public class EntryContainer
               }
               catch (DirectoryException de)
               {
-                searchOperation.addResponseControl(newServerSideSortControl(de.getResultCode().intValue()));
-
-                if (sortRequest.isCritical())
-                {
-                  throw de;
-                }
+                serverSideSortControlError(searchOperation, sortRequest, de);
               }
             }
           }
 
+          // Combining server-side sort with paged result controls
+          // requires us to use an entryIDSet where the entryIDs are ordered
+          // so further paging can restart where it previously stopped
+          long[] entryIDReorderedSet;
           if (entryIDSet == null)
           {
             if (processSearchWithVirtualAttributeRule(searchOperation, true))
@@ -848,12 +845,21 @@ public class EntryContainer
 
             if (sortRequest != null)
             {
+              // If the sort key is not present, the sorting will generate the
+              // default ordering. VLV search request goes through as if
+              // this sort key was not found in the user entry.
               try
               {
-                // If the sort key is not present, the sorting will generate the
-                // default ordering. VLV search request goes through as if
-                // this sort key was not found in the user entry.
-                entryIDSet = sort(txn, entryIDSet, searchOperation, sortRequest.getSortOrder(), vlvRequest);
+                SortOrder sortOrder = sortRequest.getSortOrder();
+                entryIDReorderedSet = sort(txn, entryIDSet, searchOperation, sortOrder, vlvRequest);
+              }
+              catch (DirectoryException de)
+              {
+                entryIDReorderedSet = entryIDSet.toLongArray();
+                serverSideSortControlError(searchOperation, sortRequest, de);
+              }
+              try
+              {
                 if (sortRequest.containsSortKeys())
                 {
                   searchOperation.addResponseControl(newServerSideSortControl(SUCCESS));
@@ -872,14 +878,17 @@ public class EntryContainer
               }
               catch (DirectoryException de)
               {
-                searchOperation.addResponseControl(newServerSideSortControl(de.getResultCode().intValue()));
-
-                if (sortRequest.isCritical())
-                {
-                  throw de;
-                }
+                serverSideSortControlError(searchOperation, sortRequest, de);
               }
             }
+            else
+            {
+              entryIDReorderedSet = entryIDSet.toLongArray();
+            }
+          }
+          else
+          {
+            entryIDReorderedSet = entryIDSet.toLongArray();
           }
 
           // If requested, construct and return a fictitious entry containing
@@ -894,10 +903,10 @@ public class EntryContainer
             return null;
           }
 
-          if (entryIDSet.isDefined())
+          if (entryIDReorderedSet != null)
           {
             rootContainer.getMonitorProvider().incrementIndexedSearchCount();
-            searchIndexed(txn, entryIDSet, candidatesAreInScope, searchOperation, pageRequest);
+            searchIndexed(txn, entryIDReorderedSet, candidatesAreInScope, searchOperation, pageRequest);
           }
           else
           {
@@ -933,6 +942,17 @@ public class EntryContainer
             searchNotIndexed(txn, searchOperation, pageRequest);
           }
           return null;
+        }
+
+        private void serverSideSortControlError(final SearchOperation searchOperation,
+            ServerSideSortRequestControl sortRequest, DirectoryException de) throws DirectoryException
+        {
+          searchOperation.addResponseControl(newServerSideSortControl(de.getResultCode().intValue()));
+
+          if (sortRequest.isCritical())
+          {
+            throw de;
+          }
         }
 
         private ServerSideSortResponseControl newServerSideSortControl(int resultCode)
@@ -1262,11 +1282,9 @@ public class EntryContainer
   }
 
   /**
-   * We were able to obtain a set of candidate entry IDs for the
-   * search from the indexes.
+   * We were able to obtain a set of candidate entry IDs for the search from the indexes.
    * <p>
-   * Here we are relying on ID order to ensure children are returned
-   * after their parents.
+   * Here we are relying on ID order to ensure children are returned after their parents.
    * <ul>
    * <li>Iterate through the candidate IDs
    * <li>fetch entry by ID from cache or id2entry
@@ -1275,15 +1293,18 @@ public class EntryContainer
    * <li>return entry if it matches the filter
    * </ul>
    *
-   * @param entryIDSet The candidate entry IDs.
-   * @param candidatesAreInScope true if it is certain that every candidate
-   *                             entry is in the search scope.
-   * @param searchOperation The search operation.
-   * @param pageRequest A Paged Results control, or null if none.
-   * @throws DirectoryException If an error prevented the search from being
-   * processed.
+   * @param entryIDReorderedSet
+   *          The candidate entry IDs.
+   * @param candidatesAreInScope
+   *          true if it is certain that every candidate entry is in the search scope.
+   * @param searchOperation
+   *          The search operation.
+   * @param pageRequest
+   *          A Paged Results control, or null if none.
+   * @throws DirectoryException
+   *           If an error prevented the search from being processed.
    */
-  private void searchIndexed(ReadableTransaction txn, EntryIDSet entryIDSet, boolean candidatesAreInScope,
+  private void searchIndexed(ReadableTransaction txn, long[] entryIDReorderedSet, boolean candidatesAreInScope,
       SearchOperation searchOperation, PagedResultsControl pageRequest) throws DirectoryException,
       CanceledOperationException
   {
@@ -1293,13 +1314,13 @@ public class EntryContainer
     boolean continueSearch = true;
 
     // Set the starting value.
-    EntryID begin = null;
+    Long beginEntryID = null;
     if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        begin = new EntryID(pageRequest.getCookie());
+        beginEntryID = pageRequest.getCookie().toLong();
       }
       catch (Exception e)
       {
@@ -1316,7 +1337,7 @@ public class EntryContainer
     // Make sure the candidate list is smaller than the lookthrough limit
     int lookthroughLimit =
       searchOperation.getClientConnection().getLookthroughLimit();
-    if(lookthroughLimit > 0 && entryIDSet.size() > lookthroughLimit)
+    if (lookthroughLimit > 0 && entryIDReorderedSet.length > lookthroughLimit)
     {
       //Lookthrough limit exceeded
       searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
@@ -1328,14 +1349,13 @@ public class EntryContainer
     if (continueSearch)
     {
       final SearchFilter filter = searchOperation.getFilter();
-      for (Iterator<EntryID> it = entryIDSet.iterator(begin); it.hasNext();)
+      for (int i = findStartIndex(beginEntryID, entryIDReorderedSet); i < entryIDReorderedSet.length; i++)
       {
-        final EntryID id = it.next();
-
+        EntryID entryID = new EntryID(entryIDReorderedSet[i]);
         Entry entry;
         try
         {
-          entry = getEntry(txn, id);
+          entry = getEntry(txn, entryID);
         }
         catch (Exception e)
         {
@@ -1354,7 +1374,7 @@ public class EntryContainer
             {
               // The current page is full.
               // Set the cookie to remember where we were.
-              ByteString cookie = id.toByteString();
+              ByteString cookie = entryID.toByteString();
               Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
               searchOperation.getResponseControls().add(control);
               return;
@@ -1391,6 +1411,23 @@ public class EntryContainer
       Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
+  }
+
+  private int findStartIndex(Long beginEntryID, long[] entryIDReorderedSet)
+  {
+    if (beginEntryID == null)
+    {
+      return 0;
+    }
+    final long begin = beginEntryID.longValue();
+    for (int i = 0; i < entryIDReorderedSet.length; i++)
+    {
+      if (entryIDReorderedSet[i] == begin)
+      {
+        return i;
+      }
+    }
+    return 0;
   }
 
   private boolean isInScope(boolean candidatesAreInScope, SearchScope searchScope, DN aBaseDN, Entry entry)
@@ -2605,12 +2642,12 @@ public class EntryContainer
     return baseEntry;
   }
 
-  private EntryIDSet sort(ReadableTransaction txn, EntryIDSet entryIDSet, SearchOperation searchOperation,
+  private long[] sort(ReadableTransaction txn, EntryIDSet entryIDSet, SearchOperation searchOperation,
       SortOrder sortOrder, VLVRequestControl vlvRequest) throws DirectoryException
   {
     if (!entryIDSet.isDefined())
     {
-      return newUndefinedSet();
+      return null;
     }
 
     final DN baseDN = searchOperation.getBaseDN();
@@ -2639,7 +2676,7 @@ public class EntryContainer
     // processed by offset or assertion value.
     if (vlvRequest == null)
     {
-      return newDefinedSet(toArray(sortMap.values()));
+      return toArray(sortMap.values());
     }
 
     if (vlvRequest.getTargetType() == VLVRequestControl.TYPE_TARGET_BYOFFSET)
@@ -2660,7 +2697,7 @@ public class EntryContainer
     return array;
   }
 
-  private static final EntryIDSet sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
+  private static final long[] sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
       VLVRequestControl vlvRequest, SortOrder sortOrder, final TreeMap<ByteString, EntryID> sortMap)
       throws DirectoryException
   {
@@ -2699,12 +2736,12 @@ public class EntryContainer
       }
     }
 
-    final EntryIDSet result;
+    final long[] result;
     if (targetFound)
     {
       final long[] array = new long[index - startIndex];
       System.arraycopy(idSet, startIndex, array, 0, array.length);
-      result = newDefinedSet(array);
+      result = array;
     }
     else
     {
@@ -2713,13 +2750,13 @@ public class EntryContainer
        * be one greater than the content count.
        */
       targetIndex = sortMap.size() + 1;
-      result = newDefinedSet();
+      result = new long[0];
     }
     searchOperation.addResponseControl(new VLVResponseControl(targetIndex, sortMap.size(), LDAPResultCode.SUCCESS));
     return result;
   }
 
-  private static final EntryIDSet sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
+  private static final long[] sortByOffset(SearchOperation searchOperation, VLVRequestControl vlvRequest,
       TreeMap<ByteString, EntryID> sortMap) throws DirectoryException
   {
     int targetOffset = vlvRequest.getOffset();
@@ -2779,13 +2816,12 @@ public class EntryContainer
 
     if (arrayPos < count)
     {
-      // We don't have enough entries in the set to meet the requested page size, so we'll need to shorten the
-      // array.
+      // We don't have enough entries in the set to meet the requested page size, so we'll need to shorten the array.
       sortedIDs = Arrays.copyOf(sortedIDs, arrayPos);
     }
 
     searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(), LDAPResultCode.SUCCESS));
-    return newDefinedSet(sortedIDs);
+    return sortedIDs;
   }
 
   /** Get the exclusive lock. */

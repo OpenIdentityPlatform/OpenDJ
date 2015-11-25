@@ -726,6 +726,23 @@ final class EntryIDSet implements Iterable<EntryID>
   }
 
   /**
+   * Returns this {@link EntryIDSet} as a long array holding all the entryIDs.
+   *
+   * @return a new long array containing all the entryIDs included in this {@link EntryIDSet}.
+   *         The long array will be empty if the {@link EntryIDSet} is defined and its size is zero,
+   *         and it will be {@code null} if this {@link EntryIDSet} is undefined.
+   */
+  public long[] toLongArray()
+  {
+    if (!isDefined())
+    {
+      return null;
+    }
+    final long[] entryIDs = concreteImpl.getIDs();
+    return Arrays.copyOf(entryIDs, entryIDs.length);
+  }
+
+  /**
    * Determine whether this set of IDs is defined.
    *
    * @return true if the set of IDs is defined.
