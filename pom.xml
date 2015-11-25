@@ -30,7 +30,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-sdk-parent</artifactId>
-        <version>3.0.0-M5</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>org.forgerock.opendj</groupId>
@@ -57,7 +57,6 @@
         <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj/browse</url>
         <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj.git</connection>
         <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj.git</developerConnection>
-        <tag>3.0.0-M5</tag>
     </scm>
 
     <ciManagement>
@@ -147,7 +146,7 @@
 
     <properties>
         <product.name>OpenDJ</product.name>
-        <opendj.core.test.jar.version>3.0.0-M5</opendj.core.test.jar.version>
+        <opendj.core.test.jar.version>3.0.0-SNAPSHOT</opendj.core.test.jar.version>
     </properties>
 
 
