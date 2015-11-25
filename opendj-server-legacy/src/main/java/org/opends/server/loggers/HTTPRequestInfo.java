@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -138,6 +138,13 @@ public interface HTTPRequestInfo
    * @return the total processing time for this HTTP request
    */
   long getTotalProcessingTime();
+
+  /**
+   * Returns the transactionId for this request.
+   *
+   * @return the transactionId
+   */
+  String getTransactionId();
 
   /**
    * Logs the current request info in the HTTP access log.

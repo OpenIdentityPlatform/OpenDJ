@@ -1347,6 +1347,8 @@ public final class DirectoryServer
 
       initializeSchema();
 
+      commonAudit = new CommonAudit();
+
       // Allow internal plugins to be registered.
       pluginConfigManager.initializePluginConfigManager();
 
@@ -1364,7 +1366,6 @@ public final class DirectoryServer
       retentionPolicyConfigManager = new LogRetentionPolicyConfigManager(serverContext);
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
 
-      commonAudit = new CommonAudit();
       loggerConfigManager = new LoggerConfigManager(serverContext);
       loggerConfigManager.initializeLoggerConfig();
 

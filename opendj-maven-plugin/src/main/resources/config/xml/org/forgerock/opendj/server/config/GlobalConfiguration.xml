@@ -874,4 +874,24 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="trust-transaction-ids" advanced="true">
+    <adm:synopsis>
+      Indicates whether the directory server should trust the
+      transaction ids that may be received from requests, either
+      through a LDAP control or through a HTTP header. 
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-trust-transaction-ids</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

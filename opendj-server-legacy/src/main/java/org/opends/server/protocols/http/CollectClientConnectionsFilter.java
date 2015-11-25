@@ -61,6 +61,7 @@ import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
@@ -87,18 +88,22 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
    */
   private final HTTPAuthenticationConfig authConfig;
 
+  private final ServerContext serverContext;
+
   /**
    * Constructs a new instance of this class.
-   *
+   * @param serverContext
+   *            The server context.
    * @param connectionHandler
    *          the connection handler that accepted this connection
    * @param authenticationConfig
    *          configures how to perform the search for the username prior to
    *          authentication
    */
-  public CollectClientConnectionsFilter(
-      HTTPConnectionHandler connectionHandler, HTTPAuthenticationConfig authenticationConfig)
+  public CollectClientConnectionsFilter(ServerContext serverContext, HTTPConnectionHandler connectionHandler,
+      HTTPAuthenticationConfig authenticationConfig)
   {
+    this.serverContext = serverContext;
     this.connectionHandler = connectionHandler;
     this.authConfig = authenticationConfig;
   }
@@ -106,7 +111,8 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
   @Override
   public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next)
   {
-    final HTTPClientConnection clientConnection = new HTTPClientConnection(this.connectionHandler, context, request);
+    final HTTPClientConnection clientConnection =
+        new HTTPClientConnection(serverContext, this.connectionHandler, context, request);
     connectionHandler.addClientConnection(clientConnection);
 
     if (connectionHandler.keepStats())

@@ -34,7 +34,6 @@ import java.io.FileReader;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
-import org.forgerock.http.filter.TransactionIdInboundFilter;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Request;
@@ -136,11 +135,12 @@ class LdapHttpApplication implements HttpApplication
       final Object jsonElems = Json.readJsonLenient(new FileReader(configFile));
       final JsonValue configuration = new JsonValue(jsonElems).recordKeyAccesses();
       handler = new LdapHttpHandler(configuration);
-      filter = new CollectClientConnectionsFilter(connectionHandler, getAuthenticationConfig(configuration));
+      filter =
+          new CollectClientConnectionsFilter(serverContext, connectionHandler, getAuthenticationConfig(configuration));
       configuration.verifyAllKeysAccessed();
 
-      TransactionIdInboundFilter transactionIdFilter = new TransactionIdInboundFilter();
       RequestHandler requestHandler = serverContext.getCommonAudit().getAuditServiceForHttpAccessLog();
+      CommonAuditTransactionIdFilter transactionIdFilter = new CommonAuditTransactionIdFilter(serverContext);
       CommonAuditHttpAccessAuditFilter httpAccessFilter =
           new CommonAuditHttpAccessAuditFilter(DynamicConstants.PRODUCT_NAME, requestHandler, TimeService.SYSTEM);
       CommonAuditHttpAccessCheckEnabledFilter checkFilter =

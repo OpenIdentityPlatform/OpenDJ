@@ -44,6 +44,7 @@ import org.opends.server.admin.std.meta.GlobalCfgDefn.SingleStructuralObjectclas
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.loggers.CommonAudit;
 import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.*;
 
@@ -161,6 +162,13 @@ public class CoreConfigManager
     setMaxAllowedConnections(globalConfig.getMaxAllowedClientConnections());
     setMaxPersistentSearchLimit(globalConfig.getMaxPsearches());
     setMaxInternalBufferSize((int) globalConfig.getMaxInternalBufferSize());
+
+    // For tools, common audit may not be available
+    CommonAudit commonAudit = serverContext.getCommonAudit();
+    if (commonAudit != null)
+    {
+      commonAudit.setTrustTransactionIds(globalConfig.isTrustTransactionIds());
+    }
 
     // Update the "new" schema with configuration changes
     SchemaUpdater schemaUpdater = serverContext.getSchemaUpdater();

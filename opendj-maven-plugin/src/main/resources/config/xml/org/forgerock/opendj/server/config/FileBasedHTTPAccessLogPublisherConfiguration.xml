@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="file-based-http-access-log-publisher"
   plural-name="file-based-http-access-log-publishers"
@@ -278,7 +278,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>cs-host c-ip cs-username x-datetime cs-method cs-uri-query 
-        cs-version sc-status cs(User-Agent) x-connection-id x-etime</adm:value>
+        cs-version sc-status cs(User-Agent) x-connection-id x-etime x-transaction-id</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -304,7 +304,8 @@
             date and time for the logged HTTP request and its ouput is
             controlled by the "ds-cfg-log-record-time-format" property,
             "x-etime"  displays the total execution time for the logged HTTP
-            request.
+            request, "x-transaction-id" displays the transaction id associated
+            to a request
           </adm:synopsis>
         </adm:pattern>
       </adm:string>

@@ -29,6 +29,7 @@ import static org.forgerock.opendj.adapter.server3x.Converters.from;
 import static org.forgerock.opendj.adapter.server3x.Converters.getResponseResult;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.opends.messages.ProtocolMessages.WARN_CLIENT_DISCONNECT_IN_PROGRESS;
+import static org.opends.server.loggers.CommonAudit.DEFAULT_TRANSACTION_ID;
 import static org.opends.server.loggers.AccessLogger.logDisconnect;
 
 import java.net.InetAddress;
@@ -41,6 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.http.MutableUri;
+import org.forgerock.http.header.MalformedHeaderException;
+import org.forgerock.http.header.TransactionIdHeader;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -63,6 +66,7 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.HTTPRequestInfo;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -122,7 +126,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
     }
   }
 
-  /** {@inheritDoc} */
+  /** Search Operation with a promise. */
   private static final class SearchOperationWithPromise extends OperationWithPromise
   {
 
@@ -243,15 +247,20 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   /** Security-Strength Factor extracted from the request attribute. */
   private final int securityStrengthFactor;
 
+  /** TransactionId for tracking of ForgeRock stack transactions. */
+  private final String transactionId;
+
   /**
    * Constructs an instance of this class.
-   *
+   * @param serverContext
+   *            The server context.
    * @param connectionHandler
    *          the connection handler that accepted this connection
    * @param context
    *          represents the context of this client connection.
    */
-  public HTTPClientConnection(HTTPConnectionHandler connectionHandler, Context context, Request request)
+  public HTTPClientConnection(ServerContext serverContext, HTTPConnectionHandler connectionHandler, Context context,
+      Request request)
   {
     this.connectionHandler = connectionHandler;
     final ClientContext clientCtx = context.asContext(ClientContext.class);
@@ -280,8 +289,25 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
       this.statTracker.updateConnect();
       this.useNanoTime = DirectoryServer.getUseNanoTime();
     }
-
+    this.transactionId = getTransactionId(serverContext, request);
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
+  }
+
+  private String getTransactionId(ServerContext serverContext, Request request)
+  {
+    if (serverContext.getCommonAudit().shouldTrustTransactionIds())
+    {
+      try
+      {
+        TransactionIdHeader txHeader = request.getHeaders().get(TransactionIdHeader.class);
+        return txHeader == null ? DEFAULT_TRANSACTION_ID :  txHeader.getTransactionId().getValue();
+      }
+      catch (MalformedHeaderException e)
+      {
+        // ignore it
+      }
+    }
+    return DEFAULT_TRANSACTION_ID;
   }
 
   @Override
@@ -360,6 +386,12 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   public InetAddress getLocalAddress()
   {
     return localAddress;
+  }
+
+  @Override
+  public String getTransactionId()
+  {
+    return transactionId;
   }
 
   @Override

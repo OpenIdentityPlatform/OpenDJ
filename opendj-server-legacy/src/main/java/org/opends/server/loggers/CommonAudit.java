@@ -25,6 +25,8 @@
  */
 package org.opends.server.loggers;
 
+import static java.util.Arrays.asList;
+
 import static org.opends.messages.LoggerMessages.*;
 import static java.util.Collections.newSetFromMap;
 import static org.forgerock.audit.AuditServiceBuilder.newAuditService;
@@ -41,11 +43,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import org.forgerock.audit.AuditException;
@@ -57,6 +61,7 @@ import org.forgerock.audit.DependencyProvider;
 import org.forgerock.audit.events.EventTopicsMetaData;
 import org.forgerock.audit.events.handlers.FileBasedEventHandlerConfiguration.FileRetention;
 import org.forgerock.audit.events.handlers.FileBasedEventHandlerConfiguration.FileRotation;
+import org.forgerock.audit.filter.FilterPolicy;
 import org.forgerock.audit.handlers.csv.CsvAuditEventHandler;
 import org.forgerock.audit.handlers.csv.CsvAuditEventHandlerConfiguration;
 import org.forgerock.audit.handlers.csv.CsvAuditEventHandlerConfiguration.CsvFormatting;
@@ -100,6 +105,8 @@ import org.opends.server.util.StaticUtils;
  */
 public class CommonAudit
 {
+  /** Transaction id used when the incoming request does not contain a transaction id. */
+  public static final String DEFAULT_TRANSACTION_ID = "0";
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -120,6 +127,7 @@ public class CommonAudit
   /** Audit service shared by all HTTP access publishers. */
   private final AuditServiceProxy httpAccessAuditService;
 
+  private final AtomicBoolean trustTransactionIds = new AtomicBoolean(false);
 
   /**
    * Creates the common audit.
@@ -132,6 +140,28 @@ public class CommonAudit
     configurationFramework = ConfigurationFramework.getInstance();
     this.dependencyProvider = new CommonAuditDependencyProvider();
     this.httpAccessAuditService = createAuditServiceWithoutHandlers();
+  }
+
+  /**
+   * Indicates if transactionIds received from requests should be trusted.
+   *
+   * @return {@code true} if transactionIds should be trusted, {@code false} otherwise
+   */
+  public boolean shouldTrustTransactionIds()
+  {
+    return trustTransactionIds.get();
+  }
+
+  /**
+   * Sets the indicator for transactionIds trusting.
+   *
+   * @param shouldTrust
+   *          {@code true} if transactionIds should be trusted, {@code false}
+   *          otherwise
+   */
+  public void setTrustTransactionIds(boolean shouldTrust)
+  {
+    trustTransactionIds.set(shouldTrust);
   }
 
   private AuditServiceProxy createAuditServiceWithoutHandlers() throws ConfigException
@@ -349,6 +379,7 @@ public class CommonAudit
 
     AuditServiceConfiguration auditConfig = new AuditServiceConfiguration();
     auditConfig.setAvailableAuditEventHandlers(setup.getHandlerNames());
+    auditConfig.setFilterPolicies(getFilterPoliciesToPreventHttpHeadersLogging());
     builder.withConfiguration(auditConfig);
     AuditService audit = builder.build();
 
@@ -366,6 +397,20 @@ public class CommonAudit
       logger.trace("Starting up existing updated common audit service");
     }
     return proxy;
+  }
+
+  /**
+   * Build filter policies at the AuditService level to prevent logging of the headers for HTTP requests.
+   * <p>
+   * HTTP Headers may contains authentication information.
+   */
+  private Map<String, FilterPolicy> getFilterPoliciesToPreventHttpHeadersLogging()
+  {
+    Map<String, FilterPolicy> filterPolicies = new HashMap<>();
+    FilterPolicy policy = new FilterPolicy();
+    policy.setExcludeIf(asList("/http-access/http/request/headers"));
+    filterPolicies.put("field", policy);
+    return filterPolicies;
   }
 
   private void addHandlerToBuilder(PublisherConfig publisher, AuditServiceBuilder builder) throws ConfigException

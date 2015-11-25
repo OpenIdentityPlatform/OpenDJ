@@ -80,12 +80,13 @@ public final class TextHTTPAccessLogPublisher extends
   private static final String X_CONNECTION_ID = "x-connection-id";
   private static final String X_DATETIME = "x-datetime";
   private static final String X_ETIME = "x-etime";
+  private static final String X_TRANSACTION_ID = "x-transaction-id";
 
   private static final Set<String> ALL_SUPPORTED_FIELDS = new HashSet<>(
       Arrays.asList(ELF_C_IP, ELF_C_PORT, ELF_CS_HOST, ELF_CS_METHOD,
           ELF_CS_URI_QUERY, ELF_CS_USER_AGENT, ELF_CS_USERNAME, ELF_CS_VERSION,
           ELF_S_COMPUTERNAME, ELF_S_IP, ELF_S_PORT, ELF_SC_STATUS,
-          X_CONNECTION_ID, X_DATETIME, X_ETIME));
+          X_CONNECTION_ID, X_DATETIME, X_ETIME, X_TRANSACTION_ID));
 
   /**
    * Returns an instance of the text HTTP access log publisher that will print
@@ -440,6 +441,7 @@ public final class TextHTTPAccessLogPublisher extends
     fields.put(X_CONNECTION_ID, ri.getConnectionID());
     fields.put(X_DATETIME, TimeThread.getUserDefinedTime(timeStampFormat));
     fields.put(X_ETIME, ri.getTotalProcessingTime());
+    fields.put(X_TRANSACTION_ID, ri.getTransactionId());
 
     writeLogRecord(fields, logFormatFields);
   }

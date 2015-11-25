@@ -29,6 +29,7 @@ import static org.opends.messages.LoggerMessages.*;
 import static org.forgerock.json.JsonValue.json;
 import static org.forgerock.json.resource.Requests.newCreateRequest;
 import static org.forgerock.json.resource.ResourcePath.resourcePath;
+import static org.opends.server.loggers.CommonAudit.DEFAULT_TRANSACTION_ID;
 import static org.opends.server.loggers.OpenDJAccessAuditEventBuilder.openDJAccessEvent;
 import static org.opends.server.types.AuthenticationType.SASL;
 
@@ -66,13 +67,11 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -87,14 +86,13 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** Transaction id used when the incoming request does not contain a transaction id. */
-  private static final String DEFAULT_TRANSACTION_ID = "0";
-
   /** Audit service handler. */
   private RequestHandler requestHandler;
 
   /** Current configuration for this publisher. */
   private T config;
+
+  private ServerContext serverContext;
 
   @Override
   public void setRequestHandler(RequestHandler handler)
@@ -118,6 +116,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
   public void initializeLogPublisher(final T cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     initializeFilters(cfg);
     config = cfg;
   }
@@ -250,7 +249,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .request(clientConnection.getProtocol(), "CONNECT")
-        .transactionId(DEFAULT_TRANSACTION_ID)
+        .transactionId(CommonAudit.DEFAULT_TRANSACTION_ID)
         .response(ResponseStatus.SUCCESSFUL, String.valueOf(ResultCode.SUCCESS.intValue()), 0, TimeUnit.MILLISECONDS)
         .ldapConnectionId(clientConnection.getConnectionID());
 
@@ -286,7 +285,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .request(clientConnection.getProtocol(),"DISCONNECT")
-        .transactionId(DEFAULT_TRANSACTION_ID)
+        .transactionId(CommonAudit.DEFAULT_TRANSACTION_ID)
         .response(ResponseStatus.SUCCESSFUL, String.valueOf(ResultCode.SUCCESS.intValue()), 0, TimeUnit.MILLISECONDS)
         .ldapConnectionId(clientConnection.getConnectionID())
         .ldapReason(disconnectReason.toString())
@@ -491,9 +490,9 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
   private String getTransactionId(Operation operation)
   {
     String transactionId = getTransactionIdFromControl(operation);
-    if (transactionId == null)
+    if (transactionId == null || !serverContext.getCommonAudit().shouldTrustTransactionIds())
     {
-      // use a default value because transaction id has no usage in this case
+      // use a default value
       transactionId = DEFAULT_TRANSACTION_ID;
     }
     return transactionId;
@@ -501,19 +500,14 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
 
   private String getTransactionIdFromControl(Operation operation)
   {
-    for (Control control : operation.getRequestControls())
+    try
     {
-      if (control.getOID().equals(ServerConstants.OID_TRANSACTION_ID_CONTROL))
-      {
-        try
-        {
-          return operation.getRequestControl(TransactionIdControl.DECODER).getTransactionId();
-        }
-        catch (DirectoryException e)
-        {
-          logger.error(ERR_COMMON_AUDIT_INVALID_TRANSACTION_ID.get(StaticUtils.stackTraceToSingleLineString(e)));
-        }
-      }
+      TransactionIdControl control = operation.getRequestControl(TransactionIdControl.DECODER);
+      return control != null ? control.getTransactionId() : null;
+    }
+    catch (DirectoryException e)
+    {
+      logger.error(ERR_COMMON_AUDIT_INVALID_TRANSACTION_ID.get(StaticUtils.stackTraceToSingleLineString(e)));
     }
     return null;
   }

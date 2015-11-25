@@ -26,6 +26,7 @@
  */
 package org.opends.server.loggers;
 
+import static org.opends.messages.LoggerMessages.ERR_COMMON_AUDIT_INVALID_TRANSACTION_ID;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -47,8 +48,10 @@ import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.LogFo
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.controls.TransactionIdControl;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
 /** This class provides the implementation of the access logger used by the directory server. */
@@ -87,6 +90,7 @@ public final class TextAccessLogPublisher extends
   private boolean isCombinedMode;
   private boolean includeControlOIDs;
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
+  private ServerContext serverContext;
 
   @Override
   public ConfigChangeResult applyConfigurationChange(FileBasedAccessLogPublisherCfg config)
@@ -204,6 +208,7 @@ public final class TextAccessLogPublisher extends
   public void initializeLogPublisher(final FileBasedAccessLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     final File logFile = getLogFile(cfg);
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
@@ -916,6 +921,7 @@ public final class TextAccessLogPublisher extends
     buffer.append(" conn=").append(operation.getConnectionID());
     buffer.append(" op=").append(operation.getOperationID());
     buffer.append(" msgID=").append(operation.getMessageID());
+    appendTransactionId(operation, buffer);
   }
 
   private void appendModifyDNRequest(final ModifyDNOperation modifyDNOperation,
@@ -942,6 +948,33 @@ public final class TextAccessLogPublisher extends
     {
       buffer.append(" type=synchronization");
     }
+  }
+
+  private void appendTransactionId(Operation operation, final StringBuilder buffer)
+  {
+    // In test context, serverContext may be null
+    if (serverContext != null && serverContext.getCommonAudit().shouldTrustTransactionIds())
+    {
+      String transactionId = getTransactionIdFromControl(operation);
+      if (transactionId != null)
+      {
+        buffer.append(" transactionId=").append(transactionId);
+      }
+    }
+  }
+
+  private String getTransactionIdFromControl(Operation operation)
+  {
+    try
+    {
+      TransactionIdControl control = operation.getRequestControl(TransactionIdControl.DECODER);
+      return control != null ? control.getTransactionId() : null;
+    }
+    catch (DirectoryException e)
+    {
+      logger.error(ERR_COMMON_AUDIT_INVALID_TRANSACTION_ID.get(StaticUtils.stackTraceToSingleLineString(e)));
+    }
+    return null;
   }
 
   private void appendRequestControls(final Operation operation, final StringBuilder buffer)
