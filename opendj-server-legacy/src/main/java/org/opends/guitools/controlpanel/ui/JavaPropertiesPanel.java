@@ -111,7 +111,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private Set<JavaArgumentsDescriptor> readJavaArguments = new HashSet<>();
   private Set<JavaArgumentsDescriptor> currentJavaArguments = new HashSet<>();
-  private Set<String> allScriptNames = newHashSet(
+  private final Set<String> allScriptNames = newHashSet(
         "start-ds", "import-ldif.offline", "backup.online", "base64",
         "create-rc-script", "dsconfig", "dsreplication",
         "export-ldif.online", "import-ldif.online", "ldapcompare",
@@ -121,13 +121,13 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         "backup.offline", "encode-password", "export-ldif.offline",
         "ldif-diff", "ldifmodify", "ldifsearch", "make-ldif",
         "rebuild-index", "restore.offline", "upgrade",
-        "verify-index", "dbtest"
+        "verify-index", "backendstat"
       );
-  private Set<String> relevantScriptNames = newHashSet(
+  private final Set<String> relevantScriptNames = newHashSet(
         "start-ds", "import-ldif.offline", "backup.offline",
         "export-ldif.offline",
         "ldif-diff", "make-ldif", "rebuild-index", "restore.offline",
-        "verify-index", "dbtest"
+        "verify-index", "backendstat"
       );
 
   private String readJavaHome;
@@ -138,43 +138,36 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private boolean previousLocal = true;
 
-  private LocalizableMessage READING_JAVA_SETTINGS =
+  private final LocalizableMessage READING_JAVA_SETTINGS =
     INFO_CTRL_PANEL_READING_JAVA_SETTINGS_SUMMARY.get();
 
-  JComponent[] comps;
+  private JComponent[] comps;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public JavaPropertiesPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_JAVA_PROPERTIES_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return javaHome;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -185,9 +178,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -412,7 +403,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     };
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -422,7 +412,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       previousLocal = isLocal;
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -442,7 +431,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -464,7 +452,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    * @return the names of all the command-line that can be displayed by this
    * panel.
    */
-  protected Set<String> getAllCommandLineNames()
+  private Set<String> getAllCommandLineNames()
   {
     return allScriptNames;
   }
@@ -475,7 +463,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    * @return the names of the most important command-line to be displayed by
    * this panel.
    */
-  protected Set<String> getRelevantCommandLineNames()
+  private Set<String> getRelevantCommandLineNames()
   {
     return relevantScriptNames;
   }
@@ -563,17 +551,13 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Inits the contents of the table in the background.
-   *
-   */
+  /** Inits the contents of the table in the background. */
   private void initContents()
   {
     disableComponents();
 
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /** {@inheritDoc} */
       @Override
       public Void processBackgroundTask() throws Throwable
       {
@@ -628,7 +612,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         return null;
       }
 
-      /** {@inheritDoc} */
       @Override
       public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
@@ -667,7 +650,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * Disables all the components.  This is used when we are reading the
    * java settings in the background.
-   *
    */
   private void disableComponents()
   {
@@ -683,7 +665,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * Enables all the components.  This is used when we are reading the
    * java settings in the background.
-   *
    */
   private void enableComponents()
   {
@@ -696,7 +677,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     setEnabledOK(true);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -704,7 +684,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     super.cancelClicked();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -836,7 +815,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           }
         }
 
-        /** {@inheritDoc} */
         @Override
         public void backgroundTaskCompleted(List<LocalizableMessage> returnValue,
             Throwable t)
@@ -1000,11 +978,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         filterJavaArguments(currentJavaArguments));
   }
 
-  /**
-   * Class containing the command-name and the associated java
-   * arguments.
-   *
-   */
+  /** Class containing the command-name and the associated java arguments. */
   private class JavaArgumentsDescriptor
   {
     private String commandName;
@@ -1041,21 +1015,18 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       return javaArguments;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return hashCode;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
       return toString;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(Object o)
     {
@@ -1073,16 +1044,14 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * The table model used to display the java arguments.
-   */
-  protected class JavaArgumentsTableModel extends SortableTableModel
+  /** The table model used to display the java arguments. */
+  private class JavaArgumentsTableModel extends SortableTableModel
   implements Comparator<JavaArgumentsDescriptor>
   {
     private static final long serialVersionUID = 8288418995255677560L;
-    private Set<JavaArgumentsDescriptor> data = new HashSet<>();
-    private ArrayList<String[]> dataArray = new ArrayList<>();
-    private ArrayList<JavaArgumentsDescriptor> argsArray = new ArrayList<>();
+    private final Set<JavaArgumentsDescriptor> data = new HashSet<>();
+    private final ArrayList<String[]> dataArray = new ArrayList<>();
+    private final ArrayList<JavaArgumentsDescriptor> argsArray = new ArrayList<>();
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(INFO_CTRL_PANEL_COMMAND_LINE_NAME_COLUMN.get(), 40),
         getHeader(INFO_CTRL_PANEL_JAVA_ARGUMENTS_COLUMN.get(), 40)};
@@ -1153,28 +1122,24 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
 
 
-    /** {@inheritDoc} */
     @Override
     public int getColumnCount()
     {
       return COLUMN_NAMES.length;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getRowCount()
     {
       return dataArray.size();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Object getValueAt(int row, int col)
     {
       return dataArray.get(row)[col];
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getColumnName(int col) {
       return COLUMN_NAMES[col];
@@ -1185,7 +1150,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * @param row the row number.
      * @return the java argument descriptor in the provided row.
      */
-    public JavaArgumentsDescriptor getJavaArguments(int row)
+    private JavaArgumentsDescriptor getJavaArguments(int row)
     {
       return argsArray.get(row);
     }
@@ -1232,13 +1197,11 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       this.sortColumn = sortColumn;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isCellEditable(int row, int col) {
       return col != 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setValueAt(Object value, int row, int col)
     {
@@ -1274,7 +1237,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * @return an array of String with the String representation of the cells
      * in the table.
      */
-    protected String[] getLine(JavaArgumentsDescriptor desc)
+    private String[] getLine(JavaArgumentsDescriptor desc)
     {
       String cmd = desc.getCommandName();
       if (cmd.equalsIgnoreCase("start-ds"))
@@ -1298,24 +1261,21 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * The task in charge of updating the java properties.
-   *
-   */
-  protected class JavaPropertiesTask extends Task
+  /** The task in charge of updating the java properties. */
+  private class JavaPropertiesTask extends Task
   {
-    private Set<String> backendSet;
+    private final Set<String> backendSet;
     private String defaultJavaHome;
-    private boolean overwriteOpenDSJavaHome;
-    private boolean overwriteOpenDSJavaArgs;
-    Set<JavaArgumentsDescriptor> arguments = new HashSet<>();
+    private final boolean overwriteOpenDSJavaHome;
+    private final boolean overwriteOpenDSJavaArgs;
+    private final Set<JavaArgumentsDescriptor> arguments;
 
     /**
      * The constructor of the task.
      * @param info the control panel info.
      * @param dlg the progress dialog that shows the progress of the task.
      */
-    public JavaPropertiesTask(ControlPanelInfo info, ProgressDialog dlg)
+    private JavaPropertiesTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<>();
@@ -1325,28 +1285,24 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       arguments = getCurrentJavaArguments();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Type getType()
     {
       return Type.JAVA_SETTINGS_UPDATE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_UPDATE_JAVA_SETTINGS_TASK_DESCRIPTION.get();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
@@ -1369,21 +1325,18 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       return new ArrayList<>();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -1477,7 +1430,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       }
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {

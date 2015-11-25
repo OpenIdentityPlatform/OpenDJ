@@ -68,7 +68,7 @@ public class UserData
   private boolean createAdministrator;
   private boolean quiet;
   private boolean verbose;
-  private boolean interactive;
+  private final boolean interactive;
   private boolean forceOnError;
 
   private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType;
@@ -88,12 +88,12 @@ public class UserData
    * The script name to be used to get and set the java arguments for the
    * server runtime.
    */
-  public static String SERVER_SCRIPT_NAME = "start-ds";
+  public final static String SERVER_SCRIPT_NAME = "start-ds";
   /**
    * The script name to be used to get and set the java arguments for the
    * (off-line) import.
    */
-  public static String IMPORT_SCRIPT_NAME = "import-ldif.offline";
+  public final static String IMPORT_SCRIPT_NAME = "import-ldif.offline";
 
   /**
    * Creates a user data object with default values.
@@ -503,7 +503,7 @@ public class UserData
   /**
    * Sets whether or not this session should print messages to the
    * console if in CLI mode.
-   * @param quiet where true indicates this sesssion should be quiet
+   * @param quiet where true indicates this session should be quiet
    */
   public void setQuiet(boolean quiet) {
     this.quiet = quiet;
@@ -524,7 +524,7 @@ public class UserData
 
   /**
    * Sets whether or not this session should be verbose.
-   * @param verbose where true indicates this sesssion should be verbose
+   * @param verbose where true indicates this session should be verbose
    */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
@@ -681,6 +681,7 @@ public class UserData
          * Search for a host name of the form host.example.com on each
          * interface, except the loop back. Prefer interfaces of the form ethX.
          */
+        @Override
         public void run()
         {
           try
@@ -921,7 +922,7 @@ public class UserData
         "encode-password", "export-ldif.offline",
         IMPORT_SCRIPT_NAME, "ldif-diff", "ldifmodify", "ldifsearch",
         "make-ldif", "rebuild-index", "restore.offline", SERVER_SCRIPT_NAME,
-        "upgrade", "verify-index", "dbtest"
+        "upgrade", "verify-index", "backendstat"
     };
   }
 
