@@ -2023,7 +2023,10 @@ public class EntryContainer
                                            getMatchedDN(txn, newSuperiorDN),
                                            null);
             }
-            if (dn2id.get(txn, newTargetDN) != null)
+
+            // Check that an entry with the new name does not already exist, but take care to handle the case where
+            // the user is renaming the entry with an equivalent name, e.g. "cn=matt" to "cn=Matt".
+            if (!oldTargetDN.equals(newTargetDN) && dn2id.get(txn, newTargetDN) != null)
             {
               throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
                                            ERR_MODIFYDN_ALREADY_EXISTS.get(newTargetDN));

@@ -692,6 +692,24 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(dbEntry.getName(), prevDN, "Original entry has not been renamed");
   }
 
+  @Test(description = "OPENDJ-2404")
+  public void testRenameEntrySameDNDifferentCase() throws Exception
+  {
+    DN prevDN = DN.valueOf("uid=user.0,ou=People," + testBaseDN);
+    DN newDN = DN.valueOf("uid=USER.0,ou=People," + testBaseDN);
+    Entry renameEntry = backend.getEntry(prevDN).duplicate(false);
+
+    renameEntry.setDN(newDN);
+    backend.renameEntry(prevDN, renameEntry, null);
+    Entry dbEntry = backend.getEntry(newDN);
+    assertEquals(dbEntry.getName().rdn().toString(), "uid=USER.0");
+
+    renameEntry.setDN(prevDN);
+    backend.renameEntry(newDN, renameEntry, null);
+    dbEntry = backend.getEntry(prevDN);
+    assertEquals(dbEntry.getName().rdn().toString(), "uid=user.0");
+  }
+
   @Test
   public void testDeleteEntry() throws Exception
   {
