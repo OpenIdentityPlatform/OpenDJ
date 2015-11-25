@@ -319,9 +319,11 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                                            // Combine values into a single JSON array.
                                            final List<Object> result = new ArrayList<>(value.size());
                                            for (final JsonValue e : value) {
-                                               result.add(e.getObject());
+                                               if (e != null) {
+                                                   result.add(e.getObject());
+                                               }
                                            }
-                                           return new JsonValue(result);
+                                           return result.isEmpty() ? null : new JsonValue(result);
                                        }
                                    }
                                });
@@ -344,7 +346,11 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
         return requestState.getConnection().thenAsync(new AsyncFunction<Connection, JsonValue, ResourceException>() {
             @Override
             public Promise<JsonValue, ResourceException> apply(Connection connection) throws ResourceException {
-                return connection.readEntryAsync(dn, requestedLDAPAttributes)
+                final Filter searchFilter = filter != null ? filter : Filter.alwaysTrue();
+                final String[] attributes = requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
+                final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT, searchFilter, attributes);
+
+                return connection.searchSingleEntryAsync(request)
                         .thenAsync(new AsyncFunction<SearchResultEntry, JsonValue, ResourceException>() {
                             @Override
                             public Promise<JsonValue, ResourceException> apply(final SearchResultEntry result) {
@@ -353,12 +359,11 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                         }, new AsyncFunction<LdapException, JsonValue, ResourceException>() {
                             @Override
                             public Promise<JsonValue, ResourceException> apply(final LdapException error) {
-                                if (!(error instanceof EntryNotFoundException)) {
-                                    return Promises.newExceptionPromise(asResourceException(error));
-                                } else {
-                                    // The referenced entry does not exist so ignore it since it cannot be mapped.
+                                if (error instanceof EntryNotFoundException) {
+                                    // Ignore missing entry since it cannot be mapped.
                                     return Promises.newResultPromise(null);
                                 }
+                                return Promises.newExceptionPromise(asResourceException(error));
                             }
                         });
             }
