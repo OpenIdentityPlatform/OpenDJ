@@ -188,8 +188,8 @@ public class SynchronizationProviderConfigManager
         {
           logger.traceException(e);
 
-          ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-              configuration.getJavaClass(), configuration.dn()));
+          ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(configuration.dn(),
+              stackTraceToSingleLineString(e)));
           ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
@@ -277,8 +277,8 @@ public class SynchronizationProviderConfigManager
       {
         logger.traceException(e);
 
-        ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-            configuration.getJavaClass(), configuration.dn()));
+        ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(configuration.dn(),
+            stackTraceToSingleLineString(e)));
         ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
     }
@@ -357,9 +357,8 @@ public class SynchronizationProviderConfigManager
       {}
 
       // Handle the exception: put a message in the unacceptable reasons.
-      LocalizableMessage message = ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-              className, configuration.dn());
-      throw new ConfigException(message, e);
+      throw new ConfigException(
+          ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(configuration.dn(), stackTraceToSingleLineString(e)), e);
     }
     return provider;
   }
