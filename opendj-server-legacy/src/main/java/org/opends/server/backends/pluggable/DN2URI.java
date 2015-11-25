@@ -633,6 +633,7 @@ class DN2URI extends AbstractTree
         if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
             && DnKeyFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
         {
+          success = cursor.next();
           continue;
         }
 
