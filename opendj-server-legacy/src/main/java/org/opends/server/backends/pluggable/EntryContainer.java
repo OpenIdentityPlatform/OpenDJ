@@ -108,7 +108,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
@@ -276,49 +275,7 @@ public class EntryContainer
     @Override
     public boolean isConfigurationAddAcceptable(BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
-      // TODO JNR remove du-plication
-      try
-      {
-        SearchFilter.createFilterFromString(cfg.getFilter());
-      }
-      catch(Exception e)
-      {
-        unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(
-            cfg.getFilter(), cfg.getName(), e.getLocalizedMessage()));
-        return false;
-      }
-
-      String[] sortAttrs = cfg.getSortOrder().split(" ");
-      SortKey[] sortKeys = new SortKey[sortAttrs.length];
-      boolean[] ascending = new boolean[sortAttrs.length];
-      for(int i = 0; i < sortAttrs.length; i++)
-      {
-        try
-        {
-          ascending[i] = !sortAttrs[i].startsWith("-");
-
-          if (sortAttrs[i].startsWith("-") || sortAttrs[i].startsWith("+"))
-          {
-            sortAttrs[i] = sortAttrs[i].substring(1);
-          }
-        }
-        catch(Exception e)
-        {
-          unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], cfg.getName()));
-          return false;
-        }
-
-        AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i]);
-        if (attrType.isPlaceHolder())
-        {
-          unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));
-          return false;
-        }
-        // TODO Add ordering matching rule null check
-        sortKeys[i] = new SortKey(attrType, ascending[i]);
-      }
-
-      return true;
+      return VLVIndex.isConfigurationAddAcceptable(cfg, unacceptableReasons);
     }
 
     @Override

@@ -27,6 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -127,17 +128,14 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     this.scope = convertScope(config.getScope());
     this.storage = storage;
 
-    try
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    this.filter = parseSearchFilter(config, getName().toString(), ccr);
+    this.sortOrder = new SortOrder(parseSortKeys(config.getSortOrder(), ccr));
+    if (!ccr.getMessages().isEmpty())
     {
-      this.filter = SearchFilter.createFilterFromString(config.getFilter());
-    }
-    catch (final Exception e)
-    {
-      throw new ConfigException(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(
-          config.getFilter(), getName(), stackTraceToSingleLineString(e)));
+      throw new ConfigException(ccr.getMessages().get(0));
     }
 
-    this.sortOrder = new SortOrder(parseSortKeys(config.getSortOrder()));
     this.state = state;
     this.trusted = state.getIndexFlags(txn, getName()).contains(IndexFlag.TRUSTED);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
@@ -188,30 +186,43 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   public synchronized boolean isConfigurationChangeAcceptable(final BackendVLVIndexCfg cfg,
       final List<LocalizableMessage> unacceptableReasons)
   {
-    // TODO JNR remove duplication
+    return isConfigurationAcceptable(cfg, getName().toString(), unacceptableReasons);
+  }
+
+  static boolean isConfigurationAddAcceptable(BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    return isConfigurationAcceptable(cfg, cfg.getName(), unacceptableReasons);
+  }
+
+  private static boolean isConfigurationAcceptable(BackendVLVIndexCfg cfg,
+      String indexName, List<LocalizableMessage> unacceptableReasons)
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    parseSearchFilter(cfg, indexName, ccr);
+    parseSortKeys(cfg.getSortOrder(), ccr, indexName);
+    if (!ccr.getMessages().isEmpty())
+    {
+      unacceptableReasons.addAll(ccr.getMessages());
+      return false;
+    }
+    return true;
+  }
+
+  private static SearchFilter parseSearchFilter(final BackendVLVIndexCfg cfg, String indexName,
+      final ConfigChangeResult ccr)
+  {
     try
     {
-      SearchFilter.createFilterFromString(cfg.getFilter());
+      SearchFilter result = SearchFilter.createFilterFromString(cfg.getFilter());
+      ccr.setAdminActionRequired(true);
+      return result;
     }
     catch (final Exception e)
     {
-      final LocalizableMessage msg = ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(
-          cfg.getFilter(), getName(), stackTraceToSingleLineString(e));
-      unacceptableReasons.add(msg);
-      return false;
+      ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+      ccr.addMessage(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(cfg.getFilter(), indexName, stackTraceToSingleLineString(e)));
+      return null;
     }
-
-    try
-    {
-      parseSortKeys(cfg.getSortOrder());
-    }
-    catch (final ConfigException e)
-    {
-      unacceptableReasons.add(e.getMessageObject());
-      return false;
-    }
-
-    return true;
   }
 
   @Override
@@ -256,31 +267,13 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     // Update the filter only if changed
     if (!config.getFilter().equals(cfg.getFilter()))
     {
-      try
-      {
-        this.filter = SearchFilter.createFilterFromString(cfg.getFilter());
-        ccr.setAdminActionRequired(true);
-      }
-      catch (final Exception e)
-      {
-        ccr.addMessage(ERR_CONFIG_VLV_INDEX_BAD_FILTER.get(config.getFilter(), getName(),
-            stackTraceToSingleLineString(e)));
-        ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-      }
+      this.filter = parseSearchFilter(cfg, getName().toString(), ccr);
     }
 
     // Update the sort order only if changed
     if (!config.getSortOrder().equals(cfg.getSortOrder()))
     {
-      try
-      {
-        this.sortOrder = new SortOrder(parseSortKeys(cfg.getSortOrder()));
-      }
-      catch (final ConfigException e)
-      {
-        ccr.addMessage(e.getMessageObject());
-        ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-      }
+      this.sortOrder = new SortOrder(parseSortKeys(cfg.getSortOrder(), ccr));
       ccr.setAdminActionRequired(true);
     }
 
@@ -302,40 +295,48 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     this.config = cfg;
   }
 
-  private SortKey[] parseSortKeys(final String sortOrder) throws ConfigException
+  private SortKey[] parseSortKeys(final String sortOrder, ConfigChangeResult ccr)
+  {
+    return parseSortKeys(sortOrder, ccr, getName().toString());
+  }
+
+  private static SortKey[] parseSortKeys(final String sortOrder, ConfigChangeResult ccr, String indexName)
   {
     final String[] sortAttrs = sortOrder.split(" ");
     final SortKey[] sortKeys = new SortKey[sortAttrs.length];
     for (int i = 0; i < sortAttrs.length; i++)
     {
+      String sortAttr = sortAttrs[i];
       final boolean ascending;
       try
       {
-        if (sortAttrs[i].startsWith("-"))
+        ascending = !sortAttr.startsWith("-");
+
+        if (sortAttr.startsWith("-") || sortAttr.startsWith("+"))
         {
-          ascending = false;
-          sortAttrs[i] = sortAttrs[i].substring(1);
-        }
-        else
-        {
-          ascending = true;
-          if (sortAttrs[i].startsWith("+"))
-          {
-            sortAttrs[i] = sortAttrs[i].substring(1);
-          }
+          sortAttr = sortAttr.substring(1);
         }
       }
       catch (final Exception e)
       {
-        throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], getName()));
+        ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+        ccr.addMessage(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttr, indexName));
+        return null;
       }
 
-      final AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i]);
+      final AttributeType attrType = DirectoryServer.getAttributeType(sortAttr);
       if (attrType.isPlaceHolder())
       {
-        throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], getName()));
+        ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+        ccr.addMessage(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttr, indexName));
+        return null;
       }
-      // TODO Add ordering matching rule null check
+      if (attrType.getOrderingMatchingRule() == null)
+      {
+        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(attrType.getNameOrOID()));
+        return null;
+      }
       sortKeys[i] = new SortKey(attrType, ascending);
     }
     return sortKeys;
