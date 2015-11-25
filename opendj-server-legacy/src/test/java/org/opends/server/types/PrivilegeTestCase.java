@@ -275,6 +275,21 @@ public class PrivilegeTestCase extends TypesTestCase
         "sn: test2",
         "carLicense: test2"
     );
+    for (int i = 0; i < 5000; i++)
+    {
+      String userNb = "user." + i;
+      TestCaseUtils.addEntry(
+          "dn: cn=" + userNb + ",dc=unindexed,dc=jeb",
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "cn: " + userNb,
+          "givenName: " + userNb,
+          "sn: " + userNb,
+          "carLicense: " + userNb
+      );
+    }
   }
 
   private InternalClientConnection newConn(String userDN,
@@ -309,6 +324,10 @@ public class PrivilegeTestCase extends TypesTestCase
     assertDeleteSuccessfully("cn=PWReset Target,o=test");
     assertDeleteSuccessfully("cn=test1 user,dc=unindexed,dc=jeb");
     assertDeleteSuccessfully("cn=test2 user,dc=unindexed,dc=jeb");
+    for (int i = 0; i < 5000; i++)
+    {
+      assertDeleteSuccessfully("cn=user." + i + ",dc=unindexed,dc=jeb");
+    }
     assertDeleteSuccessfully("dc=unindexed,dc=jeb");
 
     TestCaseUtils.disableBackend("unindexedRoot");
@@ -316,7 +335,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
   private void assertDeleteSuccessfully(String dn) throws DirectoryException
   {
-    DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf(dn));
+    DeleteOperation deleteOperation = getRootConnection().processDelete(dn);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
