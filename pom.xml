@@ -109,6 +109,14 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+              <groupId>org.forgerock.opendj</groupId>
+              <artifactId>opendj-core</artifactId>
+              <version>${opendj.core.test.jar.version}</version>
+              <type>test-jar</type>
+              <scope>test</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj-config</artifactId>
                 <version>${project.version}</version>
@@ -141,6 +149,7 @@
 
     <properties>
         <product.name>OpenDJ</product.name>
+        <opendj.core.test.jar.version>3.0.0-M5</opendj.core.test.jar.version>
     </properties>
 
 
