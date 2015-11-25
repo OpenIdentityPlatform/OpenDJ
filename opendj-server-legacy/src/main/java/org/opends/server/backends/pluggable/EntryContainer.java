@@ -127,8 +127,6 @@ public class EntryContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** Number of EntryID to considers when building EntryIDSet from DN2ID. */
-  private static final int SCOPE_IDSET_LIMIT = 4096;
   /** The name of the entry tree. */
   private static final String ID2ENTRY_TREE_NAME = ID2ENTRY_INDEX_NAME;
   /** The name of the DN tree. */
@@ -827,8 +825,10 @@ public class EntryContainer
             if (!isBelowFilterThreshold(entryIDSet))
             {
               final int lookThroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
+              final int indexLimit =
+                  config.getIndexEntryLimit() == 0 ? CURSOR_ENTRY_LIMIT : config.getIndexEntryLimit();
               final int idSetLimit =
-                  lookThroughLimit == 0 ? SCOPE_IDSET_LIMIT : Math.min(SCOPE_IDSET_LIMIT, lookThroughLimit);
+                  lookThroughLimit == 0 ? indexLimit : Math.min(indexLimit, lookThroughLimit);
 
               final EntryIDSet scopeSet = getIDSetFromScope(txn, aBaseDN, searchScope, idSetLimit);
               entryIDSet.retainAll(scopeSet);
