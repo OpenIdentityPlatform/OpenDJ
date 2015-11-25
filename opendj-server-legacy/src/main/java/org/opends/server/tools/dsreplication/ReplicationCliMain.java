@@ -2422,6 +2422,7 @@ public class ReplicationCliMain extends ConsoleApplication
        */
       destinationServerCI.initializeGlobalArguments(host2, port2, adminUid, bindDn2, pwd,
           pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
+      destinationServerCI.setUseAdminOrBindDn(true);
     }
     InitialLdapContext ctx2 = null;
 
