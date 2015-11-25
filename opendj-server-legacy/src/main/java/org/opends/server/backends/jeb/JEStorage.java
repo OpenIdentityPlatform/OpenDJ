@@ -521,6 +521,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       }
       catch (DatabaseNotFoundException e)
       {
+        // This is fine: end result is what we wanted
+      }
+      catch (DatabaseException e)
+      {
         throw new StorageRuntimeException(e);
       }
     }

@@ -2508,10 +2508,6 @@ public class EntryContainer
           for (Tree tree : listTrees())
           {
             tree.delete(txn);
-            if (tree instanceof Index)
-            {
-              ((Index) tree).setTrusted(txn, true);
-            }
           }
         }
       });
