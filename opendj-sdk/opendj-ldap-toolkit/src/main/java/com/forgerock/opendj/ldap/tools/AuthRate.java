@@ -202,7 +202,7 @@ public final class AuthRate extends ConsoleApplication {
                     break;
                 }
 
-                final BindRequest bindRequest = getBindRequest();
+                final BindRequest bindRequest = bindRequestTemplate;
                 if (bindRequest instanceof SimpleBindRequest) {
                     final SimpleBindRequest o = (SimpleBindRequest) bindRequest;
                     if (br == null) {
@@ -317,10 +317,16 @@ public final class AuthRate extends ConsoleApplication {
         private DereferenceAliasesPolicy dereferencesAliasesPolicy;
         private String[] attributes;
         private int invalidCredPercent;
+        /** Template of the bind requests which will be send to the remote server. */
+        private BindRequest bindRequestTemplate;
 
         private BindPerformanceRunner(final PerformanceRunnerOptions options)
                 throws ArgumentException {
             super(options);
+        }
+
+        private void setBindRequestTemplate(final BindRequest bindRequestTemplate) {
+            this.bindRequestTemplate = bindRequestTemplate;
         }
 
         @Override
@@ -480,13 +486,12 @@ public final class AuthRate extends ConsoleApplication {
             }
 
             connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
-            runner.setBindRequest(connectionFactoryProvider.getBindRequest());
-            runner.validate();
-
-            if (runner.getBindRequest() == null) {
-                throw new ArgumentException(LocalizableMessage
-                        .raw("Authentication information must be provided to use this tool"));
+            final BindRequest bindRequestTemplate = connectionFactoryProvider.getBindRequest();
+            if (bindRequestTemplate == null) {
+                throw new ArgumentException(ERR_AUTHRATE_NO_BIND_DN_PROVIDED.get());
             }
+            runner.setBindRequestTemplate(bindRequestTemplate);
+            runner.validate();
         } catch (final ArgumentException ae) {
             argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
