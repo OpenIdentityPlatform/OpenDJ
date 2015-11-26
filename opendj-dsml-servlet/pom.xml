@@ -39,6 +39,8 @@
     <packaging>war</packaging>
 
     <properties>
+       <!-- Folder to store the ForgeRock binary license. The license url could be specified with the option -Dbinary.license.url on the maven command line -->
+       <include.binary.license>${project.basedir}/legal-notices/</include.binary.license>
     </properties>
 
     <dependencies>
@@ -224,7 +226,7 @@
                 <configuration>
                     <warName>${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML</warName>
                     <webResources>
-                        <!-- Include CDDLv1_0.txt and binary license file (if exists) -->
+                        <!-- Include CDDLv1_0.txt -->
                         <resource>
                             <targetPath>WEB-INF/legal-notices</targetPath>
                             <directory>${basedir}/../legal-notices</directory>
@@ -233,13 +235,10 @@
                             </excludes>
                         </resource>
 
-                        <!-- Include THIRDPARTYREADME.txt -->
+                        <!-- Include THIRDPARTYREADME.txt and the FR binary license (if exists) -->
                         <resource>
                             <targetPath>WEB-INF/legal-notices</targetPath>
                             <directory>legal-notices</directory>
-                            <includes>
-                                <include>THIRDPARTYREADME.txt</include>
-                            </includes>
                         </resource>
 
                         <!-- Add web and sun-web.xml -->
