@@ -128,7 +128,7 @@
         // client-provided username, using LDAP filter string character escaping.
         "searchBaseDN"         : "ou=people,dc=example,dc=com",
         "searchScope"          : "sub", // Or "one".
-        "searchFilterTemplate" : "(&(objectClass=inetOrgPerson)(uid=%s))"
+        "searchFilterTemplate" : "(&(uid=%s)(objectClass=inetOrgPerson))"
 
         // TODO: support for HTTP sessions?
     },
