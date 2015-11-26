@@ -8,7 +8,7 @@ Version: forgerock-util.jar (3.0.0)
 Copyright: Copyright (c) 2014-2015 ForgeRock AS.
 
 Version: grizzly-framework.jar (2.3.14)
-Copyright: Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
 
 Version: i18n-core.jar (1.4.2)
 Copyright: Copyright (c) 2011-2014 ForgeRock AS.
