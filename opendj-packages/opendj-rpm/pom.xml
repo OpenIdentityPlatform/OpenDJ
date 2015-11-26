@@ -24,7 +24,9 @@
   !      Copyright 2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -51,12 +53,12 @@
         <rpm.prefix>/opt/${product.name.lowercase}</rpm.prefix>
         <manpage.dir>${project.build.directory}/dependency/man</manpage.dir>
         <doc.homepage.url>http://opendj.forgerock.org/</doc.homepage.url>
-        <rpm.license />
-        <rpm.product.name />
-        <rpm.product.name.lowercase />
-        <rpm.resources.path />
-        <rpm.description.header />
-        <rpm.product.summary />
+        <rpm.license/>
+        <rpm.product.name/>
+        <rpm.product.name.lowercase/>
+        <rpm.resources.path/>
+        <rpm.description.header/>
+        <rpm.product.summary/>
     </properties>
 
     <build>
@@ -131,7 +133,7 @@
                         </description>
 
                         <requires>
-                            <require>jre &gt;= 1.7</require>
+                            <require>jre >= 1.7</require>
                         </requires>
 
                         <defineStatements>

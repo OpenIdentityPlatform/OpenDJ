@@ -24,7 +24,9 @@
   !      Copyright 2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -82,64 +84,64 @@
                                         <copy toDir="${project.build.directory}/msi/files">
                                             <fileset dir="${package.dir}">
                                                 <!-- Exclude Mac apps -->
-                                                <exclude name="QuickSetup.app/**" />
-                                                <exclude name="Uninstall.app/**" />
+                                                <exclude name="QuickSetup.app/**"/>
+                                                <exclude name="Uninstall.app/**"/>
 
                                                 <!-- Exclude shell scripts -->
-                                                <exclude name="bin/**" />
-                                                <exclude name="setup" />
-                                                <exclude name="uninstall" />
-                                                <exclude name="upgrade" />
-                                                <exclude name="**/*.sh" />
+                                                <exclude name="bin/**"/>
+                                                <exclude name="setup"/>
+                                                <exclude name="uninstall"/>
+                                                <exclude name="upgrade"/>
+                                                <exclude name="**/*.sh"/>
                                             </fileset>
                                         </copy>
 
                                         <mkdir dir="${project.build.directory}/msi/build" />
-                                        <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}/msi/build" />
-                                        <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}/msi/build" />
-                                        <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}/msi/build" />
+                                        <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}/msi/build"/>
+                                        <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}/msi/build"/>
+                                        <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}/msi/build"/>
                                         <mkdir dir="${project.build.directory}/msi/dist" />
 
                                         <!-- Construct a .wxs file from the directory structure -->
                                         <exec executable="heat.exe" dir="${project.build.directory}/msi/files">
-                                            <arg value="dir" />
-                                            <arg value="." />
-                                            <arg value="-nologo" />
-                                            <arg value="-cg" /> <arg value="all" />
-                                            <arg value="-gg" />
-                                            <arg value="-sfrag" />
-                                            <arg value="-srd" />
-                                            <arg value="-ke" />
-                                            <arg value="-dr" /> <arg value="OPENDJ" />
-                                            <arg value="-var" /> <arg value="var.src" />
-                                            <arg value="-template" /> <arg value="fragment" />
-                                            <arg value="-o" /> <arg value="${project.build.directory}/msi/build/payload.wxs" />
+                                            <arg value="dir"/>
+                                            <arg value="."/>
+                                            <arg value="-nologo"/>
+                                            <arg value="-cg"/> <arg value="all"/>
+                                            <arg value="-gg"/>
+                                            <arg value="-sfrag"/>
+                                            <arg value="-srd"/>
+                                            <arg value="-ke"/>
+                                            <arg value="-dr"/> <arg value="OPENDJ"/>
+                                            <arg value="-var"/> <arg value="var.src"/>
+                                            <arg value="-template"/> <arg value="fragment"/>
+                                            <arg value="-o"/> <arg value="${project.build.directory}/msi/build/payload.wxs"/>
                                         </exec>
 
                                         <!-- Compile all .wxs files into .wixobj files (fast) -->
                                         <exec executable="candle.exe" dir="${project.build.directory}/msi">
-                                            <arg value="-nologo" />
-                                            <arg value="-out" /> <arg value="${project.build.directory}/msi/build/" />
-                                            <arg value="-dsrc=files" />
-                                            <arg value="-dname=${product.name}" />
-                                            <arg value="-dmajor=${parsedVersion.majorVersion}" />
-                                            <arg value="-dminor=${parsedVersion.minorVersion}" />
-                                            <arg value="-dpoint=${parsedVersion.incrementalVersion}" />
-                                            <arg value="build/package.wxs" />
-                                            <arg value="build/payload.wxs" />
+                                            <arg value="-nologo"/>
+                                            <arg value="-out"/> <arg value="${project.build.directory}/msi/build/"/>
+                                            <arg value="-dsrc=files"/>
+                                            <arg value="-dname=${product.name}"/>
+                                            <arg value="-dmajor=${parsedVersion.majorVersion}"/>
+                                            <arg value="-dminor=${parsedVersion.minorVersion}"/>
+                                            <arg value="-dpoint=${parsedVersion.incrementalVersion}"/>
+                                            <arg value="build/package.wxs"/>
+                                            <arg value="build/payload.wxs"/>
                                         </exec>
 
                                         <!-- Build the package (slow) -->
                                         <exec executable="light.exe" dir="${project.build.directory}/msi">
-                                            <arg value="-nologo" />
-                                            <arg value="-ext" /> <arg value="WixUIExtension" />
-                                            <arg value="-out" /> <arg value="dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi" />
-                                            <arg value="build/package.wixobj" />
-                                            <arg value="build/payload.wixobj" />
+                                            <arg value="-nologo"/>
+                                            <arg value="-ext"/> <arg value="WixUIExtension"/>
+                                            <arg value="-out"/> <arg value="dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi"/>
+                                            <arg value="build/package.wixobj"/>
+                                            <arg value="build/payload.wixobj"/>
                                         </exec>
 
                                         <!-- Attach msi artifact to the build -->
-                                        <attachartifact file="${project.build.directory}/msi/dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi" />
+                                        <attachartifact file="${project.build.directory}/msi/dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi"/>
                                     </target>
                                 </configuration>
                             </execution>
