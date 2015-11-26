@@ -521,7 +521,11 @@ public class AccessLogger extends AbstractLogger
   public final synchronized void removeAllLogPublishers()
   {
     loggerStorage.removeAllLogPublishers();
-    getServerContext().getCommonAudit().shutdown();
+    // Access logger may have not been fully initialized
+    if (getServerContext() != null && getServerContext().getCommonAudit() != null)
+    {
+      getServerContext().getCommonAudit().shutdown();
+    }
   }
 }
 
