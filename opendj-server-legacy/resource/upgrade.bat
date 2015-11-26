@@ -29,7 +29,7 @@ setlocal
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.upgrade.UpgradeCli"
 set SCRIPT_NAME=upgrade
 
-for %%i in (%~sf0) do set SCRIPT_DIR=%%~dPsi
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi
 set INSTALL_ROOT=%DIR_HOME%
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
