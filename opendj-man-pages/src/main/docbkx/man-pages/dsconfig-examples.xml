@@ -49,28 +49,27 @@ $ <userinput>dsconfig -h opendj.example.com -p 4444 -D "cn=Directory Manager" -w
 
 What do you want to configure?
 
-    1)   Access Control Handler               23)  Log Publisher
-    2)   Access Log Filtering Criteria        24)  Log Retention Policy
-    3)   Account Status Notification Handler  25)  Log Rotation Policy
-    4)   Administration Connector             26)  Matching Rule
-    5)   Alert Handler                        27)  Monitor Provider
-    6)   Attribute Syntax                     28)  Password Generator
-    7)   Backend                              29)  Password Policy
-    8)   Backend Index                        30)  Password Storage Scheme
-    9)   Backend VLV Index                    31)  Password Validator
-    10)  Certificate Mapper                   32)  Plugin
-    11)  Connection Handler                   33)  Plugin Root
-    12)  Crypto Manager                       34)  Replication Domain
-    13)  Debug Target                         35)  Replication Server
-    14)  Entry Cache                          36)  Root DN
-    15)  Extended Operation Handler           37)  Root DSE Backend
-    16)  External Changelog Domain            38)  SASL Mechanism Handler
-    17)  Global Configuration                 39)  Schema Provider
-    18)  Group Implementation                 40)  Synchronization Provider
-    19)  Identity Mapper                      41)  Trust Manager Provider
-    20)  Key Manager Provider                 42)  Virtual Attribute
-    21)  Local DB Index                       43)  Work Queue
-    22)  Local DB VLV Index
+    1)   Access Control Handler               22)  Log Retention Policy
+    2)   Access Log Filtering Criteria        23)  Log Rotation Policy
+    3)   Account Status Notification Handler  24)  Matching Rule
+    4)   Administration Connector             25)  Monitor Provider
+    5)   Alert Handler                        26)  Password Generator
+    6)   Attribute Syntax                     27)  Password Policy
+    7)   Backend                              28)  Password Storage Scheme
+    8)   Backend Index                        29)  Password Validator
+    9)   Backend VLV Index                    30)  Plugin
+    10)  Certificate Mapper                   31)  Plugin Root
+    11)  Connection Handler                   32)  Replication Domain
+    12)  Crypto Manager                       33)  Replication Server
+    13)  Debug Target                         34)  Root DN
+    14)  Entry Cache                          35)  Root DSE Backend
+    15)  Extended Operation Handler           36)  SASL Mechanism Handler
+    16)  External Changelog Domain            37)  Schema Provider
+    17)  Global Configuration                 38)  Synchronization Provider
+    18)  Group Implementation                 39)  Trust Manager Provider
+    19)  Identity Mapper                      40)  Virtual Attribute
+    20)  Key Manager Provider                 41)  Work Queue
+    21)  Log Publisher
 
     q)   quit
 

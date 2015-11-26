@@ -35,6 +35,7 @@
   The following example shows how to verify
   the <literal>sn</literal> (surname) index for completeness and for errors.
   The messages shown are for a backend of type <literal>pdb</literal>.
+  The output is similar for other backend types:
  </para>
 
   <screen>
@@ -53,33 +54,5 @@ $ <userinput>verify-index -b dc=example,dc=com -i sn --clean --countErrors</user
  msg=Average number of entries referenced is 2.00/record
 [20/05/2015:14:24:18 +0200] category=...pluggable.VerifyJob seq=5 severity=FINE
  msg=Maximum number of entries referenced by any record is 32</computeroutput>
-  </screen>
-
- <para condition="local-db">
-  The following example shows how to verify
-  the <literal>cn</literal> (common name) index for completeness and for errors.
-  The messages shown are for a backend of type <literal>local-db</literal>.
- </para>
-
-  <screen condition="local-db">
-$ <userinput>verify-index -b dc=example,dc=com -i cn --clean --countErrors</userinput>
-<computeroutput>[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
- msgID=9437595 msg=Local DB backend userRoot does not specify the number of
- lock tables: defaulting to 97
-[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
- msgID=9437594 msg=Local DB backend userRoot does not specify the number of
- cleaner threads: defaulting to 24 threads
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=NOTICE msgID=8847461
- msg=Checked 1316 records and found 0 error(s) in 0 seconds
- (average rate 2506.7/sec)
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388710 msg=Number of records referencing more than one entry: 315
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388711 msg=Number of records that exceed the entry limit: 0
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388712 msg=Average number of entries referenced is 1.58/record
-[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
- msgID=8388713 msg=Maximum number of entries referenced by any
- record is 32</computeroutput>
   </screen>
 </refsect1>
