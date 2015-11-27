@@ -527,7 +527,7 @@
               </excludes>
               <additionalJars>
                  <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
-                 <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
+                 <additionalJar>opendj-je-backend.jar</additionalJar>
               </additionalJars>
             </configuration>
           </execution>
@@ -541,7 +541,7 @@
               <productJarName>${product.name}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
               <additionalJars>
-                 <additionalJar>opendj-je-backend-changelog.jar</additionalJar>
+                 <additionalJar>opendj-je-backend.jar</additionalJar>
               </additionalJars>
             </configuration>
           </execution>
@@ -842,15 +842,15 @@
             </configuration>
           </execution>
 
-          <!-- Package JE backend and changelog jar -->
+          <!-- Package JE backend jar -->
           <execution>
-            <id>build-opendj-je-backend-changelog-jar</id>
+            <id>build-opendj-je-backend-jar</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj-je-backend-changelog</finalName>
+              <finalName>opendj-je-backend</finalName>
               <includes>
                 <include>org/opends/server/backends/jeb/**</include>
                 <include>org/opends/server/replication/server/changelog/je/**</include>
