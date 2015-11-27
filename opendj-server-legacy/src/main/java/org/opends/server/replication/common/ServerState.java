@@ -27,14 +27,21 @@
 package org.opends.server.replication.common;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.replication.protocol.ProtocolVersion;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.util.Utils;
+import org.opends.server.replication.protocol.ProtocolVersion;
 
 /**
  * This class is used to associate serverIds with {@link CSN}s.
@@ -269,7 +276,27 @@ public class ServerState implements Iterable<CSN>
   @Override
   public String toString()
   {
-    return Utils.joinAsString(" ", serverIdToCSN.values());
+    final StringBuilder buffer = new StringBuilder();
+    toString(buffer);
+    return buffer.toString();
+  }
+
+  /**
+   * Appends the text representation of ServerState.
+   * @param buffer The buffer to which the information should be appended.
+   */
+  void toString(final StringBuilder buffer)
+  {
+    boolean first = true;
+    for (CSN csn : serverIdToCSN.values())
+    {
+      if (!first)
+      {
+        buffer.append(" ");
+      }
+      csn.toString(buffer);
+      first = false;
+    }
   }
 
   /**

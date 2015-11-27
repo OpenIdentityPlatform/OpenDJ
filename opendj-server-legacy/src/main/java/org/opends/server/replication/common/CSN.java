@@ -181,7 +181,6 @@ public class CSN implements Serializable, Comparable<CSN>
     return serverId;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object obj)
   {
@@ -201,7 +200,6 @@ public class CSN implements Serializable, Comparable<CSN>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -219,8 +217,9 @@ public class CSN implements Serializable, Comparable<CSN>
    */
   public ByteString toByteString()
   {
-    return toByteString(new ByteStringBuilder(BYTE_ENCODING_LENGTH))
-        .toByteString();
+    final ByteStringBuilder builder = new ByteStringBuilder(BYTE_ENCODING_LENGTH);
+    toByteString(builder);
+    return builder.toByteString();
   }
 
   /**
@@ -231,12 +230,11 @@ public class CSN implements Serializable, Comparable<CSN>
    *
    * @param builder
    *          The byte string builder.
-   * @return The byte string builder containing the encoded CSN.
    * @see #valueOf(ByteSequence)
    */
-  public ByteStringBuilder toByteString(ByteStringBuilder builder)
+  public void toByteString(ByteStringBuilder builder)
   {
-    return builder.appendLong(timeStamp).appendShort(serverId & 0xffff).appendInt(seqnum);
+    builder.appendLong(timeStamp).appendShort(serverId & 0xffff).appendInt(seqnum);
   }
 
   /**
@@ -250,7 +248,34 @@ public class CSN implements Serializable, Comparable<CSN>
   @Override
   public String toString()
   {
-    return String.format("%016x%04x%08x", timeStamp, serverId, seqnum);
+    final StringBuilder buffer = new StringBuilder();
+    toString(buffer);
+    return buffer.toString();
+  }
+
+  /**
+   * Appends the text representation of this {@link CSN} into the provided StringBuilder.
+   * <p>
+   * NOTE: this representation must not be modified otherwise interop with
+   * earlier protocol versions will be broken.
+   *
+   * @param buffer the StringBuilder where to output the CSN text representation
+   */
+  void toString(final StringBuilder buffer)
+  {
+    leftPadWithZeros(buffer, 16, Long.toHexString(timeStamp));
+    leftPadWithZeros(buffer, 4, Integer.toHexString(serverId));
+    leftPadWithZeros(buffer, 8, Integer.toHexString(seqnum));
+  }
+
+  private void leftPadWithZeros(StringBuilder buffer, int nbChars, String toAppend)
+  {
+    final int padding = nbChars - toAppend.length();
+    for (int i = 0; i < padding; i++)
+    {
+      buffer.append('0');
+    }
+    buffer.append(toAppend);
   }
 
   /**
@@ -260,11 +285,19 @@ public class CSN implements Serializable, Comparable<CSN>
    */
   public String toStringUI()
   {
-    Date date = new Date(timeStamp);
-    return String.format(
-        "%016x%04x%08x (sid=%d,tsd=%s,ts=%d,seqnum=%d)",
-        timeStamp, serverId, seqnum,
-        serverId, date.toString(), timeStamp, seqnum);
+    final StringBuilder buffer = new StringBuilder();
+    toStringUI(buffer);
+    return buffer.toString();
+  }
+
+  private void toStringUI(final StringBuilder buffer)
+  {
+    toString(buffer);
+    buffer.append(" (sid=").append(serverId)
+          .append(",tsd=").append(new Date(timeStamp))
+          .append(",ts=").append(timeStamp)
+          .append(",seqnum=").append(seqnum)
+          .append(")");
   }
 
   /**

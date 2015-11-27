@@ -211,16 +211,9 @@ public class MultiDomainServerState implements Iterable<DN>
   @Override
   public String toString()
   {
-    final StringBuilder res = new StringBuilder();
-    if (list != null && !list.isEmpty())
-    {
-      for (Entry<DN, ServerState> entry : list.entrySet())
-      {
-        res.append(entry.getKey()).append(":")
-           .append(entry.getValue()).append(";");
-      }
-    }
-    return res.toString();
+    final StringBuilder buffer = new StringBuilder();
+    toString(buffer);
+    return buffer.toString();
   }
 
   /**
@@ -229,7 +222,16 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append(this);
+    if (list != null && !list.isEmpty())
+    {
+      for (Entry<DN, ServerState> entry : list.entrySet())
+      {
+        entry.getKey().toString(buffer);
+        buffer.append(":");
+        entry.getValue().toString(buffer);
+        buffer.append(";");
+      }
+    }
   }
 
   /**
