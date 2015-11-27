@@ -222,20 +222,6 @@ public class TestImportAndExport extends TasksTestCase
               ),
               TaskState.COMPLETED_SUCCESSFULLY
          },
-         // Backend id does not exist.
-         {
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-import",
-                   "ds-task-class-name: org.opends.server.tasks.ImportTask",
-                   "ds-task-import-ldif-file: doesnotexist",
-                   "ds-task-import-backend-id: userRoot"
-              ),
-              TaskState.STOPPED_BY_ERROR
-         },
          // Rejects file is a directory.
          {
               TestCaseUtils.makeEntry(
@@ -348,6 +334,20 @@ public class TestImportAndExport extends TasksTestCase
                 "objectclass: ds-task-import",
                 "ds-task-class-name: org.opends.server.tasks.ImportTask",
                 "ds-task-import-ldif-file: " + ldifFile.getPath()
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        },
+        // ldif file does not exist.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: doesnotexist",
+                "ds-task-import-backend-id: userRoot"
             ),
             ResultCode.UNWILLING_TO_PERFORM
         }
