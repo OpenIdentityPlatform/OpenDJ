@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 
+import java.util.TreeMap;
 import java.util.Vector;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
@@ -135,8 +136,7 @@ public abstract class AbstractManagedObjectDefinition
   private final Set<ManagedObjectOption> options;
 
   /** The set of managed object definitions which inherit from this definition. */
-  private final Map<String,
-    AbstractManagedObjectDefinition<? extends C, ? extends S>> children;
+  private final Map<String, AbstractManagedObjectDefinition<? extends C, ? extends S>> children = new TreeMap<>();
 
 
 
@@ -166,7 +166,6 @@ public abstract class AbstractManagedObjectDefinition
     this.allAggregationPropertyDefinitions = new HashMap<>();
     this.allTags = new HashSet<>();
     this.options = EnumSet.noneOf(ManagedObjectOption.class);
-    this.children = new HashMap<>();
 
     // If we have a parent definition then inherit its features.
     if (parent != null) {
