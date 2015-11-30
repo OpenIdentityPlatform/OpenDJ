@@ -5,52 +5,48 @@ COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
 Version: forgerock-util.jar (3.0.0)
-Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
+           Portions Copyright 2011-2015 ForgeRock AS.
 
 Version: i18n-core.jar (1.4.2)
-Copyright: Copyright (c) 2011-2014 ForgeRock AS.
+Copyright: Copyright 2011 ForgeRock AS
+           Copyright 2007-2009 Sun Microsystems, Inc.
 
 Version: i18n-slf4j.jar (1.4.2)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2014 ForgeRock AS
 
 Version: opendj-cli.jar (3.0.0)
 Copyright: Copyright (c) 2014-2015 ForgeRock AS.
 
 Version: opendj-config.jar (3.0.0)
-Copyright: Copyright (c) 2013-2015 ForgeRock AS.
+Copyright: Copyright 2013-2015 ForgeRock AS.
+           Copyright 2006-2010 Sun Microsystems, Inc.
+           Portions Copyright 2012-2015 ForgeRock AS.
+           Portions Copyright 2012 profiq s.r.o.
 
 Version: opendj-core.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright 2006-2011 Sun Microsystems, Inc.
+           Copyright 2013-2014 Manuel Gaupp
+           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2012-2014 Manuel Gaupp
 
-Version: opendj-server-legacy.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-ca_ES.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-de.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-es.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-fr.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-ja.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-ko.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-pl.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-zh_CN.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
-
-Version: opendj-server-legacy-zh_TW.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Version: opendj-server-legacy[-*].jar (3.0.0)
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright 2005-2011 Sun Microsystems, Inc.
+           Copyright 2011-2012 profiq s.r.o.
+           Copyright 2013-2014 Manuel Gaupp
+           Portions Copyright 2010-2015 ForgeRock AS.
+           Portions Copyright 2006-2007 Sun Microsystems, Inc.
+           Portions Copyright 2006 Brighton Consulting, Inc.
+           Portions Copyright 2009 Parametric Technology Corporation (PTC)
+           Portions Copyright 2009 D. J. Hagberg, Millibits Consulting, Inc.
+           Portions Copyright 2011 profiq s.r.o.
+           Portions Copyright 2012 Dariusz Janny
+           Portions Copyright 2012 Delta Victor Consultants
+           Portions Copyright 2012-2014 Manuel Gaupp
+           Portions Copyright 2014 Emidio Stani & Andrea Stani
 
 ==================
 Full license text:

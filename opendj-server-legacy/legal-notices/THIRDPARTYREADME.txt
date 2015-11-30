@@ -8,10 +8,16 @@ Version: activation-1.1.jar
 Copyright: Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
 
 Version: chf-http-core.jar (2.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2012-2015 ForgeRock AS.
+           Copyright 2010-2011 ApexIdentity Inc.
+           Copyright 2009 Sun Microsystems Inc.
+           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2010-2011 ApexIdentity Inc.
 
 Version: chf-http-servlet.jar (2.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2012-2015 ForgeRock AS.
+           Copyright 2010-2011 ApexIdentity Inc.
+           Portions Copyright 2011-2015 ForgeRock AS.
 
 Version: grizzly-framework.jar (2.3.14)
 Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
@@ -26,37 +32,73 @@ Version: grizzly-http.jar (2.3.16)
 Copyright: Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
 
 Version: forgerock-util.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
+           Portions Copyright 2011-2015 ForgeRock AS.
 
 Version: i18n-core.jar (1.4.2)
-Copyright: Copyright (c) 2011-2014 ForgeRock AS.
+Copyright: Copyright 2011 ForgeRock AS
+           Copyright 2007-2009 Sun Microsystems, Inc.
 
 Version: i18n-slf4j.jar (1.4.2)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2014 ForgeRock AS
 
 Version: javax.mail-1.5.1.jar
 Copyright: Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
 
 Version: json-resource.jar (4.0.0)
-Copyright: Copyright (c) 2012-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
 
 Version: json-resource-http.jar (4.0.0)
-Copyright: Copyright (c) 2012-2015 ForgeRock AS.
+Copyright: Copyright 2012-2015 ForgeRock AS.
 
 Version: opendj-cli.jar (3.0.0)
-Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+Copyright: Copyright 2014-2015 ForgeRock AS.
+           Copyright 2006-2010 Sun Microsystems, Inc.
+           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2009 Parametric Technology Corporation (PTC)
+
+Version: opendj-config.jar (3.0.0)
+Copyright: Copyright 2013-2015 ForgeRock AS.
+           Copyright 2006-2010 Sun Microsystems, Inc.
+           Portions Copyright 2012-2015 ForgeRock AS.
+           Portions Copyright 2012 profiq s.r.o.
 
 Version: opendj-core.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright 2006-2011 Sun Microsystems, Inc.
+           Copyright 2013-2014 Manuel Gaupp
+           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2012-2014 Manuel Gaupp
 
 Version: opendj-grizzly.jar (3.0.0)
-Copyright: Copyright (c) 2013-2015 ForgeRock AS.
+Copyright: Copyright 2013-2015 ForgeRock AS.
+           Copyright 2009-2010 Sun Microsystems, Inc.
+           Portions Copyright 2011-2015 ForgeRock AS.
 
 Version: opendj-rest2ldap.jar (3.0.0)
-Copyright: Copyright (c) 2012-2015 ForgeRock AS.
+Copyright: Copyright 2012-2015 ForgeRock AS.
 
 Version: opendj-server.jar (3.0.0)
-Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+Copyright: Copyright 2013-2015 ForgeRock AS.
+           Copyright 2006-2009 Sun Microsystems, Inc.
+           Portions Copyright 2013-2015 ForgeRock AS.
+
+Version: OpenDJ[-*].jar (3.0.0)
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright 2005-2011 Sun Microsystems, Inc.
+           Copyright 2011-2012 profiq s.r.o.
+           Copyright 2013-2014 Manuel Gaupp
+           Portions Copyright 2010-2015 ForgeRock AS.
+           Portions Copyright 2006-2007 Sun Microsystems, Inc.
+           Portions Copyright 2006 Brighton Consulting, Inc.
+           Portions Copyright 2009 Parametric Technology Corporation (PTC)
+           Portions Copyright 2009 D. J. Hagberg, Millibits Consulting, Inc.
+           Portions Copyright 2011 profiq s.r.o.
+           Portions Copyright 2012 Dariusz Janny
+           Portions Copyright 2012 Delta Victor Consultants
+           Portions Copyright 2012-2014 Manuel Gaupp
+           Portions Copyright 2014 Emidio Stani & Andrea Stani
 
 Version: servlet-api-3.1-b02.jar
 Copyright: Copyright (c) 2008-2010 Oracle and/or its affiliates. All rights reserved.
@@ -210,7 +252,9 @@ Version: jackson-databind.jar (2.6.3)
 Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 
 Version: forgerock-persistit-core.jar (4.1.0)
-Copyright: Copyright 2011-2012 Akiban Technologies, Inc.
+Copyright: Copyright 2005-2013 Akiban Technologies, Inc.
+           Copyright 2014 SonarSource
+           Portions Copyright 2015 ForgeRock AS.
 
 ==================
 Full license text:
