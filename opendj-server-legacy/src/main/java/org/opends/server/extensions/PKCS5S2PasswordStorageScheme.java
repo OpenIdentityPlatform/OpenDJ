@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2014-2015 ForgeRock AS.
- *      Portions Copyright Emidio Stani & Andrea Stani
+ *      Portions Copyright 2014 Emidio Stani & Andrea Stani
  */
 package org.opends.server.extensions;
 
