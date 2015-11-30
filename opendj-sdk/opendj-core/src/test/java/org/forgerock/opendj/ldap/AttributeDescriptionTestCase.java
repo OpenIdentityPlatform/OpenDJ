@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 200-2010 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2012 ForgeRock AS.
  */
 
