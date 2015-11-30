@@ -69,12 +69,9 @@ import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
-/**
- * Log file implementation of the ChangelogDB interface.
- */
+/** Log file implementation of the ChangelogDB interface. */
 public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -286,7 +283,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeDB()
   {
@@ -336,7 +332,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void shutdownDB() throws ChangelogException
   {
@@ -479,7 +474,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeDB() throws ChangelogException
   {
@@ -487,7 +481,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     StaticUtils.recursiveDelete(dbDirectory);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ServerState getDomainOldestCSNs(DN baseDN)
   {
@@ -499,7 +492,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return result;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ServerState getDomainNewestCSNs(DN baseDN)
   {
@@ -511,7 +503,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return result;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeDomain(DN baseDN) throws ChangelogException
   {
@@ -571,7 +562,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setPurgeDelay(final long purgeDelayInMillis)
   {
@@ -614,7 +604,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setComputeChangeNumber(final boolean computeChangeNumber)
       throws ChangelogException
@@ -692,14 +681,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ReplicationDomainDB getReplicationDomainDB()
   {
     return this;
   }
 
-  /** {@inheritDoc} */
   @Override
   public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState, CursorOptions options)
       throws ChangelogException
@@ -708,7 +695,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return getCursorFrom(startState, options, excludedDomainDns);
   }
 
-  /** {@inheritDoc} */
   @Override
   public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState,
       CursorOptions options, final Set<DN> excludedDomainDns) throws ChangelogException
@@ -725,7 +711,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return cursor;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final ServerState startState, CursorOptions options)
       throws ChangelogException
@@ -796,7 +781,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     cursors.add(cursor);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void unregisterCursor(final DBCursor<?> cursor)
   {
@@ -824,7 +808,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean publishUpdateMsg(final DN baseDN, final UpdateMsg updateMsg) throws ChangelogException
   {
@@ -845,7 +828,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     return pair.getSecond(); // replica DB was created
   }
 
-  /** {@inheritDoc} */
   @Override
   public void replicaHeartbeat(final DN baseDN, final CSN heartbeatCSN) throws ChangelogException
   {
@@ -867,7 +849,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     updateCursorsWithOfflineCSN(baseDN, serverId, null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void notifyReplicaOffline(final DN baseDN, final CSN offlineCSN) throws ChangelogException
   {
@@ -909,10 +890,9 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     protected ChangelogDBPurger()
     {
-      super("changelog DB purger");
+      super("Changelog DB purger");
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -1011,7 +991,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       return DEFAULT_SLEEP;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void initiateShutdown()
     {
