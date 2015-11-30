@@ -229,7 +229,7 @@ public abstract class AbstractLogger
 
       if (config.isEnabled())
       {
-        final P logPublisher = isCommonAuditConfig(config) ?
+        final P logPublisher = serverContext.getCommonAudit().isCommonAuditConfig(config) ?
             getLogPublisherForCommonAudit(config) : getLogPublisher(config);
         addLogPublisher(logPublisher);
       }
@@ -271,7 +271,7 @@ public abstract class AbstractLogger
     {
       try
       {
-        final P logPublisher = isCommonAuditConfig(config) ?
+        final P logPublisher = serverContext.getCommonAudit().isCommonAuditConfig(config) ?
             getLogPublisherForCommonAudit(config) : getLogPublisher(config);
         addLogPublisher(logPublisher);
       }
@@ -333,9 +333,10 @@ public abstract class AbstractLogger
         }
         try
         {
-          if (isCommonAuditConfig(config))
+          CommonAudit commonAudit = serverContext.getCommonAudit();
+          if (commonAudit.isCommonAuditConfig(config))
           {
-            serverContext.getCommonAudit().addOrUpdatePublisher(config);
+            commonAudit.addOrUpdatePublisher(config);
           } // else the publisher is currently active, so we don't need to do
             // anything.
         }
@@ -374,9 +375,10 @@ public abstract class AbstractLogger
       removeLogPublisher(logPublisher);
       try
       {
-        if (isCommonAuditConfig(config))
+        CommonAudit commonAudit = serverContext.getCommonAudit();
+        if (commonAudit.isExistingCommonAuditConfig(config))
         {
-          serverContext.getCommonAudit().removePublisher(config);
+          commonAudit.removePublisher(config);
         }
       }
       catch (ConfigException e)

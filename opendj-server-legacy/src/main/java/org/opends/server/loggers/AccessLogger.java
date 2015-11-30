@@ -516,7 +516,6 @@ public class AccessLogger extends AbstractLogger
     return loggerStorage.removeLogPublisher(publisher);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized void removeAllLogPublishers()
   {

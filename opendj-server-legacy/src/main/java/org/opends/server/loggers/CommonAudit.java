@@ -25,10 +25,10 @@
  */
 package org.opends.server.loggers;
 
-import static java.util.Arrays.asList;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import static java.util.Arrays.asList;
 import static org.opends.messages.LoggerMessages.*;
-import static java.util.Collections.newSetFromMap;
 import static org.forgerock.audit.AuditServiceBuilder.newAuditService;
 import static org.forgerock.audit.events.EventTopicsMetaDataBuilder.coreTopicSchemas;
 import static org.forgerock.audit.json.AuditJsonConfig.registerHandlerToService;
@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -73,7 +72,6 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.CsvFileAccessLogPublisherCfg;
 import org.opends.server.admin.std.server.CsvFileHTTPAccessLogPublisherCfg;
@@ -118,11 +116,14 @@ public class CommonAudit
   /** Configuration framework is used to get an up-to-date class loader with any external library available. */
   private final ConfigurationFramework configurationFramework;
 
-  /** Cache of audit services per configuration entry name. */
+  /** Cache of audit services per configuration entry normalized name. */
   private final Map<String, AuditServiceProxy> auditServiceCache = new ConcurrentHashMap<>(10);
 
-  private final Set<PublisherConfig> httpAccessPublishers =
-      newSetFromMap(new ConcurrentHashMap<PublisherConfig, Boolean>(10));
+  /** Cache of PublisherConfig per http access configuration entry normalized name. */
+  private final Map<String, PublisherConfig> httpAccessPublishers = new ConcurrentHashMap<>(5);
+
+  /** Cache of PublisherConfig per access configuration entry normalized name. */
+  private final Map<String, PublisherConfig> accessPublishers = new ConcurrentHashMap<>(5);
 
   /** Audit service shared by all HTTP access publishers. */
   private final AuditServiceProxy httpAccessAuditService;
@@ -198,7 +199,7 @@ public class CommonAudit
     {
       return httpAccessAuditService;
     }
-    return auditServiceCache.get(getNameFromConfig(config));
+    return auditServiceCache.get(getConfigNormalizedName(config));
   }
 
   /**
@@ -213,25 +214,20 @@ public class CommonAudit
   {
     if (newConfig.isEnabled())
     {
-      logger.trace("Setting up common audit for configuration entry: " + newConfig.dn());
+      logger.trace(String.format("Setting up common audit for configuration entry: %s", newConfig.dn()));
       try
       {
         final PublisherConfig newPublisher = new PublisherConfig(newConfig);
+        String normalizedName = getConfigNormalizedName(newConfig);
         if (newPublisher.isHttpAccessLog())
         {
-          if (httpAccessPublishers.contains(newPublisher))
-          {
-            // remove the old version before adding the new one
-            httpAccessPublishers.remove(newPublisher);
-          }
-          httpAccessPublishers.add(newPublisher);
+          // if an old version exists, it is replaced by the new one
+          httpAccessPublishers.put(normalizedName, newPublisher);
           buildAuditService(httpAccessAuditServiceSetup());
         }
         else // all other logs
         {
-          String name = newPublisher.getName();
-          final AuditServiceProxy existingService =
-              auditServiceCache.containsKey(name) ? auditServiceCache.get(name): null;
+          final AuditServiceProxy existingService = auditServiceCache.get(normalizedName);
           AuditServiceProxy auditService = buildAuditService(new AuditServiceSetup(existingService)
           {
             @Override
@@ -241,7 +237,8 @@ public class CommonAudit
               addHandlerToBuilder(newPublisher, builder);
             }
           });
-          auditServiceCache.put(name, auditService);
+          auditServiceCache.put(normalizedName, auditService);
+          accessPublishers.put(normalizedName, newPublisher);
         }
       }
       catch (Exception e)
@@ -261,23 +258,25 @@ public class CommonAudit
    */
   public void removePublisher(LogPublisherCfg config) throws ConfigException
   {
-    final PublisherConfig publisher = new PublisherConfig(config);
-    logger.trace("Shutting down common audit for configuration entry:" + config.dn());
+    logger.trace(String.format("Shutting down common audit for configuration entry:", config.dn()));
+    String normalizedName = getConfigNormalizedName(config);
     try
     {
-      if (publisher.isHttpAccessLog())
+      if (httpAccessPublishers.containsKey(normalizedName))
       {
-        httpAccessPublishers.remove(publisher);
+        httpAccessPublishers.remove(normalizedName);
         buildAuditService(httpAccessAuditServiceSetup());
       }
-      else // all other logs
+      else if (accessPublishers.containsKey(normalizedName))
       {
-        AuditServiceProxy auditService = auditServiceCache.remove(publisher.getName());
+        accessPublishers.remove(normalizedName);
+        AuditServiceProxy auditService = auditServiceCache.remove(normalizedName);
         if (auditService != null)
         {
           auditService.shutdown();
         }
       }
+      // else it is not a registered publisher, nothing to do
     }
     catch (Exception e)
     {
@@ -302,7 +301,7 @@ public class CommonAudit
       @Override
       public void addHandlers(AuditServiceBuilder builder) throws ConfigException
       {
-        for (PublisherConfig publisher : httpAccessPublishers)
+        for (PublisherConfig publisher : httpAccessPublishers.values())
         {
           registerHandlerName(publisher.getName());
           addHandlerToBuilder(publisher, builder);
@@ -463,7 +462,7 @@ public class CommonAudit
 
       addCsvHandlerFormattingConfig(config, csvConfig);
       addCsvHandlerBufferingConfig(config, csvConfig);
-      addCsvHandlerSecureConfig(config, csvConfig);
+      addCsvHandlerSecureConfig(publisher, config, csvConfig);
       addCsvHandlerRotationConfig(publisher, config, csvConfig);
       addCsvHandlerRetentionConfig(publisher, config, csvConfig);
 
@@ -497,7 +496,8 @@ public class CommonAudit
     auditConfig.setBufferingConfiguration(bufferingConfig);
   }
 
-  private void addCsvHandlerSecureConfig(CsvConfigData config, CsvAuditEventHandlerConfiguration auditConfig)
+  private void addCsvHandlerSecureConfig(PublisherConfig publisher, CsvConfigData config,
+      CsvAuditEventHandlerConfiguration auditConfig)
   {
     if (config.isTamperEvident())
     {
@@ -506,7 +506,7 @@ public class CommonAudit
       security.setEnabled(true);
       String keyStoreFile = config.getKeystoreFile();
       security.setFilename(getFileForPath(keyStoreFile).getPath());
-      security.setPassword(getSecurePassword(config));
+      security.setPassword(getSecurePassword(publisher, config));
       auditConfig.setSecurity(security);
     }
   }
@@ -569,9 +569,7 @@ public class CommonAudit
       }
       else if (policyConfig instanceof FreeDiskSpaceLogRetentionPolicyCfg)
       {
-        // TODO: remove the cast to int when fixed
-        fileRetention.setMinFreeSpaceRequired(
-            (int)((FreeDiskSpaceLogRetentionPolicyCfg) policyConfig).getFreeDiskSpace());
+        fileRetention.setMinFreeSpaceRequired(((FreeDiskSpaceLogRetentionPolicyCfg) policyConfig).getFreeDiskSpace());
       }
       else if (policyConfig instanceof SizeLimitLogRetentionPolicyCfg)
       {
@@ -613,62 +611,67 @@ public class CommonAudit
     return times;
   }
 
-  // TODO : this method will be deleted, because a keystore handler will be used instead
-  private String getSecurePassword(CsvConfigData config)
+  private String getSecurePassword(PublisherConfig publisher, CsvConfigData config)
   {
     String fileName = config.getKeystorePinFile();
-    File   pinFile  = getFileForPath(fileName);
+    File pinFile = getFileForPath(fileName);
 
     if (!pinFile.exists())
     {
-      // should log error "no pin file"
+      logger.warn(ERR_COMMON_AUDIT_KEYSTORE_PIN_FILE_MISSING.get(publisher.getDn(), pinFile));
+      return "";
     }
-    else
-    {
-      String pinStr = null;
-      BufferedReader br = null;
-      try {
-        br = new BufferedReader(new FileReader(pinFile));
-        pinStr = br.readLine();
-      }
-      catch (IOException ioe)
-      {
-        // should log error "unable to read pin file"
-      }
-      finally
-      {
-        StaticUtils.close(br);
-      }
 
+    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
+    {
+      String pinStr = br.readLine();
       if (pinStr == null)
       {
-        // should log error pin file empty
+        logger.warn(ERR_COMMON_AUDIT_KEYSTORE_PIN_FILE_CONTAINS_EMPTY_PIN.get(publisher.getDn(), pinFile));
+        return "";
       }
-      else
-      {
-        return pinStr;
-      }
+      return pinStr;
     }
-    return "";
+    catch (IOException ioe)
+    {
+      logger.warn(ERR_COMMON_AUDIT_ERROR_READING_KEYSTORE_PIN_FILE.get(publisher.getDn(), pinFile,
+          stackTraceToSingleLineString(ioe)), ioe);
+      return "";
+    }
   }
 
-  private String getNameFromConfig(Configuration config)
+  /**
+   * Indicates if the provided log publisher configuration corresponds to a common audit publisher.
+   * <p>
+   * The common audit publisher may not already exist.
+   * <p>
+   * This method must not be used when the corresponding configuration is deleted, because it
+   * implies checking the corresponding configuration entry in the server.
+   *
+   * @param config
+   *          The log publisher configuration.
+   * @return {@code true} if publisher corresponds to a common audit publisher
+   * @throws ConfigException
+   *           If an error occurs
+   */
+  public boolean isCommonAuditConfig(LogPublisherCfg config) throws ConfigException
   {
-    return config.dn().getRDN(0).getAttributeValue(0).toString();
+    return new PublisherConfig(config).isCommonAudit();
   }
 
   /**
    * Indicates if the provided log publisher configuration corresponds to a common audit publisher.
    *
    * @param config
-   *            The log publisher configuration.
-   * @return {@code true} if publisher is for common audit
+   *          The log publisher configuration.
+   * @return {@code true} if publisher is defined for common audit, {@code false} otherwise
    * @throws ConfigException
-   *            If an error occurs
+   *           If an error occurs
    */
-  public static boolean isCommonAuditConfig(LogPublisherCfg config) throws ConfigException
+  public boolean isExistingCommonAuditConfig(LogPublisherCfg config) throws ConfigException
   {
-    return new PublisherConfig(config).isCommonAudit();
+    String name = getConfigNormalizedName(config);
+    return accessPublishers.containsKey(name) || httpAccessPublishers.containsKey(name);
   }
 
   /**
@@ -679,6 +682,11 @@ public class CommonAudit
   public boolean isHttpAccessLogEnabled()
   {
     return !httpAccessPublishers.isEmpty();
+  }
+
+  private String getConfigNormalizedName(LogPublisherCfg config)
+  {
+    return config.dn().toNormalizedUrlSafeString();
   }
 
   /**
@@ -966,9 +974,10 @@ public class CommonAudit
   /**
    * Contains the parameters for an external handler.
    * <p>
-   * OpenDJ log publishers that logs to an external handler have the same parameters but do not share
-   * a common ancestor with all the parameters (e.g Access Log, HTTP Access Log, ...), hence this class
-   * is necessary to avoid duplicating code that setup the configuration of an external handler.
+   * OpenDJ log publishers that logs to an external handler have the same
+   * parameters but do not share a common ancestor with all the parameters (e.g
+   * Access Log, HTTP Access Log, ...), hence this class is necessary to avoid
+   * duplicating code that setup the configuration of an external handler.
    */
   private static class ExternalConfigData
   {
