@@ -5,25 +5,37 @@ COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
 Version: forgerock-util.jar (3.0.0)
-Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
+           Portions Copyright 2011-2015 ForgeRock AS.
 
 Version: grizzly-framework.jar (2.3.14)
 Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
 
 Version: i18n-core.jar (1.4.2)
-Copyright: Copyright (c) 2011-2014 ForgeRock AS.
+Copyright: Copyright 2011 ForgeRock AS
+           Copyright 2007-2009 Sun Microsystems, Inc.
 
 Version: i18n-slf4j.jar (1.4.2)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2014 ForgeRock AS
 
 Version: opendj-cli.jar (3.0.0)
-Copyright: Copyright (c) 2014-2015 ForgeRock AS.
+Copyright: Copyright 2014-2015 ForgeRock AS.
+           Copyright 2006-2010 Sun Microsystems, Inc.
+           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2009 Parametric Technology Corporation (PTC)
 
 Version: opendj-core.jar (3.0.0)
-Copyright: Copyright (c) 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright 2006-2011 Sun Microsystems, Inc.
+           Copyright 2013-2014 Manuel Gaupp
+           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2012-2014 Manuel Gaupp
 
 Version: opendj-grizzly.jar (3.0.0)
-Copyright: Copyright (c) 2013-2015 ForgeRock AS.
+Copyright: Copyright 2013-2015 ForgeRock AS.
+           Copyright 2009-2010 Sun Microsystems, Inc.
+           Portions Copyright 2011-2015 ForgeRock AS.
 
 ==================
 Full license text:
