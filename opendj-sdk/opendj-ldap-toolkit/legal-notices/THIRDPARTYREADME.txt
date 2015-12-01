@@ -9,7 +9,7 @@ Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
            Portions Copyright 2011-2015 ForgeRock AS.
 
-Version: grizzly-framework.jar (2.3.14)
+Version: grizzly-framework.jar (2.3.23)
 Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
 
 Version: i18n-core.jar (1.4.2)
