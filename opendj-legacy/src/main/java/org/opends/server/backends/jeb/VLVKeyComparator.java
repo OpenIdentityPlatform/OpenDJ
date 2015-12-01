@@ -35,6 +35,8 @@ import org.opends.legacy.DummyByteArrayComparator;
  */
 @Deprecated
 public class VLVKeyComparator extends DummyByteArrayComparator {
+    private static final long serialVersionUID = 1585167927344130604L;
+
     @Override
     public int compare(byte[] b1, byte[] b2) {
         return 0;

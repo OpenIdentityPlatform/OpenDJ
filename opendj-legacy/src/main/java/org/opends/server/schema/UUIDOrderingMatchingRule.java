@@ -25,6 +25,7 @@
 package org.opends.server.schema;
 
 import org.opends.legacy.DummyByteArrayComparator;
+import org.opends.server.api.OrderingMatchingRule;
 
 /**
  * Required by rebuild-index process when upgrading to OpenDJ3.
@@ -32,6 +33,6 @@ import org.opends.legacy.DummyByteArrayComparator;
  * @deprecated since OPENDJ-1591 Migrate matching rules
  */
 @Deprecated
-public class UUIDOrderingMatchingRule extends DummyByteArrayComparator {
+public class UUIDOrderingMatchingRule extends DummyByteArrayComparator implements OrderingMatchingRule {
     private static final long serialVersionUID = -3877941142853469687L;
 }

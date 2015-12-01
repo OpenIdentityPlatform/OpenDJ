@@ -20,19 +20,16 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2015 ForgeRock AS
  */
-package org.opends.server.schema;
-
-import org.opends.legacy.DummyByteArrayComparator;
-import org.opends.server.api.OrderingMatchingRule;
+package org.opends.server.api;
 
 /**
  * Required by rebuild-index process when upgrading to OpenDJ3.
  *
  * @deprecated since OPENDJ-1591 Migrate matching rules
+ * @deprecated since OPENDJ-2337 Remove old JE local-db backend code and JE changelog
  */
 @Deprecated
-public class NumericStringOrderingMatchingRule extends DummyByteArrayComparator implements OrderingMatchingRule {
-    private static final long serialVersionUID = 388436004219363604L;
+public interface OrderingMatchingRule {
 }

@@ -20,19 +20,25 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *
+ *      Copyright 2015 ForgeRock AS
  */
-package org.opends.server.schema;
-
-import org.opends.legacy.DummyByteArrayComparator;
-import org.opends.server.api.OrderingMatchingRule;
 
 /**
- * Required by rebuild-index process when upgrading to OpenDJ3.
- *
- * @deprecated since OPENDJ-1591 Migrate matching rules
+ * Contains a number of API declarations for use throughout the
+ * Directory Server.  Whenever possible, these APIs should be declared
+ * using abstract classes rather than interfaces so that they can be
+ * altered in future versions without impacting backward
+ * compatibility.
+ * <BR><BR>
+ * Note that the mere existence of a class or interface in this
+ * package does not in itself imply that it is intended for use by
+ * third party code.  Please refer to the official product
+ * documentation to indicate which APIs may be safely used by anyone
+ * other than the core Directory Server developers.  Failure to heed
+ * this warning may result in code that could have unintended side
+ * effects or that does not work properly across different Directory
+ * Server versions.
  */
-@Deprecated
-public class NumericStringOrderingMatchingRule extends DummyByteArrayComparator implements OrderingMatchingRule {
-    private static final long serialVersionUID = 388436004219363604L;
-}
+package org.opends.server.api;
+
