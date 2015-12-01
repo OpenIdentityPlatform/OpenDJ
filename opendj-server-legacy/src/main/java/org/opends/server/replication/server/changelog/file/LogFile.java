@@ -204,11 +204,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   private void ensureLogFileIsValid(final RecordParser<K, V> parser) throws ChangelogException
   {
-    BlockLogReader<K, V> reader = null;
-    try
+    try(final RandomAccessFile readerWriter = new RandomAccessFile(logfile, "rws");
+        final BlockLogReader<K, V> reader = BlockLogReader.newReader(logfile, readerWriter, parser))
     {
-      final RandomAccessFile readerWriter = new RandomAccessFile(logfile, "rws");
-      reader = BlockLogReader.newReader(logfile, readerWriter, parser) ;
       final long lastValidPosition = reader.checkLogIsValid();
       if (lastValidPosition != -1)
       {
@@ -222,10 +220,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
       throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_RECOVER_LOG_FILE.get(
           logfile.getPath(),
           StaticUtils.stackTraceToSingleLineString(e)));
-    }
-    finally
-    {
-      StaticUtils.close(reader);
     }
   }
 
@@ -258,11 +252,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   void dumpAsTextFile(File dumpFile) throws ChangelogException
   {
-    DBCursor<Record<K, V>> cursor = getCursor();
-    BufferedWriter textWriter = null;
-    try
+    try(final BufferedWriter textWriter = new BufferedWriter(new FileWriter(dumpFile));
+        final DBCursor<Record<K, V>> cursor = getCursor())
     {
-      textWriter = new BufferedWriter(new FileWriter(dumpFile));
       while (cursor.getRecord() != null)
       {
         Record<K, V> record = cursor.getRecord();
@@ -279,10 +271,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
       throw new ChangelogException(
           LocalizableMessage.raw("Error when dumping content of log '%s' in target file : '%s'", getPath(), dumpFile),
           e);
-    }
-    finally
-    {
-      StaticUtils.close(textWriter);
     }
   }
 
@@ -348,15 +336,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   Record<K, V> getOldestRecord() throws ChangelogException
   {
-    DBCursor<Record<K, V>> cursor = null;
-    try
+    try (final DBCursor<Record<K, V>> cursor = getCursor())
     {
-      cursor = getCursor();
       return cursor.next() ? cursor.getRecord() : null;
-    }
-    finally
-    {
-      StaticUtils.close(cursor);
     }
   }
 
@@ -393,20 +375,14 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   long getNumberOfRecords() throws ChangelogException
   {
     // TODO  : need a more efficient way to retrieve it
-    DBCursor<Record<K, V>> cursor = null;
-    try
+    try(final DBCursor<Record<K, V>> cursor = getCursor())
     {
-      cursor = getCursor();
       long counter = 0L;
       while (cursor.next())
       {
         counter++;
       }
       return counter;
-    }
-    finally
-    {
-      StaticUtils.close(cursor);
     }
   }
 
@@ -438,8 +414,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   void delete() throws ChangelogException
   {
-    final boolean isDeleted = logfile.delete();
-    if (!isDeleted)
+    if (!logfile.delete())
     {
       throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_DELETE_LOG_FILE.get(getPath()));
     }
