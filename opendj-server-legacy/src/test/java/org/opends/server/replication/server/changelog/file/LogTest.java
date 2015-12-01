@@ -187,13 +187,13 @@ public class LogTest extends DirectoryServerTestCase
       { "key010", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 10, 10 },
       { "key011", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
 
-      { "key000", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 1, 10 },
-      { "key001", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 10 },
-      { "key004", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 5, 10 },
+      { "key000", GREATER_THAN_OR_EQUAL_TO_KEY,  AFTER_MATCHING_KEY, 1, 10 },
+      { "key001", GREATER_THAN_OR_EQUAL_TO_KEY,  AFTER_MATCHING_KEY, 2, 10 },
+      { "key004", GREATER_THAN_OR_EQUAL_TO_KEY,  AFTER_MATCHING_KEY, 5, 10 },
       { "key0050", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 6, 10 },
-      { "key009", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 10, 10 },
-      { "key010", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
-      { "key011", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key009", GREATER_THAN_OR_EQUAL_TO_KEY,  AFTER_MATCHING_KEY, 10, 10 },
+      { "key010", GREATER_THAN_OR_EQUAL_TO_KEY,  AFTER_MATCHING_KEY, -1, -1 },
+      { "key011", GREATER_THAN_OR_EQUAL_TO_KEY,  AFTER_MATCHING_KEY, -1, -1 },
     };
   }
 
@@ -273,38 +273,6 @@ public class LogTest extends DirectoryServerTestCase
         assertThat(writeLog.getOldestRecord()).as("write changelog " + i).isEqualTo(Record.from("key001", "value1"));
         assertThat(readLog.getNewestRecord()).as("read changelog " + i).isEqualTo(record);
         assertThat(readLog.getOldestRecord()).as("read changelog " + i).isEqualTo(Record.from("key001", "value1"));
-      }
-    }
-  }
-
-  @Test
-  public void testTwoConcurrentWrite() throws Exception
-  {
-    try (Log<String, String> writeLog1 = openLog(LogFileTest.RECORD_PARSER);
-        Log<String, String> writeLog2 = openLog(LogFileTest.RECORD_PARSER))
-    {
-      writeLog1.append(Record.from("key020", "starting record"));
-      AtomicReference<ChangelogException> exceptionRef = new AtomicReference<>();
-      Thread write1 = getWriteLogThread(writeLog1, "a", exceptionRef);
-      Thread write2 = getWriteLogThread(writeLog2, "b", exceptionRef);
-      write1.run();
-      write2.run();
-
-      write1.join();
-      write2.join();
-      if (exceptionRef.get() != null)
-      {
-        throw exceptionRef.get();
-      }
-      writeLog1.syncToFileSystem();
-
-      try (DBCursor<Record<String, String>> cursor = writeLog1.getCursor("key020"))
-      {
-        for (int i = 1; i <= 61; i++)
-        {
-          assertThat(cursor.next()).isTrue();
-        }
-        assertThat(cursor.getRecord()).isIn(Record.from("nkb030", "vb30"), Record.from("nka030", "va30"));
       }
     }
   }
