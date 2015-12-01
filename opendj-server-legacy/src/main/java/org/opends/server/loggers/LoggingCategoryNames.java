@@ -120,8 +120,8 @@ public class LoggingCategoryNames
     // administration tool.
     NAMES.put("org.opends.admin.ads", "DSCONFIG");
 
-    // The category used for messages associated with the runtime information
-    //NAMES.put("org.opends.server", "RUNTIME_INFORMATION");
+    // The category used for messages associated with common audit.
+    NAMES.put("org.forgerock.audit", "AUDIT");
   }
 
   /**
