@@ -430,6 +430,7 @@
                 <messageFile>org/opends/messages/core.properties</messageFile>
                 <messageFile>org/opends/messages/dsconfig.properties</messageFile>
                 <messageFile>org/opends/messages/extension.properties</messageFile>
+                <messageFile>org/opends/messages/external.properties</messageFile>
                 <messageFile>org/opends/messages/logger.properties</messageFile>
                 <messageFile>org/opends/messages/plugin.properties</messageFile>
                 <messageFile>org/opends/messages/protocol.properties</messageFile>
@@ -1633,6 +1634,7 @@
                     <!-- Ignore following message files as we document only serious errors. -->
                     <!-- <messageFileName>access_control</messageFileName> -->
                     <!-- <messageFileName>admin_tool</messageFileName> -->
+                    <!-- <messageFileName>external</messageFileName> -->
                     <!-- <messageFileName>quicksetup.properties</messageFileName> -->
                     <!-- <messageFileName>runtime_information.properties</messageFileName> -->
                     <!-- <messageFileName>version.properties</messageFileName> -->

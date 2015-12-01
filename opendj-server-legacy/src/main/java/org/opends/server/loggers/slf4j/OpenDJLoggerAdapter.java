@@ -25,6 +25,8 @@
  */
 package org.opends.server.loggers.slf4j;
 
+import static org.opends.messages.ExternalMessages.INFO_EXTERNAL_LIB_MESSAGE;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedMarker;
 import org.opends.messages.Severity;
@@ -59,8 +61,13 @@ import org.slf4j.helpers.MessageFormatter;
  * However, to support logger calls from external libraries, calls without a Marker are supported,
  * by creating a raw LocalizableMessage on the fly.
  * <p>
- * Note that these methods are never called directly. Instead, OpenDJ code instantiates a LocalizedLogger
+ * Note that these methods are never called directly from OpenDJ.
+ * Instead, OpenDJ code instantiates a LocalizedLogger
  * which then delegates to the underlying SLF4J logger.
+ * <p>
+ * For third party libraries (e.g commons-audit, grizzly),
+ * messages with trace and debug level will end in the debug logger.
+ * Messages with other levels will end in the error logger.
  */
 final class OpenDJLoggerAdapter implements Logger {
     /** Name of logger, used as the category. */
@@ -91,39 +98,50 @@ final class OpenDJLoggerAdapter implements Logger {
     /** Format a message containing '{}' as arguments placeholder. */
     private String formatMessage(String message, Object...args)
     {
+      if (args == null || args.length == 0) {
+          return message;
+      }
       return MessageFormatter.arrayFormat(message, args).getMessage();
     }
 
     /** Trace with message only. */
-    private void logTraceMessage(String msg) {
+    private void publishInDebugLogger(String msg) {
         tracer.trace(msg);
     }
 
     /** Trace with message and exception. */
-    private void logTraceException(String message, Throwable t) {
+    private void publishInDebugLogger(String message, Throwable t) {
         tracer.traceException(message, t);
     }
 
     /**
-     * Log a message to {@code ErrorLogger} with the provided severity,
-     * extracting {@code LocalizableMessage} from the provided
-     * {@code Marker marker} argument.
+     * Log a message to {@code ErrorLogger} with the provided severity.
+     * <p>
+     * If this method is called from OpenDJ libraries,
+     * extracting {code LocalizableMessage} from the provided {code Marker marker} argument,
+     * otherwise log the provided {@param message}.
      *
      * @param marker
      *            The marker, expected to be an instance of
      *            {@code LocalizedMarker} class, from which message to log is
      *            extracted.
+     * @param message
+     *            The message to log if this logger is called by external libraries.
      * @param severity
      *            The severity to use when logging message.
      * @param throwable
      *            Exception to log. May be {@code null}.
      */
-    private void logError(Marker marker, Severity severity, Throwable throwable) {
+    private void publish(Marker marker, String message, Severity severity, Throwable throwable) {
         if (marker instanceof LocalizedMarker) {
-            LocalizableMessage message = ((LocalizedMarker) marker).getMessage();
-            logError(message, severity, throwable);
+            // OpenDJ logs with all severity levels but trace.
+            publishInErrorLogger(((LocalizedMarker) marker).getMessage(), severity, throwable);
+        } else if (severity == Severity.DEBUG) {
+            // Third party messages with debug level go to the debug logger.
+            publishInDebugLogger(message, throwable);
         } else {
-            throw new IllegalStateException("Expecting the marker to be an instance of LocalizedMarker");
+            // Other Third party messages.
+            publishInErrorLogger(message, severity, throwable);
         }
     }
 
@@ -140,15 +158,14 @@ final class OpenDJLoggerAdapter implements Logger {
      * @param throwable
      *            Exception to log. May be {@code null}.
      */
-    private void logError(String message, Severity severity, Throwable throwable) {
-      logError(LocalizableMessage.raw(message), severity, throwable);
+    private void publishInErrorLogger(String message, Severity severity, Throwable throwable) {
+      // Use a LocalizedMessage template instead of raw() to avoid null message resource name and ID in logs.
+      publishInErrorLogger(INFO_EXTERNAL_LIB_MESSAGE.get(message), severity, throwable);
     }
 
-    /** Performs the actual logging to {@code ErrorLogger}. */
-    private void logError(LocalizableMessage message, Severity severity, Throwable throwable) {
-      ErrorLogger.log(name, severity, message, throwable);
+    private void publishInErrorLogger(LocalizableMessage localizableMessage, Severity severity, Throwable throwable) {
+        ErrorLogger.log(name, severity, localizableMessage, throwable);
     }
-
 
     @Override
     public boolean isTraceEnabled() {
@@ -157,22 +174,30 @@ final class OpenDJLoggerAdapter implements Logger {
 
     @Override
     public void trace(String msg) {
-        logTraceMessage(msg);
+        if (isTraceEnabled()) {
+            publishInDebugLogger(msg);
+        }
     }
 
     @Override
     public void trace(Marker marker, String msg) {
-        logTraceMessage(msg);
+        if (isTraceEnabled()) {
+            publishInDebugLogger(msg);
+        }
     }
 
     @Override
     public void trace(String msg, Throwable t) {
-        logTraceException(msg, t);
+        if (isTraceEnabled()) {
+            publishInDebugLogger(msg, t);
+        }
     }
 
     @Override
     public void trace(Marker marker, String msg, Throwable t) {
-        logTraceException(msg, t);
+        if (isTraceEnabled()) {
+            publishInDebugLogger(msg, t);
+        }
     }
 
     @Override
@@ -182,12 +207,16 @@ final class OpenDJLoggerAdapter implements Logger {
 
     @Override
     public void debug(Marker marker, String msg) {
-        logError(marker, Severity.INFORMATION, null);
+        if (isDebugEnabled()) {
+            publish(marker, msg, Severity.INFORMATION, null);
+        }
     }
 
     @Override
     public void debug(Marker marker, String msg, Throwable t) {
-        logError(marker, Severity.INFORMATION, t);
+        if (isDebugEnabled()) {
+            publish(marker, msg, Severity.INFORMATION, t);
+        }
     }
 
     @Override
@@ -197,12 +226,16 @@ final class OpenDJLoggerAdapter implements Logger {
 
     @Override
     public void info(Marker marker, String msg) {
-        logError(marker, Severity.NOTICE, null);
+        if (isInfoEnabled()) {
+            publish(marker, msg, Severity.NOTICE, null);
+        }
     }
 
     @Override
     public void info(Marker marker, String msg, Throwable t) {
-        logError(marker, Severity.NOTICE, t);
+        if (isInfoEnabled()) {
+            publish(marker, msg, Severity.NOTICE, t);
+        }
     }
 
     @Override
@@ -212,12 +245,16 @@ final class OpenDJLoggerAdapter implements Logger {
 
     @Override
     public void warn(Marker marker, String msg) {
-        logError(marker, Severity.WARNING, null);
+        if (isWarnEnabled()) {
+            publish(marker, msg, Severity.WARNING, null);
+        }
     }
 
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
-        logError(marker, Severity.WARNING, t);
+        if (isWarnEnabled()) {
+            publish(marker, msg, Severity.WARNING, t);
+        }
     }
 
     @Override
@@ -227,12 +264,16 @@ final class OpenDJLoggerAdapter implements Logger {
 
     @Override
     public void error(Marker marker, String msg) {
-        logError(marker, Severity.ERROR, null);
+        if (isErrorEnabled()) {
+            publish(marker, msg, Severity.ERROR, null);
+        }
     }
 
     @Override
     public void error(Marker marker, String msg, Throwable t) {
-        logError(marker, Severity.ERROR, t);
+        if (isErrorEnabled()) {
+            publish(marker, msg, Severity.ERROR, t);
+        }
     }
 
     @Override
@@ -262,191 +303,270 @@ final class OpenDJLoggerAdapter implements Logger {
 
     @Override
     public void trace(String message, Object arg) {
-      logTraceMessage(formatMessage(message, arg));
+        if (isTraceEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg));
+        }
     }
 
     @Override
     public void trace(String message, Object arg1, Object arg2) {
-      logTraceMessage(formatMessage(message, arg1, arg2));
+        if (isTraceEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg1, arg2));
+        }
     }
 
     @Override
     public void trace(String message, Object... argArray) {
-      logTraceMessage(formatMessage(message, argArray));
+        if (isTraceEnabled()) {
+            publishInDebugLogger(formatMessage(message, argArray));
+        }
     }
 
     @Override
     public void trace(Marker marker, String message, Object arg) {
-      logTraceMessage(formatMessage(message, arg));
+        if (isTraceEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg));
+        }
     }
 
     @Override
     public void trace(Marker marker, String message, Object arg1, Object arg2) {
-      logTraceMessage(formatMessage(message, arg1, arg2));
+        if (isTraceEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg1, arg2));
+        }
     }
 
     @Override
     public void trace(Marker marker, String message, Object... argArray) {
-      logTraceMessage(formatMessage(message, argArray));
+        if (isTraceEnabled()) {
+            publishInDebugLogger(formatMessage(message, argArray));
+        }
+    }
+
+    // Methods below should only by used by third-party libraries.
+    // Such third-party libraries include, but are not limited to: commons-audit, grizzly, etc.
+
+    @Override
+    public void debug(String msg, Throwable t) {
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(msg, (Object[]) null), t);
+        }
     }
 
     @Override
     public void debug(String msg) {
-      logError(msg, Severity.INFORMATION, null);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(msg, (Object[]) null), null);
+        }
     }
 
     @Override
     public void debug(String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.INFORMATION, null);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg), null);
+        }
     }
 
     @Override
     public void debug(String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.INFORMATION, null);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg1, arg2), null);
+        }
     }
 
     @Override
     public void debug(String message, Object... argArray) {
-      logError(formatMessage(message, argArray), Severity.INFORMATION, null);
-    }
-
-    @Override
-    public void debug(String msg, Throwable t) {
-      logError(msg, Severity.INFORMATION, t);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(message, argArray), null);
+        }
     }
 
     @Override
     public void debug(Marker marker, String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.INFORMATION, null);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg), null);
+        }
     }
 
     @Override
     public void debug(Marker marker, String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.INFORMATION, null);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(message, arg1, arg2), null);
+        }
     }
 
     @Override
     public void debug(Marker marker, String message, Object... arguments) {
-      logError(formatMessage(message, arguments), Severity.INFORMATION, null);
-    }
-
-    @Override
-    public void info(String msg) {
-      logError(msg, Severity.NOTICE, null);
-    }
-
-    @Override
-    public void info(String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.NOTICE, null);
-    }
-
-    @Override
-    public void info(String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.NOTICE, null);
-    }
-
-    @Override
-    public void info(String message, Object... argArray) {
-      logError(formatMessage(message, argArray), Severity.NOTICE, null);
+        if (isDebugEnabled()) {
+            publishInDebugLogger(formatMessage(message, arguments), null);
+        }
     }
 
     @Override
     public void info(String msg, Throwable t) {
-      logError(msg, Severity.NOTICE, t);
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(msg, (Object[]) null), Severity.INFORMATION, t);
+        }
+    }
+
+    @Override
+    public void info(String msg) {
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(msg, (Object[]) null), Severity.INFORMATION, null);
+        }
+    }
+
+    @Override
+    public void info(String message, Object arg) {
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg), Severity.INFORMATION, null);
+        }
+    }
+
+    @Override
+    public void info(String message, Object arg1, Object arg2) {
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg1, arg2), Severity.INFORMATION, null);
+        }
+    }
+
+    @Override
+    public void info(String message, Object... argArray) {
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(message, argArray), Severity.INFORMATION, null);
+        }
     }
 
     @Override
     public void info(Marker marker, String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.NOTICE, null);
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg), Severity.INFORMATION, null);
+        }
     }
 
     @Override
     public void info(Marker marker, String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.NOTICE, null);
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg1, arg2), Severity.INFORMATION, null);
+        }
     }
 
     @Override
     public void info(Marker marker, String message, Object... arguments) {
-      logError(formatMessage(message, arguments), Severity.NOTICE, null);
-    }
-
-    @Override
-    public void warn(String msg) {
-      logError(msg, Severity.WARNING, null);
-    }
-
-    @Override
-    public void warn(String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.WARNING, null);
-    }
-
-    @Override
-    public void warn(String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.WARNING, null);
-    }
-
-    @Override
-    public void warn(String message, Object... argArray) {
-      logError(formatMessage(message, argArray), Severity.WARNING, null);
+        if (isInfoEnabled()) {
+            publishInErrorLogger(formatMessage(message, arguments), Severity.INFORMATION, null);
+        }
     }
 
     @Override
     public void warn(String msg, Throwable t) {
-      logError(msg, Severity.WARNING, t);
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(msg, (Object[]) null), Severity.WARNING, t);
+        }
+    }
+
+    @Override
+    public void warn(String msg) {
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(msg, (Object[]) null), Severity.WARNING, null);
+        }
+    }
+
+    @Override
+    public void warn(String message, Object arg) {
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg), Severity.WARNING, null);
+        }
+    }
+
+    @Override
+    public void warn(String message, Object arg1, Object arg2) {
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg1, arg2), Severity.WARNING, null);
+        }
+    }
+
+    @Override
+    public void warn(String message, Object... argArray) {
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(message, argArray), Severity.WARNING, null);
+        }
     }
 
     @Override
     public void warn(Marker marker, String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.WARNING, null);
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg), Severity.WARNING, null);
+        }
     }
 
     @Override
     public void warn(Marker marker, String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.WARNING, null);
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg1, arg2), Severity.WARNING, null);
+        }
     }
 
     @Override
     public void warn(Marker marker, String message, Object... arguments) {
-      logError(formatMessage(message, arguments), Severity.WARNING, null);
-    }
-
-    @Override
-    public void error(String msg) {
-      logError(msg, Severity.ERROR, null);
-    }
-
-    @Override
-    public void error(String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.ERROR, null);
-    }
-
-    @Override
-    public void error(String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.ERROR, null);
-    }
-
-    @Override
-    public void error(String message, Object... arguments) {
-      logError(formatMessage(message, arguments), Severity.ERROR, null);
+        if (isWarnEnabled()) {
+            publishInErrorLogger(formatMessage(message, arguments), Severity.WARNING, null);
+        }
     }
 
     @Override
     public void error(String msg, Throwable t) {
-      logError(msg, Severity.ERROR, t);
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(msg, (Object[]) null), Severity.ERROR, t);
+        }
+    }
+
+    @Override
+    public void error(String msg) {
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(msg, Severity.ERROR, null), Severity.ERROR, null);
+        }
+    }
+
+    @Override
+    public void error(String message, Object arg) {
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg), Severity.ERROR, null);
+        }
+    }
+
+    @Override
+    public void error(String message, Object arg1, Object arg2) {
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg1, arg2), Severity.ERROR, null);
+        }
+    }
+
+    @Override
+    public void error(String message, Object... arguments) {
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(message, arguments), Severity.ERROR, null);
+        }
     }
 
     @Override
     public void error(Marker marker, String message, Object arg) {
-      logError(formatMessage(message, arg), Severity.ERROR, null);
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg), Severity.ERROR, null);
+        }
     }
 
     @Override
     public void error(Marker marker, String message, Object arg1, Object arg2) {
-      logError(formatMessage(message, arg1, arg2), Severity.ERROR, null);
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(message, arg1, arg2), Severity.ERROR, null);
+        }
     }
 
     @Override
     public void error(Marker marker, String message, Object... arguments) {
-      logError(formatMessage(message, arguments), Severity.ERROR, null);
+        if (isErrorEnabled()) {
+            publishInErrorLogger(formatMessage(message, arguments), Severity.ERROR, null);
+        }
     }
 }
