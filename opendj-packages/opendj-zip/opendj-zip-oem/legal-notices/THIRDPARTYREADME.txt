@@ -16,16 +16,16 @@ Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
 
-Version: grizzly-framework.jar (2.3.14)
+Version: grizzly-framework.jar (2.3.23)
 Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
 
-Version: grizzly-http-server.jar (2.3.16)
+Version: grizzly-http-server.jar (2.3.23)
 Copyright: Copyright (c) 2011 Oracle and/or its affiliates. All rights reserved.
 
-Version: grizzly-http-servlet.jar (2.3.16)
+Version: grizzly-http-servlet.jar (2.3.23)
 Copyright: Copyright (c) 2008-2012 Oracle and/or its affiliates. All rights reserved.
 
-Version: grizzly-http.jar (2.3.16)
+Version: grizzly-http.jar (2.3.23)
 Copyright: Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
 
 Version: forgerock-util.jar (3.0.0)
