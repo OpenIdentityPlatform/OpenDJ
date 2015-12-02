@@ -267,7 +267,7 @@ Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 Version: jackson-databind.jar (2.6.3)
 Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 
-Version: forgerock-persistit-core.jar (4.1.0)
+Version: forgerock-persistit-core.jar (4.3.0)
 Copyright: Copyright 2005-2013 Akiban Technologies, Inc.
            Copyright 2014 SonarSource
            Portions Copyright 2015 ForgeRock AS.
