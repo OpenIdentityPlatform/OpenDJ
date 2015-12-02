@@ -303,6 +303,106 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
   @Test
+  public void testSearchNonExistingDN_baseObject() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request =
+        Requests.newSearchRequest("uid=doesNotExist," + BASE, SearchScope.BASE_OBJECT, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+  }
+
+  @Test
+  public void testSearchExistingDN_baseObject() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request = Requests.newSearchRequest(BASE, SearchScope.BASE_OBJECT, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(getEntryNames(searchOp)).containsExactly(BASE);
+  }
+
+  @Test
+  public void testSearchNonExistingDN_singleLevel() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request =
+        Requests.newSearchRequest("uid=doesNotExist," + BASE, SearchScope.SINGLE_LEVEL, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+  }
+
+  @Test
+  public void testSearchExistingDN_singleLevel() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request = Requests.newSearchRequest(BASE, SearchScope.SINGLE_LEVEL, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(getEntryNames(searchOp)).containsExactly(
+        "uid=rogasawara," + BASE,
+        "ou=level1," + BASE);
+  }
+
+  @Test
+  public void testSearchNonExisting_subordinates() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request =
+        Requests.newSearchRequest("uid=doesNotExist," + BASE, SearchScope.SUBORDINATES, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+  }
+
+  @Test
+  public void testSearchExistingDN_subordinates() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request = Requests.newSearchRequest(BASE, SearchScope.SUBORDINATES, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(getEntryNames(searchOp)).containsExactly(
+        "uid=rogasawara," + BASE,
+        "ou=level1," + BASE,
+        "ou=level2,ou=level1," + BASE);
+  }
+
+  @Test
+  public void testSearchNonExisting_wholeSubtree() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request =
+        Requests.newSearchRequest("uid=doesNotExist," + BASE, SearchScope.WHOLE_SUBTREE, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT);
+  }
+
+  @Test
+  public void testSearchExistingDN_wholeSubtree() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+    SearchRequest request = Requests.newSearchRequest(BASE, SearchScope.WHOLE_SUBTREE, "(objectclass=*)");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
+    assertThat(searchOp.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(getEntryNames(searchOp)).containsExactly(
+        BASE,
+        "uid=rogasawara," + BASE,
+        "ou=level1," + BASE,
+        "ou=level2,ou=level1," + BASE);
+  }
+
+  private List<String> getEntryNames(InternalSearchOperation searchOp)
+  {
+    List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    List<String> results = new ArrayList<>(entries.size());
+    for (SearchResultEntry entry : entries)
+    {
+      results.add(entry.getName().toString());
+    }
+    return results;
+  }
+
+  @Test
   public void testSearchInternalUnspecifiedAttributes() throws Exception
   {
     InternalSearchOperation searchOperation = newInternalSearchOperation("(objectclass=inetorgperson)");

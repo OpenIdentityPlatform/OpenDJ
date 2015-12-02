@@ -285,14 +285,14 @@ class DN2ID extends AbstractTree
       SequentialCursorDecorator<Cursor<ByteString, ByteString>, ByteString, ByteString>
   {
     private final ByteStringBuilder builder;
-    private final ByteString limit;
+    private final ByteSequence limit;
     private boolean cursorOnParent;
 
     ChildrenCursor(Cursor<ByteString, ByteString> delegate)
     {
       super(delegate);
       builder = new ByteStringBuilder(128);
-      limit = delegate.isDefined() ? afterKey(delegate.getKey()).toByteString() : null;
+      limit = delegate.isDefined() ? afterKey(delegate.getKey()) : ByteString.empty();
       cursorOnParent = true;
     }
 
@@ -323,12 +323,12 @@ class DN2ID extends AbstractTree
   private static final class SubtreeCursor extends
       SequentialCursorDecorator<Cursor<ByteString, ByteString>, ByteString, ByteString>
   {
-    private final ByteString limit;
+    private final ByteSequence limit;
 
     SubtreeCursor(Cursor<ByteString, ByteString> delegate)
     {
       super(delegate);
-      limit = delegate.isDefined() ? afterKey(delegate.getKey()).toByteString() : null;
+      limit = delegate.isDefined() ? afterKey(delegate.getKey()) : ByteString.empty();
     }
 
     @Override
