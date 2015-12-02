@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.*;
 
+import org.assertj.core.api.SoftAssertions;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -169,7 +170,6 @@ public class SearchOperationTestCase extends OperationTestCase
     assertNotNull(DirectoryServer.getEntry(e.getName()));
   }
 
-
   @Override
   protected Operation[] createTestOperations() throws Exception
   {
@@ -188,11 +188,7 @@ public class SearchOperationTestCase extends OperationTestCase
     assertTrue(searchOperation.getProcessingStopTime() > 0);
     assertTrue(searchOperation.getProcessingTime() >= 0);
 
-//    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
-//    assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);
-//    assertEquals(InvocationCounterPlugin.getPostOperationCount(), 1);
     ensurePostReponseHasRun();
-//    assertEquals(InvocationCounterPlugin.getPostResponseCount(), 1);
   }
 
   private Entry getSingleEntry(InternalSearchOperation searchOperation)
@@ -211,8 +207,7 @@ public class SearchOperationTestCase extends OperationTestCase
        throws Exception
   {
     // Establish a connection to the server.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    try
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
       LDAPWriter w = new LDAPWriter(s);
@@ -226,7 +221,6 @@ public class SearchOperationTestCase extends OperationTestCase
       // operation has completed.
       assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
-
       InvocationCounterPlugin.resetAllCounters();
 
       long searchRequests   = ldapStatistics.getSearchRequests();
@@ -234,8 +228,7 @@ public class SearchOperationTestCase extends OperationTestCase
       long searchReferences = ldapStatistics.getSearchResultReferences();
       long searchesDone     = ldapStatistics.getSearchResultsDone();
 
-      LDAPMessage message;
-      message = new LDAPMessage(2, searchRequest, controls);
+      LDAPMessage message = new LDAPMessage(2, searchRequest, controls);
       w.writeMessage(message);
 
       SearchResultEntryProtocolOp searchResultEntry = null;
@@ -255,8 +248,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
             searchResultDone = message.getSearchResultDoneProtocolOp();
-            assertEquals(searchResultDone.getResultCode(),
-                         LDAPResultCode.SUCCESS);
+            assertThat(searchResultDone.getResultCode()).isEqualTo(LDAPResultCode.SUCCESS);
 //            assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
             searchesDone++;
             break;
@@ -266,15 +258,10 @@ public class SearchOperationTestCase extends OperationTestCase
       TestCaseUtils.quiesceServer();
       assertEquals(ldapStatistics.getSearchRequests(), searchRequests+1);
       assertEquals(ldapStatistics.getSearchResultEntries(), searchEntries);
-      assertEquals(ldapStatistics.getSearchResultReferences(),
-                   searchReferences);
+      assertEquals(ldapStatistics.getSearchResultReferences(), searchReferences);
       assertEquals(ldapStatistics.getSearchResultsDone(), searchesDone);
 
       return searchResultEntry;
-    }
-    finally
-    {
-      s.close();
     }
   }
 
@@ -287,7 +274,6 @@ public class SearchOperationTestCase extends OperationTestCase
     // operation has completed.
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
-
     InvocationCounterPlugin.resetAllCounters();
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(
@@ -298,7 +284,6 @@ public class SearchOperationTestCase extends OperationTestCase
 
     message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-//    assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
   }
 
@@ -322,14 +307,9 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InternalSearchOperation searchOperation = newInternalSearchOperation("(objectclass=inetorgperson)");
     Entry resultEntry = getSingleEntry(searchOperation);
-
-    assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
-
-    // Search results contain objectClass as an attribute.
-    assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size() + 1);
-
-    assertEquals(resultEntry.getOperationalAttributes().size(), 0);
+    assertObjectClassesAndUserAttributes(
+        resultEntry, testEntry.getObjectClasses(), testEntry.getUserAttributes().size() + 1);
+    assertThat(resultEntry.getOperationalAttributes()).isEmpty();
   }
 
   @Test
@@ -339,12 +319,7 @@ public class SearchOperationTestCase extends OperationTestCase
     SearchRequest request = Requests.newSearchRequest(BASE, SearchScope.WHOLE_SUBTREE, "(objectclass=inetorgperson)")
         .setTypesOnly(true);
     Entry resultEntry = getSingleEntry(getRootConnection().processSearch(request));
-
-    assertEquals(resultEntry.getObjectClasses().size(), 0);
-
-    assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size() + 1);
-    assertEquals(resultEntry.getOperationalAttributes().size(), 0);
+    assertEntrySizes(resultEntry, 0, testEntry.getUserAttributes().size() + 1, 0);
   }
 
   @Test
@@ -352,10 +327,9 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InternalSearchOperation searchOperation = newInternalSearchOperation("(objectclass=inetorgperson)", "+");
     Entry resultEntry = getSingleEntry(searchOperation);
-
-    assertEquals(resultEntry.getObjectClasses().size(), 0);
-    assertEquals(resultEntry.getUserAttributes().size(), 0);
-    assertTrue(!resultEntry.getOperationalAttributes().isEmpty());
+    assertThat(resultEntry.getObjectClasses()).isEmpty();
+    assertThat(resultEntry.getUserAttributes()).isEmpty();
+    assertThat(resultEntry.getOperationalAttributes()).isNotEmpty();
   }
 
   @Test
@@ -363,13 +337,9 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InternalSearchOperation searchOperation = newInternalSearchOperation("(objectclass=inetorgperson)", "*", "+");
     Entry resultEntry = getSingleEntry(searchOperation);
-
-    assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
-    assertTrue(!resultEntry.getOperationalAttributes().isEmpty());
-
-    // Search results contain objectClass as an attribute.
-    assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size() + 1);
+    assertObjectClassesAndUserAttributes(
+        resultEntry, testEntry.getObjectClasses(), testEntry.getUserAttributes().size() + 1);
+    assertThat(resultEntry.getOperationalAttributes()).isNotEmpty();
   }
 
   @Test
@@ -378,14 +348,18 @@ public class SearchOperationTestCase extends OperationTestCase
     InternalSearchOperation searchOperation =
         newInternalSearchOperation("(objectclass=inetorgperson)", "*", "createtimestamp");
     Entry resultEntry = getSingleEntry(searchOperation);
+    assertObjectClassesAndUserAttributes(
+        resultEntry, testEntry.getObjectClasses(), testEntry.getUserAttributes().size() + 1);
+    assertThat(resultEntry.getOperationalAttributes()).hasSize(1);
+  }
 
-    assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
-
-    // Search results contain objectClass as an attribute.
-    assertEquals(resultEntry.getUserAttributes().size(),
-                 testEntry.getUserAttributes().size() + 1);
-
-    assertEquals(resultEntry.getOperationalAttributes().size(), 1);
+  private void assertObjectClassesAndUserAttributes(Entry resultEntry, Map<ObjectClass, String> objectClasses,
+      int nbUserAttrs)
+  {
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(resultEntry.getObjectClasses()).as("Object classes").isEqualTo(objectClasses);
+    softly.assertThat(resultEntry.getUserAttributes()).as("User attributes").hasSize(nbUserAttrs);
+    softly.assertAll();
   }
 
   @Test
@@ -394,10 +368,16 @@ public class SearchOperationTestCase extends OperationTestCase
     InternalSearchOperation searchOperation =
         newInternalSearchOperation("(objectclass=inetorgperson)", "uid", "createtimestamp");
     Entry resultEntry = getSingleEntry(searchOperation);
+    assertEntrySizes(resultEntry, 0, 1, 1);
+  }
 
-    assertEquals(resultEntry.getObjectClasses().size(), 0);
-    assertEquals(resultEntry.getUserAttributes().size(), 1);
-    assertEquals(resultEntry.getOperationalAttributes().size(), 1);
+  private void assertEntrySizes(Entry resultEntry, int nbOCs, int nbUserAttrs, int nbOperationalAttrs)
+  {
+    SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(resultEntry.getObjectClasses()).as("Object classes").hasSize(nbOCs);
+    softly.assertThat(resultEntry.getUserAttributes()).as("User attributes").hasSize(nbUserAttrs);
+    softly.assertThat(resultEntry.getOperationalAttributes()).as("Operational attributes").hasSize(nbOperationalAttrs);
+    softly.assertAll();
   }
 
   private InternalSearchOperation newInternalSearchOperation(String filter, String... attributes) throws Exception
@@ -421,15 +401,13 @@ public class SearchOperationTestCase extends OperationTestCase
               false,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
               null);
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-    assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(ldapAttrCount);
   }
 
   @Test
   public void testSearchExternalAllUserAttributes() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -439,15 +417,13 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               false,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-    assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
+              newLinkedHashSet("*"));
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(ldapAttrCount);
   }
 
   @Test
-  public void testSearchExternalUnspecifiedAttributesOmitValues()
-       throws Exception
+  public void testSearchExternalUnspecifiedAttributesOmitValues() throws Exception
   {
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
@@ -459,20 +435,18 @@ public class SearchOperationTestCase extends OperationTestCase
               true,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
               null);
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
     // The attributes will include the objectclass type.
-    assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
+    assertThat(searchResultEntry.getAttributes()).hasSize(ldapAttrCount);
     for (LDAPAttribute a : searchResultEntry.getAttributes())
     {
-      assertEquals(a.getValues().size(), 0);
+      assertThat(a.getValues()).isEmpty();
     }
   }
 
   @Test
   public void testSearchExternalAllUserAttributesOmitValues() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("*");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -482,21 +456,20 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               true,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
+              newLinkedHashSet("*"));
+
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
     // The attributes will include the objectclass type.
-    assertEquals(searchResultEntry.getAttributes().size(), ldapAttrCount);
+    assertThat(searchResultEntry.getAttributes()).hasSize(ldapAttrCount);
     for (LDAPAttribute a : searchResultEntry.getAttributes())
     {
-      assertEquals(a.getValues().size(), 0);
+      assertThat(a.getValues()).isEmpty();
     }
   }
 
   @Test
   public void testSearchExternalObjectClassAttribute() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -506,21 +479,16 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               false,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
+              newLinkedHashSet("objectclass"));
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-
-    assertEquals(searchResultEntry.getAttributes().size(), 1);
-    assertEquals(searchResultEntry.getAttributes().
-         getFirst().getValues().size(), 4);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(1);
+    assertThat(searchResultEntry.getAttributes().getFirst().getValues()).hasSize(4);
   }
 
   @Test
-  public void testSearchExternalObjectClassAttributeOmitValues()
-       throws Exception
+  public void testSearchExternalObjectClassAttributeOmitValues() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("objectclass");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -530,20 +498,16 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               true,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
+              newLinkedHashSet("objectclass"));
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-
-    assertEquals(searchResultEntry.getAttributes().size(), 1);
-    assertEquals(searchResultEntry.getAttributes().
-         getFirst().getValues().size(), 0);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(1);
+    assertThat(searchResultEntry.getAttributes().getFirst().getValues()).isEmpty();
   }
 
   @Test
   public void testSearchExternalSelectedAttributes() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("uid", "createtimestamp");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -553,18 +517,15 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               false,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
+              newLinkedHashSet("uid", "createtimestamp"));
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-
-    assertEquals(searchResultEntry.getAttributes().size(), 2);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(2);
   }
 
   @Test
   public void testSearchExternalAttributeWithSubtypes() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -574,19 +535,15 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               false,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
+              newLinkedHashSet("title"));
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-
-    assertEquals(searchResultEntry.getAttributes().size(), 4);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(4);
   }
 
   @Test
-  public void testSearchExternalAttributeWithSubtypesOmitValues()
-       throws Exception
+  public void testSearchExternalAttributeWithSubtypesOmitValues() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("title");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -596,22 +553,20 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               true,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
+              newLinkedHashSet("title"));
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
 
-    assertEquals(searchResultEntry.getAttributes().size(), 4);
+    assertThat(searchResultEntry.getAttributes()).hasSize(4);
     for (LDAPAttribute a : searchResultEntry.getAttributes())
     {
-      assertEquals(a.getValues().size(), 0);
+      assertThat(a.getValues()).isEmpty();
     }
   }
 
   @Test
   public void testSearchExternalAttributeWithOptions() throws Exception
   {
-    LinkedHashSet<String> attributes = newLinkedHashSet("title;lang-ja;phonetic");
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(
               ByteString.valueOfUtf8(BASE),
@@ -621,12 +576,10 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               false,
               LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes);
+              newLinkedHashSet("title;lang-ja;phonetic"));
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, null);
-
-    assertEquals(searchResultEntry.getAttributes().size(), 1);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, null);
+    assertThat(searchResultEntry.getAttributes()).hasSize(1);
   }
 
   @Test
@@ -649,8 +602,7 @@ public class SearchOperationTestCase extends OperationTestCase
               LDAPFilter.decode("(objectclass=inetorgperson)"),
               null);
 
-    SearchResultEntryProtocolOp searchResultEntry =
-         searchExternalForSingleEntry(searchRequest, controls);
+    SearchResultEntryProtocolOp searchResultEntry = searchExternalForSingleEntry(searchRequest, controls);
 
     // Per RFC 3876, an attribute that has no values selected is returned
     // with an empty set of values.  We should therefore expect all the
@@ -676,9 +628,8 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(searchOperation.getErrorMessage().length(), 0);
     examineCompletedOperation(searchOperation);
 
-    List<SearchResultReference> references =
-         searchOperation.getSearchReferences();
-    assertEquals(references.size(), 2);
+    List<SearchResultReference> references = searchOperation.getSearchReferences();
+    assertThat(references).hasSize(2);
 
     // One contains 2 URLs, the other contains 3. Cannot guarantee
     // ordering of the returned references, so just check the total is correct.
@@ -707,12 +658,9 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(searchOperation.getErrorMessage().length(), 0);
     examineCompletedOperation(searchOperation);
 
-    List<SearchResultReference> references =
-         searchOperation.getSearchReferences();
-    assertEquals(references.size(), 1);
-
-    List<String> referrals = references.get(0).getReferralURLs();
-    assertEquals(referrals.size(), 2);
+    List<SearchResultReference> references = searchOperation.getSearchReferences();
+    assertThat(references).hasSize(1);
+    assertThat(references.get(0).getReferralURLs()).hasSize(2);
   }
 
   @Test
@@ -801,16 +749,10 @@ public class SearchOperationTestCase extends OperationTestCase
     assertNotNull(searchOperation.getMatchedDN());
   }
 
-
-
-  /**
-   * Determines how attributes should be filtered in search operations.
-   */
+  /** Determines how attributes should be filtered in search operations. */
   private enum AttributeFilterType {
     DEFAULT, WILDCARDS, ENUMERATED;
   }
-
-
 
   /**
    * Returns test data for testSearchInternalAttributeFilters.
@@ -820,7 +762,6 @@ public class SearchOperationTestCase extends OperationTestCase
   @DataProvider(name = "testSearchInternalAttributeFilters")
   public Object[][] createTestSearchInternalAttributeFiltersData()
   {
-    // It was quicker to cut n paste...
     return new Object[][] {
         {AttributeFilterType.DEFAULT,     false, false, false},
         {AttributeFilterType.DEFAULT,     false, false, true},
@@ -848,8 +789,6 @@ public class SearchOperationTestCase extends OperationTestCase
         {AttributeFilterType.ENUMERATED,  true,  true,  true},
     };
   }
-
-
 
   /**
    * Tests that attribute filtering is performed correctly for real and
@@ -928,13 +867,78 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);
 
     LinkedList<SearchResultEntry> entries = search.getSearchEntries();
-    assertEquals(entries.size(), 1);
+    assertThat(entries).hasSize(1);
 
     Entry entry = entries.getFirst();
     assertEquals(entry.getName(), userDN);
 
-    // Check real attributes.
+    // Check real attributes and virtual (operational) attributes.
     List<String> messages = new LinkedList<>();
+    checkRealAttributes(typesOnly, stripRealAttributes, realAttrTypes, entry, messages);
+    checkVirtualOperationalAttributes(filterType, typesOnly, stripVirtualAttributes, virtualAttrTypes, entry, messages);
+    assertThat(messages).isEmpty();
+  }
+
+  private void checkVirtualOperationalAttributes(AttributeFilterType filterType, boolean typesOnly,
+      boolean stripVirtualAttributes, List<String> virtualAttrTypes, Entry entry, List<String> messages)
+  {
+    for (String attrType : virtualAttrTypes)
+    {
+      List<Attribute> attrList = entry.getAttribute(attrType);
+
+      if (stripVirtualAttributes)
+      {
+        if (attrList != null)
+        {
+          messages.add("Unexpected virtual attribute: " + attrType);
+        }
+      }
+      else if (filterType == AttributeFilterType.DEFAULT)
+      {
+        if (attrList != null)
+        {
+          messages.add("Unexpected operational attribute: " + attrType);
+        }
+      }
+      else if ("ismemberof".equals(attrType))
+      {
+        // isMemberOf should never be returned as user is not in any groups.
+        if (attrList != null)
+        {
+          messages.add("Unexpected isMemberOf attribute");
+        }
+      }
+      else
+      {
+        if (attrList == null)
+        {
+          messages.add("Missing virtual attribute: " + attrType);
+        }
+        else
+        {
+          Attribute attr = attrList.get(0);
+          if (typesOnly)
+          {
+            if (!attr.isEmpty())
+            {
+              messages.add("Unexpected non-empty virtual attribute: " + attrType);
+            }
+          }
+          else
+          {
+            if (attr.isEmpty())
+            {
+              messages.add("Unexpected empty virtual attribute: " + attrType);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private List<String> checkRealAttributes(boolean typesOnly, boolean stripRealAttributes, List<String> realAttrTypes,
+      Entry entry, List<String> messages)
+  {
     for (String attrType : realAttrTypes)
     {
       List<Attribute> attrList = entry.getAttribute(attrType);
@@ -972,63 +976,7 @@ public class SearchOperationTestCase extends OperationTestCase
         }
       }
     }
-
-    // Check virtual (operational) attributes.
-    for (String attrType : virtualAttrTypes)
-    {
-      List<Attribute> attrList = entry.getAttribute(attrType);
-
-      if (stripVirtualAttributes)
-      {
-        if (attrList != null)
-        {
-          messages.add("Unexpected virtual attribute: " + attrType);
-        }
-      }
-      else if (filterType == AttributeFilterType.DEFAULT)
-      {
-        if (attrList != null)
-        {
-          messages.add("Unexpected operational attribute: " + attrType);
-        }
-      }
-      else if (attrType.equals("ismemberof"))
-      {
-        // isMemberOf should never be returned as user is not in any
-        // groups.
-        if (attrList != null)
-        {
-          messages.add("Unexpected isMemberOf attribute");
-        }
-      }
-      else
-      {
-        if (attrList == null)
-        {
-          messages.add("Missing virtual attribute: " + attrType);
-        }
-        else
-        {
-          Attribute attr = attrList.get(0);
-          if (typesOnly)
-          {
-            if (!attr.isEmpty())
-            {
-              messages.add("Unexpected non-empty virtual attribute: " + attrType);
-            }
-          }
-          else
-          {
-            if (attr.isEmpty())
-            {
-              messages.add("Unexpected empty virtual attribute: " + attrType);
-            }
-          }
-        }
-      }
-    }
-
-    assertThat(messages).isEmpty();
+    return messages;
   }
 
 
@@ -1064,8 +1012,6 @@ public class SearchOperationTestCase extends OperationTestCase
         { Arrays.asList("name;lang-fr"), Arrays.asList("cn;lang-fr") },
         { Arrays.asList("name;LANG-FR"), Arrays.asList("cn;LANG-FR") }, };
   }
-
-
 
   /**
    * Tests that attributes are returned from internal searches using the
@@ -1106,24 +1052,25 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);
 
     LinkedList<SearchResultEntry> entries = search.getSearchEntries();
-    assertEquals(entries.size(), 1);
+    assertThat(entries).hasSize(1);
 
     Entry entry = entries.getFirst();
     assertEquals(entry.getName(), userDN);
 
-    // Check all expected attributes are present and have
-    // the user requested name.
+    // Check all expected attributes are present and have the user requested name.
+    assertThat(getAttributeNames(entry)).containsAll(expectedAttributes);
+  }
+
+  private Set<String> getAttributeNames(Entry entry)
+  {
     List<Attribute> attrList = entry.getAttributes();
     Set<String> actualNames = new HashSet<>();
     for (Attribute attribute : attrList)
     {
       actualNames.add(attribute.getNameWithOptions());
     }
-
-    assertThat(actualNames).containsAll(expectedAttributes);
+    return actualNames;
   }
-
-
 
   /**
    * Tests that attributes are returned from external searches using the
@@ -1158,8 +1105,6 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn;lang-fr: Test Usager",
         "userPassword: password");
 
-    LinkedHashSet<String> attributes = new LinkedHashSet<>(requestedAttributes);
-
     SearchRequestProtocolOp searchRequest =
       new SearchRequestProtocolOp(
           ByteString.valueOfUtf8(userDNString),
@@ -1169,29 +1114,27 @@ public class SearchOperationTestCase extends OperationTestCase
           Integer.MAX_VALUE,
           false,
           LDAPFilter.objectClassPresent(),
-          attributes);
+          new LinkedHashSet<>(requestedAttributes));
 
-    SearchResultEntryProtocolOp entry =
-      searchExternalForSingleEntry(searchRequest, null);
-
+    SearchResultEntryProtocolOp entry = searchExternalForSingleEntry(searchRequest, null);
     assertEquals(entry.getDN(), userDN);
 
-    // Check all expected attributes are present and have
-    // the user requested name.
+    // Check all expected attributes are present and have the user requested name.
+    assertThat(getAttributeNames(entry)).containsAll(expectedAttributes);
+  }
+
+  private Set<String> getAttributeNames(SearchResultEntryProtocolOp entry)
+  {
     LinkedList<LDAPAttribute> attrList = entry.getAttributes();
     Set<String> actualNames = new HashSet<>();
     for (LDAPAttribute attribute : attrList)
     {
       actualNames.add(attribute.getAttributeType());
     }
-
-    assertThat(actualNames).containsAll(expectedAttributes);
+    return actualNames;
   }
 
-
-  /**
-   * Tests the one-level search with a lower allid threshold value.
-   */
+  /** Tests the one-level search with a lower allid threshold value. */
   @Test
   public void testOneLevelSearchWithAllIDThreshold() throws Exception
   {
@@ -1231,11 +1174,10 @@ public class SearchOperationTestCase extends OperationTestCase
         newSearchRequest("dc=example,dc=com", SearchScope.SINGLE_LEVEL, "(objectclass=organizationalUnit)");
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(searchOperation.getSearchEntries().size(),3);
+    assertThat(searchOperation.getSearchEntries()).hasSize(3);
     //restore the allid threshold.
     setAllIdThreshold(4000);
   }
-
 
   /** Sets a value of the allid threshold. */
   private void setAllIdThreshold(int value) throws Exception
