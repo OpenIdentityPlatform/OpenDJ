@@ -4,7 +4,7 @@ DO NOT TRANSLATE OR LOCALIZE
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
-Version: forgerock-util.jar (3.0.0)
+Version: forgerock-util.jar (3.0.1)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
            Portions Copyright 2011-2015 ForgeRock AS.
