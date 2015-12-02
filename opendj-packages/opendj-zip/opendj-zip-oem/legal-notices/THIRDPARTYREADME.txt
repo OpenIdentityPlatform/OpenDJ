@@ -4,14 +4,14 @@ DO NOT TRANSLATE OR LOCALIZE
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
-Version: chf-http-core.jar (2.0.0)
+Version: chf-http-core.jar (2.2.0)
 Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Copyright 2009 Sun Microsystems Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
            Portions Copyright 2010-2011 ApexIdentity Inc.
 
-Version: chf-http-servlet.jar (2.0.0)
+Version: chf-http-servlet.jar (2.2.0)
 Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
@@ -28,7 +28,7 @@ Copyright: Copyright (c) 2008-2012 Oracle and/or its affiliates. All rights rese
 Version: grizzly-http.jar (2.3.23)
 Copyright: Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
 
-Version: forgerock-util.jar (3.0.0)
+Version: forgerock-util.jar (3.0.1)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
            Portions Copyright 2011-2015 ForgeRock AS.
@@ -43,10 +43,10 @@ Copyright: Copyright 2011-2014 ForgeRock AS
 Version: javax.mail-1.5.1.jar
 Copyright: Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
 
-Version: json-resource.jar (4.0.0)
+Version: json-resource.jar (4.0.2)
 Copyright: Copyright 2011-2015 ForgeRock AS.
 
-Version: json-resource-http.jar (4.0.0)
+Version: json-resource-http.jar (4.0.2)
 Copyright: Copyright 2012-2015 ForgeRock AS.
 
 Version: opendj-cli.jar (3.0.0)
