@@ -28,6 +28,22 @@ Copyright: Copyright (c) 2008-2012 Oracle and/or its affiliates. All rights rese
 Version: grizzly-http.jar (2.3.23)
 Copyright: Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
 
+Version: forgerock-audit-core.jar (3.0.0)
+Copyright: Copyright 2011-2015 ForgeRock AS.
+           Copyright 2013 Cybernetica AS
+           Copyright 2006-2008 Sun Microsystems, Inc.
+           Portions Copyright 2013-2015 ForgeRock AS.
+
+Version: forgerock-audit-handler-csv.jar (3.0.0)
+Copyright: Copyright 2015 ForgeRock AS.
+
+Version: forgerock-audit-handler-syslog.jar (3.0.0)
+Copyright: Copyright 2015 ForgeRock AS.
+           Copyright 2013 Cybernetica AS
+
+Version: forgerock-audit-json.jar (3.0.0)
+Copyright: Copyright 2015 ForgeRock AS.
+
 Version: forgerock-util.jar (3.0.1)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
