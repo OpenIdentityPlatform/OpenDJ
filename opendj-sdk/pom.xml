@@ -116,7 +116,7 @@
         <repository>
             <id>forgerock-staging-repository</id>
             <name>ForgeRock Release Repository</name>
-            <url>${maven.releases.repo.url}</url>
+            <url>http://maven.forgerock.org/repo/releases</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -125,7 +125,7 @@
         <repository>
             <id>forgerock-snapshots-repository</id>
             <name>ForgeRock Snapshot Repository</name>
-            <url>${maven.snapshots.repo.url}</url>
+            <url>http://maven.forgerock.org/repo/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -148,9 +148,6 @@
     </modules>
 
     <properties>
-        <maven.snapshots.repo.url>http://maven.forgerock.org/repo/snapshots</maven.snapshots.repo.url>
-        <maven.releases.repo.url>http://maven.forgerock.org/repo/releases</maven.releases.repo.url>
-
         <site.distribution.url>
             scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs
         </site.distribution.url>
