@@ -47,6 +47,7 @@ import org.forgerock.services.context.RequestAuditContext;
 import org.forgerock.services.context.TransactionIdContext;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.ResultHandler;
 import org.forgerock.util.promise.RuntimeExceptionHandler;
 import org.forgerock.util.time.TimeService;
@@ -55,6 +56,10 @@ import org.forgerock.util.time.TimeService;
  * This filter aims to send some access audit events to the AuditService managed as a CREST handler.
  */
 public class CommonAuditHttpAccessAuditFilter implements Filter {
+
+    private static Response newInternalServerError() {
+        return new Response(Status.INTERNAL_SERVER_ERROR);
+    }
 
     private final RequestHandler auditServiceHandler;
     private final TimeService time;
@@ -97,16 +102,17 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
                              new Form().fromRequestQuery(request),
                              request.getHeaders().copyAsMultiMapOfStrings());
 
+        final PromiseImpl<Response, NeverThrowsException> promiseImpl = PromiseImpl.create();
         try {
-            final Promise<Response, NeverThrowsException> promise;
-            promise = next.handle(context, request)
-                    .thenOnResult(onResult(context, accessAuditEventBuilder));
-            promise.thenOnRuntimeException(onRuntimeException(context, accessAuditEventBuilder));
-            return promise;
-        } catch (RuntimeException re) {
-            onRuntimeException(context, accessAuditEventBuilder).handleRuntimeException(re);
-            throw re;
+            next.handle(context, request)
+                    .thenOnResult(onResult(context, accessAuditEventBuilder, promiseImpl))
+                    .thenOnRuntimeException(
+                            onRuntimeException(context, accessAuditEventBuilder, promiseImpl));
+        } catch (RuntimeException e) {
+            onRuntimeException(context, accessAuditEventBuilder, promiseImpl).handleRuntimeException(e);
         }
+
+        return promiseImpl;
     }
 
     // See HttpContext.getRequestPath
@@ -119,24 +125,28 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
     }
 
     private ResultHandler<? super Response> onResult(final Context context,
-                                                     final AccessAuditEventBuilder<?> accessAuditEventBuilder) {
+                                                     final AccessAuditEventBuilder<?> accessAuditEventBuilder,
+                                                     final PromiseImpl<Response, NeverThrowsException> promiseImpl) {
         return new ResultHandler<Response>() {
             @Override
             public void handleResult(Response response) {
                 sendAuditEvent(response, context, accessAuditEventBuilder);
+                promiseImpl.handleResult(response);
             }
 
         };
     }
 
     private RuntimeExceptionHandler onRuntimeException(final Context context,
-                                                       final AccessAuditEventBuilder<?> accessAuditEventBuilder) {
+            final AccessAuditEventBuilder<?> accessAuditEventBuilder,
+            final PromiseImpl<Response, NeverThrowsException> promiseImpl) {
         return new RuntimeExceptionHandler() {
             @Override
             public void handleRuntimeException(RuntimeException exception) {
                 // TODO How to be sure that the final status code sent back with the response will be a 500 ?
-                Response response = new Response(Status.INTERNAL_SERVER_ERROR);
-                sendAuditEvent(response, context, accessAuditEventBuilder);
+                final Response errorResponse = newInternalServerError();
+                sendAuditEvent(errorResponse, context, accessAuditEventBuilder);
+                promiseImpl.handleResult(errorResponse.setCause(exception));
             }
         };
     }
