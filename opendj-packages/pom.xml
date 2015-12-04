@@ -134,6 +134,7 @@
         <lib.folder>lib</lib.folder>
         <!-- Location of the opendj service file for linux based packages. -->
         <sysv.file.location/>
+        <opendj.server.archive.version>3.0.0-M6</opendj.server.archive.version>
     </properties>
 
     <modules>
@@ -184,7 +185,7 @@
                                     <artifactItem>
                                         <groupId>org.forgerock.opendj</groupId>
                                         <artifactId>opendj-server-legacy</artifactId>
-                                        <version>${project.version}</version>
+                                        <version>${opendj.server.archive.version}</version>
                                         <type>zip</type>
                                         <overWrite>true</overWrite>
                                         <outputDirectory>${project.build.directory}</outputDirectory>
