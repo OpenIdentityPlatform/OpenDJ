@@ -59,6 +59,7 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
 
     private static Response newInternalServerError() {
         return new Response(Status.INTERNAL_SERVER_ERROR);
+
     }
 
     private final RequestHandler auditServiceHandler;
@@ -90,9 +91,7 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
                 .eventName(productName + "-" + protocol + "-ACCESS")
                 .timestamp(time.now())
                 .transactionId(txContext.getTransactionId().getValue())
-                .server(clientContext.getLocalAddress(),
-                        clientContext.getLocalPort(),
-                        clientContext.getLocalName())
+                .serverFromContext(clientContext)
                 .client(clientContext.getRemoteAddress(),
                         clientContext.getRemotePort(),
                         clientContext.getRemoteHost())
