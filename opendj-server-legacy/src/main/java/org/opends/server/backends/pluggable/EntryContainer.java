@@ -826,8 +826,7 @@ public class EntryContainer
               final int lookThroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
               final int indexLimit =
                   config.getIndexEntryLimit() == 0 ? CURSOR_ENTRY_LIMIT : config.getIndexEntryLimit();
-              final int idSetLimit =
-                  lookThroughLimit == 0 ? indexLimit : Math.min(indexLimit, lookThroughLimit);
+              final int idSetLimit = lookThroughLimit > 0 ? Math.min(indexLimit, lookThroughLimit) : indexLimit;
 
               final EntryIDSet scopeSet = getIDSetFromScope(txn, aBaseDN, searchScope, idSetLimit);
               entryIDSet.retainAll(scopeSet);
