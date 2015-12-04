@@ -50,9 +50,8 @@ public class LoggingCategoryNames
     NAMES.put("org.opends.server.core", "CORE");
     NAMES.put("org.forgerock.opendj.ldap", "CORE");
 
-    // The category used for messages associated with server
-    //extensions (e.g., extended operations, SASL mechanisms, password storage
-    // schemes, password validators, etc.).
+    // The category used for messages associated with server extensions
+    // (e.g. extended operations, SASL mechanisms, password storage, schemes, password validators, etc.).
     NAMES.put("org.opends.server.extensions", "EXTENSIONS");
 
     // The category used for messages associated with
@@ -66,12 +65,10 @@ public class LoggingCategoryNames
     // The category used for messages associated with the server loggers.
     NAMES.put("org.opends.server.loggers", "LOG");
 
-    // The category used for messages associated with the
-    // general server utilities.
+    // The category used for messages associated with the general server utilities.
     NAMES.put("org.opends.server.util", "UTIL");
 
-    // The category used for messages associated with the
-    // server schema elements.
+    // The category used for messages associated with the server schema elements.
     NAMES.put("org.opends.server.schema", "SCHEMA");
     NAMES.put("org.forgerock.opendj.ldap.schema", "SCHEMA");
 
@@ -79,14 +76,13 @@ public class LoggingCategoryNames
     NAMES.put("org.opends.server.controls", "CONTROLS");
     NAMES.put("org.forgerock.opendj.ldap.controls", "CONTROLS");
 
-    // The category that will be used for messages associated with plugin
-    // processing.
+    // The category that will be used for messages associated with plugin processing.
     NAMES.put("org.opends.server.plugins", "PLUGIN");
 
     // The category used for messages associated with the JE backend.
     NAMES.put("org.opends.server.backends.jeb", "JEB");
 
- // The category used for messages associated with the pluggable backend.
+    // The category used for messages associated with the pluggable backend.
     NAMES.put("org.opends.server.backends.pluggable", "PLUGGABLE");
 
     // The category used for messages associated with the PDB backend.
@@ -107,21 +103,16 @@ public class LoggingCategoryNames
     // The category used for messages associated with Access Control
     NAMES.put("org.opends.server.authorization", "ACCESS_CONTROL");
 
-    // The category used for messages associated with the administration
-    // framework.
+    // The category used for messages associated with the administration framework.
     NAMES.put("org.opends.server.admin", "ADMIN");
 
     // The category used for messages associated with the Synchronization
     NAMES.put("org.opends.server.replication", "SYNC");
 
-    // The category used for messages associated with version information
-    //PACKAGES_TO_NAMES.put("org.opends.server", "VERSION");
-
     // The category used for messages associated with quicksetup tools
     NAMES.put("org.opends.quicksetup", "QUICKSETUP");
 
-    // The category used for messages associated with the tool like the offline
-    // installer and unintaller.
+    // The category used for messages associated with the tool like the offline installer and unintaller.
     NAMES.put("org.opends.quicksetup.offline", "ADMIN_TOOL");
     NAMES.put("org.opends.guitools.uninstaller", "ADMIN_TOOL");
 
