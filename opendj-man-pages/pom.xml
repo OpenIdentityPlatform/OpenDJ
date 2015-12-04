@@ -130,13 +130,14 @@
     <properties>
         <product.name.lowercase>opendj</product.name.lowercase>
         <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
+        <opendj.server.archive.version>3.0.0-M6</opendj.server.archive.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-server-legacy</artifactId>
-            <version>${project.version}</version>
+            <version>${opendj.server.archive.version}</version>
         </dependency>
     </dependencies>
 
@@ -145,7 +146,7 @@
             <plugin>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj-doc-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${opendj.server.archive.version}</version>
                 <executions>
                     <execution>
                         <id>generate-man-pages</id>
