@@ -147,23 +147,32 @@
       <groupId>org.forgerock.http</groupId>
       <artifactId>chf-http-servlet</artifactId>
     </dependency>
- 
+
+    <!-- ForgeRock Common Audit libraries -->
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-core</artifactId>
-    </dependency>  
+    </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-handler-csv</artifactId>
-    </dependency>  
+    </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-json</artifactId>
-    </dependency>  
+    </dependency>
+
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-handler-syslog</artifactId>
-    </dependency>  
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-handler-jdbc</artifactId>
+    </dependency>
 
     <!-- servlet and mail -->
     <dependency>
