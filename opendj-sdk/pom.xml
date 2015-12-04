@@ -35,7 +35,7 @@
 
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-sdk-bom</artifactId>
-    <version>3.0.0-M6</version>
+    <version>3.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -74,7 +74,7 @@
         <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-sdk/browse</url>
         <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</connection>
         <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</developerConnection>
-        <tag>3.0.0-M6</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <ciManagement>
@@ -152,7 +152,7 @@
             scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs
         </site.distribution.url>
 
-        <opendj.sdk.version>3.0.0-M6</opendj.sdk.version>
+        <opendj.sdk.version>3.0.0-SNAPSHOT</opendj.sdk.version>
         <i18n-framework.version>1.4.2</i18n-framework.version>
     </properties>
 
