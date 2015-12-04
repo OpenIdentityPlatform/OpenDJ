@@ -37,6 +37,9 @@ Copyright: Copyright 2011-2015 ForgeRock AS.
 Version: forgerock-audit-handler-csv.jar (3.0.0)
 Copyright: Copyright 2015 ForgeRock AS.
 
+Version: forgerock-audit-handler-jdbc.jar (3.0.0)
+Copyright: Copyright 2015 ForgeRock AS.
+
 Version: forgerock-audit-handler-syslog.jar (3.0.0)
 Copyright: Copyright 2015 ForgeRock AS.
            Copyright 2013 Cybernetica AS
