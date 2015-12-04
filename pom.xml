@@ -146,7 +146,7 @@
 
     <properties>
         <product.name>OpenDJ</product.name>
-        <opendj.core.test.jar.version>3.0.0-SNAPSHOT</opendj.core.test.jar.version>
+        <opendj.core.test.jar.version>3.0.0-M6</opendj.core.test.jar.version>
     </properties>
 
 
