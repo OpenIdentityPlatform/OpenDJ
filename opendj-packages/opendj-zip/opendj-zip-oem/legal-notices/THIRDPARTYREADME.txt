@@ -100,7 +100,7 @@ Copyright: Copyright 2013-2015 ForgeRock AS.
            Copyright 2006-2009 Sun Microsystems, Inc.
            Portions Copyright 2013-2015 ForgeRock AS.
 
-Version: OpenDJ[-*].jar (3.0.0)
+Version: OpenDJ.jar (3.0.0)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright 2005-2011 Sun Microsystems, Inc.
            Copyright 2011-2012 profiq s.r.o.
