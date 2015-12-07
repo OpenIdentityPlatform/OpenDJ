@@ -54,6 +54,7 @@
             ${product.name.lowercase}/legal-notices/THIRDPARTYREADME.txt
         </oem.file.exclusion.list>
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
+        <opendj.server.archive.version>3.0.0-M6</opendj.server.archive.version>
     </properties>
 
     <dependencies>
@@ -64,7 +65,7 @@
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-server-legacy</artifactId>
-            <version>${project.version}</version>
+            <version>${opendj.server.archive.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sleepycat</groupId>
@@ -79,7 +80,7 @@
             <plugin>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${opendj.server.archive.version}</version>
                 <configuration>
                     <productJarName>${product.name}</productJarName>
                     <supportedLocales>${product.locales}</supportedLocales>
