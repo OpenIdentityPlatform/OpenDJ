@@ -24,9 +24,7 @@
   !      Copyright 2015 ForgeRock AS.
   !
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -37,7 +35,7 @@
 
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-packages</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-M6</version>
 
     <name>OpenDJ Packages</name>
 
@@ -77,7 +75,7 @@
         <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-packages/browse</url>
         <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-packages.git</connection>
         <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-packages.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>3.0.0-M6</tag>
     </scm>
 
     <ciManagement>
@@ -133,7 +131,7 @@
         <legal.folder>legal-notices</legal.folder>
         <lib.folder>lib</lib.folder>
         <!-- Location of the opendj service file for linux based packages. -->
-        <sysv.file.location/>
+        <sysv.file.location />
         <opendj.server.archive.version>3.0.0-M6</opendj.server.archive.version>
     </properties>
 
