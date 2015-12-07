@@ -62,7 +62,7 @@ public class DebugLogger extends AbstractLogger
    * Trace methods will use this static boolean to determine if debug is enabled
    * so to not incur the cost of calling debugPublishers.isEmpty().
    */
-  static boolean enabled;
+  private static boolean enabled;
 
   private static final LoggerStorage
       <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>
@@ -191,20 +191,16 @@ public class DebugLogger extends AbstractLogger
     return targets;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public final synchronized void addLogPublisher(
-      DebugLogPublisher<DebugLogPublisherCfg> publisher)
+  public final synchronized void addLogPublisher(final DebugLogPublisher<DebugLogPublisherCfg> publisher)
   {
     loggerStorage.addLogPublisher(publisher);
     updateTracerSettings();
     enabled = true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public final synchronized boolean removeLogPublisher(
-      DebugLogPublisher<DebugLogPublisherCfg> publisher)
+  public final synchronized boolean removeLogPublisher(final DebugLogPublisher<DebugLogPublisherCfg> publisher)
   {
     boolean removed = loggerStorage.removeLogPublisher(publisher);
     updateTracerSettings();
@@ -212,7 +208,6 @@ public class DebugLogger extends AbstractLogger
     return removed;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized void removeAllLogPublishers()
   {

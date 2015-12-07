@@ -58,9 +58,8 @@ import org.opends.server.types.InitializationException;
  * the server is starting, and then will manage any additions, removals, or
  * modifications of any loggers while the server is running.
  */
-public class LoggerConfigManager implements
-    ConfigurationAddListener<LogPublisherCfg>,
-    ConfigurationDeleteListener<LogPublisherCfg>
+public class LoggerConfigManager implements ConfigurationAddListener<LogPublisherCfg>,
+                                            ConfigurationDeleteListener<LogPublisherCfg>
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -90,8 +89,7 @@ public class LoggerConfigManager implements
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-  public void initializeLoggerConfig()
-      throws ConfigException, InitializationException
+  public void initializeLoggerConfig() throws ConfigException, InitializationException
   {
     // Create an internal server management context and retrieve
     // the root configuration which has the log publisher relation.
@@ -164,8 +162,7 @@ public class LoggerConfigManager implements
    * @return the logger corresponding to the provided config, null if no logger
    *         corresponds.
    */
-  private AbstractLogger getLoggerInstance(LogPublisherCfg config,
-      List<LocalizableMessage> messages)
+  private AbstractLogger getLoggerInstance(LogPublisherCfg config, List<LocalizableMessage> messages)
   {
     if (config instanceof DebugLogPublisherCfg)
     {
@@ -183,64 +180,51 @@ public class LoggerConfigManager implements
     {
       return ErrorLogger.getInstance();
     }
-    else
-    {
-      messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(config.dn()));
-      return null;
-    }
+
+    messages.add(ERR_CONFIG_LOGGER_INVALID_OBJECTCLASS.get(config.dn()));
+    return null;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationAddAcceptable(LogPublisherCfg config,
-                                              List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAddAcceptable(LogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
     return instance != null
         && instance.isConfigurationAddAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogPublisherCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    AbstractLogger instance = getLoggerInstance(config, ccr.getMessages());
+    final AbstractLogger instance = getLoggerInstance(config, ccr.getMessages());
     if (instance != null)
     {
       return instance.applyConfigurationAdd(config);
     }
-    else
-    {
-      ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-      return ccr;
-    }
+
+    ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+    return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationDeleteAcceptable(LogPublisherCfg config,
-                                              List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationDeleteAcceptable(LogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
   {
-    AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
+    final AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
     return instance != null
         && instance.isConfigurationDeleteAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(LogPublisherCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    AbstractLogger instance = getLoggerInstance(config, ccr.getMessages());
+    final AbstractLogger instance = getLoggerInstance(config, ccr.getMessages());
     if (instance != null)
     {
       return instance.applyConfigurationDelete(config);
     }
-    else
-    {
-      ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-      return ccr;
-    }
+    ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+    return ccr;
   }
 }

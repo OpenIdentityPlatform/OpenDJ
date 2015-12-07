@@ -157,27 +157,21 @@ public class ErrorLogger extends AbstractLogger
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public final synchronized void addLogPublisher(
-      ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
+  public final synchronized void addLogPublisher(final ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
   {
     loggerStorage.addLogPublisher(publisher);
   }
 
-  /** {@inheritDoc} */
   @Override
-  public final synchronized boolean removeLogPublisher(
-      ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
+  public final synchronized boolean removeLogPublisher(final ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
   {
     return loggerStorage.removeLogPublisher(publisher);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized void removeAllLogPublishers()
   {
     loggerStorage.removeAllLogPublishers();
   }
-
 }
