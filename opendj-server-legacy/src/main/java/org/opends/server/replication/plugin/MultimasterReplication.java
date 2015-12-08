@@ -81,6 +81,7 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.util.Platform;
 
 /**
  * This class is used to load the Replication code inside the JVM
@@ -277,7 +278,7 @@ public class MultimasterReplication
     // number of replay threads is changed and apply changes.
     cfg.addReplicationChangeListener(this);
 
-    replayThreadNumber = cfg.getNumUpdateReplayThreads();
+    replayThreadNumber = getNumberOfReplayThreadsOrDefault(cfg);
     connectionTimeoutMS = (int) Math.min(cfg.getConnectionTimeout(), Integer.MAX_VALUE);
 
     //  Create the list of domains that are already defined.
@@ -301,6 +302,12 @@ public class MultimasterReplication
 
     DirectoryServer.registerSupportedControl(
         ReplicationRepairRequestControl.OID_REPLICATION_REPAIR_CONTROL);
+  }
+
+  private int getNumberOfReplayThreadsOrDefault(ReplicationSynchronizationProviderCfg cfg)
+  {
+    Integer value = cfg.getNumUpdateReplayThreads();
+    return value == null ? Platform.computeNumberOfThreads(16, 1.5f) : value;
   }
 
   /**
@@ -780,16 +787,13 @@ public class MultimasterReplication
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      ReplicationSynchronizationProviderCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(ReplicationSynchronizationProviderCfg configuration)
   {
-    int numUpdateRepayThread = configuration.getNumUpdateReplayThreads();
 
     // Stop threads then restart new number of threads
     stopReplayThreads();
-    replayThreadNumber = numUpdateRepayThread;
+    replayThreadNumber = getNumberOfReplayThreadsOrDefault(configuration);
     if (!domains.isEmpty())
     {
       createReplayThreads();

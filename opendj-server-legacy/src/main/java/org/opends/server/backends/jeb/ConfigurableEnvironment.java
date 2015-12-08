@@ -62,6 +62,7 @@ import org.opends.server.types.DN;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
+import org.opends.server.util.Platform;
 
 /** This class maps JE properties to configuration attributes. */
 public class ConfigurableEnvironment
@@ -299,27 +300,26 @@ public class ConfigurableEnvironment
       {
         Object value = method.invoke(cfg);
 
-        if (attrName.equals(ATTR_NUM_CLEANER_THREADS) && value == null)
+        if (value != null)
+        {
+          return String.valueOf(value);
+        }
+
+        if (attrName.equals(ATTR_NUM_CLEANER_THREADS))
         {
           // Automatically choose based on the number of processors. We will use
           // similar heuristics to those used to define the default number of
           // worker threads.
-          int cpus = Runtime.getRuntime().availableProcessors();
-          value = Integer.valueOf(Math.max(24, cpus * 2));
+          value = Platform.computeNumberOfThreads(8, 1.0f);
 
           logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS,
               backendId, (Number) value);
         }
-        else if (attrName.equals(ATTR_NUM_LOCK_TABLES)
-            && value == null)
+        else if (attrName.equals(ATTR_NUM_LOCK_TABLES))
         {
-          // Automatically choose based on the number of processors.
-          // We'll assume that the user has also allowed automatic
-          // configuration of cleaners and workers.
-          int cpus = Runtime.getRuntime().availableProcessors();
-          int cleaners = Math.max(24, cpus * 2);
-          int workers = Math.max(24, cpus * 2);
-          BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
+          // Automatically choose based on the number of processors. We'll assume that the user has also allowed
+          // automatic configuration of cleaners and workers.
+          BigInteger tmp = BigInteger.valueOf(Platform.computeNumberOfThreads(1, 2));
           value = tmp.nextProbablePrime();
 
           logger.debug(INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES, backendId, (Number) value);

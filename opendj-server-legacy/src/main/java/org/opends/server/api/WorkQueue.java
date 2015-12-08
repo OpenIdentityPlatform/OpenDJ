@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.WorkQueueCfg;
@@ -34,8 +35,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
-
-
+import org.opends.server.util.Platform;
 
 /**
  * This class defines the structure and methods that must be
@@ -166,11 +166,8 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
     else
     {
       // Automatically choose based on the number of processors.
-      int cpus = Runtime.getRuntime().availableProcessors();
-      int value = Math.max(24, cpus * 2);
-
+      int value = Platform.computeNumberOfThreads(16, 2);
       logger.debug(INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL, value);
-
       return value;
     }
   }

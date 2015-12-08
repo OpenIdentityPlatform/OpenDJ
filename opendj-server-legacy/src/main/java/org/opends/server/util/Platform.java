@@ -48,6 +48,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Reject;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.CERTANDKEYGEN_PROVIDER;
@@ -608,5 +609,21 @@ public final class Platform
   public static long getUsableMemoryForCaching()
   {
     return IMPL.getUsableMemoryForCaching();
+  }
+
+  /**
+   * Computes the number of replay/worker/cleaner threads based on the number of cpus in the system.
+   * Allows for a multiplier to be specified and a minimum value to be returned if not enough processors
+   * are present in the system.
+   *
+   * @param minimumValue at least this value should be returned.
+   * @param cpuMultiplier the scaling multiplier of the number of threads to return
+   * @return the number of threads based on the number of cpus in the system.
+   * @throws IllegalArgumentException if {@code cpuMultiplier} is a non positive number
+   */
+  public static int computeNumberOfThreads(int minimumValue, float cpuMultiplier)
+  {
+    Reject.ifTrue(cpuMultiplier < 0, "Multiplier must be a positive number");
+    return Math.max(minimumValue, (int)(Runtime.getRuntime().availableProcessors() * cpuMultiplier));
   }
 }

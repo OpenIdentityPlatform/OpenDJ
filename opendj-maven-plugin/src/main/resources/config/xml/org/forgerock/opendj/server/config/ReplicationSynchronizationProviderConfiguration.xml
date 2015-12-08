@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions Copyright 2011 ForgeRock AS
+  !      Portions Copyright 2011-2015 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-synchronization-provider"
   plural-name="replication-synchronization-providers"
@@ -88,11 +88,11 @@
       received for all the replication domains.
     </adm:description>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>
-          10
-        </adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
