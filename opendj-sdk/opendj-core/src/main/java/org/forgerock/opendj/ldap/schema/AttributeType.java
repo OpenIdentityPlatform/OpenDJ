@@ -450,12 +450,14 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * attribute will be the normalized attribute type name followed by the
      * suffix "-oid".
      *
-     * @param schema
-     *            The parent schema.
      * @param name
      *            The name of the place-holder attribute type.
+     * @param syntax
+     *            The syntax of the place-holder attribute type.
+     * @param equalityMatchingRule
+     *            The equality matching rule of the place-holder attribute type.
      */
-    AttributeType(final Schema schema, final String name) {
+    AttributeType(final String name, final Syntax syntax, final MatchingRule equalityMatchingRule) {
         final StringBuilder builder = new StringBuilder(name.length() + 4);
         StaticUtils.toLowerCase(name, builder);
         builder.append("-oid");
@@ -465,12 +467,12 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         this.isObsolete = false;
         this.superiorTypeOID = null;
         this.superiorType = null;
-        this.equalityMatchingRule = schema.getDefaultMatchingRule();
+        this.equalityMatchingRule = equalityMatchingRule;
         this.equalityMatchingRuleOID = equalityMatchingRule.getOID();
         this.orderingMatchingRuleOID = null;
         this.substringMatchingRuleOID = null;
         this.approximateMatchingRuleOID = null;
-        this.syntax = schema.getDefaultSyntax();
+        this.syntax = syntax;
         this.syntaxOID = syntax.getOID();
         this.isSingleValue = false;
         this.isCollective = false;
@@ -577,6 +579,18 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             return oid;
         }
         return names.get(0);
+    }
+
+    /**
+     * Returns the normalized name or OID for this schema definition.
+     * <p>
+     * If it has one or more names, then the lower case primary name will be returned.
+     * If it does not have any names, then the lower case OID will be returned.
+     *
+     * @return The normalized name or OID for this schema definition.
+     */
+    public String getNormalizedNameOrOID() {
+        return normalizedName;
     }
 
     /**

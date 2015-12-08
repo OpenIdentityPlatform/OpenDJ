@@ -1854,7 +1854,7 @@ public final class SchemaBuilder {
                     syntaxBuilder.addToSchema(overwrite);
 
                     buildMatchingRule(enumImpl.getOrderingMatchingRule())
-                        .names(OMR_GENERIC_ENUM_NAME + oid)
+                        .names(OMR_GENERIC_ENUM_NAME + "." + oid)
                         .syntaxOID(oid)
                         .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
                         .implementation(new EnumOrderingMatchingRule(enumImpl))
@@ -2107,9 +2107,9 @@ public final class SchemaBuilder {
 
         final String localSchemaName;
         if (schemaName != null) {
-            localSchemaName = schemaName;
+            localSchemaName = schemaName + "-" + NEXT_SCHEMA_ID.getAndIncrement();
         } else {
-            localSchemaName = String.format("Schema#%d", NEXT_SCHEMA_ID.getAndIncrement());
+            localSchemaName = "Schema#" + NEXT_SCHEMA_ID.getAndIncrement();
         }
 
         Syntax defaultSyntax = numericOID2Syntaxes.get(options.get(DEFAULT_SYNTAX_OID));

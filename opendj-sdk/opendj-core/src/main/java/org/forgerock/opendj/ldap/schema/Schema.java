@@ -88,6 +88,8 @@ public final class Schema {
 
         AttributeType getAttributeType(Schema schema, String name);
 
+        AttributeType getAttributeType(String name, Syntax syntax);
+
         Collection<AttributeType> getAttributeTypes();
 
         List<AttributeType> getAttributeTypesWithName(String name);
@@ -202,8 +204,17 @@ public final class Schema {
 
         @Override
         public AttributeType getAttributeType(final Schema schema, final String name) {
+            return getAttributeType0(name, schema.getDefaultSyntax(), schema.getDefaultMatchingRule());
+        }
+
+        @Override
+        public AttributeType getAttributeType(final String name, final Syntax syntax) {
+            return getAttributeType0(name, syntax, syntax.getEqualityMatchingRule());
+        }
+
+        private AttributeType getAttributeType0(String name, Syntax syntax, MatchingRule equalityMatchingRule) {
             final AttributeType type = strictImpl.getAttributeType0(name);
-            return type != null ? type : new AttributeType(schema, name);
+            return type != null ? type : new AttributeType(name, syntax, equalityMatchingRule);
         }
 
         @Override
@@ -508,6 +519,11 @@ public final class Schema {
                 throw new UnknownSchemaElementException(WARN_NAME_AMBIGUOUS.get(lowerCaseName));
             }
             return oid;
+        }
+
+        @Override
+        public AttributeType getAttributeType(String name, Syntax syntax) {
+            return getAttributeType(null, name);
         }
 
         @Override
@@ -1136,6 +1152,30 @@ public final class Schema {
      */
     public AttributeType getAttributeType(final String name) {
         return impl.getAttributeType(this, name);
+    }
+
+    /**
+     * Returns the attribute type with the specified name or numeric OID.
+     * <p>
+     * If the requested attribute type is not registered in this schema and this
+     * schema is non-strict then a temporary "place-holder" attribute type will
+     * be created and returned. Place holder attribute types have an OID which
+     * is the normalized attribute name with the string {@code -oid} appended.
+     * In addition, they will use the provided syntax and the default matching
+     * rule associated with the syntax.
+     *
+     * @param name
+     *            The name or OID of the attribute type to retrieve.
+     * @param syntax
+     *            The syntax to use when creating the temporary "place-holder" attribute type.
+     * @return The requested attribute type.
+     * @throws UnknownSchemaElementException
+     *             If this is a strict schema and the requested attribute type
+     *             was not found or if the provided name is ambiguous.
+     * @see AttributeType#isPlaceHolder()
+     */
+    public AttributeType getAttributeType(final String name, final Syntax syntax) {
+        return impl.getAttributeType(name, syntax);
     }
 
     /**
@@ -2169,5 +2209,13 @@ public final class Schema {
             return null;
         }
         return parentStructuralObjectClass;
+    }
+
+    @Override
+    public String toString() {
+        return "Schema " + getSchemaName()
+                + " mr=" + getMatchingRules().size()
+                + " syntaxes=" + getSyntaxes().size()
+                + " at=" + getAttributeTypes().size();
     }
 }

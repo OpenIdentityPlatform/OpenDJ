@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -34,6 +34,8 @@ import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -184,18 +186,16 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public void testCopyOnWriteWithChanges() {
-
         final Schema baseSchema = Schema.getCoreSchema();
         final Schema schema =
                 new SchemaBuilder(baseSchema).addAttributeType(
                         "( testtype-oid NAME 'testtype' SUP name )", false).toSchema();
         assertThat(schema).isNotSameAs(baseSchema);
-        assertThat(schema.getObjectClasses().containsAll(baseSchema.getObjectClasses()));
-        assertThat(schema.getObjectClasses().size())
-                .isEqualTo(baseSchema.getObjectClasses().size());
+        assertThat(new ArrayList<>(schema.getObjectClasses())).isEqualTo(
+                new ArrayList<>(baseSchema.getObjectClasses()));
         assertThat(schema.getAttributeTypes().containsAll(baseSchema.getAttributeTypes()));
         assertThat(schema.getAttributeType("testtype")).isNotNull();
-        assertThat(schema.getSchemaName()).isEqualTo(baseSchema.getSchemaName());
+        assertThat(schema.getSchemaName()).startsWith(baseSchema.getSchemaName());
         assertThat(schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS))
                 .isEqualTo(baseSchema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
     }
