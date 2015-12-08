@@ -250,7 +250,6 @@ public abstract class AbstractLogger
         isJavaClassAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(C config,
       List<LocalizableMessage> unacceptableReasons)
@@ -259,13 +258,21 @@ public abstract class AbstractLogger
         isJavaClassAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(C config)
   {
-    final ConfigChangeResult ccr = new ConfigChangeResult();
+    ConfigChangeResult ccr = applyConfigurationAdd(config);
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
+    {
+      config.addChangeListener((ConfigurationChangeListener) this);
+    }
 
-    config.addChangeListener((ConfigurationChangeListener) this);
+    return applyConfigurationAdd0(config);
+  }
+
+  private ConfigChangeResult applyConfigurationAdd0(C config)
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     if(config.isEnabled())
     {
@@ -303,7 +310,6 @@ public abstract class AbstractLogger
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(C config)
   {
@@ -314,8 +320,8 @@ public abstract class AbstractLogger
     {
       if (config.isEnabled())
       {
-        // Needs to be added and enabled.
-        return applyConfigurationAdd(config);
+        // Needs to be added and enabled
+        return applyConfigurationAdd0(config);
       }
     }
     else
