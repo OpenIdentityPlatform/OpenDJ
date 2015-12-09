@@ -402,12 +402,7 @@ class VerifyJob
       if (keyCount != storedEntryCount)
       {
         errorCount++;
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("The stored entry count in id2entry (%d) does " +
-              "not agree with the actual number of entry " +
-              "records found (%d).%n", storedEntryCount, keyCount);
-        }
+        logger.error(ERR_VERIFY_WRONG_ENTRY_COUNT, storedEntryCount, keyCount);
       }
     }
   }
@@ -491,12 +486,12 @@ class VerifyJob
         if (entry == null)
         {
           errorCount++;
-          logger.trace("File dn2id has DN <%s> referencing unknown ID %d%n", key, entryID);
+          logger.error(ERR_VERIFY_DN2ID_UNKNOWN_ID, key, entryID.longValue());
         }
         else if (!key.equals(dnToDNKey(entry.getName(), verifyConfig.getBaseDN().size())))
         {
           errorCount++;
-          logger.trace("File dn2id has DN <%s> referencing entry with wrong DN <%s>%n", key, entry.getName());
+          logger.error(ERR_VERIFY_DN2ID_WRONG_ENTRY, key, entry.getName());
         }
       }
 
@@ -532,8 +527,7 @@ class VerifyJob
     if (expected != currentValue)
     {
       errorCount++;
-      logger.trace("File id2childrenCount has wrong number of children for DN <%s> (got %d, expecting %d)",
-          parent.baseDN, currentValue, expected);
+      logger.error(ERR_VERIFY_ID2COUNT_WRONG_COUNT, parent.baseDN, currentValue, expected);
     }
   }
 
@@ -546,7 +540,7 @@ class VerifyJob
         final EntryID entryID = cursor.getKey();
         if (!id2entry.containsEntryID(txn, entryID))
         {
-          logger.trace("File id2ChildrenCount references non-existing EntryID <%d>%n", entryID);
+          logger.error(ERR_VERIFY_ID2COUNT_WRONG_ID, entryID.longValue());
           errorCount++;
         }
       }
@@ -642,10 +636,7 @@ class VerifyJob
         if (entry == null)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Reference to unknown entry ID %s%n%s", id, keyDump(vlvIndex.toString(), key));
-          }
+          logger.error(ERR_VERIFY_UNKNOWN_ID, id, keyDump(vlvIndex, key));
           continue;
         }
 
@@ -653,11 +644,7 @@ class VerifyJob
         if (expectedKey.compareTo(key) != 0)
         {
           errorCount++;
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Reference to entry ID %s has a key which does not match the expected key%n%s",
-                id, keyDump(vlvIndex.toString(), expectedKey));
-          }
+          logger.error(ERR_VERIFY_ENTRY_NON_MATCHING_KEY, id, keyDump(vlvIndex, expectedKey));
         }
       }
     }
@@ -691,14 +678,14 @@ class VerifyJob
           if (entryIDSet.size() == 0)
           {
             errorCount++;
-            logger.trace("Empty ID list: %n%s", keyDump(index.toString(), key));
+            logger.error(ERR_VERIFY_EMPTY_IDSET, keyDump(index, key));
           }
         }
         catch (Exception e)
         {
           errorCount++;
           logger.traceException(e);
-          logger.trace("Malformed ID list: %n%s", keyDump(index.toString(), key));
+          logger.trace("Malformed ID list: %n%s", keyDump(index, key));
           continue;
         }
 
@@ -712,7 +699,7 @@ class VerifyJob
           {
             if (prevID != null && id.equals(prevID) && logger.isTraceEnabled())
             {
-              logger.trace("Duplicate reference to ID %d%n%s", id, keyDump(index.toString(), key));
+              logger.error(ERR_VERIFY_DUPLICATE_REFERENCE, id.longValue(), keyDump(index, key));
             }
             prevID = id;
 
@@ -731,10 +718,7 @@ class VerifyJob
             if (entry == null)
             {
               errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Reference to unknown ID %d%n%s", id, keyDump(index.toString(), key));
-              }
+              logger.error(ERR_VERIFY_UNKNOWN_REFERENCE, id.longValue(), keyDump(index, key));
               continue;
             }
 
@@ -783,11 +767,7 @@ class VerifyJob
             if (!foundMatchingKey.get())
             {
               errorCount++;
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Reference to entry <%s> which does not match the value%n%s",
-                    entry.getName(), keyDump(index.toString(), key));
-              }
+              logger.error(ERR_VERIFY_UNEXPECTED_REFERENCE, entry.getName(), keyDump(index, key));
             }
           }
         }
@@ -826,18 +806,12 @@ class VerifyJob
       EntryID id = dn2id.get(txn, dn);
       if (id == null)
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("File dn2id is missing key %s.%n", dn);
-        }
+        logger.error(ERR_VERIFY_DN2ID_MISSING_KEY, dn);
         errorCount++;
       }
       else if (!id.equals(entryID))
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("File dn2id has ID %d instead of %d for key %s.%n", id, entryID, dn);
-        }
+        logger.error(ERR_VERIFY_DN2ID_WRONG_ID, id.longValue(), entryID.longValue(), dn);
         errorCount++;
       }
     }
@@ -860,10 +834,7 @@ class VerifyJob
         EntryID id = dn2id.get(txn, parentDN);
         if (id == null)
         {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("File dn2id is missing key %s.%n", parentDN);
-          }
+          logger.error(ERR_VERIFY_DN2ID_MISSING_KEY, parentDN);
           errorCount++;
         }
       }
@@ -888,10 +859,10 @@ class VerifyJob
    *          The bytes of the key.
    * @return A string that may be logged or printed.
    */
-  private static String keyDump(String indexName, ByteSequence key)
+  private static String keyDump(Tree index, ByteSequence key)
   {
     StringBuilder buffer = new StringBuilder(128);
-    buffer.append("Index: ").append(indexName).append(ServerConstants.EOL);
+    buffer.append("Index: ").append(index.toString()).append(ServerConstants.EOL);
     buffer.append("Key:").append(ServerConstants.EOL);
     StaticUtils.byteArrayToHexPlusAscii(buffer, key.toByteArray(), 6);
     return buffer.toString();
@@ -918,10 +889,7 @@ class VerifyJob
       {
         if (vlvIndex.verifyEntry(txn, entryID, entry))
         {
-          if(logger.isTraceEnabled())
-          {
-            logger.trace("Missing entry %s in VLV index %s", entry.getName(), vlvIndex.getName());
-          }
+          logger.error(ERR_VERIFY_MISSING_ENTRY_VLV, entry.getName(), vlvIndex.getName());
           errorCount++;
         }
       }
@@ -968,10 +936,7 @@ class VerifyJob
       ConditionResult cr = indexContainsID(index, txn, key, entryID);
       if (cr == ConditionResult.FALSE)
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Missing ID %d%n%s", entryID, keyDump(index.toString(), key));
-        }
+        logger.error(ERR_VERIFY_MISSING_ID, entryID.longValue(), keyDump(index, key));
         errorCount++;
       }
       else if (cr == ConditionResult.UNDEFINED)
@@ -985,7 +950,7 @@ class VerifyJob
       {
         logger.traceException(e);
 
-        logger.trace("Error reading tree: %s%n%s", e.getMessage(), keyDump(index.toString(), key));
+        logger.trace("Error reading tree: %s%n%s", e.getMessage(), keyDump(index, key));
       }
       errorCount++;
     }
