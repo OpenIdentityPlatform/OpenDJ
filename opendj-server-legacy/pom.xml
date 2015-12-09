@@ -374,7 +374,7 @@
                   <version>${project.version}</version>
                   <type>jar</type>
                   <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</outputDirectory>
+                  <outputDirectory>${old.config.files.path}</outputDirectory>
                   <includes>config/xml/**/*.xml</includes>
                 </artifactItem>
               </artifactItems>
@@ -1037,26 +1037,6 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
-          <!-- Package the example plugin in a zip -->
-          <execution>
-            <id>build-example-package</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>example-plugin</finalName>
-              <addMavenDescriptor>false</addMavenDescriptor>
-              <appendAssemblyId>false</appendAssemblyId>
-              <attach>false</attach>
-              <descriptors>
-                <descriptor>src/main/assembly/example-plugin-assembly.xml</descriptor>
-              </descriptors>
-              <formats>
-                <format>zip</format>
-              </formats>
-            </configuration>
-          </execution>
           <!-- Creates the archive folder -->
           <execution>
             <id>build-opendj-archive</id>

@@ -325,11 +325,5 @@
       <source>${project.build.directory}/upgrade/schema.ldif.${buildRevision}</source>
       <outputDirectory>template/config/upgrade</outputDirectory>
     </file>
-
-    <!-- Adds example-plugin.zip to root directory -->
-    <file>
-      <source>${project.build.directory}/example-plugin.zip</source>
-      <outputDirectory></outputDirectory>
-    </file>
   </files>
 </component>
