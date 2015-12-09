@@ -164,6 +164,7 @@
                             <disabledFile>**/README.txt</disabledFile>
                             <disabledFile>**/THIRDPARTYREADME.txt</disabledFile>
                             <disabledFile>legal-notices/CDDLv1_0.txt</disabledFile>
+                            <disabledFile>**/tests/unit-tests-testng/resource/config-changes.ldif</disabledFile>
                         </disabledFiles>
                     </configuration>
                 </plugin>
