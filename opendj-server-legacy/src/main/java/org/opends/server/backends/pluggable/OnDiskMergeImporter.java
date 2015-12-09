@@ -2656,7 +2656,7 @@ final class OnDiskMergeImporter
   }
 
   /** Buffer used by {@link InMemorySortedChunk} to store and sort data. */
-  private interface Buffer extends Closeable
+  interface Buffer extends Closeable
   {
     void writeInt(int position, int value);
 
@@ -2764,7 +2764,7 @@ final class OnDiskMergeImporter
     }
 
     /** Off-heap buffer using Unsafe memory access. */
-    private final class OffHeapBuffer implements Buffer
+    static final class OffHeapBuffer implements Buffer
     {
       private final long address;
       private final int size;
@@ -2774,7 +2774,7 @@ final class OnDiskMergeImporter
         @Override
         public int read() throws IOException
         {
-          return unsafe.getByte(address + position++);
+          return unsafe.getByte(address + position++) & 0xFF;
         }
       };
       private final OutputStream asOutputStream = new OutputStream()
@@ -2878,7 +2878,7 @@ final class OnDiskMergeImporter
       }
 
       @Override
-      public void close() throws IOException
+      public void close()
       {
         if (!closed)
         {
@@ -2888,8 +2888,8 @@ final class OnDiskMergeImporter
       }
     }
 
-    /** Off-heap buffer using Unsafe memory access. */
-    private final class HeapBuffer implements Buffer
+    /** Heap buffer using ByteBuffer. */
+    static final class HeapBuffer implements Buffer
     {
       private final ByteBuffer buffer;
       private final OutputStream asOutputStream = new OutputStream()

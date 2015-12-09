@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -48,7 +49,10 @@ import org.forgerock.util.Pair;
 import org.mockito.Mockito;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.Buffer;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.HeapBuffer;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.OffHeapBuffer;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Chunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Collector;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.EntryIDSetsCollector;
@@ -70,6 +74,34 @@ import com.forgerock.opendj.util.PackedLong;
 
 public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 {
+  @Test
+  public void testBuffer() throws IOException
+  {
+    try(Buffer buffer = new HeapBuffer(1024))
+    {
+      testBufferImplementation(buffer);
+    }
+    try (Buffer buffer = new OffHeapBuffer(1024))
+    {
+      testBufferImplementation(buffer);
+    }
+  }
+
+  private static void testBufferImplementation(Buffer buffer)
+  {
+    final ByteString binary = ByteString.valueOfBytes(new byte[] { 1, 2, 3, 4 });
+
+    buffer.writeByteSequence(0, binary);
+    buffer.writeInt(4, 1234);
+    buffer.writeCompactUnsignedLong(8, 42);
+    buffer.writeCompactUnsignedLong(9, 0xFFFF);
+
+    assertThat(buffer.readByteString(0, 4)).isEqualTo(binary);
+    assertThat(buffer.readInt(4)).isEqualTo(1234);
+    assertThat(buffer.readCompactUnsignedLong(8)).isEqualTo(42);
+    assertThat(buffer.readCompactUnsignedLong(9)).isEqualTo(0xFFFF);
+  }
+
   @Test
   @SuppressWarnings(value = "resource")
   public void testCollectCursor()
