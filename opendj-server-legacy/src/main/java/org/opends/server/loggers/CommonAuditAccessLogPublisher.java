@@ -284,12 +284,12 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
         .eventName("DJ-" + clientConnection.getProtocol() + "-" + "DISCONNECT")
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
-        .request(clientConnection.getProtocol(),"DISCONNECT")
+        .request(clientConnection.getProtocol(), "DISCONNECT")
         .transactionId(CommonAudit.DEFAULT_TRANSACTION_ID)
         .response(ResponseStatus.SUCCESSFUL, String.valueOf(ResultCode.SUCCESS.intValue()), 0, TimeUnit.MILLISECONDS)
         .ldapConnectionId(clientConnection.getConnectionID())
-        .ldapReason(disconnectReason.toString())
-        .ldapMessage(message.toString());
+        .ldapReason(disconnectReason)
+        .ldapMessage(message);
 
     sendEvent(builder.toEvent());
   }

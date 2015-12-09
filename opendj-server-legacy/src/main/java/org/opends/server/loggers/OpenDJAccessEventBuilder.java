@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.audit.events.AccessAuditEventBuilder;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.json.JsonValue;
 import org.forgerock.util.Reject;
@@ -40,6 +41,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.Control;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
 /**
@@ -142,9 +144,12 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
     return self();
   }
 
-  public T ldapMessage(String msg)
+  public T ldapMessage(LocalizableMessage msg)
   {
-    getLdapValue().put("message", msg);
+    if (msg != null)
+    {
+      getLdapValue().put("message", msg.toString());
+    }
     return self();
   }
 
@@ -181,9 +186,9 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
     return self();
   }
 
-  public T ldapReason(String msg)
+  public T ldapReason(DisconnectReason reason)
   {
-    getLdapValue().put("reason", msg);
+    getLdapValue().put("reason", reason.toString());
     return self();
   }
 
