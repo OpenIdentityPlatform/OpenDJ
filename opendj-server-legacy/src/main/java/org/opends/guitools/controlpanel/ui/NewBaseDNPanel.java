@@ -854,7 +854,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
           }
           args.add("--backendID");
           args.add(getBackendName());
-          args.add("--append");
         }
         else
         {

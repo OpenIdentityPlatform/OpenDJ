@@ -148,14 +148,12 @@ public class ImportLDIF extends TaskTool {
   }
 
   /** Define the command-line arguments that may be used with this program. */
-  private BooleanArgument append;
   private BooleanArgument countRejects;
   private BooleanArgument displayUsage;
   private BooleanArgument isCompressed;
   private BooleanArgument isEncrypted;
   private BooleanArgument overwrite;
   private BooleanArgument quietMode;
-  private BooleanArgument replaceExisting;
   private BooleanArgument skipSchemaValidation;
   private BooleanArgument clearBackend;
   private IntegerArgument randomSeed;
@@ -331,20 +329,6 @@ public class ImportLDIF extends TaskTool {
                               INFO_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE.get());
       argParser.addArgument(templateFile);
 
-
-      append =
-           new BooleanArgument("append", 'a', "append",
-                               INFO_LDIFIMPORT_DESCRIPTION_APPEND.get());
-      argParser.addArgument(append);
-
-
-      replaceExisting =
-           new BooleanArgument(
-                   "replaceexisting", 'r', "replaceExisting",
-                   INFO_LDIFIMPORT_DESCRIPTION_REPLACE_EXISTING.get());
-      argParser.addArgument(replaceExisting);
-
-
       backendID =
            new StringArgument("backendid", 'n', "backendID", false, false, true,
                               INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
@@ -507,8 +491,6 @@ public class ImportLDIF extends TaskTool {
     addAttribute(attributes, ATTR_IMPORT_THREAD_COUNT, threadCount.getValue());
 
     // Optional attributes
-    addAttribute2(attributes, ATTR_IMPORT_APPEND, append);
-    addAttribute2(attributes, ATTR_IMPORT_REPLACE_EXISTING, replaceExisting);
     addAttribute2(attributes, ATTR_IMPORT_BACKEND_ID, backendID);
     addAttribute(attributes, ATTR_IMPORT_INCLUDE_ATTRIBUTE, includeAttributeStrings.getValues());
     addAttribute(attributes, ATTR_IMPORT_EXCLUDE_ATTRIBUTE, excludeAttributeStrings.getValues());
@@ -571,8 +553,7 @@ public class ImportLDIF extends TaskTool {
                            PrintStream err) {
 
 
-    // Perform the initial bootstrap of the Directory Server and process the
-    // configuration.
+    // Perform the initial bootstrap of the Directory Server and process the configuration.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
     if (initializeServer)
     {
@@ -932,21 +913,6 @@ public class ImportLDIF extends TaskTool {
       }
     }
 
-    // Make sure that if the "backendID" argument was provided, no include base
-    // was included, the
-    // "clearBackend" argument was also provided if there are more then one
-    // baseDNs for the backend being imported.
-
-    if(backendID.isPresent() && !includeBranchStrings.isPresent() &&
-       !append.isPresent() &&
-        defaultIncludeBranches.size() > 1 &&
-        !clearBackend.isPresent())
-    {
-      StringBuilder builder = join(backend.getBaseDNs(), " / ");
-      printWrappedText(err, ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(builder, clearBackend.getLongIdentifier()));
-      return 1;
-    }
-
     for (String s : excludeBranchStrings.getValues())
     {
       DN excludeBranch;
@@ -1032,8 +998,6 @@ public class ImportLDIF extends TaskTool {
 
 
       // Create the LDIF import configuration to use when reading the LDIF.
-      importConfig.setAppendToExistingData(append.isPresent());
-      importConfig.setReplaceExistingEntries(replaceExisting.isPresent());
       importConfig.setCompressed(isCompressed.isPresent());
       importConfig.setClearBackend(clearBackend.isPresent());
       importConfig.setEncrypted(isEncrypted.isPresent());
@@ -1217,18 +1181,6 @@ public class ImportLDIF extends TaskTool {
       }
     }
     return false;
-  }
-
-  private StringBuilder join(final DN[] baseDNs, final String separator)
-  {
-    final StringBuilder builder = new StringBuilder();
-    builder.append(baseDNs[0]);
-    for (int i = 1; i < baseDNs.length; i++)
-    {
-      builder.append(separator);
-      builder.append(baseDNs[i]);
-    }
-    return builder;
   }
 
   private Random newRandom()

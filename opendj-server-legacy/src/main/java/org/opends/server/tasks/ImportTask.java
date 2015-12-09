@@ -80,8 +80,6 @@ public class ImportTask extends Task
     argDisplayMap.put(ATTR_IMPORT_LDIF_FILE, INFO_IMPORT_ARG_LDIF_FILE.get());
     argDisplayMap.put(ATTR_IMPORT_TEMPLATE_FILE, INFO_IMPORT_ARG_TEMPLATE_FILE.get());
     argDisplayMap.put(ATTR_IMPORT_RANDOM_SEED, INFO_IMPORT_ARG_RANDOM_SEED.get());
-    argDisplayMap.put(ATTR_IMPORT_APPEND, INFO_IMPORT_ARG_APPEND.get());
-    argDisplayMap.put(ATTR_IMPORT_REPLACE_EXISTING, INFO_IMPORT_ARG_REPLACE_EXISTING.get());
     argDisplayMap.put(ATTR_IMPORT_BACKEND_ID, INFO_IMPORT_ARG_BACKEND_ID.get());
     argDisplayMap.put(ATTR_IMPORT_INCLUDE_BRANCH, INFO_IMPORT_ARG_INCL_BRANCH.get());
     argDisplayMap.put(ATTR_IMPORT_EXCLUDE_BRANCH, INFO_IMPORT_ARG_EXCL_BRANCH.get());
@@ -99,11 +97,9 @@ public class ImportTask extends Task
   }
 
 
-  private boolean append;
   private boolean isCompressed;
   private boolean isEncrypted;
   private boolean overwrite;
-  private boolean replaceExisting;
   private boolean skipSchemaValidation;
   private boolean clearBackend;
   private boolean skipDNValidation;
@@ -156,8 +152,6 @@ public class ImportTask extends Task
 
     AttributeType typeLdifFile = getAttributeTypeOrDefault(ATTR_IMPORT_LDIF_FILE);
     AttributeType typeTemplateFile = getAttributeTypeOrDefault(ATTR_IMPORT_TEMPLATE_FILE);
-    AttributeType typeAppend = getAttributeTypeOrDefault(ATTR_IMPORT_APPEND);
-    AttributeType typeReplaceExisting = getAttributeTypeOrDefault(ATTR_IMPORT_REPLACE_EXISTING);
     AttributeType typeBackendID = getAttributeTypeOrDefault(ATTR_IMPORT_BACKEND_ID);
     AttributeType typeIncludeBranch = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_BRANCH);
     AttributeType typeExcludeBranch = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_BRANCH);
@@ -212,10 +206,8 @@ public class ImportTask extends Task
       }
     }
 
-    append = asBoolean(taskEntry, typeAppend);
     skipDNValidation = asBoolean(taskEntry, typeDNCheckPhase2);
     tmpDirectory = asString(taskEntry, typeTmpDirectory);
-    replaceExisting = asBoolean(taskEntry, typeReplaceExisting);
     backendID = asString(taskEntry, typeBackendID);
     includeBranchStrings = asListOfStrings(taskEntry, typeIncludeBranch);
     excludeBranchStrings = asListOfStrings(taskEntry, typeExcludeBranch);
@@ -331,22 +323,6 @@ public class ImportTask extends Task
       else if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {
         LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      // Make sure that if the "backendID" argument was provided, no include
-      // base was included, and the "append" option was not provided, the
-      // "clearBackend" argument was also provided if there are more then one
-      // baseDNs for the backend being imported.
-      else if(!append && includeBranchStrings.isEmpty() &&
-          backend.getBaseDNs().length > 1 && !clearBackend)
-      {
-        StringBuilder builder = new StringBuilder();
-        for(DN dn : backend.getBaseDNs())
-        {
-          builder.append(dn).append(" ");
-        }
-        LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
-            builder, typeClearBackend.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -517,23 +493,6 @@ public class ImportTask extends Task
         logger.error(ERR_LDIFIMPORT_CANNOT_IMPORT, backendID);
         return TaskState.STOPPED_BY_ERROR;
       }
-      // Make sure that if the "backendID" argument was provided, no include
-      // base was included, and the "append" option was not provided, the
-      // "clearBackend" argument was also provided if there are more then one
-      // baseDNs for the backend being imported.
-      else if(!append && includeBranches.isEmpty() &&
-          backend.getBaseDNs().length > 1 && !clearBackend)
-      {
-        StringBuilder builder = new StringBuilder();
-        builder.append(backend.getBaseDNs()[0]);
-        for(int i = 1; i < backend.getBaseDNs().length; i++)
-        {
-          builder.append(" / ");
-          builder.append(backend.getBaseDNs()[i]);
-        }
-        logger.error(ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND, builder, ATTR_IMPORT_CLEAR_BACKEND);
-        return TaskState.STOPPED_BY_ERROR;
-      }
     }
     else
     {
@@ -657,8 +616,6 @@ public class ImportTask extends Task
     {
       tmpDirectory = "import-tmp";
     }
-    importConfig.setAppendToExistingData(append);
-    importConfig.setReplaceExistingEntries(replaceExisting);
     importConfig.setCompressed(isCompressed);
     importConfig.setEncrypted(isEncrypted);
     importConfig.setClearBackend(clearBackend);

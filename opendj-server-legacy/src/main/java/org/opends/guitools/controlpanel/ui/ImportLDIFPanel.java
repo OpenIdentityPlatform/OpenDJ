@@ -40,13 +40,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -82,9 +80,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JComboBox backends;
   private JTextField file;
   private JCheckBox dataCompressed;
-  private JRadioButton overwrite;
-  private JRadioButton append;
-  private JCheckBox replaceEntries;
   private JCheckBox rejectNotSchemaCompliant;
   private JCheckBox doDNValidationAfter;
   private JCheckBox writeRejects;
@@ -101,7 +96,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JLabel lBackend;
   private JLabel lNoBackendsFound;
   private JLabel lFile;
-  private JLabel lImportType;
   private JLabel lSchemaValidation;
   private JLabel lDNValidation;
   private JLabel lThreads;
@@ -199,7 +193,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
-        setEnabledOK(text != null && text.length() > 0 && !errorPane.isVisible());
+        setEnabledOK(text.length() > 0 && !errorPane.isVisible());
       }
       /** {@inheritDoc} */
       @Override
@@ -248,52 +242,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         INFO_CTRL_PANEL_DATA_IN_FILE_COMPRESSED.get());
     dataCompressed.setOpaque(false);
     add(dataCompressed, gbc);
-
-    gbc.gridx = 0;
-    gbc.gridy ++;
-    gbc.insets.left = 0;
-    gbc.insets.top = 10;
-    gbc.gridwidth = 1;
-    lImportType = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_IMPORT_TYPE_LABEL.get());
-    add(lImportType, gbc);
-
-    overwrite = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_IMPORT_OVERWRITE_LABEL.get());
-    overwrite.setSelected(true);
-    lImportType.setLabelFor(overwrite);
-
-    append =
-      Utilities.createRadioButton(INFO_CTRL_PANEL_IMPORT_APPEND_LABEL.get());
-
-    ButtonGroup group = new ButtonGroup();
-    group.add(overwrite);
-    group.add(append);
-
-    gbc.insets.left = 10;
-    gbc.gridx = 1;
-    gbc.gridwidth = 2;
-    add(overwrite, gbc);
-    gbc.gridy ++;
-    gbc.insets.top = 5;
-    add(append, gbc);
-    append.addChangeListener(new ChangeListener()
-    {
-      /** {@inheritDoc} */
-      @Override
-      public void stateChanged(ChangeEvent ev)
-      {
-        replaceEntries.setEnabled(append.isSelected());
-      }
-    });
-
-    replaceEntries =
-      Utilities.createCheckBox(INFO_CTRL_PANEL_IMPORT_REPLACE_ENTRIES.get());
-    replaceEntries.setOpaque(false);
-    replaceEntries.setEnabled(false);
-    gbc.insets.left = 30;
-    gbc.gridy ++;
-    add(replaceEntries, gbc);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -642,21 +590,13 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       {
         task.canLaunch(newTask, errors);
       }
-      boolean confirmed = true;
       boolean initializeAll = false;
       if (errors.isEmpty())
       {
         Set<DN> replicatedBaseDNs = getReplicatedBaseDNs();
         boolean canInitialize =
           !replicatedBaseDNs.isEmpty() && isServerRunning();
-        if (overwrite.isSelected() && !canInitialize)
-        {
-          confirmed = displayConfirmationDialog(
-              INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-              INFO_CTRL_PANEL_CONFIRMATION_IMPORT_LDIF_DETAILS.get(
-                  backendName));
-        }
-        else if (!overwrite.isSelected() && canInitialize)
+        if (canInitialize)
         {
           ArrayList<String> dns = new ArrayList<>();
           for (DN dn : replicatedBaseDNs)
@@ -668,43 +608,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
               INFO_CTRL_PANEL_CONFIRMATION_INITIALIZE_ALL_DETAILS.get(
                   Utilities.getStringFromCollection(dns, "<br>")));
         }
-        else if (overwrite.isSelected() && canInitialize)
-        {
-          ArrayList<String> dns = new ArrayList<>();
-          for (DN dn : replicatedBaseDNs)
-          {
-            dns.add(dn.toString());
-          }
-          ConfirmInitializeAndImportDialog dlg =
-            new ConfirmInitializeAndImportDialog(
-                Utilities.getParentDialog(this), getInfo());
-          dlg.setMessage(INFO_CTRL_PANEL_CONFIRM_INITIALIZE_TITLE.get(),
-          INFO_CTRL_PANEL_CONFIRMATION_INITIALIZE_ALL_AND_OVERWRITE_DETAILS.get(
-                  backendName, Utilities.getStringFromCollection(dns, "<br>")));
-          dlg.setModal(true);
-          dlg.setVisible(true);
 
-          ConfirmInitializeAndImportDialog.Result result = dlg.getResult();
-          switch (result)
-          {
-          case CANCEL:
-            confirmed = false;
-            break;
-          case INITIALIZE_ALL:
-            confirmed = true;
-            initializeAll = true;
-            break;
-          case IMPORT_ONLY:
-            confirmed = true;
-            initializeAll = false;
-            break;
-            default:
-              throw new RuntimeException("Unexpected result: "+result);
-          }
-        }
-      }
-      if (errors.isEmpty() && confirmed)
-      {
         newTask.setInitializeAll(initializeAll);
         launchOperation(newTask,
             INFO_CTRL_PANEL_IMPORTING_LDIF_SUMMARY.get(backends.getSelectedItem()),
@@ -730,7 +634,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   {
     setPrimaryValid(lBackend);
     setPrimaryValid(lFile);
-    setPrimaryValid(lImportType);
     setPrimaryValid(lSchemaValidation);
     setPrimaryValid(lDNValidation);
     setPrimaryValid(lThreads);
@@ -841,18 +744,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       if (dataCompressed.isSelected())
       {
         args.add("--isCompressed");
-      }
-      if (overwrite.isSelected())
-      {
-        args.add("--clearBackend");
-      }
-      if (append.isSelected())
-      {
-        args.add("--append");
-        if (replaceEntries.isSelected())
-        {
-          args.add("--replaceExisting");
-        }
       }
       if (!rejectNotSchemaCompliant.isSelected())
       {

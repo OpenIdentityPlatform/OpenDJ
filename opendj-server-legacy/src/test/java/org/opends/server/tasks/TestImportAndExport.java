@@ -191,8 +191,6 @@ public class TestImportAndExport extends TasksTestCase
                    "ds-task-import-is-encrypted: FALSE",
                    "ds-task-import-reject-file: " + rejectFile.getPath(),
                    "ds-task-import-overwrite-rejects: FALSE",
-                   "ds-task-import-append: TRUE",
-                   "ds-task-import-replace-existing: TRUE",
                    "ds-task-import-skip-schema-validation: TRUE",
                    "ds-task-import-include-branch: dc=example,dc=com",
                    "ds-task-import-exclude-branch: o=exclude,dc=example,dc=com",
