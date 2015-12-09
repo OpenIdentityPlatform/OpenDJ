@@ -50,16 +50,21 @@
 if [ -f /etc/redhat-release ] ; then
     # Redhat
     . /etc/init.d/functions
+    LOCKFILE=/var/lock/subsys/opendj
 elif [ -f /etc/SuSE-release ] ; then
     # SuSE
     . /etc/rc.status
+    LOCKFILE=/var/run/rcopendj
 elif [ -f /etc/lsb-release ] ; then
     # Debian
     . /lib/lsb/init-functions
+    LOCKFILE=/var/lock/opendj
 elif [ -f /etc/init.d/functions.sh ] ; then
     # Other dist.
     . /etc/init.d/functions.sh
+    LOCKFILE=/tmp/unused-lockfile-opendj
 fi
+# LOCKFILE is used by the service subsystem to know whether the opendj service is started and act upon it
 
 
 # Sets the script vars
@@ -95,6 +100,7 @@ start() {
         echo "Instance is not configured. Please run $INSTALL_ROOT/setup"
         return 1
     fi
+
     echo -n "Starting $DAEMON: "
     # Server is running
     if [ -e $PIDFILE ] ; then
@@ -104,6 +110,7 @@ start() {
         "$INSTALL_ROOT"/bin/start-ds --quiet
         RETVAL=$?
         if [ $RETVAL = 0 ] ; then
+            touch $LOCKFILE
             echo "> SUCCESS."
         else
             echo "> FAILURE."
@@ -132,6 +139,7 @@ stop() {
         else
             echo "> FAILURE."
         fi
+        rm -f $LOCKFILE
         echo ""
         return $RETVAL
     else

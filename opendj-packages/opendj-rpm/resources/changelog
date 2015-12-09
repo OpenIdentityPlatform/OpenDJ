@@ -27,6 +27,9 @@
 # =============================
 
 %changelog
+* Wed Dec  9 2015 ForgeRock
+- init.d service script now generates and removes a lockfile.
+
 * Thu Mar  5 2015 ForgeRock
 - Package is now build using maven.
 
