@@ -43,7 +43,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.loggers.CommonAuditAccessLogPublisher
+          org.opends.server.loggers.ExternalAccessLogPublisher
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
