@@ -37,6 +37,7 @@ import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.task.Task;
+import org.opends.server.core.ServerContext;
 
 /**
  * This class defines the wrapper that will invoke all registered error loggers
@@ -161,17 +162,30 @@ public class ErrorLogger extends AbstractLogger
   public final synchronized void addLogPublisher(final ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
   {
     loggerStorage.addLogPublisher(publisher);
+    adjustJulLevel();
   }
 
   @Override
   public final synchronized boolean removeLogPublisher(final ErrorLogPublisher<ErrorLogPublisherCfg> publisher)
   {
-    return loggerStorage.removeLogPublisher(publisher);
+    final boolean removed = loggerStorage.removeLogPublisher(publisher);
+    adjustJulLevel();
+    return removed;
   }
 
   @Override
   public final synchronized void removeAllLogPublishers()
   {
     loggerStorage.removeAllLogPublishers();
+    adjustJulLevel();
+  }
+
+  private void adjustJulLevel()
+  {
+    final ServerContext serverContext = getServerContext();
+    if (serverContext != null)
+    {
+      serverContext.getLoggerConfigManager().adjustJulLevel();
+    }
   }
 }

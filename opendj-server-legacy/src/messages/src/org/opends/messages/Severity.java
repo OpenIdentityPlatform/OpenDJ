@@ -46,31 +46,21 @@ import java.util.Collections;
     mayInvoke=true)
 public enum Severity {
 
-  /**
-   * The severity that will be used for informational messages.
-   */
-  INFORMATION("INFO"),
-
-  /**
-   * The severity that will be used for warning messages.
-   */
-  WARNING("WARN"),
-
-  /**
-   * The severity that will be used for warning messages.
-   */
-  ERROR("ERR"),
-
-  /**
-   * The severity that will be used for debug messages.
-   */
+  /** The severity that will be used for debug messages. */
   DEBUG("DEBUG"),
 
-  /**
-   * The severity that will be used for important informational
-   * messages.
-   */
-  NOTICE("NOTE");
+  /** The severity that will be used for informational messages. */
+  INFORMATION("INFO"),
+
+  /** The severity that will be used for important informational messages. */
+  NOTICE("NOTE"),
+
+  /** The severity that will be used for warning messages. */
+  WARNING("WARN"),
+
+  /** The severity that will be used for warning messages. */
+  ERROR("ERR");
+
 
   private static Set<String> PROPERTY_KEY_FORM_VALUES_SET;
 

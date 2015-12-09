@@ -106,4 +106,11 @@ public interface ServerContext
    * @return the common audit manager
    */
   CommonAudit getCommonAudit();
+
+  /**
+   * Returns the logger config manager.
+   *
+   * @return the logger config manager
+   */
+  LoggerConfigManager getLoggerConfigManager();
 }

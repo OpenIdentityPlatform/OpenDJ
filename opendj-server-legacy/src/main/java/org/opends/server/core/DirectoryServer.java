@@ -764,6 +764,12 @@ public final class DirectoryServer
     {
       return directoryServer.commonAudit;
     }
+
+    @Override
+    public LoggerConfigManager getLoggerConfigManager()
+    {
+      return directoryServer.loggerConfigManager;
+    }
   }
 
   /**

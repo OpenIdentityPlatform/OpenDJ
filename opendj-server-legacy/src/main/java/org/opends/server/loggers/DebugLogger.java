@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.opends.server.core.ServerContext;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging
@@ -197,6 +198,7 @@ public class DebugLogger extends AbstractLogger
     loggerStorage.addLogPublisher(publisher);
     updateTracerSettings();
     enabled = true;
+    adjustJulLevel();
   }
 
   @Override
@@ -205,6 +207,7 @@ public class DebugLogger extends AbstractLogger
     boolean removed = loggerStorage.removeLogPublisher(publisher);
     updateTracerSettings();
     enabled = !loggerStorage.getLogPublishers().isEmpty();
+    adjustJulLevel();
     return removed;
   }
 
@@ -214,6 +217,24 @@ public class DebugLogger extends AbstractLogger
     loggerStorage.removeAllLogPublishers();
     updateTracerSettings();
     enabled = false;
+    adjustJulLevel();
   }
 
+  private void adjustJulLevel()
+  {
+    final ServerContext serverContext = getServerContext();
+    if (serverContext != null)
+    {
+      serverContext.getLoggerConfigManager().adjustJulLevel();
+    }
+  }
+
+  /**
+   * Returns whether there is at least one debug log publisher enabled.
+   * @return whether there is at least one debug log publisher enabled.
+   */
+  public boolean isEnabled()
+  {
+    return enabled;
+  }
 }

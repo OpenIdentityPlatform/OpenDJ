@@ -62,6 +62,7 @@ public class TextErrorLogPublisher
 {
   private TextWriter writer;
   private FileBasedErrorLogPublisherCfg currentConfig;
+  private ServerContext serverContext;
 
   /**
    * Returns a new text error log publisher which will print all messages to the
@@ -105,6 +106,7 @@ public class TextErrorLogPublisher
   public void initializeLogPublisher(FileBasedErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     File logFile = getLogFile(config);
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
@@ -350,6 +352,7 @@ public class TextErrorLogPublisher
 
         currentConfig = config;
       }
+      serverContext.getLoggerConfigManager().adjustJulLevel();
     }
     catch(Exception e)
     {

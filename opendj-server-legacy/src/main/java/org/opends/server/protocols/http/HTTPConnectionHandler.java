@@ -52,8 +52,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.forgerock.http.servlet.HttpFrameworkServlet;
 import org.forgerock.i18n.LocalizableMessage;
@@ -707,9 +705,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
   private void startHttpServer() throws Exception
   {
-    // Silence Grizzly's own logging
-    Logger.getLogger("org.glassfish.grizzly").setLevel(Level.OFF);
-
     if (HTTPAccessLogger.getHTTPAccessLogPublishers().isEmpty())
     {
       logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS);

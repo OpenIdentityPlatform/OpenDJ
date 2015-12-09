@@ -28,13 +28,18 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -51,6 +56,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * This class defines a utility that will be used to manage the set of loggers
@@ -64,7 +70,95 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * Class to manage java.util.logging to slf4j bridge.
+   * Main purpose of this class is to adapt the j.u.l log level when a debug/error log publisher change is detected.
+   * <p>
+   * @ThreadSafe
+   */
+  private static class JulToSlf4jLogManager
+  {
+    private Level currentJulLogLevel = Level.OFF;
+    private final Object lock = new Object();
+
+    private Level computeJulLogLevel()
+    {
+      if (DebugLogger.getInstance().isEnabled())
+      {
+        return Level.FINEST;
+      }
+
+      for (final Severity severity : Severity.values())
+      {
+        if (ErrorLogger.isEnabledFor("", severity))
+        {
+          return errorLoggerSeverityToJulLevel(severity);
+        }
+      }
+      return Level.OFF;
+    }
+
+    private void adjustJulLevel()
+    {
+      final Level newLevel1 = computeJulLogLevel();
+      if (isMoreDetailedThanCurrentLevel(newLevel1))
+      {
+        synchronized (lock)
+        {
+          final Level newLevel2 = computeJulLogLevel();
+          if (isMoreDetailedThanCurrentLevel(newLevel2))
+          {
+            changeJulLogLevel(newLevel2);
+          }
+        }
+      }
+    }
+
+    private void changeJulLogLevel(final Level newLevel)
+    {
+      try
+      {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        // This is needed to avoid major performance issue. See: http://www.slf4j.org/legacy.html#jul-to-slf4j
+        LogManager.getLogManager().readConfiguration(
+                new ByteArrayInputStream((".level=" + newLevel).getBytes()));
+        SLF4JBridgeHandler.install();
+        currentJulLogLevel = newLevel;
+      }
+      catch (IOException | SecurityException e)
+      {
+        logger.error(ERR_CONFIG_CANNOT_CONFIGURE_JUL_LOGGER.get(e.getMessage()), e);
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+      }
+    }
+
+    private boolean isMoreDetailedThanCurrentLevel(final Level challenger)
+    {
+      return challenger.intValue() < currentJulLogLevel.intValue();
+    }
+
+    /** Convert OpenDJ error log severity to JUL Severity. */
+    private Level errorLoggerSeverityToJulLevel(Severity severity)
+    {
+      switch (severity)
+      {
+      case DEBUG:
+      case INFORMATION:
+      case NOTICE:
+        return Level.INFO;
+      case WARNING:
+        return Level.WARNING;
+      case ERROR:
+        return Level.SEVERE;
+      default:
+        return Level.OFF;
+      }
+    }
+  }
+
   private final ServerContext serverContext;
+
+  private final JulToSlf4jLogManager julToSlf4jManager = new JulToSlf4jLogManager();
 
   /**
    * Create the logger config manager with the provided
@@ -147,6 +241,7 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
     AccessLogger.getInstance().initializeLogger(accessPublisherCfgs, serverContext);
     HTTPAccessLogger.getInstance().initializeLogger(httpAccessPublisherCfgs, serverContext);
     ErrorLogger.getInstance().initializeLogger(errorPublisherCfgs, serverContext);
+    julToSlf4jManager.adjustJulLevel();
   }
 
   /**
@@ -226,5 +321,14 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
     }
     ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
     return ccr;
+  }
+
+  /**
+   * Update the current java.util.logging.Level.
+   * This level is used to filter logs from third party libraries which use j.u.l to our slf4j logger.
+   */
+  public void adjustJulLevel()
+  {
+    julToSlf4jManager.adjustJulLevel();
   }
 }
