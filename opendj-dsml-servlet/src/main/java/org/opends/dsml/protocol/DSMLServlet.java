@@ -199,10 +199,10 @@ public class DSMLServlet extends HttpServlet {
        * and if the value's true then mark that OID (1.2.3.4.5) as one returning
        * a string value.
        */
-      Enumeration names = config.getServletContext().getInitParameterNames();
+      Enumeration<String> names = config.getServletContext().getInitParameterNames();
       while (names.hasMoreElements())
       {
-        String name = (String) names.nextElement();
+        String name = names.nextElement();
         if (name.startsWith(EXOPSTRINGPREFIX) &&
             Boolean.valueOf(config.getServletContext().getInitParameter(name)))
         {
@@ -357,13 +357,13 @@ public class DSMLServlet extends HttpServlet {
     SOAPBody soapBody = null;
 
     MimeHeaders mimeHeaders = new MimeHeaders();
-    Enumeration en = req.getHeaderNames();
     String bindDN = null;
     String bindPassword = null;
     boolean authenticationInHeader = false;
     boolean authenticationIsID = false;
+    final Enumeration<String> en = req.getHeaderNames();
     while (en.hasMoreElements()) {
-      String headerName = (String) en.nextElement();
+      String headerName = en.nextElement();
       String headerVal = req.getHeader(headerName);
       if (headerName.equalsIgnoreCase("content-type")) {
         try
@@ -471,7 +471,7 @@ public class DSMLServlet extends HttpServlet {
     }
 
     if ( soapBody != null ) {
-      Iterator it = soapBody.getChildElements();
+      Iterator<?> it = soapBody.getChildElements();
       while (it.hasNext()) {
         Object obj = it.next();
         if (!(obj instanceof SOAPElement)) {
