@@ -77,7 +77,7 @@ import org.opends.server.types.DN;
 public class ImportLDIFPanel extends InclusionExclusionPanel
 {
   private static final long serialVersionUID = 1143246529610229229L;
-  private JComboBox backends;
+  private JComboBox<String> backends;
   private JTextField file;
   private JCheckBox dataCompressed;
   private JCheckBox rejectNotSchemaCompliant;
@@ -117,21 +117,18 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_IMPORT_LDIF_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return file;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -157,17 +154,15 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 0.0;
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.NONE;
-    lBackend = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_BACKEND_LABEL.get());
+    lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
     add(lBackend, gbc);
     gbc.insets.left = 10;
     gbc.gridx = 1;
     backends = Utilities.createComboBox();
-    backends.setModel(new DefaultComboBoxModel(new String[]{}));
+    backends.setModel(new DefaultComboBoxModel<>(new String[]{}));
     gbc.gridwidth = 2;
     add(backends, gbc);
-    lNoBackendsFound = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_NO_BACKENDS_FOUND_LABEL.get());
+    lNoBackendsFound = Utilities.createDefaultLabel(INFO_CTRL_PANEL_NO_BACKENDS_FOUND_LABEL.get());
     add(lNoBackendsFound, gbc);
     lNoBackendsFound.setVisible(false);
     gbc.insets.top = 10;
@@ -178,8 +173,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridy ++;
     gbc.insets.left = 0;
     gbc.gridwidth = 1;
-    lFile = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_FILE_TO_IMPORT_LABEL.get());
+    lFile = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_FILE_TO_IMPORT_LABEL.get());
     add(lFile, gbc);
 
     gbc.gridx = 1;
@@ -188,20 +182,19 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     lFile.setLabelFor(file);
     documentListener = new DocumentListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
         setEnabledOK(text.length() > 0 && !errorPane.isVisible());
       }
-      /** {@inheritDoc} */
+
       @Override
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
-      /** {@inheritDoc} */
+
       @Override
       public void insertUpdate(DocumentEvent ev)
       {
@@ -212,19 +205,16 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(file, gbc);
-    bBrowse = Utilities.createButton(
-        INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
+    bBrowse = Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     bBrowse.addActionListener(
-        new BrowseActionListener(file,
-            BrowseActionListener.BrowseType.OPEN_LDIF_FILE,  this));
+        new BrowseActionListener(file, BrowseActionListener.BrowseType.OPEN_LDIF_FILE,  this));
     gbc.gridx = 2;
     gbc.gridwidth = 1;
     gbc.weightx = 0.0;
     bBrowse.setOpaque(false);
     add(bBrowse, gbc);
 
-    lRemoteFileHelp = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
     gbc.gridx = 1;
     gbc.gridwidth = 2;
     gbc.insets.top = 3;
@@ -238,8 +228,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 30;
     gbc.insets.top = 5;
     gbc.gridwidth = 2;
-    dataCompressed = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_DATA_IN_FILE_COMPRESSED.get());
+    dataCompressed = Utilities.createCheckBox(INFO_CTRL_PANEL_DATA_IN_FILE_COMPRESSED.get());
     dataCompressed.setOpaque(false);
     add(dataCompressed, gbc);
 
@@ -248,13 +237,11 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 0;
     gbc.insets.top = 10;
     gbc.gridwidth = 1;
-    lSchemaValidation = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_SCHEMA_VALIDATION_LABEL.get());
+    lSchemaValidation = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_SCHEMA_VALIDATION_LABEL.get());
     add(lSchemaValidation, gbc);
 
     gbc.gridx = 1;
-    rejectNotSchemaCompliant = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_REJECT_NOT_SCHEMA_COMPLIANT_LABEL.get());
+    rejectNotSchemaCompliant = Utilities.createCheckBox(INFO_CTRL_PANEL_REJECT_NOT_SCHEMA_COMPLIANT_LABEL.get());
     rejectNotSchemaCompliant.setSelected(true);
     gbc.insets.left = 10;
     add(rejectNotSchemaCompliant, gbc);
@@ -263,13 +250,11 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
-    lDNValidation = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_DN_VALIDATION_LABEL.get());
+    lDNValidation = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_DN_VALIDATION_LABEL.get());
     add(lDNValidation, gbc);
 
     gbc.gridx = 1;
-    doDNValidationAfter = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_DO_DN_VALIDATION_LATER_LABEL.get());
+    doDNValidationAfter = Utilities.createCheckBox(INFO_CTRL_PANEL_DO_DN_VALIDATION_LATER_LABEL.get());
     doDNValidationAfter.setSelected(false);
     gbc.insets.left = 10;
     add(doDNValidationAfter, gbc);
@@ -278,37 +263,32 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
-    lThreads = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_IMPORT_THREADS_LABEL.get());
+    lThreads = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_IMPORT_THREADS_LABEL.get());
     add(lThreads, gbc);
 
     gbc.gridx = 1;
     threads = Utilities.createShortTextField();
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.NONE;
-    threads.setToolTipText(
-        INFO_CTRL_PANEL_IMPORT_THREADS_TOOLTIP.get().toString());
+    threads.setToolTipText(INFO_CTRL_PANEL_IMPORT_THREADS_TOOLTIP.get().toString());
     gbc.insets.left = 10;
     add(threads, gbc);
     lThreads.setLabelFor(threads);
 
     gbc.insets.top = 3;
     gbc.gridy ++;
-    add(Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_IMPORT_THREADS_HELP.get()), gbc);
+    add(Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_IMPORT_THREADS_HELP.get()), gbc);
 
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
     gbc.insets.top = 10;
     gbc.gridwidth = 1;
-    lRejectsFile = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_REJECTS_FILE_LABEL.get());
+    lRejectsFile = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_REJECTS_FILE_LABEL.get());
     add(lRejectsFile, gbc);
 
     gbc.gridx = 1;
-    writeRejects = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_WRITE_REJECTS_FILE_LABEL.get());
+    writeRejects = Utilities.createCheckBox(INFO_CTRL_PANEL_WRITE_REJECTS_FILE_LABEL.get());
     writeRejects.setSelected(false);
     gbc.insets.left = 10;
     add(writeRejects, gbc);
@@ -322,11 +302,9 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(rejectsFile, gbc);
-    rejectsBrowse =
-      Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
+    rejectsBrowse = Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     rejectsBrowse.addActionListener(
-        new BrowseActionListener(rejectsFile,
-            BrowseActionListener.BrowseType.CREATE_GENERIC_FILE,  this));
+        new BrowseActionListener(rejectsFile, BrowseActionListener.BrowseType.CREATE_GENERIC_FILE,  this));
     gbc.gridx = 2;
     gbc.gridwidth = 1;
     gbc.weightx = 0.0;
@@ -334,8 +312,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     rejectsBrowse.setOpaque(false);
     add(rejectsBrowse, gbc);
 
-    lRemoteRejectsHelp = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    lRemoteRejectsHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
     gbc.gridx = 1;
     gbc.gridwidth = 2;
     gbc.insets.top = 3;
@@ -347,15 +324,13 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridy ++;
     gbc.insets.left = 30;
     gbc.gridwidth = 2;
-    overwriteRejectsFile = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_OVERWRITE_REJECTS_FILE_LABEL.get());
+    overwriteRejectsFile = Utilities.createCheckBox(INFO_CTRL_PANEL_OVERWRITE_REJECTS_FILE_LABEL.get());
     overwriteRejectsFile.setOpaque(false);
     add(overwriteRejectsFile, gbc);
     lRemoteRejectsHelp.setLabelFor(overwriteRejectsFile);
 
     ChangeListener changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent ev)
       {
@@ -373,13 +348,11 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 0;
     gbc.insets.top = 10;
     gbc.gridwidth = 1;
-    lSkipsFile = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_SKIPS_FILE_LABEL.get());
+    lSkipsFile = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_SKIPS_FILE_LABEL.get());
     add(lSkipsFile, gbc);
 
     gbc.gridx = 1;
-    writeSkips =
-      Utilities.createCheckBox(INFO_CTRL_PANEL_WRITE_SKIPS_FILE_LABEL.get());
+    writeSkips = Utilities.createCheckBox(INFO_CTRL_PANEL_WRITE_SKIPS_FILE_LABEL.get());
     writeSkips.setSelected(false);
     gbc.insets.left = 10;
     add(writeSkips, gbc);
@@ -393,11 +366,9 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(skipsFile, gbc);
-    skipsBrowse =
-      Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
+    skipsBrowse = Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     skipsBrowse.addActionListener(
-        new BrowseActionListener(skipsFile,
-            BrowseActionListener.BrowseType.CREATE_GENERIC_FILE,  this));
+        new BrowseActionListener(skipsFile, BrowseActionListener.BrowseType.CREATE_GENERIC_FILE,  this));
     gbc.gridx = 2;
     gbc.gridwidth = 1;
     gbc.weightx = 0.0;
@@ -405,8 +376,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     skipsBrowse.setOpaque(false);
     add(skipsBrowse, gbc);
 
-    lRemoteSkipsHelp = Utilities.createInlineHelpLabel(
-        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    lRemoteSkipsHelp = Utilities.createInlineHelpLabel(INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
     gbc.gridx = 1;
     gbc.gridwidth = 2;
     gbc.insets.top = 3;
@@ -418,15 +388,13 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridy ++;
     gbc.insets.left = 30;
     gbc.gridwidth = 2;
-    overwriteSkipsFile = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_OVERWRITE_SKIPS_FILE_LABEL.get());
+    overwriteSkipsFile = Utilities.createCheckBox(INFO_CTRL_PANEL_OVERWRITE_SKIPS_FILE_LABEL.get());
     overwriteSkipsFile.setOpaque(false);
     add(overwriteSkipsFile, gbc);
     lRemoteSkipsHelp.setLabelFor(overwriteSkipsFile);
 
     changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent ev)
       {
@@ -441,7 +409,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
     changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent ev)
       {
@@ -472,7 +439,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -496,14 +462,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     });
   }
 
-  /** {@inheritDoc} */
   @Override
   protected void checkOKButtonEnable()
   {
     documentListener.changedUpdate(null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -559,8 +523,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         errors.add(ERR_CTRL_PANEL_REJECTS_FILE_REQUIRED.get());
         setPrimaryInvalid(lRejectsFile);
       }
-      else if (writeSkips.isSelected()
-          && new File(rejectPath).equals(new File(skipsFile.getText())))
+      else if (writeSkips.isSelected() && new File(rejectPath).equals(new File(skipsFile.getText())))
       {
         errors.add(ERR_CTRL_PANEL_REJECTS_AND_SKIPS_MUST_BE_DIFFERENT.get());
         setPrimaryInvalid(lRejectsFile);
@@ -594,8 +557,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       if (errors.isEmpty())
       {
         Set<DN> replicatedBaseDNs = getReplicatedBaseDNs();
-        boolean canInitialize =
-          !replicatedBaseDNs.isEmpty() && isServerRunning();
+        boolean canInitialize = !replicatedBaseDNs.isEmpty() && isServerRunning();
         if (canInitialize)
         {
           ArrayList<String> dns = new ArrayList<>();
@@ -605,8 +567,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
           }
           initializeAll = displayConfirmationDialog(
               INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-              INFO_CTRL_PANEL_CONFIRMATION_INITIALIZE_ALL_DETAILS.get(
-                  Utilities.getStringFromCollection(dns, "<br>")));
+              INFO_CTRL_PANEL_CONFIRMATION_INITIALIZE_ALL_DETAILS.get(Utilities.getStringFromCollection(dns, "<br>")));
         }
 
         newTask.setInitializeAll(initializeAll);
@@ -628,7 +589,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -696,26 +656,20 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       this.initializeAll = initializeAll;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Type getType()
     {
       return Type.IMPORT_LDIF;
     }
 
-
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getTaskDescription()
     {
-      return INFO_CTRL_PANEL_IMPORT_TASK_DESCRIPTION.get(fileName,
-          backendSet.iterator().next());
+      return INFO_CTRL_PANEL_IMPORT_TASK_DESCRIPTION.get(fileName, backendSet.iterator().next());
     }
 
-    /** {@inheritDoc} */
     @Override
-    public boolean canLaunch(Task taskToBeLaunched,
-        Collection<LocalizableMessage> incompatibilityReasons)
+    public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
       boolean canLaunch = true;
       if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
@@ -732,7 +686,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       return canLaunch;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected ArrayList<String> getCommandLineArguments()
     {
@@ -773,8 +726,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         args.add(skipsFile.getText());
       }
 
-      if ((writeRejects.isSelected() || writeSkips.isSelected()) &&
-          overwriteRejectsFile.isSelected())
+      if ((writeRejects.isSelected() || writeSkips.isSelected()) && overwriteRejectsFile.isSelected())
       {
         args.add("--overwrite");
       }
@@ -791,14 +743,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       return args;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {
       return getCommandLinePath("import-ldif");
     }
 
-    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -813,8 +763,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         arguments.toArray(args);
         if (isServerRunning())
         {
-          returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream,
-              errorPrintStream);
+          returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream, errorPrintStream);
           if (returnCode == 0 && initializeAll)
           {
             initializeAll();
@@ -843,8 +792,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         state = State.FINISHED_WITH_ERROR;
       }
       HashSet<BackendDescriptor> backends = new HashSet<>();
-      for (BackendDescriptor backend :
-        getInfo().getServerDescriptor().getBackends())
+      for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
       {
         for (String backendID : getBackends())
         {
@@ -861,7 +809,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public Set<String> getBackends()
     {
@@ -871,22 +818,19 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     private void initializeAll() throws ReplicationCliException
     {
       ReplicationCliMain repl = new ReplicationCliMain(outPrintStream, errorPrintStream);
-      getProgressDialog().appendProgressHtml(
-          UIFactory.HTML_SEPARATOR+"<br><br>");
+      getProgressDialog().appendProgressHtml(UIFactory.HTML_SEPARATOR+"<br><br>");
 
       String cmd = getCommandLineToInitializeAll();
 
       getProgressDialog().appendProgressHtml(Utilities.applyFont(
-          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get()+
-          "<br><b>"+cmd+"</b><br><br>",
+          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get()+ "<br><b>"+cmd+"</b><br><br>",
           ColorAndFontConstants.progressFont));
 
       for (DN baseDN : replicatedBaseDNs)
       {
         LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
             ConnectionUtils.getHostPort(getInfo().getDirContext()));
-        getProgressDialog().appendProgressHtml(Utilities.applyFont(
-            msg + "<br>", ColorAndFontConstants.progressFont));
+        getProgressDialog().appendProgressHtml(Utilities.applyFont(msg + "<br>", ColorAndFontConstants.progressFont));
         repl.initializeAllSuffix(baseDN.toString(), getInfo().getDirContext(), true);
       }
     }
@@ -895,13 +839,11 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     {
       String cmdLineName = getCommandLinePath("dsreplication");
       ArrayList<String> args = new ArrayList<>();
-      args.add(
-          ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME);
+      args.add(ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME);
       args.add("--hostName");
       args.add(getInfo().getServerDescriptor().getHostname());
       args.add("--port");
-      args.add(String.valueOf(
-          ConnectionUtils.getPort(getInfo().getDirContext())));
+      args.add(String.valueOf(ConnectionUtils.getPort(getInfo().getDirContext())));
       for (DN baseDN : replicatedBaseDNs)
       {
         args.add("--baseDN");

@@ -186,8 +186,7 @@ public class ImportLDIF extends TaskTool {
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser =
-            createArgParser("org.opends.server.tools.ImportLDIF",
-                            INFO_LDIFIMPORT_TOOL_DESCRIPTION.get());
+            createArgParser("org.opends.server.tools.ImportLDIF", INFO_LDIFIMPORT_TOOL_DESCRIPTION.get());
     argParser.setShortToolDescription(REF_SHORT_DESC_IMPORT_LDIF.get());
 
     // Initialize all the command-line argument types and register them with the
@@ -480,7 +479,6 @@ public class ImportLDIF extends TaskTool {
       argParser.setUsageArgument(displayUsage);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
@@ -534,19 +532,16 @@ public class ImportLDIF extends TaskTool {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getTaskObjectclass() {
     return "ds-task-import";
   }
 
-  /** {@inheritDoc} */
   @Override
   public Class<?> getTaskClass() {
     return ImportTask.class;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
@@ -714,12 +709,12 @@ public class ImportLDIF extends TaskTool {
       excludeAttributes = new HashSet<>();
       for (String attrName : excludeAttributeStrings.getValues())
       {
-        String        lowerName = attrName.toLowerCase();
-        if(lowerName.equals("*"))
+        String lowerName = attrName.toLowerCase();
+        if (lowerName.equals("*"))
         {
           excludeAllUserAttributes = true;
         }
-        else if(lowerName.equals("+"))
+        else if (lowerName.equals("+"))
         {
           excludeAllOperationalAttributes = true;
         }
@@ -742,12 +737,12 @@ public class ImportLDIF extends TaskTool {
       includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings.getValues())
       {
-        String        lowerName = attrName.toLowerCase();
-         if(lowerName.equals("*"))
+        String lowerName = attrName.toLowerCase();
+        if (lowerName.equals("*"))
         {
           includeAllUserAttributes = true;
         }
-        else if(lowerName.equals("+"))
+        else if (lowerName.equals("+"))
         {
           includeAllOperationalAttributes = true;
         }
@@ -1199,7 +1194,6 @@ public class ImportLDIF extends TaskTool {
     return new Random();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getTaskId() {
     // NYI.

@@ -119,19 +119,16 @@ public class ImportTask extends Task
   private int randomSeed;
   private LDIFImportConfig importConfig;
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_IMPORT_NAME.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
 
-  /** {@inheritDoc} */
   @Override public void initializeTask() throws DirectoryException
   {
     // If the client connection is available, then make sure the associated
@@ -201,8 +198,7 @@ public class ImportTask extends Task
       File f = new File(templateFile);
       if (!f.isAbsolute())
       {
-        templateFile = new File(DirectoryServer.getInstanceRoot(), templateFile)
-            .getAbsolutePath();
+        templateFile = new File(DirectoryServer.getInstanceRoot(), templateFile).getAbsolutePath();
       }
     }
 
@@ -370,31 +366,30 @@ public class ImportTask extends Task
     }
   }
 
-  private int asInt(Entry taskEntry, AttributeType typeRandomSeed)
+  private int asInt(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(typeRandomSeed);
+    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
     return TaskUtils.getSingleValueInteger(attrList, 0);
   }
 
-  private boolean asBoolean(Entry taskEntry, AttributeType typeReplaceExisting)
+  private boolean asBoolean(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(typeReplaceExisting);
+    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
     return TaskUtils.getBoolean(attrList, false);
   }
 
-  private String asString(Entry taskEntry, AttributeType typeBackendID)
+  private String asString(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(typeBackendID);
+    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
     return TaskUtils.getSingleValueString(attrList);
   }
 
-  private ArrayList<String> asListOfStrings(Entry taskEntry, AttributeType typeExcludeBranch)
+  private ArrayList<String> asListOfStrings(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(typeExcludeBranch);
+    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
     return TaskUtils.getMultiValueString(attrList);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
@@ -407,14 +402,12 @@ public class ImportTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInterruptable()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

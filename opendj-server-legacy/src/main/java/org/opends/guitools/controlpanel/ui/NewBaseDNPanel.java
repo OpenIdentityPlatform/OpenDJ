@@ -150,21 +150,18 @@ public class NewBaseDNPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_BASE_DN_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return baseDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -393,7 +390,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     ChangeListener listener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent ev)
       {
@@ -414,7 +410,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
     listener.stateChanged(null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -506,7 +501,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -523,14 +517,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
     setSecondaryValid(lNumberOfEntries);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected void checkOKButtonEnable()
   {
     documentListener.changedUpdate(null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -766,21 +758,18 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public Type getType()
     {
       return Type.NEW_BASEDN;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_BASE_DN_TASK_DESCRIPTION.get(newBaseDN, backendSet.iterator().next());
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -1342,14 +1331,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected String getCommandLinePath()
     {
       return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected List<String> getCommandLineArguments()
     {
@@ -1393,7 +1380,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       return args;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void runTask()
     {
@@ -1419,7 +1405,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public Set<String> getBackends()
     {
