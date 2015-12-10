@@ -109,13 +109,11 @@ public class Utils
   private static final String CUSTOMIZATION_CLASS_NAME = "org.opends.server.util.ReleaseDefinition";
 
   /**
-   * Returns <CODE>true</CODE> if the provided port is free and we can use it,
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the provided port is free and we can use it.
    *
    * @param port
    *          the port we are analyzing.
-   * @return <CODE>true</CODE> if the provided port is free and we can use it,
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided port is free and we can use it, {@code false} otherwise.
    */
   public static boolean canUseAsPort(int port)
   {
@@ -123,13 +121,11 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided port is a privileged port,
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the provided port is a privileged port.
    *
    * @param port
    *          the port we are analyzing.
-   * @return <CODE>true</CODE> if the provided port is a privileged port,
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided port is a privileged port, {@code false} otherwise.
    */
   public static boolean isPrivilegedPort(int port)
   {
@@ -137,8 +133,7 @@ public class Utils
   }
 
   /**
-   * Tells whether the provided java installation supports a given option or
-   * not.
+   * Tells whether the provided java installation supports a given option or not.
    *
    * @param javaHome
    *          the java installation path.
@@ -146,8 +141,8 @@ public class Utils
    *          the java option that we want to check.
    * @param installPath
    *          the install path of the server.
-   * @return <CODE>true</CODE> if the provided java installation supports a
-   *         given option and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided java installation supports a
+   *         given option and {@code false} otherwise.
    */
   public static boolean supportsOption(String option, String javaHome, String installPath)
   {
@@ -313,16 +308,14 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the first provided path is under the second
-   * path in the file system.
+   * Returns whether the first provided path is under the second path in the file system.
    *
    * @param descendant
    *          the descendant candidate path.
    * @param path
    *          the path.
-   * @return <CODE>true</CODE> if the first provided path is under the second
-   *         path in the file system; <code>false</code> otherwise or if either
-   *         of the files are null
+   * @return {@code true} if the first provided path is under the second path in the file system;
+   *         {@code false} otherwise or if either of the files are null
    */
   public static boolean isDescendant(File descendant, File path)
   {
@@ -343,13 +336,11 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the the provided path is a file and exists and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the provided path is a file and exists.
    *
    * @param path
    *          the path that we are analyzing.
-   * @return <CODE>true</CODE> if the the provided path is a file and exists and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided path is a file and exists and {@code false} otherwise.
    */
   public static boolean fileExists(String path)
   {
@@ -357,13 +348,12 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the the provided path is a directory, exists
-   * and is not empty <CODE>false</CODE> otherwise.
+   * Returns whether the provided path is a directory, exists and is not empty.
    *
    * @param path
    *          the path that we are analyzing.
-   * @return <CODE>true</CODE> if the the provided path is a directory, exists
-   *         and is not empty <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided path is a directory, exists
+   *         and is not empty {@code false} otherwise.
    */
   public static boolean directoryExistsAndIsNotEmpty(String path)
   {
@@ -377,13 +367,11 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the the provided string is a configuration DN
-   * and <CODE>false</CODE> otherwise.
+   * Returns whether the provided string is a configuration DN.
    *
    * @param dn
    *          the String we are analyzing.
-   * @return <CODE>true</CODE> if the the provided string is a configuration DN
-   *         and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided string is a configuration DN and {@code false} otherwise.
    */
   public static boolean isConfigurationDn(String dn)
   {
@@ -397,15 +385,13 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the the provided strings represent the same DN
-   * and <CODE>false</CODE> otherwise.
+   * Returns whether the provided strings represent the same DN.
    *
    * @param dn1
    *          the first dn to compare.
    * @param dn2
    *          the second dn to compare.
-   * @return <CODE>true</CODE> if the the provided strings represent the same DN
-   *         and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided strings represent the same DN and {@code false} otherwise.
    */
   public static boolean areDnsEqual(String dn1, String dn2)
   {
@@ -415,7 +401,7 @@ public class Utils
       LdapName name2 = new LdapName(dn2);
       return name1.equals(name2);
     }
-    catch (Exception ex)
+    catch (Exception ignored)
     {
       return false;
     }
@@ -440,8 +426,8 @@ public class Utils
    *
    * @param f
    *          the path.
-   * @return <CODE>true</CODE> if the path was created or already existed (and
-   *         was a directory) and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the path was created or already existed (and
+   *         was a directory) and {@code false} otherwise.
    * @throws IOException
    *           if something goes wrong.
    */
@@ -649,11 +635,9 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if this is executed from command line and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether this is executed from command line.
    *
-   * @return <CODE>true</CODE> if this is executed from command line and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if this is executed from command line and {@code false} otherwise.
    */
   public static boolean isCli()
   {
@@ -1041,8 +1025,7 @@ public class Utils
    *
    * @param host
    *          the host to analyze.
-   * @return <CODE>true</CODE> if it is the local host and <CODE>false</CODE>
-   *         otherwise.
+   * @return {@code true} if it is the local host and {@code false} otherwise.
    */
   public static boolean isLocalHost(String host)
   {
@@ -1159,14 +1142,12 @@ public class Utils
     {
       Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
       Object obj = c.newInstance();
-
       return valueClass.cast(c.getField(fieldName).get(obj));
     }
-    catch (Exception ex)
+    catch (Exception ignored)
     {
-      //do nothing.
+      return defaultValue;
     }
-    return defaultValue;
   }
 
   /**
