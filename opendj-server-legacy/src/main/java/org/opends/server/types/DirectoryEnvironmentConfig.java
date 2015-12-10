@@ -318,16 +318,14 @@ public final class DirectoryEnvironmentConfig
   private File forceNonRelativeFile(File file) {
     // Do a best effort to avoid having a relative representation
     // (for instance to avoid having ../../../).
-    String path = null;
     try
     {
-      path = file.getCanonicalPath();
+      return file.getCanonicalFile();
     }
     catch (IOException ioe)
     {
-      path = file.getAbsolutePath();
+      return file.getAbsoluteFile();
     }
-    return new File(path);
   }
 
   /**

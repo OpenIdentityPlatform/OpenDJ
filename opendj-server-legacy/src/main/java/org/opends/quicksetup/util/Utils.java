@@ -945,38 +945,23 @@ public class Utils
       }
     }
 
-    BufferedReader reader;
-    try
-    {
-      reader = new BufferedReader(new FileReader(instancePathFileName));
-    }
-    catch (Exception e)
-    {
-      return installPath;
-    }
-
     // Read the first line and close the file.
-    String line;
-    try
+    try (BufferedReader reader = new BufferedReader(new FileReader(instancePathFileName)))
     {
-      line = reader.readLine();
+      String line = reader.readLine();
       File instanceLoc = new File(line.trim());
       if (instanceLoc.isAbsolute())
       {
-        return instanceLoc.getAbsolutePath();
+        return getCanonicalPath(instanceLoc);
       }
       else
       {
-        return new File(installPath + File.separator + instanceLoc.getPath()).getAbsolutePath();
+        return getCanonicalPath(new File(installPath + File.separator + instanceLoc.getPath()));
       }
     }
     catch (Exception e)
     {
       return installPath;
-    }
-    finally
-    {
-      StaticUtils.close(reader);
     }
   }
 
@@ -1997,14 +1982,7 @@ public class Utils
     if (installDir == null)
     {
       File f = org.opends.quicksetup.Installation.getLocal().getRootDirectory();
-      try
-      {
-        installDir = f.getCanonicalPath();
-      }
-      catch (Throwable t)
-      {
-        installDir = f.getAbsolutePath();
-      }
+      installDir = getCanonicalPath(f);
       if (installDir.lastIndexOf(File.separatorChar) != installDir.length() - 1)
       {
         installDir += File.separatorChar;
@@ -2012,6 +1990,18 @@ public class Utils
     }
 
     return installDir;
+  }
+
+  private static String getCanonicalPath(File f)
+  {
+    try
+    {
+      return f.getCanonicalPath();
+    }
+    catch (IOException t)
+    {
+      return f.getAbsolutePath();
+    }
   }
 
   private static List<String> getDsReplicationEquivalentCommandLine(String subcommand, UserData userData,
