@@ -166,7 +166,7 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
     else
     {
       // Automatically choose based on the number of processors.
-      int value = Platform.computeNumberOfThreads(16, 2);
+      int value = Platform.computeNumberOfThreads(16, 2.0f);
       logger.debug(INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL, value);
       return value;
     }
