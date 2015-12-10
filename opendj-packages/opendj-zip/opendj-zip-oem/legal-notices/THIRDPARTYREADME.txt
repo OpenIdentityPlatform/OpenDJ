@@ -16,18 +16,6 @@ Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
 
-Version: grizzly-framework.jar (2.3.23)
-Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
-
-Version: grizzly-http-server.jar (2.3.23)
-Copyright: Copyright (c) 2011 Oracle and/or its affiliates. All rights reserved.
-
-Version: grizzly-http-servlet.jar (2.3.23)
-Copyright: Copyright (c) 2008-2012 Oracle and/or its affiliates. All rights reserved.
-
-Version: grizzly-http.jar (2.3.23)
-Copyright: Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
-
 Version: forgerock-audit-core.jar (3.0.0)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright 2013 Cybernetica AS
@@ -52,6 +40,18 @@ Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
            Portions Copyright 2011-2015 ForgeRock AS.
 
+Version: grizzly-framework.jar (2.3.23)
+Copyright: Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
+
+Version: grizzly-http.jar (2.3.23)
+Copyright: Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
+
+Version: grizzly-http-server.jar (2.3.23)
+Copyright: Copyright (c) 2011 Oracle and/or its affiliates. All rights reserved.
+
+Version: grizzly-http-servlet.jar (2.3.23)
+Copyright: Copyright (c) 2008-2012 Oracle and/or its affiliates. All rights reserved.
+
 Version: i18n-core.jar (1.4.2)
 Copyright: Copyright 2011 ForgeRock AS
            Copyright 2007-2009 Sun Microsystems, Inc.
@@ -59,8 +59,11 @@ Copyright: Copyright 2011 ForgeRock AS
 Version: i18n-slf4j.jar (1.4.2)
 Copyright: Copyright 2011-2014 ForgeRock AS
 
-Version: javax.mail-1.5.1.jar
+Version: javax.mail.jar (1.5.1)
 Copyright: Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
+
+Version: javax.servlet-api.jar (3.1-b02)
+Copyright: Copyright (c) 2008-2010 Oracle and/or its affiliates. All rights reserved.
 
 Version: json-resource.jar (4.0.2)
 Copyright: Copyright 2011-2015 ForgeRock AS.
@@ -100,7 +103,23 @@ Copyright: Copyright 2013-2015 ForgeRock AS.
            Copyright 2006-2009 Sun Microsystems, Inc.
            Portions Copyright 2013-2015 ForgeRock AS.
 
+Version: opendj-slf4j-adapter.jar (3.0.0)
+Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
+          Copyright 2014-2015 ForgeRock AS.
+
+Version: bootstrap.jar (3.0.0)
+Version: bootstrap-client.jar (3.0.0)
 Version: OpenDJ.jar (3.0.0)
+Version: OpenDJ-ca_ES.jar (3.0.0)
+Version: OpenDJ-de.jar (3.0.0)
+Version: OpenDJ-es.jar (3.0.0)
+Version: OpenDJ-fr.jar (3.0.0)
+Version: OpenDJ-ja.jar (3.0.0)
+Version: OpenDJ-ko.jar (3.0.0)
+Version: OpenDJ-pl.jar (3.0.0)
+Version: OpenDJ-zh_CN.jar (3.0.0)
+Version: OpenDJ-zh_TW.jar (3.0.0)
+Version: quicksetup.jar (3.0.0)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright 2005-2011 Sun Microsystems, Inc.
            Copyright 2011-2012 profiq s.r.o.
@@ -115,9 +134,6 @@ Copyright: Copyright 2011-2015 ForgeRock AS.
            Portions Copyright 2012 Delta Victor Consultants
            Portions Copyright 2012-2014 Manuel Gaupp
            Portions Copyright 2014 Emidio Stani & Andrea Stani
-
-Version: servlet-api-3.1-b02.jar
-Copyright: Copyright (c) 2008-2010 Oracle and/or its affiliates. All rights reserved.
 
 ==================
 Full license text:
@@ -267,10 +283,25 @@ Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 Version: jackson-databind.jar (2.6.3)
 Copyright: Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
 
+Version: jackson-module-jsonSchema.jar (2.6.3)
+Copyright: Copyright 2013 FasterXML.
+
+Version: joda-time.jar (2.1)
+Copyright: Copyright 2001-2012 Stephen Colebourne
+
 Version: forgerock-persistit-core.jar (4.3.0)
-Copyright: Copyright 2014 SonarSource
-           Copyright 2005-2013 Akiban Technologies, Inc.
+Copyright: Copyright 2005-2013 Akiban Technologies, Inc.
+           Copyright 2014 SonarSource
            Portions Copyright 2015 ForgeRock AS.
+
+Version: org.apache.servicemix.bundles.javax-inject.jar (1_2)
+Copyright: Copyright 2009 The JSR-330 Expert Group
+
+Version: super-csv.jar (2.4.0)
+Copyright: Copyright 2007 Kasper B. Graversen
+
+Version: validation-api.jar (1.1.0)
+Copyright: Copyright 2009-2013 Red Hat, Inc. and/or its affiliates, and individual contributors
 
 ==================
 Full license text:
@@ -352,10 +383,10 @@ limitations under the License.
 The MIT License (MIT)
 ***************************************************************************
 
-Version: slf4j-api.jar (1.7.5)
+Version: slf4j-api.jar (1.7.12)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
-Version: slf4j-jdk14.jar (1.7.5)
+Version: slf4j-jdk14.jar (1.7.12)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
 ==================
