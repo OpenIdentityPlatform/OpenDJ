@@ -44,13 +44,7 @@
     </properties>
 
     <dependencies>
-        <!-- External dependencies -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <!-- ForgeRock librairies -->
+        <!-- ForgeRock libraries -->
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>forgerock-util</artifactId>
@@ -262,14 +256,19 @@
                         WEB-INF/lib/activation-*.jar,
                         WEB-INF/lib/chf-*.jar,
                         WEB-INF/lib/forgerock-persistit*.jar,
+                        WEB-INF/lib/forgerock-audit*.jar,
                         WEB-INF/lib/grizzly-*.jar,
                         WEB-INF/lib/jackson-*.jar,
                         WEB-INF/lib/javax*.jar,
                         WEB-INF/lib/je*.jar,
                         WEB-INF/lib/json-*.jar,
+                        WEB-INF/lib/joda-time-*.jar,
                         WEB-INF/lib/opendj-grizzly*.jar,
                         WEB-INF/lib/opendj-rest2ldap*.jar,
-                        WEB-INF/lib/opendj-server-${project.version}*.jar
+                        WEB-INF/lib/opendj-server-${project.version}*.jar,
+                        WEB-INF/lib/org.apache.servicemix.bundles.javax-inject-*.jar,
+                        WEB-INF/lib/super-csv-*.jar,
+                        WEB-INF/lib/validation-api-*.jar
                     </packagingExcludes>
                 </configuration>
             </plugin>
