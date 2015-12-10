@@ -75,7 +75,6 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   private JLabel lconfirmPassword;
   private JPasswordField confirmPassword = Utilities.createPasswordField(25);
   private JLabel lPasswordInfo;
-  private JButton browse;
   private JLabel dn;
 
   private GenericDialog browseDlg;
@@ -152,7 +151,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       throw new IllegalStateException("Unexpected error decoding dn: '"+
           node.getDN()+"' error: "+de, de);
     }
-    parentDN.setText(aParentDN.toString());
+    parentDN.setText(aParentDN != null ? aParentDN.toString() : "");
     name.setText(aRdn);
     password.setText("");
     confirmPassword.setText("");
@@ -221,8 +220,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     gbc.gridx = 1;
     add(parentDN, gbc);
 
-    browse = Utilities.createButton(
-        INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
+    JButton browse = Utilities.createButton(
+            INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     gbc.weightx = 0.0;
     gbc.gridx = 2;
     add(browse, gbc);
@@ -403,7 +402,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
       else
       {
-        String newValue = null;
+        String newValue;
         try
         {
           DN theDN = DN.valueOf(dn);
@@ -421,7 +420,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         }
         else
         {
-          String oldValue = null;
+          String oldValue;
           try
           {
             DN oldDN = DN.valueOf(entryToDuplicate.getDN());
@@ -535,7 +534,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   private void updateDNValue()
   {
     String value = name.getText().trim();
-    if (value.length() > 0)
+    // If it takes time to read the entry, the rdnAttribute might not be initialized yet. Don't try to use it then.
+    if (value.length() > 0 && rdnAttribute != null)
     {
        String rdn = Utilities.getRDNString(rdnAttribute, value);
           dn.setText(rdn+","+parentDN.getText().trim());
