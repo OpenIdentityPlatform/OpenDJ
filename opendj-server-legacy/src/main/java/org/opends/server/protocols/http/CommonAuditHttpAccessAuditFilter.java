@@ -44,7 +44,6 @@ import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.services.context.ClientContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RequestAuditContext;
-import org.forgerock.services.context.TransactionIdContext;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -81,7 +80,6 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
 
     @Override
     public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next) {
-        TransactionIdContext txContext = context.asContext(TransactionIdContext.class);
         ClientContext clientContext = context.asContext(ClientContext.class);
 
         AccessAuditEventBuilder<?> accessAuditEventBuilder = accessEvent();
@@ -90,11 +88,9 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
         accessAuditEventBuilder
                 .eventName(productName + "-" + protocol + "-ACCESS")
                 .timestamp(time.now())
-                .transactionId(txContext.getTransactionId().getValue())
+                .transactionIdFromContext(context)
                 .serverFromContext(clientContext)
-                .client(clientContext.getRemoteAddress(),
-                        clientContext.getRemotePort(),
-                        clientContext.getRemoteHost())
+                .clientFromContext(clientContext)
                 .httpRequest(clientContext.isSecure(),
                              request.getMethod(),
                              getRequestPath(request.getUri()),
