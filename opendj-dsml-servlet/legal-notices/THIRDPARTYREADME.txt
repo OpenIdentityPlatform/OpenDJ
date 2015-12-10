@@ -32,7 +32,16 @@ Copyright: Copyright 2011-2015 ForgeRock AS.
            Portions Copyright 2011-2015 ForgeRock AS.
            Portions Copyright 2012-2014 Manuel Gaupp
 
-Version: opendj-server-legacy[-*].jar (3.0.0)
+Version: opendj-server-legacy.jar (3.0.0)
+Version: opendj-server-legacy-ca_ES.jar (3.0.0)
+Version: opendj-server-legacy-de.jar (3.0.0)
+Version: opendj-server-legacy-es.jar (3.0.0)
+Version: opendj-server-legacy-fr.jar (3.0.0)
+Version: opendj-server-legacy-ja.jar (3.0.0)
+Version: opendj-server-legacy-ko.jar (3.0.0)
+Version: opendj-server-legacy-pl.jar (3.0.0)
+Version: opendj-server-legacy-zh_CN.jar (3.0.0)
+Version: opendj-server-legacy-zh_TW.jar (3.0.0)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright 2005-2011 Sun Microsystems, Inc.
            Copyright 2011-2012 profiq s.r.o.
@@ -187,7 +196,7 @@ As between Initial Developer and the Contributors, each party is responsible for
 The MIT License (MIT)
 ***************************************************************************
 
-Version: slf4j-api.jar (1.7.5)
+Version: slf4j-api.jar (1.7.12)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
 ==================
