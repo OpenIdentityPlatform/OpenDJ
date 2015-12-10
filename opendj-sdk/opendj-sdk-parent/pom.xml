@@ -30,7 +30,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-sdk-bom</artifactId>
-        <version>3.0.0-M7</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>org.forgerock.opendj</groupId>
