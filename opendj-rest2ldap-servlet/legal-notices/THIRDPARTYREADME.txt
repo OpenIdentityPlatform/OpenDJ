@@ -4,17 +4,17 @@ DO NOT TRANSLATE OR LOCALIZE
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
-Version: activation.jar (Version: 1.1)
+Version: activation.jar (1.1)
 Copyright: Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
 
-Version: chf-http-core.jar (2.2.0)
+Version: chf-http-core.jar (3.0.0)
 Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Copyright 2009 Sun Microsystems Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
            Portions Copyright 2010-2011 ApexIdentity Inc.
 
-Version: chf-http-servlet.jar (2.2.0)
+Version: chf-http-servlet.jar (3.0.0)
 Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
@@ -37,10 +37,10 @@ Copyright: Copyright 2011-2014 ForgeRock AS
 Version: javax.mail.jar (1.5.1)
 Copyright: Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
 
-Version: json-resource.jar (4.0.2)
+Version: json-resource.jar (4.0.3)
 Copyright: Copyright 2011-2015 ForgeRock AS.
 
-Version: json-resource-http.jar (4.0.2)
+Version: json-resource-http.jar (4.0.3)
 Copyright: Copyright 2012-2015 ForgeRock AS.
 
 Version: opendj-core.jar (3.0.0)
