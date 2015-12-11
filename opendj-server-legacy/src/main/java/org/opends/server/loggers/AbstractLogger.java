@@ -26,7 +26,6 @@
  */
 package org.opends.server.loggers;
 
-import static org.opends.server.loggers.CommonAudit.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -37,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -46,7 +46,6 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.LogPublisherCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
@@ -66,7 +65,6 @@ public abstract class AbstractLogger
     implements ConfigurationAddListener<C>, ConfigurationDeleteListener<C>,
     ConfigurationChangeListener<C>
 {
-
   /**
    * The storage designed to store log publishers. It is helpful in abstracting
    * away the methods used to manage the collection.
@@ -79,21 +77,14 @@ public abstract class AbstractLogger
   protected static class LoggerStorage<P extends LogPublisher<C>,
       C extends LogPublisherCfg>
   {
-    /**
-     * Defined as public to allow subclasses of {@link AbstractLogger} to
-     * instantiate it.
-     */
+    /** Defined as public to allow subclasses of {@link AbstractLogger} to instantiate it. */
     public LoggerStorage()
     {
       super();
     }
 
-    /**
-     * The set of loggers that have been registered with the server. It will
-     * initially be empty.
-     */
+    /** The set of loggers that have been registered with the server. It will initially be empty. */
     private Collection<P> logPublishers = new CopyOnWriteArrayList<>();
-
 
     /**
      * Add a log publisher to the logger.
@@ -125,9 +116,7 @@ public abstract class AbstractLogger
       return removed;
     }
 
-    /**
-     * Removes all existing log publishers from the logger.
-     */
+    /** Removes all existing log publishers from the logger. */
     public synchronized void removeAllLogPublishers()
     {
       StaticUtils.close(logPublishers);
@@ -169,9 +158,7 @@ public abstract class AbstractLogger
    */
   public abstract boolean removeLogPublisher(P publisher);
 
-  /**
-   * Removes all existing log publishers from the logger.
-   */
+  /** Removes all existing log publishers from the logger. */
   public abstract void removeAllLogPublishers();
 
   /**
@@ -182,10 +169,7 @@ public abstract class AbstractLogger
   protected abstract ClassPropertyDefinition getJavaClassPropertyDefinition();
 
   private final Class<P> logPublisherClass;
-
-  private final Arg3<Object, Object, Object>
-      invalidLoggerClassErrorMessage;
-
+  private final Arg3<Object, Object, Object> invalidLoggerClassErrorMessage;
   private ServerContext serverContext;
 
   /**
@@ -241,21 +225,16 @@ public abstract class AbstractLogger
     return serverContext;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationAddAcceptable(C config,
-      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAddAcceptable(C config, List<LocalizableMessage> unacceptableReasons)
   {
-    return !config.isEnabled() ||
-        isJavaClassAcceptable(config, unacceptableReasons);
+    return !config.isEnabled() || isJavaClassAcceptable(config, unacceptableReasons);
   }
 
   @Override
-  public boolean isConfigurationChangeAcceptable(C config,
-      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(C config, List<LocalizableMessage> unacceptableReasons)
   {
-    return !config.isEnabled() ||
-        isJavaClassAcceptable(config, unacceptableReasons);
+    return !config.isEnabled() || isJavaClassAcceptable(config, unacceptableReasons);
   }
 
   @Override
@@ -274,7 +253,7 @@ public abstract class AbstractLogger
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    if(config.isEnabled())
+    if (config.isEnabled())
     {
       try
       {
@@ -343,8 +322,7 @@ public abstract class AbstractLogger
           if (commonAudit.isCommonAuditConfig(config))
           {
             commonAudit.addOrUpdatePublisher(config);
-          } // else the publisher is currently active, so we don't need to do
-            // anything.
+          } // else the publisher is currently active, so we don't need to do anything.
         }
         catch (Exception e)
         {
@@ -362,10 +340,8 @@ public abstract class AbstractLogger
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationDeleteAcceptable(C config,
-      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationDeleteAcceptable(C config, List<LocalizableMessage> unacceptableReasons)
   {
     return findLogPublisher(config.dn()) != null;
   }
@@ -441,5 +417,4 @@ public abstract class AbstractLogger
     publisher.setRequestHandler(commonAudit.getRequestHandler(config));
     return logPublisher;
   }
-
 }
