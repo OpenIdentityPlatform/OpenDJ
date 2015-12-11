@@ -773,7 +773,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   }
 
   /**
-   * Abort all cursors opened on the provided log file.
+   * Abort all cursors opened on the provided log file. 
+   * @GuardedBy("exclusiveLock")
    */
   private void abortCursorsOpenOnLogFile(LogFile<K, V> logFile)
   {
@@ -1079,6 +1080,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     }
   }
 
+  /** @GuardedBy("exclusiveLock") */
   private void abortAllOpenCursors() throws ChangelogException
   {
     for (AbortableLogCursor<K, V> cursor : openCursors)
@@ -1539,8 +1541,18 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     @Override
     public void close()
     {
-      delegate.close();
-      log.unregisterCursor(this);
+      // Lock is needed here to ensure that log cursor cannot be closed while still referenced in the cursor list.
+      // Removing the cursor before the close is not enough due to the CopyOnWrite nature of the cursor list.
+      log.sharedLock.lock();
+      try
+      {
+        delegate.close();
+        log.unregisterCursor(this);
+      }
+      finally
+      {
+        log.sharedLock.unlock();
+      }
     }
 
     @Override
