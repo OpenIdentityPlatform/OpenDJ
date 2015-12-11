@@ -240,13 +240,12 @@ public abstract class AbstractLogger
   @Override
   public ConfigChangeResult applyConfigurationAdd(C config)
   {
-    ConfigChangeResult ccr = applyConfigurationAdd(config);
+    final ConfigChangeResult ccr = applyConfigurationAdd0(config);
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       config.addChangeListener((ConfigurationChangeListener) this);
     }
-
-    return applyConfigurationAdd0(config);
+    return ccr;
   }
 
   private ConfigChangeResult applyConfigurationAdd0(C config)
