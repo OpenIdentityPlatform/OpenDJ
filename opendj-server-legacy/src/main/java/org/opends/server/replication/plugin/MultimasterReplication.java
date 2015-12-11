@@ -307,7 +307,7 @@ public class MultimasterReplication
   private int getNumberOfReplayThreadsOrDefault(ReplicationSynchronizationProviderCfg cfg)
   {
     Integer value = cfg.getNumUpdateReplayThreads();
-    return value == null ? Platform.computeNumberOfThreads(16, 1.5f) : value;
+    return value == null ? Platform.computeNumberOfThreads(16, 2.0f) : value;
   }
 
   /**
