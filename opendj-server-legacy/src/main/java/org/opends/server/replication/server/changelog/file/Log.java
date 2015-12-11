@@ -773,7 +773,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   }
 
   /**
-   * Abort all cursors opened on the provided log file. 
+   * Abort all cursors opened on the provided log file.
    * @GuardedBy("exclusiveLock")
    */
   private void abortCursorsOpenOnLogFile(LogFile<K, V> logFile)
