@@ -739,6 +739,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       {
         return null;
       }
+
+      logger.trace("About to purge log files older than purgeKey %s: %s", purgeKey, logFilesToPurge);
       final List<String> undeletableFiles = new ArrayList<>();
       final Iterator<LogFile<K, V>> entriesToPurge = logFilesToPurge.values().iterator();
       while (entriesToPurge.hasNext())

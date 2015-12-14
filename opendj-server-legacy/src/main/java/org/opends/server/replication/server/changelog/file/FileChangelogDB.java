@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.DurationUnit;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Pair;
 import org.forgerock.util.time.TimeService;
@@ -898,6 +899,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       // initialize CNIndexDB
       getChangeNumberIndexDB();
+      boolean canDisplayNothingToPurgeMsg = true;
       while (!isShutdownInitiated())
       {
         try
@@ -923,7 +925,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
             oldestNotPurgedCSN = localCNIndexDB.purgeUpTo(purgeCSN);
             if (oldestNotPurgedCSN == null)
             { // shutdown may have been initiated...
-              // ... or the change number index DB is empty,
+              // ... or change number index DB determined there is nothing to purge,
               // wait for new changes to come in.
 
               // Note we cannot sleep for as long as the purge delay
@@ -936,6 +938,11 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
                 {
                   if (!isShutdownInitiated())
                   {
+                    if (canDisplayNothingToPurgeMsg)
+                    {
+                      logger.trace("Nothing to purge, waiting for new changes");
+                      canDisplayNothingToPurgeMsg = false;
+                    }
                     wait(DEFAULT_SLEEP);
                   }
                 }
@@ -958,7 +965,13 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
             {
               if (!isShutdownInitiated())
               {
-                wait(computeSleepTimeUntilNextPurge(oldestNotPurgedCSN));
+                final long sleepTime = computeSleepTimeUntilNextPurge(oldestNotPurgedCSN);
+                if (logger.isTraceEnabled())
+                {
+                  tracePurgeDetails(purgeCSN, oldestNotPurgedCSN, sleepTime);
+                  canDisplayNothingToPurgeMsg = true;
+                }
+                wait(sleepTime);
               }
             }
           }
@@ -975,6 +988,22 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
             replicationServer.shutdown();
           }
         }
+      }
+    }
+
+    private void tracePurgeDetails(final CSN purgeCSN, final CSN oldestNotPurgedCSN, final long sleepTime)
+    {
+      if (purgeCSN.equals(oldestNotPurgedCSN.toStringUI()))
+      {
+        logger.trace("Purged up to %s. "
+            + "now sleeping until next purge during %s",
+            purgeCSN.toStringUI(), DurationUnit.toString(sleepTime));
+      }
+      else
+      {
+        logger.trace("Asked to purge up to %s, actually purged up to %s (not included). "
+            + "now sleeping until next purge during %s",
+            purgeCSN.toStringUI(), oldestNotPurgedCSN.toStringUI(), DurationUnit.toString(sleepTime));
       }
     }
 
