@@ -1527,15 +1527,24 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     }
 
     @Override
-    public synchronized boolean next() throws ChangelogException
+    public boolean next() throws ChangelogException
     {
-      if (mustAbort)
+      // This lock is needed to ensure that abort() is atomic.
+      log.sharedLock.lock();
+      try
       {
-        delegate.close();
-        delegate = new AbortedLogCursor<>(log.getPath());
-        mustAbort = false;
+        if (mustAbort)
+        {
+          delegate.close();
+          delegate = new AbortedLogCursor<>(log.getPath());
+          mustAbort = false;
+        }
+        return delegate.next();
       }
-      return delegate.next();
+      finally
+      {
+        log.sharedLock.unlock();
+      }
     }
 
     @Override
@@ -1565,10 +1574,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     /**
      * Aborts this cursor. Once aborted, a cursor throws an
      * AbortedChangelogCursorException if it is used.
-     * <p>
-     * This method is called only when log.exclusiveLock has been acquired.
+     * @GuardedBy("exclusiveLock")
      */
-    synchronized void abort()
+    void abort()
     {
       mustAbort = true;
     }
