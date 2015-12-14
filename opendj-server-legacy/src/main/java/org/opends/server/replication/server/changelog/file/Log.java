@@ -257,7 +257,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
   /** Holds the parameters for log files rotation. */
   static class LogRotationParameters {
-
     private final long sizeLimitPerFileInBytes;
     private final long rotationInterval;
     private final long lastRotationTime;
@@ -279,6 +278,15 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       this.lastRotationTime = lastRotationTime;
     }
 
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName() + "("
+          + "sizeLimitPerFileInBytes=" + sizeLimitPerFileInBytes
+          + ", rotationInterval=" + rotationInterval
+          + ", lastRotationTime=" + lastRotationTime
+          + ")";
+    }
   }
 
   /**
@@ -509,10 +517,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     return false;
   }
 
-  /**
-   * Indicates if the provided record has a key that would break the key
-   * ordering in the log.
-   */
+  /** Indicates if the provided record has a key that would break the key ordering in the log. */
   private boolean recordIsBreakingKeyOrdering(final Record<K, V> record)
   {
     return lastAppendedKey != null && record.getKey().compareTo(lastAppendedKey) <= 0;
@@ -669,7 +674,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     }
   }
 
-
   /**
    * Returns the newest (last) record from this log.
    *
@@ -771,11 +775,11 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     {
       exclusiveLock.unlock();
     }
-
   }
 
   /**
    * Abort all cursors opened on the provided log file.
+   * <p>
    * @GuardedBy("exclusiveLock")
    */
   private void abortCursorsOpenOnLogFile(LogFile<K, V> logFile)
@@ -1166,7 +1170,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
   private boolean isHeadLogFile(final LogFile<K, V> logFile)
   {
-    return logFile.getFile().getName().equals(Log.HEAD_LOG_FILE_NAME);
+    return Log.HEAD_LOG_FILE_NAME.equals(logFile.getFile().getName());
   }
 
   /** @GuardedBy("sharedLock") */
@@ -1220,9 +1224,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * <p>
    * This is an abstract class rather than an interface to allow reduced visibility of the methods.
    */
-  private abstract static class LogCursor<K extends Comparable<K>, V> implements RepositionableCursor<K, V>
+  private static abstract class LogCursor<K extends Comparable<K>, V> implements RepositionableCursor<K, V>
   {
-
     /** Closes the underlying cursor. */
     abstract void closeUnderlyingCursor();
 
@@ -1234,7 +1237,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
     /** Returns true if cursor is pointing on provided log file. */
     abstract boolean isAccessingLogFile(LogFile<K, V> logFile);
-
   }
 
   /**
@@ -1376,7 +1378,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       return  String.format("Cursor on log : %s, current log file: %s, current cursor: %s",
               log.logPath, currentLogFile.getFile().getName(), currentCursor);
     }
-
   }
 
   /**
@@ -1668,5 +1669,4 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       return isValid;
     }
   }
-
 }
