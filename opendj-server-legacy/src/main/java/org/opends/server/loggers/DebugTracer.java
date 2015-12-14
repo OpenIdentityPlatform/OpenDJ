@@ -154,17 +154,11 @@ public class DebugTracer
 
           // If this method does have a specific setting
           // and it is not supposed to be logged, continue.
-          if (mSettings != null)
+          if (!shouldLog(mSettings, hasException))
           {
-            if (!shouldLog(mSettings, hasException))
-            {
-              continue;
-            }
-            else
-            {
-              activeSettings = mSettings;
-            }
+            continue;
           }
+          activeSettings = mSettings;
         }
 
         String sourceLocation = callerFrame.getFileName() + ":" + callerFrame.getLineNumber();
@@ -283,8 +277,9 @@ public class DebugTracer
   /** Indicates if there is something to log. */
   private boolean shouldLog(TraceSettings settings, boolean hasException)
   {
-    return settings.getLevel() == ALL
-        || (hasException && settings.getLevel() == EXCEPTIONS_ONLY);
+    return settings != null
+        && (settings.getLevel() == ALL
+          || (hasException && settings.getLevel() == EXCEPTIONS_ONLY));
   }
 
   /** Indicates if there is something to log. */
