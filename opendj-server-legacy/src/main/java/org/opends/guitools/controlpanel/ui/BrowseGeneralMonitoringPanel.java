@@ -94,30 +94,20 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
    */
   protected enum NodeType
   {
-    /**
-     * Root node.
-     */
+    /** Root node. */
     ROOT,
-    /**
-     * System information node.
-     */
+    /** System information node. */
     SYSTEM_INFORMATION,
-    /**
-     * Java information node.
-     */
+    /** Java information node. */
     JAVA_INFORMATION,
-    /**
-     * Work queue node.
-     */
+    /** Work queue node. */
     WORK_QUEUE,
-    /**
-     * Entry caches node.
-     */
+    /** Entry caches node. */
     ENTRY_CACHES,
-    /**
-     * Database environment node.
-     */
-    DB_ENVIRONMENT
+    /** JE Databases information node. */
+    JE_DATABASES_INFORMATION,
+    /** PDB databases information node. */
+    PDB_DATABASES_INFORMATION
   }
 
   /**
@@ -503,8 +493,11 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         case ENTRY_CACHES:
           entryPane.updateEntryCaches();
           break;
-        case DB_ENVIRONMENT:
-          entryPane.updateDBEnvironment();
+        case JE_DATABASES_INFORMATION:
+          entryPane.updateJEDatabaseInformation();
+          break;
+        case PDB_DATABASES_INFORMATION:
+          entryPane.updatePDBDatbaseInformation();
           break;
         case JAVA_INFORMATION:
           entryPane.updateJavaInformation();
@@ -587,7 +580,8 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         NodeType.JAVA_INFORMATION,
         NodeType.WORK_QUEUE,
         NodeType.ENTRY_CACHES,
-        NodeType.DB_ENVIRONMENT
+        NodeType.JE_DATABASES_INFORMATION,
+        NodeType.PDB_DATABASES_INFORMATION
     };
     LocalizableMessage[] ocPaths = {
         INFO_CTRL_PANEL_GENERAL_MONITORING_ROOT_TREE_NODE.get(),
@@ -595,6 +589,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_JVM_MEMORY_USAGE_TREE_NODE.get(),
         INFO_CTRL_PANEL_WORK_QUEUE_TREE_NODE.get(),
         INFO_CTRL_PANEL_ENTRY_CACHES_TREE_NODE.get(),
+        INFO_CTRL_PANEL_DB_ENVIRONMENT_TREE_NODE.get(),
         INFO_CTRL_PANEL_DB_ENVIRONMENT_TREE_NODE.get()
     };
     for (int i=0; i<identifiers.length; i++)
@@ -663,7 +658,8 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       INFO_CTRL_PANEL_JAVA_INFORMATION.get(),
       INFO_CTRL_PANEL_WORK_QUEUE.get(),
       INFO_CTRL_PANEL_ENTRY_CACHES.get(),
-      INFO_CTRL_PANEL_DB_ENVIRONMENT.get()
+      INFO_CTRL_PANEL_JE_DB_INFO.get(),
+      INFO_CTRL_PANEL_PDB_DB_INFO.get()
     };
   }
 
@@ -678,7 +674,8 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         NodeType.JAVA_INFORMATION,
         NodeType.WORK_QUEUE,
         NodeType.ENTRY_CACHES,
-        NodeType.DB_ENVIRONMENT
+        NodeType.JE_DATABASES_INFORMATION,
+        NodeType.PDB_DATABASES_INFORMATION
     };
   }
 }

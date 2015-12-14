@@ -45,6 +45,7 @@ public class BackendDescriptor
   private final boolean isEnabled;
   private CustomSearchResult monitoringEntry;
   private final Type type;
+  private PluggableType pluggableType;
   private int hashCode;
 
   /** An enumeration describing the type of backend. */
@@ -64,6 +65,17 @@ public class BackendDescriptor
     PLUGGABLE,
     /** The backend is a task backend. */
     TASK
+  }
+
+  /** An enumeration describing the different pluggable backends. */
+  public enum PluggableType
+  {
+    /** JE Backend. */
+    JE,
+    /** PDB Backend. */
+    PDB,
+    /** Unknown Type, should never fall through this. */
+    UNKNOWN
   }
 
   /**
@@ -293,5 +305,23 @@ public class BackendDescriptor
   public boolean isEnabled()
   {
     return isEnabled;
+  }
+
+  /**
+   * Set the type of pluggable backend.
+   * @param pluggableType the type of pluggable backend.
+   */
+  public void setPluggableType(PluggableType pluggableType)
+  {
+    this.pluggableType = pluggableType;
+  }
+
+  /**
+   * Get the type of pluggable backend.
+   * @return the type of pluggable backend.
+   */
+  public PluggableType getPluggableType()
+  {
+    return pluggableType;
   }
 }

@@ -80,8 +80,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @param attributes the list of possible attributes.
   * @return an instance of this panel that uses String as attributes.
   */
- public static MonitoringAttributesViewPanel<String>
- createStringInstance(LinkedHashSet<String> attributes)
+ public static MonitoringAttributesViewPanel<String> createStringInstance(LinkedHashSet<String> attributes)
  {
    return new MonitoringAttributesViewPanel<>(attributes);
  }
@@ -94,8 +93,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * attributes.
   */
  public static MonitoringAttributesViewPanel<MonitoringAttributes>
- createMonitoringAttributesInstance(
-     LinkedHashSet<MonitoringAttributes> attributes)
+ createMonitoringAttributesInstance(LinkedHashSet<MonitoringAttributes> attributes)
  {
    return new MonitoringAttributesViewPanel<>(attributes);
  }
@@ -156,8 +154,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
 
    gbc.gridwidth = 2;
    gbc.gridx = 0;
-   add(Utilities.createPrimaryLabel(
-       INFO_CTRL_PANEL_OPERATION_VIEW_LABEL.get()), gbc);
+   add(Utilities.createPrimaryLabel(INFO_CTRL_PANEL_OPERATION_VIEW_LABEL.get()), gbc);
    gbc.gridy ++;
    gbc.gridwidth = 1;
    gbc.insets.top = 10;
@@ -188,8 +185,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
      }
    });
 
-   selectNone = Utilities.createButton(
-       INFO_CTRL_PANEL_CLEAR_SELECTION_BUTTON.get());
+   selectNone = Utilities.createButton(INFO_CTRL_PANEL_CLEAR_SELECTION_BUTTON.get());
    selectNone.addActionListener(new ActionListener()
    {
      public void actionPerformed(ActionEvent ev)
@@ -253,8 +249,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    gbc.weighty = 1.0;
    checkBoxPanel.add(Box.createVerticalGlue(), gbc);
    scroll.getViewport().setPreferredSize(
-       new Dimension(checkBoxPanel.getPreferredSize().width + 15,
-           preferredViewHeight));
+       new Dimension(checkBoxPanel.getPreferredSize().width + 15, preferredViewHeight));
  }
 
  /** {@inheritDoc} */
@@ -289,11 +284,11 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    // Check that at least one checkbox is selected.
    selectedAttributes.clear();
    int i = 0;
-   for (T operation : monitoringAttributes)
+   for (T attribute : monitoringAttributes)
    {
      if (checkboxes[i].isSelected())
      {
-       selectedAttributes.add(operation);
+       selectedAttributes.add(attribute);
      }
      i++;
    }
@@ -335,24 +330,24 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  }
 
  /**
-  * Returns the message for the provided operation.
-  * @param operation the operation.
-  * @return the message for the provided operation.
+  * Returns the message for the provided attribute.
+  * @param attribute the attribute.
+  * @return the message for the provided attribute.
   */
- protected LocalizableMessage getMessage(T operation)
+ protected LocalizableMessage getMessage(T attribute)
  {
    LocalizableMessage m;
-   if (operation instanceof MonitoringAttributes)
+   if (attribute instanceof MonitoringAttributes)
    {
-     m = ((MonitoringAttributes)operation).getMessage();
+     m = ((MonitoringAttributes)attribute).getMessage();
    }
-   else if (operation instanceof LocalizableMessage)
+   else if (attribute instanceof LocalizableMessage)
    {
-     m = (LocalizableMessage)operation;
+     m = (LocalizableMessage)attribute;
    }
    else
    {
-     m = LocalizableMessage.raw(operation.toString());
+     m = LocalizableMessage.raw(attribute.toString());
    }
    return m;
  }

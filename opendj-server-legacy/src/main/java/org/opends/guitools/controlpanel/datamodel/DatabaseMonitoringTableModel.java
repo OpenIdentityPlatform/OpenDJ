@@ -40,22 +40,18 @@ import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 
-/**
- * The abstract table model used to display all the network groups.
- */
-public class DBEnvironmentMonitoringTableModel extends SortableTableModel
-implements Comparator<BackendDescriptor>
+/** The table model used to display all the database monitoring information. */
+public class DatabaseMonitoringTableModel extends SortableTableModel implements Comparator<BackendDescriptor>
 {
   private static final long serialVersionUID = 548035716525600536L;
   private Set<BackendDescriptor> data = new HashSet<>();
   private ArrayList<String[]> dataArray = new ArrayList<>();
-  private ArrayList<BackendDescriptor> dataSourceArray = new ArrayList<>();
 
   private String[] columnNames = {};
   private LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
   private LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
-  /** The operations to be displayed. */
+  /** The fields to be displayed. */
   private LinkedHashSet<String> attributes = new LinkedHashSet<>();
   /** The sort column of the table. */
   private int sortColumn;
@@ -202,8 +198,8 @@ implements Comparator<BackendDescriptor>
   }
 
   /**
-   * Returns the operations displayed by this table model.
-   * @return the operations displayed by this table model.
+   * Returns the fields displayed by this table model.
+   * @return the fields displayed by this table model.
    */
   public Collection<String> getAttributes()
   {
@@ -211,19 +207,19 @@ implements Comparator<BackendDescriptor>
   }
 
   /**
-   * Sets the operations displayed by this table model.
-   * @param operations the operations displayed by this table model.
+   * Sets the fields displayed by this table model.
+   * @param fields the statistic fields displayed by this table model.
    */
-  public void setAttributes(LinkedHashSet<String> operations)
+  public void setAttributes(LinkedHashSet<String> fields)
   {
     this.attributes.clear();
-    this.attributes.addAll(operations);
-    columnNames = new String[operations.size() + 1];
+    this.attributes.addAll(fields);
+    columnNames = new String[fields.size() + 1];
     columnNames[0] = INFO_CTRL_PANEL_DB_HEADER.get().toString();
     int i = 1;
-    for (String operation : operations)
+    for (String field : fields)
     {
-      columnNames[i] = operation;
+      columnNames[i] = field;
       i++;
     }
   }
@@ -236,12 +232,10 @@ implements Comparator<BackendDescriptor>
     TreeSet<BackendDescriptor> sortedSet = new TreeSet<>(this);
     sortedSet.addAll(data);
     dataArray.clear();
-    dataSourceArray.clear();
     for (BackendDescriptor ach : sortedSet)
     {
       String[] s = getLine(ach);
       dataArray.add(s);
-      dataSourceArray.add(ach);
     }
 
     // Add the total: always at the end
@@ -253,9 +247,8 @@ implements Comparator<BackendDescriptor>
       boolean valueSet = false;
       boolean notImplemented = false;
       long totalValue = 0;
-      for (int j=0; j<dataArray.size(); j++)
+      for (String[] l : dataArray)
       {
-        String[] l = dataArray.get(j);
         String value = l[i];
         try
         {

@@ -108,7 +108,8 @@ public class ConfigFromDirContext extends ConfigReader
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private static final String DATABASE_ENVIRONMENT_SUFFIX = " Database Environment";
+  private static final String DATABASE_JE_MONITORING_ENTRY_SUFFIX = " JE Database";
+  private static final String DATABASE_PDB_MONITORING_ENTRY_SUFFIX = " PDB Database";
   private static final String SYNC_PROVIDER_NAME = "Multimaster Synchronization";
 
   private CustomSearchResult rootMonitor;
@@ -714,19 +715,19 @@ public class ConfigFromDirContext extends ConfigReader
                 baseDN.setAgeOfOldestMissingChange(
                     Long.valueOf(ConnectionUtils.getFirstValue(sr, "approx-older-change-not-synchronized-millis")));
               }
-              catch (Throwable t)
+              catch (Throwable ignored)
               {
               }
               try
               {
                 baseDN.setMissingChanges(Integer.valueOf(missingChanges));
               }
-              catch (Throwable t)
+              catch (Throwable ignored)
               {
               }
             }
           }
-          catch (Throwable t)
+          catch (Throwable ignored)
           {
           }
         }
@@ -784,13 +785,25 @@ public class ConfigFromDirContext extends ConfigReader
       {
         // Check if it is the DB monitor entry
         String cn = ConnectionUtils.getFirstValue(sr, "cn");
-        if (cn != null && cn.endsWith(DATABASE_ENVIRONMENT_SUFFIX))
+        String monitorBackendID = null;
+        BackendDescriptor.PluggableType pluggableType = BackendDescriptor.PluggableType.UNKNOWN;
+        if (cn != null && cn.endsWith(DATABASE_JE_MONITORING_ENTRY_SUFFIX))
         {
-          String monitorBackendID = cn.substring(0, cn.length() - DATABASE_ENVIRONMENT_SUFFIX.length());
+          pluggableType = BackendDescriptor.PluggableType.JE;
+          monitorBackendID = cn.substring(0, cn.length() - DATABASE_JE_MONITORING_ENTRY_SUFFIX.length());
+        }
+        if (cn != null && cn.endsWith(DATABASE_PDB_MONITORING_ENTRY_SUFFIX))
+        {
+          pluggableType = BackendDescriptor.PluggableType.PDB;
+          monitorBackendID = cn.substring(0, cn.length() - DATABASE_PDB_MONITORING_ENTRY_SUFFIX.length());
+        }
+        if (monitorBackendID != null)
+        {
           for (BackendDescriptor backend : backends)
           {
             if (backend.getBackendID().equalsIgnoreCase(monitorBackendID))
             {
+              backend.setPluggableType(pluggableType);
               backend.setMonitoringEntry(csr);
             }
           }

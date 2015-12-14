@@ -34,6 +34,7 @@ import java.awt.GridBagConstraints;
 
 import javax.swing.JPanel;
 
+import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -48,42 +49,41 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -4197460101279681042L;
 
-  /**
-   * The panel with a CardLayout that contains all the panels.
-   */
+  /** The panel with a CardLayout that contains all the panels. */
   protected JPanel mainPanel;
 
   private RootMonitoringPanel rootPanel = new RootMonitoringPanel();
-  private WorkQueueMonitoringPanel workQueuePanel =
-    new WorkQueueMonitoringPanel();
-  private EntryCachesMonitoringPanel entryCachesPanel =
-    new EntryCachesMonitoringPanel();
-  private DBEnvironmentMonitoringPanel dbEnvironmentPanel =
-    new DBEnvironmentMonitoringPanel();
-  private SystemInformationMonitoringPanel systemInformationPanel =
-    new SystemInformationMonitoringPanel();
-  private JavaInformationMonitoringPanel javaInformationPanel =
-    new JavaInformationMonitoringPanel();
+  private WorkQueueMonitoringPanel workQueuePanel = new WorkQueueMonitoringPanel();
+  private EntryCachesMonitoringPanel entryCachesPanel = new EntryCachesMonitoringPanel();
+  private DatabaseMonitoringPanel jeMonitoringPanel = new DatabaseMonitoringPanel(BackendDescriptor.PluggableType.JE);
+  private DatabaseMonitoringPanel pdbMonitoringPanel = new DatabaseMonitoringPanel(BackendDescriptor.PluggableType.PDB);
+  private SystemInformationMonitoringPanel systemInformationPanel = new SystemInformationMonitoringPanel();
+  private JavaInformationMonitoringPanel javaInformationPanel = new JavaInformationMonitoringPanel();
 
-  /**
-   * The panel used to update messages.
-   */
+  private static final String rootPanelTitle = "RootMonitoringPanel";
+  private static final String workQueuePanelTitle = "WorkQueueMonitoringPanel";
+  private static final String entryCachesPanelTitle = "EntryCachesMonitoringPanel";
+  private static final String jeMonitoringPanelTitle = "JEDatabaseMonitoringPanel";
+  private static final String pdbMonitoringPanelTitle = "PDBDatabaseMonitoringPanel";
+  private static final String systemInformationPanelTitle = "SystemInformationMonitoringPanel";
+  private static final String javaInformationPanelTitle = "JavaInformationMonitoringPanel";
+
+  /** The panel used to update messages. */
   protected NoItemSelectedPanel noEntryPanel = new NoItemSelectedPanel();
+  private static final String noEntryPanelTitle = "JavaInformationMonitoringPanel";
 
   private final StatusGenericPanel[] panels =
   {
       rootPanel,
       workQueuePanel,
       entryCachesPanel,
-      dbEnvironmentPanel,
+      jeMonitoringPanel,
+      pdbMonitoringPanel,
       systemInformationPanel,
       javaInformationPanel
   };
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public GeneralMonitoringRightPanel()
   {
     super();
@@ -93,12 +93,11 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   /**
    * Displays a panel containing a message.
    * @param msg the message.
-   *
    */
   public void displayMessage(LocalizableMessage msg)
   {
     noEntryPanel.setMessage(msg);
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, getTitle(noEntryPanel));
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, noEntryPanelTitle);
   }
 
   /** {@inheritDoc} */
@@ -111,40 +110,25 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   protected void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
     CardLayout cardLayout = new CardLayout();
     mainPanel = new JPanel(cardLayout);
     mainPanel.setOpaque(false);
-    noEntryPanel.setMessage(
-        INFO_CTRL_PANEL_GENERAL_MONITORING_NO_ITEM_SELECTED.get());
-    JPanel[] panelsWithScroll =
-    {
-        noEntryPanel,
-        rootPanel,
-        workQueuePanel,
-        entryCachesPanel,
-        systemInformationPanel,
-        javaInformationPanel
-    };
-    JPanel[] panelsWithNoScroll =
-    {
-        dbEnvironmentPanel
-    };
-    for (JPanel panel : panelsWithScroll)
-    {
-      mainPanel.add(Utilities.createBorderLessScrollBar(panel),
-          getTitle(panel));
-    }
-    for (JPanel panel : panelsWithNoScroll)
-    {
-      mainPanel.add(panel, getTitle(panel));
-    }
-    cardLayout.show(mainPanel, getTitle(noEntryPanel));
+    noEntryPanel.setMessage(INFO_CTRL_PANEL_GENERAL_MONITORING_NO_ITEM_SELECTED.get());
+    // panels with scroll
+    mainPanel.add(Utilities.createBorderLessScrollBar(noEntryPanel), noEntryPanelTitle);
+    mainPanel.add(Utilities.createBorderLessScrollBar(rootPanel), rootPanelTitle);
+    mainPanel.add(Utilities.createBorderLessScrollBar(workQueuePanel), workQueuePanelTitle);
+    mainPanel.add(Utilities.createBorderLessScrollBar(entryCachesPanel), entryCachesPanelTitle);
+    mainPanel.add(Utilities.createBorderLessScrollBar(systemInformationPanel), systemInformationPanelTitle);
+    mainPanel.add(Utilities.createBorderLessScrollBar(javaInformationPanel), javaInformationPanelTitle);
+    // panels with no scroll
+    mainPanel.add(jeMonitoringPanel, jeMonitoringPanelTitle);
+    mainPanel.add(pdbMonitoringPanel, pdbMonitoringPanelTitle);
+    cardLayout.show(mainPanel, noEntryPanelTitle);
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.weightx = 1.0;
@@ -182,72 +166,53 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   {
   }
 
-  /**
-   * Updates the contents of the panel with the root monitoring information.
-   */
+  /** Updates the contents of the panel with the root monitoring information. */
   public void updateRoot()
   {
     rootPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel,
-        getTitle(rootPanel));
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, rootPanelTitle);
   }
 
-  /**
-   * Updates the contents of the panel with the system information monitoring.
-   */
+  /** Updates the contents of the panel with the system information monitoring. */
   public void updateSystemInformation()
   {
     systemInformationPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel,
-        getTitle(systemInformationPanel));
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, systemInformationPanelTitle);
   }
 
   /** Updates the contents of the panel with the work queue monitoring information. */
   public void updateWorkQueue()
   {
     workQueuePanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel,
-        getTitle(workQueuePanel));
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, workQueuePanelTitle);
   }
 
-  /**
-   * Updates the contents of the panel with the entry caches monitoring
-   * information.
-   */
+  /** Updates the contents of the panel with the entry caches monitoring information. */
   public void updateEntryCaches()
   {
     entryCachesPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel,
-        getTitle(entryCachesPanel));
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, entryCachesPanelTitle);
   }
 
-  /**
-   * Updates the contents of the panel with the database environment monitoring
-   * information.
-   */
-  public void updateDBEnvironment()
+  /** Updates the contents of the panel with the je database monitoring information. */
+  public void updateJEDatabaseInformation()
   {
-    dbEnvironmentPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel,
-        getTitle(dbEnvironmentPanel));
+    jeMonitoringPanel.updateContents();
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, jeMonitoringPanelTitle);
+  }
+
+  /** Updates the contents of the panel with the pdb database monitoring information. */
+  public void updatePDBDatbaseInformation()
+  {
+    pdbMonitoringPanel.updateContents();
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, pdbMonitoringPanelTitle);
   }
 
   /** Updates the contents of the panel with the JAVA information. */
   public void updateJavaInformation()
   {
     javaInformationPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel,
-        getTitle(javaInformationPanel));
+    ((CardLayout)mainPanel.getLayout()).show(mainPanel, javaInformationPanelTitle);
   }
 
-  /**
-   * Returns the title for a given panel. It will be used to update the
-   * CardLayout.
-   * @param panel the panel we want to get the title from.
-   * @return the title for a given panel.
-   */
-  protected String getTitle(JPanel panel)
-  {
-    return panel.getClass().toString();
-  }
 }

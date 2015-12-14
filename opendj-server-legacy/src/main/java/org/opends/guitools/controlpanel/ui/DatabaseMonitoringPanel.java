@@ -47,35 +47,37 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
-import org.opends.guitools.controlpanel.datamodel.DBEnvironmentMonitoringTableModel;
+import org.opends.guitools.controlpanel.datamodel.BackendDescriptor.PluggableType;
+import org.opends.guitools.controlpanel.datamodel.DatabaseMonitoringTableModel;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The panel displaying the database environment monitor panel.
- */
-public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
+/** The panel displaying the database monitoring filtered attributes. */
+public class DatabaseMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563723229830L;
 
   private JTable table;
-  private DBEnvironmentMonitoringTableModel tableModel;
+  private DatabaseMonitoringTableModel tableModel;
   private JScrollPane scroll;
   private JLabel noDBsFound;
   private JLabel noMonitoringFound;
-  private JButton showOperations;
-
+  private JButton showFields;
   private LinkedHashSet<String> attributes = new LinkedHashSet<>();
   private LinkedHashSet<String> allAttributes = new LinkedHashSet<>();
 
-  private MonitoringAttributesViewPanel<String> operationViewPanel;
-  private GenericDialog operationViewDlg;
+  private MonitoringAttributesViewPanel<String> fieldsViewPanel;
+  private GenericDialog fieldsViewDlg;
+  private final BackendDescriptor.PluggableType pluggableType;
 
-  /** Default constructor. */
-  public DBEnvironmentMonitoringPanel()
+  /**
+   * Default constructor.
+   * @param type the type of pluggable backend.
+   */
+  public DatabaseMonitoringPanel(BackendDescriptor.PluggableType type)
   {
-    super();
+    pluggableType = type;
     createLayout();
   }
 
@@ -85,14 +87,12 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     return table;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
-    JLabel lTitle = Utilities.createTitleLabel(
-        INFO_CTRL_PANEL_DB_ENVIRONMENT.get());
+    final JLabel lTitle = Utilities.createTitleLabel(
+        PluggableType.JE == pluggableType ? INFO_CTRL_PANEL_JE_DB_INFO.get() : INFO_CTRL_PANEL_PDB_DB_INFO.get());
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.gridwidth = 2;
@@ -107,55 +107,47 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     gbc.gridy ++;
     gbc.anchor = GridBagConstraints.WEST;
     gbc.gridwidth = 1;
-    showOperations =
-      Utilities.createButton(INFO_CTRL_PANEL_OPERATIONS_VIEW.get());
-    showOperations.addActionListener(new ActionListener()
+    showFields = Utilities.createButton(INFO_CTRL_PANEL_OPERATIONS_VIEW.get());
+    showFields.addActionListener(new ActionListener()
     {
       @Override
       public void actionPerformed(ActionEvent ev)
       {
-        operationViewClicked();
+        fieldsViewClicked();
       }
     });
-    showOperations.setVisible(false);
+    showFields.setVisible(false);
     gbc.gridx = 0;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(Box.createHorizontalGlue(), gbc);
     gbc.gridx ++;
     gbc.weightx = 0.0;
-    add(showOperations, gbc);
+    add(showFields, gbc);
 
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.gridwidth = 2;
-    tableModel = new DBEnvironmentMonitoringTableModel();
+    tableModel = new DatabaseMonitoringTableModel();
     tableModel.setAttributes(attributes);
-    table = Utilities.createSortableTable(tableModel,
-        new DefaultTableCellRenderer());
+    table = Utilities.createSortableTable(tableModel, new DefaultTableCellRenderer());
     scroll = Utilities.createScrollPane(table);
     updateTableSize();
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
     add(scroll, gbc);
-    noDBsFound = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_NO_DBS_FOUND.get());
+    noDBsFound = Utilities.createDefaultLabel(INFO_CTRL_PANEL_NO_DBS_FOUND.get());
     noDBsFound.setHorizontalAlignment(SwingConstants.CENTER);
     add(noDBsFound, gbc);
-    noMonitoringFound = Utilities.createDefaultLabel(
-        INFO_CTRL_PANEL_NO_DB_MONITORING_FOUND.get());
+    noMonitoringFound = Utilities.createDefaultLabel(INFO_CTRL_PANEL_NO_DB_MONITORING_FOUND.get());
     noMonitoringFound.setHorizontalAlignment(SwingConstants.CENTER);
     add(noMonitoringFound, gbc);
 
     setBorder(PANEL_BORDER);
   }
 
-  /**
-   * Updates the contents of the panel.  The code assumes that this is being
-   * called from the event thread.
-   *
-   */
+  /** Updates the contents of the panel.  The code assumes that this is being called from the event thread. */
   public void updateContents()
   {
     boolean backendsFound = false;
@@ -171,7 +163,8 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     {
       for (BackendDescriptor backend : server.getBackends())
       {
-        if (backend.getType() == BackendDescriptor.Type.PLUGGABLE)
+        if (BackendDescriptor.Type.PLUGGABLE == backend.getType()
+            && pluggableType == backend.getPluggableType())
         {
           dbBackends.add(backend);
           if (updateAttributes)
@@ -195,16 +188,16 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
       }
       if (!attributes.isEmpty())
       {
-        setOperationsToDisplay(attributes);
+        setFieldsToDisplay(attributes);
         updateTableSize();
       }
     }
     tableModel.setData(dbBackends);
-    showOperations.setVisible(backendsFound);
+    showFields.setVisible(backendsFound);
     scroll.setVisible(backendsFound && !allAttributes.isEmpty());
     noDBsFound.setVisible(!backendsFound);
     noMonitoringFound.setVisible(backendsFound && allAttributes.isEmpty());
-    showOperations.setVisible(!allAttributes.isEmpty());
+    showFields.setVisible(!allAttributes.isEmpty());
   }
 
 
@@ -214,34 +207,27 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     Utilities.updateScrollMode(scroll, table);
   }
 
-  /**
-   * Displays a dialog allowing the user to select which operations to display.
-   *
-   */
-  private void operationViewClicked()
+  /** Displays a dialog allowing the user to select which fields to display. */
+  private void fieldsViewClicked()
   {
-    if (operationViewDlg == null)
+    if (fieldsViewDlg == null)
     {
-      operationViewPanel = MonitoringAttributesViewPanel.createStringInstance(
-          allAttributes);
-      operationViewDlg = new GenericDialog(Utilities.getFrame(this),
-          operationViewPanel);
-      operationViewDlg.setModal(true);
-      Utilities.centerGoldenMean(operationViewDlg,
-          Utilities.getParentDialog(this));
+      fieldsViewPanel = MonitoringAttributesViewPanel.createStringInstance(allAttributes);
+      fieldsViewDlg = new GenericDialog(Utilities.getFrame(this), fieldsViewPanel);
+      fieldsViewDlg.setModal(true);
+      Utilities.centerGoldenMean(fieldsViewDlg, Utilities.getParentDialog(this));
     }
-    operationViewPanel.setSelectedAttributes(attributes);
-    operationViewDlg.setVisible(true);
-    if (!operationViewPanel.isCanceled())
+    fieldsViewPanel.setSelectedAttributes(attributes);
+    fieldsViewDlg.setVisible(true);
+    if (!fieldsViewPanel.isCanceled())
     {
-      attributes = operationViewPanel.getAttributes();
-      setOperationsToDisplay(attributes);
+      attributes = fieldsViewPanel.getAttributes();
+      setFieldsToDisplay(attributes);
       updateTableSize();
     }
   }
 
-  private void setOperationsToDisplay(
-      LinkedHashSet<String> attributes)
+  private void setFieldsToDisplay(LinkedHashSet<String> attributes)
   {
     this.attributes = attributes;
     tableModel.setAttributes(attributes);
@@ -256,9 +242,8 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
       Set<String> allNames = backend.getMonitoringEntry().getAttributeNames();
       for (String attrName : allNames)
       {
-        if (!attrName.equalsIgnoreCase(
-            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
-            !attrName.equalsIgnoreCase(ServerConstants.ATTR_COMMON_NAME))
+        if (!attrName.equalsIgnoreCase(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME)
+            && !attrName.equalsIgnoreCase(ServerConstants.ATTR_COMMON_NAME))
         {
           attrNames.add(attrName);
         }
