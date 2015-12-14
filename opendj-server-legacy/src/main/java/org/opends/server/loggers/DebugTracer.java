@@ -26,6 +26,8 @@
  */
 package org.opends.server.loggers;
 
+import static org.opends.server.loggers.TraceSettings.Level.*;
+
 import java.util.Map;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -42,24 +44,39 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 public class DebugTracer
 {
   /**
-   *  We have to harcode this value because we cannot import
-   *  org.opends.server.loggers.slf4j.OpenDJLoggerAdapter(.class.getName())
+   *  We have to hardcode this value because we cannot import
+   *  {@code org.opends.server.loggers.slf4j.OpenDJLoggerAdapter.class.getName()}
    *  to avoid OSGI split package issues.
-   *  See OPENDJ-2226.
+   *  @see OPENDJ-2226
    */
   private static final String OPENDJ_LOGGER_ADAPTER_CLASS_NAME = "org.opends.server.loggers.slf4j.OpenDJLoggerAdapter";
 
   /** The class this aspect traces. */
   private String className;
 
-  /**
-   * A class that represents a settings cache entry.
-   */
+  /** A class that represents a settings cache entry. */
   private class PublisherSettings
   {
-    DebugLogPublisher<?> debugPublisher;
-    TraceSettings classSettings;
-    Map<String, TraceSettings> methodSettings;
+    private final DebugLogPublisher<?> debugPublisher;
+    private final TraceSettings classSettings;
+    private final Map<String, TraceSettings> methodSettings;
+
+    private PublisherSettings(String className, DebugLogPublisher<?> publisher)
+    {
+      debugPublisher = publisher;
+      classSettings = publisher.getClassSettings(className);
+      methodSettings = publisher.getMethodSettings(className);
+    }
+
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName() + "("
+          + "className=" + className
+          + ", classSettings=" + classSettings
+          + ", methodSettings=" + methodSettings
+          + ")";
+    }
   }
 
   private PublisherSettings[] publisherSettings;
@@ -68,34 +85,13 @@ public class DebugTracer
    * Construct a new DebugTracer object with cached settings obtained from
    * the provided array of publishers.
    *
-   * @param className The classname to use as category for logging.
+   * @param className The class name to use as category for logging.
    * @param publishers The array of publishers to obtain the settings from.
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  DebugTracer(String className, DebugLogPublisher[] publishers)
+  DebugTracer(String className, DebugLogPublisher<?>[] publishers)
   {
     this.className = className;
-    publisherSettings = new PublisherSettings[publishers.length];
-
-    // Get the settings from all publishers.
-    for(int i = 0; i < publishers.length; i++)
-    {
-      DebugLogPublisher publisher = publishers[i];
-      PublisherSettings settings = new PublisherSettings();
-
-      settings.debugPublisher = publisher;
-      settings.classSettings = publisher.getClassSettings(className);
-
-      // For some reason, the compiler doesn't see that
-      // debugLogPublihser.getMethodSettings returns a parameterized Map.
-      // This problem goes away if a parameterized verson of DebugLogPublisher
-      // is used. However, we can't not use reflection to instantiate a generic
-      // DebugLogPublisher<? extends DebugLogPublisherCfg> type. The only thing
-      // we can do is to just supress the compiler warnings.
-      settings.methodSettings = publisher.getMethodSettings(className);
-
-      publisherSettings[i] = settings;
-    }
+    publisherSettings = toPublisherSettings(publishers);
   }
 
   /**
@@ -128,7 +124,7 @@ public class DebugTracer
       TraceSettings activeSettings = settings.classSettings;
       Map<String, TraceSettings> methodSettings = settings.methodSettings;
 
-      if (shouldLog(hasException, activeSettings) || methodSettings != null)
+      if (shouldLog(activeSettings, hasException) || methodSettings != null)
       {
         if (stackTrace == null)
         {
@@ -146,7 +142,6 @@ public class DebugTracer
         if (methodSettings != null)
         {
           TraceSettings mSettings = methodSettings.get(signature);
-
           if (mSettings == null)
           {
             // Try looking for an undecorated method name
@@ -157,11 +152,11 @@ public class DebugTracer
             }
           }
 
-          // If this method does have a specific setting and it is not
-          // suppose to be logged, continue.
+          // If this method does have a specific setting
+          // and it is not supposed to be logged, continue.
           if (mSettings != null)
           {
-            if (!shouldLog(hasException, mSettings))
+            if (!shouldLog(mSettings, hasException))
             {
               continue;
             }
@@ -172,16 +167,12 @@ public class DebugTracer
           }
         }
 
-        String sourceLocation =
-            callerFrame.getFileName() + ":" + callerFrame.getLineNumber();
+        String sourceLocation = callerFrame.getFileName() + ":" + callerFrame.getLineNumber();
 
         if (filteredStackTrace == null && activeSettings.getStackDepth() > 0)
         {
-          StackTraceElement[] trace =
-              hasException ? exception.getStackTrace() : stackTrace;
-          filteredStackTrace =
-              DebugStackTraceFormatter.SMART_FRAME_FILTER
-                  .getFilteredStackTrace(trace);
+          StackTraceElement[] trace = hasException ? exception.getStackTrace() : stackTrace;
+          filteredStackTrace = DebugStackTraceFormatter.SMART_FRAME_FILTER.getFilteredStackTrace(trace);
         }
 
         if (hasException)
@@ -232,41 +223,28 @@ public class DebugTracer
    *
    * @param publishers The array of publishers to obtain the settings from.
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  void updateSettings(DebugLogPublisher[] publishers)
+  void updateSettings(DebugLogPublisher<?>[] publishers)
   {
-    PublisherSettings[] newSettings =
-        new PublisherSettings[publishers.length];
+    publisherSettings = toPublisherSettings(publishers);
+  }
 
+  private PublisherSettings[] toPublisherSettings(DebugLogPublisher<?>[] publishers)
+  {
     // Get the settings from all publishers.
+    PublisherSettings[] newSettings = new PublisherSettings[publishers.length];
     for(int i = 0; i < publishers.length; i++)
     {
-      DebugLogPublisher publisher = publishers[i];
-      PublisherSettings settings = new PublisherSettings();
-
-      settings.debugPublisher = publisher;
-      settings.classSettings = publisher.getClassSettings(className);
-
-      // For some reason, the compiler doesn't see that
-      // debugLogPublihser.getMethodSettings returns a parameterized Map.
-      // This problem goes away if a parameterized verson of DebugLogPublisher
-      // is used. However, we can't not use reflection to instantiate a generic
-      // DebugLogPublisher<? extends DebugLogPublisherCfg> type. The only thing
-      // we can do is to just supress the compiler warnings.
-      settings.methodSettings = publisher.getMethodSettings(className);
-
-      newSettings[i] = settings;
+      newSettings[i] = new PublisherSettings(className, publishers[i]);
     }
-
-    publisherSettings = newSettings;
+    return newSettings;
   }
 
   /**
    * Return the caller stack frame.
    *
-   * @param stackTrace The entrie stack trace frames.
-   * @return the caller stack frame or null if none is found on the
-   * stack trace.
+   * @param stackTrace
+   *          The stack trace frames of the caller.
+   * @return the caller stack frame or null if none is found on the stack trace.
    */
   private StackTraceElement getCallerFrame(StackTraceElement[] stackTrace)
   {
@@ -303,15 +281,15 @@ public class DebugTracer
   }
 
   /** Indicates if there is something to log. */
-  private boolean shouldLog(boolean hasException, TraceSettings activeSettings)
+  private boolean shouldLog(TraceSettings settings, boolean hasException)
   {
-    return activeSettings.getLevel() == TraceSettings.Level.ALL
-        || (hasException && activeSettings.getLevel() == TraceSettings.Level.EXCEPTIONS_ONLY);
+    return settings.getLevel() == ALL
+        || (hasException && settings.getLevel() == EXCEPTIONS_ONLY);
   }
 
   /** Indicates if there is something to log. */
   private boolean shouldLog(TraceSettings settings)
   {
-    return settings.getLevel() != TraceSettings.Level.DISABLED;
+    return settings.getLevel() != DISABLED;
   }
 }

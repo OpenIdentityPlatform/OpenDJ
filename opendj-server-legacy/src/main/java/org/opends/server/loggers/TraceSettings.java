@@ -24,25 +24,21 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.loggers;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DebugTargetCfg;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 
-/**
- * This class encapsulates the trace settings in effect at a given tracing scope.
- */
+/** This class encapsulates the trace settings in effect at a given tracing scope. */
 public class TraceSettings implements
     ConfigurationChangeListener<DebugTargetCfg>
 {
   /** A TraceSettings object representing a fully disabled trace state. */
-  public static final TraceSettings DISABLED =
-      new TraceSettings(Level.DISABLED);
+  public static final TraceSettings DISABLED = new TraceSettings(Level.DISABLED);
 
   private static final String STACK_DUMP_KEYWORD = "stack";
   private static final String INCLUDE_CAUSE_KEYWORD = "cause";
@@ -51,17 +47,13 @@ public class TraceSettings implements
   private static final String ENABLED_KEYWORD = "enabled";
   private static final String EXCEPTIONS_ONLY_KEYWORD = "exceptionsonly";
 
-  /**
-   * Represents the level of trace.
-   */
+  /** Represents the level of trace. */
   enum Level
   {
-    /** Log nothing. **/
+    /** Log nothing. */
     DISABLED,
-
-    /** Log only exceptions. **/
+    /** Log only exceptions. */
     EXCEPTIONS_ONLY,
-
     /** Log everything. */
     ALL;
 
@@ -82,50 +74,27 @@ public class TraceSettings implements
         {
           return Level.EXCEPTIONS_ONLY;
         }
-        else
-        {
-          return Level.ALL;
-        }
+        return Level.ALL;
       }
       return Level.DISABLED;
     }
-
   }
 
-  /**
-   * The level of this setting.
-   */
+  /** The level of this setting. */
   private Level level;
-
-  /**
-   * Indicates if method arguments should be logged.
-   */
+  /** Indicates if method arguments should be logged. */
   private boolean noArgs;
-
-  /**
-   * Indicates if method return values should be logged.
-   */
+  /** Indicates if method return values should be logged. */
   private boolean noRetVal;
-
-  /**
-   * The level of stack frames to include.
-   */
+  /** The level of stack frames to include. */
   private int stackDepth;
-
-  /**
-   * Indicates if the cause exception is included in exception messages.
-   */
+  /** Indicates if the cause exception is included in exception messages. */
   private boolean includeCause;
 
-  private DebugTargetCfg currentConfig;
-
-  /**
-   * Construct new trace settings with default values.
-   */
+  /** Construct new trace settings with default values. */
   public TraceSettings()
   {
     this(Level.ALL, false, false, 0, false);
-
   }
 
   /**
@@ -137,7 +106,6 @@ public class TraceSettings implements
   private TraceSettings(Level level)
   {
     this(level, false, false, 0, false);
-
   }
 
   /**
@@ -175,42 +143,36 @@ public class TraceSettings implements
    */
   TraceSettings(DebugTargetCfg config)
   {
-    this.level =
-        Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());
+    this.level = Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());
     this.noArgs = config.isOmitMethodEntryArguments();
     this.noRetVal = config.isOmitMethodReturnValue();
     this.stackDepth = config.getThrowableStackFrames();
     this.includeCause = config.isIncludeThrowableCause();
 
-    currentConfig = config;
     config.addChangeListener(this);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(DebugTargetCfg config,
       List<LocalizableMessage> unacceptableReasons)
   {
-    // This should alwas be acceptable. We are assuing that the scope for this
-    // trace setting is the same sine its part of the DN.
+    // This should always be acceptable. We are assuming that the scope for this
+    // trace setting is the same since it is part of the DN.
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(DebugTargetCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // We can assume that the target scope did not change since its the
+    // We can assume that the target scope did not change since it is the
     // naming attribute. Changing it would result in a modify DN.
 
-    this.level =
-        Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());
+    this.level = Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());
     this.noArgs = config.isOmitMethodEntryArguments();
     this.noRetVal = config.isOmitMethodReturnValue();
     this.stackDepth = config.getThrowableStackFrames();
     this.includeCause = config.isIncludeThrowableCause();
-
-    this.currentConfig = config;
 
     return ccr;
   }
@@ -265,25 +227,25 @@ public class TraceSettings implements
           }
         }
         //See if to include cause in exception messages.
-        else if (keyword.equals(INCLUDE_CAUSE_KEYWORD))
+        else if (INCLUDE_CAUSE_KEYWORD.equals(keyword))
         {
           includeCause = true;
         }
-        //See if to supress method arguments.
-        else if (keyword.equals(SUPPRESS_ARG_KEYWORD))
+        // See if to suppress method arguments.
+        else if (SUPPRESS_ARG_KEYWORD.equals(keyword))
         {
           noArgs = true;
         }
-        //See if to supress return values.
-        else if (keyword.equals(SUPPRESS_RETVAL_KEYWORD))
+        // See if to suppress return values.
+        else if (SUPPRESS_RETVAL_KEYWORD.equals(keyword))
         {
           noRetVal = true;
         }
-        else if (keyword.equals(ENABLED_KEYWORD))
+        else if (ENABLED_KEYWORD.equals(keyword))
         {
           enabled = true;
         }
-        else if (keyword.equals(EXCEPTIONS_ONLY_KEYWORD))
+        else if (EXCEPTIONS_ONLY_KEYWORD.equals(keyword))
         {
           exceptionsOnly = true;
         }
@@ -344,5 +306,17 @@ public class TraceSettings implements
   public boolean isIncludeCause()
   {
     return includeCause;
+  }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "("
+        + "level=" + level
+        + ", logMethodArguments=" + !noArgs
+        + ", logMethodReturnValue=" + !noRetVal
+        + ", logCauseException=" + includeCause
+        + ", stackDepth=" + stackDepth
+        + ")";
   }
 }
