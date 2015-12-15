@@ -48,8 +48,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -68,9 +68,7 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-/**
- * A tool that can be used to issue Compare requests to the Directory Server.
- */
+/** A tool that can be used to issue Compare requests to the Directory Server. */
 public final class LDAPCompare extends ConsoleApplication {
     /**
      * The main method for LDAPModify tool.
@@ -78,7 +76,6 @@ public final class LDAPCompare extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new LDAPCompare().run(args);
         System.exit(filterExitCode(retCode));
@@ -100,13 +97,11 @@ public final class LDAPCompare extends ConsoleApplication {
       super(out, err);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -121,7 +116,6 @@ public final class LDAPCompare extends ConsoleApplication {
                 if (result.getResultCode() == ResultCode.COMPARE_FALSE) {
                     println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(request.getName().toString()));
                 } else {
-
                     println(INFO_COMPARE_OPERATION_RESULT_TRUE.get(request.getName().toString()));
                 }
             } catch (final LdapException ere) {
@@ -210,10 +204,8 @@ public final class LDAPCompare extends ConsoleApplication {
             showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
-
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -221,8 +213,7 @@ public final class LDAPCompare extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            // If we should just display usage or version information, then print it and exit.
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }
@@ -243,7 +234,7 @@ public final class LDAPCompare extends ConsoleApplication {
             }
         } catch (final ArgumentException ae) {
             argParser.displayMessageAndUsageReference(
-                getErrStream(), ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+                getErrStream(), ERR_DESCRIPTION_INVALID_VERSION.get(version.getValue()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -317,9 +308,7 @@ public final class LDAPCompare extends ConsoleApplication {
                     final Control ctrl = Utils.getControl(ctrlString);
                     compare.addControl(ctrl);
                 } catch (final DecodeException de) {
-                    final LocalizableMessage message =
-                            ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    errPrintln(message);
+                    errPrintln(ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -342,9 +331,7 @@ public final class LDAPCompare extends ConsoleApplication {
                 final Control assertionControl = AssertionRequestControl.newControl(true, filter);
                 compare.addControl(assertionControl);
             } catch (final LocalizedIllegalArgumentException le) {
-                final LocalizableMessage message =
-                        ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
-                errPrintln(message);
+                errPrintln(ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage()));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -406,5 +393,4 @@ public final class LDAPCompare extends ConsoleApplication {
 
         return 0;
     }
-
 }

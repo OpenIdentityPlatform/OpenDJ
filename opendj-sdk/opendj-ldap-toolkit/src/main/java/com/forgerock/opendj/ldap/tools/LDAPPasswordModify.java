@@ -83,13 +83,11 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -180,8 +178,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -189,8 +186,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            // If we should just display usage or version information, then print it and exit.
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }
@@ -209,7 +205,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(version.getValue()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -219,9 +215,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
                     final Control ctrl = Utils.getControl(ctrlString);
                     request.addControl(ctrl);
                 } catch (final DecodeException de) {
-                    final LocalizableMessage message =
-                            ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    errPrintln(message);
+                    errPrintln(ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
                     ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }

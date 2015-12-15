@@ -47,9 +47,10 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.forgerock.opendj.util.OperatingSystem;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+
+import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * This class defines a variant of the argument parser that can be used with applications that use subcommands to
@@ -78,7 +79,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
     /** The set of subcommands defined for this parser, referenced by subcommand name. */
     private final SortedMap<String, SubCommand> subCommands = new TreeMap<>();
 
-    /**The subcommand requested by the user as part of the command-line arguments.     */
+    /** The subcommand requested by the user as part of the command-line arguments. */
     private SubCommand subCommand;
     private SubCommandUsageHandler subCommandUsageHandler;
 
@@ -1095,7 +1096,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
         toRefEntry(builder, subCommands);
     }
 
-    /** {@inheritDoc} */
     @Override
     String getSynopsisArgs() {
         if (subCommands.isEmpty()) {

@@ -85,23 +85,11 @@ public class ArgumentParser implements ToolRefDocContainer {
 
     /** The argument that will be used to indicate the file properties. */
     private StringArgument filePropertiesPathArgument;
-
-    /**
-     * The argument that will be used to indicate that we'll not look for
-     * default properties file.
-     */
+    /** The argument that will be used to indicate that we'll not look for default properties file. */
     private BooleanArgument noPropertiesFileArgument;
-
-    /**
-     * The argument that will be used to trigger the display of usage
-     * information.
-     */
+    /** The argument that will be used to trigger the display of usage information. */
     private Argument usageArgument;
-
-    /**
-     * The argument that will be used to trigger the display of the OpenDJ
-     * version.
-     */
+    /** The argument that will be used to trigger the display of the OpenDJ version. */
     private Argument versionArgument;
 
     /** The set of unnamed trailing arguments that were provided for this parser. */
@@ -112,17 +100,13 @@ public class ArgumentParser implements ToolRefDocContainer {
      * the end of the list.
      */
     private final boolean allowsTrailingArguments;
-
-    /**
-     * Indicates whether long arguments should be treated in a case-sensitive
-     * manner.
-     */
+    /** Indicates whether long arguments should be treated in a case-sensitive manner. */
     private final boolean longArgumentsCaseSensitive;
-
     /** Indicates whether the usage or version information has been displayed. */
     private boolean usageOrVersionDisplayed;
     /** Indicates whether the version argument was provided. */
     private boolean versionPresent;
+
     /** The handler to call to print the product version. */
     private VersionHandler versionHandler = new VersionHandler() {
         @Override
@@ -164,11 +148,10 @@ public class ArgumentParser implements ToolRefDocContainer {
      * displaying usage information.
      */
     private final LocalizableMessage toolDescription;
+    /** A short description for this tool, suitable in a man page summary line. */
+    private LocalizableMessage shortToolDescription;
 
-    /**
-     * The display name that will be used for the trailing arguments in the
-     * usage information.
-     */
+    /** The display name that will be used for the trailing arguments in the usage information. */
     private final String trailingArgsDisplayName;
 
     /** The raw set of command-line arguments that were provided. */
@@ -623,18 +606,11 @@ public class ArgumentParser implements ToolRefDocContainer {
         return toolDescription;
     }
 
-    /**
-     * A short description for this tool, suitable in a man page summary line.
-     */
-    private LocalizableMessage shortToolDescription;
-
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getShortToolDescription() {
         return shortToolDescription != null ? shortToolDescription : LocalizableMessage.EMPTY;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setShortToolDescription(final LocalizableMessage shortDescription) {
         this.shortToolDescription = shortDescription;
@@ -646,7 +622,6 @@ public class ArgumentParser implements ToolRefDocContainer {
      */
     private DocDescriptionSupplement docToolDescriptionSupplement;
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getDocToolDescriptionSupplement() {
         this.docToolDescriptionSupplement =
@@ -654,7 +629,6 @@ public class ArgumentParser implements ToolRefDocContainer {
         return this.docToolDescriptionSupplement.getDocDescriptionSupplement();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setDocToolDescriptionSupplement(final LocalizableMessage supplement) {
         this.docToolDescriptionSupplement =
@@ -667,17 +641,15 @@ public class ArgumentParser implements ToolRefDocContainer {
      * intended for use in generated reference documentation.
      */
     private class DocSubcommandsDescriptionSupplement implements DocDescriptionSupplement {
-        /**
-         * A supplement to the description intended for use in generated reference documentation.
-         */
+        /** A supplement to the description intended for use in generated reference documentation. */
         private LocalizableMessage docDescriptionSupplement;
 
-        /** {@inheritDoc} */
+        @Override
         public LocalizableMessage getDocDescriptionSupplement() {
             return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
             this.docDescriptionSupplement = docDescriptionSupplement;
         }
@@ -685,7 +657,6 @@ public class ArgumentParser implements ToolRefDocContainer {
 
     private DocDescriptionSupplement docSubcommandsDescriptionSupplement;
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getDocSubcommandsDescriptionSupplement() {
         this.docSubcommandsDescriptionSupplement =
@@ -693,7 +664,6 @@ public class ArgumentParser implements ToolRefDocContainer {
         return this.docSubcommandsDescriptionSupplement.getDocDescriptionSupplement();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setDocSubcommandsDescriptionSupplement(final LocalizableMessage supplement) {
         this.docSubcommandsDescriptionSupplement =
@@ -979,7 +949,6 @@ public class ArgumentParser implements ToolRefDocContainer {
     SortedSet<Argument> sortArguments(final List<Argument> arguments) {
         final SortedSet<Argument> result = new TreeSet<>(new Comparator<Argument>() {
 
-            /** {@inheritDoc} */
             @Override
             public int compare(final Argument o1, final Argument o2) {
                 final String s1 = getIdentifier(o1);
@@ -1182,20 +1151,17 @@ public class ArgumentParser implements ToolRefDocContainer {
                 String argValue = null;
                 final int equalPos = argName.indexOf('=');
                 if (equalPos < 0) {
-                    // This is fine. The value is not part of the argument name
-                    // token.
+                    // This is fine. The value is not part of the argument name token.
                 } else if (equalPos == 0) {
                     // The argument starts with "--=", which is not acceptable.
                     throw new ArgumentException(ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg));
                 } else {
-                    // The argument is in the form --name=value, so parse them
-                    // both out.
+                    // The argument is in the form --name=value, so parse them both out.
                     argValue = argName.substring(equalPos + 1);
                     argName = argName.substring(0, equalPos);
                 }
 
-                // If we're not case-sensitive, then convert the name to
-                // lowercase.
+                // If we're not case-sensitive, then convert the name to lowercase.
                 final String origArgName = argName;
                 if (!longArgumentsCaseSensitive) {
                     argName = toLowerCase(argName);
@@ -1205,8 +1171,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                 final Argument a = longIDMap.get(argName);
                 if (a == null) {
                     if (OPTION_LONG_HELP.equals(argName)) {
-                        // "--help" will always be interpreted as requesting
-                        // usage information.
+                        // "--help" will always be interpreted as requesting usage information.
                         writeToUsageOutputStream(getUsage());
                         return;
                     } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {

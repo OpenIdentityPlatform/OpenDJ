@@ -46,8 +46,8 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -84,6 +84,7 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public final class LDAPModify extends ConsoleApplication {
     private class VisitorImpl implements ChangeRecordVisitor<Integer, java.lang.Void> {
+        @Override
         public Integer visitChangeRecord(final Void aVoid, final AddRequest change) {
             for (final Control control : controls) {
                 change.addControl(control);
@@ -102,6 +103,7 @@ public final class LDAPModify extends ConsoleApplication {
             return ResultCode.SUCCESS.intValue();
         }
 
+        @Override
         public Integer visitChangeRecord(final Void aVoid, final DeleteRequest change) {
             for (final Control control : controls) {
                 change.addControl(control);
@@ -120,6 +122,7 @@ public final class LDAPModify extends ConsoleApplication {
             return ResultCode.SUCCESS.intValue();
         }
 
+        @Override
         public Integer visitChangeRecord(final Void aVoid, final ModifyDNRequest change) {
             for (final Control control : controls) {
                 change.addControl(control);
@@ -138,6 +141,7 @@ public final class LDAPModify extends ConsoleApplication {
             return ResultCode.SUCCESS.intValue();
         }
 
+        @Override
         public Integer visitChangeRecord(final Void aVoid, final ModifyRequest change) {
             for (final Control control : controls) {
                 change.addControl(control);
@@ -232,13 +236,11 @@ public final class LDAPModify extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -354,8 +356,7 @@ public final class LDAPModify extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -363,8 +364,7 @@ public final class LDAPModify extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            // If we should just display usage or version information, then print it and exit.
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }
@@ -383,7 +383,7 @@ public final class LDAPModify extends ConsoleApplication {
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(version.getValue()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -394,9 +394,7 @@ public final class LDAPModify extends ConsoleApplication {
                     final Control ctrl = Utils.getControl(ctrlString);
                     controls.add(ctrl);
                 } catch (final DecodeException de) {
-                    final LocalizableMessage message =
-                            ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    errPrintln(message);
+                    errPrintln(ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
                     ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -419,9 +417,7 @@ public final class LDAPModify extends ConsoleApplication {
                 final Control assertionControl = AssertionRequestControl.newControl(true, filter);
                 controls.add(assertionControl);
             } catch (final LocalizedIllegalArgumentException le) {
-                final LocalizableMessage message =
-                        ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
-                errPrintln(message);
+                errPrintln(ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage()));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -433,9 +429,7 @@ public final class LDAPModify extends ConsoleApplication {
             while (tokenizer.hasMoreTokens()) {
                 attributes.add(tokenizer.nextToken());
             }
-            final PreReadRequestControl control =
-                    PreReadRequestControl.newControl(true, attributes);
-            controls.add(control);
+            controls.add(PreReadRequestControl.newControl(true, attributes));
         }
 
         if (postReadAttributes.isPresent()) {
@@ -449,7 +443,6 @@ public final class LDAPModify extends ConsoleApplication {
                     PostReadRequestControl.newControl(true, attributes);
             controls.add(control);
         }
-
 
         writer = new LDIFEntryWriter(getOutputStream());
         final VisitorImpl visitor = new VisitorImpl();
@@ -489,10 +482,7 @@ public final class LDAPModify extends ConsoleApplication {
                     }
                 }
             } catch (final IOException ioe) {
-                final LocalizableMessage message =
-                        ERR_LDIF_FILE_READ_ERROR
-                                .get(filename.getValue(), ioe.getLocalizedMessage());
-                errPrintln(message);
+                errPrintln(ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe.getLocalizedMessage()));
                 return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
             }
         } finally {
