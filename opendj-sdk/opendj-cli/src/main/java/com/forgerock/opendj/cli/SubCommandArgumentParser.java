@@ -514,7 +514,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                             // information.
                             writeToUsageOutputStream(getUsage());
                             return;
-                        } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName) && getVersionHandler() != null) {
+                        } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
                             // "--version" will always be interpreted as requesting usage information.
                             printVersion();
                             return;
@@ -595,7 +595,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                                 getUsageArgument().setPresent(true);
                             }
                             return;
-                        } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION && getVersionHandler() != null) {
+                        } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION) {
                             // "-V" will always be interpreted as requesting
                             // version information except if it's already defined.
                             if (dashVAccepted()) {
@@ -619,7 +619,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                                 // "-?" will always be interpreted as requesting usage.
                                 writeToUsageOutputStream(getUsage());
                                 return;
-                            } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION && getVersionHandler() != null) {
+                            } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION) {
                                 if (dashVAccepted()) {
                                     printVersion();
                                     return;

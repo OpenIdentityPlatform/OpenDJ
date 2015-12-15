@@ -124,7 +124,17 @@ public class ArgumentParser implements ToolRefDocContainer {
     /** Indicates whether the version argument was provided. */
     private boolean versionPresent;
     /** The handler to call to print the product version. */
-    private VersionHandler versionHandler;
+    private VersionHandler versionHandler = new VersionHandler() {
+        @Override
+        public void printVersion() {
+            // display nothing at all
+        }
+
+        @Override
+        public String toString() {
+            return "<no version displayed>";
+        }
+    };
 
     /** The set of arguments defined for this parser, referenced by short ID. */
     private final HashMap<Character, Argument> shortIDMap = new HashMap<>();
@@ -1068,15 +1078,6 @@ public class ArgumentParser implements ToolRefDocContainer {
         return LocalizableMessage.raw(getUsage());
     }
 
-    /**
-     * Returns the version handler.
-     *
-     * @return the version handler
-     */
-    VersionHandler getVersionHandler() {
-        return versionHandler;
-    }
-
     /** Prints the version. */
     void printVersion() {
         versionPresent = true;
@@ -1208,7 +1209,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                         // usage information.
                         writeToUsageOutputStream(getUsage());
                         return;
-                    } else if (versionHandler != null && OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
+                    } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
                         // "--version" will always be interpreted as requesting version information.
                         printVersion();
                         return;
