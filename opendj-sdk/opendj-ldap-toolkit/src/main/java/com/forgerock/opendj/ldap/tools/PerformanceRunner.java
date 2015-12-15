@@ -46,6 +46,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -255,6 +258,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         private final boolean isScriptFriendly = app.isScriptFriendly();
         private MultiColumnPrinter printer;
 
+
+        private long totalStatTimeMs;
+        private long gcDurationMs;
+
         public StatsThread(final String... additionalColumns) {
             super("Stats Thread");
 
@@ -364,62 +371,59 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             out.println();
         }
 
+        private void printTitle() {
+            printResultsTitle();
+        }
+
+        private void initStats() {
+            totalStatTimeMs = System.currentTimeMillis();
+            gcDurationMs = getGCDuration();
+        }
+
         @Override
         public void run() {
-            printResultsTitle();
+            lastStatTimeMs = totalStatTimeMs;
+            totalStatTimeMs = System.currentTimeMillis();
 
-            long totalStatTimeMs = System.currentTimeMillis();
-            long gcDurationMs = getGCDuration();
+            lastGCDurationMs = gcDurationMs;
+            gcDurationMs = getGCDuration();
+            final long gcIntervalDurationMs = gcDurationMs - lastGCDurationMs;
 
-            while (!stopRequested) {
-                try {
-                    sleep(statsInterval);
-                } catch (final InterruptedException ie) {
-                    // Ignore.
-                }
-                lastStatTimeMs = totalStatTimeMs;
-                totalStatTimeMs = System.currentTimeMillis();
+            computeStatsForInterval(totalStatTimeMs, gcIntervalDurationMs);
+            final long intervalResultCount = intervalSuccessCount + intervalFailedCount;
 
-                lastGCDurationMs = gcDurationMs;
-                gcDurationMs = getGCDuration();
-                final long gcIntervalDurationMs = gcDurationMs - lastGCDurationMs;
+            final String[] printableStats = new String[numColumns];
+            Arrays.fill(printableStats, "-");
+            printableStats[0] = getDivisionResult(intervalResultCount, intervalDurationSec, 1);
+            printableStats[1] = getDivisionResult(totalResultCount, totalDurationSec, 1);
 
-                computeStatsForInterval(totalStatTimeMs, gcIntervalDurationMs);
-                final long intervalResultCount = intervalSuccessCount + intervalFailedCount;
+            final long intervalWaitTimeMs = NANOSECONDS.toMillis(intervalWaitTimeNs) - gcIntervalDurationMs;
+            printableStats[2] = getDivisionResult(intervalWaitTimeMs, intervalResultCount, 3);
 
-                final String[] printableStats = new String[numColumns];
-                Arrays.fill(printableStats, "-");
-                printableStats[0] = getDivisionResult(intervalResultCount, intervalDurationSec, 1);
-                printableStats[1] = getDivisionResult(totalResultCount, totalDurationSec, 1);
+            final long totalWaitTimeMs = NANOSECONDS.toMillis(totalWaitTimeNs) - gcDurationMs;
+            printableStats[3] = getDivisionResult(totalWaitTimeMs, totalResultCount, 3);
 
-                final long intervalWaitTimeMs = NANOSECONDS.toMillis(intervalWaitTimeNs) - gcIntervalDurationMs;
-                printableStats[2] = getDivisionResult(intervalWaitTimeMs, intervalResultCount, 3);
+            int i = 4;
+            final List<Long> computedPercentiles = eTimesBuckets.getPercentile(percentiles, totalOperationCount);
+            for (int j = computedPercentiles.size() - 1; j >= 0; j--) {
+                printableStats[i++] = getDivisionResult(computedPercentiles.get(j) , 1000.0, 2);
+            }
+            i = 4 + percentiles.length;
+            printableStats[i++] = intervalFailedCount == 0
+                                  ? "0.0"
+                                  : getDivisionResult(intervalFailedCount, intervalDurationSec, 1);
+            if (isAsync) {
+                printableStats[i++] = getDivisionResult(intervalOperationCount, intervalResultCount, 1);
+            }
 
-                final long totalWaitTimeMs = NANOSECONDS.toMillis(totalWaitTimeNs) - gcDurationMs;
-                printableStats[3] = getDivisionResult(totalWaitTimeMs, totalResultCount, 3);
+            for (final String column : getAdditionalColumns()) {
+                printableStats[i++] = column;
+            }
 
-                int i = 4;
-                final List<Long> computedPercentiles = eTimesBuckets.getPercentile(percentiles, totalOperationCount);
-                for (int j = computedPercentiles.size() - 1; j >= 0; j--) {
-                    printableStats[i++] = getDivisionResult(computedPercentiles.get(j) , 1000.0, 2);
-                }
-                i = 4 + percentiles.length;
-                printableStats[i++] = intervalFailedCount == 0
-                                      ? "0.0"
-                                      : getDivisionResult(intervalFailedCount, intervalDurationSec, 1);
-                if (isAsync) {
-                    printableStats[i++] = getDivisionResult(intervalOperationCount, intervalResultCount, 1);
-                }
-
-                for (final String column : getAdditionalColumns()) {
-                    printableStats[i++] = column;
-                }
-
-                if (isScriptFriendly) {
-                    printScriptFriendlyStats(printableStats);
-                } else {
-                    printer.printRow(printableStats);
-                }
+            if (isScriptFriendly) {
+                printScriptFriendlyStats(printableStats);
+            } else {
+                printer.printRow(printableStats);
             }
         }
 
@@ -491,7 +495,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         void performStopOperations() {
-            stopRequested = true;
+            stopTool();
         }
 
         @Override
@@ -566,37 +570,14 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
             while (!stopRequested && !localStopRequested
                     && (maxIterations <= 0 || count < maxIterations)) {
-                if (this.connection == null) {
-                    try {
-                        connection = connectionFactory.getConnectionAsync().getOrThrow();
-                    } catch (final InterruptedException e) {
-                        // Ignore and check stop requested
-                        continue;
-                    } catch (final LdapException e) {
-                        app.errPrintln(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
-                        if (e.getCause() != null && app.isVerbose()) {
-                            e.getCause().printStackTrace(app.getErrorStream());
-                        }
-                        stopRequested = true;
-                        break;
-                    }
-                } else {
-                    connection = this.connection;
-                    if (!noRebind && bindRequest != null) {
-                        try {
-                            connection.bindAsync(bindRequest).getOrThrow();
-                        } catch (final InterruptedException e) {
-                            // Ignore and check stop requested
-                            continue;
-                        } catch (final LdapException e) {
-                            app.errPrintln(LocalizableMessage.raw(e.getResult().toString()));
-                            if (e.getCause() != null && app.isVerbose()) {
-                                e.getCause().printStackTrace(app.getErrorStream());
-                            }
-                            stopRequested = true;
-                            break;
-                        }
-                    }
+                try {
+                    connection = getConnectionToUse();
+                } catch (final InterruptedException e) {
+                    // Ignore and check stop requested
+                    continue;
+                } catch (final LdapException e) {
+                    handleConnectionError(false, e);
+                    break;
                 }
 
                 long startTimeNs = System.nanoTime();
@@ -609,9 +590,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                         // Ignore and check stop requested
                         continue;
                     } catch (final LdapException e) {
-                        if (e.getCause() instanceof IOException) {
+                        if (!stopRequested && e.getCause() instanceof IOException) {
                             e.getCause().printStackTrace(app.getErrorStream());
-                            stopRequested = true;
+                            stopTool(e);
                             break;
                         }
                         // Ignore. Handled by result handler
@@ -637,6 +618,18 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                         sleepTimeMs = -oneMinuteMs;
                     }
                 }
+            }
+        }
+
+        private Connection getConnectionToUse() throws InterruptedException, LdapException {
+            if (this.connection == null) {
+                return connectionFactory.getConnectionAsync().getOrThrow();
+            } else {
+                final Connection resultConnection = this.connection;
+                if (!noRebind && bindRequest != null) {
+                    resultConnection.bindAsync(bindRequest).getOrThrow();
+                }
+                return resultConnection;
             }
         }
 
@@ -674,7 +667,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     int numThreads;
     int numConnections;
-    volatile boolean stopRequested;
+    private boolean stopRequested;
+
     private volatile boolean isWarmingUp;
     private int targetThroughput;
     private int maxIterations;
@@ -685,7 +679,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private boolean isAsync;
     private boolean noRebind;
     private BindRequest bindRequest;
-    private int statsInterval;
+    private int statsIntervalMs;
     private final IntegerArgument numThreadsArgument;
     private final IntegerArgument maxDurationArgument;
     private final IntegerArgument statsIntervalArgument;
@@ -700,6 +694,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     protected final IntegerArgument warmUpArgument;
 
     private final List<Thread> workerThreads = new ArrayList<>();
+    private final ScheduledExecutorService statThreadScheduler = Executors.newSingleThreadScheduledExecutor();
+    private StatsThread statsThread;
 
     PerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
         ArgumentParser argParser = options.getArgumentParser();
@@ -820,12 +816,11 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     @Override
     public synchronized void handleConnectionError(final boolean isDisconnectNotification, final LdapException error) {
         if (!stopRequested) {
-            app.errPrintln(LocalizableMessage.raw("Error occurred on one or more connections: "
-                    + error.getResult()));
+            app.errPrintln(ERROR_RATE_TOOLS_CAN_NOT_GET_CONNECTION.get(error.getMessage()));
             if (error.getCause() != null && app.isVerbose()) {
                 error.getCause().printStackTrace(app.getErrorStream());
             }
-            stopRequested = true;
+            stopTool(error);
         }
     }
 
@@ -840,7 +835,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         warmUpDuration = warmUpArgument.getIntValue() * 1000L;
         maxIterations = maxIterationsArgument.getIntValue() / numConnections / numThreads;
         maxDurationTime = maxDurationArgument.getIntValue() * 1000L;
-        statsInterval = statsIntervalArgument.getIntValue() * 1000;
+        statsIntervalMs = statsIntervalArgument.getIntValue() * 1000;
         targetThroughput = targetThroughputArgument.getIntValue();
 
         isAsync = asyncArgument.isPresent();
@@ -904,8 +899,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 newEndTimerThread(maxDurationTime).start();
             }
 
-            final StatsThread statsThread = newStatsThread();
-
+            statsThread = newStatsThread();
             if (isWarmingUp) {
                 if (!app.isScriptFriendly()) {
                     app.println(INFO_TOOL_WARMING_UP.get(warmUpDuration / 1000));
@@ -915,14 +909,16 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 isWarmingUp = false;
             }
 
-            statsThread.start();
+            statsThread.printTitle();
+            statsThread.initStats();
+            statThreadScheduler.scheduleAtFixedRate(
+                    statsThread, statsIntervalMs, statsIntervalMs, TimeUnit.MILLISECONDS);
             joinAllWorkerThreads();
-            stopRequested = true;
-            statsThread.join();
+            stopTool();
         } catch (final InterruptedException e) {
-            stopRequested = true;
+            stopTool(e);
         } catch (final LdapException e) {
-            stopRequested = true;
+            stopTool(e);
             printErrorMessage(app, e);
             return e.getResult().getResultCode().intValue();
         } finally {
@@ -935,6 +931,26 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private void validateCanConnectToServer(ConnectionFactory connectionFactory) throws LdapException {
         try (Connection c = connectionFactory.getConnection()) {
             // detects wrong bind parameters, server unreachable (server down, network problem?), etc.
+        }
+    }
+
+    synchronized void stopTool() {
+        stopTool(null);
+    }
+
+    synchronized void stopTool(final Exception e) {
+        if (!stopRequested) {
+            stopRequested = true;
+            statThreadScheduler.shutdown();
+            if (e == null) {
+                // If stats thread is printing stats, wait for it to finish.
+                try {
+                    statThreadScheduler.awaitTermination(50, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ignored) {
+                    // Do nothing.
+                }
+                statsThread.run();
+            }
         }
     }
 

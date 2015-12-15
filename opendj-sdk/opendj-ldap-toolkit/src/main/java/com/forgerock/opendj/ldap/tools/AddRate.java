@@ -264,7 +264,7 @@ public class AddRate extends ConsoleApplication {
                         throw new IllegalStateException();
                     }
                 } else if (!purgeEnabled) {
-                    stopRequested = true;
+                    stopTool();
                 }
             }
         }
