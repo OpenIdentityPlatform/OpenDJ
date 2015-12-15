@@ -160,8 +160,7 @@ public final class LDAPModify extends ConsoleApplication {
             if (r.getResultCode() != ResultCode.SUCCESS && r.getResultCode() != ResultCode.REFERRAL) {
                 final LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
                 errPrintln(msg);
-                errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
-                        .toString()));
+                errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()));
                 if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
                     errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
@@ -169,8 +168,7 @@ public final class LDAPModify extends ConsoleApplication {
                     errPrintln(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
                 }
             } else {
-                final LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get(operationType, name);
-                println(msg);
+                println(INFO_OPERATION_SUCCESSFUL.get(operationType, name));
                 if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
                     errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
@@ -217,7 +215,6 @@ public final class LDAPModify extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new LDAPModify().run(args);
         System.exit(filterExitCode(retCode));
@@ -252,7 +249,9 @@ public final class LDAPModify extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPModify.class.getName(), toolDescription, false);
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPMODIFY.get());
+
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
         BindRequest bindRequest;

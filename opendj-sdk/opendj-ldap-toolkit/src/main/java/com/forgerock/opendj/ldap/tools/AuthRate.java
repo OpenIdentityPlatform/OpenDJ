@@ -96,8 +96,7 @@ public final class AuthRate extends ConsoleApplication {
             }
         }
 
-        private final class BindUpdateStatsResultHandler extends
-                UpdateStatsResultHandler<BindResult> {
+        private final class BindUpdateStatsResultHandler extends UpdateStatsResultHandler<BindResult> {
             private BindUpdateStatsResultHandler(final long startTime) {
                 super(startTime);
             }
@@ -119,16 +118,13 @@ public final class AuthRate extends ConsoleApplication {
             private final char[] invalidPassword = "invalid-password".toCharArray();
 
             private final ThreadLocal<Random> rng = new ThreadLocal<Random>() {
-
                 @Override
                 protected Random initialValue() {
                     return new Random();
                 }
-
             };
 
-            private BindWorkerThread(final Connection connection,
-                    final ConnectionFactory connectionFactory) {
+            private BindWorkerThread(final Connection connection, final ConnectionFactory connectionFactory) {
                 super(connection, connectionFactory);
             }
 
@@ -347,7 +343,6 @@ public final class AuthRate extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new AuthRate().run(args);
         System.exit(filterExitCode(retCode));
@@ -372,19 +367,16 @@ public final class AuthRate extends ConsoleApplication {
         super(out, err);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendly.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -396,6 +388,7 @@ public final class AuthRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(AuthRate.class.getName(), toolDescription, false, true, 0, 0,
                         "[filter format string] [attributes ...]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_AUTHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
@@ -410,7 +403,6 @@ public final class AuthRate extends ConsoleApplication {
         StringArgument propertiesFileArgument;
         BooleanArgument noPropertiesFileArgument;
         IntegerArgument invalidCredPercent;
-
         try {
             setDefaultPerfToolProperties();
             PerformanceRunnerOptions options = new PerformanceRunnerOptions(argParser, this);
@@ -479,8 +471,7 @@ public final class AuthRate extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            /* If we should just display usage or version information, then print it and exit. */
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }
@@ -499,7 +490,7 @@ public final class AuthRate extends ConsoleApplication {
 
         final List<String> attributes = new LinkedList<>();
         final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
-        if (filterAndAttributeStrings.size() > 0) {
+        if (!filterAndAttributeStrings.isEmpty()) {
              /*The list of trailing arguments should be structured as follow:
              the first trailing argument is considered the filter, the other
              as attributes.*/

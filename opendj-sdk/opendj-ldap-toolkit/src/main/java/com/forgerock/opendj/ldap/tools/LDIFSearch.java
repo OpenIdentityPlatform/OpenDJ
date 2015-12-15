@@ -63,12 +63,8 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-/**
- * This utility can be used to perform search operations against data in an LDIF
- * file.
- */
+/** This utility can be used to perform search operations against data in an LDIF file. */
 public final class LDIFSearch extends ConsoleApplication {
-
     /**
      * The main method for LDIFSearch tool.
      *
@@ -85,13 +81,11 @@ public final class LDIFSearch extends ConsoleApplication {
     }
 
     private int run(final String[] args) {
-        /* Create the command-line argument parser for use with this
-         program.*/
-
+        /* Create the command-line argument parser for use with this program. */
         final LocalizableMessage toolDescription = INFO_LDIFSEARCH_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDIFSearch.class.getName(), toolDescription, false, true, 1, 0,
-                        "source [filter] [attributes ...]");
+        final ArgumentParser argParser = new ArgumentParser(
+            LDIFSearch.class.getName(), toolDescription, false, true, 1, 0, "source [filter] [attributes ...]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFSEARCH.get());
 
         final BooleanArgument showUsage;
@@ -102,7 +96,6 @@ public final class LDIFSearch extends ConsoleApplication {
         final StringArgument baseDN;
         final MultiChoiceArgument<SearchScope> searchScope;
         final IntegerArgument sizeLimit;
-
         try {
             outputFilename =
                     new StringArgument("outputFilename", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
@@ -162,8 +155,7 @@ public final class LDIFSearch extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            /* If we should just display usage or version information, then print it and exit. */
             if (argParser.usageOrVersionDisplayed()) {
                 return ResultCode.SUCCESS.intValue();
             }

@@ -96,12 +96,13 @@ public final class LDAPPasswordModify extends ConsoleApplication {
     }
 
     private int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
+        // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPPasswordModify.class.getName(), toolDescription, false);
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPPASSWORDMODIFY.get());
+
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
 

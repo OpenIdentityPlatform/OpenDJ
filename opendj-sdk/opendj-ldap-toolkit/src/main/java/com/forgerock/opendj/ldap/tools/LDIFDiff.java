@@ -76,18 +76,15 @@ public final class LDIFDiff extends ConsoleApplication {
     }
 
     private int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
-
+        // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDIFDiff.class.getName(), toolDescription, false, true, 2, 2,
-                        "source target");
+        final ArgumentParser argParser = new ArgumentParser(
+            LDIFDiff.class.getName(), toolDescription, false, true, 2, 2, "source target");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFDIFF.get());
 
         final BooleanArgument showUsage;
         final StringArgument outputFilename;
-
         try {
             outputFilename =
                     new StringArgument("outputFilename", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
@@ -110,8 +107,7 @@ public final class LDIFDiff extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            /* If we should just display usage or version information, then print it and exit. */
             if (argParser.usageOrVersionDisplayed()) {
                 return ResultCode.SUCCESS.intValue();
             }
@@ -182,8 +178,7 @@ public final class LDIFDiff extends ConsoleApplication {
                 outputStream = System.out;
             }
 
-            /* Check that we are not attempting to read both the source and
-             target from stdin.*/
+            /* Check that we are not attempting to read both the source and target from stdin. */
             if (sourceInputStream == targetInputStream) {
                 final LocalizableMessage message = ERR_LDIFDIFF_MULTIPLE_USES_OF_STDIN.get();
                 errPrintln(message);

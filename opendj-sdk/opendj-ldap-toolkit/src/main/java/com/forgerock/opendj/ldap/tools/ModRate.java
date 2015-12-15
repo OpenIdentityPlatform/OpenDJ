@@ -129,7 +129,6 @@ public final class ModRate extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new ModRate().run(args);
         System.exit(filterExitCode(retCode));
@@ -142,33 +141,31 @@ public final class ModRate extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendly.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
     }
 
     private int run(final String[] args) {
-        /* Creates the command-line argument parser for use with this
-         program*/
+        // Creates the command-line argument parser for use with this program
         final LocalizableMessage toolDescription = INFO_MODRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(ModRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[(attribute:value format string) ...]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_MODRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
+
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
         ModifyPerformanceRunner runner;
@@ -177,7 +174,6 @@ public final class ModRate extends ConsoleApplication {
         StringArgument propertiesFileArgument;
         BooleanArgument noPropertiesFileArgument;
         StringArgument baseDN;
-
         try {
             Utils.setDefaultPerfToolProperties();
 
@@ -221,8 +217,7 @@ public final class ModRate extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
 
-            /* If we should just display usage or version information,
-             then print it and exit.*/
+            /* If we should just display usage or version information, then print it and exit. */
             if (argParser.usageOrVersionDisplayed()) {
                 return 0;
             }
@@ -241,9 +236,7 @@ public final class ModRate extends ConsoleApplication {
         runner.baseDN = baseDN.getValue();
 
         try {
-
-            /* Try it out to make sure the format string and data sources
-             match.*/
+            /* Try it out to make sure the format string and data sources match. */
             final Object[] data = DataSource.generateData(runner.getDataSources(), null);
             for (final String modString : runner.modStrings) {
                 String.format(modString, data);

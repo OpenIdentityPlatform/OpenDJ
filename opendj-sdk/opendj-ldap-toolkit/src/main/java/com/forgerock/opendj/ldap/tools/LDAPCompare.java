@@ -143,13 +143,13 @@ public final class LDAPCompare extends ConsoleApplication {
     }
 
     int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
+        // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDAPCompare.class.getName(), toolDescription, false, true, 1, 0,
-                        "attribute:value [DN ...]");
+        final ArgumentParser argParser = new ArgumentParser(
+            LDAPCompare.class.getName(), toolDescription, false, true, 1, 0, "attribute:value [DN ...]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPCOMPARE.get());
+
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
         BindRequest bindRequest;
@@ -165,7 +165,6 @@ public final class LDAPCompare extends ConsoleApplication {
         StringArgument proxyAuthzID;
         StringArgument propertiesFileArgument;
         BooleanArgument noPropertiesFileArgument;
-
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 

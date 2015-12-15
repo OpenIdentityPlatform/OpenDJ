@@ -218,7 +218,7 @@ public final class LDAPSearch extends ConsoleApplication {
      * @param err error stream of console application
      */
     LDAPSearch(PrintStream out, PrintStream err) {
-      super(out, err);
+        super(out, err);
     }
 
     /** {@inheritDoc} */
@@ -241,7 +241,9 @@ public final class LDAPSearch extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPSearch.class.getName(), toolDescription, false, true, 0, 0,
                         "[filter] [attributes ...]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPSEARCH.get());
+
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
         BindRequest bindRequest;

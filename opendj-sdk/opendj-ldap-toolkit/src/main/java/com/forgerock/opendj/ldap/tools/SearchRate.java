@@ -183,31 +183,28 @@ public final class SearchRate extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendly.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
     }
 
     private int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
+        // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_SEARCHRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
                 new ArgumentParser(SearchRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[filter format string] [attributes ...]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_SEARCHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
@@ -221,7 +218,6 @@ public final class SearchRate extends ConsoleApplication {
         BooleanArgument showUsage;
         StringArgument propertiesFileArgument;
         BooleanArgument noPropertiesFileArgument;
-
         try {
             Utils.setDefaultPerfToolProperties();
 
@@ -293,7 +289,7 @@ public final class SearchRate extends ConsoleApplication {
 
         final List<String> attributes = new LinkedList<>();
         final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
-        if (filterAndAttributeStrings.size() > 0) {
+        if (!filterAndAttributeStrings.isEmpty()) {
             /* The list of trailing arguments should be structured as follow:
              the first trailing argument is considered the filter, the other as attributes.*/
             runner.filter = filterAndAttributeStrings.remove(0);
@@ -311,8 +307,7 @@ public final class SearchRate extends ConsoleApplication {
         }
 
         try {
-            /* Try it out to make sure the format string and data sources
-             match.*/
+            /* Try it out to make sure the format string and data sources match. */
             final Object[] data = DataSource.generateData(runner.getDataSources(), null);
             String.format(runner.filter, data);
             String.format(runner.baseDN, data);

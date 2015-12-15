@@ -52,8 +52,8 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.LdapResultHandler;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.EntryGenerator;
@@ -395,19 +395,16 @@ public class AddRate extends ConsoleApplication {
         super(out, err);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendly.isPresent();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -418,6 +415,7 @@ public class AddRate extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_ADDRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
             new ArgumentParser(AddRate.class.getName(), toolDescription, false, true, 1, 1, "template-file-path");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_ADDRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 

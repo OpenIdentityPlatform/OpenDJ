@@ -66,7 +66,6 @@ import com.forgerock.opendj.cli.StringArgument;
  * to a set of entries contained in an LDIF file.
  */
 public final class LDIFModify extends ConsoleApplication {
-
     /**
      * The main method for LDIFModify tool.
      *
@@ -83,19 +82,16 @@ public final class LDIFModify extends ConsoleApplication {
     }
 
     private int run(final String[] args) {
-        // Create the command-line argument parser for use with this
-        // program.
-
+        // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDIFMODIFY_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDIFModify.class.getName(), toolDescription, false, true, 1, 2,
-                        "source [changes]");
+        final ArgumentParser argParser = new ArgumentParser(
+            LDIFModify.class.getName(), toolDescription, false, true, 1, 2, "source [changes]");
+        argParser.setVersionHandler(new SdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFMODIFY.get());
 
         final BooleanArgument continueOnError;
         final BooleanArgument showUsage;
         final StringArgument outputFilename;
-
         try {
             outputFilename =
                     new StringArgument("outputFilename", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
@@ -193,8 +189,7 @@ public final class LDIFModify extends ConsoleApplication {
                 outputStream = System.out;
             }
 
-            /* Check that we are not attempting to read both the source and
-             changes from stdin.*/
+            /* Check that we are not attempting to read both the source and changes from stdin. */
             if (sourceInputStream == changesInputStream) {
                 final LocalizableMessage message = ERR_LDIFMODIFY_MULTIPLE_USES_OF_STDIN.get();
                 errPrintln(message);
