@@ -1909,6 +1909,7 @@ public class EntryContainer
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
     final IndexBuffer indexBuffer = new IndexBuffer();
+    final ByteString encodedNewEntry = id2entry.encode(newEntry);
     try
     {
       storage.write(new WriteOperation()
@@ -1935,7 +1936,7 @@ public class EntryContainer
             }
 
             // Ensure same ordering as deleteEntry: id2entry, dn2uri, then indexes.
-            id2entry.put(txn, entryID, newEntry);
+            id2entry.put(txn, entryID, encodedNewEntry);
 
             // Update the referral tree.
             if (modifyOperation != null)
