@@ -193,7 +193,7 @@ public final class LDAPCompare extends ConsoleApplication {
             controlStr = CommonArguments.getControl();
             argParser.addArgument(controlStr);
 
-            version = CommonArguments.getVersion();
+            version = CommonArguments.getLdapVersion();
             argParser.addArgument(version);
 
             encodingStr = CommonArguments.getEncoding();

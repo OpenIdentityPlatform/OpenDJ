@@ -195,16 +195,16 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "version" integer argument.
+     * Returns the "ldapVersion" integer argument.
      *
-     * @return The "version" argument.
+     * @return The "ldapVersion" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getVersion() throws ArgumentException {
-        return new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION, OPTION_LONG_PROTOCOL_VERSION, false,
-                false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, OPTION_LONG_PROTOCOL_VERSION,
-                INFO_DESCRIPTION_VERSION.get());
+    public static IntegerArgument getLdapVersion() throws ArgumentException {
+        return new IntegerArgument(OPTION_LONG_PROTOCOL_VERSION.toLowerCase(), OPTION_SHORT_PROTOCOL_VERSION,
+                OPTION_LONG_PROTOCOL_VERSION, false, false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3,
+                OPTION_LONG_PROTOCOL_VERSION, INFO_DESCRIPTION_VERSION.get());
     }
 
     /**

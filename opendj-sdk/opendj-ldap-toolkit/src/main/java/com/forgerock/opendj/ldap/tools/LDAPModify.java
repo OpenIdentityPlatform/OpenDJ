@@ -332,7 +332,7 @@ public final class LDAPModify extends ConsoleApplication {
             controlStr.setPropertyName("control");
             argParser.addArgument(controlStr);
 
-            version = CommonArguments.getVersion();
+            version = CommonArguments.getLdapVersion();
             argParser.addArgument(version);
 
             encodingStr =

@@ -369,7 +369,7 @@ public final class LDAPSearch extends ConsoleApplication {
             effectiveRightsAttrs.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSATTR);
             argParser.addArgument(effectiveRightsAttrs);
 
-            version = CommonArguments.getVersion();
+            version = CommonArguments.getLdapVersion();
             argParser.addArgument(version);
 
             final StringArgument encodingStr =
