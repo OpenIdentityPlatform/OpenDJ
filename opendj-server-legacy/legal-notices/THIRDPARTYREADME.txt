@@ -16,23 +16,23 @@ Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
 
-Version: forgerock-audit-core.jar (4.0.0)
+Version: forgerock-audit-core.jar (4.1.0)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright 2013 Cybernetica AS
            Copyright 2006-2008 Sun Microsystems, Inc.
            Portions Copyright 2013-2015 ForgeRock AS.
 
-Version: forgerock-audit-handler-csv.jar (4.0.0)
+Version: forgerock-audit-handler-csv.jar (4.1.0)
 Copyright: Copyright 2015 ForgeRock AS.
 
-Version: forgerock-audit-handler-jdbc.jar (4.0.0)
+Version: forgerock-audit-handler-jdbc.jar (4.1.0)
 Copyright: Copyright 2015 ForgeRock AS.
 
-Version: forgerock-audit-handler-syslog.jar (4.0.0)
+Version: forgerock-audit-handler-syslog.jar (4.1.0)
 Copyright: Copyright 2015 ForgeRock AS.
            Copyright 2013 Cybernetica AS
 
-Version: forgerock-audit-json.jar (4.0.0)
+Version: forgerock-audit-json.jar (4.1.0)
 Copyright: Copyright 2015 ForgeRock AS.
 
 Version: forgerock-util.jar (3.0.1)
