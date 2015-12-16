@@ -51,7 +51,7 @@ public final class SearchResultEntry
        extends Entry
 {
   /** The set of controls associated with this search result entry. */
-  private List<Control> controls;
+  private final List<Control> controls;
 
 
 

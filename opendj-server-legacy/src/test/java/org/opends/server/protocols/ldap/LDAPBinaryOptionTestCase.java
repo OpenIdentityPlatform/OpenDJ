@@ -26,6 +26,7 @@
  */
 package org.opends.server.protocols.ldap;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -49,9 +50,13 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -104,8 +109,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
 
 
   /**
-   * Test to verify an ADD of the binary attributes  using a V3
-   * protocol.
+   * Test to verify an ADD of the binary attributes  using a V3 protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
@@ -182,15 +186,14 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "-f", filePath,
     };
     int err = LDAPModify.mainModify(args, false, null,null);
-    assertFalse(err==0);
+    assertThat(err).isNotEqualTo(0);
   }
 
 
 
 
   /**
-   * Test to verify a SEARCH using the ;binary transfer option using a V3
-   * protocol.
+   * Test to verify a SEARCH using the ;binary transfer option using a V3 protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dependsOnMethods = {"org.opends.server.protocols.ldap."+
@@ -225,8 +228,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
     assertNotNull(e);
-    List<Attribute> list = e.getAttributes();
-    assertEquals(list.size(), 0);
+    assertThat(e.getAttributes()).isEmpty();
   }
 
 
@@ -240,11 +242,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   public void binaryOptionUsingV2() throws Exception
   {
     //Construct a V2 connection.
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+        org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
+        org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s))
     {
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(
@@ -329,11 +329,6 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       }
       assertTrue(snWithMultiVal && certWithNoOption);
     }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
-    }
   }
 
 
@@ -383,25 +378,26 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     importLDIF();
     assertTrue(containsBinary());
     //Remove the binary option and re-import it.
-    FileReader reader = new FileReader(ldif);
-    BufferedReader buf = new BufferedReader(reader);
     StringBuilder builder = new StringBuilder();
-    String userCert = "userCertificate;binary";
-    String line = null;
-    while((line=buf.readLine())!=null)
+    try (FileReader reader = new FileReader(ldif);
+        BufferedReader buf = new BufferedReader(reader))
     {
-      if(line.startsWith(userCert))
+      String userCert = "userCertificate;binary";
+      String line = null;
+      while ((line = buf.readLine()) != null)
       {
-        builder.append("userCertificate:");
-        builder.append(line, userCert.length()+1, line.length());
+        if (line.startsWith(userCert))
+        {
+          builder.append("userCertificate:");
+          builder.append(line, userCert.length() + 1, line.length());
+        }
+        else
+        {
+          builder.append(line);
+        }
+        builder.append("\n");
       }
-      else
-      {
-        builder.append(line);
-      }
-      builder.append("\n");
     }
-    buf.close();
     ldif.delete();
     ldif = new File(TestCaseUtils.createTempFile(builder.toString()));
     importLDIF();
@@ -414,8 +410,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
 
 
   /**
-   * Test to verify a MODIFY using the ;binary transfer option using V3
-   * protocol.
+   * Test to verify a MODIFY using the ;binary transfer option using V3 protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
@@ -455,32 +450,31 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     };
     err = LDAPModify.mainModify(args, false, null,null);
     assertEquals(err,0);
-
   }
 
 
 
   /**
    * Utility method to verify if the LDIF file contains binary option.
-   * @return  {@code true} if binary option is found in the LDIF
-   *           , or {@code false} if not.
+   * @return  {@code true} if binary option is found in the LDIF, or {@code false} if not.
    * @throws  Exception  If an unexpected problem occurs.
    */
   private boolean containsBinary() throws Exception
   {
-    FileReader reader = new FileReader(ldif);
-    BufferedReader buf = new BufferedReader(reader);
-    String line = null;
-    boolean found=false;
-    while((line=buf.readLine())!=null)
+    try (FileReader reader = new FileReader(ldif);
+        BufferedReader buf = new BufferedReader(reader))
     {
-      if(line.startsWith("userCertificate;binary"))
+      String line = null;
+      boolean found = false;
+      while ((line = buf.readLine()) != null)
       {
-        found = true;
+        if (line.startsWith("userCertificate;binary"))
+        {
+          found = true;
+        }
       }
+      return found;
     }
-    buf.close();
-    return found;
   }
 
 

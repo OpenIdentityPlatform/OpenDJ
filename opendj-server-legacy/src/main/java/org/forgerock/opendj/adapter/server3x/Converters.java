@@ -560,18 +560,12 @@ public final class Converters {
 
         final SearchResultEntry searchResultEntry =
                 Responses.newSearchResultEntry(srvResultEntry.getName().toString());
-        if (srvResultEntry.getAttributes() != null) {
-            for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
-                searchResultEntry.addAttribute(from(a));
-            }
+        for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
+            searchResultEntry.addAttribute(from(a));
         }
-
-        if (srvResultEntry.getControls() != null) {
-            for (org.opends.server.types.Control c : srvResultEntry.getControls()) {
-                searchResultEntry.addControl(from(c));
-            }
+        for (org.opends.server.types.Control c : srvResultEntry.getControls()) {
+            searchResultEntry.addControl(from(c));
         }
-
         return searchResultEntry;
     }
 
@@ -588,10 +582,8 @@ public final class Converters {
         final org.opends.server.types.Entry srvResultEntry) {
 
         final org.forgerock.opendj.ldap.Entry entry = new LinkedHashMapEntry(srvResultEntry.getName().toString());
-        if (srvResultEntry.getAttributes() != null) {
-            for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
-                entry.addAttribute(from(a));
-            }
+        for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
+            entry.addAttribute(from(a));
         }
         return entry;
     }

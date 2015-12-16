@@ -1163,9 +1163,8 @@ public class SearchOperationTestCase extends OperationTestCase
 
   private Set<String> getAttributeNames(Entry entry)
   {
-    List<Attribute> attrList = entry.getAttributes();
     Set<String> actualNames = new HashSet<>();
-    for (Attribute attribute : attrList)
+    for (Attribute attribute : entry.getAttributes())
     {
       actualNames.add(attribute.getNameWithOptions());
     }
