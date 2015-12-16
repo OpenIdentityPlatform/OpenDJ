@@ -863,6 +863,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public <T> T read(final ReadOperation<T> operation) throws Exception
   {
     final Transaction txn = db.getTransaction();
+    // This check may be unnecessary for PDB, but it will help us detect bad business logic
+    // in the pluggable backend that would cause problems for JE.
+    // A nested read would be a serious problem for the JE storage
+    // as it could result in self-deadlock where an inner read attempts to read-lock a record
+    // that has been write-locked in an outer write.
+    throwIfTransactionIsNested(txn);
     for (;;)
     {
       txn.begin();
@@ -910,6 +916,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public void write(final WriteOperation operation) throws Exception
   {
     final Transaction txn = db.getTransaction();
+    throwIfTransactionIsNested(txn);
     for (;;)
     {
       txn.begin();
@@ -944,6 +951,16 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       {
         txn.end();
       }
+    }
+  }
+
+  private void throwIfTransactionIsNested(final Transaction txn)
+  {
+    final int txnDepth = txn.getNestedTransactionDepth();
+    if (txnDepth > 0)
+    {
+      throw new IllegalStateException("OpenDJ does not use nested transactions. "
+          + "Code is forbidden from opening one.");
     }
   }
 
