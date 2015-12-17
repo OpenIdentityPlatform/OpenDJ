@@ -150,10 +150,6 @@ public class CryptoManagerImpl
   /** The secure random number generator used for key generation, initialization vector PRNG seed. */
   private static final SecureRandom secureRandom = new SecureRandom();
 
-  /** The random number generator used for initialization vector production. */
-  private static final Random pseudoRandom
-          = new Random(secureRandom.nextLong());
-
   /**
    * The first byte in any ciphertext produced by CryptoManager is the prologue
    * version. At present, this constant is both the version written and the
@@ -1706,7 +1702,7 @@ public class CryptoManagerImpl
       byte[] iv = null;
       if (0 < ivLengthBits) {
         iv = new byte[ivLengthBits / Byte.SIZE];
-        pseudoRandom.nextBytes(iv);
+        secureRandom.nextBytes(iv);
       }
       getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
 
@@ -1994,7 +1990,7 @@ public class CryptoManagerImpl
         byte[] iv;
         if (Cipher.ENCRYPT_MODE == mode && null == initializationVector) {
           iv = new byte[keyEntry.getIVLengthBits() / Byte.SIZE];
-          pseudoRandom.nextBytes(iv);
+          secureRandom.nextBytes(iv);
         }
         else {
           iv = initializationVector;
