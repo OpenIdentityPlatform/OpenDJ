@@ -363,7 +363,7 @@ final class OnDiskMergeImporter
      *
      * @throws InitializationException
      *           if rebuildList contains an invalid/non-existing attribute/index name.
-     **/
+     */
     private static final Set<String> buildUserDefinedIndexNames(EntryContainer entryContainer,
         Collection<String> rebuildList) throws InitializationException
     {
@@ -371,10 +371,11 @@ final class OnDiskMergeImporter
       for (String name : rebuildList)
       {
         final String parts[] = name.split("\\.");
-        final AttributeIndex attrIndex = findAttributeIndex(entryContainer, parts[0]);
         if (parts.length == 1)
         {
           // Add all indexes of this attribute
+          // for example: "cn" or "sn"
+          final AttributeIndex attrIndex = findAttributeIndex(entryContainer, parts[0]);
           for (Tree index : attrIndex.getNameToIndexes().values())
           {
             indexNames.add(index.getName().getIndexId());
@@ -383,14 +384,18 @@ final class OnDiskMergeImporter
         else if (parts.length == 2)
         {
           // First, assume the supplied name is a valid index name ...
+          // for example: "cn.substring", "vlv.someVlvIndex", "cn.caseIgnoreMatch"
+          // or "cn.caseIgnoreSubstringsMatch:6"
           final SelectIndexName selector = new SelectIndexName();
           visitIndexes(entryContainer, visitOnlyIndexes(Arrays.asList(name), selector));
           indexNames.addAll(selector.getSelectedIndexNames());
           if (selector.getSelectedIndexNames().isEmpty())
           {
             // ... if not, assume the supplied name identify an attributeType.indexType
+            // for example: aliases like "cn.substring" could not be found by the previous step
             try
             {
+              final AttributeIndex attrIndex = findAttributeIndex(entryContainer, parts[0]);
               indexNames.addAll(getIndexNames(IndexType.valueOf(parts[1].toUpperCase()), attrIndex));
             }
             catch (IllegalArgumentException e)
@@ -3351,27 +3356,22 @@ final class OnDiskMergeImporter
     }
   }
 
-  private static int visitIndexes(final EntryContainer entryContainer, IndexVisitor visitor)
+  private static void visitIndexes(final EntryContainer entryContainer, IndexVisitor visitor)
   {
-    int nbVisited = 0;
     for (AttributeIndex attribute : entryContainer.getAttributeIndexes())
     {
       for (MatchingRuleIndex index : attribute.getNameToIndexes().values())
       {
         visitor.visitAttributeIndex(index);
-        nbVisited++;
       }
     }
     for (VLVIndex index : entryContainer.getVLVIndexes())
     {
       visitor.visitVLVIndex(index);
-      nbVisited++;
     }
     visitor.visitSystemIndex(entryContainer.getDN2ID());
     visitor.visitSystemIndex(entryContainer.getID2ChildrenCount());
     visitor.visitSystemIndex(entryContainer.getDN2URI());
-    nbVisited += 2;
-    return nbVisited;
   }
 
   /** Visitor pattern allowing to process all type of indexes. */
