@@ -147,10 +147,7 @@ public class CryptoManagerImpl
   /** Indicates whether the schema references have been initialized. */
   private static boolean schemaInitDone;
 
-  /**
-   * The secure random number generator used for key generation, initialization
-   * vector PRNG seed...
-   */
+  /** The secure random number generator used for key generation, initialization vector PRNG seed. */
   private static final SecureRandom secureRandom = new SecureRandom();
 
   /** The random number generator used for initialization vector production. */
