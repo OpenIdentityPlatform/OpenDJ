@@ -805,7 +805,7 @@ public class ArgumentParser implements ToolRefDocContainer {
 
                 // Return a generic message as default backend type depends on the server distribution.
                 if (a.getName().equalsIgnoreCase(OPTION_LONG_BACKEND_TYPE)) {
-                    a.setDefaultValue(REF_DEFAULT_BACKEND_TYPE.toString());
+                    a.setDefaultValue(REF_DEFAULT_BACKEND_TYPE.get().toString());
                 }
 
                 // The help argument should be added at the end.
