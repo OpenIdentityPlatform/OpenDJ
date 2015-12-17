@@ -26,6 +26,10 @@
  */
 package org.opends.server.types;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -42,14 +46,12 @@ import org.opends.server.schema.AttributeTypeSyntax;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.util.CollectionUtils.*;
-import static org.testng.Assert.*;
-
 /**
  * This class defines a set of tests for the {@link Entry} class.
  * <p>
  * At the moment this test suite only tests the parseAttribute method.
  */
+@SuppressWarnings("javadoc")
 public final class TestEntry extends TypesTestCase {
 
   /**
@@ -474,220 +476,56 @@ public final class TestEntry extends TypesTestCase {
     AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
     AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
 
-    List<Attribute> attrs = e.getAttribute(ocType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
+    assertThat(e.getAttribute(ocType)).hasSize(1);
+    assertThat(e.getAttribute(cnType)).hasSize(2);
+    assertThat(e.getAttribute(nameType)).hasSize(6);
 
-    attrs = e.getAttribute(cnType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getAttribute(nameType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 6);
-
-    attrs = e.getAttribute(nameType, false);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(uidType);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(mnType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-
-    attrs = e.getAttribute("objectclass");
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-    attrs = e.getAttribute("cn");
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getAttribute("uid");
-    assertNull(attrs);
-
-    attrs = e.getAttribute("modifiersname");
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
+    assertThat(e.getAttribute(nameType, false)).isEmpty();
+    assertThat(e.getAttribute(uidType)).isEmpty();
+    assertThat(e.getAttribute(mnType)).hasSize(1);
+    assertThat(e.getAttribute("objectclass")).hasSize(1);
+    assertThat(e.getAttribute("cn")).hasSize(2);
+    assertThat(e.getAttribute("uid")).isEmpty();
+    assertThat(e.getAttribute("modifiersname")).hasSize(1);
 
     LinkedHashSet<String> options = null;
-    attrs = e.getAttribute(ocType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
+    assertThat(e.getAttribute(ocType, options)).hasSize(1);
+    assertThat(e.getAttribute(cnType, options)).hasSize(2);
+    assertThat(e.getAttribute(nameType, options)).hasSize(6);
 
-    attrs = e.getAttribute(cnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getAttribute(nameType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 6);
-
-    attrs = e.getAttribute(nameType, false, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(mnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-
-    attrs = e.getAttribute("objectclass", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-    attrs = e.getAttribute("cn", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getAttribute("uid", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("modifiersname", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
+    assertThat(e.getAttribute(uidType, options)).isEmpty();
+    assertThat(e.getAttribute(mnType, options)).hasSize(1);
 
     options = new LinkedHashSet<>();
-    attrs = e.getAttribute(ocType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
+    assertThat(e.getAttribute(ocType, options)).hasSize(1);
+    assertThat(e.getAttribute(cnType, options)).hasSize(2);
+    assertThat(e.getAttribute(nameType, options)).hasSize(6);
 
-    attrs = e.getAttribute(cnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getAttribute(nameType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 6);
-
-    attrs = e.getAttribute(nameType, false, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(mnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-
-    attrs = e.getAttribute("objectclass", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-    attrs = e.getAttribute("cn", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getAttribute("uid", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("modifiersname", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
+    assertThat(e.getAttribute(uidType, options)).isEmpty();
+    assertThat(e.getAttribute(mnType, options)).hasSize(1);
 
     options.add("lang-en-US");
-    attrs = e.getAttribute(ocType, options);
-    assertNull(attrs);
+    assertThat(e.getAttribute(ocType, options)).isEmpty();
+    assertThat(e.getAttribute(cnType, options)).hasSize(1);
+    assertThat(e.getAttribute(nameType, options)).hasSize(3);
 
-    attrs = e.getAttribute(cnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-    attrs = e.getAttribute(nameType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 3);
-
-    attrs = e.getAttribute(nameType, false, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    attrs = e.getAttribute("objectclass", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("cn", options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-    attrs = e.getAttribute("uid", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("modifiersname", options);
-    assertNull(attrs);
-
+    assertThat(e.getAttribute(uidType, options)).isEmpty();
+    assertThat(e.getAttribute(mnType, options)).isEmpty();
 
     options.add("lang-en-GB");
-    attrs = e.getAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    attrs = e.getAttribute("objectclass", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("cn", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("uid", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("modifiersname", options);
-    assertNull(attrs);
-
+    assertThat(e.getAttribute(ocType, options)).isEmpty();
+    assertThat(e.getAttribute(cnType, options)).isEmpty();
+    assertThat(e.getAttribute(nameType, options)).isEmpty();
+    assertThat(e.getAttribute(uidType, options)).isEmpty();
+    assertThat(e.getAttribute(mnType, options)).isEmpty();
 
     options.clear();
     options.add("lang-en-GB");
-    attrs = e.getAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    attrs = e.getAttribute("objectclass", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("cn", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("uid", options);
-    assertNull(attrs);
-
-    attrs = e.getAttribute("modifiersname", options);
-    assertNull(attrs);
+    assertThat(e.getAttribute(ocType, options)).isEmpty();
+    assertThat(e.getAttribute(cnType, options)).isEmpty();
+    assertThat(e.getAttribute(nameType, options)).isEmpty();
+    assertThat(e.getAttribute(uidType, options)).isEmpty();
+    assertThat(e.getAttribute(mnType, options)).isEmpty();
   }
 
 
@@ -729,114 +567,11 @@ public final class TestEntry extends TypesTestCase {
     AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
     AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
 
-    List<Attribute> attrs = e.getUserAttribute(ocType);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(cnType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getUserAttribute(nameType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 6);
-
-    attrs = e.getUserAttribute(uidType);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(mnType);
-    assertNull(attrs);
-
-
-    LinkedHashSet<String> options = null;
-    attrs = e.getUserAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(cnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getUserAttribute(nameType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 6);
-
-    attrs = e.getUserAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    options = new LinkedHashSet<>();
-    attrs = e.getUserAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(cnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 2);
-
-    attrs = e.getUserAttribute(nameType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 6);
-
-    attrs = e.getUserAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    options.add("lang-en-US");
-    attrs = e.getUserAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(cnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
-    attrs = e.getUserAttribute(nameType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 3);
-
-    attrs = e.getUserAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    options.add("lang-en-GB");
-    attrs = e.getUserAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(mnType, options);
-    assertNull(attrs);
-
-
-    options.clear();
-    options.add("lang-en-GB");
-    attrs = e.getUserAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getUserAttribute(mnType, options);
-    assertNull(attrs);
+    assertThat(e.getUserAttribute(ocType)).isEmpty();
+    assertThat(e.getUserAttribute(cnType)).hasSize(2);
+    assertThat(e.getUserAttribute(nameType)).hasSize(6);
+    assertThat(e.getUserAttribute(uidType)).isEmpty();
+    assertThat(e.getUserAttribute(mnType)).isEmpty();
   }
 
 
@@ -878,109 +613,46 @@ public final class TestEntry extends TypesTestCase {
     AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
     AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
 
-    List<Attribute> attrs = e.getOperationalAttribute(ocType);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(cnType);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(nameType);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(uidType);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(mnType);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
+    assertThat(e.getOperationalAttribute(ocType)).isEmpty();
+    assertThat(e.getOperationalAttribute(cnType)).isEmpty();
+    assertThat(e.getOperationalAttribute(nameType)).isEmpty();
+    assertThat(e.getOperationalAttribute(uidType)).isEmpty();
+    assertThat(e.getOperationalAttribute(mnType)).hasSize(1);
 
     LinkedHashSet<String> options = null;
-    attrs = e.getOperationalAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(mnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
+    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(mnType, options)).hasSize(1);
 
     options = new LinkedHashSet<>();
-    attrs = e.getOperationalAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(mnType, options);
-    assertNotNull(attrs);
-    assertEquals(attrs.size(), 1);
-
+    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(mnType, options)).hasSize(1);
 
     options.add("lang-en-US");
-    attrs = e.getOperationalAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(mnType, options);
-    assertNull(attrs);
-
+    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(mnType, options)).isEmpty();
 
     options.add("lang-en-GB");
-    attrs = e.getOperationalAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(mnType, options);
-    assertNull(attrs);
-
+    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(mnType, options)).isEmpty();
 
     options.clear();
     options.add("lang-en-GB");
-    attrs = e.getOperationalAttribute(ocType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(cnType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(nameType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(uidType, options);
-    assertNull(attrs);
-
-    attrs = e.getOperationalAttribute(mnType, options);
-    assertNull(attrs);
+    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(mnType, options)).isEmpty();
   }
 }
-

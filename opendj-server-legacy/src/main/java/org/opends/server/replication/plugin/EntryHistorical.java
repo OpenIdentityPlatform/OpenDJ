@@ -518,7 +518,7 @@ public class EntryHistorical
 
     // Now we'll build the Historical object we want to construct
     final EntryHistorical newHistorical = new EntryHistorical();
-    if (histAttrWithOptionsFromEntry == null)
+    if (histAttrWithOptionsFromEntry.isEmpty())
     {
       // No historical attribute in the entry, return empty object
       return newHistorical;
@@ -607,48 +607,43 @@ public class EntryHistorical
   public static Iterable<FakeOperation> generateFakeOperations(Entry entry)
   {
     TreeMap<CSN, FakeOperation> operations = new TreeMap<>();
-    List<Attribute> attrs = getHistoricalAttr(entry);
-    if (attrs != null)
+    for (Attribute attr : getHistoricalAttr(entry))
     {
-      for (Attribute attr : attrs)
+      for (ByteString val : attr)
       {
-        for (ByteString val : attr)
+        HistoricalAttributeValue histVal = new HistoricalAttributeValue(val.toString());
+        if (histVal.isADDOperation())
         {
-          HistoricalAttributeValue histVal = new HistoricalAttributeValue(val.toString());
-          if (histVal.isADDOperation())
+          // Found some historical information indicating that this entry was just added.
+          // Create the corresponding ADD operation.
+          operations.put(histVal.getCSN(), new FakeAddOperation(histVal.getCSN(), entry));
+        }
+        else if (histVal.isMODDNOperation())
+        {
+          // Found some historical information indicating that this entry was just renamed.
+          // Create the corresponding ADD operation.
+          operations.put(histVal.getCSN(), new FakeModdnOperation(histVal.getCSN(), entry));
+        }
+        else
+        {
+          // Found some historical information for modify operation.
+          // Generate the corresponding ModifyOperation or update
+          // the already generated Operation if it can be found.
+          CSN csn = histVal.getCSN();
+          Modification mod = histVal.generateMod();
+          FakeOperation fakeOperation = operations.get(csn);
+
+          if (fakeOperation instanceof FakeModifyOperation)
           {
-            // Found some historical information indicating that this entry was just added.
-            // Create the corresponding ADD operation.
-            operations.put(histVal.getCSN(), new FakeAddOperation(histVal.getCSN(), entry));
-          }
-          else if (histVal.isMODDNOperation())
-          {
-            // Found some historical information indicating that this entry was just renamed.
-            // Create the corresponding ADD operation.
-            operations.put(histVal.getCSN(), new FakeModdnOperation(histVal.getCSN(), entry));
+            FakeModifyOperation modifyFakeOperation = (FakeModifyOperation) fakeOperation;
+            modifyFakeOperation.addModification(mod);
           }
           else
           {
-            // Found some historical information for modify operation.
-            // Generate the corresponding ModifyOperation or update
-            // the already generated Operation if it can be found.
-            CSN csn = histVal.getCSN();
-            Modification mod = histVal.generateMod();
-            FakeOperation fakeOperation = operations.get(csn);
-
-            if (fakeOperation instanceof FakeModifyOperation)
-            {
-              FakeModifyOperation modifyFakeOperation = (FakeModifyOperation) fakeOperation;
-              modifyFakeOperation.addModification(mod);
-            }
-            else
-            {
-              String uuidString = getEntryUUID(entry);
-              FakeModifyOperation modifyFakeOperation =
-                  new FakeModifyOperation(entry.getName(), csn, uuidString);
-              modifyFakeOperation.addModification(mod);
-              operations.put(histVal.getCSN(), modifyFakeOperation);
-            }
+            String uuidString = getEntryUUID(entry);
+            FakeModifyOperation modifyFakeOperation = new FakeModifyOperation(entry.getName(), csn, uuidString);
+            modifyFakeOperation.addModification(mod);
+            operations.put(histVal.getCSN(), modifyFakeOperation);
           }
         }
       }
@@ -747,7 +742,7 @@ public class EntryHistorical
    */
   private static String extractEntryUUID(List<Attribute> entryUUIDAttributes, DN entryDN)
   {
-    if (entryUUIDAttributes != null)
+    if (!entryUUIDAttributes.isEmpty())
     {
       Attribute uuidAttr = entryUUIDAttributes.get(0);
       if (!uuidAttr.isEmpty())

@@ -3633,49 +3633,43 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // loop on the attribute types in the entry just received
     // and add them in the existing schema.
-    List<Attribute> attrList = newSchemaEntry.getAttribute(attributeAttrType);
     Set<String> oidList = new HashSet<>(1000);
-    if (attrList != null && !attrList.isEmpty())
+    for (Attribute a : newSchemaEntry.getAttribute(attributeAttrType))
     {
-      for (Attribute a : attrList)
+      // Look for attribute types that could have been added to the schema
+      // or modified in the schema
+      for (ByteString v : a)
       {
-        // Look for attribute types that could have been added to the schema
-        // or modified in the schema
-        for (ByteString v : a)
+        // Parse the attribute type.
+        AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(v, schema, false);
+        String schemaFile = getSchemaFile(attrType);
+        if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
         {
-          // Parse the attribute type.
-          AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(v, schema, false);
-          String schemaFile = getSchemaFile(attrType);
-          if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
-          {
-            // Don't import the file containing the definitions of the
-            // Schema elements used for configuration because these
-            // definitions may vary between versions of OpenDJ.
-            continue;
-          }
+          // Don't import the file containing the definitions of the
+          // Schema elements used for configuration because these
+          // definitions may vary between versions of OpenDJ.
+          continue;
+        }
 
-          oidList.add(attrType.getOID());
-          try
+        oidList.add(attrType.getOID());
+        try
+        {
+          // Register this attribute type in the new schema
+          // unless it is already defined with the same syntax.
+          AttributeType oldAttrType = schema.getAttributeType(attrType.getOID());
+          if (oldAttrType == null || !oldAttrType.toString().equals(attrType.toString()))
           {
-            // Register this attribute type in the new schema
-            // unless it is already defined with the same syntax.
-            AttributeType oldAttrType =
-              schema.getAttributeType(attrType.getOID());
-            if (oldAttrType == null ||
-                !oldAttrType.toString().equals(attrType.toString()))
+            newSchema.registerAttributeType(attrType, true);
+
+            if (schemaFile != null)
             {
-              newSchema.registerAttributeType(attrType, true);
-
-              if (schemaFile != null)
-              {
-                modifiedSchemaFiles.add(schemaFile);
-              }
+              modifiedSchemaFiles.add(schemaFile);
             }
           }
-          catch (Exception e)
-          {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, e.getMessage());
-          }
+        }
+        catch (Exception e)
+        {
+          logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, e.getMessage());
         }
       }
     }

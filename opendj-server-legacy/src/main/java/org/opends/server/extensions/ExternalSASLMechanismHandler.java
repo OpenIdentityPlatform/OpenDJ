@@ -30,21 +30,22 @@ import java.security.cert.Certificate;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SASLMechanismHandler;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -212,20 +213,17 @@ public class ExternalSASLMechanismHandler
       bindOperation.setAuthFailureReason(message);
       return;
     }
-    else
-    {
-      bindOperation.setSASLAuthUserEntry(userEntry);
-    }
+
+    bindOperation.setSASLAuthUserEntry(userEntry);
 
 
     // Get the userCertificate attribute from the user's entry for use in the
     // validation process.
-    List<Attribute> certAttrList =
-         userEntry.getAttribute(certificateAttributeType);
+    List<Attribute> certAttrList = userEntry.getAttribute(certificateAttributeType);
     switch (validationPolicy)
     {
       case ALWAYS:
-        if (certAttrList == null)
+        if (certAttrList.isEmpty())
         {
           if (validationPolicy == CertificateValidationPolicy.ALWAYS)
           {
@@ -265,7 +263,7 @@ public class ExternalSASLMechanismHandler
         break;
 
       case IFPRESENT:
-        if (certAttrList != null)
+        if (!certAttrList.isEmpty())
         {
           try
           {

@@ -590,12 +590,9 @@ public class SchemaConfigManager
       List<Modification> mods, AttributeType attrType)
   {
     List<Attribute> attributes = entry.getAttribute(attrType);
-    if (attributes != null && !attributes.isEmpty())
+    for (Attribute a : attributes)
     {
-      for (Attribute a : attributes)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
+      mods.add(new Modification(ModificationType.ADD, a));
     }
     return attributes;
   }

@@ -26,6 +26,11 @@
  */
 package org.opends.server.plugins;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,10 +50,6 @@ import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the
@@ -280,7 +281,6 @@ public class LDAPADListPluginTestCase
     assertFalse(searchOperation.getSearchEntries().isEmpty());
 
     Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e.getAttribute("o"));
+    assertThat(e.getAttribute("o")).isNotEmpty();
   }
 }
-

@@ -77,6 +77,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -435,7 +436,7 @@ public class ModifyOperationTestCase
   public void testGetAndAddModifications() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
+    assertThat(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description"))).isEmpty();
 
     UpdatePreOpPlugin.reset();
     UpdatePreOpPlugin.addModification(
@@ -453,7 +454,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNotNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
+    assertThat(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description"))).isNotEmpty();
 
     UpdatePreOpPlugin.reset();
   }
@@ -552,7 +553,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttribute() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
+    assertThat(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description"))).isEmpty();
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
     ModifyOperation modifyOperation = processModify("o=test", replace(attr));
@@ -560,7 +561,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.valueOf("o=test"));
-    assertNotNull(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description")));
+    assertThat(e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("description"))).isNotEmpty();
   }
 
 
@@ -576,8 +577,7 @@ public class ModifyOperationTestCase
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
 
-    List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
+    List<Attribute> attrList = e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
     assertEquals(countValues(attrList), 1);
 
     LDAPAttribute attr = newLDAPAttribute("o", "test2");
@@ -604,8 +604,7 @@ public class ModifyOperationTestCase
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf(baseDN));
 
-    List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
+    List<Attribute> attrList = e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("o"));
     assertEquals(countValues(attrList), 1);
 
     LDAPAttribute attr = newLDAPAttribute("o;lang-en-us", "test");
@@ -1879,7 +1878,6 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("employeenumber"));
-    assertNotNull(attrList);
     assertIntegerValueExists(attrList, 2);
   }
 
@@ -1918,7 +1916,6 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("employeenumber"));
-    assertNotNull(attrList);
     assertIntegerValueExists(attrList, 11);
   }
 
@@ -1957,7 +1954,6 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("employeenumber"));
-    assertNotNull(attrList);
     assertIntegerValueExists(attrList, 0);
   }
 
@@ -3423,7 +3419,6 @@ responseLoop:
 
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("userpassword"));
-    assertNotNull(attrList);
 
     String passwd = null;
     for (Attribute a : attrList)
@@ -3490,7 +3485,6 @@ responseLoop:
 
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
     assertFalse(attrList.get(0).hasOptions());
     assertEquals(attrList.get(0).size(), 1);
@@ -3531,7 +3525,6 @@ responseLoop:
 
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
     assertFalse(attrList.get(0).hasOptions());
     assertEquals(attrList.get(0).size(), 1);
@@ -3568,7 +3561,6 @@ responseLoop:
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
     assertFalse(attrList.get(0).hasOptions());
     assertEquals(attrList.get(0).size(), 1);
@@ -3605,7 +3597,6 @@ responseLoop:
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertNotNull(attrList);
     assertEquals(attrList.size(), 1);
     assertFalse(attrList.get(0).hasOptions());
     assertEquals(attrList.get(0).size(), 1);
@@ -3660,10 +3651,8 @@ responseLoop:
     retrieveSuccessfulOperationElements(modifyOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
-    List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("usercertificate"));
-    assertNotNull(attrList);
-    assertEquals(attrList.size(), 1);
+    List<Attribute> attrList = e.getAttribute(DirectoryServer.getAttributeTypeOrDefault("usercertificate"));
+    assertThat(attrList).hasSize(1);
     Attribute a = attrList.get(0);
     assertTrue(a.hasOption("binary"));
     assertEquals(a.size(), 1);

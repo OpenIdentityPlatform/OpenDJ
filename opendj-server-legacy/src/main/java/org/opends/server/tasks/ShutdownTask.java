@@ -96,7 +96,7 @@ public class ShutdownTask
 
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_SHUTDOWN_MESSAGE);
     List<Attribute> attrList = taskEntry.getAttribute(attrType);
-    if (attrList != null && !attrList.isEmpty())
+    if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
@@ -109,7 +109,7 @@ public class ShutdownTask
 
     attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_RESTART_SERVER);
     attrList = taskEntry.getAttribute(attrType);
-    if (attrList != null && !attrList.isEmpty())
+    if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())

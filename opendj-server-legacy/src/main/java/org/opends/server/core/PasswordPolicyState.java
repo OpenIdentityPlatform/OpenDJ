@@ -199,15 +199,11 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   private Attribute getFirstAttributeNotEmpty(AttributeType attributeType)
   {
-    List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(attributeType))
     {
-      for (Attribute a : attrList)
+      if (!a.isEmpty())
       {
-        if (!a.isEmpty())
-        {
-          return a;
-        }
+        return a;
       }
     }
     return null;
@@ -227,26 +223,22 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     ArrayList<Long> timeValues = new ArrayList<>();
 
-    List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(attributeType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        try
         {
-          try
-          {
-            timeValues.add(GeneralizedTime.valueOf(v.toString()).getTimeInMillis());
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
-                v, attributeType.getNameOrOID(), userDNString);
+          timeValues.add(GeneralizedTime.valueOf(v.toString()).getTimeInMillis());
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
+              v, attributeType.getNameOrOID(), userDNString);
 
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.get(v, attributeType.getNameOrOID(), userDNString, e),
-                e);
-          }
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.get(v, attributeType.getNameOrOID(), userDNString, e),
+              e);
         }
       }
     }
@@ -1058,64 +1050,59 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     boolean isGeneralizedTime = SYNTAX_GENERALIZED_TIME_NAME.equals(type.getSyntax().getName());
     lastLoginTime = -1;
-    List<Attribute> attrList = userEntry.getAttribute(type);
-
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(type))
     {
-      for (Attribute a : attrList)
+      if (a.isEmpty())
       {
-        if (a.isEmpty())
+        continue;
+      }
+
+      String valueString = a.iterator().next().toString();
+      try
+      {
+        lastLoginTime = parseTime(format, valueString, isGeneralizedTime);
+
+        if (logger.isTraceEnabled())
         {
-          continue;
+          logger.trace("Returning last login time of %d for user %s, decoded using current last login time format.",
+              lastLoginTime, userDNString);
         }
 
-        String valueString = a.iterator().next().toString();
-        try
+        return lastLoginTime;
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        // This could mean that the last login time was encoded using a previous format.
+        for (String f : passwordPolicy.getPreviousLastLoginTimeFormats())
         {
-          lastLoginTime = parseTime(format, valueString, isGeneralizedTime);
-
-          if (logger.isTraceEnabled())
+          try
           {
-            logger.trace("Returning last login time of %d for user %s, decoded using current last login time format.",
-                lastLoginTime, userDNString);
-          }
+            lastLoginTime = parseTime(f, valueString, isGeneralizedTime);
 
-          return lastLoginTime;
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          // This could mean that the last login time was encoded using a previous format.
-          for (String f : passwordPolicy.getPreviousLastLoginTimeFormats())
-          {
-            try
+            if (logger.isTraceEnabled())
             {
-              lastLoginTime = parseTime(f, valueString, isGeneralizedTime);
-
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Returning last login time of %d for user %s decoded using previous last login time " +
-                    "format of %s.", lastLoginTime, userDNString, f);
-              }
-
-              return lastLoginTime;
+              logger.trace("Returning last login time of %d for user %s decoded using previous last login time "
+                  + "format of %s.", lastLoginTime, userDNString, f);
             }
-            catch (Exception e2)
-            {
-              logger.traceException(e);
-            }
+
+            return lastLoginTime;
           }
-
-          assert lastLoginTime == -1;
-          if (logger.isTraceEnabled())
+          catch (Exception e2)
           {
-              logger.trace("Returning -1 for user %s because the last login time value %s could not be parsed " +
-                  "using any known format.", userDNString, valueString);
+            logger.traceException(e);
           }
-
-          return lastLoginTime;
         }
+
+        assert lastLoginTime == -1;
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("Returning -1 for user %s because the last login time value %s could not be parsed "
+              + "using any known format.", userDNString, valueString);
+        }
+
+        return lastLoginTime;
       }
     }
 
@@ -2119,9 +2106,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     LinkedList<ByteString> clearPasswords = new LinkedList<>();
 
-    List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
-
-    if (attrList == null)
+    final List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
+    if (attrList.isEmpty())
     {
       return clearPasswords;
     }
@@ -2179,7 +2165,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   public boolean passwordMatches(ByteString password)
   {
     List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2358,13 +2344,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     AttributeType type = passwordPolicy.getPasswordAttribute();
     List<Attribute> attrList = userEntry.getAttribute(type);
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Doing nothing for entry %s because no password values were found.", userDNString);
-      }
-
+      logger.trace("Doing nothing for entry %s because no password values were found.", userDNString);
       return;
     }
 
@@ -2597,48 +2579,41 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     TreeMap<Long, ByteString> historyMap = new TreeMap<>();
     AttributeType historyType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_HISTORY_LC);
-    List<Attribute> attrList = userEntry.getAttribute(historyType);
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(historyType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        String histStr = v.toString();
+        int hashPos = histStr.indexOf('#');
+        if (hashPos <= 0)
         {
-          String histStr = v.toString();
-          int    hashPos = histStr.indexOf('#');
-          if (hashPos <= 0)
+          logger.trace("Found value %s in the history with no timestamp.  Marking it for removal.", histStr);
+
+          if (removeAttrs != null)
+          {
+            removeAttrs.add(Attributes.create(a.getAttributeType(), v));
+          }
+        }
+        else
+        {
+          try
+          {
+            ByteString timeValue = ByteString.valueOfUtf8(histStr.substring(0, hashPos));
+            long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(timeValue);
+            historyMap.put(timestamp, v);
+          }
+          catch (Exception e)
           {
             if (logger.isTraceEnabled())
             {
-              logger.trace("Found value " + histStr + " in the history with no timestamp.  Marking it for removal.");
+              logger.traceException(e);
+              logger.trace("Could not decode the timestamp in history value %s -- %s.  Marking it for removal.",
+                  histStr, e.getLocalizedMessage());
             }
 
             if (removeAttrs != null)
             {
               removeAttrs.add(Attributes.create(a.getAttributeType(), v));
-            }
-          }
-          else
-          {
-            try
-            {
-              ByteString timeValue = ByteString.valueOfUtf8(histStr.substring(0, hashPos));
-              long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(timeValue);
-              historyMap.put(timestamp, v);
-            }
-            catch (Exception e)
-            {
-              if (logger.isTraceEnabled())
-              {
-                logger.traceException(e);
-                logger.trace("Could not decode the timestamp in history value " + histStr + " -- " + e +
-                    ".  Marking it for removal.");
-              }
-
-              if (removeAttrs != null)
-              {
-                removeAttrs.add(Attributes.create(a.getAttributeType(), v));
-              }
             }
           }
         }
@@ -2753,43 +2728,40 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public void updatePasswordHistory()
   {
-    List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(passwordPolicy.getPasswordAttribute()))
     {
-      for (Attribute a : attrList)
+      ByteString insecurePassword = null;
+      for (ByteString v : a)
       {
-        ByteString insecurePassword = null;
-        for (ByteString v : a)
+        try
         {
-          try
-          {
-            PasswordStorageScheme<?> scheme = getPasswordStorageScheme(v);
+          PasswordStorageScheme<?> scheme = getPasswordStorageScheme(v);
 
-            if (scheme.isStorageSchemeSecure())
-            {
-              addPasswordToHistory(v.toString());
-              insecurePassword = null;
-              // no need to check any more values for this attribute
-              break;
-            }
-            else if (insecurePassword == null)
-            {
-              insecurePassword = v;
-            }
-          }
-          catch (DirectoryException e)
+          if (scheme.isStorageSchemeSecure())
           {
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("Encoded password " + v + " cannot be decoded and cannot be added to history.");
-            }
+            addPasswordToHistory(v.toString());
+            insecurePassword = null;
+            // no need to check any more values for this attribute
+            break;
+          }
+          else if (insecurePassword == null)
+          {
+            insecurePassword = v;
           }
         }
-        // If we get here we haven't found a password encoded securely, so we have to use one of the other values.
-        if (insecurePassword != null)
+        catch (DirectoryException e)
         {
-          addPasswordToHistory(insecurePassword.toString());
+          if (logger.isTraceEnabled())
+          {
+            logger.trace("Encoded password " + v + " cannot be decoded and cannot be added to history.");
+          }
         }
+      }
+      // If we get here we haven't found a password encoded securely, so we have to use one of the
+      // other values.
+      if (insecurePassword != null)
+      {
+        addPasswordToHistory(insecurePassword.toString());
       }
     }
   }
@@ -2926,18 +2898,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     ArrayList<String> historyValues = new ArrayList<>();
     AttributeType historyType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_HISTORY_LC);
-    List<Attribute> attrList = userEntry.getAttribute(historyType);
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(historyType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
-        {
-          historyValues.add(v.toString());
-        }
+        historyValues.add(v.toString());
       }
     }
-
     return historyValues.toArray(new String[historyValues.size()]);
   }
 

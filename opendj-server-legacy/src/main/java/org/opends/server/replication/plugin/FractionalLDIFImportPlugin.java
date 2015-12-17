@@ -29,6 +29,9 @@ package org.opends.server.replication.plugin;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -36,12 +39,11 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.plugin.LDAPReplicationDomain.*;
+import org.opends.server.replication.plugin.LDAPReplicationDomain.AttributeValueStringIterator;
+import org.opends.server.replication.plugin.LDAPReplicationDomain.FractionalConfig;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 
@@ -404,11 +406,7 @@ public final class FractionalLDIFImportPlugin
   {
     AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attributeName);
     List<Attribute> inclAttrs = entry.getAttribute(attrType);
-    if (inclAttrs != null)
-    {
-      return inclAttrs.get(0);
-    }
-    return null;
+    return !inclAttrs.isEmpty() ? inclAttrs.get(0) : null;
   }
 
   /**

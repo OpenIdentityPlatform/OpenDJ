@@ -38,11 +38,17 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -123,8 +129,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(entryUUIDType));
 
     List<Attribute> attrList = e.getAttribute(entryUUIDType);
-    assertNotNull(attrList);
-    assertFalse(attrList.isEmpty());
+    assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {
       assertFalse(a.isEmpty());
@@ -159,8 +164,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(entryUUIDType));
 
     List<Attribute> attrList = e.getAttribute(entryUUIDType);
-    assertNotNull(attrList);
-    assertFalse(attrList.isEmpty());
+    assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {
       assertFalse(a.isEmpty());

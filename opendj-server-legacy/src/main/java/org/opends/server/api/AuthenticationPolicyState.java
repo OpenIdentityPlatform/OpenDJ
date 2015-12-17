@@ -35,7 +35,10 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -106,53 +109,47 @@ public abstract class AuthenticationPolicyState
       final AttributeType attributeType) throws DirectoryException
   {
     final List<Attribute> attrList = entry.getAttribute(attributeType);
-    if (attrList != null)
+    for (final Attribute a : attrList)
     {
-      for (final Attribute a : attrList)
+      if (a.isEmpty())
       {
-        if (a.isEmpty())
-        {
-          continue;
-        }
+        continue;
+      }
 
-        final String valueString = toLowerCase(a.iterator().next().toString());
-
-        if (valueString.equals("true") || valueString.equals("yes")
-            || valueString.equals("on") || valueString.equals("1"))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Attribute %s resolves to true for user entry %s",
-                attributeType.getNameOrOID(), entry.getName());
-          }
-
-          return ConditionResult.TRUE;
-        }
-
-        if (valueString.equals("false") || valueString.equals("no")
-            || valueString.equals("off") || valueString.equals("0"))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Attribute %s resolves to false for user entry %s",
-                attributeType.getNameOrOID(), entry.getName());
-          }
-
-          return ConditionResult.FALSE;
-        }
-
+      final String valueString = toLowerCase(a.iterator().next().toString());
+      if (valueString.equals("true") || valueString.equals("yes") || valueString.equals("on")
+          || valueString.equals("1"))
+      {
         if (logger.isTraceEnabled())
         {
-          logger.trace("Unable to resolve value %s for attribute %s "
-              + "in user entry %s as a Boolean.", valueString,
+          logger
+              .trace("Attribute %s resolves to true for user entry %s", attributeType.getNameOrOID(), entry.getName());
+        }
+
+        return ConditionResult.TRUE;
+      }
+
+      if (valueString.equals("false") || valueString.equals("no") || valueString.equals("off")
+          || valueString.equals("0"))
+      {
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("Attribute %s resolves to false for user entry %s",
               attributeType.getNameOrOID(), entry.getName());
         }
 
-        final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN
-            .get(valueString, attributeType.getNameOrOID(), entry.getName());
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            message);
+        return ConditionResult.FALSE;
       }
+
+      if (logger.isTraceEnabled())
+      {
+        logger.trace("Unable to resolve value %s for attribute %s " + "in user entry %s as a Boolean.", valueString,
+            attributeType.getNameOrOID(), entry.getName());
+      }
+
+      final LocalizableMessage message =
+          ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN.get(valueString, attributeType.getNameOrOID(), entry.getName());
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
     if (logger.isTraceEnabled())
@@ -187,33 +184,28 @@ public abstract class AuthenticationPolicyState
   {
     long timeValue = -1;
 
-    final List<Attribute> attrList = entry.getAttribute(attributeType);
-    if (attrList != null)
+    for (final Attribute a : entry.getAttribute(attributeType))
     {
-      for (final Attribute a : attrList)
+      if (a.isEmpty())
       {
-        if (a.isEmpty())
-        {
-          continue;
-        }
-
-        final ByteString v = a.iterator().next();
-        try
-        {
-          timeValue = GeneralizedTime.valueOf(v.toString()).getTimeInMillis();
-        }
-        catch (final Exception e)
-        {
-          logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
-              v, attributeType.getNameOrOID(), entry.getName());
-
-          final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
-              .get(v, attributeType.getNameOrOID(), entry.getName(), e);
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message, e);
-        }
-        break;
+        continue;
       }
+
+      final ByteString v = a.iterator().next();
+      try
+      {
+        timeValue = GeneralizedTime.valueOf(v.toString()).getTimeInMillis();
+      }
+      catch (final Exception e)
+      {
+        logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
+            v, attributeType.getNameOrOID(), entry.getName());
+
+        final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
+            .get(v, attributeType.getNameOrOID(), entry.getName(), e);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
+      }
+      break;
     }
 
     if (timeValue == -1 && logger.isTraceEnabled())

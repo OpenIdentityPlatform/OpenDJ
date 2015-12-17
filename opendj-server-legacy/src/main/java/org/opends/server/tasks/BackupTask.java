@@ -57,7 +57,6 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -160,44 +159,23 @@ public class BackupTask extends Task
     AttributeType typeBackupDirectory = getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
     AttributeType typeIncrementalBaseID = getAttributeTypeOrDefault(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID);
 
+    backUpAll = TaskUtils.getBoolean(taskEntry.getAttribute(typeBackupAll), false);
+    compress = TaskUtils.getBoolean(taskEntry.getAttribute(typeCompress), false);
+    encrypt = TaskUtils.getBoolean(taskEntry.getAttribute(typeEncrypt), false);
+    hash = TaskUtils.getBoolean(taskEntry.getAttribute(typeHash), false);
+    incremental = TaskUtils.getBoolean(taskEntry.getAttribute(typeIncremental), false);
+    signHash = TaskUtils.getBoolean(taskEntry.getAttribute(typeSignHash), false);
+    backendIDList = TaskUtils.getMultiValueString(taskEntry.getAttribute(typeBackendID));
+    backupID = TaskUtils.getSingleValueString(taskEntry.getAttribute(typeBackupID));
 
-    List<Attribute> attrList;
-
-    attrList = taskEntry.getAttribute(typeBackupAll);
-    backUpAll = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeCompress);
-    compress = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeEncrypt);
-    encrypt = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeHash);
-    hash = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeIncremental);
-    incremental = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeSignHash);
-    signHash = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeBackendID);
-    backendIDList = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeBackupID);
-    backupID = TaskUtils.getSingleValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeBackupDirectory);
-    String backupDirectoryPath = TaskUtils.getSingleValueString(attrList);
+    String backupDirectoryPath = TaskUtils.getSingleValueString(taskEntry.getAttribute(typeBackupDirectory));
     backupDirectory = new File(backupDirectoryPath);
     if (! backupDirectory.isAbsolute())
     {
-      backupDirectory =
-           new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
+      backupDirectory = new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
     }
 
-    attrList = taskEntry.getAttribute(typeIncrementalBaseID);
-    incrementalBase = TaskUtils.getSingleValueString(attrList);
+    incrementalBase = TaskUtils.getSingleValueString(taskEntry.getAttribute(typeIncrementalBaseID));
 
     configEntries = TaskUtils.getBackendConfigEntries();
   }

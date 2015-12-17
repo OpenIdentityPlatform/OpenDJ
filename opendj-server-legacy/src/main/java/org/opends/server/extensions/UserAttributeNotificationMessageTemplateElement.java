@@ -26,18 +26,12 @@
  */
 package org.opends.server.extensions;
 
-
-
-import java.util.List;
-
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
-
-
 
 /**
  * This class implements a notification message template element that will
@@ -50,39 +44,28 @@ public class UserAttributeNotificationMessageTemplateElement
   /** The attribute type for which to obtain the value. */
   private AttributeType attributeType;
 
-
-
   /**
    * Creates a new user DN notification message template element.
    *
    * @param  attributeType  The attribute type for which to obtain the value.
    */
-  public UserAttributeNotificationMessageTemplateElement(AttributeType
-                                                              attributeType)
+  public UserAttributeNotificationMessageTemplateElement(AttributeType attributeType)
   {
     this.attributeType = attributeType;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {
     Entry userEntry = notification.getUserEntry();
-
-    List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(attributeType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
-        {
-          buffer.append(v);
-          return;
-        }
+        buffer.append(v);
+        return;
       }
     }
   }
 }
-

@@ -135,10 +135,9 @@ public class AttributeValuePasswordValidator
     AttributeValuePasswordValidatorCfg config = currentConfig;
 
 
-    // Get the string representation (both forward and reversed) for the
-    // password.
-    String password = newPassword.toString();
-    String reversed = new StringBuilder(password).reverse().toString();
+    // Get the string representation (both forward and reversed) for the password.
+    final String password = newPassword.toString();
+    final String reversed = new StringBuilder(password).reverse().toString();
 
     // Check to see if we should verify the whole password or the substrings.
     int minSubstringLength = password.length();
@@ -158,18 +157,11 @@ public class AttributeValuePasswordValidator
       matchAttributes = userEntry.getUserAttributes().keySet();
     }
 
+    final ByteString vf = ByteString.valueOfUtf8(password);
+    final ByteString vr = ByteString.valueOfUtf8(reversed);
     for (AttributeType t : matchAttributes)
     {
-      List<Attribute> attrList = userEntry.getAttribute(t);
-      if (attrList == null || attrList.isEmpty())
-      {
-        continue;
-      }
-
-      ByteString vf = ByteString.valueOfUtf8(password);
-      ByteString vr = ByteString.valueOfUtf8(reversed);
-
-      for (Attribute a : attrList)
+      for (Attribute a : userEntry.getAttribute(t))
       {
         if (a.contains(vf) ||
             (config.isTestReversedPassword() && a.contains(vr)) ||

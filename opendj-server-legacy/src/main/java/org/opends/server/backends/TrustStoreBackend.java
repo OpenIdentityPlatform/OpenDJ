@@ -80,8 +80,8 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
 import org.opends.server.util.CertificateManager;
-import org.opends.server.util.SetupUtils;
 import org.opends.server.util.Platform.KeyType;
+import org.opends.server.util.SetupUtils;
 
 /**
  * This class defines a backend used to provide an LDAP view of public keys
@@ -1225,7 +1225,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       {
         List<Attribute> certAttrs = entry.getAttribute(
              ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-        if (certAttrs == null)
+        if (certAttrs.isEmpty())
         {
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_ATTR.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);

@@ -1072,7 +1072,7 @@ public class LocalBackendModifyOperation
         // We still need to check if the pre-encoded password matches
         // an existing value, to decrease the number of passwords.
         List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
-        if (attrList == null || attrList.isEmpty())
+        if (attrList.isEmpty())
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
         }
@@ -1085,10 +1085,9 @@ public class LocalBackendModifyOperation
       else
       {
         List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
-        if (attrList == null || attrList.isEmpty())
+        if (attrList.isEmpty())
         {
-          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-              ERR_MODIFY_NO_EXISTING_VALUES.get());
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
         }
 
         if (addIfAttributeValueExistsNoPreEncodedPassword(builder, attrList, v))

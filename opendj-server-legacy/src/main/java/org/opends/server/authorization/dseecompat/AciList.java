@@ -27,16 +27,20 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
+
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DITCacheMap;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.RDN;
 
 /**
  * The AciList class performs caching of the ACI attribute values
@@ -246,8 +250,7 @@ public class AciList {
                                          DN dn, DN configDN,
                                          List<Attribute> attributeList,
                                          List<LocalizableMessage> failedACIMsgs) {
-
-    if (attributeList == null) {
+    if (attributeList.isEmpty()) {
       return 0;
     }
 
@@ -306,8 +309,7 @@ public class AciList {
       //attributes are skipped.
       if(hasGlobalAci && oldEntry.getName().equals(configDN)) {
           aciList.remove(DN.rootDN());
-          List<Attribute> attributeList =
-                  newEntry.getAttribute(globalAciType);
+          List<Attribute> attributeList = newEntry.getAttribute(globalAciType);
           addAciAttributeList(aciList, DN.rootDN(), configDN,
                               attributeList, failedACIMsgs);
       }

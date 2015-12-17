@@ -215,14 +215,14 @@ class PersistentServerState
   /**
    * Update this ServerState from the provided entry.
    *
-   * @param resultEntry The entry that should be used to update this
-   *                    ServerState.
+   * @param resultEntry
+   *          The entry that should be used to update this ServerState.
    */
   private void updateStateFromEntry(SearchResultEntry resultEntry)
   {
     AttributeType synchronizationStateType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_STATE);
     List<Attribute> attrs = resultEntry.getAttribute(synchronizationStateType);
-    if (attrs != null)
+    if (!attrs.isEmpty())
     {
       for (ByteString value : attrs.get(0))
       {

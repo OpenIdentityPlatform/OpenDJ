@@ -36,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -151,78 +152,16 @@ public class RecurringTask
     this.recurringTaskEntryDN = recurringTaskEntry.getName();
 
     // Get the recurring task ID from the entry.  If there isn't one, then fail.
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(
-        ATTR_RECURRING_TASK_ID.toLowerCase(), ATTR_RECURRING_TASK_ID);
-    List<Attribute> attrList = recurringTaskEntry.getAttribute(attrType);
-    if (attrList == null || attrList.isEmpty())
-    {
-      LocalizableMessage message =
-          ERR_RECURRINGTASK_NO_ID_ATTRIBUTE.get(ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    if (attrList.size() > 1)
-    {
-      LocalizableMessage message =
-          ERR_RECURRINGTASK_MULTIPLE_ID_TYPES.get(ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    Attribute attr = attrList.get(0);
-    if (attr.isEmpty())
-    {
-      LocalizableMessage message = ERR_RECURRINGTASK_NO_ID.get(ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    Iterator<ByteString> iterator = attr.iterator();
-    ByteString value = iterator.next();
-    if (iterator.hasNext())
-    {
-      LocalizableMessage message =
-          ERR_RECURRINGTASK_MULTIPLE_ID_VALUES.get(ATTR_RECURRING_TASK_ID);
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
-    }
-
-    recurringTaskID = value.toString();
-
+    Attribute attr = getSingleAttribute(recurringTaskEntry, ATTR_RECURRING_TASK_ID,
+        ERR_RECURRINGTASK_NO_ID_ATTRIBUTE, ERR_RECURRINGTASK_MULTIPLE_ID_TYPES, ERR_RECURRINGTASK_NO_ID);
+    recurringTaskID = getSingleAttributeValue(attr,
+        ResultCode.OBJECTCLASS_VIOLATION, ERR_RECURRINGTASK_MULTIPLE_ID_VALUES, ATTR_RECURRING_TASK_ID);
 
     // Get the schedule for this task.
-    attrType = DirectoryServer.getAttributeTypeOrDefault(
-        ATTR_RECURRING_TASK_SCHEDULE.toLowerCase(), ATTR_RECURRING_TASK_SCHEDULE);
-
-    attrList = recurringTaskEntry.getAttribute(attrType);
-    if (attrList == null || attrList.isEmpty())
-    {
-      LocalizableMessage message = ERR_RECURRINGTASK_NO_SCHEDULE_ATTRIBUTE.get(
-          ATTR_RECURRING_TASK_SCHEDULE);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    if (attrList.size() > 1)
-    {
-      LocalizableMessage message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_TYPES.get(
-          ATTR_RECURRING_TASK_SCHEDULE);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    attr = attrList.get(0);
-    if (attr.isEmpty())
-    {
-      LocalizableMessage message = ERR_RECURRINGTASK_NO_SCHEDULE_VALUES.get(
-        ATTR_RECURRING_TASK_SCHEDULE);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    iterator = attr.iterator();
-    value = iterator.next();
-    if (iterator.hasNext())
-    {
-      LocalizableMessage message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_VALUES.get(ATTR_RECURRING_TASK_SCHEDULE);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    String taskScheduleTab = value.toString();
+    attr = getSingleAttribute(recurringTaskEntry, ATTR_RECURRING_TASK_SCHEDULE,ERR_RECURRINGTASK_NO_SCHEDULE_ATTRIBUTE,
+            ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_TYPES, ERR_RECURRINGTASK_NO_SCHEDULE_VALUES);
+    String taskScheduleTab = getSingleAttributeValue(attr,
+        ResultCode.CONSTRAINT_VIOLATION, ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_VALUES, ATTR_RECURRING_TASK_SCHEDULE);
 
     boolean[][] taskArrays = new boolean[][]{null, null, null, null, null};
 
@@ -235,37 +174,10 @@ public class RecurringTask
     weekdayArray = taskArrays[WEEKDAY_INDEX];
 
     // Get the class name from the entry.  If there isn't one, then fail.
-    attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_CLASS.toLowerCase(), ATTR_TASK_CLASS);
-
-    attrList = recurringTaskEntry.getAttribute(attrType);
-    if (attrList == null || attrList.isEmpty())
-    {
-      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_CLASS);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    if (attrList.size() > 1)
-    {
-      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(ATTR_TASK_CLASS);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    attr = attrList.get(0);
-    if (attr.isEmpty())
-    {
-      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_CLASS);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    iterator = attr.iterator();
-    value = iterator.next();
-    if (iterator.hasNext())
-    {
-      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(ATTR_TASK_CLASS);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    taskClassName = value.toString();
+    attr = getSingleAttribute(recurringTaskEntry, ATTR_TASK_CLASS, ERR_TASKSCHED_NO_CLASS_ATTRIBUTE,
+        ERR_TASKSCHED_MULTIPLE_CLASS_TYPES, ERR_TASKSCHED_NO_CLASS_VALUES);
+    taskClassName = getSingleAttributeValue(attr,
+        ResultCode.CONSTRAINT_VIOLATION, ERR_TASKSCHED_MULTIPLE_CLASS_VALUES, ATTR_TASK_CLASS);
 
 
     // Make sure that the specified class can be loaded.
@@ -314,6 +226,42 @@ public class RecurringTask
     }
 
     task.initializeTask();
+  }
+
+  private String getSingleAttributeValue(Attribute attr, ResultCode erorrRc, Arg1<Object> multipleAttrValueErrorMsg,
+      String attrName) throws DirectoryException
+  {
+    Iterator<ByteString> it = attr.iterator();
+    ByteString value = it.next();
+    if (it.hasNext())
+    {
+      throw new DirectoryException(erorrRc, multipleAttrValueErrorMsg.get(attrName));
+    }
+    return value.toString();
+  }
+
+  private Attribute getSingleAttribute(Entry taskEntry, String attrName, Arg1<Object> noEntryErrorMsg,
+      Arg1<Object> multipleEntriesErrorMsg, Arg1<Object> noAttrValueErrorMsg) throws DirectoryException
+  {
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName);
+    List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    if (attrList.isEmpty())
+    {
+      LocalizableMessage message = noEntryErrorMsg.get(attrName);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+    }
+    if (attrList.size() > 1)
+    {
+      LocalizableMessage message = multipleEntriesErrorMsg.get(attrName);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+    }
+    Attribute attr = attrList.get(0);
+    if (attr.isEmpty())
+    {
+      LocalizableMessage message = noAttrValueErrorMsg.get(attrName);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+    }
+    return attr;
   }
 
 

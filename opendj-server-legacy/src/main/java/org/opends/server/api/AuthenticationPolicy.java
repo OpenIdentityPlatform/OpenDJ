@@ -75,69 +75,64 @@ public abstract class AuthenticationPolicy
     // First check to see if the ds-pwp-password-policy-dn is present.
     String userDNString = userEntry.getName().toString();
     AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_PWPOLICY_POLICY_DN);
-    List<Attribute> attrList = userEntry.getAttribute(type);
-
-    if (attrList != null)
+    for (Attribute a : userEntry.getAttribute(type))
     {
-      for (Attribute a : attrList)
+      if (a.isEmpty())
       {
-        if (a.isEmpty())
-        {
-          continue;
-        }
-
-        ByteString v = a.iterator().next();
-        DN subentryDN;
-        try
-        {
-          subentryDN = DN.decode(v);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          logger.trace("Could not parse password policy subentry DN %s for user %s",
-              v, userDNString, e);
-
-          if (useDefaultOnError)
-          {
-            logger.error(ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN,
-                v, userDNString, e.getMessage());
-            return DirectoryServer.getDefaultPasswordPolicy();
-          }
-          else
-          {
-            LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN
-                .get(v, userDNString, e.getMessage());
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message, e);
-          }
-        }
-
-        AuthenticationPolicy policy = DirectoryServer
-            .getAuthenticationPolicy(subentryDN);
-        if (policy == null)
-        {
-          logger.trace("Password policy subentry %s for user %s is not defined in the Directory Server.",
-                  subentryDN, userDNString);
-
-          LocalizableMessage message = ERR_PWPSTATE_NO_SUCH_POLICY.get(userDNString, subentryDN);
-          if (useDefaultOnError)
-          {
-            logger.error(message);
-            return DirectoryServer.getDefaultPasswordPolicy();
-          }
-          else
-          {
-            throw new DirectoryException(
-                DirectoryServer.getServerErrorResultCode(), message);
-          }
-        }
-
-        logger.trace("Using password policy subentry %s for user %s.",
-              subentryDN, userDNString);
-
-        return policy;
+        continue;
       }
+
+      ByteString v = a.iterator().next();
+      DN subentryDN;
+      try
+      {
+        subentryDN = DN.decode(v);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        logger.trace("Could not parse password policy subentry DN %s for user %s",
+            v, userDNString, e);
+
+        if (useDefaultOnError)
+        {
+          logger.error(ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN,
+              v, userDNString, e.getMessage());
+          return DirectoryServer.getDefaultPasswordPolicy();
+        }
+        else
+        {
+          LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN
+              .get(v, userDNString, e.getMessage());
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message, e);
+        }
+      }
+
+      AuthenticationPolicy policy = DirectoryServer
+          .getAuthenticationPolicy(subentryDN);
+      if (policy == null)
+      {
+        logger.trace("Password policy subentry %s for user %s is not defined in the Directory Server.",
+                subentryDN, userDNString);
+
+        LocalizableMessage message = ERR_PWPSTATE_NO_SUCH_POLICY.get(userDNString, subentryDN);
+        if (useDefaultOnError)
+        {
+          logger.error(message);
+          return DirectoryServer.getDefaultPasswordPolicy();
+        }
+        else
+        {
+          throw new DirectoryException(
+              DirectoryServer.getServerErrorResultCode(), message);
+        }
+      }
+
+      logger.trace("Using password policy subentry %s for user %s.",
+            subentryDN, userDNString);
+
+      return policy;
     }
 
     // The ds-pwp-password-policy-dn attribute was not present, so instead

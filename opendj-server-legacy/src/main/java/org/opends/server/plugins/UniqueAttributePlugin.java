@@ -42,20 +42,22 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.UniqueAttributePluginCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
-import org.opends.server.api.plugin.*;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginResult.PreOperation;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -189,19 +191,14 @@ public class UniqueAttributePlugin
     List<ByteString> recordedValues = new LinkedList<>();
     for (AttributeType t : config.getType())
     {
-      List<Attribute> attrList = entry.getAttribute(t);
-      if (attrList != null)
+      for (Attribute a : entry.getAttribute(t))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
+          PreOperation stop = checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
+          if (stop != null)
           {
-            PreOperation stop =
-                checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
-            if (stop != null)
-            {
-              return stop;
-            }
+            return stop;
           }
         }
       }
@@ -254,28 +251,20 @@ public class UniqueAttributePlugin
           break;
 
         case INCREMENT:
-          // We could calculate the new value, but we'll just take it from the
-          // updated entry.
-          List<Attribute> attrList =
-               modifyOperation.getModifiedEntry().getAttribute(t,
-                                                               a.getOptions());
-          if (attrList != null)
+          // We could calculate the new value, but we'll just take it from the updated entry.
+          for (Attribute updatedAttr : modifyOperation.getModifiedEntry().getAttribute(t, a.getOptions()))
           {
-            for (Attribute updatedAttr : attrList)
+            if (! updatedAttr.optionsEqual(a.getOptions()))
             {
-              if (! updatedAttr.optionsEqual(a.getOptions()))
-              {
-                continue;
-              }
+              continue;
+            }
 
-              for (ByteString v : updatedAttr)
+            for (ByteString v : updatedAttr)
+            {
+              PreOperation stop = checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
+              if (stop != null)
               {
-                PreOperation stop = checkUniqueness(
-                    entryDN, t, v, baseDNs, recordedValues, config);
-                if (stop != null)
-                {
-                  return stop;
-                }
+                return stop;
               }
             }
           }
@@ -402,16 +391,11 @@ public class UniqueAttributePlugin
     DN entryDN = entry.getName();
     for (AttributeType t : config.getType())
     {
-      List<Attribute> attrList = entry.getAttribute(t);
-      if (attrList != null)
+      for (Attribute a : entry.getAttribute(t))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
-          {
-            sendAlertForUnresolvedConflict(addOperation, entryDN, entryDN, t,
-                v, baseDNs, config);
-          }
+          sendAlertForUnresolvedConflict(addOperation, entryDN, entryDN, t, v, baseDNs, config);
         }
       }
     }
@@ -456,25 +440,18 @@ public class UniqueAttributePlugin
           break;
 
         case INCREMENT:
-          // We could calculate the new value, but we'll just take it from the
-          // updated entry.
-          List<Attribute> attrList =
-               modifyOperation.getModifiedEntry().getAttribute(t,
-                                                               a.getOptions());
-          if (attrList != null)
+          // We could calculate the new value, but we'll just take it from the updated entry.
+          for (Attribute updatedAttr : modifyOperation.getModifiedEntry().getAttribute(t, a.getOptions()))
           {
-            for (Attribute updatedAttr : attrList)
+            if (! updatedAttr.optionsEqual(a.getOptions()))
             {
-              if (! updatedAttr.optionsEqual(a.getOptions()))
-              {
-                continue;
-              }
+              continue;
+            }
 
-              for (ByteString v : updatedAttr)
-              {
-                sendAlertForUnresolvedConflict(modifyOperation, entryDN,
-                    entryDN, t, v, baseDNs, config);
-              }
+            for (ByteString v : updatedAttr)
+            {
+              sendAlertForUnresolvedConflict(modifyOperation, entryDN,
+                  entryDN, t, v, baseDNs, config);
             }
           }
           break;
@@ -803,15 +780,11 @@ public class UniqueAttributePlugin
     //Remove the attribute value from the map.
     for (AttributeType t : config.getType())
     {
-      List<Attribute> attrList = entry.getAttribute(t);
-      if (attrList != null)
+      for (Attribute a : entry.getAttribute(t))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
-          {
-            uniqueAttrValue2Dn.remove(v);
-          }
+          uniqueAttrValue2Dn.remove(v);
         }
       }
     }
@@ -858,24 +831,17 @@ public class UniqueAttributePlugin
           break;
 
         case INCREMENT:
-          // We could calculate the new value, but we'll just take it from the
-          // updated entry.
-          List<Attribute> attrList =
-               modifyOperation.getModifiedEntry().getAttribute(t,
-                                                           a.getOptions());
-          if (attrList != null)
+          // We could calculate the new value, but we'll just take it from the updated entry.
+          for (Attribute updatedAttr : modifyOperation.getModifiedEntry().getAttribute(t, a.getOptions()))
           {
-            for (Attribute updatedAttr : attrList)
+            if (!updatedAttr.optionsEqual(a.getOptions()))
             {
-              if (! updatedAttr.optionsEqual(a.getOptions()))
-              {
-                continue;
-              }
+              continue;
+            }
 
-              for (ByteString v : updatedAttr)
-              {
-                uniqueAttrValue2Dn.remove(v);
-              }
+            for (ByteString v : updatedAttr)
+            {
+              uniqueAttrValue2Dn.remove(v);
             }
           }
           break;

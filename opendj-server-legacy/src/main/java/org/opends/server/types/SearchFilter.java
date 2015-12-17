@@ -2637,9 +2637,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeType,
-                                               attributeOptions);
-    if (attrs == null || attrs.isEmpty())
+    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2743,7 +2742,7 @@ public final class SearchFilter
 
     // See if the entry has an attribute with the requested type.
     List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
-    if (attrs == null || attrs.isEmpty())
+    if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2844,7 +2843,7 @@ public final class SearchFilter
 
     // See if the entry has an attribute with the requested type.
     List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
-    if (attrs == null || attrs.isEmpty())
+    if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -2857,8 +2856,7 @@ public final class SearchFilter
       return ConditionResult.FALSE;
     }
 
-    // Iterate through all the attributes and see if we can find a
-    // match.
+    // Iterate through all the attributes and see if we can find a match.
     ConditionResult result = ConditionResult.FALSE;
     for (Attribute a : attrs)
     {
@@ -2942,9 +2940,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs =
-         entry.getAttribute(attributeType, attributeOptions);
-    if (attrs == null || attrs.isEmpty())
+    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -3087,9 +3084,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs =
-         entry.getAttribute(attributeType, attributeOptions);
-    if (attrs == null || attrs.isEmpty())
+    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
       {
@@ -3390,44 +3386,36 @@ public final class SearchFilter
     }
     else
     {
-      List<Attribute> attrList = entry.getAttribute(attributeType,
-                                                    attributeOptions);
-      if (attrList != null)
+      for (Attribute a : entry.getAttribute(attributeType, attributeOptions))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
+          try
           {
-            try
+            ByteString nv = matchingRule.normalizeAttributeValue(v);
+            ConditionResult r = assertion.matches(nv);
+            switch (r)
             {
-              ByteString nv = matchingRule.normalizeAttributeValue(v);
-              ConditionResult r = assertion.matches(nv);
-              switch (r)
-              {
-                case TRUE:
-                  return ConditionResult.TRUE;
-                case FALSE:
-                  break;
-                case UNDEFINED:
-                  result = ConditionResult.UNDEFINED;
-                  break;
-                default:
-                  LocalizableMessage message =
-                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(entry.getName(), completeFilter, r);
-                  throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message);
-              }
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              // We couldn't normalize one of the values.  If we don't
-              // find a definite match, then we should return
-              // undefined.
+            case TRUE:
+              return ConditionResult.TRUE;
+            case FALSE:
+              break;
+            case UNDEFINED:
               result = ConditionResult.UNDEFINED;
+              break;
+            default:
+              LocalizableMessage message =
+                  ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.get(entry.getName(), completeFilter, r);
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
             }
+          }
+          catch (Exception e)
+          {
+            logger.traceException(e);
+
+            // We couldn't normalize one of the values.
+            // If we don't find a definite match, then we should return undefined.
+            result = ConditionResult.UNDEFINED;
           }
         }
       }

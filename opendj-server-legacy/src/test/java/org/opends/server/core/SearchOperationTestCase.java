@@ -988,14 +988,14 @@ public class SearchOperationTestCase extends OperationTestCase
 
       if (stripVirtualAttributes)
       {
-        if (attrList != null)
+        if (!attrList.isEmpty())
         {
           messages.add("Unexpected virtual attribute: " + attrType);
         }
       }
       else if (filterType == AttributeFilterType.DEFAULT)
       {
-        if (attrList != null)
+        if (!attrList.isEmpty())
         {
           messages.add("Unexpected operational attribute: " + attrType);
         }
@@ -1003,14 +1003,14 @@ public class SearchOperationTestCase extends OperationTestCase
       else if ("ismemberof".equals(attrType))
       {
         // isMemberOf should never be returned as user is not in any groups.
-        if (attrList != null)
+        if (!attrList.isEmpty())
         {
           messages.add("Unexpected isMemberOf attribute");
         }
       }
       else
       {
-        if (attrList == null)
+        if (attrList.isEmpty())
         {
           messages.add("Missing virtual attribute: " + attrType);
         }
@@ -1045,14 +1045,14 @@ public class SearchOperationTestCase extends OperationTestCase
 
       if (stripRealAttributes)
       {
-        if (attrList != null)
+        if (!attrList.isEmpty())
         {
           messages.add("Unexpected real attribute: " + attrType);
         }
       }
       else
       {
-        if (attrList == null)
+        if (attrList.isEmpty())
         {
           messages.add("Missing real attribute: " + attrType);
         }

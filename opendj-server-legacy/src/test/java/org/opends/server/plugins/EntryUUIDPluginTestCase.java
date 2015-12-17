@@ -26,7 +26,7 @@
  */
 package org.opends.server.plugins;
 
-
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -48,8 +48,6 @@ import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the
@@ -274,7 +272,7 @@ public class EntryUUIDPluginTestCase
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);
     plugin.doLDIFImport(importConfig, e);
 
-    assertNotNull(e.getAttribute("entryuuid"));
+    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
   }
 
 
@@ -315,7 +313,7 @@ public class EntryUUIDPluginTestCase
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);
     plugin.doLDIFImport(importConfig, e);
 
-    assertNotNull(e.getAttribute("entryuuid"));
+    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
   }
 
 
@@ -334,7 +332,7 @@ public class EntryUUIDPluginTestCase
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-    assertNotNull(e.getAttribute("entryuuid"));
+    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
   }
 
 
@@ -356,7 +354,6 @@ public class EntryUUIDPluginTestCase
                                       "objectClass: device",
                                       "cn: test",
                                       "entryUUID: " + UUID.randomUUID());
-    assertNotNull(e.getAttribute("entryuuid"));
+    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
   }
 }
-

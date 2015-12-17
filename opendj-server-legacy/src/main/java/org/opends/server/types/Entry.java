@@ -464,8 +464,7 @@ public class Entry
     if (!includeSubordinates)
     {
       // It's possible that there could be an attribute without any
-      // values, which we should treat as not having the requested
-      // attribute.
+      // values, which we should treat as not having the requested attribute.
       Attribute attribute = getExactAttribute(attributeType, options);
       return attribute != null && !attribute.isEmpty();
     }
@@ -477,8 +476,7 @@ public class Entry
       for (Attribute attribute : attributes)
       {
         // It's possible that there could be an attribute without any
-        // values, which we should treat as not having the requested
-        // attribute.
+        // values, which we should treat as not having the requested attribute.
         if (!attribute.isEmpty() && attribute.hasAllOptions(options))
         {
           return true;
@@ -576,7 +574,7 @@ public class Entry
    * @param attributeType
    *          The attribute type to retrieve.
    * @return The requested attribute element(s) for the specified
-   *         attribute type, or <CODE>null</CODE> if the specified
+   *         attribute type, or an empty list if the specified
    *         attribute type is not present in this entry.
    */
   public List<Attribute> getAttribute(AttributeType attributeType)
@@ -597,7 +595,7 @@ public class Entry
    *                             being retrieved.
    *
    * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if the specified
+   *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry.
    */
   public List<Attribute> getAttribute(AttributeType attributeType,
@@ -615,11 +613,7 @@ public class Entry
         addAllIfNotNull(attributes, operationalAttributes.get(at));
       }
 
-      if (!attributes.isEmpty())
-      {
-        return attributes;
-      }
-      return null;
+      return attributes;
     }
 
     List<Attribute> attributes = userAttributes.get(attributeType);
@@ -636,7 +630,7 @@ public class Entry
     {
       return newArrayList(getObjectClassAttribute());
     }
-    return null;
+    return Collections.emptyList();
   }
 
   /**
@@ -675,7 +669,7 @@ public class Entry
    *                    formatted in all lowercase characters.
    *
    * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if the specified
+   *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry.
    */
   public List<Attribute> getAttribute(String lowerName)
@@ -701,7 +695,7 @@ public class Entry
     {
       return newLinkedList(getObjectClassAttribute());
     }
-    return null;
+    return Collections.emptyList();
   }
 
   /**
@@ -716,40 +710,15 @@ public class Entry
    *                             include in matching elements.
    *
    * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if the specified
+   *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry with the
    *          provided set of options.
    */
   public List<Attribute> getAttribute(AttributeType attributeType,
-                                      Set<String> options)
-  {
-    return getAttribute(attributeType, true, options);
-  }
-
-  /**
-   * Retrieves the requested attribute element(s) for the specified
-   * attribute type.  The list returned may include multiple elements
-   * if the same attribute exists in the entry multiple times with
-   * different sets of options.
-   *
-   * @param  attributeType       The attribute type to retrieve.
-   * @param  includeSubordinates Whether to include any subordinate
-   *                             attributes of the attribute type
-   *                             being retrieved.
-   * @param  options             The set of attribute options to
-   *                             include in matching elements.
-   *
-   * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if the specified
-   *          attribute type is not present in this entry with the
-   *          provided set of options.
-   */
-  public List<Attribute> getAttribute(AttributeType attributeType,
-                                      boolean includeSubordinates,
                                       Set<String> options)
   {
     List<Attribute> attributes = new LinkedList<>();
-    if (includeSubordinates && attributeType.mayHaveSubordinateTypes())
+    if (attributeType.mayHaveSubordinateTypes())
     {
       addAllIfNotNull(attributes, userAttributes.get(attributeType));
       addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
@@ -775,7 +744,7 @@ public class Entry
             attributes.add(getObjectClassAttribute());
             return attributes;
           }
-          return null;
+          return Collections.emptyList();
         }
       }
       attributes.addAll(attrs);
@@ -783,64 +752,8 @@ public class Entry
 
     onlyKeepAttributesWithAllOptions(attributes, options);
 
-    if (!attributes.isEmpty())
-    {
-      return attributes;
-    }
-    return null;
+    return attributes;
   }
-
-
-
-  /**
-   * Retrieves the requested attribute element(s) for the attribute
-   * with the specified name or OID and set of options.  The list
-   * returned may include multiple elements if the same attribute
-   * exists in the entry multiple times with different sets of
-   * matching options.
-   * <BR><BR>
-   * Note that this method should only be used in cases in which the
-   * Directory Server schema has no reference of an attribute type
-   * with the specified name.  It is not as accurate or efficient as
-   * the version of this method that takes an
-   * <CODE>AttributeType</CODE> argument.
-   *
-   * @param  lowerName  The name or OID of the attribute to return,
-   *                    formatted in all lowercase characters.
-   * @param  options    The set of attribute options to include in
-   *                    matching elements.
-   *
-   * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if the specified
-   *          attribute type is not present in this entry.
-   */
-  public List<Attribute> getAttribute(String lowerName,
-                                      Set<String> options)
-  {
-    for (AttributeType attr : userAttributes.keySet())
-    {
-      if (attr.hasNameOrOID(lowerName))
-      {
-        return getAttribute(attr, options);
-      }
-    }
-
-    for (AttributeType attr : operationalAttributes.keySet())
-    {
-      if (attr.hasNameOrOID(lowerName))
-      {
-        return getAttribute(attr, options);
-      }
-    }
-
-    if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
-        (options == null || options.isEmpty()))
-    {
-      return newLinkedList(getObjectClassAttribute());
-    }
-    return null;
-  }
-
 
   /**
    * Returns a parser for the named attribute contained in this entry.
@@ -861,8 +774,7 @@ public class Entry
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     final List<Attribute> attribute = getAttribute(attributeDescription);
-    boolean notEmpty = attribute != null && !attribute.isEmpty();
-    return AttributeParser.parseAttribute(notEmpty ? attribute.get(0) : null);
+    return AttributeParser.parseAttribute(!attribute.isEmpty() ? attribute.get(0) : null);
   }
 
 
@@ -892,7 +804,7 @@ public class Entry
    * @param  attributeType  The attribute type to retrieve.
    *
    * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if there is no such
+   *          attribute type, or an empty list if there is no such
    *          user attribute.
    */
   public List<Attribute> getUserAttribute(AttributeType attributeType)
@@ -920,37 +832,13 @@ public class Entry
       {
         addAllIfNotNull(attributes, attrs.get(at));
       }
-
-      if (!attributes.isEmpty())
-      {
-        return attributes;
-      }
-      return null;
+      return attributes;
     }
-    return attrs.get(attributeType);
+    List<Attribute> results = attrs.get(attributeType);
+    return results != null ? results : Collections.<Attribute> emptyList();
   }
 
 
-
-  /**
-   * Retrieves the requested user attribute element(s) for the
-   * specified attribute type.  The list returned may include multiple
-   * elements if the same attribute exists in the entry multiple times
-   * with different sets of options.
-   *
-   * @param  attributeType  The attribute type to retrieve.
-   * @param  options        The set of attribute options to include in
-   *                        matching elements.
-   *
-   * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if there is no such
-   *          user attribute with the specified set of options.
-   */
-  public List<Attribute> getUserAttribute(AttributeType attributeType,
-                                          Set<String> options)
-  {
-    return getAttribute(attributeType, options, userAttributes);
-  }
 
   /**
    * Returns the List of attributes for a given attribute type having all the
@@ -979,12 +867,7 @@ public class Entry
     }
 
     onlyKeepAttributesWithAllOptions(attributes, options);
-
-    if (!attributes.isEmpty())
-    {
-      return attributes;
-    }
-    return null;
+    return attributes;
   }
 
   /**
@@ -1056,7 +939,7 @@ public class Entry
    * @param  attributeType  The attribute type to retrieve.
    *
    * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if there is no such
+   *          attribute type, or an empty list if there is no such
    *          operational attribute.
    */
   public List<Attribute> getOperationalAttribute(AttributeType attributeType)
@@ -1078,7 +961,7 @@ public class Entry
    *                        matching elements.
    *
    * @return  The requested attribute element(s) for the specified
-   *          attribute type, or <CODE>null</CODE> if there is no such
+   *          attribute type, or an empty list if there is no such
    *          operational attribute with the specified set of options.
    */
   public List<Attribute> getOperationalAttribute(
@@ -1441,16 +1324,9 @@ public class Entry
    * @return  <CODE>true</CODE> if this entry contains the specified
    *          attribute value, or <CODE>false</CODE> if it does not.
    */
-  public boolean hasValue(AttributeType attributeType,
-                          Set<String> options, ByteString value)
+  public boolean hasValue(AttributeType attributeType, Set<String> options, ByteString value)
   {
-    List<Attribute> attrList = getAttribute(attributeType, true);
-    if (attrList == null || attrList.isEmpty())
-    {
-      return false;
-    }
-
-    for (Attribute a : attrList)
+    for (Attribute a : getAttribute(attributeType))
     {
       if (a.optionsEqual(options) && a.contains(value))
       {
@@ -3005,8 +2881,7 @@ public class Entry
             try
             {
               DN inheritFromDN = null;
-              for (Attribute attr : getAttribute(
-                   subEntry.getInheritFromDNType()))
+              for (Attribute attr : getAttribute(subEntry.getInheritFromDNType()))
               {
                 for (ByteString value : attr)
                 {
@@ -3041,8 +2916,7 @@ public class Entry
             {
               try
               {
-                for (Attribute attr : getAttribute(
-                   subEntry.getInheritFromRDNAttrType()))
+                for (Attribute attr : getAttribute(subEntry.getInheritFromRDNAttrType()))
                 {
                   inheritFromDN = subEntry.getInheritFromBaseDN();
                   for (ByteString value : attr)
@@ -4726,7 +4600,7 @@ public class Entry
           else
           {
             List<Attribute> attrList = getUserAttribute(attrType);
-            if (attrList != null)
+            if (!attrList.isEmpty())
             {
               mergeAttributeLists(attrList, userAttrsCopy, attrType,
                   attrName, options, omitValues, omitReal, omitVirtual);
@@ -4734,7 +4608,7 @@ public class Entry
             else
             {
               attrList = getOperationalAttribute(attrType);
-              if (attrList != null)
+              if (!attrList.isEmpty())
               {
                 mergeAttributeLists(attrList, operationalAttrsCopy,
                     attrType, attrName, options, omitValues, omitReal,

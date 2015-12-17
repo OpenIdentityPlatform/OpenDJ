@@ -25,6 +25,7 @@
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
+
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -235,7 +236,7 @@ public class LocalBackendCompareOperation
 
       // Actually perform the compare operation.
       List<Attribute> attrList = entry.getAttribute(attrType, options);
-      if (attrList == null || attrList.isEmpty())
+      if (attrList.isEmpty())
       {
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
         Arg2<Object, Object> errorMsg = options == null

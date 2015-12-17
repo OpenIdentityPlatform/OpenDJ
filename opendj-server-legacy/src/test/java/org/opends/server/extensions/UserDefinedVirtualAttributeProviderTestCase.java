@@ -246,10 +246,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       final SearchRequest request = newSearchRequest(DN.valueOf(userDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = conn.processSearch(request);
 
-      List<Attribute> attrList =
-          searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
-      assertNotNull(attrList);
+      List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
       assertEquals(attrList.size(), 1);
 
       Attribute attr = attrList.get(0);
@@ -314,10 +311,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       final SearchRequest request = newSearchRequest(DN.valueOf(userDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = conn.processSearch(request);
 
-      List<Attribute> attrList =
-          searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
-      assertNotNull(attrList);
+      List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
       assertEquals(attrList.size(), 1);
 
       Attribute attr = attrList.get(0);
@@ -383,10 +377,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       final SearchRequest request = newSearchRequest(DN.valueOf(userDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = conn.processSearch(request);
 
-      List<Attribute> attrList =
-          searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
-      assertNotNull(attrList);
+      List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
       assertEquals(attrList.size(), 1);
 
       Attribute attr = attrList.get(0);
@@ -451,10 +442,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       final SearchRequest request = newSearchRequest(DN.valueOf(userDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = conn.processSearch(request);
 
-      List<Attribute> attrList =
-          searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
-      assertNotNull(attrList);
+      List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
       assertEquals(attrList.size(), 1);
 
       Attribute attr = attrList.get(0);
@@ -518,10 +506,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       final SearchRequest request = newSearchRequest(DN.valueOf(userDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = conn.processSearch(request);
 
-      List<Attribute> attrList =
-          searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
-      assertNotNull(attrList);
+      List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
       assertEquals(attrList.size(), 1);
 
       Attribute a = attrList.get(0);
@@ -595,7 +580,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
       InternalSearchOperation searchOperation = conn.processSearch(request);
 
       List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
-      assertNotNull(attrList);
       assertEquals(attrList.size(), 1);
 
       Attribute a = attrList.get(0);

@@ -30,8 +30,6 @@ import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.List;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
@@ -106,22 +104,18 @@ public class DisconnectClientTask extends Task
   private long getConnectionID(Entry taskEntry) throws DirectoryException
   {
     final AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_DISCONNECT_CONN_ID);
-    final List<Attribute> attrList = taskEntry.getAttribute(attrType);
-    if (attrList != null)
+    for (Attribute a : taskEntry.getAttribute(attrType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        try
         {
-          try
-          {
-            return Long.parseLong(v.toString());
-          }
-          catch (Exception e)
-          {
-            LocalizableMessage message = ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v);
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
-          }
+          return Long.parseLong(v.toString());
+        }
+        catch (Exception e)
+        {
+          LocalizableMessage message = ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
         }
       }
     }
@@ -131,27 +125,23 @@ public class DisconnectClientTask extends Task
   private boolean mustNotifyClient(Entry taskEntry) throws DirectoryException
   {
     final AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_DISCONNECT_NOTIFY_CLIENT);
-    final List<Attribute> attrList = taskEntry.getAttribute(attrType);
-    if (attrList != null)
+    for (Attribute a : taskEntry.getAttribute(attrType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        final String stringValue = toLowerCase(v.toString());
+        if ("true".equals(stringValue))
         {
-          final String stringValue = toLowerCase(v.toString());
-          if ("true".equals(stringValue))
-          {
-            return true;
-          }
-          else if ("false".equals(stringValue))
-          {
-            return false;
-          }
-          else
-          {
-            LocalizableMessage message = ERR_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT.get(stringValue);
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-          }
+          return true;
+        }
+        else if ("false".equals(stringValue))
+        {
+          return false;
+        }
+        else
+        {
+          LocalizableMessage message = ERR_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT.get(stringValue);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -161,21 +151,16 @@ public class DisconnectClientTask extends Task
   private LocalizableMessage getDisconnectMessage(Entry taskEntry)
   {
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_DISCONNECT_MESSAGE);
-    List<Attribute> attrList = taskEntry.getAttribute(attrType);
-    if (attrList != null)
+    for (Attribute a : taskEntry.getAttribute(attrType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
-        {
-          return LocalizableMessage.raw(v.toString());
-        }
+        return LocalizableMessage.raw(v.toString());
       }
     }
     return INFO_TASK_DISCONNECT_GENERIC_MESSAGE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

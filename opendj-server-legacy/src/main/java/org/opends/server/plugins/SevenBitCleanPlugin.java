@@ -140,19 +140,15 @@ public final class SevenBitCleanPlugin
     // Make sure all configured attributes have clean values.
     for (AttributeType t : config.getAttributeType())
     {
-      List<Attribute> attrList = entry.getAttribute(t);
-      if (attrList != null)
+      for (Attribute a : entry.getAttribute(t))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
+          if (!is7BitClean(v))
           {
-            if (!is7BitClean(v))
-            {
-              LocalizableMessage rejectMessage =
-                   ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(a.getNameWithOptions());
-              return PluginResult.ImportLDIF.stopEntryProcessing(rejectMessage);
-            }
+            LocalizableMessage rejectMessage =
+                 ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(a.getNameWithOptions());
+            return PluginResult.ImportLDIF.stopEntryProcessing(rejectMessage);
           }
         }
       }

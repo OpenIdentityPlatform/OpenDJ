@@ -56,7 +56,6 @@ import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -219,8 +218,6 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void performBackendPreInitializationProcessing(Backend<?> backend)
   {
@@ -237,7 +234,6 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void performBackendPostFinalizationProcessing(Backend<?> backend)
   {
@@ -366,25 +362,10 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     List<Attribute> dstList = dstEntry.getAttribute(attrCert);
 
     // Check for changes to the certificate value.
-    boolean differ = false;
-    if (srcList == null)
+    if (!srcList.equals(dstList))
     {
-      if (dstList != null)
-      {
-        differ = true;
-      }
-    }
-    else if (dstList == null
-        || srcList.size() != dstList.size()
-        || !srcList.equals(dstList))
-    {
-      differ = true;
-    }
-
-    if (differ)
-    {
-      // The trust store backend does not implement modify so we need to
-      // delete then add.
+      // The trust store backend does not implement modify so we need to delete then add.
+      // FIXME implement TrustStoreBackend.replaceEntry() as deleteEntry() + addEntry() and stop this madness
       DN dstDN = dstEntry.getName();
       deleteEntry(dstDN);
       addEntry(srcEntry, dstDN);
@@ -398,11 +379,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
    */
   private static void deleteEntry(DN dstDN)
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation delOperation = conn.processDelete(dstDN);
-
+    DeleteOperation delOperation = getRootConnection().processDelete(dstDN);
     if (delOperation.getResultCode() != ResultCode.SUCCESS)
     {
       logger.debug(INFO_TRUSTSTORESYNC_DELETE_FAILED, dstDN, delOperation.getErrorMessage());
@@ -425,29 +402,24 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     List<Attribute> attrList;
     attrList = srcEntry.getAttribute(attrAlias);
-    if (attrList != null)
+    if (!attrList.isEmpty())
     {
       userAttrs.put(attrAlias, attrList);
     }
     attrList = srcEntry.getAttribute(attrCert);
-    if (attrList != null)
+    if (!attrList.isEmpty())
     {
       userAttrs.put(attrCert, attrList);
     }
 
     Entry addEntry = new Entry(dstDN, ocMap, userAttrs, null);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation = conn.processAdd(addEntry);
+    AddOperation addOperation = getRootConnection().processAdd(addEntry);
     if (addOperation.getResultCode() != ResultCode.SUCCESS)
     {
       logger.debug(INFO_TRUSTSTORESYNC_ADD_FAILED, dstDN, addOperation.getErrorMessage());
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostResponse doPostResponse(PostResponseAddOperation op)
   {
@@ -502,7 +474,6 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
@@ -527,7 +498,6 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     return PostResponse.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostResponse doPostResponse(PostResponseModifyOperation op)
   {

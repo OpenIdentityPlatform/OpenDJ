@@ -35,17 +35,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.StateUpdateFailurePolicy;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class represents subentry password policy based on Password Policy for
@@ -249,21 +249,17 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     {
       AttributeType pwdAttrType =
           DirectoryServer.getAttributeTypeOrDefault(PWD_ATTR_VALIDATOR);
-      List<Attribute> pwdAttrList = entry.getAttribute(pwdAttrType);
-      if (pwdAttrList != null && !pwdAttrList.isEmpty())
+      for (Attribute attr : entry.getAttribute(pwdAttrType))
       {
-        for (Attribute attr : pwdAttrList)
+        for (ByteString val : attr)
         {
-          for (ByteString val : attr)
+          DN validatorDN = DN.decode(val);
+          if (DirectoryServer.getPasswordValidator(validatorDN) == null)
           {
-            DN validatorDN = DN.decode(val);
-            if (DirectoryServer.getPasswordValidator(validatorDN) == null)
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_PWPOLICY_UNKNOWN_VALIDATOR.get(this.passwordPolicySubentryDN, validatorDN, PWD_ATTR_VALIDATOR));
-            }
-            pValidatorNames.add(validatorDN);
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                ERR_PWPOLICY_UNKNOWN_VALIDATOR.get(this.passwordPolicySubentryDN, validatorDN, PWD_ATTR_VALIDATOR));
           }
+          pValidatorNames.add(validatorDN);
         }
       }
     }
@@ -376,42 +372,34 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   private String getAttrValue(Entry entry, String pwdAttrName)
   {
     AttributeType pwdAttrType = DirectoryServer.getAttributeTypeOrDefault(pwdAttrName);
-    List<Attribute> pwdAttrList = entry.getAttribute(pwdAttrType);
-    if (pwdAttrList != null && !pwdAttrList.isEmpty())
+    for (Attribute attr : entry.getAttribute(pwdAttrType))
     {
-      for (Attribute attr : pwdAttrList)
+      for (ByteString value : attr)
       {
-        for (ByteString value : attr)
-        {
-          return value.toString();
-        }
+        return value.toString();
       }
     }
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowExpiredPasswordChanges()
   {
     return getDefaultPasswordPolicy().isAllowExpiredPasswordChanges();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowMultiplePasswordValues()
   {
     return getDefaultPasswordPolicy().isAllowMultiplePasswordValues();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowPreEncodedPasswords()
   {
     return getDefaultPasswordPolicy().isAllowPreEncodedPasswords();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowUserPasswordChanges()
   {

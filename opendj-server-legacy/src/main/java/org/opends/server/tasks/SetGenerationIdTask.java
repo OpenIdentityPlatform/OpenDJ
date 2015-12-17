@@ -79,7 +79,7 @@ public class SetGenerationIdTask extends Task
     // Retrieves the eventual generation-ID
     AttributeType typeNewValue = getAttributeTypeOrDefault(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE);
     List<Attribute> attrList = taskEntry.getAttribute(typeNewValue);
-    if (attrList != null && !attrList.isEmpty())
+    if (!attrList.isEmpty())
     {
       try
       {

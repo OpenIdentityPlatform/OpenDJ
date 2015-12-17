@@ -26,6 +26,10 @@
  */
 package org.opends.server.plugins;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,9 +56,6 @@ import org.opends.server.types.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the
@@ -285,8 +286,8 @@ public class LastModPluginTestCase
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-    assertNotNull(e.getAttribute("creatorsname"));
-    assertNotNull(e.getAttribute("createtimestamp"));
+    assertThat(e.getAttribute("creatorsname")).isNotEmpty();
+    assertThat(e.getAttribute("createtimestamp")).isNotEmpty();
   }
 
 
@@ -314,8 +315,8 @@ public class LastModPluginTestCase
 
     Entry e = DirectoryConfig.getEntry(DN.valueOf("o=test"));
     assertNotNull(e);
-    assertNotNull(e.getAttribute("modifiersname"));
-    assertNotNull(e.getAttribute("modifytimestamp"));
+    assertThat(e.getAttribute("modifiersname")).isNotEmpty();
+    assertThat(e.getAttribute("modifytimestamp")).isNotEmpty();
   }
 
 
@@ -341,8 +342,7 @@ public class LastModPluginTestCase
 
     e = DirectoryConfig.getEntry(DN.valueOf("cn=test2,o=test"));
     assertNotNull(e);
-    assertNotNull(e.getAttribute("modifiersname"));
-    assertNotNull(e.getAttribute("modifytimestamp"));
+    assertThat(e.getAttribute("modifiersname")).isNotEmpty();
+    assertThat(e.getAttribute("modifytimestamp")).isNotEmpty();
   }
 }
-

@@ -79,9 +79,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
 
     // Save Global ACI.
     Entry e = DirectoryServer.getEntry(DN.valueOf(ACCESS_HANDLER_DN));
-    List<Attribute> attrs =
-        e.getAttribute(ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI);
-    if (attrs != null && !attrs.isEmpty())
+    List<Attribute> attrs = e.getAttribute(ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI);
+    if (!attrs.isEmpty())
     {
       Reporter.log("Saved global ACI attribute");
 

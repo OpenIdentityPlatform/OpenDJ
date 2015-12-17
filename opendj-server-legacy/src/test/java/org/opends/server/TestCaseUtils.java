@@ -1845,15 +1845,11 @@ public final class TestCaseUtils {
   public static HashSet<PluginType> getPluginTypes(Entry e)
   {
     HashSet<PluginType> pluginTypes = new HashSet<>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    if (attrList != null)
+    for (Attribute a : e.getAttribute("ds-cfg-plugin-type"))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
-        {
-          pluginTypes.add(PluginType.forName(v.toString().toLowerCase()));
-        }
+        pluginTypes.add(PluginType.forName(v.toString().toLowerCase()));
       }
     }
     return pluginTypes;

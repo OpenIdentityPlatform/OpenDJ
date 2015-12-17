@@ -68,6 +68,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -402,7 +403,6 @@ public class AddOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     List<Attribute> attrList = e.getAttribute(a.getAttributeType());
-    assertNotNull(attrList);
     assertFalse(attrList.isEmpty());
 
     boolean foundFoo = false;
@@ -455,9 +455,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAttribute(a.getAttributeType());
-    assertNotNull(attrList);
-    assertFalse(attrList.isEmpty());
+    assertThat(e.getAttribute(a.getAttributeType())).isNotEmpty();
 
     UpdatePreOpPlugin.reset();
   }
@@ -491,8 +489,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAttribute(attrType);
-    assertNull(attrList);
+    assertThat(e.getAttribute(attrType)).isEmpty();
 
     UpdatePreOpPlugin.reset();
   }
@@ -889,7 +886,7 @@ public class AddOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
     List<Attribute> attrList = e.getAttribute("ou");
-    assertNotNull(attrList);
+    assertThat(attrList).isNotEmpty();
   }
 
 
@@ -944,9 +941,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
-    List<Attribute> attrList =
-         e.getAttribute(DirectoryServer.getObjectClassAttributeType());
-    assertNotNull(attrList);
+    List<Attribute> attrList = e.getAttribute(DirectoryServer.getObjectClassAttributeType());
 
     boolean found = false;
     for (Attribute a : attrList)

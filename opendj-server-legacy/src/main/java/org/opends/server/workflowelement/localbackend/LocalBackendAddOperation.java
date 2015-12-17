@@ -703,7 +703,7 @@ public class LocalBackendAddOperation
     // See if a password was specified.
     AttributeType passwordAttribute = passwordPolicy.getPasswordAttribute();
     List<Attribute> attrList = entry.getAttribute(passwordAttribute);
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
       // The entry doesn't have a password, so no action is required.
       return;

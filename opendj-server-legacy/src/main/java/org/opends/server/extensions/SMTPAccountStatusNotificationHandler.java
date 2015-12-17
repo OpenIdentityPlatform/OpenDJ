@@ -42,6 +42,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -56,7 +57,6 @@ import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EMailMessage;
@@ -524,21 +524,13 @@ public class SMTPAccountStatusNotificationHandler
       Entry userEntry = notification.getUserEntry();
       for (AttributeType t : addressAttrs)
       {
-        List<Attribute> attrList = userEntry.getAttribute(t);
-        if (attrList != null)
+        for (Attribute a : userEntry.getAttribute(t))
         {
-          for (Attribute a : attrList)
+          for (ByteString v : a)
           {
-            for (ByteString v : a)
-            {
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Adding end user recipient %s from attr %s",
-                    v, a.getNameWithOptions());
-              }
+            logger.trace("Adding end user recipient %s from attr %s", v, a.getNameWithOptions());
 
-              recipients.add(v.toString());
-            }
+            recipients.add(v.toString());
           }
         }
       }
@@ -549,12 +541,7 @@ public class SMTPAccountStatusNotificationHandler
         {
           // There are no recipients at all, so there's no point in generating
           // the message.  Return without doing anything.
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("No end user recipients, and no explicit " +
-                             "recipients");
-          }
-
+          logger.trace("No end user recipients, and no explicit recipients");
           return;
         }
         else

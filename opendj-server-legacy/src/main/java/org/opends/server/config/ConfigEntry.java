@@ -193,17 +193,12 @@ public final class ConfigEntry
    *                           interpreted as the specified type of
    *                           configuration attribute.
    */
-  public ConfigAttribute getConfigAttribute(ConfigAttribute stub)
-         throws ConfigException
+  public ConfigAttribute getConfigAttribute(ConfigAttribute stub) throws ConfigException
   {
     String attrName = stub.getName();
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName);
     List<Attribute> attrList = entry.getAttribute(attrType);
-    if (attrList != null && !attrList.isEmpty())
-    {
-      return stub.getConfigAttribute(attrList);
-    }
-    return null;
+    return !attrList.isEmpty() ? stub.getConfigAttribute(attrList) : null;
   }
 
 

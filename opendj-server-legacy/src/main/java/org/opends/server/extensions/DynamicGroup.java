@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -35,32 +33,30 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.forgerock.util.Reject.*;
-
-
 
 /**
  * This class provides a dynamic group implementation, in which
@@ -140,23 +136,18 @@ public class DynamicGroup
     // out the LDAP URLs that it contains.
     LinkedHashSet<LDAPURL> memberURLs = new LinkedHashSet<>();
     AttributeType memberURLType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MEMBER_URL_LC);
-    List<Attribute> attrList = groupEntry.getAttribute(memberURLType);
-    if (attrList != null)
+    for (Attribute a : groupEntry.getAttribute(memberURLType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        try
         {
-          try
-          {
-            memberURLs.add(LDAPURL.decode(v.toString(), true));
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-            logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v,
-                    groupEntry.getName(), de.getMessageObject());
-          }
+          memberURLs.add(LDAPURL.decode(v.toString(), true));
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+          logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v, groupEntry.getName(), de.getMessageObject());
         }
       }
     }

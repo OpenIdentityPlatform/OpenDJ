@@ -312,7 +312,7 @@ public abstract class Task implements Comparable<Task>
           throws InitializationException
   {
     List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
       if (isRequired)
       {
@@ -361,7 +361,7 @@ public abstract class Task implements Comparable<Task>
   {
     LinkedList<String> valueStrings = new LinkedList<>();
     List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
       return valueStrings;
     }
@@ -848,13 +848,9 @@ public abstract class Task implements Comparable<Task>
 
       final List<Attribute> attrList = taskEntry.getAttribute(type);
       ByteString value = ByteString.valueOfUtf8(messageString);
-      if (attrList == null)
+      if (attrList.isEmpty())
       {
         taskEntry.putAttribute(type, newArrayList(Attributes.create(type, value)));
-      }
-      else if (attrList.isEmpty())
-      {
-        attrList.add(Attributes.create(type, value));
       }
       else
       {

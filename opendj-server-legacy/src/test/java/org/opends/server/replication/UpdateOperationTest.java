@@ -1080,7 +1080,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private boolean assertConflictAttributeExists(Entry entry)
   {
-    return entry.getAttribute("ds-sync-confict") != null;
+    return !entry.getAttribute("ds-sync-confict").isEmpty();
   }
 
   @DataProvider(name="assured")

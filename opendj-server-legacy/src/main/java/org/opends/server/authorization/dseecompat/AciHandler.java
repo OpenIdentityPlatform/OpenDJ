@@ -717,20 +717,15 @@ public final class AciHandler extends
           && resourceEntry.hasAttribute(modAttrType))
       {
         container.setCurrentAttributeType(modAttrType);
-        List<Attribute> attrList =
-            resourceEntry.getAttribute(modAttrType, modAttr.getOptions());
-        if (attrList != null)
+        for (Attribute a : resourceEntry.getAttribute(modAttrType, modAttr.getOptions()))
         {
-          for (Attribute a : attrList)
+          for (ByteString v : a)
           {
-            for (ByteString v : a)
+            container.setCurrentAttributeValue(v);
+            container.setRights(ACI_WRITE_DELETE);
+            if (!skipAccessCheck && !accessAllowed(container))
             {
-              container.setCurrentAttributeValue(v);
-              container.setRights(ACI_WRITE_DELETE);
-              if (!skipAccessCheck && !accessAllowed(container))
-              {
-                return false;
-              }
+              return false;
             }
           }
         }
@@ -762,20 +757,15 @@ public final class AciHandler extends
             break;
           case INCREMENT:
             Entry modifiedEntry = operation.getModifiedEntry();
-            List<Attribute> modifiedAttrs =
-                modifiedEntry.getAttribute(modAttrType, modAttr.getOptions());
-            if (modifiedAttrs != null)
+            for (Attribute attr : modifiedEntry.getAttribute(modAttrType, modAttr.getOptions()))
             {
-              for (Attribute attr : modifiedAttrs)
+              for (ByteString val : attr)
               {
-                for (ByteString val : attr)
+                container.setCurrentAttributeValue(val);
+                container.setRights(ACI_WRITE_ADD);
+                if (!skipAccessCheck && !accessAllowed(container))
                 {
-                  container.setCurrentAttributeValue(val);
-                  container.setRights(ACI_WRITE_ADD);
-                  if (!skipAccessCheck && !accessAllowed(container))
-                  {
-                    return false;
-                  }
+                  return false;
                 }
               }
             }

@@ -38,6 +38,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
@@ -49,17 +54,12 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.SubentryPasswordPolicy;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class implements a Directory Server plugin that performs various
@@ -330,7 +330,7 @@ public final class PasswordPolicyImportPlugin
     // See if the entry explicitly states the password policy that it should
     // use.  If so, then only use it to perform the encoding.
     List<Attribute> attrList = entry.getAttribute(customPolicyAttribute);
-    if (attrList != null)
+    if (!attrList.isEmpty())
     {
       DN policyDN = null;
       PasswordPolicy policy = null;
@@ -369,7 +369,7 @@ policyLoop:
         if (schemes != null)
         {
           attrList = entry.getAttribute(policy.getPasswordAttribute());
-          if (attrList == null)
+          if (attrList.isEmpty())
           {
             return PluginResult.ImportLDIF.continueEntryProcessing();
           }
@@ -455,7 +455,7 @@ policyLoop:
     for (AttributeType t : authPasswordTypes)
     {
       attrList = entry.getAttribute(t);
-      if (attrList == null || attrList.isEmpty())
+      if (attrList.isEmpty())
       {
         continue;
       }
@@ -505,7 +505,7 @@ policyLoop:
     for (AttributeType t : userPasswordTypes)
     {
       attrList = entry.getAttribute(t);
-      if (attrList == null || attrList.isEmpty())
+      if (attrList.isEmpty())
       {
         continue;
       }

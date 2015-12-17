@@ -390,13 +390,10 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
         }
 
         // check the user attributes were not changed
-        for (AttributeType attrType : entryBefore.getUserAttributes()
-            .keySet()) {
+        for (AttributeType attrType : entryBefore.getUserAttributes().keySet()) {
           List<Attribute> listBefore = entryBefore.getAttribute(attrType);
           List<Attribute> listAfter = entryAfter.getAttribute(attrType);
-
-          assertNotNull(listAfter);
-          assertEquals(listBefore.size(), listAfter.size());
+          assertThat(listBefore).hasSameSizeAs(listAfter);
 
           for (Attribute attrBefore : listBefore) {
             boolean found = false;
@@ -404,7 +401,6 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
             for (Attribute attrAfter : listAfter) {
               if (attrAfter.optionsEqual(attrBefore.getOptions())) {
                 // Found the corresponding attribute
-
                 assertEquals(attrBefore, attrAfter);
                 found = true;
               }

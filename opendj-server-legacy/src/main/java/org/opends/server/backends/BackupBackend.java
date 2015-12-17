@@ -399,7 +399,7 @@ public class BackupBackend
       AttributeType t =
           DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_DIRECTORY_PATH);
       List<Attribute> attrList = backupDirEntry.getAttribute(t);
-      if (attrList != null && !attrList.isEmpty())
+      if (!attrList.isEmpty())
       {
         for (ByteString v : attrList.get(0))
         {
@@ -851,58 +851,51 @@ public class BackupBackend
 
   private void returnEntries(SearchOperation searchOperation, DN baseDN, SearchFilter filter, List<Attribute> attrList)
   {
-    if (attrList != null && !attrList.isEmpty())
+    for (ByteString v : attrList.get(0))
     {
-      for (ByteString v : attrList.get(0))
+      try
       {
-        try
-        {
-          File dir = new File(v.toString());
-          BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
-          AttributeType idType = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_ID);
+        File dir = new File(v.toString());
+        BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
+        AttributeType idType = DirectoryServer.getAttributeTypeOrDefault(ATTR_BACKUP_ID);
 
-          for (String backupID : backupDirectory.getBackups().keySet())
+        for (String backupID : backupDirectory.getBackups().keySet())
+        {
+          DN backupEntryDN = makeChildDN(baseDN, idType, backupID);
+          Entry backupEntry = getBackupEntry(backupEntryDN);
+          if (filter.matchesEntry(backupEntry))
           {
-            DN backupEntryDN = makeChildDN(baseDN, idType, backupID);
-            Entry backupEntry = getBackupEntry(backupEntryDN);
-            if (filter.matchesEntry(backupEntry))
-            {
-              searchOperation.returnEntry(backupEntry, null);
-            }
+            searchOperation.returnEntry(backupEntry, null);
           }
         }
-        catch (Exception e)
-        {
-          logger.traceException(e);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
 
-          continue;
-        }
+        continue;
       }
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException

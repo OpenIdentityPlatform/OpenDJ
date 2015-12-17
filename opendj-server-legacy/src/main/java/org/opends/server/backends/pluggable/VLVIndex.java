@@ -770,34 +770,30 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     {
       final AttributeType attributeType = sortKey.getAttributeType();
       final MatchingRule matchingRule = sortKey.getEffectiveOrderingRule();
-      final List<Attribute> attrList = entry.getAttribute(attributeType);
       ByteString sortValue = null;
-      if (attrList != null)
+      for (Attribute a : entry.getAttribute(attributeType))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
+          try
           {
-            try
+            /*
+             * The RFC states that the lowest value of a multi-valued attribute should be used,
+             * regardless of the sort order.
+             */
+            final ByteString nv = matchingRule.normalizeAttributeValue(v);
+            if (sortValue == null || nv.compareTo(sortValue) < 0)
             {
-              /*
-               * The RFC states that the lowest value of a multi-valued attribute should be used,
-               * regardless of the sort order.
-               */
-              final ByteString nv = matchingRule.normalizeAttributeValue(v);
-              if (sortValue == null || nv.compareTo(sortValue) < 0)
-              {
-                sortValue = nv;
-              }
+              sortValue = nv;
             }
-            catch (final DecodeException e)
-            {
-              /*
-               * This shouldn't happen because the attribute should have already been validated. If
-               * it does then treat the value as missing.
-               */
-              continue;
-            }
+          }
+          catch (final DecodeException e)
+          {
+            /*
+             * This shouldn't happen because the attribute should have already been validated.
+             * If it does then treat the value as missing.
+             */
+            continue;
           }
         }
       }

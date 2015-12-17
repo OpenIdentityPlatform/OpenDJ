@@ -441,7 +441,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
 
   private List<ByteString> getValues(List<Attribute> attributes)
   {
-    if (attributes != null)
+    if (!attributes.isEmpty())
     {
       assertThat(attributes).hasSize(1);
       return getValues(attributes.get(0));

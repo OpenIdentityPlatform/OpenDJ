@@ -69,6 +69,7 @@ import org.opends.server.types.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -432,7 +433,7 @@ public class TestModifyDNOperation extends OperationTestCase
   {
     AttributeType at = DirectoryServer.getAttributeTypeOrNull(attrName);
     List<Attribute> attrList = newEntry.getAttribute(at);
-    assertEquals(attrList.size(), 1);
+    assertThat(attrList).hasSize(1);
 
     // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
     ByteString valueFromEntry = attrList.get(0).iterator().next();
@@ -561,7 +562,7 @@ public class TestModifyDNOperation extends OperationTestCase
         runModifyDNOperation(oldEntryDN, "cn=Aaccf Amar Test", true, "dc=example,dc=com");
     assertSuccess(modifyDNOperation);
     Entry entry = assertCnAttrValues(newEntryDN, oldEntryDN);
-    assertNull(entry.getAttribute("uid"));
+    assertThat(entry.getAttribute("uid")).isEmpty();
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
 
     InvocationCounterPlugin.resetAllCounters();

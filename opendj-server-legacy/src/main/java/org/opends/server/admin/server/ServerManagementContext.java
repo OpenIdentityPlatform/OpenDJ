@@ -44,16 +44,17 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.DefinitionResolver;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.LDAPProfile;
@@ -61,6 +62,7 @@ import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionVisitor;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyNotFoundException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.Reference;
@@ -68,14 +70,12 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 
 /**
@@ -871,17 +871,14 @@ public final class ServerManagementContext {
     // since the attribute should have been defined.
     String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
     AttributeType type = DirectoryServer.getAttributeTypeOrDefault(attrID);
-    List<Attribute> attributes = configEntry.getEntry().getAttribute(type, true);
+    List<Attribute> attributes = configEntry.getEntry().getAttribute(type);
 
     List<ByteString> results = new LinkedList<>();
-    if (attributes != null)
+    for (Attribute a : attributes)
     {
-      for (Attribute a : attributes)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
-        {
-          results.add(v);
-        }
+        results.add(v);
       }
     }
     return results;

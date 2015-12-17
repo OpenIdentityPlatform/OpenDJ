@@ -26,6 +26,8 @@
  */
 package org.opends.server.admin;
 
+import static org.opends.server.protocols.internal.Requests.*;
+
 import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,8 +49,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
-
-import static org.opends.server.protocols.internal.Requests.*;
 
 /**
  * Check if information found in "cn=admin data" is coherent with
@@ -259,14 +259,12 @@ public final class AdministrationDataSync
 
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
     List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
-    if (attrs != null)
+    if (!attrs.isEmpty())
     {
       // Get the attribute value
       return attrs.get(0).iterator().next().toString();
     }
-
-    // can not happen
-    // best effort.
+    // Can not happen. Best effort.
     // TODO Log an Error.
     return null;
   }

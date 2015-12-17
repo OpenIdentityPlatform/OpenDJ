@@ -190,33 +190,28 @@ public class SubEntry {
     String specString = null;
     boolean isValidSpec = true;
     AttributeType specAttrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_SUBTREE_SPEC_LC);
-    List<Attribute> specAttrList = entry.getAttribute(specAttrType);
-    if (specAttrList != null)
+    for (Attribute attr : entry.getAttribute(specAttrType))
     {
-      for (Attribute attr : specAttrList)
+      for (ByteString value : attr)
       {
-        for (ByteString value : attr)
+        specString = value.toString();
+        try
         {
-          specString = value.toString();
-          try
-          {
-            this.subTreeSpec = SubtreeSpecification.valueOf(
-                    entry.getName().parent(), specString);
-            isValidSpec = true;
-          }
-          catch (DirectoryException de)
-          {
-            isValidSpec = false;
-          }
-          if (this.subTreeSpec != null)
-          {
-            break;
-          }
+          this.subTreeSpec = SubtreeSpecification.valueOf(entry.getName().parent(), specString);
+          isValidSpec = true;
+        }
+        catch (DirectoryException de)
+        {
+          isValidSpec = false;
         }
         if (this.subTreeSpec != null)
         {
           break;
         }
+      }
+      if (this.subTreeSpec != null)
+      {
+        break;
       }
     }
 
@@ -288,78 +283,55 @@ public class SubEntry {
     {
       if (this.isInheritedFromDNCollective)
       {
-        List<Attribute> attrList = entry.getAttribute(
-                ATTR_INHERIT_COLLECTIVE_FROM_DN);
-        if (attrList != null && !attrList.isEmpty())
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_DN))
         {
-          for (Attribute attr : attrList)
+          for (ByteString value : attr)
           {
-            for (ByteString value : attr)
-            {
-              this.inheritFromDNType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
-              this.inheritFromDNAttrValue = value;
-              break;
-            }
+            this.inheritFromDNType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
+            this.inheritFromDNAttrValue = value;
+            break;
           }
         }
       }
 
       if (this.isInheritedFromRDNCollective)
       {
-        List<Attribute> attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN);
-        if (attrList != null && !attrList.isEmpty())
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN))
         {
-          for (Attribute attr : attrList)
+          for (ByteString value : attr)
           {
-            for (ByteString value : attr)
-            {
-              this.inheritFromRDNAttrType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
-              this.inheritFromRDNAttrValue = value;
-              break;
-            }
+            this.inheritFromRDNAttrType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
+            this.inheritFromRDNAttrValue = value;
+            break;
           }
         }
-        attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE);
-        if (attrList != null && !attrList.isEmpty())
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE))
         {
-          for (Attribute attr : attrList)
+          for (ByteString value : attr)
           {
-            for (ByteString value : attr)
-            {
-              this.inheritFromRDNType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
-              break;
-            }
+            this.inheritFromRDNType = DirectoryServer.getAttributeTypeOrDefault(value.toString().toLowerCase());
+            break;
           }
         }
-        attrList = entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE);
-        if (attrList != null && !attrList.isEmpty())
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE))
         {
-          for (Attribute attr : attrList)
+          for (ByteString value : attr)
           {
-            for (ByteString value : attr)
-            {
-              // Has to have a parent since subentry itself
-              // cannot be a suffix entry within the server.
-              this.inheritFromBaseDN = getDN().parent().child(DN.decode(value));
-              break;
-            }
+            // Has to have a parent since subentry itself
+            // cannot be a suffix entry within the server.
+            this.inheritFromBaseDN = getDN().parent().child(DN.decode(value));
+            break;
           }
         }
       }
 
-      List<Attribute> attrList = entry.getAttribute(
-              ATTR_INHERIT_COLLECTIVE_ATTR);
-      if (attrList != null && !attrList.isEmpty())
+      for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_ATTR))
       {
-        for (Attribute attr : attrList)
+        for (ByteString value : attr)
         {
-          for (ByteString value : attr)
-          {
-            CollectiveVirtualAttribute collectiveAttr =
-              new CollectiveVirtualAttribute(
-                Attributes.empty(value.toString()));
-            this.collectiveAttributes.add(collectiveAttr);
-          }
+          CollectiveVirtualAttribute collectiveAttr =
+              new CollectiveVirtualAttribute(Attributes.empty(value.toString()));
+          this.collectiveAttributes.add(collectiveAttr);
         }
       }
     }
@@ -367,22 +339,16 @@ public class SubEntry {
     // Establish collective attribute conflict behavior.
     if (this.isCollective || this.isInheritedCollective)
     {
-      List<Attribute> attrList = entry.getAttribute(
-              ATTR_COLLECTIVE_CONFLICT_BEHAVIOR);
-      if (attrList != null && !attrList.isEmpty())
+      for (Attribute attr : entry.getAttribute(ATTR_COLLECTIVE_CONFLICT_BEHAVIOR))
       {
-        for (Attribute attr : attrList)
+        for (ByteString value : attr)
         {
-          for (ByteString value : attr)
+          for (CollectiveConflictBehavior behavior : CollectiveConflictBehavior.values())
           {
-            for (CollectiveConflictBehavior behavior :
-              CollectiveConflictBehavior.values())
+            if (behavior.toString().equals(value.toString()))
             {
-              if (behavior.toString().equals(value.toString()))
-              {
-                this.conflictBehavior = behavior;
-                break;
-              }
+              this.conflictBehavior = behavior;
+              break;
             }
           }
         }

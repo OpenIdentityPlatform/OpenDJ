@@ -58,7 +58,6 @@ public class DummyTask
     return LocalizableMessage.raw("Dummy");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeTask()
          throws DirectoryException
@@ -69,16 +68,11 @@ public class DummyTask
     Entry taskEntry = getTaskEntry();
     if (taskEntry != null)
     {
-      List<Attribute> attrList =
-           taskEntry.getAttribute("ds-task-dummy-sleep-time");
-      if (attrList != null)
+      for (Attribute a : taskEntry.getAttribute("ds-task-dummy-sleep-time"))
       {
-        for (Attribute a : attrList)
+        for (ByteString v : a)
         {
-          for (ByteString v : a)
-          {
-            sleepTime = Long.parseLong(v.toString());
-          }
+          sleepTime = Long.parseLong(v.toString());
         }
       }
     }

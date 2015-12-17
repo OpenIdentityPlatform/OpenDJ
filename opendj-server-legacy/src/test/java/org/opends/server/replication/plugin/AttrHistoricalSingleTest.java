@@ -368,7 +368,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private ByteString getActualValue(List<Attribute> attributes)
   {
-    if (attributes != null)
+    if (!attributes.isEmpty())
     {
       assertThat(attributes).hasSize(1);
       Attribute attribute = attributes.get(0);

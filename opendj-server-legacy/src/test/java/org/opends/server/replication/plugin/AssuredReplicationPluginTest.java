@@ -1463,7 +1463,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     List<Attribute> attrs = entry.getAttribute(assuredAttr);
-    if (attrs == null || attrs.isEmpty())
+    if (attrs.isEmpty())
     {
       return Collections.emptyMap();
     }

@@ -1067,48 +1067,42 @@ public abstract class ClientConnection
     }
 
     AttributeType privType = DirectoryServer.getAttributeTypeOrNull(OP_ATTR_PRIVILEGE_NAME);
-    List<Attribute> attrList = entry.getAttribute(privType);
-    if (attrList != null)
+    for (Attribute a : entry.getAttribute(privType))
     {
-      for (Attribute a : attrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        String privName = toLowerCase(v.toString());
+
+        // If the name of the privilege is prefixed with a minus sign,
+        // then we will take away that privilege from the user.
+        // We'll handle that at the end so that we can make sure it's not added back later.
+        if (privName.startsWith("-"))
         {
-          String privName = toLowerCase(v.toString());
-
-          // If the name of the privilege is prefixed with a minus
-          // sign, then we will take away that privilege from the
-          // user.  We'll handle that at the end so that we can make
-          // sure it's not added back later.
-          if (privName.startsWith("-"))
+          privName = privName.substring(1);
+          Privilege p = Privilege.privilegeForName(privName);
+          if (p == null)
           {
-            privName = privName.substring(1);
-            Privilege p = Privilege.privilegeForName(privName);
-            if (p == null)
-            {
-              // FIXME -- Generate an administrative alert.
+            // FIXME -- Generate an administrative alert.
 
-              // We don't know what privilege to remove, so we'll
-              // remove all of them.
-              newPrivileges.clear();
-              return newPrivileges;
-            }
-            else
-            {
-              removePrivileges.add(p);
-            }
+            // We don't know what privilege to remove, so we'll remove all of them.
+            newPrivileges.clear();
+            return newPrivileges;
           }
           else
           {
-            Privilege p = Privilege.privilegeForName(privName);
-            if (p == null)
-            {
-              // FIXME -- Generate an administrative alert.
-            }
-            else
-            {
-              newPrivileges.add(p);
-            }
+            removePrivileges.add(p);
+          }
+        }
+        else
+        {
+          Privilege p = Privilege.privilegeForName(privName);
+          if (p == null)
+          {
+            // FIXME -- Generate an administrative alert.
+          }
+          else
+          {
+            newPrivileges.add(p);
           }
         }
       }

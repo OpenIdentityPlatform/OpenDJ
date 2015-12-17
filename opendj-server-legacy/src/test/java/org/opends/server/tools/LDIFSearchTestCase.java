@@ -27,22 +27,25 @@
 
 package org.opends.server.tools;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.testng.Assert.*;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
+import org.opends.server.TestCaseUtils;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertEquals;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Entry;
-import org.opends.server.util.LDIFReader;
-import java.io.*;
 
-
-/**
- * LDIFSearch test cases.
- */
+/** LDIFSearch test cases. */
+@SuppressWarnings("javadoc")
 public class LDIFSearchTestCase extends ToolsTestCase {
 
 
@@ -117,12 +120,8 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "*", "+"
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
-    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
-    ldifConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry e=reader.readEntry();
-    reader.close();
-    assertNotNull(e.getAttribute("objectclass"));
+    Entry e = readEntry();
+    assertThat(e.getAttribute("objectclass")).isNotEmpty();
   }
 
   /**
@@ -131,7 +130,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
    *
    * @throws Exception  The objectclass attribute is returned.
    */
- @Test
+  @Test
   public void testLDIFSearchOpsOnly() throws Exception {
     String[] args =
     {
@@ -143,12 +142,8 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "+"
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
-    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
-    ldifConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry e=reader.readEntry();
-    reader.close();
-    assertNull(e.getAttribute("objectclass"));
+    Entry e = readEntry();
+    assertThat(e.getAttribute("objectclass")).isEmpty();
   }
 
   /**
@@ -170,14 +165,21 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "+", "mail", "uid"
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
+    Entry e = readEntry();
+    assertThat(e.getAttribute("objectclass")).isEmpty();
+    assertThat(e.getAttribute("mail")).isNotEmpty();
+    assertThat(e.getAttribute("uid")).isNotEmpty();
+  }
+
+
+  private Entry readEntry() throws IOException, LDIFException
+  {
     LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
     ldifConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry e=reader.readEntry();
-    reader.close();
-    assertNull(e.getAttribute("objectclass"));
-    assertNotNull(e.getAttribute("mail"));
-    assertNotNull(e.getAttribute("uid"));
+    try (LDIFReader reader = new LDIFReader(ldifConfig))
+    {
+      return reader.readEntry();
+    }
   }
 
   /**
@@ -187,8 +189,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
    * @throws Exception  The objectclass attribute is returned or one of the
    * specified attributes is not returned.
    */
-
- @Test
+  @Test
   public void testLDIFSearchAttrsOnly() throws Exception {
 
     String[] args =
@@ -201,13 +202,9 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "mail", "uid"
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
-    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
-    ldifConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry e=reader.readEntry();
-    reader.close();
-    assertNull(e.getAttribute("objectclass"));
-    assertNotNull(e.getAttribute("mail"));
-    assertNotNull(e.getAttribute("uid"));
+    Entry e = readEntry();
+    assertThat(e.getAttribute("objectclass")).isEmpty();
+    assertThat(e.getAttribute("mail")).isNotEmpty();
+    assertThat(e.getAttribute("uid")).isNotEmpty();
   }
 }

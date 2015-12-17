@@ -26,8 +26,8 @@
  */
 package org.opends.server.tools.makeldif;
 
-
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +37,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tools.ToolsTestCase;
 import org.opends.server.types.*;
+import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -44,7 +45,6 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 import static org.opends.messages.ToolMessages.*;
-
 
 /**
  * A set of test cases for the MakeLDIF tool.
@@ -324,20 +324,24 @@ public class MakeLDIFTestCase
 
     LdifFileWriter.makeLdif(outLdifFilePath, resourcePath, lines);
 
-    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
-    ldifConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry top = reader.readEntry();
-    Entry e = reader.readEntry();
-    reader.close();
-
-    assertNotNull(top);
+    Entry e = readEntry(outLdifFilePath);
     assertNotNull(e);
     List<Attribute> attrs = e.getAttribute(attrName);
     assertFalse(attrs.isEmpty());
     Attribute a = attrs.get(0);
     Attribute expectedRes = Attributes.create(attrName, expectedValue);
     assertEquals(a, expectedRes);
+  }
+
+  private Entry readEntry(String outLdifFilePath) throws IOException, LDIFException
+  {
+    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
+    ldifConfig.setValidateSchema(false);
+    try (LDIFReader reader = new LDIFReader(ldifConfig))
+    {
+      assertNotNull(reader.readEntry());
+      return reader.readEntry();
+    }
   }
 
   /**
@@ -370,14 +374,7 @@ public class MakeLDIFTestCase
 
     LdifFileWriter.makeLdif(outLdifFilePath, resourcePath, lines);
 
-    LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
-    ldifConfig.setValidateSchema(false);
-    LDIFReader reader = new LDIFReader(ldifConfig);
-    Entry top = reader.readEntry();
-    Entry e = reader.readEntry();
-    reader.close();
-
-    assertNotNull(top);
+    Entry e = readEntry(outLdifFilePath);
     assertNotNull(e);
     List<Attribute> attrs = e.getAttribute("cn");
     assertFalse(attrs.isEmpty());
@@ -386,4 +383,3 @@ public class MakeLDIFTestCase
         "cn value doesn't match the expected value");
   }
 }
-

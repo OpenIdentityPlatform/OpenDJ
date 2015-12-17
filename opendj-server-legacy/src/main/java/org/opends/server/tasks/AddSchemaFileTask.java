@@ -32,24 +32,23 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.LockManager.DNLock;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.getSchemaDN;
-import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -95,7 +94,7 @@ public class AddSchemaFileTask
     Entry taskEntry = getTaskEntry();
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
     List<Attribute> attrList = taskEntry.getAttribute(attrType);
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
           ATTR_TASK_ADDSCHEMAFILE_FILENAME, taskEntry.getName());

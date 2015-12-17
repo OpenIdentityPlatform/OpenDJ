@@ -1803,7 +1803,7 @@ public class TaskScheduler
     // Get the name of the class that implements the task logic.
     AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_CLASS.toLowerCase(), ATTR_TASK_CLASS);
     List<Attribute> attrList = entry.getAttribute(attrType);
-    if (attrList == null || attrList.isEmpty())
+    if (attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_ID);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);

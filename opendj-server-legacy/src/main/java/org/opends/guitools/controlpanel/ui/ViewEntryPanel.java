@@ -44,6 +44,10 @@ import java.util.TreeSet;
 import javax.swing.JLabel;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
@@ -52,15 +56,11 @@ import org.opends.guitools.controlpanel.event.LDAPEntryChangedEvent;
 import org.opends.guitools.controlpanel.event.LDAPEntryChangedListener;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RDN;
 import org.opends.server.types.Schema;
@@ -316,26 +316,22 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     {
       String attrName = rdn.getAttributeName(i);
       ByteString value = rdn.getAttributeValue(i);
-      List<org.opends.server.types.Attribute> attrs =
-        entry.getAttribute(attrName.toLowerCase());
+      List<org.opends.server.types.Attribute> attrs = entry.getAttribute(attrName.toLowerCase());
       boolean done = false;
-      if (attrs != null)
+      for (org.opends.server.types.Attribute attr : attrs)
       {
-        for (org.opends.server.types.Attribute attr : attrs)
+        if (attr.getNameWithOptions().equals(attrName))
         {
-          if (attr.getNameWithOptions().equals(attrName))
+          ArrayList<ByteString> newValues = new ArrayList<>();
+          Iterator<ByteString> it = attr.iterator();
+          while (it.hasNext())
           {
-            ArrayList<ByteString> newValues = new ArrayList<>();
-            Iterator<ByteString> it = attr.iterator();
-            while (it.hasNext())
-            {
-              newValues.add(it.next());
-            }
-            newValues.add(value);
-            entry.addAttribute(attr, newValues);
-            done = true;
-            break;
+            newValues.add(it.next());
           }
+          newValues.add(value);
+          entry.addAttribute(attr, newValues);
+          done = true;
+          break;
         }
       }
       if (!done)

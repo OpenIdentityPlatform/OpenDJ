@@ -44,6 +44,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -220,8 +221,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     assertTrue(e.hasAttribute(numSubordinatesType));
 
     List<Attribute> attrList = e.getAttribute(numSubordinatesType);
-    assertNotNull(attrList);
-    assertFalse(attrList.isEmpty());
+    assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {
       assertFalse(a.isEmpty());

@@ -637,14 +637,11 @@ public class ModifyEntryTask extends Task
 
   private static boolean find(List<org.opends.server.types.Attribute> attrs, String attrName)
   {
-    if (attrs != null)
+    for (org.opends.server.types.Attribute attr : attrs)
     {
-      for (org.opends.server.types.Attribute attr : attrs)
+      if (attr.getNameWithOptions().equalsIgnoreCase(attrName))
       {
-        if (attr.getNameWithOptions().equalsIgnoreCase(attrName))
-        {
-          return true;
-        }
+        return true;
       }
     }
     return false;

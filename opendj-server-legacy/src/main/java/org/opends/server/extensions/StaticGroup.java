@@ -64,12 +64,12 @@ import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.forgerock.util.Reject.*;
 
 /**
  * A static group implementation, in which the DNs of all members are explicitly
@@ -198,30 +198,24 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
     List<Attribute> memberAttrList = groupEntry.getAttribute(someMemberAttributeType);
     int membersCount = 0;
-    if (memberAttrList != null)
+    for (Attribute a : memberAttrList)
     {
-      for (Attribute a : memberAttrList)
-      {
-        membersCount += a.size();
-      }
+      membersCount += a.size();
     }
     LinkedHashSet<CompactDn> someMemberDNs = new LinkedHashSet<>(membersCount);
-    if (memberAttrList != null)
+    for (Attribute a : memberAttrList)
     {
-      for (Attribute a : memberAttrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        try
         {
-          try
-          {
-            someMemberDNs.add(org.forgerock.opendj.ldap.DN.valueOf(v.toString()).compact());
-          }
-          catch (LocalizedIllegalArgumentException e)
-          {
-            logger.traceException(e);
-            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v,
-                someMemberAttributeType.getNameOrOID(), groupEntry.getName(), e.getMessageObject());
-          }
+          someMemberDNs.add(org.forgerock.opendj.ldap.DN.valueOf(v.toString()).compact());
+        }
+        catch (LocalizedIllegalArgumentException e)
+        {
+          logger.traceException(e);
+          logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN,
+              v, someMemberAttributeType.getNameOrOID(), groupEntry.getName(), e.getMessageObject());
         }
       }
     }

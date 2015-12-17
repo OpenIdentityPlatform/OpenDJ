@@ -1244,8 +1244,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME, "aValue"));
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1275,8 +1274,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1318,8 +1316,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1364,8 +1361,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // The entry should have no value
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
-    attr = Attributes.create(DESCRIPTION, "value2", "value3", "value4");
-    assertEquals(attrs.get(0), attr);
+    assertEquals(attrs.get(0), Attributes.create(DESCRIPTION, "value2", "value3", "value4"));
   }
 
   /**
@@ -1412,8 +1408,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // The entry should have no value
     List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
-    attr = Attributes.create(DESCRIPTION, "value3", "value4");
-    assertEquals(attrs.get(0), attr);
+    assertEquals(attrs.get(0), Attributes.create(DESCRIPTION, "value3", "value4"));
   }
 
   /**
@@ -1455,8 +1450,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1486,8 +1480,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1517,8 +1510,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1557,8 +1549,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1597,8 +1588,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
-    assertNull(attrs);
+    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
   }
 
   /**

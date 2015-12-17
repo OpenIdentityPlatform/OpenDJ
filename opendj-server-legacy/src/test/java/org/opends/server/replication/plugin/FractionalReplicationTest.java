@@ -50,6 +50,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.fail;
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -547,9 +549,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       AttributeType synchronizationGenIDType =
           DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
-      List<Attribute> attrs =
-          resultEntry.getAttribute(synchronizationGenIDType);
-      if (attrs != null)
+      List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
+      if (!attrs.isEmpty())
       {
         Attribute attr = attrs.get(0);
         if (attr.size() == 1)
@@ -774,24 +775,17 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Check that the provided entry has a single value attribute which has the
    * expected attribute value
    */
-  private static void checkEntryAttributeValue(Entry entry, String attributeName,
-    String attributeValue)
+  private static void checkEntryAttributeValue(Entry entry, String attributeName, String attributeValue)
   {
     List<Attribute> attrs = entry.getAttribute(attributeName.toLowerCase());
-    assertNotNull(attrs, "Was expecting attribute " + attributeName + "=" +
-      attributeValue + " but got no attribute");
-    assertEquals(attrs.size(), 1);
+    assertThat(attrs).as("Was expecting attribute " + attributeName + "=" + attributeValue).hasSize(1);
     Attribute attr = attrs.get(0);
-    assertNotNull(attr);
     Iterator<ByteString> attrValues = attr.iterator();
-    assertNotNull(attrValues);
     assertTrue(attrValues.hasNext());
     ByteString attrValue = attrValues.next();
-    assertNotNull(attrValue);
     assertFalse(attrValues.hasNext());
     assertEquals(attrValue.toString(), attributeValue, "Was expecting attribute " +
       attributeName + "=" + attributeValue + " but got value: " + attrValue);
-
   }
 
   /**
@@ -1472,17 +1466,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       replicationDomain.publish(modDnMsg);
 
-      /*
-       * check that entry has been renamed  and has only attribute left in the
-       * new RDN
-       */
+      // check that entry has been renamed and has only attribute left in the new RDN
       newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(newEntryDn, newEntry.getName());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      assertNull(newEntry.getAttribute("description"));
+      assertThat(newEntry.getAttribute("description")).isEmpty();
     }
     finally
     {
@@ -1553,17 +1544,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       replicationDomain.publish(modDnMsg);
 
-      /*
-       * check that entry has been renamed  and has only attribute left in the
-       * new RDN
-       */
+      // check that entry has been renamed and has only attribute left in the * new RDN
       newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(newEntryDn, newEntry.getName());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      assertNull(newEntry.getAttribute("description"));
+      assertThat(newEntry.getAttribute("description")).isEmpty();
     }
     finally
     {

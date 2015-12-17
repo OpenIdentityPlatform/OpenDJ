@@ -167,10 +167,7 @@ public class TaskUtils
         {
           continue;
         }
-        else
-        {
-          backendID = idAttr.activeValue();
-        }
+        backendID = idAttr.activeValue();
       }
       catch (org.opends.server.config.ConfigException ce)
       {
@@ -196,7 +193,7 @@ public class TaskUtils
    * @return The configuration entry of the backend, or null if it could not
    * be found.
    */
-  public static BackendCfg getConfigEntry(Backend backend)
+  public static BackendCfg getConfigEntry(Backend<?> backend)
   {
     RootCfg root = ServerManagementContext.getInstance().
          getRootConfiguration();
@@ -262,8 +259,7 @@ public class TaskUtils
    * @param backendID Identifies the backend to be disabled.
    * @throws DirectoryException If the internal modify operation failed.
    */
-  public static void disableBackend(String backendID)
-       throws DirectoryException
+  public static void disableBackend(String backendID) throws DirectoryException
   {
     DN configEntryDN;
     RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
@@ -312,11 +308,6 @@ public class TaskUtils
   public static boolean getBoolean(List<Attribute> attrList,
                                    boolean defaultValue)
   {
-    if (attrList == null || attrList.isEmpty())
-    {
-      return defaultValue;
-    }
-
     for (Attribute a : attrList)
     {
       for (ByteString v  : a)
@@ -351,8 +342,7 @@ public class TaskUtils
   public static ArrayList<String> getMultiValueString(List<Attribute> attrList)
   {
     ArrayList<String> valueStrings = new ArrayList<>();
-
-    if (attrList != null && !attrList.isEmpty())
+    if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
@@ -378,7 +368,7 @@ public class TaskUtils
    */
   public static String getSingleValueString(List<Attribute> attrList)
   {
-    if (attrList != null && !attrList.isEmpty())
+    if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
@@ -401,10 +391,9 @@ public class TaskUtils
    * @return The integer value of the attribute, or the provided default value
    * if there is no value.
    */
-  public static int getSingleValueInteger(List<Attribute> attrList,
-                                          int defaultValue)
+  public static int getSingleValueInteger(List<Attribute> attrList, int defaultValue)
   {
-    if (attrList != null && !attrList.isEmpty())
+    if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())

@@ -27,35 +27,29 @@
  */
 package org.opends.server.schema;
 
-
-
 import java.io.File;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * This class defines a set of generic tests that may be used to examine the
@@ -69,6 +63,7 @@ public class GenericSchemaTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Override
   @BeforeClass
   public void setUp()
          throws Exception
@@ -185,7 +180,7 @@ public class GenericSchemaTestCase
       AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("attributetypes");
       assertNotNull(attrType);
       List<Attribute> attrList = e.getAttribute(attrType);
-      if (attrList == null)
+      if (attrList.isEmpty())
       {
         // No attribute types in the schema file.  This is OK.
         continue;
@@ -260,7 +255,7 @@ public class GenericSchemaTestCase
       AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("objectclasses");
       assertNotNull(attrType);
       List<Attribute> attrList = e.getAttribute(attrType);
-      if (attrList == null)
+      if (attrList.isEmpty())
       {
         // No attribute types in the schema file.  This is OK.
         continue;
@@ -334,7 +329,7 @@ public class GenericSchemaTestCase
       AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("nameforms");
       assertNotNull(attrType);
       List<Attribute> attrList = e.getAttribute(attrType);
-      if (attrList == null)
+      if (attrList.isEmpty())
       {
         // No attribute types in the schema file.  This is OK.
         continue;

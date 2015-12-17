@@ -26,6 +26,7 @@
  */
 package org.opends.server.plugins;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -240,7 +241,6 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     assertNotNull(entry);
 
     List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
-    assertNotNull(sambaAttribute);
     boolean foundNTPassword = false;
     for (Attribute a : sambaAttribute)
     {
@@ -253,7 +253,6 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     assertTrue(foundNTPassword, "NT password not found in test entry");
 
     sambaAttribute = entry.getAttribute("sambalmpassword");
-    assertNotNull(sambaAttribute);
     boolean foundLMPassword = false;
     for (Attribute a : sambaAttribute)
     {
@@ -346,8 +345,8 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
-    assertNull(entry.getAttribute("sambantpassword"));
-    assertNull(entry.getAttribute("sambalmpassword"));
+    assertThat(entry.getAttribute("sambantpassword")).isEmpty();
+    assertThat(entry.getAttribute("sambalmpassword")).isEmpty();
 
     TestCaseUtils.deleteEntry(entry);
   }
@@ -546,14 +545,8 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
-
-    List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
-
-    assertNull(sambaAttribute);
-
-    sambaAttribute = entry.getAttribute("sambalmpassword");
-
-    assertNull(sambaAttribute);
+    assertThat(entry.getAttribute("sambantpassword")).isEmpty();
+    assertThat(entry.getAttribute("sambalmpassword")).isEmpty();
 
     TestCaseUtils.deleteEntry(entry);
   }

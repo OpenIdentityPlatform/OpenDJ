@@ -47,6 +47,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -150,8 +151,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
     assertTrue(e.hasAttribute(structuralObjectClassType));
 
     List<Attribute> attrList = e.getAttribute(structuralObjectClassType);
-    assertNotNull(attrList);
-    assertFalse(attrList.isEmpty());
+    assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {
       assertFalse(a.isEmpty());

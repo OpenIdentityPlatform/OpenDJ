@@ -1107,14 +1107,10 @@ public class ReferentialIntegrityPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public PluginResult.PreOperation doPreOperation(
-    PreOperationAddOperation addOperation)
+  public PluginResult.PreOperation doPreOperation(PreOperationAddOperation addOperation)
   {
-    /* Skip the integrity checks if the enforcing is not enabled.
-     */
-
+    // Skip the integrity checks if the enforcing is not enabled.
     if (!currentConfiguration.isCheckReferences())
     {
       return PluginResult.PreOperation.continueOperationProcessing();
@@ -1122,9 +1118,7 @@ public class ReferentialIntegrityPlugin
 
     final Entry entry = addOperation.getEntryToAdd();
 
-    /* Make sure the entry belongs to one of the configured naming
-     * contexts.
-     */
+    // Make sure the entry belongs to one of the configured naming contexts.
     DN entryDN = entry.getName();
     DN entryBaseDN = getEntryBaseDN(entryDN);
     if (entryBaseDN == null)
@@ -1135,20 +1129,13 @@ public class ReferentialIntegrityPlugin
     for (AttributeType attrType : attributeTypes)
     {
       final List<Attribute> attrs = entry.getAttribute(attrType, false);
-
-      if (attrs != null)
+      PluginResult.PreOperation result = isIntegrityMaintained(attrs, entryDN, entryBaseDN);
+      if (result.getResultCode() != ResultCode.SUCCESS)
       {
-        PluginResult.PreOperation result =
-        isIntegrityMaintained(attrs, entryDN, entryBaseDN);
-        if (result.getResultCode() != ResultCode.SUCCESS)
-        {
-          return result;
-        }
+        return result;
       }
     }
 
-    /* If we reahed this point, everything is fine.
-     */
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 

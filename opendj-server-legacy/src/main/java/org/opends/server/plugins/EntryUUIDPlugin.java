@@ -147,7 +147,6 @@ public final class EntryUUIDPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
@@ -155,7 +154,7 @@ public final class EntryUUIDPlugin
     // See if the entry being imported already contains an entryUUID attribute.
     // If so, then leave it alone.
     List<Attribute> uuidList = entry.getAttribute(entryUUIDType);
-    if (uuidList != null)
+    if (!uuidList.isEmpty())
     {
       return PluginResult.ImportLDIF.continueEntryProcessing();
     }

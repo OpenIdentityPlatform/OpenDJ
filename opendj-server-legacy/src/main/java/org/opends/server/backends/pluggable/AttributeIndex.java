@@ -119,12 +119,6 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       this.indexer = indexer;
     }
 
-    void indexEntry(Entry entry, Set<ByteString> keys)
-    {
-      List<Attribute> attributes = entry.getAttribute(attributeType, true);
-      indexAttribute(attributes, keys);
-    }
-
     Set<ByteString> indexEntry(Entry entry)
     {
       final Set<ByteString> keys = new HashSet<>();
@@ -155,13 +149,9 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       }
     }
 
-    private void indexAttribute(List<Attribute> attributes, Set<ByteString> keys)
+    void indexEntry(Entry entry, Set<ByteString> keys)
     {
-      if (attributes == null)
-      {
-        return;
-      }
-      for (Attribute attr : attributes)
+      for (Attribute attr : entry.getAttribute(attributeType))
       {
         if (!attr.isVirtual())
         {

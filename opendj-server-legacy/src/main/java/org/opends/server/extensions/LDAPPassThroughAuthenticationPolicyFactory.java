@@ -39,8 +39,11 @@ import javax.net.ssl.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -54,7 +57,6 @@ import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.TrustManagerProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ServerContext;
@@ -66,8 +68,6 @@ import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -1611,16 +1611,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // The bind DN is contained in an attribute in the user's entry.
             mapBind: for (final AttributeType at : cfg.getMappedAttribute())
             {
-              final List<Attribute> attributes = userEntry.getAttribute(at);
-              if (attributes != null && !attributes.isEmpty())
+              for (final Attribute attribute : userEntry.getAttribute(at))
               {
-                for (final Attribute attribute : attributes)
+                if (!attribute.isEmpty())
                 {
-                  if (!attribute.isEmpty())
-                  {
-                    username = attribute.iterator().next();
-                    break mapBind;
-                  }
+                  username = attribute.iterator().next();
+                  break mapBind;
                 }
               }
             }
@@ -1648,16 +1644,11 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             final LinkedList<SearchFilter> filterComponents = new LinkedList<>();
             for (final AttributeType at : cfg.getMappedAttribute())
             {
-              final List<Attribute> attributes = userEntry.getAttribute(at);
-              if (attributes != null && !attributes.isEmpty())
+              for (final Attribute attribute : userEntry.getAttribute(at))
               {
-                for (final Attribute attribute : attributes)
+                for (final ByteString value : attribute)
                 {
-                  for (final ByteString value : attribute)
-                  {
-                    filterComponents.add(SearchFilter.createEqualityFilter(at,
-                        value));
-                  }
+                  filterComponents.add(SearchFilter.createEqualityFilter(at, value));
                 }
               }
             }
@@ -1739,10 +1730,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
 
           // Now perform the bind.
-          Connection connection = null;
-          try
+          try (Connection connection = bindFactory.getConnection())
           {
-            connection = bindFactory.getConnection();
             connection.simpleBind(username, password);
 
             // The password matched, so cache it, it will be stored in the
@@ -1767,10 +1756,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                       userEntry.getName(), cfg.dn(), e.getMessageObject()), e);
             }
           }
-          finally
-          {
-            StaticUtils.close(connection);
-          }
         }
         finally
         {
@@ -1790,34 +1775,27 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // First determine if the cached password time is present and valid.
         boolean foundValidCachedPasswordTime = false;
 
-        List<Attribute> cptlist = userEntry
-            .getAttribute(cachedPasswordTimeAttribute);
-        if (cptlist != null && !cptlist.isEmpty())
+        foundCachedPasswordTime:
+        for (Attribute attribute : userEntry.getAttribute(cachedPasswordTimeAttribute))
         {
-          foundCachedPasswordTime:
+          // Ignore any attributes with options.
+          if (!attribute.hasOptions())
           {
-            for (Attribute attribute : cptlist)
+            for (ByteString value : attribute)
             {
-              // Ignore any attributes with options.
-              if (!attribute.hasOptions())
+              try
               {
-                for (ByteString value : attribute)
-                {
-                  try
-                  {
-                    long cachedPasswordTime = GeneralizedTime.valueOf(value.toString()).getTimeInMillis();
-                    long currentTime = provider.getCurrentTimeMS();
-                    long expiryTime = cachedPasswordTime + (cfg.getCachedPasswordTTL() * 1000);
-                    foundValidCachedPasswordTime = expiryTime > currentTime;
-                  }
-                  catch (LocalizedIllegalArgumentException e)
-                  {
-                    // Fall-through and give up immediately.
-                    logger.traceException(e);
-                  }
-                  break foundCachedPasswordTime;
-                }
+                long cachedPasswordTime = GeneralizedTime.valueOf(value.toString()).getTimeInMillis();
+                long currentTime = provider.getCurrentTimeMS();
+                long expiryTime = cachedPasswordTime + (cfg.getCachedPasswordTTL() * 1000);
+                foundValidCachedPasswordTime = expiryTime > currentTime;
               }
+              catch (LocalizedIllegalArgumentException e)
+              {
+                // Fall-through and give up immediately.
+                logger.traceException(e);
+              }
+              break foundCachedPasswordTime;
             }
           }
         }
@@ -1831,24 +1809,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
         // Next determine if there is a cached password.
         ByteString cachedPassword = null;
-
-        List<Attribute> cplist = userEntry
-            .getAttribute(cachedPasswordAttribute);
-        if (cplist != null && !cplist.isEmpty())
+        foundCachedPassword:
+        for (Attribute attribute : userEntry.getAttribute(cachedPasswordAttribute))
         {
-          foundCachedPassword:
+          // Ignore any attributes with options.
+          if (!attribute.hasOptions())
           {
-            for (Attribute attribute : cplist)
+            for (ByteString value : attribute)
             {
-              // Ignore any attributes with options.
-              if (!attribute.hasOptions())
-              {
-                for (ByteString value : attribute)
-                {
-                  cachedPassword = value;
-                  break foundCachedPassword;
-                }
-              }
+              cachedPassword = value;
+              break foundCachedPassword;
             }
           }
         }

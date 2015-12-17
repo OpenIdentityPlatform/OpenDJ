@@ -215,7 +215,6 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     assertNotNull(entry);
 
     List<Attribute> attrs = entry.getAttribute(attributeName);
-    assertNotNull(attrs);
     assertEquals(attrs.size(), 1);
 
     Attribute attr = attrs.get(0);

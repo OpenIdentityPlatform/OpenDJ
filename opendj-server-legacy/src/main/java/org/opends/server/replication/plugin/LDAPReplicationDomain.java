@@ -64,13 +64,13 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
-import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -706,7 +706,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       AttributeType synchronizationGenIDType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
       List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
-      if (attrs != null)
+      if (!attrs.isEmpty())
       {
         Attribute attr = attrs.get(0);
         if (attr.size() == 1)
@@ -727,7 +727,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
     List<Attribute> exclAttrs = resultEntry.getAttribute(attrType);
-    if (exclAttrs != null)
+    if (!exclAttrs.isEmpty())
     {
       Attribute exclAttr = exclAttrs.get(0);
       if (exclAttr != null)
@@ -3278,7 +3278,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       {
         AttributeType synchronizationGenIDType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
         List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
-        if (attrs != null)
+        if (!attrs.isEmpty())
         {
           Attribute attr = attrs.get(0);
           if (attr.size()>1)
