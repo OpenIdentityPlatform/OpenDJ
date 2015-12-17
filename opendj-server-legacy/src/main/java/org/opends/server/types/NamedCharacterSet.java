@@ -29,7 +29,7 @@ package org.opends.server.types;
 import org.forgerock.i18n.LocalizableMessage;
 
 
-
+import java.security.SecureRandom;
 import java.util.Random;
 import java.util.SortedSet;
 
@@ -76,7 +76,7 @@ public final class NamedCharacterSet
   public NamedCharacterSet(String name, char[] characters)
          throws ConfigException
   {
-    this(name, characters, new Random());
+    this(name, characters, new SecureRandom());
   }
 
 
