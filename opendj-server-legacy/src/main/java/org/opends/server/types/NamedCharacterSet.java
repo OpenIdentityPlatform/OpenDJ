@@ -53,13 +53,13 @@ import static org.opends.server.util.StaticUtils.*;
 public final class NamedCharacterSet
 {
   /** The characters contained in this character set. */
-  private char[] characters;
+  private final char[] characters;
 
   /** The random number generator to use with this character set. */
-  private Random random;
+  private final Random random;
 
   /** The name assigned to this character set. */
-  private String name;
+  private final String name;
 
 
 
@@ -76,24 +76,7 @@ public final class NamedCharacterSet
   public NamedCharacterSet(String name, char[] characters)
          throws ConfigException
   {
-    this.name       = name;
-    this.characters = characters;
-
-    random     = new Random();
-
-    if (name == null || name.length() == 0)
-    {
-      LocalizableMessage message = ERR_CHARSET_CONSTRUCTOR_NO_NAME.get();
-      throw new ConfigException(message);
-    }
-
-    for (int i=0; i < name.length(); i++)
-    {
-      if (! isAlpha(name.charAt(i)))
-      {
-        throw new ConfigException(ERR_CHARSET_CONSTRUCTOR_INVALID_NAME_CHAR.get(name.charAt(i), i));
-      }
-    }
+    this(name, characters, new Random());
   }
 
 
