@@ -75,7 +75,7 @@
         <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-packages/browse</url>
         <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-packages.git</connection>
         <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-packages.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>release/3.0.0</tag>
     </scm>
 
     <ciManagement>
