@@ -132,7 +132,7 @@
         <lib.folder>lib</lib.folder>
         <!-- Location of the opendj service file for linux based packages. -->
         <sysv.file.location />
-        <opendj.server.archive.version>3.0.0-SNAPSHOT</opendj.server.archive.version>
+        <opendj.server.archive.version>3.0.0-RC1</opendj.server.archive.version>
     </properties>
 
     <modules>

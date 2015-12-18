@@ -52,7 +52,6 @@
             ${product.name.lowercase}/legal-notices/THIRDPARTYREADME.txt
         </oem.file.exclusion.list>
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
-        <opendj.server.archive.version>3.0.0-SNAPSHOT</opendj.server.archive.version>
     </properties>
 
     <dependencies>
