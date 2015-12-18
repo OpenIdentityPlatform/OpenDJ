@@ -35,7 +35,7 @@
 
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-sdk-bom</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -152,7 +152,7 @@
             scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs
         </site.distribution.url>
 
-        <opendj.sdk.version>3.0.0-SNAPSHOT</opendj.sdk.version>
+        <opendj.sdk.version>4.0.0-SNAPSHOT</opendj.sdk.version>
         <i18n-framework.version>1.4.2</i18n-framework.version>
     </properties>
 
