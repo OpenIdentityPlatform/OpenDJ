@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
@@ -113,8 +112,7 @@ public class BackendCreationHelper
   {
     Utilities.initializeConfigurationFramework();
     final File configFile = Installation.getLocal().getCurrentConfigurationFile();
-    final LDAPProfile ldapProfile = LDAPProfile.getInstance();
-    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
+    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile))
     {
       createBackend(context.getRootConfiguration(), backendName, baseDNs, backendType);
     }

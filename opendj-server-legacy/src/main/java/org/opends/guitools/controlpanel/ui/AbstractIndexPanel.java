@@ -38,10 +38,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
@@ -52,7 +52,6 @@ import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.server.config.ConfigException;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -374,8 +373,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
   {
     getInfo().initializeConfigurationFramework();
     final File configFile = Installation.getLocal().getCurrentConfigurationFile();
-    final LDAPProfile ldapProfile = LDAPProfile.getInstance();
-    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
+    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile))
     {
       final PluggableBackendCfgClient backend =
           (PluggableBackendCfgClient) context.getRootConfiguration().getBackend(backendName);

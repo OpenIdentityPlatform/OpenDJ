@@ -64,6 +64,8 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
@@ -524,18 +526,15 @@ final class LDAPDriver extends Driver {
     }
 
     private Collection<DN> listEntries(DN dn, Filter filter) throws LdapException {
-        List<DN> names = new LinkedList<>();
-        ConnectionEntryReader reader =
-                connection.search(dn.toString(), SearchScope.SINGLE_LEVEL, filter.toString());
-        try {
+        final SearchRequest searchRequest = Requests.newSearchRequest(dn, SearchScope.SINGLE_LEVEL, filter);
+        try (ConnectionEntryReader reader = connection.search(searchRequest)) {
+            List<DN> names = new LinkedList<>();
             while (reader.hasNext()) {
                 names.add(reader.readEntry().getName());
             }
-        } catch (SearchResultReferenceIOException e) {
-            // Ignore.
-        } finally {
-            reader.close();
+            return names;
+        } catch (SearchResultReferenceIOException ignore) {
+            return Collections.emptyList();
         }
-        return names;
     }
 }

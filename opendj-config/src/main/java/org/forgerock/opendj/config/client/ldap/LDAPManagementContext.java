@@ -179,23 +179,19 @@ public final class LDAPManagementContext extends DriverBasedManagementContext {
         return context;
     }
 
-    private static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile,
-            final List<IOException> exceptions) throws IOException {
-        final BufferedReader configReader = new BufferedReader(new FileReader(ldifFile));
-        try {
+    private static ManagementContext newLDIFManagementContext(final File ldifFile, final List<IOException> exceptions)
+            throws IOException {
+        try (final FileReader fileReader = new FileReader(ldifFile);
+            final BufferedReader configReader = new BufferedReader(fileReader)) {
             final MemoryBackend memoryBackend = new MemoryBackend(new LDIFEntryReader(configReader));
             final Connection co = new AbstractConnectionWrapper<Connection>(newInternalConnection(memoryBackend)) {
                 @Override
                 public void close() {
-                    try {
-                        final BufferedWriter configWriter = new BufferedWriter(new FileWriter(ldifFile));
-                        try {
-                            final Iterator<Entry> entries = memoryBackend.getAll().iterator();
-                            entries.next(); // skip RootDSE
-                            LDIF.copyTo(LDIF.newEntryIteratorReader(entries), new LDIFEntryWriter(configWriter));
-                        } finally {
-                            configWriter.close();
-                        }
+                    try (final FileWriter fileWriter = new FileWriter(ldifFile);
+                        final BufferedWriter configWriter = new BufferedWriter(fileWriter)) {
+                        final Iterator<Entry> entries = memoryBackend.getAll().iterator();
+                        entries.next(); // skip RootDSE
+                        LDIF.copyTo(LDIF.newEntryIteratorReader(entries), new LDIFEntryWriter(configWriter));
                     } catch (IOException e) {
                         if (exceptions != null) {
                             exceptions.add(e);
@@ -215,8 +211,6 @@ public final class LDAPManagementContext extends DriverBasedManagementContext {
             // We need to add the root dse entry to make the configuration framework work.
             co.add(LDIFEntryReader.valueOfLDIFEntry("dn:", "objectClass:top", "objectClass:ds-root-dse"));
             return LDAPManagementContext.newManagementContext(co, LDAPProfile.getInstance());
-        } finally {
-            configReader.close();
         }
     }
 
@@ -225,16 +219,13 @@ public final class LDAPManagementContext extends DriverBasedManagementContext {
      *
      * @param ldifFile
      *            The LDIF file to manage
-     * @param profile
-     *            The LDAP profile
      * @return A LDIF file management context
      * @throws IOException
      *             If problems occurs while reading the file.
      */
-    public static ManagementContext newLDIFManagementContext(final File ldifFile, final LDAPProfile profile)
-            throws IOException {
+    public static ManagementContext newLDIFManagementContext(final File ldifFile) throws IOException {
         final List<IOException> exceptions = new ArrayList<>();
-        return new ManagementContextWrapper(newLDIFManagementContext(ldifFile, profile, exceptions), exceptions);
+        return new ManagementContextWrapper(newLDIFManagementContext(ldifFile, exceptions), exceptions);
     }
 
     /** The LDAP management context driver. */

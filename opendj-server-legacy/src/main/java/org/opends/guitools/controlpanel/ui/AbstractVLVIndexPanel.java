@@ -54,7 +54,6 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
@@ -120,7 +119,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   /** Name text field. */
   protected final JTextField name = Utilities.createMediumTextField();
   /** Base DNs combo box. */
-  protected final JComboBox baseDNs = Utilities.createComboBox();
+  protected final JComboBox<CharSequence> baseDNs = Utilities.createComboBox();
   /** Subtree text field. */
   protected final JTextField baseDN = Utilities.createLongTextField();
 
@@ -153,7 +152,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   protected final JButton remove = Utilities.createButton(INFO_CTRL_PANEL_VLV_INDEX_REMOVE_BUTTON_LABEL.get());
 
   /** Ascending order combo box. */
-  private final JComboBox ascendingOrder = Utilities.createComboBox();
+  private final JComboBox<LocalizableMessage> ascendingOrder = Utilities.createComboBox();
 
   /** Combo box containing the sort order. */
   protected DefaultListModel<VLVSortOrder> sortOrderModel;
@@ -780,8 +779,8 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     c.add(p, gbc);
     gbc.gridy++;
 
-    DefaultComboBoxModel model = new DefaultComboBoxModel(new Object[] { COMBO_SEPARATOR, OTHER_BASE_DN });
-    baseDNs.setModel(model);
+    baseDNs.setModel(new DefaultComboBoxModel<CharSequence>(
+        new CharSequence[] { COMBO_SEPARATOR, OTHER_BASE_DN }));
     baseDNs.setRenderer(new CustomListCellRenderer(baseDNs));
     ItemListener listener = new IgnoreItemListener(baseDNs);
     baseDNs.addItemListener(listener);
@@ -851,7 +850,8 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     c.add(attributes, gbc);
     gbc.gridx++;
 
-    ascendingOrder.setModel(new DefaultComboBoxModel(new Object[] { ASCENDING, DESCENDING }));
+    ascendingOrder.setModel(new DefaultComboBoxModel<LocalizableMessage>(
+        new LocalizableMessage[] { ASCENDING, DESCENDING }));
     c.add(ascendingOrder, gbc);
     gbc.gridy++;
 
@@ -1089,8 +1089,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   {
     getInfo().initializeConfigurationFramework();
     final File configFile = Installation.getLocal().getCurrentConfigurationFile();
-    final LDAPProfile ldapProfile = LDAPProfile.getInstance();
-    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile, ldapProfile))
+    try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(configFile))
     {
       final PluggableBackendCfgClient backend =
           (PluggableBackendCfgClient) context.getRootConfiguration().getBackend(backendName);
