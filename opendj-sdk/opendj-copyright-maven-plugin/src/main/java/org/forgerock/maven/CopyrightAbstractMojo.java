@@ -25,8 +25,6 @@
  */
 package org.forgerock.maven;
 
-import static org.forgerock.util.Utils.closeSilently;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -304,11 +302,8 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
      * Check to see whether the provided file has a comment line containing a
      * copyright without the current year.
      */
-    @SuppressWarnings("resource")
     private boolean checkCopyrightForFile(File changedFile) throws MojoExecutionException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(changedFile));
+        try (BufferedReader reader = new BufferedReader(new FileReader(changedFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String lowerLine = line.toLowerCase().trim();
@@ -316,7 +311,6 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
                         && lowerLine.contains("copyright")
                         && line.contains(currentYear.toString())
                         && line.contains(copyrightOwnerToken)) {
-                    reader.close();
                     return true;
                 }
             }
@@ -325,8 +319,6 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
         } catch (IOException ioe) {
             throw new MojoExecutionException("Could not read file " + changedFile.getPath()
                     + " to check copyright date. No further copyright date checking will be performed.");
-        } finally {
-            closeSilently(reader);
         }
     }
 

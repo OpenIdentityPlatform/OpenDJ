@@ -26,8 +26,9 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+
 import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.getTestFilePath;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 
 import java.io.File;
@@ -74,52 +75,35 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     @Test(enabled = false)
     public void printEntriesToStdOut() throws Exception {
         String path = SUBTEMPLATES_TEMPLATE_PATH;
-        EntryGenerator generator = null;
-        try {
-            generator = new EntryGenerator(getTestFilePath(path)).setResourcePath(resourcePath);
+        try (EntryGenerator generator = new EntryGenerator(getTestFilePath(path)).setResourcePath(resourcePath)) {
             while (generator.hasNext()) {
                 System.out.println(generator.readEntry());
             }
-        } finally {
-            Utils.closeSilently(generator);
         }
-
     }
 
     @Test
     public void testCreateWithDefaultTemplateFile() throws Exception {
-        EntryGenerator generator = null;
-        try {
-            generator = new EntryGenerator();
+        try (EntryGenerator generator = new EntryGenerator()) {
             assertThat(generator.hasNext()).isTrue();
-        } finally {
-            Utils.closeSilently(generator);
         }
     }
 
     @Test(expectedExceptions = DecodeException.class,
             expectedExceptionsMessageRegExp = ".*Could not find template file unknown.*")
     public void testCreateWithMissingTemplateFile() throws Exception {
-        EntryGenerator generator = null;
-        try {
-            generator = new EntryGenerator("unknown/path");
+        try (EntryGenerator generator = new EntryGenerator("unknown/path")) {
             generator.hasNext();
-        } finally {
-            Utils.closeSilently(generator);
         }
     }
 
     @Test
     public void testCreateWithSetConstants() throws Exception {
-        EntryGenerator generator = null;
-        try {
-            generator = new EntryGenerator().setConstant("numusers", 1);
+        try (EntryGenerator generator = new EntryGenerator().setConstant("numusers", 1)) {
             generator.readEntry();
             generator.readEntry();
             assertThat(generator.readEntry().getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
             assertThat(generator.hasNext()).as("should have no more entries").isFalse();
-        } finally {
-            Utils.closeSilently(generator);
         }
     }
 
@@ -272,15 +256,15 @@ public class EntryGeneratorTestCase extends SdkTestCase {
         Attribute ocAttribute = entry.getAttribute(getObjectClassAttributeType().getNameOrOID());
         assertThat(ocAttribute).isNotNull();
         Iterator<ByteString> it = ocAttribute.iterator();
-        for (int i = 0; i < objectClasses.length; i++) {
-            assertThat(it.next().toString()).isEqualTo(objectClasses[i]);
+        for (String objectClass : objectClasses) {
+            assertThat(it.next().toString()).isEqualTo(objectClass);
         }
         assertThat(it.hasNext()).isFalse();
     }
 
     private void checkPresenceOfAttributes(Entry entry, String... attributes) {
-        for (int i = 0; i < attributes.length; i++) {
-            assertThat(entry.getAttribute(attributes[i])).isNotNull();
+        for (String attribute : attributes) {
+            assertThat(entry.getAttribute(attribute)).isNotNull();
         }
     }
 
@@ -576,17 +560,13 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     @Test(dataProvider = "templatesToTestEscapeChars", dependsOnMethods = { "testParsingEscapeCharInTemplate" })
     public void testEscapeCharsFromTemplate(String testName, String[] lines, String attrName, String expectedValue)
             throws Exception {
-        EntryGenerator generator = null;
-        try {
-            generator = new EntryGenerator(lines).setResourcePath(resourcePath);
+        try (EntryGenerator generator = new EntryGenerator(lines).setResourcePath(resourcePath)) {
             Entry topEntry = generator.readEntry();
             Entry entry = generator.readEntry();
 
             assertThat(topEntry).isNotNull();
             assertThat(entry).isNotNull();
             assertThat(entry.getAttribute(attrName).firstValueAsString()).isEqualTo(expectedValue);
-        } finally {
-            Utils.closeSilently(generator);
         }
     }
 
@@ -609,17 +589,13 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             // from [A-Z].
             "cn: Foo \\<<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>\\>\\{1\\}{sn}",
             "" };
-        EntryGenerator generator = null;
-        try {
-            generator = new EntryGenerator(lines).setResourcePath(resourcePath);
+        try (EntryGenerator generator = new EntryGenerator(lines).setResourcePath(resourcePath)) {
             Entry topEntry = generator.readEntry();
             Entry entry = generator.readEntry();
 
             assertThat(topEntry).isNotNull();
             assertThat(entry).isNotNull();
             assertThat(entry.getAttribute("cn").firstValueAsString()).matches("Foo <[A-Z]>\\{1\\}Bar");
-        } finally {
-            Utils.closeSilently(generator);
         }
     }
 }

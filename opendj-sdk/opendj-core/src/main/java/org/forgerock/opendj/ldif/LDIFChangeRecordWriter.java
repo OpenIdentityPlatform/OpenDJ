@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -82,9 +82,8 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     public static String toString(final ChangeRecord change) {
         final StringWriter writer = new StringWriter(128);
-        try {
-            new LDIFChangeRecordWriter(writer).setAddUserFriendlyComments(true).writeChangeRecord(
-                    change).close();
+        try (LDIFChangeRecordWriter ldifWriter = new LDIFChangeRecordWriter(writer)) {
+            ldifWriter.setAddUserFriendlyComments(true).writeChangeRecord(change);
         } catch (final IOException e) {
             // Should never happen.
             throw new IllegalStateException(e);

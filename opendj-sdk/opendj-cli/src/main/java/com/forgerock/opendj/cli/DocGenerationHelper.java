@@ -77,16 +77,13 @@ public final class DocGenerationHelper {
         configuration = getConfiguration();
 
         // FreeMarker takes the data and a Writer to process the template.
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Writer writer = new OutputStreamWriter(outputStream);
-        try {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            Writer writer = new OutputStreamWriter(outputStream)) {
             Template configurationTemplate = configuration.getTemplate(template);
             configurationTemplate.process(map, writer);
             builder.append(outputStream.toString());
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            org.forgerock.util.Utils.closeSilently(writer, outputStream);
         }
     }
 

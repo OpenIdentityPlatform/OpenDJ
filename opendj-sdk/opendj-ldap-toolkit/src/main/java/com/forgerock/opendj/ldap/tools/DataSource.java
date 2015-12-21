@@ -59,14 +59,11 @@ final class DataSource {
 
         public IncrementLineFileDataSource(final String file) throws IOException {
             lines = new ArrayList<>();
-            final BufferedReader in = new BufferedReader(new FileReader(file));
-            try {
+            try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = in.readLine()) != null) {
                     lines.add(line);
                 }
-            } finally {
-                in.close();
             }
         }
 
@@ -127,14 +124,11 @@ final class DataSource {
         public RandomLineFileDataSource(final long seed, final String file) throws IOException {
             lines = new ArrayList<>();
             random = new Random(seed);
-            final BufferedReader in = new BufferedReader(new FileReader(file));
-            try {
+            try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = in.readLine()) != null) {
                     lines.add(line);
                 }
-            } finally {
-                in.close();
             }
         }
 

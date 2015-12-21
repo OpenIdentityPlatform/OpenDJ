@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -88,14 +88,9 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteChangeRecordAddRequest() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord(Requests.newAddRequest(getStandardLDIFChangeRecord()));
             verify(connection, times(1)).add(any(AddRequest.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -107,12 +102,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testWriteChangeRecordAddRequestDoesntAllowNull() throws Exception {
         final Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord((AddRequest) null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -125,15 +116,10 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteChangeRecordContainingAddRequest() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord(Requests.newChangeRecord(getStandardLDIFChangeRecord()));
             Assert.assertTrue(Requests.newChangeRecord(getStandardLDIFChangeRecord()) instanceof AddRequest);
             verify(connection, times(1)).add(any(AddRequest.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -146,10 +132,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteChangeRecordContainingDeleteRequest() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             // @formatter:off
             ChangeRecord cr = Requests.newChangeRecord(
                 "dn: dc=example,dc=com",
@@ -159,8 +142,6 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
             // @formatter:on
             Assert.assertTrue(cr instanceof DeleteRequest);
             verify(connection, times(1)).delete(any(DeleteRequest.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -172,10 +153,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public final void testWriteChangeRecordDoesntAllowMultipleLDIF() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             // @formatter:off
             writer.writeChangeRecord(Requests.newChangeRecord(
                 "dn: uid=scarter,ou=People,dc=example,dc=com",
@@ -189,9 +167,6 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
                 "sn: Amarr")
             );
             // @formatter:on
-
-        } finally {
-            writer.close();
         }
     }
 
@@ -205,7 +180,6 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = RuntimeException.class)
     public final void testWriteChangeRecordChangeAcceptSendIOException() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
         ChangeRecord cr = mock(ChangeRecord.class);
 
         when(cr.accept(any(ChangeRecordVisitor.class), any(ConnectionChangeRecordWriter.class)))
@@ -222,11 +196,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
                     }
                 });
 
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord(cr);
-        } finally {
-            writer.close();
         }
     }
 
@@ -240,7 +211,6 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = LdapException.class)
     public final void testWriteChangeRecordChangeAcceptSendLdapException() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
         ChangeRecord cr = mock(ChangeRecord.class);
 
         when(cr.accept(any(ChangeRecordVisitor.class), any(ConnectionChangeRecordWriter.class)))
@@ -257,11 +227,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
                     }
                 });
 
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord(cr);
-        } finally {
-            writer.close();
         }
     }
 
@@ -273,12 +240,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testWriteChangeRecordChangeRecordDoesntAllowNull() throws Exception {
         final Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord((ChangeRecord) null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -290,15 +253,11 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteChangeRecordDeleteRequest() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
 
-        try {
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             ChangeRecord cr = Requests.newDeleteRequest(DN.valueOf("cn=scarter,dc=example,dc=com"));
-            writer = new ConnectionChangeRecordWriter(connection);
             writer.writeChangeRecord(cr);
             verify(connection, times(1)).delete(any(DeleteRequest.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -310,12 +269,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testWriteChangeRecordDeleteRequestDoesntAllowNull() throws Exception {
         final Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord((DeleteRequest) null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -327,19 +282,15 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteChangeRecordModifyDNRequest() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
 
-        try {
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             // @formatter:off
             ChangeRecord cr = Requests.newModifyDNRequest(
                 "cn=scarter,dc=example,dc=com",
                 "cn=Susan Jacobs");
             //@formatter:on
-            writer = new ConnectionChangeRecordWriter(connection);
             writer.writeChangeRecord(cr);
             verify(connection, times(1)).modifyDN(any(ModifyDNRequest.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -351,12 +302,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testWriteChangeRecordModifyDNRequestDoesntAllowNull() throws Exception {
         final Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord((ModifyDNRequest) null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -368,10 +315,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteChangeRecordModifyRequest() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             // @formatter:off
             ChangeRecord cr = Requests.newModifyRequest(
                     "dn: cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com",
@@ -382,8 +326,6 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
             writer.writeChangeRecord(cr);
             // @formatter:on
             verify(connection, times(1)).modify(any(ModifyRequest.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -395,12 +337,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testWriteChangeRecordModifyRequestDoesntAllowNull() throws Exception {
         final Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeChangeRecord((ModifyRequest) null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -413,17 +351,12 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testWriteCommentDoNotSupportComment() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeComment("# A new comment");
             verify(connection, Mockito.never()).add(any(String.class));
             verify(connection, Mockito.never()).delete(any(String.class));
             verify(connection, Mockito.never()).modify(any(String.class));
             verify(connection, Mockito.never()).modifyDN(any(String.class), any(String.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -435,12 +368,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testWriteCommentDoesntAllowNull() throws Exception {
         final Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
             writer.writeComment(null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -451,11 +380,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testConnectionChangeRecordWriterDoesntAllowNull() throws Exception {
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(null);
-        } finally {
-            writer.close();
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(null)) {
+            // nothing more to do
         }
     }
 
@@ -468,11 +394,9 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testConnectionChangeRecordWriterClose() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionChangeRecordWriter writer = null;
-        try {
-            writer = new ConnectionChangeRecordWriter(connection);
+        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
+            // nothing more to do
         } finally {
-            writer.close();
             verify(connection, times(1)).close();
         }
     }

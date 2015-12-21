@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2015 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldif;
 
 import java.io.IOException;
@@ -61,7 +60,6 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -114,8 +112,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public static ChangeRecord valueOfLDIFChangeRecord(final String... ldifLines) {
         // LDIF change record reader is tolerant to missing change types.
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldifLines);
-        try {
+        try (final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldifLines)) {
             if (!reader.hasNext()) {
                 // No change record found.
                 final LocalizableMessage message =
@@ -141,8 +138,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
             final LocalizableMessage message =
                     WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage());
             throw new LocalizedIllegalArgumentException(message);
-        } finally {
-            Utils.closeSilently(reader);
         }
     }
 

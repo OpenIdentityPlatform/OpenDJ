@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -31,7 +31,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.SocketAddress;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,12 +65,11 @@ public final class TestCaseUtils {
         final File f = File.createTempFile("LDIFBasedTestCase", ".txt");
         f.deleteOnExit();
 
-        final FileWriter w = new FileWriter(f);
-        for (final String s : lines) {
-            w.write(s + System.getProperty("line.separator"));
+        try (final FileWriter w = new FileWriter(f)) {
+            for (final String s : lines) {
+                w.write(s + System.getProperty("line.separator"));
+            }
         }
-
-        w.close();
 
         return f.getAbsolutePath();
     }
@@ -101,13 +99,10 @@ public final class TestCaseUtils {
      * @return The free port.
      */
     public static InetSocketAddress findFreeSocketAddress() {
-        try {
-            ServerSocket serverLdapSocket = new ServerSocket();
+        try (ServerSocket serverLdapSocket = new ServerSocket()) {
             serverLdapSocket.setReuseAddress(true);
             serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
-            final SocketAddress address = serverLdapSocket.getLocalSocketAddress();
-            serverLdapSocket.close();
-            return (InetSocketAddress) address;
+            return (InetSocketAddress) serverLdapSocket.getLocalSocketAddress();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

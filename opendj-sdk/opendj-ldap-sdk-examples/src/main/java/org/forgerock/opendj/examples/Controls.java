@@ -112,9 +112,7 @@ public final class Controls {
         final int port = Integer.parseInt(args[1]);
 
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-        Connection connection = null;
-        try {
-            connection = factory.getConnection();
+        try (Connection connection = factory.getConnection()) {
             checkSupportedControls(connection);
 
             final String user = "cn=Directory Manager";
@@ -149,10 +147,6 @@ public final class Controls {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 
@@ -265,10 +259,8 @@ public final class Controls {
 
             connection.modify(request);
 
-            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-            try {
+            try (final LDIFEntryWriter writer = new LDIFEntryWriter(System.out)) {
                 writer.writeEntry(connection.readEntry(dn, "description"));
-                writer.close();
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -341,15 +333,13 @@ public final class Controls {
                                     true, authDN, "cn"));
 
             final ConnectionEntryReader reader = connection.search(request);
-            final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-            try {
+            try (final LDIFEntryWriter writer = new LDIFEntryWriter(System.out)) {
                 while (reader.hasNext()) {
                     if (!reader.isReference()) {
                         final SearchResultEntry entry = reader.readEntry();
                         writer.writeEntry(entry);
                     }
                 }
-                writer.close();
             } catch (final LdapException e) {
                 System.err.println(e.getMessage());
                 System.exit(e.getResult().getResultCode().intValue());

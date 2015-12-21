@@ -288,11 +288,9 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                     throw DecodeException.error(message);
                 }
 
-                InputStream inputStream = null;
                 ByteStringBuilder builder = null;
-                try {
+                try (InputStream inputStream = contentURL.openConnection().getInputStream()) {
                     builder = new ByteStringBuilder();
-                    inputStream = contentURL.openConnection().getInputStream();
 
                     int bytesRead;
                     final byte[] buffer = new byte[4096];
@@ -310,14 +308,6 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
                             ERR_LDIF_URL_IO_ERROR.get(entryDN.toString(), record.lineNumber,
                                     attrName, String.valueOf(contentURL), String.valueOf(e));
                     throw DecodeException.error(message);
-                } finally {
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (final Exception e) {
-                            // Ignore.
-                        }
-                    }
                 }
             } else {
                 /*

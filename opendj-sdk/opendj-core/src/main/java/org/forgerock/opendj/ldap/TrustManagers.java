@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -326,19 +326,8 @@ public final class TrustManagers {
         final String trustStoreFormat = format != null ? format : KeyStore.getDefaultType();
 
         final KeyStore keyStore = KeyStore.getInstance(trustStoreFormat);
-
-        FileInputStream fos = null;
-        try {
-            fos = new FileInputStream(trustStoreFile);
+        try (FileInputStream fos = new FileInputStream(trustStoreFile)) {
             keyStore.load(fos, password);
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (final IOException ignored) {
-                    // Ignore.
-                }
-            }
         }
 
         final TrustManagerFactory tmf =

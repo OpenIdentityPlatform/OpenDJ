@@ -22,7 +22,6 @@
  *
  *      Copyright 2011-2015 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -67,7 +66,6 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.util.Utils;
 
 /**
  * This class contains common utility methods for creating and manipulating
@@ -321,8 +319,7 @@ public final class LDIF {
      */
     public static List<Entry> makeEntries(String... ldifLines) {
         List<Entry> entries = new ArrayList<>();
-        LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(ldifLines)) {
             while (reader.hasNext()) {
                 entries.add(reader.readEntry());
             }
@@ -332,8 +329,6 @@ public final class LDIF {
         } catch (final IOException e) {
             // This should never happen for a String based reader.
             throw new LocalizedIllegalArgumentException(WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage()));
-        } finally {
-            Utils.closeSilently(reader);
         }
         if (entries.isEmpty()) {
             throw new LocalizedIllegalArgumentException(WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());

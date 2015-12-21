@@ -54,7 +54,6 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
 
 /**
  * This class defines a utility that can be used to deal with command-line
@@ -425,13 +424,13 @@ public class ArgumentParser implements ToolRefDocContainer {
         }
 
         // We have a location for the properties file.
-        final Properties argumentProperties = new Properties();
-        final String scriptName = getScriptName();
         try {
+            final Properties argumentProperties = new Properties();
+            final String scriptName = getScriptName();
             final Properties p = new Properties();
-            final FileInputStream fis = new FileInputStream(propertiesFilePath);
-            p.load(fis);
-            fis.close();
+            try (final FileInputStream fis = new FileInputStream(propertiesFilePath)) {
+                p.load(fis);
+            }
 
             for (final Enumeration<?> e = p.propertyNames(); e.hasMoreElements();) {
                 final String currentPropertyName = (String) e.nextElement();
@@ -449,12 +448,12 @@ public class ArgumentParser implements ToolRefDocContainer {
                 argumentProperties.setProperty(propertyName.toLowerCase(), p
                         .getProperty(currentPropertyName));
             }
+            return argumentProperties;
         } catch (final Exception e) {
             final LocalizableMessage message =
                     ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(propertiesFilePath, getExceptionMessage(e));
             throw new ArgumentException(message, e);
         }
-        return argumentProperties;
     }
 
     /**
@@ -1384,9 +1383,7 @@ public class ArgumentParser implements ToolRefDocContainer {
 
         Properties argumentProperties = null;
 
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(propertiesFile);
+        try (final FileInputStream fis = new FileInputStream(propertiesFile)) {
             final Properties p = new Properties();
             p.load(fis);
             argumentProperties = p;
@@ -1396,8 +1393,6 @@ public class ArgumentParser implements ToolRefDocContainer {
                         ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(propertiesFile, getExceptionMessage(e));
                 throw new ArgumentException(message, e);
             }
-        } finally {
-            Utils.closeSilently(fis);
         }
 
         parseArguments(rawArguments, argumentProperties);

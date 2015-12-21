@@ -28,11 +28,12 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -195,31 +196,20 @@ public final class FileBasedArgument extends Argument {
             return false;
         }
 
-        // Open the file for reading.
-        BufferedReader reader;
-        try {
-            reader = new BufferedReader(new FileReader(valueFile));
-        } catch (final Exception e) {
-            invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(valueString, getName(),
-                    getExceptionMessage(e)));
-            return false;
-        }
-
-        // Read the first line and close the file.
+        // Open the file, read the first line and close the file.
         String line;
-        try {
+        try (BufferedReader reader = new BufferedReader(new FileReader(valueFile))) {
             line = reader.readLine();
-        } catch (final Exception e) {
-            invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(valueString, getName(),
-                    getExceptionMessage(e)));
+        } catch (final FileNotFoundException e) {
+            invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(valueString, getName(), getExceptionMessage(e)));
             return false;
-        } finally {
-            closeSilently(reader);
+        } catch (final IOException e) {
+            invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(valueString, getName(), getExceptionMessage(e)));
+            return false;
         }
 
         // If the line read is null, then that means the file was empty.
         if (line == null) {
-
             invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString, getName()));
             return false;
         }

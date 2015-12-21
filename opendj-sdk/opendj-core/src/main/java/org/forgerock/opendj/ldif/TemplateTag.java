@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldif;
 
@@ -44,7 +44,6 @@ import org.forgerock.opendj.ldif.TemplateFile.Branch;
 import org.forgerock.opendj.ldif.TemplateFile.Template;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateEntry;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateValue;
-import org.forgerock.util.Utils;
 
 /**
  * Represents a tag that may be used in a template line when generating entries.
@@ -395,31 +394,21 @@ abstract class TemplateTag {
 
             // The first argument should be the path to the file.
             final String filePath = arguments[0];
-            BufferedReader dataReader = null;
-            try {
-                dataReader = templateFile.getReader(filePath);
+            try (BufferedReader dataReader = templateFile.getReader(filePath)) {
                 if (dataReader == null) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_FIND_FILE.get(filePath, getName(),
-                            lineNumber);
-                    throw DecodeException.fatalError(message);
+                    throw DecodeException.fatalError(
+                        ERR_ENTRY_GENERATOR_TAG_CANNOT_FIND_FILE.get(filePath, getName(), lineNumber));
                 }
 
-                // See if the file has already been read into memory. If not, then
-                // read it.
-                try {
-                    fileLines = templateFile.getLines(filePath, dataReader);
-                } catch (IOException ioe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_READ_FILE.get(filePath, getName(),
-                            lineNumber, String.valueOf(ioe));
-                    throw DecodeException.fatalError(message, ioe);
-                }
-            } finally {
-                Utils.closeSilently(dataReader);
+                // See if the file has already been read into memory. If not, then read it.
+                fileLines = templateFile.getLines(filePath, dataReader);
+            } catch (IOException e) {
+                throw DecodeException.fatalError(
+                    ERR_ENTRY_GENERATOR_TAG_CANNOT_READ_FILE.get(filePath, getName(), lineNumber, e), e);
             }
 
-            // If there is a second argument, then it should be either
-            // "sequential" or "random". If there isn't one, then we should
-            // assume "random".
+            // If there is a second argument, then it should be either "sequential" or "random".
+            // If there isn't one, then we should assume "random".
             if (arguments.length == 2) {
                 if ("sequential".equalsIgnoreCase(arguments[1])) {
                     isSequential = true;
@@ -854,11 +843,7 @@ abstract class TemplateTag {
         @Override
         TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             int intValue = random.nextInt(100);
-            if (intValue < percentage) {
-                return TagResult.SUCCESS;
-            } else {
-                return TagResult.FAILURE;
-            }
+            return intValue < percentage ? TagResult.SUCCESS : TagResult.FAILURE;
         }
     }
 

@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2015 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -48,7 +47,6 @@ import org.forgerock.opendj.ldap.Matcher;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
 
 /**
  * An LDIF entry reader reads attribute value records (entries) using the LDAP
@@ -75,8 +73,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      *             If {@code ldifLines} was {@code null}.
      */
     public static Entry valueOfLDIFEntry(final String... ldifLines) {
-        final LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
-        try {
+        try (final LDIFEntryReader reader = new LDIFEntryReader(ldifLines)) {
             if (!reader.hasNext()) {
                 // No change record found.
                 final LocalizableMessage message =
@@ -102,8 +99,6 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
             final LocalizableMessage message =
                     WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage());
             throw new LocalizedIllegalArgumentException(message);
-        } finally {
-            Utils.closeSilently(reader);
         }
     }
 

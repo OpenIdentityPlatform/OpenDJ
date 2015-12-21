@@ -161,13 +161,10 @@ public final class Utils {
      *             If a problem occurs while trying to read the specified file.
      */
     public static byte[] readBytesFromFile(final String filePath) throws IOException {
-        byte[] val = null;
-        FileInputStream fis = null;
-        try {
-            final File file = new File(filePath);
-            fis = new FileInputStream(file);
-            final long length = file.length();
-            val = new byte[(int) length];
+        final File file = new File(filePath);
+        final long length = file.length();
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] val = new byte[(int) length];
             // Read in the bytes
             int offset = 0;
             int numRead = 0;
@@ -182,10 +179,6 @@ public final class Utils {
             }
 
             return val;
-        } finally {
-            if (fis != null) {
-                fis.close();
-            }
         }
     }
 

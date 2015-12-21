@@ -124,9 +124,9 @@ public final class Utils {
      */
     static void writeStringToFile(final String string, final File file) throws IOException {
         createFile(file);
-        PrintWriter printWriter = new PrintWriter(file);
-        printWriter.print(string);
-        printWriter.close();
+        try (PrintWriter printWriter = new PrintWriter(file)) {
+            printWriter.print(string);
+        }
     }
 
     /**

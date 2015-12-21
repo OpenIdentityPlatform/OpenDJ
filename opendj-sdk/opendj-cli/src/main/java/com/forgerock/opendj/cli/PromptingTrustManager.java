@@ -152,11 +152,8 @@ public final class PromptingTrustManager implements X509TrustManager {
         if (!onDiskTrustStorePath.exists()) {
             onDiskTrustStore.load(null, null);
         } else {
-            final FileInputStream fos = new FileInputStream(onDiskTrustStorePath);
-            try {
+            try (final FileInputStream fos = new FileInputStream(onDiskTrustStorePath)) {
                 onDiskTrustStore.load(fos, DEFAULT_PASSWORD);
-            } finally {
-                fos.close();
             }
         }
         final TrustManagerFactory tmf =
@@ -295,9 +292,9 @@ public final class PromptingTrustManager implements X509TrustManager {
                 if (!truststoreFile.exists()) {
                     createFile(truststoreFile);
                 }
-                final FileOutputStream fos = new FileOutputStream(truststoreFile);
-                onDiskTrustStore.store(fos, DEFAULT_PASSWORD);
-                fos.close();
+                try (final FileOutputStream fos = new FileOutputStream(truststoreFile)) {
+                    onDiskTrustStore.store(fos, DEFAULT_PASSWORD);
+                }
             } catch (final Exception e) {
                 LOG.warn(LocalizableMessage.raw("Error saving store to disk: " + e));
             }

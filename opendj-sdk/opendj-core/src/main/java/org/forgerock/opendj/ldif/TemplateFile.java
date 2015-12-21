@@ -81,7 +81,6 @@ import org.forgerock.opendj.ldif.TemplateTag.UnderscoreDNTag;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreParentDNTag;
 import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
 
 /**
  * A template file allow to generate entries from a collection of constant
@@ -250,28 +249,20 @@ final class TemplateFile {
     }
 
     private void retrieveFirstAndLastNames() throws IOException {
-        BufferedReader first = null;
-        try {
-            first = getReader(FIRST_NAME_FILE);
+        try (BufferedReader first = getReader(FIRST_NAME_FILE)) {
             if (first == null) {
                 throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_COULD_NOT_FIND_NAME_FILE.get(FIRST_NAME_FILE));
             }
             final List<String> names = readLines(first);
             firstNames = names.toArray(new String[names.size()]);
-        } finally {
-            Utils.closeSilently(first);
         }
 
-        BufferedReader last = null;
-        try {
-            last = getReader(LAST_NAME_FILE);
+        try (BufferedReader last = getReader(LAST_NAME_FILE)) {
             if (last == null) {
                 throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_COULD_NOT_FIND_NAME_FILE.get(LAST_NAME_FILE));
             }
             final List<String> names = readLines(last);
             lastNames = names.toArray(new String[names.size()]);
-        } finally {
-            Utils.closeSilently(first);
         }
     }
 
@@ -362,9 +353,7 @@ final class TemplateFile {
      *             If any other problem occurs while parsing the template file.
      */
     void parse(String templateFilename, List<LocalizableMessage> warnings) throws IOException, DecodeException {
-        BufferedReader templateReader = null;
-        try {
-            templateReader = getReader(templateFilename);
+        try (BufferedReader templateReader = getReader(templateFilename)) {
             if (templateReader == null) {
                 throw DecodeException.fatalError(
                         ERR_ENTRY_GENERATOR_COULD_NOT_FIND_TEMPLATE_FILE.get(templateFilename));
@@ -379,8 +368,6 @@ final class TemplateFile {
             final List<String> fileLines = readLines(templateReader);
             final String[] lines = fileLines.toArray(new String[fileLines.size()]);
             parse(lines, warnings);
-        } finally {
-            Utils.closeSilently(templateReader);
         }
     }
 
@@ -399,14 +386,10 @@ final class TemplateFile {
      *             If any other problem occurs while parsing the template.
      */
     void parse(InputStream inputStream, List<LocalizableMessage> warnings) throws IOException, DecodeException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(inputStream));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             final List<String> fileLines = readLines(reader);
             final String[] lines = fileLines.toArray(new String[fileLines.size()]);
             parse(lines, warnings);
-        } finally {
-            Utils.closeSilently(reader);
         }
     }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -209,19 +209,8 @@ public final class KeyManagers {
         final String keyStoreFormat = format != null ? format : KeyStore.getDefaultType();
 
         final KeyStore keyStore = KeyStore.getInstance(keyStoreFormat);
-
-        FileInputStream fos = null;
-        try {
-            fos = new FileInputStream(keyStoreFile);
+        try (FileInputStream fos = new FileInputStream(keyStoreFile)) {
             keyStore.load(fos, password);
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (final IOException ignored) {
-                    // Ignore.
-                }
-            }
         }
 
         final KeyManagerFactory kmf =

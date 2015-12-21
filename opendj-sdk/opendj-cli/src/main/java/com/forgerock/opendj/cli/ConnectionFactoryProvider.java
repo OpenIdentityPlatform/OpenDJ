@@ -733,10 +733,10 @@ public final class ConnectionFactoryProvider {
             keyStorePIN = keyStorePass.toCharArray();
         }
 
-        final FileInputStream fos = new FileInputStream(keyStoreFile);
         final KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keystore.load(fos, keyStorePIN);
-        fos.close();
+        try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
+            keystore.load(fos, keyStorePIN);
+        }
 
         return new ApplicationKeyManager(keystore, keyStorePIN);
     }
