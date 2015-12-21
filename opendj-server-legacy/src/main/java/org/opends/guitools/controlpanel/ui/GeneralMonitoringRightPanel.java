@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.StaticUtils.isOEMVersion;
 
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -126,7 +127,10 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
     mainPanel.add(Utilities.createBorderLessScrollBar(systemInformationPanel), systemInformationPanelTitle);
     mainPanel.add(Utilities.createBorderLessScrollBar(javaInformationPanel), javaInformationPanelTitle);
     // panels with no scroll
-    mainPanel.add(jeMonitoringPanel, jeMonitoringPanelTitle);
+    if (!isOEMVersion())
+    {
+      mainPanel.add(jeMonitoringPanel, jeMonitoringPanelTitle);
+    }
     mainPanel.add(pdbMonitoringPanel, pdbMonitoringPanelTitle);
     cardLayout.show(mainPanel, noEntryPanelTitle);
     gbc.gridx = 0;

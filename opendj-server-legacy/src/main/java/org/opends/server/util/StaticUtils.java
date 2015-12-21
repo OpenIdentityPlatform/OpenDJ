@@ -180,8 +180,7 @@ public final class StaticUtils
   /**
    * Retrieves a string representation of the provided byte in hexadecimal.
    *
-   * @param b
-   *            The byte for which to retrieve the hexadecimal string
+   * @param b   The byte for which to retrieve the hexadecimal string
    *            representation.
    * @return The string representation of the provided byte in hexadecimal.
    */
@@ -618,8 +617,8 @@ public final class StaticUtils
    *          The first list for which to make the determination.
    * @param list2
    *          The second list for which to make the determination.
-   * @return <CODE>true</CODE> if the two array lists are equal, or
-   *         <CODE>false</CODE> if they are not.
+   * @return {@code true} if the two array lists are equal, or
+   *         {@code false} if they are not.
    */
   public static boolean listsAreEqual(List<?> list1, List<?> list2)
   {
@@ -874,7 +873,7 @@ public final class StaticUtils
    * Retrieves a backtrace for the provided exception consisting of only
    * filenames and line numbers that may be useful in debugging the origin of
    * problems.  This is less expensive than the call to
-   * <CODE>getBacktrace</CODE> without any arguments if an exception has already
+   * {@code getBacktrace} without any arguments if an exception has already
    * been thrown.
    *
    * @param  t  The exception for which to obtain the backtrace.
@@ -912,8 +911,8 @@ public final class StaticUtils
    *
    * @param  c  The character for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided character represents a numeric
-   *          digit, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided character represents a numeric
+   *          digit, or {@code false} if not.
    */
   public static boolean isDigit(final char c) {
     return com.forgerock.opendj.util.StaticUtils.isDigit(c);
@@ -926,8 +925,8 @@ public final class StaticUtils
    *
    * @param  c  The character for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided value is an uppercase or
-   *          lowercase ASCII alphabetic character, or <CODE>false</CODE> if it
+   * @return  {@code true} if the provided value is an uppercase or
+   *          lowercase ASCII alphabetic character, or {@code false} if it
    *          is not.
    */
   public static boolean isAlpha(final char c) {
@@ -939,8 +938,8 @@ public final class StaticUtils
    *
    * @param  c  The character for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided character represents a
-   *          hexadecimal digit, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided character represents a
+   *          hexadecimal digit, or {@code false} if not.
    */
   public static boolean isHexDigit(final char c) {
     return com.forgerock.opendj.util.StaticUtils.isHexDigit(c);
@@ -951,8 +950,8 @@ public final class StaticUtils
    *
    * @param  b  The byte for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided byte represents a hexadecimal
-   *          digit, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the provided byte represents a hexadecimal
+   *          digit, or {@code false} if not.
    */
   public static boolean isHexDigit(byte b)
   {
@@ -1159,8 +1158,8 @@ public final class StaticUtils
    * @param  valueBytes  The binary representation of the attribute value for
    *                     which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the value needs to be base64-encoded if it is
-   *          represented in LDIF form, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the value needs to be base64-encoded if it is
+   *          represented in LDIF form, or {@code false} if not.
    */
   public static boolean needsBase64Encoding(ByteSequence valueBytes)
   {
@@ -1223,8 +1222,8 @@ public final class StaticUtils
    * @param  valueString  The string representation of the attribute value for
    *                      which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the value needs to be base64-encoded if it is
-   *          represented in LDIF form, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the value needs to be base64-encoded if it is
+   *          represented in LDIF form, or {@code false} if not.
    */
   public static boolean needsBase64Encoding(String valueString)
   {
@@ -1277,8 +1276,8 @@ public final class StaticUtils
    * if the org.opends.server.DisableExec system property is set and has any
    * value other than "false", "off", "no", or "0".
    *
-   * @return  <CODE>true</CODE> if the use of the exec method should be allowed,
-   *          or <CODE>false</CODE> if it should not be allowed.
+   * @return  {@code true} if the use of the exec method should be allowed,
+   *          or {@code false} if it should not be allowed.
    */
   public static boolean mayUseExec()
   {
@@ -1294,15 +1293,15 @@ public final class StaticUtils
    * @param  command           The command to execute.
    * @param  args              The set of arguments to provide to the command.
    * @param  workingDirectory  The working directory to use for the command, or
-   *                           <CODE>null</CODE> if the default directory
+   *                           {@code null} if the default directory
    *                           should be used.
    * @param  environment       The set of environment variables that should be
    *                           set when executing the command, or
-   *                           <CODE>null</CODE> if none are needed.
+   *                           {@code null} if none are needed.
    * @param  output            The output generated by the command while it was
    *                           running.  This will include both standard
    *                           output and standard error.  It may be
-   *                           <CODE>null</CODE> if the output does not need to
+   *                           {@code null} if the output does not need to
    *                           be captured.
    *
    * @return  The exit code for the command.
@@ -1414,8 +1413,8 @@ public final class StaticUtils
    * @param  invalidReason  The buffer to which the invalid reason is to be
    *                        appended if a problem is found.
    *
-   * @return  <CODE>true</CODE> if the provided string contains a valid name or
-   *          OID for a schema element, or <CODE>false</CODE> if it does not.
+   * @return  {@code true} if the provided string contains a valid name or
+   *          OID for a schema element, or {@code false} if it does not.
    */
   public static boolean isValidSchemaElement(String element, int startPos,
                                              int endPos,
@@ -1554,8 +1553,8 @@ public final class StaticUtils
    * @param  allowReuse     Whether or not TCP address reuse is allowed when
    *                        making the determination.
    *
-   * @return  <CODE>true</CODE> if the provided TCP address is already in
-   *          use, or <CODE>false</CODE> otherwise.
+   * @return  {@code true} if the provided TCP address is already in
+   *          use, or {@code false} otherwise.
    */
   public static boolean isAddressInUse(
     InetAddress address, int port,
@@ -2175,7 +2174,7 @@ public final class StaticUtils
    * exception.
    *
    * @param fileToRename The file to rename.
-   * @param target       The file to which <code>fileToRename</code> will be
+   * @param target       The file to which {@code fileToRename} will be
    *                     moved.
    * @throws IOException If a problem occurs while attempting to rename the
    *                     file.  On the Windows platform, this typically
@@ -2212,8 +2211,8 @@ public final class StaticUtils
    *
    * @param  path  The path string for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the provided path is relative, or
-   *          <CODE>false</CODE> if it is absolute.
+   * @return  {@code true} if the provided path is relative, or
+   *          {@code false} if it is absolute.
    */
   public static boolean isRelativePath(String path)
   {
@@ -2224,14 +2223,14 @@ public final class StaticUtils
 
 
   /**
-   * Retrieves a <CODE>File</CODE> object corresponding to the specified path.
+   * Retrieves a {@code File} object corresponding to the specified path.
    * If the given path is an absolute path, then it will be used.  If the path
    * is relative, then it will be interpreted as if it were relative to the
    * Directory Server root.
    *
-   * @param  path  The path string to be retrieved as a <CODE>File</CODE>
+   * @param  path  The path string to be retrieved as a {@code File}
    *
-   * @return  A <CODE>File</CODE> object that corresponds to the specified path.
+   * @return  A {@code File} object that corresponds to the specified path.
    */
   public static File getFileForPath(String path)
   {
@@ -2249,17 +2248,17 @@ public final class StaticUtils
   }
 
   /**
-   * Retrieves a <CODE>File</CODE> object corresponding to the specified path.
+   * Retrieves a {@code File} object corresponding to the specified path.
    * If the given path is an absolute path, then it will be used.  If the path
    * is relative, then it will be interpreted as if it were relative to the
    * Directory Server root.
    *
    * @param path
-   *           The path string to be retrieved as a <CODE>File</CODE>.
+   *           The path string to be retrieved as a {@code File}.
    * @param serverContext
    *           The server context.
    *
-   * @return  A <CODE>File</CODE> object that corresponds to the specified path.
+   * @return  A {@code File} object that corresponds to the specified path.
    */
   public static File getFileForPath(String path, ServerContext serverContext)
   {
@@ -2462,7 +2461,7 @@ public final class StaticUtils
    * arguments.
    *
    * @param  args to test for the presence of more than one
-   * @throws ArgumentException if more than one of <code>args</code> is
+   * @throws ArgumentException if more than one of {@code args} is
    *         present and containing an error message identifying the
    *         arguments in violation
    */
@@ -2484,12 +2483,12 @@ public final class StaticUtils
 
   /**
    * Converts a string representing a time in "yyyyMMddHHmmss.SSS'Z'" or
-   * "yyyyMMddHHmmss" to a <code>Date</code>.
+   * "yyyyMMddHHmmss" to a {@code Date}.
    *
    * @param timeStr string formatted appropriately
-   * @return Date object; null if <code>timeStr</code> is null
+   * @return Date object; null if {@code timeStr} is null
    * @throws ParseException if there was a problem converting the string to
-   *         a <code>Date</code>.
+   *         a {@code Date}.
    */
   public static Date parseDateTimeString(String timeStr) throws ParseException
   {
@@ -2530,7 +2529,7 @@ public final class StaticUtils
   /**
    * Formats a Date to String representation in "yyyyMMddHHmmss'Z'".
    *
-   * @param date to format; null if <code>date</code> is null
+   * @param date to format; null if {@code date} is null
    * @return string representation of the date
    */
   public static String formatDateTimeString(Date date)
@@ -2550,7 +2549,7 @@ public final class StaticUtils
    * email address.
    *
    * @param addr to validate
-   * @return boolean where <code>true</code> indicates that the string is a
+   * @return boolean where {@code true} indicates that the string is a
    *         syntactically correct email address
    */
   public static boolean isEmailAddress(String addr) {
@@ -2580,11 +2579,11 @@ public final class StaticUtils
    *          The client connection to which the data is to be written.
    * @param buffer
    *          The data to be written to the client.
-   * @return <CODE>true</CODE> if all the data in the provided buffer was
+   * @return {@code true} if all the data in the provided buffer was
    *         written to the client and the connection may remain
-   *         established, or <CODE>false</CODE> if a problem occurred
+   *         established, or {@code false} if a problem occurred
    *         and the client connection is no longer valid. Note that if
-   *         this method does return <CODE>false</CODE>, then it must
+   *         this method does return {@code false}, then it must
    *         have already disconnected the client.
    * @throws IOException
    *           If a problem occurs while attempting to write data to the
@@ -2750,7 +2749,7 @@ public final class StaticUtils
    * occurred.
    *
    * @param closeables The closeables to be closed, which may be
-   *        <code>null</code>.
+   *        {@code null}.
    */
   public static void close(Closeable... closeables)
   {
@@ -2765,7 +2764,7 @@ public final class StaticUtils
    * Closes the provided {@link Closeable}'s ignoring any errors which occurred.
    *
    * @param closeables
-   *          The closeables to be closed, which may be <code>null</code>.
+   *          The closeables to be closed, which may be {@code null}.
    */
   public static void close(Collection<? extends Closeable> closeables)
   {
@@ -2790,10 +2789,10 @@ public final class StaticUtils
   }
 
   /**
-   * Closes the provided {@link InitialContext}s ignoring any errors which occurred.
+   * Closes the provided {@link InitialContext}'s ignoring any errors which occurred.
    *
    * @param ctxs
-   *          The contexts to be closed, which may be <code>null</code>.
+   *          The contexts to be closed, which may be {@code null}.
    */
   public static void close(InitialContext... ctxs)
   {
@@ -2819,7 +2818,7 @@ public final class StaticUtils
 
   /**
    * Calls {@link Thread#sleep(long)}, surrounding it with the mandatory
-   * <code>try</code> / <code>catch(InterruptedException)</code> block.
+   * {@code try} / {@code catch(InterruptedException)} block.
    *
    * @param millis
    *          the length of time to sleep in milliseconds
@@ -2968,6 +2967,32 @@ public final class StaticUtils
         return iterator;
       }
     };
+  }
+
+  /**
+   * Returns true if the version of the server is an OEM one, and therefore doesn't support the JE backend.
+   * @return {@code true} if the version of the server is an OEM version and {@code false} otherwise.
+   */
+  public static boolean isOEMVersion()
+  {
+    return !isClassAvailable("org.opends.server.backends.jeb.JEBackend");
+  }
+
+  /**
+   * Returns true if the class is available in the classpath.
+   * @return {@code true} if the class is available in the classpath and {@code false} otherwise.
+   */
+  public static boolean isClassAvailable(final String className)
+  {
+    try
+    {
+      Class.forName(className);
+      return true;
+    }
+    catch (Exception e)
+    {
+      return false;
+    }
   }
 }
 
