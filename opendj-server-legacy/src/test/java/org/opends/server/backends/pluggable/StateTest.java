@@ -53,12 +53,12 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
 public class StateTest extends DirectoryServerTestCase
 {
@@ -77,7 +77,7 @@ public class StateTest extends DirectoryServerTestCase
   @BeforeMethod
   public void setUp() throws Exception
   {
-    indexTreeName = new TreeName("index-base-dn", "index-index-id-" + UUID.randomUUID().toString());
+    indexTreeName = new TreeName("index-base-dn", "index-index-id-" + UUID.randomUUID());
 
     ServerContext serverContext = mock(ServerContext.class);
     when(serverContext.getMemoryQuota()).thenReturn(new MemoryQuota());

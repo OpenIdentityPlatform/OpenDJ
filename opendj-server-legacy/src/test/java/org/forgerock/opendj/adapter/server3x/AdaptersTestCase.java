@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -81,13 +80,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * This class defines a set of tests for the Adapters.class.
- */
+/** This class defines a set of tests for the Adapters.class. */
 @SuppressWarnings("javadoc")
 @Test(sequential=true)
 public class AdaptersTestCase extends DirectoryServerTestCase {
-
     private static final String USER_0_DN_STRING = "uid=user.0,o=test";
 
     /**
@@ -207,9 +203,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         connection.close();
     }
 
-    /**
-     * Clean up data at the end of tests.
-     */
+    /** Clean up data at the end of tests. */
     @AfterClass
     public void shutDownEmbeddedServerServer() throws Exception {
         // Delete all added entries but user.3 which is already removed in one test
@@ -471,7 +465,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterSearchRequestWithNoResults(final ConnectionFactory factory)
             throws Exception {
-
         final SearchRequest request =
                 Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                         "(uid=unknown)").addControl(
@@ -496,7 +489,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = EntryNotFoundException.class)
     public void testAdapterSearchSingleEntryWithNoResults(final ConnectionFactory factory)
             throws Exception {
-
         final Connection connection = factory.getConnection();
         try {
             connection.searchSingleEntry(Requests.newSearchRequest("o=test",
@@ -674,7 +666,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                         "uid=user.2, o=test", SearchScope.BASE_OBJECT, "(uid=user.2)"));
         assertThat(srEntry.getAttribute("mail").firstValueAsString()).isEqualTo(
                 "modified@example.com");
-
     }
 
     /**
@@ -685,7 +676,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterUsePermissiveModifyRequest(final ConnectionFactory factory) throws LdapException {
-
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2, o=test").addControl(
                         PermissiveModifyRequestControl.newControl(true)).addModification(
@@ -750,7 +740,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 Requests.newModifyDNRequest("uid=user.test,o=test", "uid=user.4")
                         .setDeleteOldRDN(true);
         connection.modifyDN(changeRequest);
-
     }
 
     /**
@@ -816,7 +805,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformDeleteRequest(final ConnectionFactory factory)
             throws LdapException {
-
         final DeleteRequest deleteRequest =
                 Requests.newDeleteRequest("uid=user.2,o=test");
 
@@ -838,7 +826,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformAddRequest(final ConnectionFactory factory)
             throws LdapException {
-
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
                 "dn: sn=scarter,o=test",
@@ -865,7 +852,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformModifyDNRequest(final ConnectionFactory factory)
             throws LdapException {
-
         final Connection connection = factory.getConnection();
 
         final ModifyDNRequest changeRequest =
@@ -889,7 +875,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = LdapException.class)
     public void testAdapterAsAnonymousCannotPerformModifyRequest(final ConnectionFactory factory)
             throws LdapException {
-
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2,o=test").addControl(
                         PreReadRequestControl.newControl(true, "mail")).addModification(
@@ -911,7 +896,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "anonymousConnectionFactories")
     public void testAdapterAsAnonymousPerformsCompareRequest(final ConnectionFactory factory)
             throws LdapException {
-
         final CompareRequest compareRequest =
                 Requests.newCompareRequest(USER_0_DN_STRING, "uid", "user.0");
 
@@ -933,7 +917,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "anonymousConnectionFactories")
     public void testAdapterAsAnonymousPerformsSearchRequest(final ConnectionFactory factory)
             throws Exception {
-
         final SearchRequest request =
                 Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                         "(uid=user.1)");
