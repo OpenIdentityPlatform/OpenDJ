@@ -163,9 +163,9 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   }
 
   @Override
-  void afterOpen(final WriteableTransaction txn) throws StorageRuntimeException
+  void afterOpen(final WriteableTransaction txn, boolean createOnDemand) throws StorageRuntimeException
   {
-    counter.open(txn, true);
+    counter.open(txn, createOnDemand);
   }
 
   @Override

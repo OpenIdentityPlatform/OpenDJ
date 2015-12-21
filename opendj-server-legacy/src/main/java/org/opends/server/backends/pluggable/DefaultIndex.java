@@ -98,7 +98,7 @@ class DefaultIndex extends AbstractTree implements Index
   }
 
   @Override
-  final void afterOpen(WriteableTransaction txn)
+  final void afterOpen(WriteableTransaction txn, boolean createOnDemand)
   {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
     codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
