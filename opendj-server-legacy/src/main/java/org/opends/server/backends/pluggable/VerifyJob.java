@@ -862,7 +862,7 @@ class VerifyJob
   private static String keyDump(Tree index, ByteSequence key)
   {
     StringBuilder buffer = new StringBuilder(128);
-    buffer.append("Index: ").append(index.toString()).append(ServerConstants.EOL);
+    buffer.append("Index: ").append(index).append(ServerConstants.EOL);
     buffer.append("Key:").append(ServerConstants.EOL);
     StaticUtils.byteArrayToHexPlusAscii(buffer, key.toByteArray(), 6);
     return buffer.toString();
@@ -1039,7 +1039,7 @@ class VerifyJob
       }
       else
       {
-        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN();
+        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getNumberOfEntriesInBaseDN0(txn);
       }
     }
 
