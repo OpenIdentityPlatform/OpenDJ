@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.StaticUtils.isOEMVersion;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -425,8 +426,10 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     NodeType[] identifiers = getNodeTypes();
     for (int i=0; i < messages.length; i++)
     {
-      root.add(new GeneralMonitoringTreeNode(messages[i].toString(),
-          identifiers[i], false));
+      if (isVisible(identifiers[i]))
+      {
+        root.add(new GeneralMonitoringTreeNode(messages[i].toString(), identifiers[i], false));
+      }
     }
 
     DefaultTreeModel model = new DefaultTreeModel(root);
@@ -677,6 +680,11 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         NodeType.JE_DATABASES_INFORMATION,
         NodeType.PDB_DATABASES_INFORMATION
     };
+  }
+
+  private boolean isVisible(NodeType nodetype)
+  {
+    return !(isOEMVersion() && nodetype == NodeType.JE_DATABASES_INFORMATION);
   }
 }
 

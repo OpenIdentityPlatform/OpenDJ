@@ -33,6 +33,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copy;
 import static org.opends.server.tools.upgrade.Installation.CURRENT_CONFIG_FILE_NAME;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
+import static org.opends.server.util.StaticUtils.isClassAvailable;
 
 import java.io.File;
 import java.io.IOException;
@@ -1019,24 +1020,6 @@ public final class UpgradeTasks
         }
       }
     };
-  }
-
-  static boolean isOEMVersion()
-  {
-    return !isClassAvailable("org.opends.server.backends.jeb.JEBackend");
-  }
-
-  private static boolean isClassAvailable(final String className)
-  {
-    try
-    {
-      Class.forName(className);
-      return true;
-    }
-    catch (Exception e)
-    {
-      return false;
-    }
   }
 
   /** This inner classes causes JE to be lazily linked and prevents runtime errors if JE is not in the classpath. */
