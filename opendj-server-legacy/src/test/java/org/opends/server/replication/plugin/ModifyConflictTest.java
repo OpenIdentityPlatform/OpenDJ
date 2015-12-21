@@ -55,7 +55,6 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -1198,7 +1197,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getExactAttribute(getAttributeTypeOrNull(toLowerCase(attrName)), Collections.<String> emptySet());
+    Attribute attr = entry.getExactAttribute(getAttributeTypeOrNull(attrName), Collections.<String> emptySet());
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {

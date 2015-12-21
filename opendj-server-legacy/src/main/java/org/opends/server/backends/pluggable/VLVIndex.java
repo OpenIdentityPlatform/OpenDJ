@@ -48,6 +48,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -69,7 +70,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -327,7 +327,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
         throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], getName()));
       }
 
-      final AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i].toLowerCase());
+      final AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i]);
       if (attrType == null)
       {
         throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], getName()));

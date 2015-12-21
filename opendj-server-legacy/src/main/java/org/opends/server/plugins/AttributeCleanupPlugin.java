@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011 profiq s.r.o.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -306,7 +306,7 @@ public class AttributeCleanupPlugin extends
           ? toAttr
           : toAttr.substring(semicolonPos + 1);
 
-      if (DirectoryServer.getAttributeTypeOrNull(toLowerCase(toAttrType)) == null)
+      if (DirectoryServer.getAttributeTypeOrNull(toAttrType) == null)
       {
         messages.add(ERR_PLUGIN_ATTR_CLEANUP_ATTRIBUTE_MISSING.get(toAttr));
         isValid = false;

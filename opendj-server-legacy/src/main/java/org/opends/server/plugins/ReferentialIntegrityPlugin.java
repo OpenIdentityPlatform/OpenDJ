@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn.CheckReferencesScopeCriteria;
@@ -73,7 +74,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
@@ -223,7 +223,7 @@ public class ReferentialIntegrityPlugin
       String attr = attrFilt.substring(0, sepInd);
       String filtStr = attrFilt.substring(sepInd + 1);
 
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr.toLowerCase());
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr);
       try
       {
         SearchFilter filter = SearchFilter.createFilterFromString(filtStr);
@@ -346,7 +346,7 @@ public class ReferentialIntegrityPlugin
        * type has to be present in the attributeType list.
        */
 
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr.toLowerCase());
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr);
       if (attrType == null || !theAttributeTypes.contains(attrType))
       {
         isAcceptable = false;

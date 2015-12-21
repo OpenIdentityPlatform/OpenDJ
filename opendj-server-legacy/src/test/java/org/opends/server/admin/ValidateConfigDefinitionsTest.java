@@ -190,12 +190,12 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
     Schema schema = DirectoryServer.getSchema();
 
     // LDAP attribute exists
-    if (!schema.hasAttributeType(ldapAttrName.toLowerCase()))
+    if (!schema.hasAttributeType(ldapAttrName))
     {
       errors.append(propName + " property on config object " + objName + " is declared" +
                " to use ldap attribute " + ldapAttrName + ", but this attribute is not in the schema ").append(EOL + EOL);
     } else {
-      AttributeType attrType = schema.getAttributeType(ldapAttrName.toLowerCase());
+      AttributeType attrType = schema.getAttributeType(ldapAttrName);
 
       // LDAP attribute is multivalued if the property is multivalued
       if (propDef.hasOption(PropertyOption.MULTI_VALUED) && attrType.isSingleValue()) {

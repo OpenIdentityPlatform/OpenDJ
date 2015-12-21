@@ -26,20 +26,21 @@
  */
 package org.opends.server.controls;
 
-import org.forgerock.i18n.LocalizableMessage;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -107,7 +108,7 @@ public class ServerSideSortRequestControl
         while(reader.hasNextElement())
         {
           reader.readStartSequence();
-          String attrName = toLowerCase(reader.readOctetStringAsString());
+          String attrName = reader.readOctetStringAsString();
           AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
           if (attrType == null)
           {
@@ -440,7 +441,7 @@ public class ServerSideSortRequestControl
     ArrayList<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(decodedKey[0].toLowerCase());
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(decodedKey[0]);
       if (attrType == null)
       {
         //This attribute is not defined in the schema. There is no point

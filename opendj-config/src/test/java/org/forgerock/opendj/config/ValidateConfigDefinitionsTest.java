@@ -173,7 +173,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
         }
 
         Schema schema = Schema.getDefaultSchema();
-        AttributeType attrType = schema.getAttributeType(ldapAttrName.toLowerCase());
+        AttributeType attrType = schema.getAttributeType(ldapAttrName);
 
         // LDAP attribute exists
         if (attrType == null) {

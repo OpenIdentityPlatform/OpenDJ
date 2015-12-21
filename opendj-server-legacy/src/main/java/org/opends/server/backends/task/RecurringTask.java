@@ -40,10 +40,10 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -349,18 +349,15 @@ public class RecurringTask
       SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       String nextTaskID = task.getTaskID() + "-" + df.format(nextTaskDate);
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
-      AttributeType taskIDAttrType = DirectoryServer.getAttributeTypeOrNull(nextTaskIDName);
-      Attribute nextTaskIDAttr = Attributes.create(taskIDAttrType, nextTaskID);
-      nextTaskEntry.replaceAttribute(nextTaskIDAttr);
+      nextTaskEntry.replaceAttribute(Attributes.create(nextTaskIDName, nextTaskID));
+
       RDN nextTaskRDN = RDN.decode(nextTaskIDName + "=" + nextTaskID);
       DN nextTaskDN = new DN(nextTaskRDN,
         taskScheduler.getTaskBackend().getScheduledTasksParentDN());
       nextTaskEntry.setDN(nextTaskDN);
 
       String nextTaskStartTimeName = NAME_PREFIX_TASK + "scheduled-start-time";
-      AttributeType taskStartTimeAttrType = DirectoryServer.getAttributeTypeOrNull(nextTaskStartTimeName);
-      Attribute nextTaskStartTimeAttr = Attributes.create(taskStartTimeAttrType, nextTaskStartTime);
-      nextTaskEntry.replaceAttribute(nextTaskStartTimeAttr);
+      nextTaskEntry.replaceAttribute(Attributes.create(nextTaskStartTimeName, nextTaskStartTime));
 
       nextTask.initializeTaskInternal(serverContext, taskScheduler, nextTaskEntry);
       nextTask.initializeTask();

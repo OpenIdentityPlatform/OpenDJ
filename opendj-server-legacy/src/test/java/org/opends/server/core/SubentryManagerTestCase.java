@@ -328,10 +328,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     }
   }
 
-  private void hasValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
+  private void hasValues(DN dn, String attrName, String... values) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrTypeLower);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
@@ -339,10 +339,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     }
   }
 
-  private void doesNotHaveValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
+  private void doesNotHaveValues(DN dn, String attrName, String... values) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrTypeLower);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
@@ -350,10 +350,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     }
   }
 
-  private void hasNoAttribute(DN dn, String lowerName) throws Exception
+  private void hasNoAttribute(DN dn, String attrName) throws Exception
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
     assertFalse(entry.hasAttribute(attrType));
   }
 

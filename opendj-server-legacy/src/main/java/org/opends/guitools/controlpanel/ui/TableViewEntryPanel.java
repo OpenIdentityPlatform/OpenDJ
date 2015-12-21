@@ -300,8 +300,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
               String firstNonEmpty = getFirstNonEmpty(values);
               if (firstNonEmpty != null)
               {
-                AttributeType attr = rdn.getAttributeType(i);
-                attributeTypes.add(attr);
+                attributeTypes.add(rdn.getAttributeType(i));
                 attributeNames.add(rdn.getAttributeName(i));
                 attributeValues.add(ByteString.valueOfUtf8(firstNonEmpty));
               }
@@ -334,12 +333,10 @@ public class TableViewEntryPanel extends ViewEntryPanel
               Object o = table.getValueAt(i, 1);
               if (o instanceof String)
               {
-                String aName =
-                  Utilities.getAttributeNameWithoutOptions(attrName);
-                if (schema.hasAttributeType(aName.toLowerCase()))
+                String aName = Utilities.getAttributeNameWithoutOptions(attrName);
+                if (schema.hasAttributeType(aName))
                 {
-                  AttributeType attr = schema.getAttributeType(aName.toLowerCase());
-                  attributeTypes.add(attr);
+                  attributeTypes.add(schema.getAttributeType(aName));
                   attributeNames.add(attrName);
                   attributeValues.add(ByteString.valueOfUtf8((String) o));
                 }

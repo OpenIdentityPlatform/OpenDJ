@@ -167,7 +167,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
     {
-      final String attributeName = index.getKey().toLowerCase();
+      final String attributeName = index.getKey();
       final AttributeType attribute = DirectoryServer.getAttributeTypeOrNull(attributeName);
       Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
 
@@ -626,7 +626,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     {
       for (IndexType type : index.getValue())
       {
-        final AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(index.getKey().toLowerCase());
+        final AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(index.getKey());
         assertTrue(backend.isIndexed(attributeType,
             org.opends.server.types.IndexType.valueOf(type.toString().toUpperCase())));
       }

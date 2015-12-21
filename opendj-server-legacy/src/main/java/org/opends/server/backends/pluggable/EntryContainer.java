@@ -60,6 +60,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Pair;
 import org.opends.messages.CoreMessages;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -97,7 +98,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
@@ -309,7 +309,7 @@ public class EntryContainer
           return false;
         }
 
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i].toLowerCase());
+        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i]);
         if(attrType == null)
         {
           unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));

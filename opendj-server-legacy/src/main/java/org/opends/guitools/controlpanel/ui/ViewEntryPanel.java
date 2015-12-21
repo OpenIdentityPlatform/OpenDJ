@@ -570,17 +570,13 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   public static boolean isEditable(String attrName, Schema schema)
   {
-    boolean isEditable = false;
     attrName = Utilities.getAttributeNameWithoutOptions(attrName);
-    if (schema != null)
+    if (schema != null && schema.hasAttributeType(attrName))
     {
-      if (schema.hasAttributeType(attrName.toLowerCase()))
-      {
-        AttributeType attrType = schema.getAttributeType(attrName.toLowerCase());
-        isEditable = !attrType.isNoUserModification();
-      }
+      AttributeType attrType = schema.getAttributeType(attrName);
+      return !attrType.isNoUserModification();
     }
-    return isEditable;
+    return false;
   }
 
   /**

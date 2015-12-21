@@ -80,6 +80,7 @@ import javax.swing.tree.TreePath;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CheckEntrySyntaxException;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -92,7 +93,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
@@ -1176,48 +1176,35 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean isSingleValue(String attrName)
   {
-    boolean isSingleValue = false;
-
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    if (schema != null)
+    if (schema != null && schema.hasAttributeType(attrName))
     {
-      if (schema.hasAttributeType(attrName.toLowerCase()))
-      {
-        AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
-        isSingleValue = attr.isSingleValue();
-      }
+      AttributeType attr = schema.getAttributeType(attrName);
+      return attr.isSingleValue();
     }
-
-    return isSingleValue;
+    return false;
   }
 
   private boolean isRequired(String attrName, CustomSearchResult sr)
   {
-    boolean isRequired = false;
-
     attrName = Utilities.getAttributeNameWithoutOptions(attrName);
 
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    if (schema != null)
+    if (schema != null && schema.hasAttributeType(attrName))
     {
-      if (schema.hasAttributeType(attrName.toLowerCase()))
+      AttributeType attr = schema.getAttributeType(attrName);
+      List<Object> ocs = sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+      for (Object o : ocs)
       {
-        AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
-        List<Object> ocs = sr.getAttributeValues(
-            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        for (Object o : ocs)
+        String oc = (String) o;
+        ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
+        if (objectClass != null && objectClass.isRequired(attr))
         {
-          String oc = (String)o;
-          ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
-          if (objectClass != null && objectClass.isRequired(attr))
-          {
-            isRequired = true;
-            break;
-          }
+          return true;
         }
       }
     }
-    return isRequired;
+    return false;
   }
 
   /** {@inheritDoc} */
@@ -1438,30 +1425,27 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean mustAddBrowseButton(String attrName)
   {
-    boolean mustAddBrowseButton =
-      attrName.equalsIgnoreCase(ServerConstants.ATTR_UNIQUE_MEMBER_LC) ||
-      attrName.equalsIgnoreCase("ds-target-group-dn");
-    if (!mustAddBrowseButton)
+    if (attrName.equalsIgnoreCase(ServerConstants.ATTR_UNIQUE_MEMBER_LC)
+        || attrName.equalsIgnoreCase("ds-target-group-dn"))
     {
-      Schema schema = getInfo().getServerDescriptor().getSchema();
-      if (schema != null)
+      return true;
+    }
+    Schema schema = getInfo().getServerDescriptor().getSchema();
+    if (schema != null && schema.hasAttributeType(attrName))
+    {
+      AttributeType attr = schema.getAttributeType(attrName);
+      // There is no name for a regex syntax.
+      String syntaxName = attr.getSyntax().getName();
+      if (syntaxName != null)
       {
-        if (schema.hasAttributeType(attrName.toLowerCase()))
-        {
-          AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
-          // There is no name for a regex syntax.
-          String syntaxName = attr.getSyntax().getName();
-          if (syntaxName!=null) {
-              mustAddBrowseButton=syntaxName.equalsIgnoreCase(
-                SchemaConstants.SYNTAX_DN_NAME);
-          }
-        }
+        return syntaxName.equalsIgnoreCase(SchemaConstants.SYNTAX_DN_NAME);
       }
     }
-    return mustAddBrowseButton;
+    return false;
   }
 
   /** {@inheritDoc} */
+  @Override
   protected List<Object> getValues(String attrName)
   {
     List<Object> values = new ArrayList<>();
@@ -1518,8 +1502,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
               String firstNonEmpty = getFirstNonEmpty(values);
               if (firstNonEmpty != null)
               {
-                AttributeType attr = rdn.getAttributeType(i);
-                attributeTypes.add(attr);
+                attributeTypes.add(rdn.getAttributeType(i));
                 attributeNames.add(rdn.getAttributeName(i));
                 attributeValues.add(ByteString.valueOfUtf8(firstNonEmpty));
               }
@@ -1552,12 +1535,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                 Object o = comps.iterator().next().getValue();
                 if (o instanceof String)
                 {
-                  String aName =
-                    Utilities.getAttributeNameWithoutOptions(attrName);
-                  if (schema.hasAttributeType(aName.toLowerCase()))
+                  String aName = Utilities.getAttributeNameWithoutOptions(attrName);
+                  if (schema.hasAttributeType(aName))
                   {
-                    AttributeType attr = schema.getAttributeType(aName.toLowerCase());
-                    attributeTypes.add(attr);
+                    attributeTypes.add(schema.getAttributeType(aName));
                     attributeNames.add(attrName);
                     attributeValues.add(ByteString.valueOfUtf8((String) o));
                   }

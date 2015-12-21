@@ -40,10 +40,13 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RDN;
 
 /**
  * This class is used to match RDN patterns containing wildcards in either
@@ -173,7 +176,7 @@ public class PatternRDN
       AttributeType thatType = rdn.getAttributeType(0);
       if (!typePatterns[0].equals("*"))
       {
-        AttributeType thisType = DirectoryServer.getAttributeTypeOrNull(typePatterns[0].toLowerCase());
+        AttributeType thisType = DirectoryServer.getAttributeTypeOrNull(typePatterns[0]);
         if (thisType == null || !thisType.equals(thatType))
         {
           return false;
@@ -205,8 +208,7 @@ public class PatternRDN
 
     for (int i = 0; i < numValues; i++)
     {
-      String lowerName = typePatterns[i].toLowerCase();
-      AttributeType type = DirectoryServer.getAttributeTypeOrNull(lowerName);
+      AttributeType type = DirectoryServer.getAttributeTypeOrNull(typePatterns[i]);
       if (type == null)
       {
         return false;

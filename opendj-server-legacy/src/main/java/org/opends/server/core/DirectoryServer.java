@@ -2515,15 +2515,13 @@ public final class DirectoryServer
   /**
    * Retrieves the attribute type for the provided lowercase name or OID.
    *
-   * @param  lowerName  The lowercase attribute name or OID for the attribute
-   *                    type to retrieve.
-   *
+   * @param  attrName  The attribute name or OID for the attribute type to retrieve.
    * @return  The requested attribute type, or <CODE>null</CODE> if there is no
    *          attribute with the specified type defined in the server schema.
    */
-  public static AttributeType getAttributeTypeOrNull(String lowerName)
+  public static AttributeType getAttributeTypeOrNull(String attrName)
   {
-    AttributeType attrType = directoryServer.schema.getAttributeType(lowerName);
+    AttributeType attrType = directoryServer.schema.getAttributeType(attrName);
     return attrType.isPlaceHolder() ? null : attrType;
   }
 

@@ -232,11 +232,11 @@ public class AciEffectiveRights {
   {
     if (aclRights == null)
     {
-      aclRights = DirectoryServer.getAttributeTypeOrNull(aclRightsAttrStr.toLowerCase());
+      aclRights = DirectoryServer.getAttributeTypeOrNull(aclRightsAttrStr);
     }
     if (aclRightsInfo == null)
     {
-      aclRightsInfo = DirectoryServer.getAttributeTypeOrNull(aclRightsInfoAttrStr.toLowerCase());
+      aclRightsInfo = DirectoryServer.getAttributeTypeOrNull(aclRightsInfoAttrStr);
     }
     if (dnAttributeType == null)
     {
@@ -274,7 +274,7 @@ public class AciEffectiveRights {
         }
         else
         {
-          nonRightsAttrs.add(DirectoryServer.getAttributeTypeOrDefault(a.toLowerCase()));
+          nonRightsAttrs.add(DirectoryServer.getAttributeTypeOrDefault(a));
         }
       }
     }

@@ -26,8 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
@@ -43,6 +41,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.api.CompressedSchema;
@@ -4501,13 +4500,13 @@ public class Entry
           continue;
         }
 
-        String lowerName;
+        String name;
         Set<String> options;
         int semicolonPos = attrName.indexOf(';');
         if (semicolonPos > 0)
         {
           String tmpName = attrName.substring(0, semicolonPos);
-          lowerName = toLowerCase(tmpName);
+          name = tmpName;
           int nextPos = attrName.indexOf(';', semicolonPos+1);
           options = new HashSet<>();
           while (nextPos > 0)
@@ -4522,11 +4521,11 @@ public class Entry
         }
         else
         {
-          lowerName = toLowerCase(attrName);
+          name = attrName;
           options = null;
         }
 
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(lowerName);
+        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(name);
         if (attrType == null)
         {
           // Unrecognized attribute type - do best effort search.
@@ -4534,7 +4533,7 @@ public class Entry
             userAttributes.entrySet())
           {
             AttributeType t = e.getKey();
-            if (t.hasNameOrOID(lowerName))
+            if (t.hasNameOrOID(name))
             {
               mergeAttributeLists(e.getValue(), userAttrsCopy, t,
                   attrName, options, omitValues, omitReal, omitVirtual);
@@ -4546,7 +4545,7 @@ public class Entry
             operationalAttributes.entrySet())
           {
             AttributeType t = e.getKey();
-            if (t.hasNameOrOID(lowerName))
+            if (t.hasNameOrOID(name))
             {
               mergeAttributeLists(e.getValue(), operationalAttrsCopy,
                   t, attrName, options, omitValues, omitReal, omitVirtual);

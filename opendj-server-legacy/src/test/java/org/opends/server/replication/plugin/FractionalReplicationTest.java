@@ -680,14 +680,12 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       switch (fractionalMode)
       {
         case EXCLUDE_FRAC_MODE:
-          // Exclude mode: attributes should not be there, but OPTIONAL_ATTR
-          // attribute should
+          // Exclude mode: attributes should not be there, but OPTIONAL_ATTR attribute should
           for (String fracAttr : fractionalConf)
           {
             if (!first)
             {
-              assertFalse(newEntry.hasAttribute(DirectoryServer.
-                getAttributeTypeOrNull(fracAttr.toLowerCase())));
+              assertFalse(newEntry.hasAttribute(DirectoryServer.getAttributeTypeOrNull(fracAttr)));
             }
             first = false;
           }
@@ -704,8 +702,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             }
             first = false;
           }
-          assertFalse(newEntry.hasAttribute(DirectoryServer.
-                getAttributeTypeOrNull(OPTIONAL_ATTR.toLowerCase())));
+          assertFalse(newEntry.hasAttribute(DirectoryServer.getAttributeTypeOrNull(OPTIONAL_ATTR)));
           break;
         default:
           fail("Unexpected fractional mode.");
@@ -731,7 +728,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         assertTrue(entry.hasObjectClass(objectClass));
       }
 
-      // Go through each interesting attribute and check it has been modifed or
+      // Go through each interesting attribute and check it has been modified or
       // not according to the fractional mode
       boolean first = true;
       switch (fractionalMode)
@@ -743,8 +740,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           {
             if (!first)
             {
-              assertFalse(entry.hasAttribute(DirectoryServer.
-                getAttributeTypeOrNull(fracAttr.toLowerCase())));
+              assertFalse(entry.hasAttribute(DirectoryServer.getAttributeTypeOrNull(fracAttr)));
             }
             first = false;
           }
@@ -761,8 +757,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             }
             first = false;
           }
-          assertFalse(entry.hasAttribute(DirectoryServer.
-                getAttributeTypeOrNull(OPTIONAL_ATTR.toLowerCase())));
+          assertFalse(entry.hasAttribute(DirectoryServer.getAttributeTypeOrNull(OPTIONAL_ATTR)));
           break;
         default:
           fail("Unexpected fractional mode.");
@@ -981,7 +976,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private Entry waitTillEntryHasSynchroAttribute(String entryDN)
       throws Exception
   {
-    AttributeType synchroAttrType = DirectoryServer.getAttributeTypeOrNull(SYNCHRO_OPTIONAL_ATTR.toLowerCase());
+    AttributeType synchroAttrType = DirectoryServer.getAttributeTypeOrNull(SYNCHRO_OPTIONAL_ATTR);
     DN dn = DN.valueOf(entryDN);
 
     Entry entry = null;

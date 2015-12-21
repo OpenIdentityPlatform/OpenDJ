@@ -30,8 +30,8 @@ import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.core.DirectoryServer;
 
 /** Attribute type property definition. */
 public final class AttributeTypePropertyDefinition extends
@@ -156,13 +156,11 @@ public final class AttributeTypePropertyDefinition extends
 
 
 
-  /** {@inheritDoc} */
   @Override
-  public AttributeType decodeValue(String value)
-      throws PropertyException {
+  public AttributeType decodeValue(String value) throws PropertyException {
     ifNull(value);
 
-    String name = value.trim().toLowerCase();
+    String name = value.trim();
     AttributeType type = isCheckSchema
         ? DirectoryServer.getAttributeTypeOrNull(name)
         : DirectoryServer.getAttributeTypeOrDefault(name);
