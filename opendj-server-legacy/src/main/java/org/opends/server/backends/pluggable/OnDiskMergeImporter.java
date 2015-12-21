@@ -291,6 +291,11 @@ final class OnDiskMergeImporter
     private void rebuildIndex(EntryContainer entryContainer, String tmpDirectory, Set<String> indexesToRebuild,
         long totalEntries) throws Exception
     {
+      if (indexesToRebuild.isEmpty())
+      {
+        logger.info(NOTE_REBUILD_NOTHING_TO_REBUILD);
+        return;
+      }
       rootContainer.getStorage().close();
       final long availableMemory = calculateAvailableMemory();
       final int threadCount = Runtime.getRuntime().availableProcessors();
