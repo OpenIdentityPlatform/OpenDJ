@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static org.forgerock.opendj.ldap.Assertion.*;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -36,9 +38,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
-
-import static org.forgerock.opendj.ldap.Assertion.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * This class implements a default equality or approximate matching rule that
@@ -51,7 +50,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     }
 
     private static final class DefaultAssertion implements Assertion {
-        /** The ID of the DB index to use with this assertion.*/
+        /** The ID of the DB index to use with this assertion. */
         private final String indexID;
         private final ByteSequence normalizedAssertionValue;
 
@@ -72,7 +71,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     }
 
     final class DefaultIndexer implements Indexer {
-        /** The ID of the DB index to use with this indexer.*/
+        /** The ID of the DB index to use with this indexer. */
         private final String indexID;
 
         DefaultIndexer(String indexID) {

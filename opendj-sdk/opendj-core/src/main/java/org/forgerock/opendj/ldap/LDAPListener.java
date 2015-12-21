@@ -24,10 +24,7 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2012-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -115,9 +112,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      */
     private final LDAPListenerImpl impl;
 
-    /**
-     * Transport provider that provides the implementation of this listener.
-     */
+    /** Transport provider that provides the implementation of this listener. */
     private TransportProvider provider;
 
     /**
@@ -262,9 +257,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
         this.impl = provider.getLDAPListener(address, factory, options);
     }
 
-    /**
-     * Closes this LDAP connection listener.
-     */
+    /** Closes this LDAP connection listener. */
     @Override
     public void close() {
         impl.close();
