@@ -136,4 +136,16 @@ public class RebuildIndexTestCase
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
   }
+
+  @Test
+  public void testRebuildDegradedIndexShouldSucceedWithEmptyList()
+  {
+    final String[] args = {
+            "-f", configFilePath,
+            "-b", baseDN,
+            "--rebuildDegraded"
+    };
+    assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
+  }
+
 }
