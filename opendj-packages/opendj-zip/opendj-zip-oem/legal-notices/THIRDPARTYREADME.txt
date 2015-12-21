@@ -294,7 +294,7 @@ Copyright: Copyright 2005-2013 Akiban Technologies, Inc.
            Copyright 2014 SonarSource
            Portions Copyright 2015 ForgeRock AS.
 
-Version: org.apache.servicemix.bundles.javax-inject.jar (1_2)
+Version: org.apache.servicemix.bundles.javax-inject.jar (1.0.0.2)
 Copyright: Copyright 2009 The JSR-330 Expert Group
 
 Version: super-csv.jar (2.4.0)
