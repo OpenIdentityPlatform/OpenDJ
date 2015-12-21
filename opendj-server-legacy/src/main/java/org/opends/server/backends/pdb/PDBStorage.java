@@ -83,6 +83,7 @@ import com.persistit.Exchange;
 import com.persistit.Key;
 import com.persistit.Persistit;
 import com.persistit.Transaction;
+import com.persistit.Transaction.CommitPolicy;
 import com.persistit.Value;
 import com.persistit.Volume;
 import com.persistit.VolumeSpecification;
@@ -295,7 +296,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       {
         txn.begin();
         getNewExchange(treeName, true);
-        txn.commit();
+        txn.commit(commitPolicy);
       }
       catch (PersistitException e)
       {
@@ -315,7 +316,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         txn.begin();
         ex = getNewExchange(treeName, true);
         ex.removeTree();
-        txn.commit();
+        txn.commit(commitPolicy);
       }
       catch (PersistitException e)
       {
@@ -701,6 +702,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private final ServerContext serverContext;
   private final File backendDirectory;
+  private CommitPolicy commitPolicy;
   private AccessMode accessMode;
   private Persistit db;
   private Volume volume;
@@ -732,7 +734,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   {
     final Configuration dbCfg = buildConfiguration(AccessMode.READ_WRITE);
     getBufferPoolCfg(dbCfg).setMaximumMemory(IMPORT_DB_CACHE_SIZE);
-    dbCfg.setCommitPolicy(SOFT);
+    commitPolicy = SOFT;
     return dbCfg;
   }
 
@@ -762,7 +764,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       bufferPoolCfg.setMaximumMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
       memQuota.acquireMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
     }
-    dbCfg.setCommitPolicy(config.isDBTxnNoSync() ? SOFT : GROUP);
+    commitPolicy = config.isDBTxnNoSync() ? SOFT : GROUP;
     dbCfg.setJmxEnabled(false);
     return dbCfg;
   }
@@ -855,7 +857,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         try (final StorageImpl storageImpl = newStorageImpl())
         {
           final T result = operation.run(storageImpl);
-          txn.commit();
+          txn.commit(commitPolicy);
           return result;
         }
         catch (final StorageRuntimeException e)
@@ -905,7 +907,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         try (final StorageImpl storageImpl = newStorageImpl())
         {
           operation.run(storageImpl);
-          txn.commit();
+          txn.commit(commitPolicy);
           return;
         }
         catch (final StorageRuntimeException e)
@@ -1267,6 +1269,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
       registerMonitoredDirectory(cfg);
       config = cfg;
+      commitPolicy = config.isDBTxnNoSync() ? SOFT : GROUP;
     }
     catch (Exception e)
     {
