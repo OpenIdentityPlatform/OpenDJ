@@ -2980,6 +2980,7 @@ public final class StaticUtils
 
   /**
    * Returns true if the class is available in the classpath.
+   * @param className the string representing the class to check.
    * @return {@code true} if the class is available in the classpath and {@code false} otherwise.
    */
   public static boolean isClassAvailable(final String className)
