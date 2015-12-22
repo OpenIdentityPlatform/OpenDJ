@@ -325,29 +325,22 @@ public class LocalBackendBindOperation
   {
     LocalBackendWorkflowElement.removeAllDisallowedControls(bindDN, this);
 
-    List<Control> requestControls = getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (Control c : getRequestControls())
     {
-      for (Control c : requestControls)
+      final String oid = c.getOID();
+
+      if (OID_AUTHZID_REQUEST.equals(oid))
       {
-        final String  oid = c.getOID();
-
-        if (OID_AUTHZID_REQUEST.equals(oid))
-        {
-          returnAuthzID = true;
-        }
-        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
-        {
-          pwPolicyControlRequested = true;
-        }
-
-        // NYI -- Add support for additional controls.
-        else if (c.isCritical())
-        {
-          throw new DirectoryException(
-                         ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                         ERR_BIND_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
-        }
+        returnAuthzID = true;
+      }
+      else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
+      {
+        pwPolicyControlRequested = true;
+      }
+      else if (c.isCritical())
+      {
+        throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_BIND_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
       }
     }
   }
@@ -363,8 +356,7 @@ public class LocalBackendBindOperation
    */
   private boolean processSimpleBind() throws DirectoryException
   {
-    // See if this is an anonymous bind.  If so, then determine whether
-    // to allow it.
+    // See if this is an anonymous bind. If so, then determine whether to allow it.
     ByteString simplePassword = getSimplePassword();
     if (simplePassword == null || simplePassword.length() == 0)
     {

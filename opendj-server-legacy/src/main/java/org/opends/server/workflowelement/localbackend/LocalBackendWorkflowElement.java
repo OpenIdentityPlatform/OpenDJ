@@ -315,30 +315,25 @@ public class LocalBackendWorkflowElement
    */
   static void removeAllDisallowedControls(DN targetDN, Operation operation) throws DirectoryException
   {
-    List<Control> requestControls = operation.getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (Iterator<Control> iter = operation.getRequestControls().iterator(); iter.hasNext();)
     {
-      for (Iterator<Control> iter = requestControls.iterator(); iter.hasNext();)
+      final Control control = iter.next();
+      if (isProxyAuthzControl(control.getOID()))
       {
-        final Control control = iter.next();
-        if (isProxyAuthzControl(control.getOID()))
+        continue;
+      }
+
+      if (!getAccessControlHandler().isAllowed(targetDN, operation, control))
+      {
+        // As per RFC 4511 4.1.11.
+        if (control.isCritical())
         {
-          continue;
+          throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
         }
 
-        if (!getAccessControlHandler().isAllowed(targetDN, operation, control))
-        {
-          // As per RFC 4511 4.1.11.
-          if (control.isCritical())
-          {
-            throw new DirectoryException(
-                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
-          }
-
-          // We do not want the backend to process this non-critical control, so remove it.
-          iter.remove();
-        }
+        // We do not want the backend to process this non-critical control, so remove it.
+        iter.remove();
       }
     }
   }
@@ -354,28 +349,23 @@ public class LocalBackendWorkflowElement
    */
   static void evaluateProxyAuthControls(Operation operation) throws DirectoryException
   {
-    final List<Control> requestControls = operation.getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (Control control : operation.getRequestControls())
     {
-      for (Control control : requestControls)
+      final String oid = control.getOID();
+      if (isProxyAuthzControl(oid))
       {
-        final String oid = control.getOID();
-        if (isProxyAuthzControl(oid))
+        DN authDN = operation.getClientConnection().getAuthenticationInfo().getAuthenticationDN();
+        if (getAccessControlHandler().isAllowed(authDN, operation, control))
         {
-          if (getAccessControlHandler().isAllowed(operation.getClientConnection()
-                  .getAuthenticationInfo().getAuthenticationDN(), operation, control))
+          processProxyAuthControls(operation, oid);
+        }
+        else
+        {
+          // As per RFC 4511 4.1.11.
+          if (control.isCritical())
           {
-            processProxyAuthControls(operation, oid);
-          }
-          else
-          {
-            // As per RFC 4511 4.1.11.
-            if (control.isCritical())
-            {
-              throw new DirectoryException(
-                      ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                      ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
-            }
+            throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
           }
         }
       }

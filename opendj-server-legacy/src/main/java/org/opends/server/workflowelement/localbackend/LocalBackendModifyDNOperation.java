@@ -37,6 +37,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
@@ -360,8 +361,7 @@ public class LocalBackendModifyDNOperation
       // to the client.
       try
       {
-        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-            .isAllowed(this))
+        if (!getAccessControlHandler().isAllowed(this))
         {
           setResultCodeAndMessageNoInfoDisclosure(currentEntry, entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -527,103 +527,92 @@ public class LocalBackendModifyDNOperation
     LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
-    final List<Control> requestControls = getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (ListIterator<Control> iter = getRequestControls().listIterator(); iter.hasNext();)
     {
-      for (ListIterator<Control> iter = requestControls.listIterator(); iter.hasNext();)
+      final Control c = iter.next();
+      final String oid = c.getOID();
+
+      if (OID_LDAP_ASSERTION.equals(oid))
       {
-        final Control c = iter.next();
-        final String  oid = c.getOID();
+        LDAPAssertionRequestControl assertControl = getRequestControl(LDAPAssertionRequestControl.DECODER);
 
-        if (OID_LDAP_ASSERTION.equals(oid))
+        SearchFilter filter;
+        try
         {
-          LDAPAssertionRequestControl assertControl =
-                getRequestControl(LDAPAssertionRequestControl.DECODER);
+          filter = assertControl.getSearchFilter();
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-          SearchFilter filter;
-          try
-          {
-            filter = assertControl.getSearchFilter();
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          throw newDirectoryException(currentEntry, de.getResultCode(),
+              ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
+        }
 
-            throw newDirectoryException(currentEntry, de.getResultCode(),
-                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
-          }
-
-          // Check if the current user has permission to make
-          // this determination.
-          if (!AccessControlConfigManager.getInstance().
-            getAccessControlHandler().isAllowed(this, currentEntry, filter))
-          {
-            throw new DirectoryException(
-              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        // Check if the current user has permission to make this determination.
+        if (!getAccessControlHandler().isAllowed(this, currentEntry, filter))
+        {
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
               ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+        }
+
+        try
+        {
+          if (!filter.matchesEntry(currentEntry))
+          {
+            throw newDirectoryException(currentEntry, ResultCode.ASSERTION_FAILED,
+                ERR_MODDN_ASSERTION_FAILED.get(entryDN));
+          }
+        }
+        catch (DirectoryException de)
+        {
+          if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
+          {
+            throw de;
           }
 
-          try
-          {
-            if (!filter.matchesEntry(currentEntry))
-            {
-              throw newDirectoryException(currentEntry,
-                  ResultCode.ASSERTION_FAILED,
-                  ERR_MODDN_ASSERTION_FAILED.get(entryDN));
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
-            {
-              throw de;
-            }
+          logger.traceException(de);
 
-            logger.traceException(de);
-
-            throw newDirectoryException(currentEntry, de.getResultCode(),
-                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
-          }
+          throw newDirectoryException(currentEntry, de.getResultCode(),
+              ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
         }
-        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
+      }
+      else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
+      {
+        noOp = true;
+      }
+      else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
+      {
+        preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
+        iter.set(preReadRequest);
+      }
+      else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
+      {
+        if (c instanceof LDAPPostReadRequestControl)
         {
-          noOp = true;
+          postReadRequest = (LDAPPostReadRequestControl) c;
         }
-        else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
+        else
         {
-          preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
-          iter.set(preReadRequest);
+          postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
+          iter.set(postReadRequest);
         }
-        else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
-        {
-          if (c instanceof LDAPPostReadRequestControl)
-          {
-            postReadRequest = (LDAPPostReadRequestControl) c;
-          }
-          else
-          {
-            postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
-            iter.set(postReadRequest);
-          }
-        }
-        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
-        {
-          continue;
-        }
-        else if (c.isCritical()
-            && (backend == null || !backend.supportsControl(oid)))
-        {
-          throw new DirectoryException(
-              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-              ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
-        }
+      }
+      else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+      {
+        continue;
+      }
+      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      {
+        throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
       }
     }
   }
 
-  private DN getName(Entry e)
+  private AccessControlHandler<?> getAccessControlHandler()
   {
-    return e != null ? e.getName() : DN.rootDN();
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
   }
 
   /**

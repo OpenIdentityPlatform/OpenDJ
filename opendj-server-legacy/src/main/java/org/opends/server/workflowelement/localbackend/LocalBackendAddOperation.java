@@ -980,91 +980,78 @@ public class LocalBackendAddOperation
     LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(parentDN, this);
 
-    List<Control> requestControls = getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (Control c : getRequestControls())
     {
-      for (Control c : requestControls)
+      final String oid = c.getOID();
+
+      if (OID_LDAP_ASSERTION.equals(oid))
       {
-        final String  oid = c.getOID();
+        // RFC 4528 mandates support for Add operation basically
+        // suggesting an assertion on self. As daft as it may be
+        // we gonna have to support this for RFC compliance.
+        LDAPAssertionRequestControl assertControl = getRequestControl(LDAPAssertionRequestControl.DECODER);
 
-        if (OID_LDAP_ASSERTION.equals(oid))
+        SearchFilter filter;
+        try
         {
-          // RFC 4528 mandates support for Add operation basically
-          // suggesting an assertion on self. As daft as it may be
-          // we gonna have to support this for RFC compliance.
-          LDAPAssertionRequestControl assertControl =
-            getRequestControl(LDAPAssertionRequestControl.DECODER);
+          filter = assertControl.getSearchFilter();
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-          SearchFilter filter;
-          try
+          throw newDirectoryException(entryDN, de.getResultCode(),
+              ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
+        }
+
+        // Check if the current user has permission to make this determination.
+        if (!getAccessControlHandler().isAllowed(this, entry, filter))
+        {
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+        }
+
+        try
+        {
+          if (!filter.matchesEntry(entry))
           {
-            filter = assertControl.getSearchFilter();
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            throw newDirectoryException(entryDN, de.getResultCode(),
-                ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    entryDN, de.getMessageObject()));
-          }
-
-          // Check if the current user has permission to make this determination.
-          if (!getAccessControlHandler().isAllowed(this, entry, filter))
-          {
-            throw new DirectoryException(
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
-          }
-
-          try
-          {
-            if (!filter.matchesEntry(entry))
-            {
-              throw newDirectoryException(entryDN, ResultCode.ASSERTION_FAILED,
-                  ERR_ADD_ASSERTION_FAILED.get(entryDN));
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
-            {
-              throw de;
-            }
-
-            logger.traceException(de);
-
-            throw newDirectoryException(entryDN, de.getResultCode(),
-                ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    entryDN, de.getMessageObject()));
+            throw newDirectoryException(entryDN, ResultCode.ASSERTION_FAILED, ERR_ADD_ASSERTION_FAILED.get(entryDN));
           }
         }
-        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
+        catch (DirectoryException de)
         {
-          noOp = true;
+          if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
+          {
+            throw de;
+          }
+
+          logger.traceException(de);
+
+          throw newDirectoryException(entryDN, de.getResultCode(),
+              ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
         }
-        else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
-        {
-          postReadRequest =
-                getRequestControl(LDAPPostReadRequestControl.DECODER);
-        }
-        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
-        {
-          continue;
-        }
-        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
-        {
-          // We don't need to do anything here because it's already handled
-          // in LocalBackendAddOperation.handlePasswordPolicy().
-        }
-        // NYI -- Add support for additional controls.
-        else if (c.isCritical()
-            && (backend == null || !backend.supportsControl(oid)))
-        {
-          throw newDirectoryException(entryDN,
-              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-              ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
-        }
+      }
+      else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
+      {
+        noOp = true;
+      }
+      else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
+      {
+        postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
+      }
+      else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+      {
+        continue;
+      }
+      else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
+      {
+        // We don't need to do anything here because it's already handled
+        // in LocalBackendAddOperation.handlePasswordPolicy().
+      }
+      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      {
+        throw newDirectoryException(entryDN, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
       }
     }
   }

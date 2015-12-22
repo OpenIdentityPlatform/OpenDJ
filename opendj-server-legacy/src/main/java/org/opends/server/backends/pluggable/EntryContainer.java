@@ -2352,15 +2352,11 @@ public class EntryContainer
    */
   private static boolean isManageDsaITOperation(Operation operation)
   {
-    List<Control> controls = operation.getRequestControls();
-    if (controls != null)
+    for (Control control : operation.getRequestControls())
     {
-      for (Control control : controls)
+      if (ServerConstants.OID_MANAGE_DSAIT_CONTROL.equals(control.getOID()))
       {
-        if (ServerConstants.OID_MANAGE_DSAIT_CONTROL.equals(control.getOID()))
-        {
-          return true;
-        }
+        return true;
       }
     }
     return false;

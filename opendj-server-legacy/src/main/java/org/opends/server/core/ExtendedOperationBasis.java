@@ -38,9 +38,16 @@ import java.util.List;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.types.*;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PreOperationExtendedOperation;
@@ -303,53 +310,44 @@ public class ExtendedOperationBasis
 
       // Look at the controls included in the request and ensure that all
       // critical controls are supported by the handler.
-      List<Control> requestControls = getRequestControls();
-      if (requestControls != null && !requestControls.isEmpty())
+      for (Iterator<Control> iter = getRequestControls().iterator(); iter.hasNext();)
       {
-        for (Iterator<Control> iter = requestControls.iterator(); iter
-            .hasNext();)
+        final Control c = iter.next();
+        try
         {
-          final Control c = iter.next();
-          try
+          if (!getAccessControlHandler().isAllowed(getAuthorizationDN(), this, c))
           {
-            if (!AccessControlConfigManager.getInstance()
-                .getAccessControlHandler()
-                .isAllowed(getAuthorizationDN(), this, c))
+            // As per RFC 4511 4.1.11.
+            if (c.isCritical())
             {
-              // As per RFC 4511 4.1.11.
-              if (c.isCritical())
-              {
-                setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
-                appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS
-                    .get(c.getOID()));
-              }
-              else
-              {
-                // We don't want to process this non-critical control, so
-                // remove it.
-                iter.remove();
-                continue;
-              }
+              setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+              appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(c.getOID()));
+            }
+            else
+            {
+              // We don't want to process this non-critical control, so remove it.
+              iter.remove();
+              continue;
             }
           }
-          catch (DirectoryException e)
-          {
-            setResultCode(e.getResultCode());
-            appendErrorMessage(e.getMessageObject());
-            return;
-          }
+        }
+        catch (DirectoryException e)
+        {
+          setResultCode(e.getResultCode());
+          appendErrorMessage(e.getMessageObject());
+          return;
+        }
 
-          if (! c.isCritical())
-          {
-            // The control isn't critical, so we don't care if it's supported
-            // or not.
-          }
-          else if (! handler.supportsControl(c.getOID()))
-          {
-            setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
-            appendErrorMessage(ERR_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL.get(requestOID, c.getOID()));
-            return;
-          }
+        if (!c.isCritical())
+        {
+          // The control isn't critical, so we don't care if it's supported
+          // or not.
+        }
+        else if (!handler.supportsControl(c.getOID()))
+        {
+          setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+          appendErrorMessage(ERR_EXTENDED_UNSUPPORTED_CRITICAL_CONTROL.get(requestOID, c.getOID()));
+          return;
         }
       }
 
@@ -362,7 +360,7 @@ public class ExtendedOperationBasis
       // and any other controls specified.
       try
       {
-        if (!AccessControlConfigManager.getInstance().getAccessControlHandler().isAllowed(this))
+        if (!getAccessControlHandler().isAllowed(this))
         {
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(requestOID));
@@ -438,7 +436,11 @@ public class ExtendedOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
+  private AccessControlHandler<?> getAccessControlHandler()
+  {
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
+  }
+
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -450,6 +452,4 @@ public class ExtendedOperationBasis
     buffer.append(requestOID);
     buffer.append(")");
   }
-
 }
-

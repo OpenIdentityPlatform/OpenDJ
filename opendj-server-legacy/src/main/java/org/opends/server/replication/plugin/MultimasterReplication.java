@@ -156,10 +156,9 @@ public class MultimasterReplication
          * running later do not generate CSN, solve conflicts and forward the
          * operation to the replication server.
          */
-        final List<Control> controls = op.getRequestControls();
-        for (Iterator<Control> iter = controls.iterator(); iter.hasNext();)
+        for (Iterator<Control> it = op.getRequestControls().iterator(); it.hasNext();)
         {
-          Control c = iter.next();
+          Control c = it.next();
           if (OID_REPLICATION_REPAIR_CONTROL.equals(c.getOID()))
           {
             op.setSynchronizationOperation(true);
@@ -169,7 +168,7 @@ public class MultimasterReplication
             processed and the local backend will fail if it finds a control that
             it does not know about and that is marked as critical.
             */
-            iter.remove();
+            it.remove();
             return null;
           }
         }

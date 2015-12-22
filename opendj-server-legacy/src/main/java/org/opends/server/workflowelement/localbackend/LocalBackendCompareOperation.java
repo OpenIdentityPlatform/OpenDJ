@@ -318,73 +318,62 @@ public class LocalBackendCompareOperation
     LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
-    List<Control> requestControls = getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (Control c : getRequestControls())
     {
-      for (Control c : requestControls)
+      final String oid = c.getOID();
+
+      if (OID_LDAP_ASSERTION.equals(oid))
       {
-        final String  oid = c.getOID();
+        LDAPAssertionRequestControl assertControl = getRequestControl(LDAPAssertionRequestControl.DECODER);
 
-        if (OID_LDAP_ASSERTION.equals(oid))
+        SearchFilter filter;
+        try
         {
-          LDAPAssertionRequestControl assertControl =
-                getRequestControl(LDAPAssertionRequestControl.DECODER);
+          filter = assertControl.getSearchFilter();
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-          SearchFilter filter;
-          try
-          {
-            filter = assertControl.getSearchFilter();
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          throw newDirectoryException(entry, de.getResultCode(),
+              ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
+        }
 
-            throw newDirectoryException(entry, de.getResultCode(),
-                ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
-          }
-
-          // Check if the current user has permission to make this determination.
-          if (!getAccessControlHandler().isAllowed(this, entry, filter))
-          {
-            throw new DirectoryException(
-              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        // Check if the current user has permission to make this determination.
+        if (!getAccessControlHandler().isAllowed(this, entry, filter))
+        {
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
               ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
-          }
-
-          try
-          {
-            if (!filter.matchesEntry(entry))
-            {
-              throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED,
-                  ERR_COMPARE_ASSERTION_FAILED.get(entryDN));
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
-            {
-              throw de;
-            }
-
-            logger.traceException(de);
-
-            throw newDirectoryException(entry, de.getResultCode(),
-                ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
-          }
         }
-        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+
+        try
         {
-          continue;
+          if (!filter.matchesEntry(entry))
+          {
+            throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED, ERR_COMPARE_ASSERTION_FAILED.get(entryDN));
+          }
         }
-
-        // NYI -- Add support for additional controls.
-        else if (c.isCritical()
-            && (backend == null || !backend.supportsControl(oid)))
+        catch (DirectoryException de)
         {
-          throw new DirectoryException(
-              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-              ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
+          if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
+          {
+            throw de;
+          }
+
+          logger.traceException(de);
+
+          throw newDirectoryException(entry, de.getResultCode(),
+              ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
         }
+      }
+      else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+      {
+        continue;
+      }
+      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      {
+        throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_COMPARE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
       }
     }
   }

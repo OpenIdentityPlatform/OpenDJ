@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -167,16 +168,7 @@ public abstract class AbstractOperation
     this.operationID      = operationID;
     this.messageID        = messageID;
     this.useNanoTime = DirectoryServer.getUseNanoTime();
-
-    if (requestControls == null)
-    {
-      this.requestControls = new ArrayList<>(0);
-    }
-    else
-    {
-      this.requestControls  = requestControls;
-    }
-
+    this.requestControls = requestControls != null ? requestControls : new ArrayList<Control>(0);
     authorizationEntry = clientConnection.getAuthenticationInfo().getAuthorizationEntry();
   }
 
@@ -225,16 +217,16 @@ public abstract class AbstractOperation
       ControlDecoder<T> d) throws DirectoryException
   {
     String oid = d.getOID();
-    for(int i = 0; i < requestControls.size(); i++)
+    for (ListIterator<Control> it = requestControls.listIterator(); it.hasNext();)
     {
-      Control c = requestControls.get(i);
+      Control c = it.next();
       if(c.getOID().equals(oid))
       {
         if(c instanceof LDAPControl)
         {
           T decodedControl = d.decode(c.isCritical(),
               ((LDAPControl) c).getValue());
-          requestControls.set(i, decodedControl);
+          it.set(decodedControl);
           return decodedControl;
         }
         else

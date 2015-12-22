@@ -632,104 +632,92 @@ public class LocalBackendModifyOperation
     LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
-    List<Control> requestControls = getRequestControls();
-    if (requestControls != null && !requestControls.isEmpty())
+    for (ListIterator<Control> iter = getRequestControls().listIterator(); iter.hasNext();)
     {
-      for (ListIterator<Control> iter = requestControls.listIterator(); iter.hasNext();)
+      final Control c = iter.next();
+      final String oid = c.getOID();
+
+      if (OID_LDAP_ASSERTION.equals(oid))
       {
-        final Control c = iter.next();
-        final String  oid = c.getOID();
+        LDAPAssertionRequestControl assertControl = getRequestControl(LDAPAssertionRequestControl.DECODER);
 
-        if (OID_LDAP_ASSERTION.equals(oid))
+        SearchFilter filter;
+        try
         {
-          LDAPAssertionRequestControl assertControl =
-                getRequestControl(LDAPAssertionRequestControl.DECODER);
+          filter = assertControl.getSearchFilter();
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-          SearchFilter filter;
-          try
-          {
-            filter = assertControl.getSearchFilter();
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          throw newDirectoryException(currentEntry, de.getResultCode(),
+              ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
+        }
 
-            throw newDirectoryException(currentEntry, de.getResultCode(),
-                ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    entryDN, de.getMessageObject()));
-          }
-
-          // Check if the current user has permission to make this determination.
-          if (!getAccessControlHandler().isAllowed(this, currentEntry, filter))
-          {
-            throw new DirectoryException(
-              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        // Check if the current user has permission to make this determination.
+        if (!getAccessControlHandler().isAllowed(this, currentEntry, filter))
+        {
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
               ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+        }
+
+        try
+        {
+          if (!filter.matchesEntry(currentEntry))
+          {
+            throw newDirectoryException(currentEntry, ResultCode.ASSERTION_FAILED,
+                ERR_MODIFY_ASSERTION_FAILED.get(entryDN));
+          }
+        }
+        catch (DirectoryException de)
+        {
+          if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
+          {
+            throw de;
           }
 
-          try
-          {
-            if (!filter.matchesEntry(currentEntry))
-            {
-              throw newDirectoryException(currentEntry,
-                  ResultCode.ASSERTION_FAILED,
-                  ERR_MODIFY_ASSERTION_FAILED.get(entryDN));
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
-            {
-              throw de;
-            }
+          logger.traceException(de);
 
-            logger.traceException(de);
-
-            throw newDirectoryException(currentEntry, de.getResultCode(),
-                ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                    entryDN, de.getMessageObject()));
-          }
+          throw newDirectoryException(currentEntry, de.getResultCode(),
+              ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
         }
-        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
+      }
+      else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
+      {
+        noOp = true;
+      }
+      else if (OID_PERMISSIVE_MODIFY_CONTROL.equals(oid))
+      {
+        permissiveModify = true;
+      }
+      else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
+      {
+        preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
+      }
+      else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
+      {
+        if (c instanceof LDAPPostReadRequestControl)
         {
-          noOp = true;
+          postReadRequest = (LDAPPostReadRequestControl) c;
         }
-        else if (OID_PERMISSIVE_MODIFY_CONTROL.equals(oid))
+        else
         {
-          permissiveModify = true;
+          postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
+          iter.set(postReadRequest);
         }
-        else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
-        {
-          preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
-        }
-        else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
-        {
-          if (c instanceof LDAPPostReadRequestControl)
-          {
-            postReadRequest = (LDAPPostReadRequestControl) c;
-          }
-          else
-          {
-            postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
-            iter.set(postReadRequest);
-          }
-        }
-        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
-        {
-          continue;
-        }
-        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
-        {
-          pwPolicyControlRequested = true;
-        }
-        // NYI -- Add support for additional controls.
-        else if (c.isCritical()
-            && (backend == null || !backend.supportsControl(oid)))
-        {
-          throw newDirectoryException(currentEntry,
-              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-              ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
-        }
+      }
+      else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+      {
+        continue;
+      }
+      else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
+      {
+        pwPolicyControlRequested = true;
+      }
+      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      {
+        throw newDirectoryException(currentEntry, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
       }
     }
   }

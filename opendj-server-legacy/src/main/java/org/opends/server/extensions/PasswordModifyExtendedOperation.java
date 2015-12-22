@@ -37,7 +37,13 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -54,7 +60,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.IdentityMapper;
+import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.core.DirectoryServer;
@@ -64,8 +74,20 @@ import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.*;
+import org.opends.server.types.AccountStatusNotification;
+import org.opends.server.types.AccountStatusNotificationProperty;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager.DNLock;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Privilege;
 
 /**
  * This class implements the password modify extended operation defined in RFC
@@ -167,20 +189,16 @@ public class PasswordModifyExtendedOperation
     // Look at the set of controls included in the request, if there are any.
     boolean                   noOpRequested        = false;
     boolean                   pwPolicyRequested    = false;
-    List<Control> controls = operation.getRequestControls();
-    if (controls != null)
+    for (Control c : operation.getRequestControls())
     {
-      for (Control c : controls)
+      String oid = c.getOID();
+      if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
       {
-        String oid = c.getOID();
-        if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
-        {
-          noOpRequested = true;
-        }
-        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
-        {
-          pwPolicyRequested = true;
-        }
+        noOpRequested = true;
+      }
+      else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
+      {
+        pwPolicyRequested = true;
       }
     }
 

@@ -26,7 +26,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -285,138 +284,117 @@ public class LocalBackendSearchOperation
     LocalBackendWorkflowElement.evaluateProxyAuthControls(this);
     LocalBackendWorkflowElement.removeAllDisallowedControls(baseDN, this);
 
-    List<Control> requestControls  = getRequestControls();
-    if (requestControls != null && ! requestControls.isEmpty())
+    for (Control c : getRequestControls())
     {
-      for (Control c : requestControls)
+      final String oid = c.getOID();
+
+      if (OID_LDAP_ASSERTION.equals(oid))
       {
-        final String  oid = c.getOID();
+        LDAPAssertionRequestControl assertControl = getRequestControl(LDAPAssertionRequestControl.DECODER);
 
-        if (OID_LDAP_ASSERTION.equals(oid))
+        SearchFilter assertionFilter;
+        try
         {
-          LDAPAssertionRequestControl assertControl =
-                getRequestControl(LDAPAssertionRequestControl.DECODER);
+          assertionFilter = assertControl.getSearchFilter();
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-          SearchFilter assertionFilter;
-          try
-          {
-            assertionFilter = assertControl.getSearchFilter();
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          throw new DirectoryException(de.getResultCode(),
+              ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(de.getMessageObject()), de);
+        }
 
-            throw new DirectoryException(de.getResultCode(),
-                           ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                de.getMessageObject()), de);
-          }
+        Entry entry;
+        try
+        {
+          entry = DirectoryServer.getEntry(baseDN);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-          Entry entry;
-          try
-          {
-            entry = DirectoryServer.getEntry(baseDN);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          throw new DirectoryException(de.getResultCode(),
+              ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(de.getMessageObject()));
+        }
 
-            throw new DirectoryException(de.getResultCode(),
-                           ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
-                                de.getMessageObject()));
-          }
+        if (entry == null)
+        {
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
+        }
 
-          if (entry == null)
-          {
-            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                           ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
-          }
-
-          // Check if the current user has permission to make this determination.
-          if (!getAccessControlHandler().isAllowed(this, entry, assertionFilter))
-          {
-            throw new DirectoryException(
-              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        // Check if the current user has permission to make this determination.
+        if (!getAccessControlHandler().isAllowed(this, entry, assertionFilter))
+        {
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
               ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
-          }
+        }
 
-          try {
-            if (! assertionFilter.matchesEntry(entry))
-            {
-              throw new DirectoryException(ResultCode.ASSERTION_FAILED,
-                                           ERR_SEARCH_ASSERTION_FAILED.get());
-            }
-          }
-          catch (DirectoryException de)
+        try
+        {
+          if (!assertionFilter.matchesEntry(entry))
           {
-            if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
-            {
-              throw de;
-            }
-
-            logger.traceException(de);
-
-            throw new DirectoryException(de.getResultCode(),
-                           ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                de.getMessageObject()), de);
+            throw new DirectoryException(ResultCode.ASSERTION_FAILED, ERR_SEARCH_ASSERTION_FAILED.get());
           }
         }
-        else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+        catch (DirectoryException de)
         {
-          continue;
-        }
-        else if (OID_PERSISTENT_SEARCH.equals(oid))
-        {
-          final PersistentSearchControl ctrl =
-              getRequestControl(PersistentSearchControl.DECODER);
+          if (de.getResultCode() == ResultCode.ASSERTION_FAILED)
+          {
+            throw de;
+          }
 
-          persistentSearch = new PersistentSearch(this,
-              ctrl.getChangeTypes(), ctrl.getChangesOnly(), ctrl.getReturnECs());
-        }
-        else if (OID_LDAP_SUBENTRIES.equals(oid))
-        {
-          SubentriesControl subentriesControl =
-                  getRequestControl(SubentriesControl.DECODER);
-          setReturnSubentriesOnly(subentriesControl.getVisibility());
-        }
-        else if (OID_LDUP_SUBENTRIES.equals(oid))
-        {
-          // Support for legacy draft-ietf-ldup-subentry.
-          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
-              "obsoleteSubentryControl"));
+          logger.traceException(de);
 
-          setReturnSubentriesOnly(true);
+          throw new DirectoryException(de.getResultCode(),
+              ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(de.getMessageObject()), de);
         }
-        else if (OID_MATCHED_VALUES.equals(oid))
-        {
-          MatchedValuesControl matchedValuesControl =
-                getRequestControl(MatchedValuesControl.DECODER);
-          setMatchedValuesControl(matchedValuesControl);
-        }
-        else if (OID_ACCOUNT_USABLE_CONTROL.equals(oid))
-        {
-          setIncludeUsableControl(true);
-        }
-        else if (OID_REAL_ATTRS_ONLY.equals(oid))
-        {
-          setRealAttributesOnly(true);
-        }
-        else if (OID_VIRTUAL_ATTRS_ONLY.equals(oid))
-        {
-          setVirtualAttributesOnly(true);
-        }
-        else if (OID_GET_EFFECTIVE_RIGHTS.equals(oid) &&
-          DirectoryServer.isSupportedControl(OID_GET_EFFECTIVE_RIGHTS))
-        {
-          // Do nothing here and let AciHandler deal with it.
-        }
+      }
+      else if (LocalBackendWorkflowElement.isProxyAuthzControl(oid))
+      {
+        continue;
+      }
+      else if (OID_PERSISTENT_SEARCH.equals(oid))
+      {
+        final PersistentSearchControl ctl = getRequestControl(PersistentSearchControl.DECODER);
+        persistentSearch = new PersistentSearch(this, ctl.getChangeTypes(), ctl.getChangesOnly(), ctl.getReturnECs());
+      }
+      else if (OID_LDAP_SUBENTRIES.equals(oid))
+      {
+        SubentriesControl subentriesControl = getRequestControl(SubentriesControl.DECODER);
+        setReturnSubentriesOnly(subentriesControl.getVisibility());
+      }
+      else if (OID_LDUP_SUBENTRIES.equals(oid))
+      {
+        // Support for legacy draft-ietf-ldup-subentry.
+        addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(), "obsoleteSubentryControl"));
 
-        // NYI -- Add support for additional controls.
-        else if (c.isCritical() && !backendSupportsControl(oid))
-        {
-          throw new DirectoryException(
-              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-              ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
-        }
+        setReturnSubentriesOnly(true);
+      }
+      else if (OID_MATCHED_VALUES.equals(oid))
+      {
+        setMatchedValuesControl(getRequestControl(MatchedValuesControl.DECODER));
+      }
+      else if (OID_ACCOUNT_USABLE_CONTROL.equals(oid))
+      {
+        setIncludeUsableControl(true);
+      }
+      else if (OID_REAL_ATTRS_ONLY.equals(oid))
+      {
+        setRealAttributesOnly(true);
+      }
+      else if (OID_VIRTUAL_ATTRS_ONLY.equals(oid))
+      {
+        setVirtualAttributesOnly(true);
+      }
+      else if (OID_GET_EFFECTIVE_RIGHTS.equals(oid) && DirectoryServer.isSupportedControl(OID_GET_EFFECTIVE_RIGHTS))
+      {
+        // Do nothing here and let AciHandler deal with it.
+      }
+      else if (c.isCritical() && !backendSupportsControl(oid))
+      {
+        throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+            ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
       }
     }
   }
