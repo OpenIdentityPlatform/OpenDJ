@@ -954,11 +954,11 @@ final class OnDiskMergeImporter
 
     void beforeImport(EntryContainer entryContainer)
     {
-      clearEntryContainerTrees(entryContainer);
+      entryContainer.delete(asWriteableTransaction(importer));
       visitIndexes(entryContainer, setTrust(false, importer));
     }
 
-    abstract Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk chunk, PhaseTwoProgressReporter progressReporter);
+    abstract Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk source, PhaseTwoProgressReporter progressReporter);
 
     void afterImport(EntryContainer entryContainer)
     {
@@ -979,30 +979,36 @@ final class OnDiskMergeImporter
           newCollector(entryContainers.get(treeName.getBaseDN()), treeName), sorter);
     }
 
-    final Callable<Void> newChunkCopierTask(TreeName treeName, final Chunk chunk,
+    final Callable<Void> newChunkCopierTask(TreeName treeName, final Chunk source,
         PhaseTwoProgressReporter progressReporter)
     {
-      return new ChunkCopierTask(progressReporter, chunk, treeName, importer);
+      return new ChunkCopierTask(progressReporter, source, treeName, importer);
     }
 
-    final Callable<Void> newDN2IDImporterTask(TreeName treeName, final Chunk chunk,
+    final Callable<Void> newDN2IDImporterTask(TreeName treeName, final Chunk source,
         PhaseTwoProgressReporter progressReporter, boolean dn2idAlreadyImported)
     {
       final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
       final ID2ChildrenCount id2count = entryContainer.getID2ChildrenCount();
 
-      return new DN2IDImporterTask(progressReporter, importer, tempDir, bufferPool, entryContainer.getDN2ID(), chunk,
+      return new DN2IDImporterTask(progressReporter, importer, tempDir, bufferPool, entryContainer.getDN2ID(), source,
           id2count, newCollector(entryContainer, id2count.getName()), dn2idAlreadyImported);
     }
 
-    static final Callable<Void> newFlushTask(final Chunk chunk)
+    final Callable<Void> newVLVIndexImporterTask(VLVIndex vlvIndex, final Chunk source,
+        PhaseTwoProgressReporter progressReporter)
+    {
+      return new VLVIndexImporterTask(progressReporter, source, vlvIndex, importer);
+    }
+
+    static final Callable<Void> newFlushTask(final Chunk source)
     {
       return new Callable<Void>()
       {
         @Override
         public Void call() throws Exception
         {
-          try (final MeteredCursor<ByteString, ByteString> unusued = chunk.flip())
+          try (final MeteredCursor<ByteString, ByteString> unusued = source.flip())
           {
             // force flush
           }
@@ -1042,18 +1048,24 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public Callable<Void> newPhaseTwoTask(TreeName treeName, final Chunk chunk,
+    public Callable<Void> newPhaseTwoTask(TreeName treeName, final Chunk source,
         PhaseTwoProgressReporter progressReporter)
     {
+      final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
+
       if (isID2Entry(treeName))
       {
-        return newFlushTask(chunk);
+        return newFlushTask(source);
       }
       else if (isDN2ID(treeName))
       {
-        return newDN2IDImporterTask(treeName, chunk, progressReporter, false);
+        return newDN2IDImporterTask(treeName, source, progressReporter, false);
       }
-      return newChunkCopierTask(treeName, chunk, progressReporter);
+      else if (isVLVIndex(entryContainer, treeName))
+      {
+        return newVLVIndexImporterTask(getVLVIndex(entryContainer, treeName), source, progressReporter);
+      }
+      return newChunkCopierTask(treeName, source, progressReporter);
     }
   }
 
@@ -1089,18 +1101,24 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public Callable<Void> newPhaseTwoTask(TreeName treeName, final Chunk chunk,
+    public Callable<Void> newPhaseTwoTask(TreeName treeName, final Chunk source,
         PhaseTwoProgressReporter progressReporter)
     {
+      final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
+
       if (isID2Entry(treeName))
       {
-        return newFlushTask(chunk);
+        return newFlushTask(source);
       }
       else if (isDN2ID(treeName))
       {
-        return newDN2IDImporterTask(treeName, chunk, progressReporter, true);
+        return newDN2IDImporterTask(treeName, source, progressReporter, true);
       }
-      return newChunkCopierTask(treeName, chunk, progressReporter);
+      else if (isVLVIndex(entryContainer, treeName))
+      {
+        return newVLVIndexImporterTask(getVLVIndex(entryContainer, treeName), source, progressReporter);
+      }
+      return newChunkCopierTask(treeName, source, progressReporter);
     }
 
     @Override
@@ -1161,7 +1179,7 @@ final class OnDiskMergeImporter
     void beforeImport(EntryContainer entryContainer)
     {
       visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(false, importer)));
-      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, clearDatabase(importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, deleteDatabase(importer)));
     }
 
     @Override
@@ -1182,18 +1200,24 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk chunk, PhaseTwoProgressReporter progressReporter)
+    public Callable<Void> newPhaseTwoTask(TreeName treeName, Chunk source, PhaseTwoProgressReporter progressReporter)
     {
+      final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
+
       if (indexesToRebuild.contains(treeName.getIndexId().toLowerCase()))
       {
         if (isDN2ID(treeName))
         {
-          return newDN2IDImporterTask(treeName, chunk, progressReporter, false);
+          return newDN2IDImporterTask(treeName, source, progressReporter, false);
         }
-        return newChunkCopierTask(treeName, chunk, progressReporter);
+        else if (isVLVIndex(entryContainer, treeName))
+        {
+          return newVLVIndexImporterTask(getVLVIndex(entryContainer, treeName), source, progressReporter);
+        }
+        return newChunkCopierTask(treeName, source, progressReporter);
       }
       // Do nothing (flush null chunk)
-      return newFlushTask(chunk);
+      return newFlushTask(source);
     }
 
     @Override
@@ -2207,12 +2231,43 @@ final class OnDiskMergeImporter
     }
   }
 
-  private static void copyIntoChunk(SequentialCursor<ByteString, ByteString> source, Chunk destination)
+  /** Task to copy VLV's counter chunks into a database tree. */
+  private static final class VLVIndexImporterTask implements Callable<Void>
   {
+    private final PhaseTwoProgressReporter reporter;
+    private final VLVIndex vlvIndex;
+    private final Importer destination;
+    private final Chunk source;
+
+    VLVIndexImporterTask(PhaseTwoProgressReporter reporter, Chunk source, VLVIndex vlvIndex, Importer destination)
+    {
+      this.source = source;
+      this.vlvIndex = vlvIndex;
+      this.destination = destination;
+      this.reporter = reporter;
+    }
+
+    @Override
+    public Void call()
+    {
+      try (final SequentialCursor<ByteString, ByteString> sourceCursor = trackCursorProgress(reporter, source.flip()))
+      {
+        final long nbRecords = copyIntoChunk(sourceCursor, asChunk(vlvIndex.getName(), destination));
+        vlvIndex.importCount(destination, nbRecords);
+        return null;
+      }
+    }
+  }
+
+  private static long copyIntoChunk(SequentialCursor<ByteString, ByteString> source, Chunk destination)
+  {
+    long nbRecords = 0;
     while (source.next())
     {
       destination.put(source.getKey(), source.getValue());
+      nbRecords++;
     }
+    return nbRecords;
   }
 
   /**
@@ -3079,14 +3134,19 @@ final class OnDiskMergeImporter
 
   private static boolean isVLVIndex(EntryContainer entryContainer, TreeName treeName)
   {
+    return getVLVIndex(entryContainer, treeName) != null;
+  }
+
+  private static VLVIndex getVLVIndex(EntryContainer entryContainer, TreeName treeName)
+  {
     for (VLVIndex vlvIndex : entryContainer.getVLVIndexes())
     {
       if (treeName.equals(vlvIndex.getName()))
       {
-        return true;
+        return vlvIndex;
       }
     }
-    return false;
+    return null;
   }
 
   private static DefaultIndex getIndex(EntryContainer entryContainer, TreeName treeName)
@@ -3430,17 +3490,17 @@ final class OnDiskMergeImporter
     }
   }
 
-  private static IndexVisitor clearDatabase(Importer importer)
+  private static IndexVisitor deleteDatabase(Importer importer)
   {
-    return new ClearDatabase(importer);
+    return new DeleteDatabase(importer);
   }
 
   /** Delete & recreate the database of the visited indexes. */
-  private static final class ClearDatabase implements IndexVisitor
+  private static final class DeleteDatabase implements IndexVisitor
   {
     private final Importer importer;
 
-    ClearDatabase(Importer importer)
+    DeleteDatabase(Importer importer)
     {
       this.importer = importer;
     }
@@ -3448,24 +3508,24 @@ final class OnDiskMergeImporter
     @Override
     public void visitAttributeIndex(Index index)
     {
-      clearTree(index);
+      deleteTree(index);
     }
 
     @Override
     public void visitVLVIndex(VLVIndex index)
     {
-      clearTree(index);
+      deleteTree(index);
     }
 
     @Override
     public void visitSystemIndex(Tree index)
     {
-      clearTree(index);
+      deleteTree(index);
     }
 
-    private void clearTree(Tree index)
+    private void deleteTree(Tree index)
     {
-      importer.clearTree(index.getName());
+      index.delete(asWriteableTransaction(importer));
     }
   }
 
@@ -3705,7 +3765,7 @@ final class OnDiskMergeImporter
     @Override
     public void deleteTree(TreeName name)
     {
-      throw new UnsupportedOperationException();
+      importer.clearTree(name);
     }
 
     @Override

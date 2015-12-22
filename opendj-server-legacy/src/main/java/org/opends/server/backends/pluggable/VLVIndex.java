@@ -54,6 +54,7 @@ import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.backends.pluggable.State.IndexFlag;
 import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -172,6 +173,11 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   void beforeDelete(WriteableTransaction txn) throws StorageRuntimeException
   {
     counter.delete(txn);
+  }
+
+  void importCount(Importer importer, long count)
+  {
+    counter.importPut(importer, COUNT_KEY, count);
   }
 
   @Override
