@@ -25,12 +25,21 @@
  */
 package org.opends.server.loggers;
 
+import static org.opends.messages.LoggerMessages.*;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CsvFileAccessLogPublisherCfg;
+import org.opends.server.types.DN;
 
 /**
  * Common Audit publisher which publishes access events to CSV files.
@@ -54,10 +63,77 @@ final class CsvFileAccessLogPublisher
   }
 
   @Override
+  public boolean isConfigurationAcceptable(final CsvFileAccessLogPublisherCfg configuration,
+                                           final List<LocalizableMessage> unacceptableReasons)
+  {
+    return super.isConfigurationAcceptable(configuration, unacceptableReasons)
+            && isTamperEvidentConfigurationAcceptable(configuration, unacceptableReasons);
+  }
+
+  @Override
   public boolean isConfigurationChangeAcceptable(final CsvFileAccessLogPublisherCfg config,
       final List<LocalizableMessage> unacceptableReasons)
   {
-    return true;
+    return isTamperEvidentConfigurationAcceptable(config, unacceptableReasons);
   }
 
+  private boolean isTamperEvidentConfigurationAcceptable(final CsvFileAccessLogPublisherCfg config,
+                                                         final List<LocalizableMessage> unacceptableReasons)
+  {
+    return !config.isTamperEvident()
+            || (isKeyStoreFileAcceptable(config, unacceptableReasons)
+                && isKeyStorePinFileAcceptable(config, unacceptableReasons));
+  }
+
+  private boolean isKeyStorePinFileAcceptable(
+          final CsvFileAccessLogPublisherCfg config, final List<LocalizableMessage> unacceptableReasons)
+  {
+    return isFileAcceptable(config.getKeyStorePinFile(),
+                config.dn(),
+                ERR_COMMON_AUDIT_KEYSTORE_PIN_FILE_MISSING,
+                ERR_COMMON_AUDIT_KEYSTORE_PIN_FILE_CONTAINS_EMPTY_PIN,
+                ERR_COMMON_AUDIT_ERROR_READING_KEYSTORE_PIN_FILE,
+                unacceptableReasons);
+  }
+
+  private boolean isKeyStoreFileAcceptable(
+          final CsvFileAccessLogPublisherCfg config, final List<LocalizableMessage> unacceptableReasons)
+  {
+    return isFileAcceptable(config.getKeyStoreFile(),
+                    config.dn(),
+                    ERR_COMMON_AUDIT_KEYSTORE_FILE_MISSING,
+                    ERR_COMMON_AUDIT_KEYSTORE_FILE_IS_EMPTY,
+                    ERR_COMMON_AUDIT_ERROR_READING_KEYSTORE_FILE,
+                    unacceptableReasons);
+  }
+
+  private boolean isFileAcceptable(
+          final String fileName,
+          final DN dn,
+          final LocalizableMessageDescriptor.Arg2<Object, Object> missingMsg,
+          final LocalizableMessageDescriptor.Arg2<Object, Object> emptyMsg,
+          final LocalizableMessageDescriptor.Arg3<Object, Object, Object> ioErrorMsg,
+          final List<LocalizableMessage> unacceptableReasons)
+  {
+    final File file = getFileForPath(fileName);
+    if (!file.isFile())
+    {
+      unacceptableReasons.add(missingMsg.get(dn, file));
+      return false;
+    }
+    try
+    {
+      if (Files.size(file.toPath()) == 0)
+      {
+        unacceptableReasons.add(emptyMsg.get(dn, file));
+        return false;
+      }
+      return true;
+    }
+    catch (IOException e)
+    {
+      unacceptableReasons.add(ioErrorMsg.get(dn, file, stackTraceToSingleLineString(e)));
+      return false;
+    }
+  }
 }

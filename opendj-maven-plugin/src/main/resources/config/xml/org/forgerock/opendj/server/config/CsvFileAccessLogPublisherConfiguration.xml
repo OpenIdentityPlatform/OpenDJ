@@ -33,6 +33,26 @@
     <adm:user-friendly-plural-name />
     publish access messages to CSV files.
   </adm:synopsis>
+  <adm:constraint>
+    <adm:synopsis>
+      A key store file and PIN must be specified when this
+      <adm:user-friendly-name />
+      is enabled and it is configured to perform tamper
+      evident logging.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:and>
+          <adm:contains property="enabled" value="true" />
+          <adm:contains property="tamper-evident" value="true" />
+        </adm:and>
+        <adm:and>
+          <adm:is-present property="key-store-file" />
+          <adm:is-present property="key-store-pin-file" />
+        </adm:and>
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-csv-file-access-log-publisher</ldap:name>
@@ -256,7 +276,7 @@
             A path to an existing file that is readable by the server.
           </adm:synopsis>
         </adm:pattern>
-      </adm:string> 
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
