@@ -50,12 +50,10 @@ import org.opends.server.admin.std.meta.MatchingRuleCfgDefn;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.schema.CollationMatchingRuleFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Schema;
 
 /**
  * This class defines a utility that will be used to manage the set of matching
@@ -137,12 +135,7 @@ public class MatchingRuleConfigManager
           {
             for(MatchingRule matchingRule: factory.getMatchingRules())
             {
-              Schema schema = serverContext.getSchema();
-              // skip the matching rule registration if already defined in the (core) schema
-              if (!schema.hasMatchingRule(matchingRule.getNameOrOID()))
-              {
-                DirectoryServer.registerMatchingRule(matchingRule, false);
-              }
+              DirectoryServer.registerMatchingRule(matchingRule, false);
             }
             matchingRuleFactories.put(mrConfiguration.dn(), factory);
           }
@@ -500,13 +493,6 @@ public class MatchingRuleConfigManager
            propertyDefinition.loadClass(className,
                                         MatchingRuleFactory.class);
       factory = matchingRuleFactoryClass.newInstance();
-      // specific behavior for collation
-      // in order to avoid useless injection of context server for all factories
-      if (factory instanceof CollationMatchingRuleFactory)
-      {
-        CollationMatchingRuleFactory collationFactory = (CollationMatchingRuleFactory) factory;
-        collationFactory.setServerContext(serverContext);
-      }
 
       if (initialize)
       {

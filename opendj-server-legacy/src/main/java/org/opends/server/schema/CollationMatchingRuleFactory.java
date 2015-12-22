@@ -26,6 +26,9 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,13 +48,9 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.CollectionUtils;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class is a factory class for Collation matching rules. It
@@ -71,29 +70,14 @@ public final class CollationMatchingRuleFactory extends
   /** Map of OID and the Matching Rule. */
   private final Map<String, MatchingRule> matchingRules = new HashMap<>();
 
-  private ServerContext serverContext;
-
-
   /** Creates a new instance of CollationMatchingRuleFactory. */
   public CollationMatchingRuleFactory()
   {
     super();
   }
 
-  /**
-   * Sets the server context.
-   *
-   * @param serverContext
-   *            The server context.
-   */
-  public void setServerContext(ServerContext serverContext)
-  {
-    this.serverContext = serverContext;
-  }
-
-  /** {@inheritDoc} */
   @Override
-  public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
+  public final Collection<MatchingRule> getMatchingRules()
   {
     return Collections.unmodifiableCollection(matchingRules.values());
   }
@@ -111,15 +95,6 @@ public final class CollationMatchingRuleFactory extends
     matchingRules.put(oid, matchingRule);
   }
 
-  /**
-   * Clears the Map containing matching Rules.
-   */
-  private void resetRules()
-  {
-    matchingRules.clear();
-  }
-
-  /** {@inheritDoc} */
   @Override
   public void initializeMatchingRule(CollationMatchingRuleCfg configuration)
       throws ConfigException, InitializationException
@@ -172,7 +147,6 @@ public final class CollationMatchingRuleFactory extends
     currentConfig.addCollationChangeListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeMatchingRule()
   {
@@ -180,7 +154,6 @@ public final class CollationMatchingRuleFactory extends
     currentConfig.removeCollationChangeListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       CollationMatchingRuleCfg configuration)
@@ -199,18 +172,16 @@ public final class CollationMatchingRuleFactory extends
     }
 
     // Since we have come here it means that this Factory is enabled and
-    // there is a change in the CollationMatchingRuleFactory's
-    // configuration.
+    // there is a change in the CollationMatchingRuleFactory's configuration.
     // Deregister all the Matching Rule corresponding to this factory.
     for (MatchingRule rule : getMatchingRules())
     {
       DirectoryServer.deregisterMatchingRule(rule);
     }
 
-    // Clear the associated matching rules.
-    resetRules();
+    matchingRules.clear();
 
-    final Schema schema = serverContext.getSchemaNG();
+    final Schema schema = DirectoryServer.getSchema().getSchemaNG();
     for (String collation : configuration.getCollation())
     {
       // validation has already been performed in isConfigurationChangeAcceptable()
@@ -237,7 +208,6 @@ public final class CollationMatchingRuleFactory extends
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       CollationMatchingRuleCfg configuration,
@@ -245,15 +215,14 @@ public final class CollationMatchingRuleFactory extends
   {
     boolean configAcceptable = true;
 
-    // If the new configuration disables this factory, don't do
-    // anything.
+    // If the new configuration disables this factory, don't do anything.
     if (!configuration.isEnabled())
     {
       return configAcceptable;
     }
 
-    // If it comes here we don't need to verify MatchingRuleType; it
-    // should be okay as its syntax is verified by the admin framework.
+    // If it comes here we don't need to verify MatchingRuleType;
+    // it should be okay as its syntax is verified by the admin framework.
     // Iterate over the collations and verify if the format is okay.
     // Also, verify if the locale is allowed by the JVM.
     for (String collation : configuration.getCollation())
@@ -282,7 +251,6 @@ public final class CollationMatchingRuleFactory extends
     }
     return configAcceptable;
   }
-
 
   /**
    * Verifies if the locale is supported by the JVM.
@@ -329,10 +297,7 @@ public final class CollationMatchingRuleFactory extends
     return locale;
   }
 
-  /**
-   * A utility class for extracting the OID and Language Tag from the
-   * configuration entry.
-   */
+  /** A utility class for extracting the OID and Language Tag from the configuration entry. */
   private final class CollationMapper
   {
     /** OID of the collation rule. */
