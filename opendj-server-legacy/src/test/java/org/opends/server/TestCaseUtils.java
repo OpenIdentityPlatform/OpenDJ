@@ -80,6 +80,7 @@ import org.testng.Assert;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
+import static org.mockito.Mockito.*;
 import static org.opends.server.loggers.TextAccessLogPublisher.*;
 import static org.opends.server.loggers.TextErrorLogPublisher.*;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.*;
@@ -88,9 +89,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * This class defines some utility functions which can be used by test cases.
- */
+/** This class defines some utility functions which can be used by test cases. */
 @SuppressWarnings("javadoc")
 public final class TestCaseUtils {
   /** The name of the system property that specifies the server build root. */
@@ -345,7 +344,6 @@ public final class TestCaseUtils {
         copyDirectory(new File(installedRoot), testInstallRoot);
 
         // Get the instance location
-
       }
       else
       {
@@ -615,10 +613,7 @@ public final class TestCaseUtils {
     waitForOpsToComplete();
   }
 
-  /**
-   * This can be made public if quiesceServer becomes too heavy-weight in
-   * some circumstance.
-   */
+  /** This can be made public if quiesceServer becomes too heavy-weight in some circumstance. */
   private static void waitForOpsToComplete()
   {
     try {
@@ -629,7 +624,6 @@ public final class TestCaseUtils {
       // Ignore it, maybe the server hasn't been started.
     }
   }
-
 
   /**
    * Binds to the given socket port on the local host.
@@ -727,8 +721,6 @@ public final class TestCaseUtils {
     DirectoryServer.setSchema(schemaBeforeStartingFakeServer);
   }
 
-
-
   /**
    * Shut down the server. This should only be called at the end of the test
    * suite and not by any unit tests.
@@ -815,9 +807,7 @@ public final class TestCaseUtils {
     }
   }
 
-  /**
-   * Clears a memory-based backend.
-   */
+  /** Clears a memory-based backend. */
   public static void clearMemoryBackend(String backendID) throws Exception
   {
     MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(backendID);
@@ -852,7 +842,7 @@ public final class TestCaseUtils {
     if (clearBackend(b) && baseDN != null)
     {
       Entry e = createEntry(DN.valueOf(baseDN));
-      DirectoryServer.getBackend(backendId).addEntry(e, null);
+      DirectoryServer.getBackend(backendId).addEntry(e, mock(AddOperation.class));
     }
   }
 
@@ -860,7 +850,7 @@ public final class TestCaseUtils {
   {
     if (b instanceof BackendImpl)
     {
-      final BackendImpl backend = (BackendImpl) b;
+      final BackendImpl<?> backend = (BackendImpl<?>) b;
       final RootContainer rootContainer = backend.getRootContainer();
       if (rootContainer != null)
       {
@@ -987,7 +977,6 @@ public final class TestCaseUtils {
     }
   }
 
-
   /**
    * Get the LDAP port the test environment Directory Server instance is
    * running on.
@@ -1069,13 +1058,11 @@ public final class TestCaseUtils {
     // No implementation.
   }
 
-
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
   // Various methods for converting LDIF Strings to Entries
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
-
 
   /**
    * Returns a modifiable List of entries parsed from the provided LDIF.
@@ -1202,8 +1189,6 @@ public final class TestCaseUtils {
      return entriesFromLdifString(makeLdif(lines));
   }
 
-
-
   /**
    * Adds the provided entry to the Directory Server using an internal
    * operation.
@@ -1217,8 +1202,6 @@ public final class TestCaseUtils {
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Deletes the provided entry from the Directory Server using an
@@ -1247,12 +1230,10 @@ public final class TestCaseUtils {
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   public static boolean canBind(String dn, String pw) throws Exception
   {
     // Check that the user can bind.
-    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());)
+    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       TestCaseUtils.configureSocket(s);
       ASN1Reader r = ASN1.getReader(s.getInputStream());
@@ -1275,8 +1256,6 @@ public final class TestCaseUtils {
     }
   }
 
-
-
   /**
    * Configures a socket for use in unit tests. This should only be used if the
    * socket is not expected to timeout.
@@ -1290,8 +1269,6 @@ public final class TestCaseUtils {
   {
     s.setSoTimeout(60 * 1000);
   }
-
-
 
   /**
    * Adds the provided entry to the Directory Server using an internal
@@ -1312,8 +1289,6 @@ public final class TestCaseUtils {
     return e;
   }
 
-
-
   /**
    * Adds the provided entry to the Directory Server using an internal
    * operation.
@@ -1331,8 +1306,6 @@ public final class TestCaseUtils {
     return addOperation.getResultCode();
   }
 
-
-
   /**
    * Adds the provided set of entries to the Directory Server using internal
    * operations.
@@ -1348,8 +1321,6 @@ public final class TestCaseUtils {
       addEntry(entry);
     }
   }
-
-
 
   /**
    * Adds the provided set of entries to the Directory Server using internal
@@ -1368,8 +1339,6 @@ public final class TestCaseUtils {
       addEntry(entry);
     }
   }
-
-
 
   /**
    * Applies a set of modifications to the server as described in the provided
@@ -1455,9 +1424,7 @@ public final class TestCaseUtils {
     }
   }
 
-  /**
-   * Return a Map constructed via alternating key and value pairs.
-   */
+  /** Return a Map constructed via alternating key and value pairs. */
   public static Map<String, String> makeMap(String... keyValuePairs)
   {
     Map<String, String> map = new LinkedHashMap<>();
@@ -1482,12 +1449,10 @@ public final class TestCaseUtils {
    *  must write something to System.out. */
   public static final PrintStream originalSystemOut = System.out;
 
-  /** System.err is redirected to here so that we can only print it out
-   *  if a test fails. */
+  /** System.err is redirected to here so that we can only print it out if a test fails. */
   private static final ByteArrayOutputStream redirectedSystemErr = new ByteArrayOutputStream();
 
-  /** System.out is redirected to here so that we can only print it out
-   *  if a test fails. */
+  /** System.out is redirected to here so that we can only print it out if a test fails. */
   private static final ByteArrayOutputStream redirectedSystemOut = new ByteArrayOutputStream();
 
   public static synchronized void suppressOutput() {
@@ -1552,9 +1517,7 @@ public final class TestCaseUtils {
     redirectedSystemErr.reset();
   }
 
-  /**
-   * Clear everything written to the Access, Error, or Debug loggers.
-   */
+  /** Clear everything written to the Access, Error, or Debug loggers. */
   public static synchronized void clearLoggersContents() {
     ACCESS_TEXT_WRITER.clear();
     ERROR_TEXT_WRITER.clear();
@@ -1642,7 +1605,6 @@ public final class TestCaseUtils {
     return lines;
   }
 
-
   /** Read the contents of a file and return it as a String. */
   private static byte[] readFileBytes(File file) throws IOException {
     FileInputStream fis = new FileInputStream(file);
@@ -1674,7 +1636,6 @@ public final class TestCaseUtils {
     }
     return bytes;
   }
-
 
   /** Store the contents of a String in a file. */
   public static void writeFile(File file, String contents) throws IOException {
@@ -1736,8 +1697,6 @@ public final class TestCaseUtils {
     assertEquals(DSConfig.main(fullArgs, System.out, System.err), 0);
   }
 
-
-
   /**
    * Gets the root configuration associated with the active server
    * instance. This root configuration can then be used to access and
@@ -1766,8 +1725,6 @@ public final class TestCaseUtils {
     return context.getRootConfiguration();
   }
 
-
-
   /**
    * Return a String representation of all of the current threads.
    * @return a dump of all Threads on the server
@@ -1775,7 +1732,6 @@ public final class TestCaseUtils {
   public static String threadStacksToString()
   {
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
-
 
     // Re-arrange all of the elements by thread ID so that there is some logical order.
     Map<Long, Map.Entry<Thread, StackTraceElement[]>> orderedStacks = new TreeMap<>();
@@ -1900,18 +1856,15 @@ public final class TestCaseUtils {
   /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object, String)} once we upgrade to testng >= 6.1. */
   public static void assertNotEquals(Object actual1, Object actual2, String message)
   {
-    boolean fail = false;
     try
     {
       Assert.assertEquals(actual1, actual2);
-      fail = true;
+      Assert.fail(message);
     }
     catch (AssertionError e)
     {
-    }
-    if (fail)
-    {
-      Assert.fail(message);
+      // this is good: they are not equals
+      return;
     }
   }
 }

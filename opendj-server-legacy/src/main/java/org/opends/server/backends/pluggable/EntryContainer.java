@@ -1529,11 +1529,8 @@ public class EntryContainer
             dn2uri.addEntry(txn, entry);
             id2childrenCount.updateTotalCount(txn, 1);
             indexBuffer.flush(txn);
-            if (addOperation != null)
-            {
-              // One last check before committing
-              addOperation.checkIfCanceled(true);
-            }
+            // One last check before committing
+            addOperation.checkIfCanceled(true);
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
@@ -1648,8 +1645,7 @@ public class EntryContainer
             }
 
             // Delete the subordinate entries in dn2id if requested.
-            final boolean isSubtreeDelete = deleteOperation != null
-                    && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
+            final boolean isSubtreeDelete = deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
 
             /* draft-armijo-ldap-treedelete, 4.1 Tree Delete Semantics: The server MUST NOT chase referrals stored in
              * the tree. If information about referrals is stored in this section of the tree, this pointer will be
@@ -1685,7 +1681,7 @@ public class EntryContainer
                 }
                 entriesToBeDeleted.add(cursor.getValue().longValue());
                 cursor.delete();
-                checkIfCanceled(false);
+                deleteOperation.checkIfCanceled(false);
               }
             }
             // The target entry will have the lowest entryID so it will remain the first element.
@@ -1723,12 +1719,12 @@ public class EntryContainer
                   entryCache.removeEntry(entry.getName());
                 }
                 isBaseEntry = false;
-                checkIfCanceled(false);
+                deleteOperation.checkIfCanceled(false);
               }
             }
             id2childrenCount.updateTotalCount(txn, -entriesToBeDeleted.size());
             indexBuffer.flush(txn);
-            checkIfCanceled(true);
+            deleteOperation.checkIfCanceled(true);
             if (isSubtreeDelete)
             {
               deleteOperation.addAdditionalLogItem(unquotedKeyValue(getClass(), "deletedEntries",
@@ -1753,7 +1749,7 @@ public class EntryContainer
 
         private void invokeSubordinateDeletePlugins(final Entry entry) throws DirectoryException
         {
-          if (deleteOperation != null && !deleteOperation.isSynchronizationOperation())
+          if (!deleteOperation.isSynchronizationOperation())
           {
             SubordinateDelete pluginResult =
                     getPluginConfigManager().invokeSubordinateDeletePlugins(deleteOperation, entry);
@@ -1762,14 +1758,6 @@ public class EntryContainer
               throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                            ERR_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(entry.getName()));
             }
-          }
-        }
-
-        private void checkIfCanceled(boolean signalTooLate) throws CanceledOperationException
-        {
-          if (deleteOperation != null)
-          {
-            deleteOperation.checkIfCanceled(signalTooLate);
           }
         }
       });
@@ -1938,39 +1926,14 @@ public class EntryContainer
             // Ensure same ordering as deleteEntry: id2entry, dn2uri, then indexes.
             id2entry.put(txn, entryID, encodedNewEntry);
 
-            // Update the referral tree.
-            if (modifyOperation != null)
-            {
-              // In this case we know from the operation what the modifications were.
-              List<Modification> mods = modifyOperation.getModifications();
-              dn2uri.modifyEntry(txn, oldEntry, newEntry, mods);
-            }
-            else
-            {
-              dn2uri.replaceEntry(txn, oldEntry, newEntry);
-            }
-
-            // Update the indexes.
-            if (modifyOperation != null)
-            {
-              // In this case we know from the operation what the modifications were.
-              List<Modification> mods = modifyOperation.getModifications();
-              indexModifications(indexBuffer, oldEntry, newEntry, entryID, mods);
-            }
-            else
-            {
-              // The most optimal would be to figure out what the modifications were.
-              removeEntryFromIndexes(indexBuffer, oldEntry, entryID);
-              insertEntryIntoIndexes(indexBuffer, newEntry, entryID);
-            }
+            // Update the referral tree and indexes
+            dn2uri.modifyEntry(txn, oldEntry, newEntry, modifyOperation.getModifications());
+            indexModifications(indexBuffer, oldEntry, newEntry, entryID, modifyOperation.getModifications());
 
             indexBuffer.flush(txn);
 
-            if(modifyOperation != null)
-            {
-              // One last check before committing
-              modifyOperation.checkIfCanceled(true);
-            }
+            // One last check before committing
+            modifyOperation.checkIfCanceled(true);
 
             // Update the entry cache.
             EntryCache<?> entryCache = DirectoryServer.getEntryCache();
@@ -2105,12 +2068,12 @@ public class EntryContainer
               {
                 renameSingleEntry(txn, renamedEntryID, cursor, indexBuffer, newTargetDN, renumberEntryIDs, isBaseEntry);
                 isBaseEntry = false;
-                checkIfCanceled(false);
+                modifyDNOperation.checkIfCanceled(false);
               }
 
             }
             indexBuffer.flush(txn);
-            checkIfCanceled(true);
+            modifyDNOperation.checkIfCanceled(true);
           }
           catch (StorageRuntimeException | DirectoryException | CanceledOperationException e)
           {
@@ -2155,7 +2118,7 @@ public class EntryContainer
               dn2uri.checkTargetForReferral(oldEntry, null);
             }
             newEntry = newTargetEntry;
-            modifications = modifyDNOperation != null ? modifyDNOperation.getModifications() : null;
+            modifications = modifyDNOperation.getModifications();
           }
           else
           {
@@ -2198,14 +2161,6 @@ public class EntryContainer
           }
         }
 
-        private void checkIfCanceled(boolean signalTooLate) throws CanceledOperationException
-        {
-          if (modifyDNOperation != null)
-          {
-            modifyDNOperation.checkIfCanceled(signalTooLate);
-          }
-        }
-
         private List<Modification> invokeSubordinateModifyDNPlugins(
                 final Entry oldEntry, final Entry newEntry) throws DirectoryException
         {
@@ -2218,7 +2173,7 @@ public class EntryContainer
           //          provide an unmodifiable list for the modifications element.
           // FIXME -- This will need to be updated appropriately if we decided that
           //          these plugins should be invoked for synchronization operations.
-          if (modifyDNOperation != null && !modifyDNOperation.isSynchronizationOperation())
+          if (!modifyDNOperation.isSynchronizationOperation())
           {
             SubordinateModifyDN pluginResult = getPluginConfigManager().invokeSubordinateModifyDNPlugins(
                     modifyDNOperation, oldEntry, newEntry, modifications);
@@ -2397,17 +2352,14 @@ public class EntryContainer
    */
   private static boolean isManageDsaITOperation(Operation operation)
   {
-    if(operation != null)
+    List<Control> controls = operation.getRequestControls();
+    if (controls != null)
     {
-      List<Control> controls = operation.getRequestControls();
-      if (controls != null)
+      for (Control control : controls)
       {
-        for (Control control : controls)
+        if (ServerConstants.OID_MANAGE_DSAIT_CONTROL.equals(control.getOID()))
         {
-          if (ServerConstants.OID_MANAGE_DSAIT_CONTROL.equals(control.getOID()))
-          {
-            return true;
-          }
+          return true;
         }
       }
     }

@@ -26,7 +26,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.opends.server.ConfigurationMock.legacyMockCfg;
 import static org.opends.server.TestCaseUtils.makeEntry;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
@@ -55,6 +55,7 @@ import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -154,10 +155,11 @@ public class ControlsTestCase extends DirectoryServerTestCase
     backend.configureBackend(backendCfg, DirectoryServer.getInstance().getServerContext());
     backend.openBackend();
 
-    backend.addEntry(makeEntry("dn: " + BACKEND_BASE_DN, "objectclass: top", "objectclass: domain"), null);
+    AddOperation op = mock(AddOperation.class);
+    backend.addEntry(makeEntry("dn: " + BACKEND_BASE_DN, "objectclass: top", "objectclass: domain"), op);
     for (final User user : USERS)
     {
-      backend.addEntry(user.toEntry(), null);
+      backend.addEntry(user.toEntry(), op);
     }
   }
 

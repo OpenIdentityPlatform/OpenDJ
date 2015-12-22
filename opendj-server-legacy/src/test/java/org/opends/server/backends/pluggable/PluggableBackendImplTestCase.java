@@ -26,9 +26,8 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.ModificationType.ADD;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.types.Attributes.create;
@@ -38,6 +37,7 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,6 +51,8 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
@@ -61,8 +63,8 @@ import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
-import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
+import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.ReadOnlyStorageException;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -71,7 +73,12 @@ import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -85,6 +92,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 import org.testng.Reporter;
@@ -555,9 +563,10 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
   private void addEntriesToBackend(List<Entry> entries) throws Exception
   {
+    AddOperation op = mock(AddOperation.class);
     for (Entry newEntry : entries)
     {
-      backend.addEntry(newEntry, null);
+      backend.addEntry(newEntry, op);
     }
   }
 
@@ -599,7 +608,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.getRootContainer().checkForEnoughResources(null);
   }
 
-  @Test(expectedExceptions = DirectoryException.class)
+  @Test(expectedExceptions = DirectoryException.class,
+      expectedExceptionsMessageRegExp="The entry .* cannot be added because its parent entry does not exist")
   public void testAddNoParent() throws Exception
   {
     Entry newEntry = TestCaseUtils.makeEntry("dn: " + badEntryDN, "objectclass: ou", "");
@@ -667,10 +677,43 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     Entry newEntry = oldEntry.duplicate(false);
 
     modifyAttribute = DirectoryServer.getAttributeTypeOrNull("jpegphoto");
-    newEntry.applyModifications(Arrays.asList(new Modification(ADD, create(modifyAttribute, modifyValue))));
+    List<Modification> mods = Arrays.asList(
+        // unindexed
+        new Modification(ADD, create(modifyAttribute, modifyValue)),
+        // indexed
+        new Modification(REPLACE, create("sn", "Smith")));
+    newEntry.applyModifications(mods);
 
-    backend.replaceEntry(oldEntry, newEntry, null);
+    ModifyOperation modifyOp = mock(ModifyOperation.class);
+    when(modifyOp.getModifications()).thenReturn(mods);
+    backend.replaceEntry(oldEntry, newEntry, modifyOp);
     assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, null, modifyValue));
+
+    final List<Entry> returnedEntries = new ArrayList<>();
+    backend.search(createSearchOperation(
+        newEntry.getName().parent(), SearchScope.WHOLE_SUBTREE, "(&(sn=Smith)(jpegphoto=foo))", returnedEntries));
+    assertThat(returnedEntries).hasSize(1);
+    assertThat(returnedEntries.get(0).getName()).isEqualTo(newEntry.getName());
+  }
+
+  private SearchOperation createSearchOperation(DN baseDN, SearchScope scope, String searchFilter,
+      final List<Entry> returnedEntries) throws DirectoryException
+  {
+    SearchOperation searchOp = mock(SearchOperation.class);
+    when(searchOp.getBaseDN()).thenReturn(baseDN);
+    when(searchOp.getScope()).thenReturn(scope);
+    when(searchOp.getFilter()).thenReturn(SearchFilter.createFilterFromString(searchFilter));
+    when(searchOp.getClientConnection()).thenReturn(new ClientConnectionStub());
+    doAnswer(new Answer<Object>()
+    {
+      @Override
+      public Object answer(InvocationOnMock invocation) throws Throwable
+      {
+        returnedEntries.add(invocation.getArgumentAt(0, Entry.class));
+        return null;
+      }
+    }).when(searchOp).returnEntry(any(Entry.class), any(List.class));
+    return searchOp;
   }
 
   @Test
@@ -680,14 +723,15 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     DN prevDN = DN.valueOf("ou=People," + testBaseDN);
     DN newDN = DN.valueOf("ou=users," + testBaseDN);
     Entry renameEntry = backend.getEntry(prevDN).duplicate(false);
+    ModifyDNOperation op = mock(ModifyDNOperation.class);
 
     renameEntry.setDN(newDN);
-    backend.renameEntry(prevDN, renameEntry, null);
+    backend.renameEntry(prevDN, renameEntry, op);
     Entry dbEntry = backend.getEntry(newDN);
     assertEquals(dbEntry.getName(), newDN, "Renamed entry is missing.");
 
     renameEntry.setDN(prevDN);
-    backend.renameEntry(newDN, renameEntry, null);
+    backend.renameEntry(newDN, renameEntry, op);
     dbEntry = backend.getEntry(prevDN);
     assertEquals(dbEntry.getName(), prevDN, "Original entry has not been renamed");
   }
@@ -699,18 +743,19 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     DN newDN = DN.valueOf("uid=USER.0,ou=People," + testBaseDN);
     Entry renameEntry = backend.getEntry(prevDN).duplicate(false);
 
+    ModifyDNOperation op = mock(ModifyDNOperation.class);
     renameEntry.setDN(newDN);
-    backend.renameEntry(prevDN, renameEntry, null);
+    backend.renameEntry(prevDN, renameEntry, op);
     Entry dbEntry = backend.getEntry(newDN);
     assertEquals(dbEntry.getName().rdn().toString(), "uid=USER.0");
 
     renameEntry.setDN(prevDN);
-    backend.renameEntry(newDN, renameEntry, null);
+    backend.renameEntry(newDN, renameEntry, op);
     dbEntry = backend.getEntry(prevDN);
     assertEquals(dbEntry.getName().rdn().toString(), "uid=user.0");
   }
 
-  @Test
+  @Test(expectedExceptions = DirectoryException.class)
   public void testDeleteEntry() throws Exception
   {
     Entry deletedEntry = backend.getEntry(dnToDel).duplicate(false);
@@ -720,19 +765,17 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       deleteEntry(dnToDel);
       fail("Should have generated a DirectoryException");
     }
-    catch (DirectoryException de)
-    {
-      // Expected exception, do nothing, test succeeds.
-    }
     finally
     {
-      backend.addEntry(deletedEntry, null);
+      AddOperation op = mock(AddOperation.class);
+      backend.addEntry(deletedEntry, op);
     }
   }
 
   private void deleteEntry(DN dn) throws Exception
   {
-    backend.deleteEntry(dn, null);
+    DeleteOperation op = mock(DeleteOperation.class);
+    backend.deleteEntry(dn, op);
     assertNull(backend.getEntry(workEntries.get(1).getName()));
   }
 
