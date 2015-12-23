@@ -102,7 +102,7 @@ public class BackendStat
    * Collects all necessary interaction interfaces with either a Backend using TreeNames
    * or a storage using Trees.
    */
-  interface TreeKeyValue
+  private interface TreeKeyValue
   {
     /**
      * Returns a key given a string representation of it.
@@ -139,11 +139,11 @@ public class BackendStat
   }
 
   /** Stays at the storage level when cursoring Trees. */
-  static class StorageTreeKeyValue implements TreeKeyValue
+  private static class StorageTreeKeyValue implements TreeKeyValue
   {
-    private TreeName treeName;
+    private final TreeName treeName;
 
-    public StorageTreeKeyValue(TreeName treeName)
+    private StorageTreeKeyValue(TreeName treeName)
     {
       this.treeName = treeName;
     }
@@ -174,12 +174,12 @@ public class BackendStat
   }
 
   /** Delegate key semantics to the backend. */
-  static class BackendTreeKeyValue implements TreeKeyValue
+  private static class BackendTreeKeyValue implements TreeKeyValue
   {
-    private TreeName name;
-    private Tree tree;
+    private final TreeName name;
+    private final Tree tree;
 
-    public BackendTreeKeyValue(Tree tree)
+    private BackendTreeKeyValue(Tree tree)
     {
       this.tree = tree;
       this.name = tree.getName();
@@ -215,13 +215,13 @@ public class BackendStat
   }
 
   /** Statistics collector. */
-  class TreeStats
+  private class TreeStats
   {
-    final long count;
-    final long totalKeySize;
-    final long totalDataSize;
+    private final long count;
+    private final long totalKeySize;
+    private final long totalDataSize;
 
-    TreeStats(long count, long tks, long tds)
+    private TreeStats(long count, long tks, long tds)
     {
       this.count = count;
       this.totalKeySize = tks;

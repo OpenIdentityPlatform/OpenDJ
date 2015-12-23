@@ -217,13 +217,13 @@ final class ShardedCounter extends AbstractTree
    * Cursor that returns unique keys and null values. Ensure that {@link #getKey()} will return a different key after
    * each {@link #next()}.
    */
-  static final class UniqueKeysCursor<K> implements SequentialCursor<K, Void>
+  private static final class UniqueKeysCursor<K> implements SequentialCursor<K, Void>
   {
     private final Cursor<K, ?> delegate;
     private boolean isDefined;
     private K key;
 
-    UniqueKeysCursor(Cursor<K, ?> cursor)
+    private UniqueKeysCursor(Cursor<K, ?> cursor)
     {
       this.delegate = cursor;
       if (!delegate.isDefined())

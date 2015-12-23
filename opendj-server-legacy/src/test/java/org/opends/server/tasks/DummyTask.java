@@ -26,13 +26,11 @@
  */
 package org.opends.server.tasks;
 
-import java.util.List;
-
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -40,8 +38,7 @@ import org.opends.server.types.Entry;
  * This class provides an implementation of a Directory Server task always
  * completes successfully.  It is intended only for testing purposes.
  */
-public class DummyTask
-       extends Task
+public class DummyTask extends Task
 {
   /** The length of time that the task should sleep before completing. */
   private long sleepTime;
@@ -52,15 +49,13 @@ public class DummyTask
    */
   private volatile TaskState interruptedState;
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return LocalizableMessage.raw("Dummy");
   }
 
   @Override
-  public void initializeTask()
-         throws DirectoryException
+  public void initializeTask() throws DirectoryException
   {
     sleepTime = 0;
     interruptedState = null;
@@ -78,9 +73,7 @@ public class DummyTask
     }
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   protected TaskState runTask()
   {
     long stopTime = System.currentTimeMillis() + sleepTime;
@@ -89,7 +82,7 @@ public class DummyTask
       try
       {
         Thread.sleep(10);
-      } catch (Exception e) {}
+      } catch (InterruptedException e) {}
     }
 
     if (interruptedState != null)
@@ -99,18 +92,12 @@ public class DummyTask
     return TaskState.COMPLETED_SUCCESSFULLY;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isInterruptable()
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void interruptTask(TaskState taskState, LocalizableMessage interruptMessage)
   {
@@ -118,4 +105,3 @@ public class DummyTask
     setTaskInterruptState(taskState);
   }
 }
-

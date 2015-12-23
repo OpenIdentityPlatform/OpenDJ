@@ -47,7 +47,6 @@ import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
@@ -102,30 +101,12 @@ class DN2ID extends AbstractTree
     txn.put(getName(), toKey(dn), toValue(entryID));
   }
 
-  boolean insert(final WriteableTransaction txn, DN dn, final EntryID entryID) throws StorageRuntimeException
-  {
-    return txn.update(getName(), toKey(dn), new UpdateFunction()
-    {
-      @Override
-      public ByteSequence computeNewValue(ByteSequence oldEntryID)
-      {
-        if (oldEntryID != null)
-        {
-          // no change
-          return oldEntryID;
-        }
-        // it did not exist before, insert the new value
-        return toValue(entryID);
-      }
-    });
-  }
-
-  ByteString toKey(DN dn)
+  private ByteString toKey(DN dn)
   {
     return dnToDNKey(dn, baseDN.size());
   }
 
-  ByteString toValue(final EntryID entryID)
+  private ByteString toValue(final EntryID entryID)
   {
     // TODO JNR do we want to use compacted longs?
     return entryID.toByteString();

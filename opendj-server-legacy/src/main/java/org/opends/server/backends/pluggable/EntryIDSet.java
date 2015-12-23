@@ -80,8 +80,6 @@ final class EntryIDSet implements Iterable<EntryID>
 
     @Override
     Iterator<EntryID> iterator();
-
-    Iterator<EntryID> iterator(EntryID begin);
   }
 
   /** Define serialization contract for EntryIDSet. */
@@ -265,12 +263,6 @@ final class EntryIDSet implements Iterable<EntryID>
     }
 
     @Override
-    public Iterator<EntryID> iterator(EntryID begin)
-    {
-      return new IDSetIterator(entryIDs, begin == null ? 0 : begin.longValue());
-    }
-
-    @Override
     public long[] getRange()
     {
       if (entryIDs.length != 0)
@@ -363,12 +355,6 @@ final class EntryIDSet implements Iterable<EntryID>
     }
 
     @Override
-    public Iterator<EntryID> iterator(EntryID begin)
-    {
-      return Iterators.emptyIterator();
-    }
-
-    @Override
     public long[] getRange()
     {
       return NO_ENTRY_IDS_RANGE;
@@ -390,12 +376,6 @@ final class EntryIDSet implements Iterable<EntryID>
     IDSetIterator(long[] entryIDSet)
     {
       this.entryIDSet = entryIDSet;
-    }
-
-    IDSetIterator(long[] entryIDSet, long begin)
-    {
-      this(entryIDSet);
-      currentIndex = Math.max(0, Arrays.binarySearch(entryIDSet, begin));
     }
 
     @Override
@@ -880,18 +860,6 @@ final class EntryIDSet implements Iterable<EntryID>
   public Iterator<EntryID> iterator()
   {
     return concreteImpl.iterator();
-  }
-
-  /**
-   * Creates an iterator over the set or an empty iterator if the set is not defined.
-   *
-   * @param begin
-   *          The entry ID of the first entry to return in the list.
-   * @return An EntryID iterator.
-   */
-  public Iterator<EntryID> iterator(EntryID begin)
-  {
-    return concreteImpl.iterator(begin);
   }
 
   private long[] getIDs()

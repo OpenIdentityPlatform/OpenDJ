@@ -29,8 +29,8 @@ package org.opends.server.backends.pluggable;
 import static org.forgerock.util.Reject.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.backends.pluggable.CursorTransformer.transformKeysAndValues;
+import static org.opends.server.core.DirectoryServer.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -356,19 +356,6 @@ class ID2Entry extends AbstractTree
   {
     Reject.ifNull(txn, "txn must not be null.");
     txn.put(getName(), entryID.toByteString(), encodedEntry);
-  }
-
-  /**
-   * Remove a record from the entry tree.
-   *
-   * @param txn a non null transaction
-   * @param entryID The entry ID which forms the key.
-   * @return true if the entry was removed, false if it was not.
-   * @throws StorageRuntimeException If an error occurs in the storage.
-   */
-  boolean remove(WriteableTransaction txn, EntryID entryID) throws StorageRuntimeException
-  {
-    return txn.delete(getName(), entryID.toByteString());
   }
 
   /**

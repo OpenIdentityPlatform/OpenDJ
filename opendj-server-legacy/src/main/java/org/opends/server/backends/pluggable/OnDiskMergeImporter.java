@@ -25,6 +25,7 @@
 package org.opends.server.backends.pluggable;
 
 import static java.nio.channels.FileChannel.*;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.DynamicConstants.*;
@@ -963,14 +964,6 @@ final class OnDiskMergeImporter
     void afterImport(EntryContainer entryContainer)
     {
       visitIndexes(entryContainer, setTrust(true, importer));
-    }
-
-    final void clearEntryContainerTrees(EntryContainer entryContainer)
-    {
-      for(Tree tree : entryContainer.listTrees())
-      {
-        importer.clearTree(tree.getName());
-      }
     }
 
     final Chunk newExternalSortChunk(TreeName treeName) throws Exception

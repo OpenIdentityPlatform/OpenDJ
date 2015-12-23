@@ -36,6 +36,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend", "unit" }, sequential=true)
 public class EntryIDSetTest extends DirectoryServerTestCase
 {
@@ -160,17 +161,6 @@ public class EntryIDSetTest extends DirectoryServerTestCase
     assertIdsEquals(newDefinedSet(4, 6, 8, 10, 12).iterator(), 4, 6, 8, 10, 12);
   }
 
-  @Test
-  public void testDefinedIteratorWithBegin()
-  {
-    final EntryIDSet set = newDefinedSet(4, 6, 8, 10, 12);
-
-    assertIdsEquals(set.iterator(id(4)), 4, 6, 8, 10, 12);
-    assertIdsEquals(set.iterator(id(8)), 8, 10, 12);
-    assertIdsEquals(set.iterator(id(12)), 12);
-    assertIdsEquals(set.iterator(id(13)), 4, 6, 8, 10, 12);
-  }
-
   @Test(dataProvider = "codecs")
   public void testCodecs(EntryIDSetCodec codec)
   {
@@ -250,12 +240,6 @@ public class EntryIDSetTest extends DirectoryServerTestCase
   public void testUndefinedIterator()
   {
     assertThat(newUndefinedSet().iterator().hasNext()).isFalse();
-  }
-
-  @Test
-  public void testUndefinedIteratorWithBegin()
-  {
-    assertThat(newUndefinedSet().iterator(id(8)).hasNext()).isFalse();
   }
 
   @Test
