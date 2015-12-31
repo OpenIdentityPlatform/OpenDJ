@@ -504,8 +504,7 @@ public final class Schema {
         @Override
         public String getOIDForName(String lowerCaseName) {
             final String oid = name2OIDs.get(lowerCaseName);
-            // == is correct, AMBIGUOUS_OID is singleton to mark an entry ambiguous
-            if (oid == SchemaBuilder.AMBIGUOUS_OID) {
+            if (SchemaBuilder.AMBIGUOUS_OID.equals(oid)) {
                 throw new UnknownSchemaElementException(WARN_NAME_AMBIGUOUS.get(lowerCaseName));
             }
             return oid;
