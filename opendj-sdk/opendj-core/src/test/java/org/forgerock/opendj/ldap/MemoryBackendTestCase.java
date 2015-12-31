@@ -21,21 +21,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS.
+ *      Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.newInternalConnection;
-import static org.forgerock.opendj.ldap.requests.Requests.newAddRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newDeleteRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
-import static org.forgerock.opendj.ldif.LDIFEntryReader.valueOfLDIFEntry;
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.Connections.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldif.LDIFEntryReader.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,6 +48,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -148,15 +145,11 @@ public class MemoryBackendTestCase extends SdkTestCase {
         connection.delete("uid=missing,ou=people,dc=example,dc=com");
     }
 
-    @Test
+    @Test(expectedExceptions = EntryNotFoundException.class)
     public void testDeleteOnLeaf() throws Exception {
         final Connection connection = getConnection();
         connection.delete("uid=test1,ou=people,dc=example,dc=com");
-        try {
-            connection.readEntry("dc=example,dc=com");
-        } catch (final EntryNotFoundException expected) {
-            // Do nothing.
-        }
+        connection.readEntry("uid=test1,ou=people,dc=example,dc=com");
     }
 
     @Test(expectedExceptions = ConstraintViolationException.class)
@@ -188,19 +181,25 @@ public class MemoryBackendTestCase extends SdkTestCase {
                         "dc: xxx"));
     }
 
-    @Test
-    public void testDeleteSubtree() throws Exception {
+    @DataProvider
+    public Object[][] deleteSubtreeData() {
+        return new Object[][] {
+            { "dc=example,dc=com" },
+            { "ou=people,dc=example,dc=com" },
+            { "uid=test1,ou=people,dc=example,dc=com" },
+            { "uid=test2,ou=people,dc=example,dc=com" },
+        };
+    }
+
+    @Test(dataProvider = "deleteSubtreeData", expectedExceptions = EntryNotFoundException.class)
+    public void testDeleteSubtree(final String name) throws Exception {
         final Connection connection = getConnection();
         connection.deleteSubtree("dc=example,dc=com");
-        for (final String name : Arrays.asList("dc=example,dc=com", "ou=people,dc=example,dc=com",
-                "uid=test1,ou=people,dc=example,dc=com", "uid=test2,ou=people,dc=example,dc=com")) {
-            try {
-                connection.readEntry(name);
-            } catch (final EntryNotFoundException expected) {
-                // Do nothing.
-            }
+        try {
+            connection.readEntry(name);
+        } finally {
+            assertThat(connection.readEntry("dc=xxx,dc=com")).isNotNull();
         }
-        assertThat(connection.readEntry("dc=xxx,dc=com")).isNotNull();
     }
 
     @Test
@@ -667,8 +666,8 @@ public class MemoryBackendTestCase extends SdkTestCase {
 
     private int getNumberOfEntries(String[] ldifEntries) {
         int entries = 0;
-        for (int i = 0; i < ldifEntries.length; i++) {
-            if (ldifEntries[i].startsWith("dn: ")) {
+        for (String ldifEntry : ldifEntries) {
+            if (ldifEntry.startsWith("dn: ")) {
                 entries++;
             }
         }
