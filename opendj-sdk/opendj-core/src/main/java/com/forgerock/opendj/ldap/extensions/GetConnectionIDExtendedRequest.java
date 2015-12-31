@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2016 ForgeRock AS
  */
-
 package com.forgerock.opendj.ldap.extensions;
 
 import java.io.IOException;
@@ -87,31 +86,31 @@ public final class GetConnectionIDExtendedRequest extends
                 final DecodeOptions options) throws DecodeException {
             if (result instanceof GetConnectionIDExtendedResult) {
                 return (GetConnectionIDExtendedResult) result;
-            } else {
-                final ResultCode resultCode = result.getResultCode();
-                final GetConnectionIDExtendedResult newResult =
-                        GetConnectionIDExtendedResult.newResult(resultCode).setMatchedDN(
-                                result.getMatchedDN()).setDiagnosticMessage(
-                                result.getDiagnosticMessage());
-
-                final ByteString responseValue = result.getValue();
-                if (!resultCode.isExceptional() && responseValue == null) {
-                    throw DecodeException.error(LocalizableMessage.raw("Empty response value"));
-                }
-                if (responseValue != null) {
-                    try {
-                        final ASN1Reader reader = ASN1.getReader(responseValue);
-                        newResult.setConnectionID((int) reader.readInteger());
-                    } catch (final IOException e) {
-                        throw DecodeException.error(LocalizableMessage
-                                .raw("Error decoding response value"), e);
-                    }
-                }
-                for (final Control control : result.getControls()) {
-                    newResult.addControl(control);
-                }
-                return newResult;
             }
+
+            final ResultCode resultCode = result.getResultCode();
+            final GetConnectionIDExtendedResult newResult =
+                    GetConnectionIDExtendedResult.newResult(resultCode)
+                        .setMatchedDN(result.getMatchedDN())
+                        .setDiagnosticMessage(result.getDiagnosticMessage());
+
+            final ByteString responseValue = result.getValue();
+            if (!resultCode.isExceptional() && responseValue == null) {
+                throw DecodeException.error(LocalizableMessage.raw("Empty response value"));
+            }
+            if (responseValue != null) {
+                try {
+                    final ASN1Reader reader = ASN1.getReader(responseValue);
+                    newResult.setConnectionID((int) reader.readInteger());
+                } catch (final IOException e) {
+                    throw DecodeException.error(LocalizableMessage
+                            .raw("Error decoding response value"), e);
+                }
+            }
+            for (final Control control : result.getControls()) {
+                newResult.addControl(control);
+            }
+            return newResult;
         }
     }
 

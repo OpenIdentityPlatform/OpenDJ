@@ -21,9 +21,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS.
+ *      Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -307,7 +306,6 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbc.isClosed()).isFalse();
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test(description = "OPENDJ-1348")
     public void testBindPreventsHeartBeatTimeout() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
@@ -366,7 +364,6 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbc.isValid()).isFalse();
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     public void testHeartBeatWhileBindInProgress() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);

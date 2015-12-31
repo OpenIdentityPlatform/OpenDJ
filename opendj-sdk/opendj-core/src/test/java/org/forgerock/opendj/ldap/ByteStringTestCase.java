@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -77,13 +77,13 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
                 new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
                     (byte) 0x00, (byte) 0x00, (byte) 0x00 } },
             { ByteString.valueOfUtf8("cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
-            { ByteString.valueOfObject((Object) "cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
+            { ByteString.valueOfObject("cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
             { ByteString.valueOfUtf8("cn=testvalue".toCharArray()), "cn=testvalue".getBytes("UTF-8") },
-            { ByteString.valueOfObject((Object) "cn=testvalue".toCharArray()),
+            { ByteString.valueOfObject("cn=testvalue".toCharArray()),
                 "cn=testvalue".getBytes("UTF-8") },
             { ByteString.valueOfBytes(new byte[0]), new byte[0] },
             { ByteString.valueOfBytes(testBytes), testBytes },
-            { ByteString.valueOfObject((Object) testBytes), testBytes },
+            { ByteString.valueOfObject(testBytes), testBytes },
             { ByteString.valueOfObject(ByteString.valueOfUtf8("cn=testvalue")),
                 "cn=testvalue".getBytes("UTF-8") },
             { ByteString.wrap(new byte[0]), new byte[0] },

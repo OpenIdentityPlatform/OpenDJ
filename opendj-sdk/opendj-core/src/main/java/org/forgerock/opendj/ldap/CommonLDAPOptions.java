@@ -20,9 +20,8 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.getProvider;
@@ -94,12 +93,6 @@ abstract class CommonLDAPOptions {
      * <p>
      * The default setting is {@code -1} (disabled) and may be configured using
      * the {@code org.forgerock.opendj.io.linger} property.
-     *
-     * @param linger
-     *            The value of the {@link java.net.SocketOptions#SO_LINGER
-     *            SO_LINGER} socket option for new connections, or -1 if linger
-     *            should be disabled.
-     * @return A reference to this set of options.
      */
     public static final Option<Integer> SO_LINGER_IN_SECONDS = Option.withDefault(
         getIntProperty("org.forgerock.opendj.io.linger", -1));
@@ -110,7 +103,6 @@ abstract class CommonLDAPOptions {
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.keepAlive} property.
-     *
      */
     public static final Option<Boolean> SO_KEEPALIVE = Option.withDefault(
         getBooleanProperty("org.forgerock.opendj.io.keepAlive", true));

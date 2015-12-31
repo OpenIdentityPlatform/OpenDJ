@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -304,16 +304,16 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
                     b(0xFF), b(0xFF), b(0xFF), b(0xFF), b(0xFF) } },
             { new ByteStringBuilder(11).appendUtf8("this is a").appendUtf8(" test"),
                 "this is a test".getBytes("UTF-8") },
-            { new ByteStringBuilder().appendObject((Object) "this is a").appendObject((Object) " test"),
+            { new ByteStringBuilder().appendObject("this is a").appendObject(" test"),
                 "this is a test".getBytes("UTF-8") },
             {
                 new ByteStringBuilder().appendUtf8("this is a".toCharArray()).appendUtf8(
                         " test".toCharArray()), "this is a test".getBytes("UTF-8") },
             {
-                new ByteStringBuilder().appendObject((Object) "this is a".toCharArray()).appendObject(
-                        (Object) " test".toCharArray()), "this is a test".getBytes("UTF-8") },
+                new ByteStringBuilder().appendObject("this is a".toCharArray()).appendObject(
+                        " test".toCharArray()), "this is a test".getBytes("UTF-8") },
             {
-                new ByteStringBuilder().appendObject((Object) EIGHT_BYTES).appendObject((Object) EIGHT_BYTES),
+                new ByteStringBuilder().appendObject(EIGHT_BYTES).appendObject(EIGHT_BYTES),
                 new byte[] { b(0x01), b(0x02), b(0x03), b(0x04), b(0x05),
                     b(0x06), b(0x07), b(0x08), b(0x01), b(0x02), b(0x03),
                     b(0x04), b(0x05), b(0x06), b(0x07), b(0x08) } },

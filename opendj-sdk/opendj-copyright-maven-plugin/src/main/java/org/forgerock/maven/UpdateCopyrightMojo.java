@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2016 ForgeRock AS
  */
 package org.forgerock.maven;
 
@@ -308,11 +308,10 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
                 linePattern = bufferedLines.get(indexCommentToken++);
                 commentToken = getCommentTokenInBlock(linePattern);
             }
-            if (commentToken != null) {
-                return linePattern.substring(0, linePattern.indexOf(commentToken) + 1);
-            } else {
-                throw new Exception("Uncompatibles comments lines in the file.");
+            if (commentToken == null) {
+                throw new Exception("Incompatibles comments lines in the file.");
             }
+            return linePattern.substring(0, linePattern.indexOf(commentToken) + 1);
         }
 
     }

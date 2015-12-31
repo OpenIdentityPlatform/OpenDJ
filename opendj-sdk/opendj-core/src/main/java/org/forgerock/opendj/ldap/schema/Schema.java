@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -516,9 +516,8 @@ public final class Schema {
             final AttributeType type = getAttributeType0(name);
             if (type != null) {
                 return type;
-            } else {
-                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
             }
+            throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
         }
 
         @Override
@@ -1835,7 +1834,7 @@ public final class Schema {
                 // should be valid.
                 foundMatchingNameForms = true;
 
-                if (checkNameForm(entry, policy, nameFormWarnings, nf)) {
+                if (checkNameForm(entry, nameFormWarnings, nf)) {
                     nameForm = nf;
                     break;
                 }
@@ -2117,8 +2116,8 @@ public final class Schema {
         return true;
     }
 
-    private boolean checkNameForm(final Entry entry, final SchemaValidationPolicy policy,
-            final List<LocalizableMessage> nameFormWarnings, final NameForm nameForm) {
+    private boolean checkNameForm(final Entry entry, final List<LocalizableMessage> nameFormWarnings,
+            final NameForm nameForm) {
         final RDN rdn = entry.getName().rdn();
         if (rdn != null) {
             // Make sure that all the required AVAs are present.

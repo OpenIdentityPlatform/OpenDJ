@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.requests;
 
@@ -72,23 +72,23 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
 
         final List<Control> controls = impl.getControls();
         final Control control = AbstractRequestImpl.getControl(controls, decoder.getOID());
-        if (control != null) {
-            // Got a match. Return a defensive copy only if necessary.
-            final C decodedControl = decoder.decodeControl(control, options);
-            if (decodedControl != control) {
-                // This was not the original control so return it
-                // immediately.
-                return decodedControl;
-            } else if (decodedControl instanceof GenericControl) {
-                // Generic controls are immutable, so return it immediately.
-                return decodedControl;
-            } else {
-                // Re-decode to get defensive copy.
-                final GenericControl genericControl = GenericControl.newControl(control);
-                return decoder.decodeControl(genericControl, options);
-            }
-        } else {
+        if (control == null) {
             return null;
+        }
+
+        // Got a match. Return a defensive copy only if necessary.
+        final C decodedControl = decoder.decodeControl(control, options);
+        if (decodedControl != control) {
+            // This was not the original control so return it
+            // immediately.
+            return decodedControl;
+        } else if (decodedControl instanceof GenericControl) {
+            // Generic controls are immutable, so return it immediately.
+            return decodedControl;
+        } else {
+            // Re-decode to get defensive copy.
+            final GenericControl genericControl = GenericControl.newControl(control);
+            return decoder.decodeControl(genericControl, options);
         }
     }
 

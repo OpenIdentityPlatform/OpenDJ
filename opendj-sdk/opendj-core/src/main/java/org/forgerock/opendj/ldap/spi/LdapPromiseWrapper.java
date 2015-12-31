@@ -21,10 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.spi;
+
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -33,13 +34,11 @@ import java.util.concurrent.TimeoutException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.util.AsyncFunction;
-import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.Function;
+import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.ResultHandler;
 import org.forgerock.util.promise.RuntimeExceptionHandler;
-
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 /**
  * Provides a {@link Promise} wrapper and a {@link LdapPromise} implementation.
@@ -63,7 +62,6 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
         this.requestID = requestID;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public int getRequestID() {
         return wrappedPromise instanceof LdapPromise ? ((LdapPromise<R>) wrappedPromise).getRequestID()
