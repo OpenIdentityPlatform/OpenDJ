@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2015 ForgeRock AS.
+ *      Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -196,14 +196,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
       {
         if (point == version.point)
         {
-          if (rev == version.rev)
-          {
-            return 0;
-          }
-          else if (rev.compareTo(version.rev) < 0)
-          {
-            return -1;
-          }
+          return 0;
         }
         else if (point < version.point)
         {
@@ -232,7 +225,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     else if (obj instanceof BuildVersion)
     {
       final BuildVersion other = (BuildVersion) obj;
-      return major == other.major && minor == other.minor && point == other.point && rev.equals(other.rev);
+      return major == other.major && minor == other.minor && point == other.point;
     }
     else
     {
@@ -283,12 +276,16 @@ public final class BuildVersion implements Comparable<BuildVersion>
   @Override
   public int hashCode()
   {
-    return Arrays.hashCode(new int[] { major, minor, point, rev.hashCode() });
+    return Arrays.hashCode(new int[] { major, minor, point });
   }
 
   @Override
   public String toString()
   {
-    return Utils.joinAsString(".", major, minor, point, rev);
+    if (!rev.isEmpty())
+    {
+      return Utils.joinAsString(".", major, minor, point, rev);
+    }
+    return Utils.joinAsString(".", major, minor, point);
   }
 }

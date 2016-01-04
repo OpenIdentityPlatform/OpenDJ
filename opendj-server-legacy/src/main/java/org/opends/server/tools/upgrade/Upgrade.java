@@ -161,7 +161,7 @@ public final class Upgrade
         "add: ds-cfg-strict-format",
         "ds-cfg-strict-format: false"));
 
-    register("2.5.0",
+    register("2.5.1",
         modifyConfigEntry(INFO_UPGRADE_TASK_8124_SUMMARY.get(),
         "(ds-cfg-java-class=org.opends.server.schema.JPEGSyntax)",
         "add: objectClass",
@@ -170,7 +170,7 @@ public final class Upgrade
         "add: ds-cfg-strict-format",
         "ds-cfg-strict-format: false"));
 
-    register("2.5.0",
+    register("2.5.1",
         modifyConfigEntry(INFO_UPGRADE_TASK_8133_SUMMARY.get(),
         "(ds-cfg-java-class=org.opends.server.schema.CountryStringSyntax)",
         "add: objectClass",
@@ -179,7 +179,7 @@ public final class Upgrade
         "add: ds-cfg-strict-format",
         "ds-cfg-strict-format: false"));
 
-    register("2.5.0",
+    register("2.5.1",
         requireConfirmation(INFO_UPGRADE_TASK_8214_DESCRIPTION.get(), YES,
             modifyConfigEntry(INFO_UPGRADE_TASK_8214_SUMMARY.get(),
                 "(ds-cfg-java-class=org.opends.server.extensions.IsMemberOfVirtualAttributeProvider)",
@@ -190,19 +190,19 @@ public final class Upgrade
                 "delete: ds-cfg-filter",
                 "ds-cfg-filter: (objectClass=person)")));
 
-    register("2.5.0",
+    register("2.5.1",
         modifyConfigEntry(INFO_UPGRADE_TASK_8387_SUMMARY.get(),
         "(objectClass=ds-cfg-dictionary-password-validator)",
         "add: ds-cfg-check-substrings",
         "ds-cfg-check-substrings: false"));
 
-    register("2.5.0",
+    register("2.5.1",
         modifyConfigEntry(INFO_UPGRADE_TASK_8389_SUMMARY.get(),
         "(objectClass=ds-cfg-attribute-value-password-validator)",
         "add: ds-cfg-check-substrings",
         "ds-cfg-check-substrings: false"));
 
-    register("2.5.0",
+    register("2.5.1",
         addConfigEntry(INFO_UPGRADE_TASK_8487_SUMMARY.get(),
         "dn: cn=PBKDF2,cn=Password Storage Schemes,cn=config",
         "changetype: add",
@@ -214,7 +214,7 @@ public final class Upgrade
             + "PBKDF2PasswordStorageScheme",
         "ds-cfg-enabled: true"));
 
-    register("2.5.0",
+    register("2.5.1",
         addConfigFile("http-config.json"),
         addConfigEntry(INFO_UPGRADE_TASK_8613_SUMMARY.get(),
         "dn: cn=HTTP Connection Handler,cn=Connection Handlers,cn=config",
@@ -242,7 +242,8 @@ public final class Upgrade
         "ds-cfg-use-ssl: false",
         "ds-cfg-enabled: false"));
 
-    register("2.5.0", addConfigEntry(INFO_UPGRADE_TASK_8832_SUMMARY.get(),
+    register("2.5.1",
+        addConfigEntry(INFO_UPGRADE_TASK_8832_SUMMARY.get(),
         "dn: cn=File-Based HTTP Access Logger,cn=Loggers,cn=config",
         "changetype: add",
         "objectClass: ds-cfg-file-based-http-access-log-publisher",
@@ -264,7 +265,7 @@ public final class Upgrade
         "ds-cfg-log-file-permissions: 640",
         "ds-cfg-enabled: false"));
 
-    register("2.5.0",
+    register("2.5.1",
         newAttributeTypes(INFO_UPGRADE_TASK_8985_1_SUMMARY.get(),
         "00-core.ldif", "1.2.840.113549.1.9.1"), // emailAddress
         modifyConfigEntry(INFO_UPGRADE_TASK_8985_2_SUMMARY.get(),
@@ -278,8 +279,8 @@ public final class Upgrade
         "ds-cfg-subject-attribute-mapping: emailAddress:mail"));
 
     /** See OPENDJ-992 */
-    register("2.5.0",
-        regressionInVersion("2.5.0.7640",
+    register("2.5.1",
+        regressionInVersion("2.5.0",
             rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
                 "ds-sync-hist")));
 
