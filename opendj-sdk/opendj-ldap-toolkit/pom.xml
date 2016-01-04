@@ -21,7 +21,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011-2015 ForgeRock AS.
+ !      Copyright 2011-2016 ForgeRock AS.
  !    
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -138,6 +138,9 @@
                             <descriptors>
                                 <descriptor>src/main/assembly/descriptor.xml</descriptor>
                             </descriptors>
+                            <formats>
+                                <format>zip</format>
+                            </formats>
                         </configuration>
                     </execution>
                 </executions>

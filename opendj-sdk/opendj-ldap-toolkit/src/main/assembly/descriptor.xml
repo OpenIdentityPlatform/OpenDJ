@@ -21,94 +21,98 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011-2015 ForgeRock AS
+ !      Copyright 2011-2016 ForgeRock AS
  !
  -->
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
-                      http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <id>opendj-ldap-toolkit</id>
-  <formats>
-    <format>zip</format>
-  </formats>
-  <fileSets>
-    <fileSet>
-      <directory>${project.basedir}</directory>
-      <outputDirectory></outputDirectory>
-      <directoryMode>755</directoryMode>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>README</include>
-        <include>LICENSE</include>
-        <include>NOTICE</include>
-      </includes>
-    </fileSet>
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
+                              http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>opendj-ldap-toolkit</id>
 
-    <!-- Include CDDLv1_0.txt -->
-    <fileSet>
-      <directory>${basedir}/../legal-notices</directory>
-      <outputDirectory>legal-notices</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0644</fileMode>
-      <includes>
-          <include>CDDLv1_0.txt</include>
-      </includes>
-    </fileSet>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+        </dependencySet>
+    </dependencySets>
 
-    <!-- Include THIRDPARTYREADME.txt -->
-    <fileSet>
-      <directory>${basedir}/legal-notices</directory>
-      <outputDirectory>legal-notices</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0644</fileMode>
-      <includes>
-        <include>THIRDPARTYREADME.txt</include>
-      </includes>
-    </fileSet>
-  <fileSet>
-    <directory>${project.parent.parent.basedir}</directory>
-    <outputDirectory></outputDirectory>
-    <directoryMode>755</directoryMode>
-    <fileMode>644</fileMode>
-    <includes>
-      <include>*.png</include>
-    </includes>
-  </fileSet>
-    <fileSet>
-      <directory>src/main/assembly/bin</directory>
-      <outputDirectory>bin</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0755</fileMode>
-      <lineEnding>unix</lineEnding>
-    </fileSet>
-    <fileSet>
-      <directory>src/main/assembly/bat</directory>
-      <outputDirectory>bat</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0644</fileMode>
-      <lineEnding>dos</lineEnding>
-    </fileSet>
-    <fileSet>
-      <directory>src/main/assembly/libbin</directory>
-      <outputDirectory>lib</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0755</fileMode>
-      <lineEnding>unix</lineEnding>
-    </fileSet>
-    <fileSet>
-      <directory>src/main/assembly/libbat</directory>
-      <outputDirectory>lib</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0644</fileMode>
-      <lineEnding>dos</lineEnding>
-    </fileSet>
-  </fileSets>
-  <dependencySets>
-    <dependencySet>
-      <outputDirectory>lib</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0644</fileMode>
-    </dependencySet>
-  </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <outputDirectory></outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>644</fileMode>
+            <includes>
+                <include>README</include>
+                <include>LICENSE</include>
+                <include>NOTICE</include>
+            </includes>
+        </fileSet>
+
+        <!-- Include CDDLv1_0.txt -->
+        <fileSet>
+            <directory>${basedir}/../legal-notices</directory>
+            <outputDirectory>legal-notices</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>CDDLv1_0.txt</include>
+            </includes>
+        </fileSet>
+
+        <!-- Include THIRDPARTYREADME.txt -->
+        <fileSet>
+            <directory>${basedir}/legal-notices</directory>
+            <outputDirectory>legal-notices</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>THIRDPARTYREADME.txt</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.parent.parent.basedir}</directory>
+            <outputDirectory></outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>644</fileMode>
+            <includes>
+                <include>*.png</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/assembly/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <lineEnding>unix</lineEnding>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/assembly/bat</directory>
+            <outputDirectory>bat</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <lineEnding>dos</lineEnding>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/assembly/libbin</directory>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <lineEnding>unix</lineEnding>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/assembly/libbat</directory>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <lineEnding>dos</lineEnding>
+        </fileSet>
+    </fileSets>
 </assembly>
