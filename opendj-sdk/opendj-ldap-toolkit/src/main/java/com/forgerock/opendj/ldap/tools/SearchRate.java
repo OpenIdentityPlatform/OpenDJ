@@ -22,19 +22,22 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import com.codahale.metrics.RatioGauge;
+import com.forgerock.opendj.cli.MultiColumnPrinter;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -65,15 +68,14 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public final class SearchRate extends ConsoleApplication {
     private final class SearchPerformanceRunner extends PerformanceRunner {
-        private final class SearchStatsHandler extends UpdateStatsResultHandler<Result> implements
-                SearchResultHandler {
+        private final class SearchStatsHandler extends UpdateStatsResultHandler<Result> implements SearchResultHandler {
             private SearchStatsHandler(final long startTime) {
                 super(startTime);
             }
 
             @Override
             public boolean handleEntry(final SearchResultEntry entry) {
-                entryRecentCount.getAndIncrement();
+                entryCount.inc();
                 return true;
             }
 
@@ -84,23 +86,28 @@ public final class SearchRate extends ConsoleApplication {
         }
 
         private final class SearchStatsThread extends StatsThread {
-            private final String[] extraColumn = new String[1];
+            private static final int ENTRIES_PER_SEARCH_COLUMN_WIDTH = 5;
+            private static final String ENTRIES_PER_SEARCH = STAT_ID_PREFIX + "entries_per_search";
 
-            private SearchStatsThread() {
-                super("Entries/Srch");
+            private SearchStatsThread(final PerformanceRunner perfRunner, final ConsoleApplication app) {
+                super(perfRunner, app);
             }
 
             @Override
-            void resetStats() {
-                super.resetStats();
-                entryRecentCount.set(0);
+            void resetAdditionalStats() {
+                entryCount = newIntervalCounter();
             }
 
             @Override
-            String[] getAdditionalColumns() {
-                final int entryCount = entryRecentCount.getAndSet(0);
-                extraColumn[0] = getDivisionResult(entryCount, intervalSuccessCount, 1, "0.0");
-                return extraColumn;
+            List<MultiColumnPrinter.Column> registerAdditionalColumns() {
+                registry.register(ENTRIES_PER_SEARCH, new RatioGauge() {
+                    @Override
+                    protected Ratio getRatio() {
+                        return Ratio.of(entryCount.refreshIntervalCount(), successCount.getLastIntervalCount());
+                    }
+                });
+                return Collections.singletonList(
+                        column(ENTRIES_PER_SEARCH, "Entries/Srch", ENTRIES_PER_SEARCH_COLUMN_WIDTH, 1));
             }
         }
 
@@ -115,7 +122,7 @@ public final class SearchRate extends ConsoleApplication {
 
             @Override
             public Promise<?, LdapException> performOperation(final Connection connection,
-                    final DataSource[] dataSources, final long startTime) {
+                    final DataSource[] dataSources, final long currentTimeNs) {
                 if (sr == null) {
                     if (dataSources == null) {
                         sr = Requests.newSearchRequest(baseDN, scope, filter, attributes);
@@ -132,7 +139,7 @@ public final class SearchRate extends ConsoleApplication {
                     sr.setName(String.format(baseDN, data));
                 }
 
-                final SearchStatsHandler handler = new SearchStatsHandler(startTime);
+                final SearchStatsHandler handler = new SearchStatsHandler(currentTimeNs);
                 incrementIterationCount();
                 return connection.searchAsync(sr, handler).thenOnResult(handler).thenOnException(handler);
             }
@@ -156,8 +163,8 @@ public final class SearchRate extends ConsoleApplication {
         }
 
         @Override
-        StatsThread newStatsThread() {
-            return new SearchStatsThread();
+        StatsThread newStatsThread(final PerformanceRunner performanceRunner, final ConsoleApplication app) {
+            return new SearchStatsThread(performanceRunner, app);
         }
     }
 
@@ -167,17 +174,14 @@ public final class SearchRate extends ConsoleApplication {
      * @param args
      *            The command-line arguments provided to this program.
      */
-
     public static void main(final String[] args) {
         final int retCode = new SearchRate().run(args);
         System.exit(filterExitCode(retCode));
     }
 
     private BooleanArgument verbose;
-
     private BooleanArgument scriptFriendly;
-
-    private final AtomicInteger entryRecentCount = new AtomicInteger();
+    private StatsThread.IntervalCounter entryCount = StatsThread.newIntervalCounter();
 
     private SearchRate() {
         // Nothing to do.

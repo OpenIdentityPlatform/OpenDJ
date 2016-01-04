@@ -59,6 +59,7 @@
         <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
         <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>
         <grizzly-framework.version>2.3.23</grizzly-framework.version>
+        <metrics-core.version>3.1.2</metrics-core.version>
 
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional />
@@ -76,6 +77,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Dropwizard metrics-core -->
+            <dependency>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-core</artifactId>
+                <version>${metrics-core.version}</version>
+            </dependency>
+
             <!-- Commons -->
             <dependency>
                 <groupId>org.forgerock</groupId>

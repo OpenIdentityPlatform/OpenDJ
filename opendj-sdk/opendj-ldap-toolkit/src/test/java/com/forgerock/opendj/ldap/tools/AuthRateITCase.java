@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class AuthRateITCase extends ToolsITCase {
 
-    private static final String THROUGHPUT_TEXT = "Recent throughput (ops/second)";
+    private static final String THROUGHPUT_TEXT = "recent throughput";
 
     @DataProvider
     public Object[][] authRateArgs() throws Exception {

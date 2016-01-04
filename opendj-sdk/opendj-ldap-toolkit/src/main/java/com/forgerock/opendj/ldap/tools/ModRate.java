@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -67,12 +67,12 @@ public final class ModRate extends ConsoleApplication {
 
             @Override
             public Promise<?, LdapException> performOperation(final Connection connection,
-                    final DataSource[] dataSources, final long startTime) {
+                    final DataSource[] dataSources, final long currentTimeNs) {
                 if (dataSources != null) {
                     data = DataSource.generateData(dataSources, data);
                 }
                 mr = newModifyRequest(data);
-                LdapResultHandler<Result> modRes = new UpdateStatsResultHandler<>(startTime);
+                LdapResultHandler<Result> modRes = new UpdateStatsResultHandler<>(currentTimeNs);
 
                 incrementIterationCount();
                 return connection.modifyAsync(mr).thenOnResult(modRes).thenOnException(modRes);
@@ -118,8 +118,8 @@ public final class ModRate extends ConsoleApplication {
         }
 
         @Override
-        StatsThread newStatsThread() {
-            return new StatsThread(new String[0]);
+        StatsThread newStatsThread(final PerformanceRunner performanceRunner, final ConsoleApplication app) {
+            return new StatsThread(performanceRunner, app);
         }
     }
 

@@ -25,12 +25,13 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static java.util.Locale.ENGLISH;
+import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.requests.Requests.newAddRequest;
+import static org.forgerock.opendj.ldap.requests.Requests.newDeleteRequest;
 import static org.forgerock.util.promise.Promises.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -40,12 +41,16 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.RatioGauge;
+import com.forgerock.opendj.cli.MultiColumnPrinter;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -91,9 +96,7 @@ public class AddRate extends ConsoleApplication {
             }
 
             @Override
-            public void handleResult(final Result result) {
-                super.handleResult(result);
-
+            void updateAdditionalStatsOnResult() {
                 switch (delStrategy) {
                 case RANDOM:
                     long newKey;
@@ -102,7 +105,7 @@ public class AddRate extends ConsoleApplication {
                     } while (dnEntriesAdded.putIfAbsent(newKey, entryDN) != null);
                     break;
                 case FIFO:
-                    long uniqueTime = currentTime;
+                    long uniqueTime = operationStartTimeNs;
                     while (dnEntriesAdded.putIfAbsent(uniqueTime, entryDN) != null) {
                         uniqueTime++;
                     }
@@ -111,9 +114,8 @@ public class AddRate extends ConsoleApplication {
                     break;
                 }
 
-                recentAdds.getAndIncrement();
-                totalAdds.getAndIncrement();
-                entryCount.getAndIncrement();
+                addCounter.inc();
+                entryCount.inc();
             }
         }
 
@@ -123,36 +125,37 @@ public class AddRate extends ConsoleApplication {
             }
 
             @Override
-            public void handleResult(final Result result) {
-                super.handleResult(result);
-                recentDeletes.getAndIncrement();
-                entryCount.getAndDecrement();
+            void updateAdditionalStatsOnResult() {
+                deleteCounter.inc();
+                entryCount.dec();
             }
         }
 
         private final class AddRateStatsThread extends StatsThread {
-            private final String[] extraColumn = new String[1];
+            private static final int PERCENTAGE_ADD_COLUMN_WIDTH = 6;
+            private static final String PERCENTAGE_ADD = STAT_ID_PREFIX + "add_percentage";
 
-            private AddRateStatsThread() {
-                super("Add%");
+            private AddRateStatsThread(final PerformanceRunner perfRunner, final ConsoleApplication app) {
+                super(perfRunner, app);
             }
 
             @Override
-            void resetStats() {
-                super.resetStats();
-                recentAdds.set(0);
-                recentDeletes.set(0);
+            void resetAdditionalStats() {
+                addCounter = newIntervalCounter();
+                deleteCounter = newIntervalCounter();
             }
 
             @Override
-            String[] getAdditionalColumns() {
-                final int adds = recentAdds.getAndSet(0);
-                final int deleteStat = recentDeletes.getAndSet(0);
-                final int total = adds + deleteStat;
-
-                extraColumn[0] = String.format(ENGLISH, "%.2f", total > 0 ? ((double) adds / total) * 100 : 0.0);
-
-                return extraColumn;
+            List<MultiColumnPrinter.Column> registerAdditionalColumns() {
+                registry.register(PERCENTAGE_ADD, new RatioGauge() {
+                    @Override
+                    protected Ratio getRatio() {
+                        final long addIntervalCount = addCounter.refreshIntervalCount();
+                        final long deleteIntervalCount = deleteCounter.refreshIntervalCount();
+                        return Ratio.of(addIntervalCount * 100, addIntervalCount + deleteIntervalCount);
+                    }
+                });
+                return Collections.singletonList(column(PERCENTAGE_ADD, "Add%", PERCENTAGE_ADD_COLUMN_WIDTH, 2));
             }
         }
 
@@ -163,16 +166,16 @@ public class AddRate extends ConsoleApplication {
 
             @Override
             public Promise<?, LdapException> performOperation(
-                    final Connection connection, final DataSource[] dataSources, final long currentTime) {
+                    final Connection connection, final DataSource[] dataSources, final long currentTimeNs) {
                 startPurgeIfMaxNumberAddReached();
-                startToggleDeleteIfAgeThresholdReached(currentTime);
+                startToggleDeleteIfAgeThresholdReached(currentTimeNs);
                 try {
                     String entryToRemove = getEntryToRemove();
                     if (entryToRemove != null) {
-                        return doDelete(connection, currentTime, entryToRemove);
+                        return doDelete(connection, currentTimeNs, entryToRemove);
                     }
 
-                    return doAdd(connection, currentTime);
+                    return doAdd(connection, currentTimeNs);
                 } catch (final AddRateExecutionEndedException a) {
                     return newResultPromise(OTHER);
                 } catch (final IOException e) {
@@ -185,14 +188,14 @@ public class AddRate extends ConsoleApplication {
                         && delThreshold == DeleteThreshold.AGE_THRESHOLD
                         && !dnEntriesAdded.isEmpty()
                         && dnEntriesAdded.firstKey() + timeToWait < currentTime) {
-                    setSizeThreshold(entryCount.get());
+                    setSizeThreshold(entryCount.getCount());
                 }
             }
 
             private void startPurgeIfMaxNumberAddReached() {
                 AtomicBoolean purgeLatch = new AtomicBoolean();
                 if (!isPurgeBranchRunning.get()
-                            && 0 < maxNbAddIterations && maxNbAddIterations < totalAdds.get()
+                            && 0 < maxNbAddIterations && maxNbAddIterations < addCounter.getCount()
                             && purgeLatch.compareAndSet(false, true)) {
                     newPurgerThread().start();
                 }
@@ -204,7 +207,7 @@ public class AddRate extends ConsoleApplication {
             private String getEntryToRemove() throws AddRateExecutionEndedException {
                 if (isPurgeBranchRunning.get()) {
                     return purgeEntry();
-                } else if (toggleDelete && entryCount.get() > sizeThreshold) {
+                } else if (toggleDelete && entryCount.getCount() > sizeThreshold) {
                     return removeFirstAddedEntry();
                 }
                 return null;
@@ -226,24 +229,22 @@ public class AddRate extends ConsoleApplication {
 
             private Promise<Result, LdapException> doAdd(
                     final Connection connection, final long currentTime) throws IOException {
-                Entry entry;
+                final Entry entry;
                 synchronized (generator) {
                     entry = generator.readEntry();
                 }
 
                 final LdapResultHandler<Result> addHandler = new AddStatsHandler(
-                    currentTime, entry.getName().toString());
+                        currentTime, entry.getName().toString());
                 return connection.addAsync(newAddRequest(entry))
-                                 .thenOnResult(addHandler)
-                                 .thenOnException(addHandler);
+                                 .thenOnResultOrException(addHandler, addHandler);
             }
 
             private Promise<?, LdapException> doDelete(
                     final Connection connection, final long currentTime, final String entryToRemove) {
                 final LdapResultHandler<Result> deleteHandler = new DeleteStatsHandler(currentTime);
                 return connection.deleteAsync(newDeleteRequest(entryToRemove))
-                                 .thenOnResult(deleteHandler)
-                                 .thenOnException(deleteHandler);
+                                 .thenOnResultOrException(deleteHandler, deleteHandler);
             }
         }
 
@@ -280,15 +281,14 @@ public class AddRate extends ConsoleApplication {
         private EntryGenerator generator;
         private DeleteStrategy delStrategy;
         private DeleteThreshold delThreshold;
-        private int sizeThreshold;
+        private long sizeThreshold;
         private volatile boolean toggleDelete;
         private long timeToWait;
         private int maxNbAddIterations;
         private boolean purgeEnabled;
-        private final AtomicInteger recentAdds = new AtomicInteger();
-        private final AtomicInteger recentDeletes = new AtomicInteger();
-        private final AtomicInteger totalAdds = new AtomicInteger();
-        private final AtomicInteger entryCount = new AtomicInteger();
+        private StatsThread.IntervalCounter addCounter = StatsThread.newIntervalCounter();
+        private StatsThread.IntervalCounter deleteCounter = StatsThread.newIntervalCounter();
+        private final Counter entryCount = new Counter();
         private final AtomicBoolean isPurgeBranchRunning = new AtomicBoolean();
 
         private AddPerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
@@ -302,13 +302,13 @@ public class AddRate extends ConsoleApplication {
         }
 
         @Override
-        StatsThread newStatsThread() {
-            return new AddRateStatsThread();
+        StatsThread newStatsThread(final PerformanceRunner performanceRunner, final ConsoleApplication app) {
+            return new AddRateStatsThread(performanceRunner, app);
         }
 
         @Override
-        TimerThread newEndTimerThread(final long timeTowait) {
-            return new AddRateTimerThread(timeTowait);
+        TimerThread newEndTimerThread(final long timeToWait) {
+            return new AddRateTimerThread(timeToWait);
         }
 
         TimerThread newPurgerThread() {
@@ -347,7 +347,7 @@ public class AddRate extends ConsoleApplication {
             }
         }
 
-        private void setSizeThreshold(int entriesSizeThreshold) {
+        private void setSizeThreshold(final long entriesSizeThreshold) {
             sizeThreshold = entriesSizeThreshold;
             toggleDelete = true;
         }

@@ -27,17 +27,20 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 
+import com.codahale.metrics.RatioGauge;
+import com.forgerock.opendj.cli.MultiColumnPrinter;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -74,23 +77,37 @@ import com.forgerock.opendj.cli.StringArgument;
  * requests using one or more LDAP connections.
  */
 public final class AuthRate extends ConsoleApplication {
+
     private final class BindPerformanceRunner extends PerformanceRunner {
         private final class BindStatsThread extends StatsThread {
-            private final String[] extraColumn;
+            private static final int BIND_TIME_PERCENTAGE_COLUMN_WIDTH = 5;
+            private static final String BIND_TIME_PERCENTAGE = STAT_ID_PREFIX + "bind_time_percentage";
 
-            private BindStatsThread(final boolean extraFieldRequired) {
-                super(extraFieldRequired ? new String[] { "bind time %" } : new String[0]);
-                extraColumn = new String[extraFieldRequired ? 1 : 0];
+            private final boolean computeBindTime;
+
+            private BindStatsThread(final PerformanceRunner performanceRunner,
+                                    final ConsoleApplication app,
+                                    final boolean computeBindTime) {
+                super(performanceRunner, app);
+                this.computeBindTime = computeBindTime;
             }
 
             @Override
-            String[] getAdditionalColumns() {
-                if (extraColumn.length != 0) {
-                    final long searchWaitTimeNs = searchWaitRecentTimeNs.getAndSet(0);
-                    extraColumn[0] = getDivisionResult(
-                            100 * (intervalWaitTimeNs - searchWaitTimeNs), intervalWaitTimeNs, 1, "-");
+            List<MultiColumnPrinter.Column> registerAdditionalColumns() {
+                if (!computeBindTime) {
+                    return Collections.emptyList();
                 }
-                return extraColumn;
+
+                registry.register(BIND_TIME_PERCENTAGE, new RatioGauge() {
+                    @Override
+                    protected Ratio getRatio() {
+                        final long searchWaitTimeIntervalNs = searchWaitRecentTimeNs.getLastIntervalCount();
+                        final long waitTimeIntervalNs = waitDurationNsCount.getLastIntervalCount();
+                        return Ratio.of(100 * (waitTimeIntervalNs - searchWaitTimeIntervalNs), waitTimeIntervalNs);
+                    }
+                });
+                return Collections.singletonList(
+                        column(BIND_TIME_PERCENTAGE, "bind time %", BIND_TIME_PERCENTAGE_COLUMN_WIDTH, 1));
             }
         }
 
@@ -113,7 +130,7 @@ public final class AuthRate extends ConsoleApplication {
 
             @Override
             public Promise<?, LdapException> performOperation(final Connection connection,
-                    final DataSource[] dataSources, final long startTime) {
+                    final DataSource[] dataSources, final long currentTimeNs) {
                 if (dataSources != null) {
                     data = DataSource.generateData(dataSources, data);
                     if (data.length == dataSources.length) {
@@ -144,7 +161,7 @@ public final class AuthRate extends ConsoleApplication {
                                 @Override
                                 public Promise<BindResult, LdapException> apply(SearchResultEntry result)
                                         throws LdapException {
-                                    searchWaitRecentTimeNs.getAndAdd(System.nanoTime() - startTime);
+                                    searchWaitRecentTimeNs.inc(System.nanoTime() - currentTimeNs);
                                     if (data == null) {
                                         data = new Object[1];
                                     }
@@ -158,8 +175,8 @@ public final class AuthRate extends ConsoleApplication {
                 }
 
                 incrementIterationCount();
-                return returnedPromise.thenOnResult(new UpdateStatsResultHandler<BindResult>(startTime))
-                                      .thenOnException(new UpdateStatsResultHandler<BindResult>(startTime));
+                return returnedPromise.thenOnResult(new UpdateStatsResultHandler<BindResult>(currentTimeNs))
+                                      .thenOnException(new UpdateStatsResultHandler<BindResult>(currentTimeNs));
             }
 
             private Promise<BindResult, LdapException> performBind(final Connection connection,
@@ -288,7 +305,7 @@ public final class AuthRate extends ConsoleApplication {
             }
         }
 
-        private final AtomicLong searchWaitRecentTimeNs = new AtomicLong();
+        private final StatsThread.IntervalCounter searchWaitRecentTimeNs = StatsThread.newIntervalCounter();
         private String filter;
         private String baseDN;
         private SearchScope scope;
@@ -314,8 +331,8 @@ public final class AuthRate extends ConsoleApplication {
         }
 
         @Override
-        StatsThread newStatsThread() {
-            return new BindStatsThread(filter != null && baseDN != null);
+        StatsThread newStatsThread(final PerformanceRunner performanceRunner, final ConsoleApplication app) {
+            return new BindStatsThread(performanceRunner, app, filter != null && baseDN != null);
         }
     }
 

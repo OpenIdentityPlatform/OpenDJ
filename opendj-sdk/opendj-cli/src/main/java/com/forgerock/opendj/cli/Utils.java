@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS.
+ *      Portions copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -40,6 +40,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -618,5 +619,20 @@ public final class Utils {
      */
     public static void printWrappedText(final PrintStream stream, final LocalizableMessage message) {
         printWrappedText(stream, message != null ? message.toString() : null);
+    }
+
+    /**
+     * Repeats the given {@link char} n times.
+     *
+     * @param charToRepeat
+     *      The {@link char} to repeat.
+     * @param length
+     *      The repetition count.
+     * @return The given {@link char} n times.
+     */
+    public static String repeat(final char charToRepeat, final int length) {
+        final char[] str = new char[length];
+        Arrays.fill(str, charToRepeat);
+        return new String(str);
     }
 }

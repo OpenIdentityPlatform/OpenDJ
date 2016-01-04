@@ -22,441 +22,508 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
-import java.util.Arrays;
+import static com.forgerock.opendj.cli.Utils.repeat;
+
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
+import java.util.Locale;
+
+import org.forgerock.util.Reject;
 
 /**
- * Utility class for printing aligned columns of text.
- * <P>
- * This class allows you to specify:
- * <UL>
- * <LI>The number of columns in the output. This will determine the dimension of
- * the string arrays passed to add(String[]) or addTitle(String[]).
- * <LI>spacing/gap between columns
- * <LI>character to use for title border (null means no border)
- * <LI>column alignment. Only LEFT/CENTER is supported for now.
- * </UL>
- * <P>
- * Example usage:
+ * Utility class for printing columns of data.
+ * <p>
+ * This printer can be used to print data in formatted table or in csv format.
+ * <p>
+ * Regarding the formatting table feature, this class allows you to specify for each {@link Column}s:
+ * <ul>
+ *     <li>A unique identifier</li>
+ *     <li>The column title which will be printed by a call to {@link MultiColumnPrinter#printTitleLine()}</li>
+ *     <li>The size (if a cell's data is bigger than the predefined size, then the data will not be truncated,
+ *         i.e. it will overflow)</li>
+ *     <li>The number of digits to keep (for {@link Double} data)</li>
+ * </ul>
+ * <p>
+ * Code to write data is independent of the {@link MultiColumnPrinter} configuration:
+ * <pre>
+ * void printData(final MultiColumnPrinter printer) {
+ *     String[][] myData = new String[][] {
+ *         new String[]{"U.S.A", "34.2", "40.8", ".us"},
+ *         new String[]{"United Kingdom", "261.1", "31.6", ".uk"},
+ *         new String[]{"France", "98.8", "30.1", ".fr"}
+ *     };
  *
- * <PRE>
- * MyPrinter mp = new MyPrinter(3, 2, &quot;-&quot;);
- * String oneRow[] = new String[3];
- * oneRow[0] = &quot;User Name&quot;;
- * oneRow[1] = &quot;Email Address&quot;;
- * oneRow[2] = &quot;Phone Number&quot;;
- * mp.addTitle(oneRow);
- * oneRow[0] = &quot;Bob&quot;;
- * oneRow[1] = &quot;bob@foo.com&quot;;
- * oneRow[2] = &quot;123-4567&quot;;
- * mp.add(oneRow);
- * oneRow[0] = &quot;John&quot;;
- * oneRow[1] = &quot;john@foo.com&quot;;
- * oneRow[2] = &quot;456-7890&quot;;
- * mp.add(oneRow);
- * mp.print();
- * </PRE>
- * <P>
- * The above would print:
- * <P>
- *
- * <PRE>
- *  --------------------------------------
- *  User Name  Email Address  Phone Number
- *  --------------------------------------
- *  Bob        bob@foo.com    123-4567
- *  John       john@foo.com   456-7890
- * </PRE>
- * <P>
- * This class also supports multi-row titles and having title strings spanning
- * multiple columns. Example usage:
- *
- * <PRE>
- * TestPrinter tp = new TestPrinter(4, 2, &quot;-&quot;);
- * String oneRow[] = new String[4];
- * int[] span = new int[4];
- * span[0] = 2; // spans 2 columns
- * span[1] = 0; // spans 0 columns
- * span[2] = 2; // spans 2 columns
- * span[3] = 0; // spans 0 columns
- * tp.setTitleAlign(CENTER);
- * oneRow[0] = &quot;Name&quot;;
- * oneRow[1] = &quot;&quot;;
- * oneRow[2] = &quot;Contact&quot;;
- * oneRow[3] = &quot;&quot;;
- * tp.addTitle(oneRow, span);
- * oneRow[0] = &quot;First&quot;;
- * oneRow[1] = &quot;Last&quot;;
- * oneRow[2] = &quot;Email&quot;;
- * oneRow[3] = &quot;Phone&quot;;
- * tp.addTitle(oneRow);
- * oneRow[0] = &quot;Bob&quot;;
- * oneRow[1] = &quot;Jones&quot;;
- * oneRow[2] = &quot;bob@foo.com&quot;;
- * oneRow[3] = &quot;123-4567&quot;;
- * tp.add(oneRow);
- * oneRow[0] = &quot;John&quot;;
- * oneRow[1] = &quot;Doe&quot;;
- * oneRow[2] = &quot;john@foo.com&quot;;
- * oneRow[3] = &quot;456-7890&quot;;
- * tp.add(oneRow);
- * tp.println();
- * </PRE>
- * <P>
- * The above would print:
- * <P>
- *
- * <PRE>
- *      ------------------------------------
- *          Name             Contact
- *      First  Last      Email       Phone
- *      ------------------------------------
- *      Bob    Jones  bob@foo.com   123-4567
- *      John   Doe    john@foo.com  456-7890
- * </PRE>
+ *     int i;
+ *     for (String[] countryData : myData) {
+ *         i = 0;
+ *         for (final MultiColumnPrinter.Column column : printer.getColumns()) {
+ *             printer.printData(countryData[i++]);
+ *         }
+ *     }
+ *  }
+ * </pre>
+ * <p>
+ * The following code sample presents how to create a {@link MultiColumnPrinter} to write CSV data:
+ * <pre>
+ * final List<MultiColumnPrinter.Column> columns = new ArrayList&lt;&gt;();
+ * columns.add(MultiColumnPrinter.column("CountryNameColumnId", "country_name", 0));
+ * columns.add(MultiColumnPrinter.column("populationDensityId", "population_density", 1));
+ * columns.add(MultiColumnPrinter.column("GiniId", "gini", 1));
+ * columns.add(MultiColumnPrinter.column("internetTLDId", "internet_tld", 0));
+ * MultiColumnPrinter myCsvPrinter = MultiColumnPrinter.builder(System.out, columns)
+ *                                                     .columnSeparator(",")
+ *                                                     .build();
+ * printData(myCsvPrinter);
+ * </pre>
+ * <p>
+ * The code above would print:
+ * <pre>
+ * country_name,population_density,gini,internet_tld
+ * U.S.A,34.2,40.8,.us
+ * United Kingdom,261.1,31.6,.uk
+ * France,98.8,30.1,.fr
+ * </pre>
+ * <p>
+ * The following code sample presents how to configure a {@link MultiColumnPrinter}
+ * to print the same data on console with some title headers.
+ * <pre>
+ *     final List<MultiColumnPrinter.Column> columns = new ArrayList&lt;&gt;();
+ *     columns.add(MultiColumnPrinter.separatorColumn());
+ *     columns.add(MultiColumnPrinter.column("CountryNameColumnId", "Country Name", 15, 0));
+ *     columns.add(MultiColumnPrinter.column("populationDensityId", "Density", 10, 1));
+ *     columns.add(MultiColumnPrinter.separatorColumn());
+ *     columns.add(MultiColumnPrinter.column("GiniID", "GINI", 5, 1));
+ *     columns.add(MultiColumnPrinter.column("internetTLDID", "TLD", 5, 0));
+ *     columns.add(MultiColumnPrinter.separatorColumn());
+ *     MultiColumnPrinter myPrinter = MultiColumnPrinter.builder(System.out, columns)
+ *                                                      .format(true)
+ *                                                      .columnSeparator("  ")
+ *                                                      .titleAlignment(MultiColumnPrinter.Alignment.CENTER)
+ *                                                      .build();
+ *     myPrinter.printDashedLine();
+ *     myPrinter.printTitleSection("General Information", 2);
+ *     myPrinter.printTitleSection("Data", 2);
+ *     myPrinter.printTitleLine();
+ *     myPrinter.printDashedLine();
+ *     printData(myPrinter);
+ *     myPrinter.printDashedLine();
+ * </pre>
+ * <p>
+ * The code above would print:
+ * <pre>
+ * --------------------------------------------------
+ * |       General Information     |       Data     |
+ * |     Country Name     Density  |   GINI    TLD  |
+ * --------------------------------------------------
+ * |            U.S.A        34.2  |   40.8    .us  |
+ * |   United Kingdom       261.1  |   31.6    .uk  |
+ * |           France        98.8  |   30.1    .fr  |
+ * --------------------------------------------------
+ * </pre>
  */
 public final class MultiColumnPrinter {
 
-    /** Left ID. */
-    public static final int LEFT = 0;
-    /** Center ID. */
-    public static final int CENTER = 1;
-    /** Right ID. */
-    public static final int RIGHT = 2;
+    /** The data alignment. */
+    public enum Alignment {
+        /** Data will be left-aligned. */
+        LEFT,
+        /** Data will be centered. */
+        CENTER,
+        /** Data will be right-aligned. */
+        RIGHT
+    }
 
-    private int numCol = 2;
-    private int gap = 4;
-
-    private int align = CENTER;
-    private int titleAlign = CENTER;
-
-    private String border;
-    private final List<String[]> titleTable = new Vector<>();
-    private final List<int[]> titleSpanTable = new Vector<>();
-    private final int[] curLength;
-
-    private final ConsoleApplication app;
+    private static final String SEPARATOR_ID = "separator";
+    private static int separatorIdNumber;
 
     /**
-     * Creates a sorted new MultiColumnPrinter class using LEFT alignment and
-     * with no title border.
+     * Returns a new separator {@link Column}.
+     * <p>
+     * This kind of {@link Column} can be used to separate data sections.
      *
-     * @param numCol
-     *            number of columns
-     * @param gap
-     *            gap between each column
-     * @param app
-     *            the console application to use for outputting data
+     * @return A new separator {@link Column}.
      */
-    public MultiColumnPrinter(final int numCol, final int gap, final ConsoleApplication app) {
-        this(numCol, gap, null, LEFT, app);
+    public static Column separatorColumn() {
+        return new Column(SEPARATOR_ID + separatorIdNumber++, "", 1, 0);
     }
 
     /**
-     * Creates a sorted new MultiColumnPrinter class using LEFT alignment.
+     * Creates a new {@link Column} with the provided arguments.
      *
-     * @param numCol
-     *            number of columns
-     * @param gap
-     *            gap between each column
-     * @param border
-     *            character used to frame the titles
-     * @param app
-     *            the console application to use for outputting data
+     * @param id
+     *      The column identifier.
+     * @param title
+     *      The column title.
+     * @param doublePrecision
+     *      The double precision used to print {@link Double} data for this column.
+     *      See {@link MultiColumnPrinter#printData(Double)}.
+     * @return
+     *      A new Column with the provided arguments.
      */
-    public MultiColumnPrinter(final int numCol, final int gap, final String border,
-            final ConsoleApplication app) {
-        this(numCol, gap, border, LEFT, app);
+    public static Column column(final String id, final String title, final int doublePrecision) {
+        return new Column(id, title, 1, doublePrecision);
     }
 
     /**
-     * Creates a new MultiColumnPrinter class.
+     * Creates a new Column with the provided arguments.
      *
-     * @param numCol
-     *            number of columns
-     * @param gap
-     *            gap between each column
-     * @param border
-     *            character used to frame the titles
-     * @param align
-     *            type of alignment within columns
-     * @param app
-     *            the console application to use for outputting data
+     * @param id
+     *      The column identifier.
+     * @param title
+     *      The column title.
+     * @param width
+     *      The column width.
+     *      This information will only be used if the associated
+     *      {@link MultiColumnPrinter} is configured to apply formatting.
+     *      See {@link Builder#format(boolean)}.
+     * @param doublePrecision
+     *      The double precision to use to print data for this column.
+     * @return
+     *      A new Column with the provided arguments.
      */
-    public MultiColumnPrinter(final int numCol, final int gap, final String border, final int align,
-            final ConsoleApplication app) {
-        curLength = new int[numCol];
-
-        this.numCol = numCol;
-        this.gap = gap;
-        this.border = border;
-        this.align = align;
-        this.titleAlign = LEFT;
-
-        this.app = app;
+    public static Column column(final String id, final String title, final int width, final int doublePrecision) {
+        return new Column(id, title, Math.max(width, title.length()), doublePrecision);
     }
 
     /**
-     * Adds to the row of strings to be used as the title for the table.
-     *
-     * @param row
-     *            Array of strings to print in one row of title.
+     * This class describes a Column of data used in the {@link MultiColumnPrinter}.
+     * <p>
+     * A column consists in the following fields:
+     * <ul>
+     *     <li>An identifier for the associated data.
+     *     <li>A title which is printed when {@link MultiColumnPrinter#printTitleLine()} is called.
+     *     <li>A width which is the max width for this column's data.
+     *         This information will only be used if the associated {@link MultiColumnPrinter}
+     *         is configure to apply formatting.See {@link Builder#format(boolean)}.
+     *     <li>A double precision which is the number of decimal to print for numeric data.
+     *         See {@link MultiColumnPrinter#printData(Double)}.
+     * </ul>
      */
-    public void addTitle(final String[] row) {
-        if (row == null) {
-            return;
+    public static final class Column {
+        private final String id;
+        private final String title;
+        private final int width;
+        private final int doublePrecision;
+
+        private Column(final String id, final String title, final int width, final int doublePrecision) {
+            this.id = id;
+            this.title = title;
+            this.width = Math.max(width, title.length());
+            this.doublePrecision = doublePrecision;
         }
 
-        final int[] span = new int[row.length];
-        for (int i = 0; i < row.length; i++) {
-            span[i] = 1;
+        /**
+         * Returns this {@link Column} identifier.
+         *
+         * @return This {@link Column} identifier.
+         */
+        public String getId() {
+            return id;
+        }
+    }
+
+    /**
+     * Creates a new {@link Builder} to build a {@link MultiColumnPrinter}.
+     *
+     * @param stream
+     *      The {@link PrintStream} to use to print data.
+     * @param columns
+     *      The {@link List} of {@link Column} data to print.
+     * @return
+     *      A new {@link Builder} to build a {@link MultiColumnPrinter}.
+     */
+    public static Builder builder(final PrintStream stream, final List<Column> columns) {
+        return new Builder(stream, columns);
+    }
+
+    /** A fluent API for incrementally constructing {@link MultiColumnPrinter}. */
+    public static final class Builder {
+        private final PrintStream stream;
+        private final List<Column> columns;
+
+        private Alignment titleAlignment = Alignment.RIGHT;
+        private String columnSeparator = " ";
+        private boolean format;
+
+        private Builder(final PrintStream stream, final List<Column> columns) {
+            Reject.ifNull(stream);
+            this.stream = stream;
+            this.columns = columns;
         }
 
-        addTitle(row, span);
+        /**
+         * Sets whether the {@link MultiColumnPrinter} needs to apply formatting.
+         * <br>
+         * Default value is {@code false}.
+         *
+         * @param format
+         *      {@code true} if the {@link MultiColumnPrinter} needs to apply formatting.
+         * @return This builder.
+         */
+        public Builder format(final boolean format) {
+            this.format = format;
+            return this;
+        }
+
+        /**
+         * Sets the alignment for title elements which will be printed by the {@link MultiColumnPrinter}.
+         * <p>
+         * This is used only if the printer is configured to
+         * apply formatting, see {@link Builder#format(boolean)}.
+         * <br>
+         * Default value is {@link Alignment#RIGHT}.
+         *
+         * @param titleAlignment
+         *      The title alignment.
+         * @return This builder.
+         */
+        public Builder titleAlignment(final Alignment titleAlignment) {
+            this.titleAlignment = titleAlignment;
+            return this;
+        }
+
+        /**
+         * Sets the sequence to use to separate column.
+         * <p>
+         * Default value is {@code " "}.
+         *
+         * @param separator
+         *      The sequence {@link String}.
+         * @return This builder.
+         */
+        public Builder columnSeparator(final String separator) {
+            this.columnSeparator = separator;
+            return this;
+        }
+
+        /**
+         * Creates a new {@link MultiColumnPrinter} as configured in this {@link Builder}.
+         *
+         * @return A new {@link MultiColumnPrinter} as configured in this {@link Builder}.
+         */
+        public MultiColumnPrinter build() {
+            return new MultiColumnPrinter(this);
+        }
+    }
+
+    private final PrintStream stream;
+    private final List<Column> columns;
+    private final boolean format;
+    private final Alignment titleAlignment;
+    private final String columnSeparator;
+
+    private List<Column> printableColumns;
+    private final int lineLength;
+    private Iterator<Column> columnIterator;
+    private Column currentColumn;
+
+    private MultiColumnPrinter(final Builder builder) {
+        this.stream = builder.stream;
+        this.columns = Collections.unmodifiableList(builder.columns);
+        this.format = builder.format;
+        this.columnSeparator = builder.columnSeparator;
+        this.titleAlignment = builder.titleAlignment;
+        this.lineLength = computeLineLength();
+        resetIterator();
+        computePrintableColumns();
+    }
+
+    /** Prints a dashed line. */
+    public void printDashedLine() {
+        startNewLineIfNeeded();
+        for (int i = 0; i < lineLength; i++) {
+            stream.print('-');
+        }
+        stream.println();
     }
 
     /**
-     * Adds to the row of strings to be used as the title for the table. Also
-     * allows for certain title strings to span multiple columns The span
-     * parameter is an array of integers which indicate how many columns the
-     * corresponding title string will occupy. For a row that is 4 columns
-     * wide, it is possible to have some title strings in a row to 'span'
-     * multiple columns:
-     * <P>
+     * Formats and prints the provided text data.
+     * Merge the provided text over the provided number of column.
+     * <p>
+     * Separator columns between merged columns will not be printed.
      *
-     * <PRE>
-     * ------------------------------------
-     *     Name             Contact
-     * First  Last      Email       Phone
-     * ------------------------------------
-     * Bob    Jones  bob@foo.com   123-4567
-     * John   Doe    john@foo.com  456-7890
-     * </PRE>
-     *
-     * In the example above, the title row has a string 'Name' that spans 2
-     * columns. The string 'Contact' also spans 2 columns. The above is done
-     * by passing in to addTitle() an array that contains:
-     *
-     * <PRE>
-     * span[0] = 2; // spans 2 columns
-     * span[1] = 0; // spans 0 columns, ignore
-     * span[2] = 2; // spans 2 columns
-     * span[3] = 0; // spans 0 columns, ignore
-     * </PRE>
-     * <P>
-     * A span value of 1 is the default. The method addTitle(String[] row)
-     * basically does:
-     *
-     * <PRE>
-     * int[] span = new int[row.length];
-     * for (int i = 0; i &lt; row.length; i++) {
-     *     span[i] = 1;
-     * }
-     * addTitle(row, span);
-     * </PRE>
-     *
-     * @param row
-     *            Array of strings to print in one row of title.
-     * @param span
-     *            Array of integers that reflect the number of columns the
-     *            corresponding title string will occupy.
+     * @param data
+     *      The section title to print.
+     * @param rowSpan
+     *      Specifies the number of rows a cell should span.
      */
-    public void addTitle(final String[] row, final int[] span) {
-        // Need to create a new instance of it, otherwise the new values
-        // will always overwrite the old values.
-        titleTable.add(Arrays.copyOf(row, row.length));
-        titleSpanTable.add(span);
+    public void printTitleSection(final String data, final int rowSpan) {
+        consumeSeparatorColumn();
+        int lengthToPad = 0;
+        int nbColumnMerged = 0;
+
+        while (columnIterator.hasNext() && nbColumnMerged < rowSpan) {
+            lengthToPad += currentColumn.width + columnSeparator.length();
+            if (!isSeparatorColumn(currentColumn)) {
+                nbColumnMerged++;
+            }
+            currentColumn = columnIterator.next();
+        }
+        stream.print(align(data, titleAlignment, lengthToPad));
+        consumeSeparatorColumn();
+        if (!columnIterator.hasNext()) {
+            nextLine();
+        }
+    }
+
+    /** Prints a line with all column title and separator. */
+    public void printTitleLine() {
+        startNewLineIfNeeded();
+        passFirstSeparatorColumn();
+        for (final Column column : this.printableColumns) {
+            printCell(column.title, Alignment.RIGHT);
+        }
     }
 
     /**
-     * Clears title strings.
+     * Prints the provided {@link Double} value on the current column.
+     * <p>
+     * If this {@link MultiColumnPrinter} is configured to apply formatting,
+     * the provided value will be truncated according to the decimal
+     * precision set in the corresponding {@link Column}.
+     * <br>
+     * See {@link MultiColumnPrinter#column(String, String, int, int)} for more details.
+     *
+     * @param value
+     *      The double value to print.
      */
-    public void clearTitle() {
-        titleTable.clear();
-        titleSpanTable.clear();
+    public void printData(final Double value) {
+        passFirstSeparatorColumn();
+        printData(value.isNaN() ? "-"
+                                : String.format(Locale.ENGLISH, "%." + currentColumn.doublePrecision + "f", value));
     }
 
     /**
-     * Adds one row of text to output.
+     * Prints the provided text data on the current column.
      *
-     * @param row
-     *            Array of strings to print in one row.
+     * @param data
+     *      The text data to print.
      */
-    public void printRow(final String... row) {
-        for (int i = 0; i < numCol; i++) {
-            if (titleAlign == RIGHT) {
-                final int spaceBefore = curLength[i] - row[i].length();
-                printSpaces(spaceBefore);
-                app.getOutputStream().print(row[i]);
-                if (i < numCol - 1) {
-                    printSpaces(gap);
-                }
-            } else if (align == CENTER) {
-                int space1, space2;
-                space1 = (curLength[i] - row[i].length()) / 2;
-                space2 = curLength[i] - row[i].length() - space1;
+    public void printData(final String data) {
+        passFirstSeparatorColumn();
+        printCell(data, Alignment.RIGHT);
+    }
 
-                printSpaces(space1);
-                app.getOutputStream().print(row[i]);
-                printSpaces(space2);
-                if (i < numCol - 1) {
-                    printSpaces(gap);
-                }
-            } else {
-                app.getOutputStream().print(row[i]);
-                if (i < numCol - 1) {
-                    printSpaces(curLength[i] - row[i].length() + gap);
-                }
+    /**
+     * Returns the data {@link Column} list of this {@link MultiColumnPrinter}.
+     * <p>
+     * Separator columns are filtered out.
+     *
+     * @return The {@link Column} list of this {@link MultiColumnPrinter}.
+     */
+    public List<Column> getColumns() {
+        return printableColumns;
+    }
+
+    private void printCell(final String data, final Alignment alignment) {
+        String toPrint = format ? align(data, alignment, currentColumn.width) : data;
+        if (columnIterator.hasNext()) {
+            toPrint += columnSeparator;
+        }
+        stream.print(toPrint);
+        nextLineOnEOLOrNextColumn();
+    }
+
+    /** Provided the provided string data according to the provided width and the provided alignment. */
+    private String align(final String data, final Alignment alignment, final int width) {
+        final String rawData = data.trim();
+        final int padding = width - rawData.length();
+
+        if (padding <= 0) {
+            return rawData;
+        }
+
+        switch (alignment) {
+        case RIGHT:
+            return pad(padding, rawData, 0);
+        case LEFT:
+            return pad(0, rawData, padding);
+        case CENTER:
+            final int paddingBefore = padding / 2;
+            return pad(paddingBefore, rawData, padding - paddingBefore);
+        default:
+            return "";
+        }
+    }
+
+    private String pad(final int leftPad, final String s, final int rightPad) {
+        return new StringBuilder().append(repeat(' ', leftPad))
+                                  .append(s)
+                                  .append(repeat(' ', rightPad))
+                                  .toString();
+    }
+
+    private void passFirstSeparatorColumn() {
+        if (cursorOnLineStart()) {
+            consumeSeparatorColumn();
+        }
+    }
+
+    private void consumeSeparatorColumn() {
+        if (isSeparatorColumn(currentColumn)) {
+            stream.print('|' + columnSeparator);
+            nextLineOnEOLOrNextColumn();
+        }
+    }
+
+    private void startNewLineIfNeeded() {
+        if (!cursorOnLineStart()) {
+            nextLine();
+        }
+    }
+
+    private void nextLineOnEOLOrNextColumn() {
+        if (columnIterator.hasNext()) {
+            currentColumn = columnIterator.next();
+            consumeSeparatorColumn();
+        } else {
+            nextLine();
+        }
+    }
+
+    private void nextLine() {
+        stream.println();
+        resetIterator();
+    }
+
+    private void resetIterator() {
+        columnIterator = columns.iterator();
+        currentColumn = columnIterator.next();
+    }
+
+    private boolean cursorOnLineStart() {
+        return currentColumn == columns.get(0);
+    }
+
+    private boolean isSeparatorColumn(final Column column) {
+        return column.id.startsWith(SEPARATOR_ID);
+    }
+
+    private void computePrintableColumns() {
+        printableColumns = new ArrayList<>(columns);
+        final Iterator<Column> it = printableColumns.iterator();
+
+        while (it.hasNext()) {
+            if (isSeparatorColumn(it.next())) {
+                it.remove();
             }
         }
-        app.getOutputStream().println("");
     }
 
-    /**
-     * Prints the table title.
-     */
-    public void printTitle() {
-        // Get the longest string for each column and store in curLength[]
-
-        // Scan through title rows
-        Iterator<int[]> spanEnum = titleSpanTable.iterator();
-        for (String[] row : titleTable) {
-            final int[] curSpan = spanEnum.next();
-
-            for (int i = 0; i < numCol; i++) {
-                // None of the fields should be null, but if it
-                // happens to be so, replace it with "-".
-                if (row[i] == null) {
-                    row[i] = "-";
-                }
-
-                int len = row[i].length();
-
-                /*
-                 * If a title string spans multiple columns, then the space it
-                 * occupies in each column is at most len/span (since we have
-                 * gap to take into account as well).
-                 */
-                final int span = curSpan[i];
-                int rem = 0;
-                if (span > 1) {
-                    rem = len % span;
-                    len = len / span;
-                }
-
-                if (curLength[i] < len) {
-                    curLength[i] = len;
-
-                    if ((span > 1) && ((i + span) <= numCol)) {
-                        for (int j = i + 1; j < (i + span); ++j) {
-                            curLength[j] = len;
-                        }
-
-                        /*
-                         * Add remainder to last column in span to avoid
-                         * round-off errors.
-                         */
-                        curLength[(i + span) - 1] += rem;
-                    }
-                }
-            }
+    private int computeLineLength() {
+        int lineLength = 0;
+        final int separatorLength = this.columnSeparator.length();
+        for (final Column column : this.columns) {
+            lineLength += column.width + separatorLength;
         }
-
-        printBorder();
-
-        spanEnum = titleSpanTable.iterator();
-        for (String[] row : titleTable) {
-            final int[] curSpan = spanEnum.next();
-
-            for (int i = 0; i < numCol; i++) {
-                int availableSpace = 0;
-                final int span = curSpan[i];
-
-                if (span == 0) {
-                    continue;
-                }
-
-                availableSpace = curLength[i];
-
-                if ((span > 1) && ((i + span) <= numCol)) {
-                    for (int j = i + 1; j < (i + span); ++j) {
-                        availableSpace += gap;
-                        availableSpace += curLength[j];
-                    }
-                }
-
-                if (titleAlign == RIGHT) {
-                    final int spaceBefore = availableSpace - row[i].length();
-                    printSpaces(spaceBefore);
-                    app.getOutputStream().print(row[i]);
-                    if (i < numCol - 1) {
-                        printSpaces(gap);
-                    }
-                } else if (titleAlign == CENTER) {
-                    int spaceBefore, spaceAfter;
-                    spaceBefore = (availableSpace - row[i].length()) / 2;
-                    spaceAfter = availableSpace - row[i].length() - spaceBefore;
-
-                    printSpaces(spaceBefore);
-                    app.getOutputStream().print(row[i]);
-                    printSpaces(spaceAfter);
-                    if (i < numCol - 1) {
-                        printSpaces(gap);
-                    }
-                } else {
-                    app.getOutputStream().print(row[i]);
-                    if (i < numCol - 1) {
-                        printSpaces(availableSpace - row[i].length() + gap);
-                    }
-                }
-
-            }
-            app.getOutputStream().println("");
-        }
-        printBorder();
-    }
-
-    /**
-     * Set alignment for title strings.
-     *
-     * @param titleAlign
-     *            The alignment which should be one of {@code LEFT},
-     *            {@code RIGHT}, or {@code CENTER}.
-     */
-    public void setTitleAlign(final int titleAlign) {
-        this.titleAlign = titleAlign;
-    }
-
-    private void printBorder() {
-        if (border == null) {
-            return;
-        }
-
-        // For the value in each column
-        for (int i = 0; i < numCol; i++) {
-            for (int j = 0; j < curLength[i]; j++) {
-                app.getOutputStream().print(border);
-            }
-        }
-
-        // For the gap between each column
-        for (int i = 0; i < numCol - 1; i++) {
-            for (int j = 0; j < gap; j++) {
-                app.getOutputStream().print(border);
-            }
-        }
-        app.getOutputStream().println("");
-    }
-
-    private void printSpaces(final int count) {
-        for (int i = 0; i < count; ++i) {
-            app.getOutputStream().print(" ");
-        }
+        return lineLength - separatorLength;
     }
 }
