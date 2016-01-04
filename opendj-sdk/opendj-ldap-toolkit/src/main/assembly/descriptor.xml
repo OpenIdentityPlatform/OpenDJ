@@ -30,6 +30,8 @@
                               http://maven.apache.org/xsd/assembly-1.1.2.xsd">
     <id>opendj-ldap-toolkit</id>
 
+    <baseDirectory>${project.artifactId}</baseDirectory>
+
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
