@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -38,7 +38,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
@@ -413,6 +412,11 @@ public final class Upgrade
               public boolean shouldPerformUpgradeTasks(UpgradeContext context) throws ClientException {
                 return !isOEMVersion();
               }
+
+              @Override
+              public String toString() {
+                return "!isOEMVersion";
+              }
           },
           migrateLocalDBBackendsToJEBackends(),
           modifyConfigEntry(INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_2.get(),
@@ -459,6 +463,11 @@ public final class Upgrade
           @Override
           public boolean shouldPerformUpgradeTasks(UpgradeContext context) throws ClientException {
             return isOEMVersion();
+          }
+
+          @Override
+          public String toString() {
+            return "isOEMVersion";
           }
         },
         deleteFile(new File(libDirectory, "je.jar")),
@@ -809,11 +818,9 @@ public final class Upgrade
   private static void changeBuildInfoVersion(final UpgradeContext context)
       throws ClientException
   {
-    FileWriter buildInfo = null;
-    try
+    File buildInfoFile = new File(UpgradeUtils.configDirectory, Installation.BUILDINFO_RELATIVE_PATH);
+    try (FileWriter buildInfo = new FileWriter(buildInfoFile, false))
     {
-      buildInfo =
-          new FileWriter(new File(UpgradeUtils.configDirectory, Installation.BUILDINFO_RELATIVE_PATH), false);
 
       // Write the new version
       buildInfo.write(context.getToVersion().toString());
@@ -825,10 +832,6 @@ public final class Upgrade
       final LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       context.notify(message, ERROR_CALLBACK);
       throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
-    }
-    finally
-    {
-      StaticUtils.close(buildInfo);
     }
   }
 
@@ -896,9 +899,9 @@ public final class Upgrade
         }
       }
     }
-    catch (SecurityException se)
+    catch (SecurityException e)
     {
-      logger.debug(LocalizableMessage.raw(se.getMessage()));
+      logger.debug(LocalizableMessage.raw(e.getMessage()), e);
     }
   }
 

@@ -21,12 +21,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
-
 package org.opends.server.tools.upgrade;
-
-
 
 import static org.opends.messages.ToolMessages.*;
 
@@ -36,14 +33,11 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ReturnCode;
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 
-
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
 
 /**
  * Context information which is passed to upgrade tasks. This might include
@@ -51,43 +45,22 @@ import org.opends.server.util.BuildVersion;
  */
 public final class UpgradeContext
 {
-
-  /**
-   * The version we upgrade from.
-   */
+  /** The version we upgrade from. */
   private final BuildVersion fromVersion;
-
-  /**
-   * The version we want to upgrade to.
-   */
+  /** The version we want to upgrade to. */
   private final BuildVersion toVersion;
 
-  /**
-   * The call-back handler for interacting with the upgrade application.
-   */
+  /** The call-back handler for interacting with the upgrade application. */
   private final CallbackHandler handler;
 
-  /**
-   * If ignore errors is enabled.
-   */
+  /** If ignore errors is enabled. */
   private boolean isIgnoreErrorsMode;
-
-  /**
-   * If accept license is enabled.
-   */
+  /** If accept license is enabled. */
   private boolean isAcceptLicenseMode;
-
-  /**
-   * If interactive mode is enabled.
-   */
+  /** If interactive mode is enabled. */
   private boolean isInteractiveMode;
-
-  /**
-   * If force upgrade is enabled.
-   */
+  /** If force upgrade is enabled. */
   private boolean isForceUpgradeMode;
-
-
 
   /**
    * Creates a new upgrade context for upgrading from the instance version (as
@@ -103,8 +76,6 @@ public final class UpgradeContext
   {
     this(BuildVersion.instanceVersion(), BuildVersion.binaryVersion(), handler);
   }
-
-
 
   /**
    * Constructor for the upgrade context.
@@ -125,8 +96,6 @@ public final class UpgradeContext
     this.handler = handler;
   }
 
-
-
   /**
    * Returns the old version.
    *
@@ -136,8 +105,6 @@ public final class UpgradeContext
   {
     return fromVersion;
   }
-
-
 
   /**
    * Returns the new version.
@@ -149,8 +116,6 @@ public final class UpgradeContext
     return toVersion;
   }
 
-
-
   /**
    * Returns the ignore error mode.
    *
@@ -160,8 +125,6 @@ public final class UpgradeContext
   {
     return isIgnoreErrorsMode;
   }
-
-
 
   /**
    * Sets the ignore errors mode.
@@ -176,8 +139,6 @@ public final class UpgradeContext
     return this;
   }
 
-
-
   /**
    * Returns the accept license mode.
    *
@@ -187,8 +148,6 @@ public final class UpgradeContext
   {
     return isAcceptLicenseMode;
   }
-
-
 
   /**
    * Sets the accept license mode.
@@ -203,8 +162,6 @@ public final class UpgradeContext
     return this;
   }
 
-
-
   /**
    * Returns the callback handler.
    *
@@ -215,8 +172,6 @@ public final class UpgradeContext
     return handler;
   }
 
-
-
   /**
    * Returns the status of the interactive mode.
    *
@@ -226,8 +181,6 @@ public final class UpgradeContext
   {
     return isInteractiveMode;
   }
-
-
 
   /**
    * Sets the interactive mode.
@@ -242,8 +195,6 @@ public final class UpgradeContext
     return this;
   }
 
-
-
   /**
    * Returns the status of the force upgrade mode.
    *
@@ -253,8 +204,6 @@ public final class UpgradeContext
   {
     return isForceUpgradeMode;
   }
-
-
 
   /**
    * Sets the force upgrade mode.
@@ -268,8 +217,6 @@ public final class UpgradeContext
     this.isForceUpgradeMode = isForceUpgradeMode;
     return this;
   }
-
-
 
   /**
    * Sends notification message to the application via the call-back handler.
@@ -292,8 +239,6 @@ public final class UpgradeContext
           ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR.get(e.getMessage()));
     }
   }
-
-
 
   /**
    * Sends notification message to the application via the call-back handler
@@ -320,8 +265,6 @@ public final class UpgradeContext
     }
   }
 
-
-
   /**
    * Displays a progress callback.
    *
@@ -343,8 +286,6 @@ public final class UpgradeContext
           ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR.get(e.getMessage()));
     }
   }
-
-
 
   /**
    * Asks a confirmation to the user. Answer is yes or no.
@@ -373,5 +314,11 @@ public final class UpgradeContext
           ERR_UPGRADE_DISPLAY_CONFIRM_ERROR.get(e.getMessage()));
     }
     return confirmYNCallback.getSelectedIndex();
+  }
+
+  @Override
+  public String toString()
+  {
+    return "Upgrade from " + fromVersion + " to " + toVersion;
   }
 }

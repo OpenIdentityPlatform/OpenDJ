@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldif.EntryReader;
+import org.forgerock.util.Utils;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
@@ -72,9 +73,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
 
-/**
- * Factory methods for create new upgrade tasks.
- */
+/** Factory methods for create new upgrade tasks. */
 public final class UpgradeTasks
 {
   /** Logger for the upgrade. */
@@ -151,6 +150,12 @@ public final class UpgradeTasks
               schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_REPLACE_SCHEMA_FILE.get(fileName).toString();
+      }
     };
   }
 
@@ -189,6 +194,12 @@ public final class UpgradeTasks
           manageTaskException(context, ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(
               configFile.getName(), e.getMessage()), pnc);
         }
+      }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_ADD_CONFIG_FILE.get(fileName).toString();
       }
     };
   }
@@ -287,6 +298,12 @@ public final class UpgradeTasks
               schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
     };
   }
 
@@ -348,6 +365,12 @@ public final class UpgradeTasks
               schemaFileTemplate.getName(), e.getMessage()), pnc);
         }
       }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
     };
   }
 
@@ -378,6 +401,12 @@ public final class UpgradeTasks
           throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_DSJAVAPROPERTIES_FAILED.get());
         }
       }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
     };
   }
 
@@ -407,6 +436,12 @@ public final class UpgradeTasks
       {
         return context.getFromVersion().compareTo(version) >= 0;
       }
+
+      @Override
+      public String toString()
+      {
+        return "Regression in version \"" + versionString + "\"";
+      }
     }, tasks);
   }
 
@@ -431,13 +466,19 @@ public final class UpgradeTasks
       {
         return context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(message), defaultResponse) == YES;
       }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(message).toString();
+      }
     }, tasks);
   }
 
   /** Determines whether conditional tasks should be performed. */
   interface UpgradeCondition
   {
-    boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException;
+    boolean shouldPerformUpgradeTasks(UpgradeContext context) throws ClientException;
   }
 
   static UpgradeTask conditionalUpgradeTasks(final UpgradeCondition condition, final UpgradeTask... tasks)
@@ -499,6 +540,16 @@ public final class UpgradeTasks
         }
       }
 
+      @Override
+      public String toString()
+      {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(condition).append(" = ").append(shouldPerformUpgradeTasks).append('\n');
+        sb.append('[');
+        Utils.joinAsString(sb, "\n", (Object[]) tasks);
+        sb.append(']');
+        return sb.toString();
+      }
     };
   }
 
@@ -513,7 +564,7 @@ public final class UpgradeTasks
   {
     return new AbstractUpgradeTask()
     {
-      private boolean isATaskToPerform = false;
+      private boolean isATaskToPerform;
 
       @Override
       public void prepare(UpgradeContext context) throws ClientException
@@ -539,10 +590,14 @@ public final class UpgradeTasks
       {
         context.notify(INFO_UPGRADE_ALL_REBUILD_INDEX_DECLINED.get(), TextOutputCallback.WARNING);
       }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
     };
   }
-
-
 
   /**
    * Creates a rebuild index task for a given single index. As this task is
@@ -565,7 +620,7 @@ public final class UpgradeTasks
   {
     return new AbstractUpgradeTask()
     {
-      private boolean isATaskToPerform = false;
+      private boolean isATaskToPerform;
 
       @Override
       public void prepare(UpgradeContext context) throws ClientException
@@ -595,6 +650,12 @@ public final class UpgradeTasks
         {
           context.notify(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(index), TextOutputCallback.WARNING);
         }
+      }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
       }
     };
   }
@@ -653,44 +714,49 @@ public final class UpgradeTasks
          * upgrade log file.
          */
         final List<String> backends = UpgradeUtils.getIndexedBackendsFromConfig();
-        if (!backends.isEmpty())
-        {
-          for (final String be : backends)
-          {
-            args.add("-b");
-            args.add(be);
-          }
-
-          // Displays info about command line args for log only.
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
-
-          /*
-           * The rebuild-index process just display a status ok / fails. The
-           * logger stream contains all the log linked to this process. The
-           * complete process is not displayed in the upgrade console.
-           */
-          final String[] commandLineArgs = args.toArray(new String[args.size()]);
-          final int result = new RebuildIndex().rebuildIndexesWithinMultipleBackends(
-              true, UpgradeLog.getPrintStream(), commandLineArgs);
-
-          if (result == 0)
-          {
-            logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS);
-            context.notifyProgress(pnc.setProgress(100));
-          }
-          else
-          {
-            final LocalizableMessage msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
-            context.notifyProgress(pnc.setProgress(-100));
-            throw new ClientException(ReturnCode.ERROR_UNEXPECTED, msg);
-          }
-        }
-        else
+        if (backends.isEmpty())
         {
           logger.debug(INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND);
           logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED, indexesToRebuild);
           context.notifyProgress(pnc.setProgress(100));
+          return;
         }
+
+        for (final String be : backends)
+        {
+          args.add("-b");
+          args.add(be);
+        }
+
+        // Displays info about command line args for log only.
+        logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
+
+        /*
+         * The rebuild-index process just display a status ok / fails. The
+         * logger stream contains all the log linked to this process. The
+         * complete process is not displayed in the upgrade console.
+         */
+        final String[] commandLineArgs = args.toArray(new String[args.size()]);
+        final int result = new RebuildIndex().rebuildIndexesWithinMultipleBackends(
+            true, UpgradeLog.getPrintStream(), commandLineArgs);
+
+        if (result == 0)
+        {
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS);
+          context.notifyProgress(pnc.setProgress(100));
+        }
+        else
+        {
+          final LocalizableMessage msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
+          context.notifyProgress(pnc.setProgress(-100));
+          throw new ClientException(ReturnCode.ERROR_UNEXPECTED, msg);
+        }
+      }
+
+      @Override
+      public String toString()
+      {
+        return "Post upgrade rebuild indexes task";
       }
     };
   }
@@ -719,7 +785,7 @@ public final class UpgradeTasks
 
         try
         {
-          String toRevision = String.valueOf(context.getToVersion().getRevision());
+          String toRevision = context.getToVersion().getRevision();
           updateConfigUpgradeSchemaFile(configSchemaDirectory, toRevision);
 
           context.notifyProgress(pnc.setProgress(100));
@@ -728,6 +794,12 @@ public final class UpgradeTasks
         {
           manageTaskException(context, ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER.get(ex.getMessage()), pnc);
         }
+      }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get().toString();
       }
     };
   }
@@ -778,6 +850,12 @@ public final class UpgradeTasks
           }
         }
       }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
     };
   }
 
@@ -807,6 +885,12 @@ public final class UpgradeTasks
         {
           manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
         }
+      }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_DELETE_FILE.get(file).toString();
       }
     };
   }
@@ -954,6 +1038,12 @@ public final class UpgradeTasks
         builder.append("_id2entry");
         return builder.toString();
       }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_MIGRATE_JE_SUMMARY_1.get("%s").toString();
+      }
     };
   }
 
@@ -965,7 +1055,7 @@ public final class UpgradeTasks
   {
     return new AbstractUpgradeTask()
     {
-      private boolean reimportRequired = false;
+      private boolean reimportRequired;
 
       @Override
       public void perform(UpgradeContext context) throws ClientException
@@ -1018,6 +1108,12 @@ public final class UpgradeTasks
         {
           context.notify(INFO_UPGRADE_TASK_RENAME_JE_DB_DIR_WARNING.get(), TextOutputCallback.WARNING);
         }
+      }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_RENAME_JE_DB_DIR.get("%s", "%s").toString();
       }
     };
   }
@@ -1115,6 +1211,12 @@ public final class UpgradeTasks
       {
         performConfigFileUpdate(summary, filter, changeOperationType, context, ldif);
       }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
     };
   }
 
@@ -1211,6 +1313,12 @@ public final class UpgradeTasks
         {
           manageTaskException(context, LocalizableMessage.raw(e.getLocalizedMessage()), pnc);
         }
+      }
+
+      @Override
+      public String toString()
+      {
+        return INFO_UPGRADE_TASK_DELETE_CHANGELOG_SUMMARY.get(replicationDbDir).toString();
       }
     };
   }
