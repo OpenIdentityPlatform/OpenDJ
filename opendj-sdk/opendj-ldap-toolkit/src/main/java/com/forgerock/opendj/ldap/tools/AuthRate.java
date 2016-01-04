@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -86,28 +85,12 @@ public final class AuthRate extends ConsoleApplication {
 
             @Override
             String[] getAdditionalColumns() {
-                invalidCredRecentCount.set(0);
                 if (extraColumn.length != 0) {
                     final long searchWaitTimeNs = searchWaitRecentTimeNs.getAndSet(0);
                     extraColumn[0] = getDivisionResult(
                             100 * (intervalWaitTimeNs - searchWaitTimeNs), intervalWaitTimeNs, 1, "-");
                 }
                 return extraColumn;
-            }
-        }
-
-        private final class BindUpdateStatsResultHandler extends UpdateStatsResultHandler<BindResult> {
-            private BindUpdateStatsResultHandler(final long startTime) {
-                super(startTime);
-            }
-
-            @Override
-            public void handleException(final LdapException exception) {
-                super.handleException(exception);
-
-                if (exception.getResult().getResultCode() == ResultCode.INVALID_CREDENTIALS) {
-                    invalidCredRecentCount.getAndIncrement();
-                }
             }
         }
 
@@ -176,7 +159,7 @@ public final class AuthRate extends ConsoleApplication {
 
                 incrementIterationCount();
                 return returnedPromise.thenOnResult(new UpdateStatsResultHandler<BindResult>(startTime))
-                                      .thenOnException(new BindUpdateStatsResultHandler(startTime));
+                                      .thenOnException(new UpdateStatsResultHandler<BindResult>(startTime));
             }
 
             private Promise<BindResult, LdapException> performBind(final Connection connection,
@@ -306,7 +289,6 @@ public final class AuthRate extends ConsoleApplication {
         }
 
         private final AtomicLong searchWaitRecentTimeNs = new AtomicLong();
-        private final AtomicInteger invalidCredRecentCount = new AtomicInteger();
         private String filter;
         private String baseDN;
         private SearchScope scope;
