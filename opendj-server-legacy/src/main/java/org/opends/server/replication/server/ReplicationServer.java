@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -171,7 +171,7 @@ public final class ReplicationServer
     this.domainPredicate = predicate;
 
     enableExternalChangeLog();
-    this.changelogDB = new FileChangelogDB(this, cfg);
+    this.changelogDB = new FileChangelogDB(this, config.getReplicationDBDirectory());
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();
@@ -1327,6 +1327,15 @@ public final class ReplicationServer
   DSRSShutdownSync getDSRSShutdownSync()
   {
     return dsrsShutdownSync;
+  }
+
+  /**
+   * Returns whether change-log indexing is enabled for this RS.
+   * @return true if change-log indexing is enabled for this RS.
+   */
+  public boolean isChangeNumberEnabled()
+  {
+    return config.isComputeChangeNumber();
   }
 
   /** {@inheritDoc} */

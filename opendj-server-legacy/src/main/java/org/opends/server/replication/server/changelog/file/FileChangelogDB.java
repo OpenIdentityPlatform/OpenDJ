@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -48,7 +48,6 @@ import org.forgerock.opendj.config.DurationUnit;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Pair;
 import org.forgerock.util.time.TimeService;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.replication.common.CSN;
@@ -97,7 +96,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   private final ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>> replicaCursors =
       new ConcurrentSkipListMap<>();
   private ReplicationEnvironment replicationEnv;
-  private final ReplicationServerCfg config;
   private final File dbDirectory;
 
   /**
@@ -132,17 +130,16 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    *
    * @param replicationServer
    *          the local replication server.
-   * @param config
-   *          the replication server configuration
+   * @param dbDirectoryPath
+   *          the path where the changelog files reside.
    * @throws ConfigException
    *           if a problem occurs opening the supplied directory
    */
-  public FileChangelogDB(final ReplicationServer replicationServer, final ReplicationServerCfg config)
+  public FileChangelogDB(final ReplicationServer replicationServer, String dbDirectoryPath)
       throws ConfigException
   {
-    this.config = config;
     this.replicationServer = replicationServer;
-    this.dbDirectory = makeDir(config.getReplicationDBDirectory());
+    this.dbDirectory = makeDir(dbDirectoryPath);
   }
 
   private File makeDir(final String dbDirName) throws ConfigException
@@ -289,11 +286,10 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   {
     try
     {
-      final File dbDir = getFileForPath(config.getReplicationDBDirectory());
-      replicationEnv = new ReplicationEnvironment(dbDir.getAbsolutePath(), replicationServer, TimeService.SYSTEM);
+      replicationEnv = new ReplicationEnvironment(dbDirectory.getAbsolutePath(), replicationServer, TimeService.SYSTEM);
       final ChangelogState changelogState = replicationEnv.getChangelogState();
       initializeToChangelogState(changelogState);
-      if (config.isComputeChangeNumber())
+      if (replicationServer.isChangeNumberEnabled())
       {
         startIndexer();
       }
@@ -625,7 +621,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   void resetChangeNumberIndex(long newFirstCN, DN baseDN, CSN newFirstCSN) throws ChangelogException
   {
-    if (!config.isComputeChangeNumber())
+    if (!replicationServer.isChangeNumberEnabled())
     {
       throw new ChangelogException(ERR_REPLICATION_CHANGE_NUMBER_DISABLED.get(baseDN));
     }
@@ -908,9 +904,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
           final CSN purgeCSN = new CSN(purgeTimestamp, 0, 0);
           final CSN oldestNotPurgedCSN;
 
-          // next code assumes that the compute-change-number config
-          // never changes during the life time of an RS
-          if (!config.isComputeChangeNumber())
+          if (!replicationServer.isChangeNumberEnabled())
           {
             oldestNotPurgedCSN = purgeCSN;
           }
