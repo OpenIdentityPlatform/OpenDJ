@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2015 ForgeRock AS.
+  !      Copyright 2015-2016 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -133,13 +133,13 @@
                                         <exec executable="light.exe" dir="${project.build.directory}/msi">
                                             <arg value="-nologo" />
                                             <arg value="-ext" /> <arg value="WixUIExtension" />
-                                            <arg value="-out" /> <arg value="dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi" />
+                                            <arg value="-out" /> <arg value="dist/${product.name.lowercase}-${project.version}.msi" />
                                             <arg value="build/package.wixobj" />
                                             <arg value="build/payload.wixobj" />
                                         </exec>
 
                                         <!-- Attach msi artifact to the build -->
-                                        <attachartifact file="${project.build.directory}/msi/dist/${product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.msi" />
+                                        <attachartifact file="${project.build.directory}/msi/dist/${product.name.lowercase}-${project.version}.msi" />
                                     </target>
                                 </configuration>
                             </execution>

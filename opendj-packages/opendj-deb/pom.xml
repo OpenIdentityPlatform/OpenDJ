@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2015 ForgeRock AS.
+  !      Copyright 2015-2016 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -160,9 +160,7 @@
                                 <goal>jdeb</goal>
                             </goals>
                             <configuration>
-                                <deb>
-                                    ${project.build.directory}/${deb.product.name.lowercase}_${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${deb.release}.${maven.build.timestamp}_all.deb
-                                </deb>
+                                <deb>${project.build.directory}/${deb.product.name.lowercase}_${project.version}-${deb.release}_all.deb</deb>
                                 <controlDir>${project.build.directory}/deb/control</controlDir>
                                 <dataSet>
                                     <!-- OpenDJ service file -->

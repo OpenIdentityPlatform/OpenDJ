@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2015 ForgeRock AS.
+  !      Copyright 2015-2016 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -52,6 +52,7 @@
             ${product.name.lowercase}/legal-notices/THIRDPARTYREADME.txt
         </oem.file.exclusion.list>
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
+        <product.archive.name>${product.name.lowercase}-oem-${project.version}</product.archive.name>
     </properties>
 
     <dependencies>
@@ -225,9 +226,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>
-                                ${product.name}-OEM-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}
-                            </finalName>
+                            <finalName>${product.archive.name}</finalName>
                             <descriptors>
                                 <descriptor>src/main/assembly/opendj-zip-oem-archive-assembly.xml</descriptor>
                             </descriptors>

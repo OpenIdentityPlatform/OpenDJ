@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2015 ForgeRock AS.
+  !      Copyright 2015-2016 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -88,19 +88,36 @@
                     </executions>
                 </plugin>
 
+                <!--
+                    This plugin execution is used to replace the dash in the project version (if any) by an
+                    underscore since an rpm package name must follow the Name-Version-Release pattern so the
+                    Version field cannot contains dash.
+                -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>regex-property</id>
+                            <goals>
+                                <goal>regex-property</goal>
+                            </goals>
+                            <configuration>
+                                <name>rpm.version</name>
+                                <value>${project.version}</value>
+                                <regex>(.*)[-](.*)</regex>
+                                <replacement>$1_$2</replacement>
+                                <failIfNoMatch>false</failIfNoMatch>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>rpm-maven-plugin</artifactId>
                     <version>2.1.4</version>
                     <executions>
-                        <execution>
-                            <id>properties</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>version</goal>
-                            </goals>
-                        </execution>
-
                         <execution>
                             <id>generate-rpm-package</id>
                             <phase>package</phase>
@@ -137,7 +154,7 @@
                         <defineStatements>
                             <defineStatement>arch noarch</defineStatement>
                             <defineStatement>_prefix ${rpm.prefix}</defineStatement>
-                            <defineStatement>_pre ${rpm.product.name.lowercase}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</defineStatement>
+                            <defineStatement>_pre ${rpm.product.name.lowercase}-${rpm.version}</defineStatement>
                             <defineStatement>__os_install_post %{nil}</defineStatement>
                         </defineStatements>
 
