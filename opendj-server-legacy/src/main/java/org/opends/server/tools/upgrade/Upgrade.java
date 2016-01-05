@@ -304,6 +304,42 @@ public final class Upgrade
     register("2.7.0",
         copySchemaFile("03-pwpolicyextension.ldif"));
 
+    /** See OPENDJ-1490 and OPENDJ-1454 */
+    register("2.7.0",
+        deleteConfigEntry(INFO_UPGRADE_TASK_10733_1_SUMMARY.get(),
+        "dn: ds-cfg-backend-id=replicationChanges,cn=Backends,cn=config"),
+        modifyConfigEntry(INFO_UPGRADE_TASK_10733_2_SUMMARY.get(),
+        "(objectClass=ds-cfg-dsee-compat-access-control-handler)",
+        "delete: ds-cfg-global-aci",
+        "ds-cfg-global-aci: "
+            + "(target=\"ldap:///dc=replicationchanges\")"
+            + "(targetattr=\"*\")"
+            + "(version 3.0; acl \"Replication backend access\"; "
+            + "deny (all) userdn=\"ldap:///anyone\";)"));
+
+    /** See OPENDJ-1351 */
+    register("2.7.0",
+        modifyConfigEntry(INFO_UPGRADE_TASK_10820_SUMMARY.get(),
+        "(objectClass=ds-cfg-root-dn)",
+        "add: ds-cfg-default-root-privilege-name",
+        "ds-cfg-default-root-privilege-name: changelog-read"));
+
+    /** See OPENDJ-1580 */
+    register("2.7.0",
+        addConfigEntry(INFO_UPGRADE_TASK_10908_SUMMARY.get(),
+            "dn: cn=PKCS5S2,cn=Password Storage Schemes,cn=config",
+            "changetype: add",
+            "objectClass: top",
+            "objectClass: ds-cfg-password-storage-scheme",
+            "objectClass: ds-cfg-pkcs5s2-password-storage-scheme",
+            "cn: PKCS5S2",
+            "ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme",
+            "ds-cfg-enabled: true"));
+
+    /** See OPENDJ-1322 and OPENDJ-1067 */
+    register("2.7.0",
+        rerunJavaPropertiesTool(INFO_UPGRADE_TASK_9206_SUMMARY.get()));
+
     register("2.8.0",
         modifyConfigEntry(INFO_UPGRADE_TASK_10214_SUMMARY.get(),
           "(ds-cfg-java-class=org.opends.server.loggers.debug.TextDebugLogPublisher)",
@@ -338,38 +374,6 @@ public final class Upgrade
              "add:ds-cfg-override-severity",
              "ds-cfg-override-severity: SYNC=INFO,ERROR,WARNING,NOTICE"));
 
-    /** See OPENDJ-1490 and OPENDJ-1454 */
-    register("2.7.0",
-        deleteConfigEntry(INFO_UPGRADE_TASK_10733_1_SUMMARY.get(),
-        "dn: ds-cfg-backend-id=replicationChanges,cn=Backends,cn=config"),
-        modifyConfigEntry(INFO_UPGRADE_TASK_10733_2_SUMMARY.get(),
-        "(objectClass=ds-cfg-dsee-compat-access-control-handler)",
-        "delete: ds-cfg-global-aci",
-        "ds-cfg-global-aci: "
-            + "(target=\"ldap:///dc=replicationchanges\")"
-            + "(targetattr=\"*\")"
-            + "(version 3.0; acl \"Replication backend access\"; "
-            + "deny (all) userdn=\"ldap:///anyone\";)"));
-
-    /** See OPENDJ-1351 */
-    register("2.7.0",
-        modifyConfigEntry(INFO_UPGRADE_TASK_10820_SUMMARY.get(),
-        "(objectClass=ds-cfg-root-dn)",
-        "add: ds-cfg-default-root-privilege-name",
-        "ds-cfg-default-root-privilege-name: changelog-read"));
-
-    /** See OPENDJ-1580 */
-    register("2.7.0",
-        addConfigEntry(INFO_UPGRADE_TASK_10908_SUMMARY.get(),
-            "dn: cn=PKCS5S2,cn=Password Storage Schemes,cn=config",
-            "changetype: add",
-            "objectClass: top",
-            "objectClass: ds-cfg-password-storage-scheme",
-            "objectClass: ds-cfg-pkcs5s2-password-storage-scheme",
-            "cn: PKCS5S2",
-            "ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme",
-            "ds-cfg-enabled: true"));
-
     /** See OPENDJ-1545 */
     register("2.8.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_11237_1_SUMMARY.get(),
@@ -400,10 +404,6 @@ public final class Upgrade
     register("2.8.0",
         deleteFile(new File(binDirectory, "dsframework")),
         deleteFile(new File(batDirectory, "dsframework.bat")));
-
-    /** See OPENDJ-1322 and OPENDJ-1067 */
-    register("2.7.0",
-        rerunJavaPropertiesTool(INFO_UPGRADE_TASK_9206_SUMMARY.get()));
 
     /** If the upgraded version is a non OEM one, migrates local-db backends to JE Backend, see OPENDJ-2364 **/
     register("3.0.0",
