@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.maven;
 
@@ -246,11 +246,13 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             final List<ScmFile> scmChangedFiles, final String rootPath, final List<File> changedFiles) {
         for (final ScmFile scmFile : scmChangedFiles) {
             final String scmFilePath = scmFile.getPath();
+            final File file = new File(rootPath, scmFilePath);
+
             if (scmFile.getStatus() != ScmFileStatus.UNKNOWN
-                    && new File(scmFilePath).exists()
+                    && file.exists()
                     && !changedFiles.contains(scmFilePath)
                     && !fileIsDisabled(scmFilePath)) {
-                changedFiles.add(new File(rootPath, scmFilePath));
+                changedFiles.add(file);
             }
         }
     }
