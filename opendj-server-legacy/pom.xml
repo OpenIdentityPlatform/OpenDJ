@@ -60,7 +60,6 @@
     <jars.dir>${project.build.directory}/jars</jars.dir>
 
     <!-- Product information properties -->
-    <lowerCaseProductName>opendj</lowerCaseProductName>
     <patchFixIds />
     <isDebugBuild>false</isDebugBuild>
     <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
@@ -1044,7 +1043,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
-              <finalName>${lowerCaseProductName}</finalName>
+              <finalName>${product.name.lowercase}</finalName>
               <outputDirectory>${project.build.directory}/package</outputDirectory>
               <appendAssemblyId>false</appendAssemblyId>
               <attach>false</attach>
@@ -1126,11 +1125,11 @@
             <configuration>
               <target>
                 <zip destfile="${project.build.directory}/package/${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
-                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="**/*" excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="644" dirmode="755" prefix="opendj" />
-                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh" filemode="755" dirmode="755" prefix="opendj" />
-                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="bin/*" filemode="755" dirmode="755" prefix="opendj" />
-                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="755" dirmode="755" prefix="opendj" />
-                  <zipfileset dir="${project.build.directory}/package/${lowerCaseProductName}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="**/*" excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="644" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="bin/*" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
                 </zip>
                 <attachartifact file="${project.build.directory}/package/${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip" type="zip" />
               </target>
@@ -1479,7 +1478,7 @@
                 </goals>
                 <configuration>
                   <outputDirectory>${project.build.directory}/package</outputDirectory>
-                  <finalName>${lowerCaseProductName}</finalName>
+                  <finalName>${product.name.lowercase}</finalName>
                   <descriptors>
                     <descriptor>src/main/assembly/opendj-snmp-archive-assembly.xml</descriptor>
                   </descriptors>

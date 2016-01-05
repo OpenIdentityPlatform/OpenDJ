@@ -147,6 +147,7 @@
 
     <properties>
         <product.name>OpenDJ</product.name>
+        <product.name.lowercase>opendj</product.name.lowercase>
         <opendj.core.test.jar.version>4.0.0-SNAPSHOT</opendj.core.test.jar.version>
     </properties>
 
