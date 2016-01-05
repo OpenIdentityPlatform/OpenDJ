@@ -83,6 +83,7 @@
       org.forgerock.json.*;provide:=true
     </opendj.osgi.import.additional>
 
+    <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
   </properties>
 
   <dependencies>
@@ -325,7 +326,7 @@
           <artifactId>maven-jar-plugin</artifactId>
           <configuration>
             <outputDirectory>${jars.dir}</outputDirectory>
-            <finalName>${product.name}</finalName>
+            <finalName>${product.name.lowercase}</finalName>
             <archive>
               <addMavenDescriptor>false</addMavenDescriptor>
               <index>true</index>
@@ -528,7 +529,7 @@
             </goals>
             <configuration>
               <classPathProperty>classpath.bootstrap</classPathProperty>
-              <productJarName>${product.name}</productJarName>
+              <productJarName>${product.name.lowercase}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
               <excludes>
                 <exclude>org.slf4j:slf4j-jdk14</exclude>
@@ -546,7 +547,7 @@
             </goals>
             <configuration>
               <classPathProperty>classpath.bootstrap-client</classPathProperty>
-              <productJarName>${product.name}</productJarName>
+              <productJarName>${product.name.lowercase}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
               <additionalJars>
                  <additionalJar>opendj-je-backend.jar</additionalJar>
@@ -1124,14 +1125,14 @@
             </goals>
             <configuration>
               <target>
-                <zip destfile="${project.build.directory}/package/${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
+                <zip destfile="${project.build.directory}/package/${product.archive.name}.zip">
                   <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="**/*" excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="644" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh" filemode="755" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="bin/*" filemode="755" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/universalJavaApplicationStub,Uninstall.app/Contents/MacOS/universalJavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/universalJavaApplicationStub" filemode="755" dirmode="755" prefix="opendj" />
                   <zipfileset dir="${project.build.directory}/package/${product.name.lowercase}" includes="template/**/*" filemode="444" dirmode="744" prefix="opendj" />
                 </zip>
-                <attachartifact file="${project.build.directory}/package/${product.name}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip" type="zip" />
+                <attachartifact file="${project.build.directory}/package/${product.archive.name}.zip" type="zip" />
               </target>
             </configuration>
           </execution>
