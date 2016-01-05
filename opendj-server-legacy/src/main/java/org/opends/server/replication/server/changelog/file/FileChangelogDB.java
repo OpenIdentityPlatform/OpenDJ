@@ -904,7 +904,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
           final CSN purgeCSN = new CSN(purgeTimestamp, 0, 0);
           final CSN oldestNotPurgedCSN;
 
-          if (!replicationServer.isChangeNumberEnabled())
+          if (!replicationServer.isChangeNumberEnabled() || !replicationServer.isECLEnabled())
           {
             oldestNotPurgedCSN = purgeCSN;
           }
@@ -1005,7 +1005,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       final long nextPurgeTime = notPurgedCSN.getTime();
       final long currentPurgeTime = TimeThread.getTime() - purgeDelayInMillis;
-      if (currentPurgeTime <= nextPurgeTime)
+      if (currentPurgeTime < nextPurgeTime)
       {
         // sleep till the next CSN to purge,
         return nextPurgeTime - currentPurgeTime;

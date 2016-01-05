@@ -79,7 +79,7 @@ import org.opends.server.types.VirtualAttributeRule;
  * servers It is responsible for creating the replication server
  * replicationServerDomain and managing it
  */
-public final class ReplicationServer
+public class ReplicationServer
   implements ConfigurationChangeListener<ReplicationServerCfg>
 {
   private String serverURL;
@@ -1336,6 +1336,15 @@ public final class ReplicationServer
   public boolean isChangeNumberEnabled()
   {
     return config.isComputeChangeNumber();
+  }
+
+  /**
+   * Returns whether the external change-log contains data from at least a domain.
+   * @return whether the external change-log contains data from at least a domain
+   */
+  public boolean isECLEnabled()
+  {
+    return MultimasterReplication.isECLEnabled();
   }
 
   /** {@inheritDoc} */

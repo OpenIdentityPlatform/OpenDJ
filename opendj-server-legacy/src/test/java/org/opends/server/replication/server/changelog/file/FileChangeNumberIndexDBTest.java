@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.replication.server.changelog.file.FileReplicaDBTest.*;
 import static org.testng.Assert.*;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
@@ -78,7 +79,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     ReplicationServer replicationServer = null;
     try
     {
-      replicationServer = newReplicationServer();
+      replicationServer = newReplicationServer(false);
       final ChangelogDB changelogDB = replicationServer.getChangelogDB();
       changelogDB.setPurgeDelay(0);
       final FileChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);
@@ -120,7 +121,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     ReplicationServer replicationServer = null;
     try
     {
-      replicationServer = newReplicationServer();
+      replicationServer = newReplicationServer(false);
       final ChangelogDB changelogDB = replicationServer.getChangelogDB();
       changelogDB.setPurgeDelay(0);
       final FileChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);
@@ -150,7 +151,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     ReplicationServer replicationServer = null;
     try
     {
-      replicationServer = newReplicationServer();
+      replicationServer = newReplicationServer(true);
       final ChangelogDB changelogDB = replicationServer.getChangelogDB();
       changelogDB.setPurgeDelay(0); // disable purging
 
@@ -234,12 +235,31 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     assertEquals(oldest.getCSN(), newest.getCSN());
   }
 
-  private ReplicationServer newReplicationServer() throws Exception
+  private class FakeRS extends ReplicationServer
+  {
+    FakeRS(ReplServerFakeConfiguration cfg) throws ConfigException
+    {
+      super(cfg);
+    }
+
+    @Override
+    public boolean isECLEnabled()
+    {
+      return true;
+    }
+  }
+
+  private ReplicationServer newReplicationServer(boolean mock) throws Exception
   {
     TestCaseUtils.startServer();
     final int port = TestCaseUtils.findFreePort();
     final ReplServerFakeConfiguration cfg = new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null);
     cfg.setComputeChangeNumber(true);
+    if (mock)
+    {
+      FakeRS mockRS = new FakeRS(cfg);
+      return mockRS;
+    }
     return new ReplicationServer(cfg);
   }
 
