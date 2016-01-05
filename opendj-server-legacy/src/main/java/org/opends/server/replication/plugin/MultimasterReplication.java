@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -866,6 +866,31 @@ public class MultimasterReplication
    */
   public static boolean isECLEnabledDomain(DN baseDN)
   {
+    waitForStartup();
+    // if state is STOPPING, then we need to return from this method
+    final LDAPReplicationDomain domain = domains.get(baseDN);
+    return domain != null && domain.isECLEnabled();
+  }
+
+  /**
+   * Returns whether the external change-log contains data from at least a domain.
+   * @return whether the external change-log contains data from at least a domain
+   */
+  public static boolean isECLEnabled()
+  {
+    waitForStartup();
+    for (LDAPReplicationDomain domain : domains.values())
+    {
+      if (domain.isECLEnabled())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static void waitForStartup()
+  {
     if (State.STARTING.equals(state.get()))
     {
       synchronized (state)
@@ -883,9 +908,6 @@ public class MultimasterReplication
         }
       }
     }
-    // if state is STOPPING, then we need to return from this method
-    final LDAPReplicationDomain domain = domains.get(baseDN);
-    return domain != null && domain.isECLEnabled();
   }
 
   /**
