@@ -84,3 +84,5 @@ RedirectMatch 301 ^/doc/OpenDJ-Sdk-Release-Notes.rtf    http://opendj.forgerock.
 RedirectMatch 301 ^/doc/webhelp/dev-guide/(.*)          http://opendj.forgerock.org/doc/bootstrap/dev-guide/
 RedirectMatch 301 ^/doc/webhelp/sdk-release-notes/(.*)  http://opendj.forgerock.org/doc/bootstrap/sdk-release-notes/
 
+### Old OpenDJ LDAP SDK location ###
+RedirectMatch 301 ^/opendj-ldap-sdk/(.*)                http://opendj.forgerock.org/opendj-core/$1
