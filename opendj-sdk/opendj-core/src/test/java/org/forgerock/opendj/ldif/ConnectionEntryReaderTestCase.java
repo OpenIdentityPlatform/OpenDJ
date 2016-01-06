@@ -21,9 +21,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2016 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldif;
 
 import java.util.NoSuchElementException;
@@ -253,8 +252,7 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
                     // Execute handler and return future.
                     final SearchResultHandler handler = (SearchResultHandler) invocation.getArguments()[1];
                     if (handler != null) {
-                        for (int i = 0; i < responses.length; i++) {
-                            final Object response = responses[i];
+                        for (final Object response : responses) {
                             if (response instanceof SearchResultEntry) {
                                 handler.handleEntry((SearchResultEntry) response);
                             } else if (response instanceof SearchResultReference) {
