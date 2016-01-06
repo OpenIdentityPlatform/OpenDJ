@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2015 ForgeRock AS
+ *      Portions copyright 2013-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -68,18 +68,14 @@ import org.forgerock.util.Reject;
 public final class PasswordExpiringResponseControl implements Control {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-    /**
-     * The OID for the Netscape password expiring response control.
-     */
+    /** The OID for the Netscape password expiring response control. */
     public static final String OID = "2.16.840.1.113730.3.4.5";
 
-    /**
-     * A decoder which can be used for decoding the password expiring response
-     * control.
-     */
+    /** A decoder which can be used for decoding the password expiring response control. */
     public static final ControlDecoder<PasswordExpiringResponseControl> DECODER =
             new ControlDecoder<PasswordExpiringResponseControl>() {
 
+                @Override
                 public PasswordExpiringResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -115,6 +111,7 @@ public final class PasswordExpiringResponseControl implements Control {
                             secondsUntilExpiration);
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -144,7 +141,7 @@ public final class PasswordExpiringResponseControl implements Control {
         this.secondsUntilExpiration = secondsUntilExpiration;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -160,22 +157,21 @@ public final class PasswordExpiringResponseControl implements Control {
         return secondsUntilExpiration;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return ByteString.valueOfUtf8(String.valueOf(secondsUntilExpiration));
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

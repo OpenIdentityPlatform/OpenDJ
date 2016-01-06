@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -35,22 +36,27 @@ abstract class AbstractSyntaxImpl implements SyntaxImpl {
         // Nothing to do.
     }
 
+    @Override
     public String getApproximateMatchingRule() {
         return null;
     }
 
+    @Override
     public String getEqualityMatchingRule() {
         return null;
     }
 
+    @Override
     public String getOrderingMatchingRule() {
         return null;
     }
 
+    @Override
     public String getSubstringMatchingRule() {
         return null;
     }
 
+    @Override
     public boolean isBEREncodingRequired() {
         return false;
     }

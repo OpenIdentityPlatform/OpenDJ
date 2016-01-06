@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS.
+ *      Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package com.forgerock.opendj.util;
 
 import java.util.Iterator;
@@ -33,9 +32,7 @@ import java.util.NoSuchElementException;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
-/**
- * Utility methods for manipulating {@link Iterator}s.
- */
+/** Utility methods for manipulating {@link Iterator}s. */
 public final class Iterators {
     private static final class ArrayIterator<M> implements Iterator<M> {
         private int i;
@@ -46,12 +43,12 @@ public final class Iterators {
             this.a = a;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean hasNext() {
             return i < a.length;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public M next() {
             if (hasNext()) {
                 return a[i++];
@@ -60,7 +57,7 @@ public final class Iterators {
             }
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -68,17 +65,17 @@ public final class Iterators {
     }
 
     private static final class EmptyIterator<M> implements Iterator<M> {
-        /** {@inheritDoc} */
+        @Override
         public boolean hasNext() {
             return false;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public M next() {
             throw new NoSuchElementException();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -101,7 +98,7 @@ public final class Iterators {
             this.parameter = p;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean hasNext() {
             if (hasNextMustIterate) {
                 hasNextMustIterate = false;
@@ -118,7 +115,7 @@ public final class Iterators {
             }
         }
 
-        /** {@inheritDoc} */
+        @Override
         public M next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
@@ -127,7 +124,7 @@ public final class Iterators {
             return next;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void remove() {
             iterator.remove();
         }
@@ -142,12 +139,12 @@ public final class Iterators {
             this.value = value;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean hasNext() {
             return value != null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public M next() {
             if (value != null) {
                 final M tmp = value;
@@ -158,7 +155,7 @@ public final class Iterators {
             }
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -177,17 +174,17 @@ public final class Iterators {
             this.function = function;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public N next() {
             return function.apply(iterator.next());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void remove() {
             iterator.remove();
         }
@@ -201,17 +198,17 @@ public final class Iterators {
             this.iterator = iterator;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public M next() {
             return iterator.next();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }

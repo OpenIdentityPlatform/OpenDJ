@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.util;
 
@@ -118,6 +118,7 @@ public enum OperatingSystem {
      *
      * @return The human-readable name for this operating system.
      */
+    @Override
     public String toString() {
         return osName;
     }

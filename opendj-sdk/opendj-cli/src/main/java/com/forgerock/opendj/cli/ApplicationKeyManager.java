@@ -23,7 +23,7 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -160,6 +160,7 @@ final class ApplicationKeyManager implements X509KeyManager {
      * @return the alias name for the desired key, or null if there are no
      *         matches.
      */
+    @Override
     public String chooseClientAlias(final String[] keyType, final Principal[] issuers,
             final Socket socket) {
         if (keyManager != null) {
@@ -186,6 +187,7 @@ final class ApplicationKeyManager implements X509KeyManager {
      * @return the alias name for the desired key, or null if there are no
      *         matches.
      */
+    @Override
     public String chooseServerAlias(final String keyType, final Principal[] issuers, final Socket socket) {
         if (keyManager != null) {
             return keyManager.chooseServerAlias(keyType, issuers, socket);
@@ -202,6 +204,7 @@ final class ApplicationKeyManager implements X509KeyManager {
      *         and the root certificate authority last), or null if the alias
      *         can't be found.
      */
+    @Override
     public X509Certificate[] getCertificateChain(final String alias) {
         if (keyManager != null) {
             return keyManager.getCertificateChain(alias);
@@ -222,6 +225,7 @@ final class ApplicationKeyManager implements X509KeyManager {
      * @return an array of the matching alias names, or null if there were no
      *         matches.
      */
+    @Override
     public String[] getClientAliases(final String keyType, final Principal[] issuers) {
         if (keyManager != null) {
             return keyManager.getClientAliases(keyType, issuers);
@@ -236,6 +240,7 @@ final class ApplicationKeyManager implements X509KeyManager {
      *            the alias name
      * @return the requested key, or null if the alias can't be found.
      */
+    @Override
     public PrivateKey getPrivateKey(final String alias) {
         if (keyManager != null) {
             return keyManager.getPrivateKey(alias);
@@ -256,6 +261,7 @@ final class ApplicationKeyManager implements X509KeyManager {
      * @return an array of the matching alias names, or null if there were no
      *         matches.
      */
+    @Override
     public String[] getServerAliases(final String keyType, final Principal[] issuers) {
         if (keyManager != null) {
             return keyManager.getServerAliases(keyType, issuers);

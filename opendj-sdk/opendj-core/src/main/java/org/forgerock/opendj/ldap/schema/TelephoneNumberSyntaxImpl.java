@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -56,6 +56,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_TELEPHONE_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_TELEPHONE_NAME;
     }
@@ -65,24 +66,12 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl {
         return SMR_TELEPHONE_OID;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return false;
     }
 
-    /**
-     * Indicates whether the provided value is acceptable for use in an
-     * attribute with this syntax. If it is not, then the reason may be appended
-     * to the provided buffer.
-     *
-     * @param schema
-     *            The schema in which this syntax is defined.
-     * @param value
-     *            The value for which to make the determination.
-     * @param invalidReason
-     *            The buffer to which the invalid reason should be appended.
-     * @return <CODE>true</CODE> if the provided value is acceptable for use
-     *         with this syntax, or <CODE>false</CODE> if not.
-     */
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // No matter what, the value can't be empty or null.

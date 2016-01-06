@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -47,7 +47,7 @@ public interface SchemaResolver {
      * returned by {@link Schema#getDefaultSchema()}.
      */
     SchemaResolver DEFAULT = new SchemaResolver() {
-
+        @Override
         public Schema resolveSchema(String dn) {
             return Schema.getDefaultSchema();
         }

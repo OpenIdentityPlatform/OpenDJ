@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -134,19 +134,14 @@ import org.forgerock.util.Reject;
 public final class SimplePagedResultsControl implements Control {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-    /**
-     * The OID for the paged results request/response control defined in RFC
-     * 2696.
-     */
+    /** The OID for the paged results request/response control defined in RFC 2696. */
     public static final String OID = "1.2.840.113556.1.4.319";
 
-    /**
-     * A decoder which can be used for decoding the simple paged results
-     * control.
-     */
+    /** A decoder which can be used for decoding the simple paged results control. */
     public static final ControlDecoder<SimplePagedResultsControl> DECODER =
             new ControlDecoder<SimplePagedResultsControl>() {
 
+                @Override
                 public SimplePagedResultsControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -198,6 +193,7 @@ public final class SimplePagedResultsControl implements Control {
                     return new SimplePagedResultsControl(control.isCritical(), size, cookie);
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -240,9 +236,7 @@ public final class SimplePagedResultsControl implements Control {
      */
     private final int size;
 
-    /**
-     * The control value cookie element.
-     */
+    /** The control value cookie element. */
     private final ByteString cookie;
 
     private final boolean isCritical;
@@ -269,7 +263,7 @@ public final class SimplePagedResultsControl implements Control {
         return cookie;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -288,7 +282,7 @@ public final class SimplePagedResultsControl implements Control {
         return size;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -304,17 +298,16 @@ public final class SimplePagedResultsControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

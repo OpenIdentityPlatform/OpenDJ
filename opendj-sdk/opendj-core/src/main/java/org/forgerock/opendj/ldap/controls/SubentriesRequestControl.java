@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -94,9 +94,7 @@ import org.forgerock.util.Reject;
 public final class SubentriesRequestControl implements Control {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-    /**
-     * The OID for the sub-entries request control.
-     */
+    /** The OID for the sub-entries request control. */
     public static final String OID = "1.3.6.1.4.1.4203.1.10.1";
 
     private static final SubentriesRequestControl CRITICAL_VISIBLE_INSTANCE =
@@ -108,12 +106,11 @@ public final class SubentriesRequestControl implements Control {
     private static final SubentriesRequestControl NONCRITICAL_INVISIBLE_INSTANCE =
             new SubentriesRequestControl(false, false);
 
-    /**
-     * A decoder which can be used for decoding the sub-entries request control.
-     */
+    /** A decoder which can be used for decoding the sub-entries request control. */
     public static final ControlDecoder<SubentriesRequestControl> DECODER =
             new ControlDecoder<SubentriesRequestControl>() {
 
+                @Override
                 public SubentriesRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -148,6 +145,7 @@ public final class SubentriesRequestControl implements Control {
                     return newControl(control.isCritical(), visibility);
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -184,12 +182,12 @@ public final class SubentriesRequestControl implements Control {
         this.visibility = visibility;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -214,17 +212,16 @@ public final class SubentriesRequestControl implements Control {
         return visibility;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

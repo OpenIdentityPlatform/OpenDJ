@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -82,18 +82,14 @@ import org.forgerock.util.Reject;
  *      Extension for Server Side Sorting of Search Results </a>
  */
 public final class ServerSideSortResponseControl implements Control {
-    /**
-     * The OID for the server-side sort response control.
-     */
+    /** The OID for the server-side sort response control. */
     public static final String OID = "1.2.840.113556.1.4.474";
 
-    /**
-     * A decoder which can be used for decoding the server side sort response
-     * control.
-     */
+    /** A decoder which can be used for decoding the server side sort response control. */
     public static final ControlDecoder<ServerSideSortResponseControl> DECODER =
             new ControlDecoder<ServerSideSortResponseControl>() {
 
+                @Override
                 public ServerSideSortResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control, options);
@@ -140,14 +136,13 @@ public final class ServerSideSortResponseControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
             };
 
-    /**
-     * The BER type to use when encoding the attribute type element.
-     */
+    /** The BER type to use when encoding the attribute type element. */
     private static final byte TYPE_ATTRIBUTE_TYPE = (byte) 0x80;
 
     /**
@@ -258,7 +253,7 @@ public final class ServerSideSortResponseControl implements Control {
         return attributeDescription;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -278,7 +273,7 @@ public final class ServerSideSortResponseControl implements Control {
         return result;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -296,17 +291,16 @@ public final class ServerSideSortResponseControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

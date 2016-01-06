@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -54,9 +54,7 @@ import org.forgerock.util.Reject;
  * like to trust a server certificate.
  */
 public final class PromptingTrustManager implements X509TrustManager {
-    /**
-     * Enumeration description server certificate trust option.
-     */
+    /** Enumeration description server certificate trust option. */
     private static enum TrustOption {
         UNTRUSTED(1, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()),
         SESSION(2, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
@@ -64,7 +62,6 @@ public final class PromptingTrustManager implements X509TrustManager {
         CERTIFICATE_DETAILS(4, INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
 
         private Integer choice;
-
         private LocalizableMessage msg;
 
         /**
@@ -209,7 +206,7 @@ public final class PromptingTrustManager implements X509TrustManager {
         this(app, DEFAULT_PATH, sourceTrustManager);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s)
             throws CertificateException {
         try {
@@ -231,7 +228,7 @@ public final class PromptingTrustManager implements X509TrustManager {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s)
             throws CertificateException {
         try {
@@ -253,7 +250,7 @@ public final class PromptingTrustManager implements X509TrustManager {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public X509Certificate[] getAcceptedIssuers() {
         if (nestedTrustManager != null) {
             return nestedTrustManager.getAcceptedIssuers();

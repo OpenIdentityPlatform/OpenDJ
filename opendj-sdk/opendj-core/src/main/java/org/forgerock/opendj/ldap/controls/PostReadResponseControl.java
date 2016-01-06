@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -84,12 +84,11 @@ public final class PostReadResponseControl implements Control {
      */
     public static final String OID = PostReadRequestControl.OID;
 
-    /**
-     * A decoder which can be used for decoding the post-read response control.
-     */
+    /** A decoder which can be used for decoding the post-read response control. */
     public static final ControlDecoder<PostReadResponseControl> DECODER =
             new ControlDecoder<PostReadResponseControl>() {
 
+                @Override
                 public PostReadResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -131,6 +130,7 @@ public final class PostReadResponseControl implements Control {
                             .unmodifiableEntry(entry));
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -178,12 +178,12 @@ public final class PostReadResponseControl implements Control {
         return entry;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         try {
             final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -195,17 +195,16 @@ public final class PostReadResponseControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

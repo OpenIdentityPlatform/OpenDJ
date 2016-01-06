@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -266,7 +266,7 @@ public final class TableBuilder {
         List<List<String>> sortedRows = new ArrayList<>(rows);
 
         Comparator<List<String>> comparator = new Comparator<List<String>>() {
-
+            @Override
             public int compare(List<String> row1, List<String> row2) {
                 for (int i = 0; i < sortKeys.size(); i++) {
                     String cell1 = row1.get(sortKeys.get(i));
@@ -281,7 +281,6 @@ public final class TableBuilder {
                 // Both rows are equal.
                 return 0;
             }
-
         };
 
         Collections.sort(sortedRows, comparator);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -52,17 +52,14 @@ public final class DecodeOptions {
             this.schema = schema;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Schema resolveSchema(final String dn) {
             return schema;
         }
-
     }
 
     private SchemaResolver schemaResolver;
-
     private EntryFactory entryFactory;
-
     private AttributeFactory attributeFactory;
 
     /**

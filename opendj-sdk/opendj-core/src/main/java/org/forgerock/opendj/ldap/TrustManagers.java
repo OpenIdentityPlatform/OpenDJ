@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.io.File;
@@ -48,9 +47,7 @@ import javax.net.ssl.X509TrustManager;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
 
-/**
- * This class contains methods for creating common types of trust manager.
- */
+/** This class contains methods for creating common types of trust manager. */
 public final class TrustManagers {
 
     /**
@@ -68,21 +65,21 @@ public final class TrustManagers {
             this.hostNamePattern = hostNamePattern;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyHostName(chain);
             trustManager.checkClientTrusted(chain, authType);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyHostName(chain);
             trustManager.checkServerTrusted(chain, authType);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return trustManager.getAcceptedIssuers();
         }
@@ -134,10 +131,7 @@ public final class TrustManagers {
         }
     }
 
-    /**
-     * An X509TrustManager which rejects certificates which have expired or are
-     * not yet valid.
-     */
+    /** An X509TrustManager which rejects certificates which have expired or are not yet valid. */
     private static final class CheckValidityDates implements X509TrustManager {
 
         private final X509TrustManager trustManager;
@@ -146,21 +140,21 @@ public final class TrustManagers {
             this.trustManager = trustManager;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyExpiration(chain);
             trustManager.checkClientTrusted(chain, authType);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyExpiration(chain);
             trustManager.checkServerTrusted(chain, authType);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return trustManager.getAcceptedIssuers();
         }
@@ -187,9 +181,7 @@ public final class TrustManagers {
         }
     }
 
-    /**
-     * An X509TrustManager which does not trust any certificates.
-     */
+    /** An X509TrustManager which does not trust any certificates. */
     private static final class DistrustAll implements X509TrustManager {
         /** Single instance. */
         private static final DistrustAll INSTANCE = new DistrustAll();
@@ -199,27 +191,25 @@ public final class TrustManagers {
             // Nothing to do.
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             throw new CertificateException();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             throw new CertificateException();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0];
         }
     }
 
-    /**
-     * An X509TrustManager which trusts all certificates.
-     */
+    /** An X509TrustManager which trusts all certificates. */
     private static final class TrustAll implements X509TrustManager {
 
         /** Single instance. */
@@ -230,17 +220,17 @@ public final class TrustManagers {
             // Nothing to do.
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
         }
 
-        /** {@inheritDoc} */
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0];
         }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -127,27 +127,26 @@ public final class GenericControl implements Control {
         this.value = value;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return oid;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return value;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return value != null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

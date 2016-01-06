@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -101,20 +101,16 @@ import org.forgerock.util.Reject;
  * @see <a
  *      href="http://tools.ietf.org/html/draft-ietf-ldapext-acl-model">draft-ietf-ldapext-acl-model
  *      - Access Control Model for LDAPv3 </a>
- **/
+ */
 public final class GetEffectiveRightsRequestControl implements Control {
-    /**
-     * The OID for the get effective rights request control.
-     */
+    /** The OID for the get effective rights request control. */
     public static final String OID = "1.3.6.1.4.1.42.2.27.9.5.2";
 
-    /**
-     * A decoder which can be used for decoding the get effective rights request
-     * control.
-     */
+    /** A decoder which can be used for decoding the get effective rights request control. */
     public static final ControlDecoder<GetEffectiveRightsRequestControl> DECODER =
             new ControlDecoder<GetEffectiveRightsRequestControl>() {
 
+                @Override
                 public GetEffectiveRightsRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -201,6 +197,7 @@ public final class GetEffectiveRightsRequestControl implements Control {
 
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -322,12 +319,12 @@ public final class GetEffectiveRightsRequestControl implements Control {
         return authorizationName;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -352,17 +349,16 @@ public final class GetEffectiveRightsRequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return authorizationName != null || !attributes.isEmpty();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

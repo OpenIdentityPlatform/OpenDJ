@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -180,7 +180,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
         return c;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int compareTo(final ASCIICharProp o) {
         return c - o.c;
     }
@@ -196,13 +196,11 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
         return decimalValue;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         return this == obj;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return c;
@@ -309,7 +307,6 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
         return lowerCaseChar;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return stringValue;

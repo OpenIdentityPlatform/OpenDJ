@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  *      Portions Copyright 2014 Manuel Gaupp
  */
 
@@ -49,6 +49,7 @@ public interface ASN1Reader extends Closeable {
      * @throws IOException
      *             If an error occurs while closing.
      */
+    @Override
     void close() throws IOException;
 
     /**

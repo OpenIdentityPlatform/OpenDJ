@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -79,6 +79,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_CASE_IGNORE_OID;
     }
 
+    @Override
     public String getName() {
         return oid;
     }
@@ -97,10 +98,12 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
         return entries.indexOf(normalize(value));
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // The value is acceptable if it belongs to the set.

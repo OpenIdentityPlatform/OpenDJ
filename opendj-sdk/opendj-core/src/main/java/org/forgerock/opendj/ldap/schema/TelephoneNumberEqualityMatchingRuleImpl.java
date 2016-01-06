@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -45,6 +45,7 @@ final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractEqualityMatc
         super(EMR_TELEPHONE_NAME);
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final String valueString = value.toString();
         final int valueLength = valueString.length();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -89,28 +89,20 @@ import org.forgerock.util.Reject;
  *      Extension for Server Side Sorting of Search Results </a>
  */
 public final class ServerSideSortRequestControl implements Control {
-    /**
-     * The OID for the server-side sort request control.
-     */
+    /** The OID for the server-side sort request control. */
     public static final String OID = "1.2.840.113556.1.4.473";
 
-    /**
-     * The BER type to use when encoding the orderingRule element.
-     */
+    /** The BER type to use when encoding the orderingRule element. */
     private static final byte TYPE_ORDERING_RULE_ID = (byte) 0x80;
 
-    /**
-     * The BER type to use when encoding the reverseOrder element.
-     */
+    /** The BER type to use when encoding the reverseOrder element. */
     private static final byte TYPE_REVERSE_ORDER = (byte) 0x81;
 
-    /**
-     * A decoder which can be used for decoding the server side sort request
-     * control.
-     */
+    /** A decoder which can be used for decoding the server side sort request control. */
     public static final ControlDecoder<ServerSideSortRequestControl> DECODER =
             new ControlDecoder<ServerSideSortRequestControl>() {
 
+                @Override
                 public ServerSideSortRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -171,6 +163,7 @@ public final class ServerSideSortRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -268,7 +261,7 @@ public final class ServerSideSortRequestControl implements Control {
         this.sortKeys = keys;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -285,7 +278,7 @@ public final class ServerSideSortRequestControl implements Control {
         return sortKeys;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -314,17 +307,16 @@ public final class ServerSideSortRequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -36,11 +37,13 @@ import org.testng.annotations.DataProvider;
 @SuppressWarnings("javadoc")
 public class CaseIgnoreSubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
+    @Override
     @DataProvider(name = "substringInvalidAssertionValues")
     public Object[][] createMatchingRuleInvalidAssertionValues() {
         return new Object[][] {};
     }
 
+    @Override
     @DataProvider(name = "substringInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] {};

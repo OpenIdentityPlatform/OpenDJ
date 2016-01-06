@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -69,9 +69,7 @@ import org.forgerock.util.Reject;
  *      - Password Policy for LDAP Directories </a>
  */
 public final class PasswordExpiredResponseControl implements Control {
-    /**
-     * The OID for the Netscape password expired response control.
-     */
+    /** The OID for the Netscape password expired response control. */
     public static final String OID = "2.16.840.1.113730.3.4.4";
 
     private final boolean isCritical;
@@ -81,13 +79,11 @@ public final class PasswordExpiredResponseControl implements Control {
     private static final PasswordExpiredResponseControl NONCRITICAL_INSTANCE =
             new PasswordExpiredResponseControl(false);
 
-    /**
-     * A decoder which can be used for decoding the password expired response
-     * control.
-     */
+    /** A decoder which can be used for decoding the password expired response control. */
     public static final ControlDecoder<PasswordExpiredResponseControl> DECODER =
             new ControlDecoder<PasswordExpiredResponseControl>() {
 
+                @Override
                 public PasswordExpiredResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -115,6 +111,7 @@ public final class PasswordExpiredResponseControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -135,27 +132,26 @@ public final class PasswordExpiredResponseControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return CONTROL_VALUE;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

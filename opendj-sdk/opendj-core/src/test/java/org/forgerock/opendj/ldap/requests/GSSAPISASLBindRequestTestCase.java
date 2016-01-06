@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -63,6 +63,7 @@ public class GSSAPISASLBindRequestTestCase extends BindRequestTestCase {
         };
     }
 
+    @Override
     @Test(enabled = false)
     public void testBindClient(BindRequest request) throws Exception {
         // Should setup a test krb server...

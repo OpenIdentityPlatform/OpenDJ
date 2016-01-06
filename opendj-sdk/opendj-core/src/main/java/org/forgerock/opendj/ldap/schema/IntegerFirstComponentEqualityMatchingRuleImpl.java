@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2015 ForgeRock AS
+ *      Portions copyright 2013-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -64,6 +64,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
         }
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);

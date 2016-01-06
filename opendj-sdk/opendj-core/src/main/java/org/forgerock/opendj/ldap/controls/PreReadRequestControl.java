@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -99,12 +99,11 @@ public final class PreReadRequestControl implements Control {
     private static final PreReadRequestControl NONCRITICAL_EMPTY_INSTANCE =
             new PreReadRequestControl(false, Collections.<String> emptyList());
 
-    /**
-     * A decoder which can be used for decoding the pre-read request control.
-     */
+    /** A decoder which can be used for decoding the pre-read request control. */
     public static final ControlDecoder<PreReadRequestControl> DECODER =
             new ControlDecoder<PreReadRequestControl>() {
 
+                @Override
                 public PreReadRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -161,6 +160,7 @@ public final class PreReadRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -245,12 +245,12 @@ public final class PreReadRequestControl implements Control {
         return attributes;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -269,17 +269,16 @@ public final class PreReadRequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

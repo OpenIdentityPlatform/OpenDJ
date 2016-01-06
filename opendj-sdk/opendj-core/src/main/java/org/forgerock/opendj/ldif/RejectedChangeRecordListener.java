@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -50,30 +50,36 @@ public interface RejectedChangeRecordListener {
      */
     RejectedChangeRecordListener FAIL_FAST = new RejectedChangeRecordListener() {
 
+        @Override
         public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry) throws DecodeException {
             throw DecodeException.error(REJECTED_CHANGE_FAIL_ADD_DUPE.get(change.getName()));
         }
 
+        @Override
         public Entry handleDuplicateEntry(final ModifyDNRequest change, final Entry existingEntry,
                 final Entry renamedEntry) throws DecodeException {
             throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFYDN_DUPE.get(renamedEntry.getName()));
         }
 
+        @Override
         public void handleRejectedChangeRecord(final AddRequest change, final LocalizableMessage reason)
                 throws DecodeException {
             throw DecodeException.error(reason);
         }
 
+        @Override
         public void handleRejectedChangeRecord(final DeleteRequest change, final LocalizableMessage reason)
                 throws DecodeException {
             throw DecodeException.error(reason);
         }
 
+        @Override
         public void handleRejectedChangeRecord(final ModifyRequest change, final LocalizableMessage reason)
                 throws DecodeException {
             throw DecodeException.error(reason);
         }
 
+        @Override
         public void handleRejectedChangeRecord(final ModifyDNRequest change, final LocalizableMessage reason)
                 throws DecodeException {
             throw DecodeException.error(reason);
@@ -88,31 +94,37 @@ public interface RejectedChangeRecordListener {
      */
     RejectedChangeRecordListener OVERWRITE = new RejectedChangeRecordListener() {
 
+        @Override
         public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry) throws DecodeException {
             // Overwrite existing entries.
             return change;
         }
 
+        @Override
         public Entry handleDuplicateEntry(final ModifyDNRequest change, final Entry existingEntry,
                 final Entry renamedEntry) throws DecodeException {
             // Overwrite existing entries.
             return renamedEntry;
         }
 
+        @Override
         public void handleRejectedChangeRecord(AddRequest change, LocalizableMessage reason) throws DecodeException {
             // Ignore.
         }
 
+        @Override
         public void handleRejectedChangeRecord(DeleteRequest change, LocalizableMessage reason)
                 throws DecodeException {
             // Ignore.
         }
 
+        @Override
         public void handleRejectedChangeRecord(ModifyRequest change, LocalizableMessage reason)
                 throws DecodeException {
             // Ignore.
         }
 
+        @Override
         public void handleRejectedChangeRecord(ModifyDNRequest change, LocalizableMessage reason)
                 throws DecodeException {
             // Ignore.

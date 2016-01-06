@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS.
+ *      Portions copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -500,6 +500,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * @throws NullPointerException
      *             If {@code name} was {@code null}.
      */
+    @Override
     public int compareTo(final AttributeType type) {
         if (isObjectClassType) {
             return type.isObjectClassType ? 0 : -1;

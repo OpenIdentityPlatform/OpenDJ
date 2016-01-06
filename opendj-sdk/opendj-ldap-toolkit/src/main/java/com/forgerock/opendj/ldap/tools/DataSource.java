@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -71,10 +71,12 @@ final class DataSource {
             this.lines = lines;
         }
 
+        @Override
         public IDataSource duplicate() {
             return new IncrementLineFileDataSource(lines);
         }
 
+        @Override
         public Object getData() {
             if (next == lines.size()) {
                 next = 0;
@@ -99,10 +101,12 @@ final class DataSource {
             this.high = high;
         }
 
+        @Override
         public IDataSource duplicate() {
             return new IncrementNumberDataSource(low, high);
         }
 
+        @Override
         public Object getData() {
             if (next == high) {
                 next = low;
@@ -132,10 +136,12 @@ final class DataSource {
             }
         }
 
+        @Override
         public IDataSource duplicate() {
             return this;
         }
 
+        @Override
         public Object getData() {
             return lines.get(random.nextInt(lines.size()));
         }
@@ -156,11 +162,13 @@ final class DataSource {
             range = high - low;
         }
 
+        @Override
         public IDataSource duplicate() {
             // There is no state info so threads can just share one instance.
             return this;
         }
 
+        @Override
         public Object getData() {
             return random.nextInt(range) + offset;
         }
@@ -197,10 +205,12 @@ final class DataSource {
             this.random = new Random(seed);
         }
 
+        @Override
         public IDataSource duplicate() {
             return this;
         }
 
+        @Override
         public Object getData() {
             final char[] str = new char[length];
             for (int i = 0; i < length; i++) {
@@ -227,11 +237,13 @@ final class DataSource {
             this.data = data;
         }
 
+        @Override
         public IDataSource duplicate() {
             // There is no state info so threads can just share one instance.
             return this;
         }
 
+        @Override
         public Object getData() {
             return data;
         }

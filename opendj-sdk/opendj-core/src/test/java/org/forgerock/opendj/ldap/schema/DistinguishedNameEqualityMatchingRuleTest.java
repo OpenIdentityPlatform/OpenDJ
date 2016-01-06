@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2015 ForgeRock AS.
+ *      Portions copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -40,6 +40,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest {
+    @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { { "manager" }, { "manager " },
@@ -66,6 +67,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             { "cn=,dc=example,dc=com" } };
     }
 
+    @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         return new Object[][] {
@@ -184,6 +186,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             { "O=\"Sue, Grabbit and Runn\",C=US", "c=us\u0000o=sue\u002C grabbit and runn" }, };
     }
 
+    @Override
     protected MatchingRule getRule() {
         return CoreSchema.getDistinguishedNameMatchingRule();
     }

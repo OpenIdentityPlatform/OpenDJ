@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -56,11 +56,13 @@ public abstract class RequestsTestCase extends ForgeRockTestCase {
 
     /** Dummy decoder which does nothing. */
     private static class MyDecoder implements ControlDecoder<Control> {
+        @Override
         public Control decodeControl(final Control control, final DecodeOptions options) throws DecodeException {
             // do nothing.
             return control;
         }
 
+        @Override
         public String getOID() {
             return "1.2.3".intern();
         }

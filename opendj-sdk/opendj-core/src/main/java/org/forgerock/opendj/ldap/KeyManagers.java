@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -46,9 +46,7 @@ import javax.net.ssl.X509KeyManager;
 
 import org.forgerock.util.Reject;
 
-/**
- * This class contains methods for creating common types of key manager.
- */
+/** This class contains methods for creating common types of key manager. */
 public final class KeyManagers {
     /**
      * This class implements an X.509 key manager that will be used to wrap an
@@ -66,7 +64,7 @@ public final class KeyManagers {
             this.alias = alias;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public String chooseClientAlias(final String[] keyType, final Principal[] issuers,
                 final Socket socket) {
             for (final String type : keyType) {
@@ -83,7 +81,6 @@ public final class KeyManagers {
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public String chooseEngineClientAlias(final String[] keyType, final Principal[] issuers,
                 final SSLEngine engine) {
@@ -101,7 +98,6 @@ public final class KeyManagers {
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public String chooseEngineServerAlias(final String keyType, final Principal[] issuers,
                 final SSLEngine engine) {
@@ -117,7 +113,7 @@ public final class KeyManagers {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public String chooseServerAlias(final String keyType, final Principal[] issuers,
                 final Socket socket) {
             final String[] serverAliases = keyManager.getServerAliases(keyType, issuers);
@@ -132,22 +128,22 @@ public final class KeyManagers {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public X509Certificate[] getCertificateChain(final String alias) {
             return keyManager.getCertificateChain(alias);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public String[] getClientAliases(final String keyType, final Principal[] issuers) {
             return keyManager.getClientAliases(keyType, issuers);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public PrivateKey getPrivateKey(final String alias) {
             return keyManager.getPrivateKey(alias);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public String[] getServerAliases(final String keyType, final Principal[] issuers) {
             return keyManager.getServerAliases(keyType, issuers);
         }

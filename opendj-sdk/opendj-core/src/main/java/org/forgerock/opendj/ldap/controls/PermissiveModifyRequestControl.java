@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -70,9 +71,7 @@ import org.forgerock.util.Reject;
  * </pre>
  */
 public final class PermissiveModifyRequestControl implements Control {
-    /**
-     * The OID for the permissive modify request control.
-     */
+    /** The OID for the permissive modify request control. */
     public static final String OID = "1.2.840.113556.1.4.1413";
 
     private static final PermissiveModifyRequestControl CRITICAL_INSTANCE =
@@ -81,13 +80,11 @@ public final class PermissiveModifyRequestControl implements Control {
     private static final PermissiveModifyRequestControl NONCRITICAL_INSTANCE =
             new PermissiveModifyRequestControl(false);
 
-    /**
-     * A decoder which can be used for decoding the permissive modify request
-     * control.
-     */
+    /** A decoder which can be used for decoding the permissive modify request control. */
     public static final ControlDecoder<PermissiveModifyRequestControl> DECODER =
             new ControlDecoder<PermissiveModifyRequestControl>() {
 
+                @Override
                 public PermissiveModifyRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -111,6 +108,7 @@ public final class PermissiveModifyRequestControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -136,27 +134,26 @@ public final class PermissiveModifyRequestControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

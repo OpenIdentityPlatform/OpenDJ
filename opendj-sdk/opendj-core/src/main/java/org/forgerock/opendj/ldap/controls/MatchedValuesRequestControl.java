@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -98,9 +98,7 @@ import org.forgerock.util.Reject;
  *      (LDAPv3) </a>
  */
 public final class MatchedValuesRequestControl implements Control {
-    /**
-     * Visitor for validating matched values filters.
-     */
+    /** Visitor for validating matched values filters. */
     private static final class FilterValidator extends
             AbstractFilterVisitor<LocalizedIllegalArgumentException, Filter> {
 
@@ -154,13 +152,11 @@ public final class MatchedValuesRequestControl implements Control {
      */
     public static final String OID = "1.2.826.0.1.3344810.2.3";
 
-    /**
-     * A decoder which can be used for decoding the matched values request
-     * control.
-     */
+    /** A decoder which can be used for decoding the matched values request control. */
     public static final ControlDecoder<MatchedValuesRequestControl> DECODER =
             new ControlDecoder<MatchedValuesRequestControl>() {
 
+                @Override
                 public MatchedValuesRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -214,6 +210,7 @@ public final class MatchedValuesRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -321,12 +318,11 @@ public final class MatchedValuesRequestControl implements Control {
         return filters;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -344,17 +340,16 @@ public final class MatchedValuesRequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

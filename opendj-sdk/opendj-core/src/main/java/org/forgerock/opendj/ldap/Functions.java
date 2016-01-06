@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -50,6 +50,7 @@ public final class Functions {
 
     private static final Function<ByteString, String, NeverThrowsException> BYTESTRING_TO_STRING =
             new Function<ByteString, String, NeverThrowsException>() {
+                @Override
                 public String apply(final ByteString value) {
                     return value.toString();
                 }
@@ -57,6 +58,7 @@ public final class Functions {
 
     private static final Function<Object, Object, NeverThrowsException> IDENTITY =
             new Function<Object, Object, NeverThrowsException>() {
+                @Override
                 public Object apply(final Object value) {
                     return value;
                 }
@@ -64,6 +66,7 @@ public final class Functions {
 
     private static final Function<String, String, NeverThrowsException> NORMALIZE_STRING =
             new Function<String, String, NeverThrowsException>() {
+                @Override
                 public String apply(final String value) {
                     return StaticUtils.toLowerCase(value).trim();
                 }
@@ -71,6 +74,7 @@ public final class Functions {
 
     private static final Function<Object, ByteString, NeverThrowsException> OBJECT_TO_BYTESTRING =
             new Function<Object, ByteString, NeverThrowsException>() {
+                @Override
                 public ByteString apply(final Object value) {
                     return ByteString.valueOfObject(value);
                 }
@@ -78,6 +82,7 @@ public final class Functions {
 
     private static final Function<String, Boolean, NeverThrowsException> STRING_TO_BOOLEAN =
             new Function<String, Boolean, NeverThrowsException>() {
+                @Override
                 public Boolean apply(final String value) {
                     final String valueString = StaticUtils.toLowerCase(value);
                     if ("true".equals(valueString) || "yes".equals(valueString)
@@ -95,6 +100,7 @@ public final class Functions {
 
     private static final Function<String, GeneralizedTime, NeverThrowsException> STRING_TO_GENERALIZED_TIME =
             new Function<String, GeneralizedTime, NeverThrowsException>() {
+                @Override
                 public GeneralizedTime apply(final String value) {
                     return GeneralizedTime.valueOf(value);
                 }
@@ -102,6 +108,7 @@ public final class Functions {
 
     private static final Function<String, Integer, NeverThrowsException> STRING_TO_INTEGER =
             new Function<String, Integer, NeverThrowsException>() {
+                @Override
                 public Integer apply(final String value) {
                     try {
                         return Integer.valueOf(value);
@@ -114,6 +121,7 @@ public final class Functions {
 
     private static final Function<String, Long, NeverThrowsException> STRING_TO_LONG =
             new Function<String, Long, NeverThrowsException>() {
+                @Override
                 public Long apply(final String value) {
                     try {
                         return Long.valueOf(value);
@@ -176,6 +184,7 @@ public final class Functions {
     public static <M, X, N> Function<M, N, NeverThrowsException> compose(
             final Function<M, X, NeverThrowsException> first, final Function<X, N, NeverThrowsException> second) {
         return new Function<M, N, NeverThrowsException>() {
+            @Override
             public N apply(final M value) {
                 return second.apply(first.apply(value));
             }
@@ -241,6 +250,7 @@ public final class Functions {
     public static Function<String, AttributeDescription, NeverThrowsException> stringToAttributeDescription(
             final Schema schema) {
         return new Function<String, AttributeDescription, NeverThrowsException>() {
+            @Override
             public AttributeDescription apply(final String value) {
                 return AttributeDescription.valueOf(value, schema);
             }
@@ -281,6 +291,7 @@ public final class Functions {
      */
     public static Function<String, DN, NeverThrowsException> stringToDN(final Schema schema) {
         return new Function<String, DN, NeverThrowsException>() {
+            @Override
             public DN apply(final String value) {
                 return DN.valueOf(value, schema);
             }
@@ -340,6 +351,7 @@ public final class Functions {
     public static Function<ByteString, AttributeDescription, NeverThrowsException> byteStringToAttributeDescription(
             final Schema schema) {
         return compose(byteStringToString(), new Function<String, AttributeDescription, NeverThrowsException>() {
+            @Override
             public AttributeDescription apply(final String value) {
                 return AttributeDescription.valueOf(value, schema);
             }
@@ -380,6 +392,7 @@ public final class Functions {
      */
     public static Function<ByteString, DN, NeverThrowsException> byteStringToDN(final Schema schema) {
         return compose(byteStringToString(), new Function<String, DN, NeverThrowsException>() {
+            @Override
             public DN apply(final String value) {
                 return DN.valueOf(value, schema);
             }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -77,18 +77,14 @@ import org.forgerock.util.Reject;
  *      Directory Access Protocol (LDAP) Assertion Control </a>
  */
 public final class AssertionRequestControl implements Control {
-    /**
-     * The IANA-assigned OID for the LDAP assertion request control.
-     */
+    /** The IANA-assigned OID for the LDAP assertion request control. */
     public static final String OID = "1.3.6.1.1.12";
 
-    /**
-     * A decoder which can be used for decoding the LDAP assertion request
-     * control.
-     */
+    /** A decoder which can be used for decoding the LDAP assertion request control. */
     public static final ControlDecoder<AssertionRequestControl> DECODER =
             new ControlDecoder<AssertionRequestControl>() {
 
+                @Override
                 public AssertionRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -119,6 +115,7 @@ public final class AssertionRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -163,12 +160,12 @@ public final class AssertionRequestControl implements Control {
         return filter;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -181,17 +178,16 @@ public final class AssertionRequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

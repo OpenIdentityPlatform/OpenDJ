@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.io;
 
@@ -48,6 +48,7 @@ public interface ASN1Writer extends Closeable, Flushable {
      * @throws IOException
      *             If an error occurs while closing.
      */
+    @Override
     void close() throws IOException;
 
     /**
@@ -65,6 +66,7 @@ public interface ASN1Writer extends Closeable, Flushable {
      * @throws IOException
      *             If an error occurs while flushing.
      */
+    @Override
     void flush() throws IOException;
 
     /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -67,6 +67,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      * Closes this connection entry writer, including the underlying connection.
      * Closing a previously closed entry writer has no effect.
      */
+    @Override
     public void close() {
         connection.close();
     }
@@ -75,6 +76,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      * Connection entry writers do not require flushing, so this method has no
      * effect.
      */
+    @Override
     public void flush() {
         // Do nothing.
     }
@@ -89,6 +91,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      * @throws NullPointerException
      *             If {@code comment} was {@code null}.
      */
+    @Override
     public ConnectionEntryWriter writeComment(final CharSequence comment) {
         Reject.ifNull(comment);
 
@@ -109,6 +112,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      * @throws NullPointerException
      *             If {@code entry} was {@code null}.
      */
+    @Override
     public ConnectionEntryWriter writeEntry(final Entry entry) throws LdapException {
         Reject.ifNull(entry);
         connection.add(entry);

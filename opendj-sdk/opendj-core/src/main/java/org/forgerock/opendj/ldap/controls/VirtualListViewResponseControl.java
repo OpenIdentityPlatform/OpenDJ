@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -127,18 +127,14 @@ import org.forgerock.util.Reject;
  *      Browsing of Search Results </a>
  */
 public final class VirtualListViewResponseControl implements Control {
-    /**
-     * The OID for the virtual list view request control.
-     */
+    /** The OID for the virtual list view request control. */
     public static final String OID = "2.16.840.1.113730.3.4.10";
 
-    /**
-     * A decoder which can be used for decoding the virtual list view response
-     * control.
-     */
+    /** A decoder which can be used for decoding the virtual list view response control. */
     public static final ControlDecoder<VirtualListViewResponseControl> DECODER =
             new ControlDecoder<VirtualListViewResponseControl>() {
 
+                @Override
                 public VirtualListViewResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -180,6 +176,7 @@ public final class VirtualListViewResponseControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -256,7 +253,7 @@ public final class VirtualListViewResponseControl implements Control {
         return contextID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -281,7 +278,7 @@ public final class VirtualListViewResponseControl implements Control {
         return targetPosition;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -301,17 +298,16 @@ public final class VirtualListViewResponseControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

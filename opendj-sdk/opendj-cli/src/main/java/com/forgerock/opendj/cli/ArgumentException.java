@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -63,7 +63,7 @@ public final class ArgumentException extends Exception implements LocalizableExc
         this.message = message;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getMessageObject() {
         return this.message;
     }

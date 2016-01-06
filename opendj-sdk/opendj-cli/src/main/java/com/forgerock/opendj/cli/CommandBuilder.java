@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -141,6 +141,7 @@ public class CommandBuilder {
      *
      * @return The String representation of this command builder (i.e. what we want to show to the user).
      */
+    @Override
     public String toString() {
         return toString(false, LINE_SEPARATOR);
     }

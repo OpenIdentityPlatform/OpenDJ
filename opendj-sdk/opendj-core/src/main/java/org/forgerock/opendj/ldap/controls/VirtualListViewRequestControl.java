@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -130,18 +130,14 @@ import org.forgerock.util.Reject;
  *      Browsing of Search Results </a>
  */
 public final class VirtualListViewRequestControl implements Control {
-    /**
-     * The OID for the virtual list view request control.
-     */
+    /** The OID for the virtual list view request control. */
     public static final String OID = "2.16.840.1.113730.3.4.9";
 
-    /**
-     * A decoder which can be used for decoding the virtual list view request
-     * control.
-     */
+    /** A decoder which can be used for decoding the virtual list view request control. */
     public static final ControlDecoder<VirtualListViewRequestControl> DECODER =
             new ControlDecoder<VirtualListViewRequestControl>() {
 
+                @Override
                 public VirtualListViewRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -204,19 +200,16 @@ public final class VirtualListViewRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
             };
 
-    /**
-     * The BER type to use when encoding the byOffset target element.
-     */
+    /** The BER type to use when encoding the byOffset target element. */
     private static final byte TYPE_TARGET_BYOFFSET = (byte) 0xA0;
 
-    /**
-     * The BER type to use when encoding the greaterThanOrEqual target element.
-     */
+    /** The BER type to use when encoding the greaterThanOrEqual target element. */
     private static final byte TYPE_TARGET_GREATERTHANOREQUAL = (byte) 0x81;
 
     /**
@@ -417,12 +410,12 @@ public final class VirtualListViewRequestControl implements Control {
         return offset;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -460,17 +453,16 @@ public final class VirtualListViewRequestControl implements Control {
         return assertionValue == null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

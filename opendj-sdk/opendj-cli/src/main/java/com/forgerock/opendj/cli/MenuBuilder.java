@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -68,7 +69,7 @@ public final class MenuBuilder<T> {
             this.callbacks = callbacks;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
             List<T> values = new ArrayList<>();
             for (MenuCallback<T> callback : callbacks) {
@@ -145,12 +146,13 @@ public final class MenuBuilder<T> {
             this.nMaxTries = nMaxTries;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public MenuResult<T> run() throws ClientException {
             // The validation call-back which will be used to determine the
             // action call-back.
             ValidationCallback<MenuCallback<T>> validator = new ValidationCallback<MenuCallback<T>>() {
 
+                @Override
                 public MenuCallback<T> validate(ConsoleApplication app, String input) {
                     String ninput = input.trim();
 
@@ -287,7 +289,7 @@ public final class MenuBuilder<T> {
             this.result = result;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
             return result;
         }
@@ -420,6 +422,7 @@ public final class MenuBuilder<T> {
     public void addHelpOption(final HelpCallback callback) {
         MenuCallback<T> wrapper = new MenuCallback<T>() {
 
+            @Override
             public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
                 app.println();
                 callback.display(app);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.controls;
 
@@ -42,9 +43,7 @@ import org.forgerock.util.Reject;
  * control is 2.16.840.1.113730.3.4.17, and it does not have a value.
  */
 public final class RealAttributesOnlyRequestControl implements Control {
-    /**
-     * The OID for the real attributes only request control.
-     */
+    /** The OID for the real attributes only request control. */
     public static final String OID = "2.16.840.1.113730.3.4.17";
 
     private static final RealAttributesOnlyRequestControl CRITICAL_INSTANCE =
@@ -53,13 +52,11 @@ public final class RealAttributesOnlyRequestControl implements Control {
     private static final RealAttributesOnlyRequestControl NONCRITICAL_INSTANCE =
             new RealAttributesOnlyRequestControl(false);
 
-    /**
-     * A decoder which can be used for decoding the real attributes only request
-     * control.
-     */
+    /** A decoder which can be used for decoding the real attributes only request control. */
     public static final ControlDecoder<RealAttributesOnlyRequestControl> DECODER =
             new ControlDecoder<RealAttributesOnlyRequestControl>() {
 
+                @Override
                 public RealAttributesOnlyRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -83,6 +80,7 @@ public final class RealAttributesOnlyRequestControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -108,27 +106,26 @@ public final class RealAttributesOnlyRequestControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

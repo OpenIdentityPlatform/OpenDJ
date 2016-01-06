@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.controls;
 
@@ -70,18 +70,14 @@ public final class AccountUsabilityResponseControl implements Control {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * The OID for the account usability response control.
-     */
+    /** The OID for the account usability response control. */
     public static final String OID = AccountUsabilityRequestControl.OID;
 
-    /**
-     * A decoder which can be used for decoding the account usability response
-     * control.
-     */
+    /** A decoder which can be used for decoding the account usability response control. */
     public static final ControlDecoder<AccountUsabilityResponseControl> DECODER =
             new ControlDecoder<AccountUsabilityResponseControl>() {
 
+                @Override
                 public AccountUsabilityResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -157,21 +153,16 @@ public final class AccountUsabilityResponseControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
             };
 
-    /**
-     * The BER type to use for the seconds before expiration when the account is
-     * available.
-     */
+    /** The BER type to use for the seconds before expiration when the account is available. */
     private static final byte TYPE_SECONDS_BEFORE_EXPIRATION = (byte) 0x80;
 
-    /**
-     * The BER type to use for the MORE_INFO sequence when the account is not
-     * available.
-     */
+    /** The BER type to use for the MORE_INFO sequence when the account is not available. */
     private static final byte TYPE_MORE_INFO = (byte) 0xA1;
 
     /**
@@ -273,16 +264,10 @@ public final class AccountUsabilityResponseControl implements Control {
     /** The number of remaining grace logins, if available. */
     private final int remainingGraceLogins;
 
-    /**
-     * The length of time in seconds before the user's password expires,
-     * if available.
-     */
+    /** The length of time in seconds before the user's password expires, if available. */
     private final int secondsBeforeExpiration;
 
-    /**
-     * The length of time before the user's account is unlocked, if
-     * available.
-     */
+    /** The length of time before the user's account is unlocked, if available. */
     private final int secondsBeforeUnlock;
 
     private final boolean isCritical;
@@ -303,7 +288,7 @@ public final class AccountUsabilityResponseControl implements Control {
         this.secondsBeforeExpiration = secondsBeforeExpiration;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -344,7 +329,7 @@ public final class AccountUsabilityResponseControl implements Control {
         return secondsBeforeUnlock;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -381,12 +366,12 @@ public final class AccountUsabilityResponseControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
@@ -444,7 +429,6 @@ public final class AccountUsabilityResponseControl implements Control {
         return isUsable;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -80,6 +80,7 @@ public final class SortKey {
             this.comparators = comparators;
         }
 
+        @Override
         public int compare(final Entry entry1, final Entry entry2) {
             for (final Comparator<Entry> comparator : comparators) {
                 final int result = comparator.compare(entry1, entry2);
@@ -111,6 +112,7 @@ public final class SortKey {
          * We must use the lowest available value in both entries and missing
          * attributes sort last.
          */
+        @Override
         public int compare(final Entry entry1, final Entry entry2) {
             // Find and normalize the lowest value attribute in each entry.
             final ByteString normalizedValue1 = lowestValueOf(entry1);

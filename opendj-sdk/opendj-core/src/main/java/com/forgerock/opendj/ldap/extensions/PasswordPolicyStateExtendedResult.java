@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.extensions;
@@ -34,9 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.AbstractExtendedResult;
 
-/**
- * The password policy state extended result.
- */
+/** The password policy state extended result. */
 public final class PasswordPolicyStateExtendedResult extends
         AbstractExtendedResult<PasswordPolicyStateExtendedResult> implements
         PasswordPolicyStateOperationContainer {
@@ -54,47 +52,42 @@ public final class PasswordPolicyStateExtendedResult extends
         super(resultCode);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void addOperation(final PasswordPolicyStateOperation operation) {
         operations.add(operation);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOID() {
         // No response name defined.
         return PasswordPolicyStateExtendedRequest.OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Iterable<PasswordPolicyStateOperation> getOperations() {
         return operations;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getTargetUser() {
         return targetUser;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         return PasswordPolicyStateExtendedRequest.encode(targetUser, operations);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setTargetUser(String targetUser) {
         this.targetUser = targetUser != null ? targetUser : "";
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -101,11 +102,7 @@ public final class DecodeException extends IOException implements LocalizableExc
         this.isFatal = isFatal;
     }
 
-    /**
-     * Returns the message that explains the problem that occurred.
-     *
-     * @return LocalizableMessage of the problem
-     */
+    @Override
     public LocalizableMessage getMessageObject() {
         return message;
     }

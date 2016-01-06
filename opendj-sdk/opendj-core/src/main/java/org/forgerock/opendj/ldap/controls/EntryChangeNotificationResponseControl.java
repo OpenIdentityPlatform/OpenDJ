@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -106,6 +106,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
     public static final ControlDecoder<EntryChangeNotificationResponseControl> DECODER =
             new ControlDecoder<EntryChangeNotificationResponseControl>() {
 
+                @Override
                 public EntryChangeNotificationResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control, options);
@@ -192,6 +193,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
                             changeType, previousDN, changeNumber);
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -290,6 +292,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
     }
 
     /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
@@ -306,6 +309,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
     }
 
     /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -329,11 +333,13 @@ public final class EntryChangeNotificationResponseControl implements Control {
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }

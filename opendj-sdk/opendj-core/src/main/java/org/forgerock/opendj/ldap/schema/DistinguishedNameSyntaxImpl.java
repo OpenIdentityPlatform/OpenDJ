@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -46,6 +47,7 @@ final class DistinguishedNameSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_DN_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_DN_NAME;
     }
@@ -55,10 +57,12 @@ final class DistinguishedNameSyntaxImpl extends AbstractSyntaxImpl {
         return SMR_CASE_IGNORE_OID;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         try {

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -64,7 +64,6 @@ public abstract class ResultLdapPromiseImpl<R extends Request, S extends Result>
         this.timestamp = System.currentTimeMillis();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final boolean handleIntermediateResponse(final IntermediateResponse response) {
         // FIXME: there's a potential race condition here - the promise could
@@ -97,6 +96,7 @@ public abstract class ResultLdapPromiseImpl<R extends Request, S extends Result>
      *
      * @return String representation of this promise's state.
      */
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("( requestID = ");

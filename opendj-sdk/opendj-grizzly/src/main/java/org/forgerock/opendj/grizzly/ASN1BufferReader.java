@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -51,6 +51,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         private int readLimit;
         private int bytesRead;
 
+        @Override
         public void checkLimit(final int readSize) throws IOException {
             if (0 < readLimit && readLimit < bytesRead + readSize) {
                 final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
@@ -60,6 +61,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             bytesRead += readSize;
         }
 
+        @Override
         public SequenceLimiter endSequence() throws IOException {
             parent.checkLimit(remaining());
             if (remaining() > 0) {
@@ -72,10 +74,12 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             return parent;
         }
 
+        @Override
         public int remaining() {
             return readLimit - bytesRead;
         }
 
+        @Override
         public ChildSequenceLimiter startSequence(final int readLimit) {
             if (child == null) {
                 child = new ChildSequenceLimiter();
@@ -90,6 +94,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
     private final class RootSequenceLimiter implements SequenceLimiter {
         private ChildSequenceLimiter child;
 
+        @Override
         public void checkLimit(final int readSize) throws IOException {
             if (buffer.remaining() < readSize) {
                 final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
@@ -97,15 +102,18 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             }
         }
 
+        @Override
         public ChildSequenceLimiter endSequence() throws DecodeException {
             final LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
             throw new IllegalStateException(message.toString());
         }
 
+        @Override
         public int remaining() {
             return buffer.remaining();
         }
 
+        @Override
         public ChildSequenceLimiter startSequence(final int readLimit) {
             if (child == null) {
                 child = new ChildSequenceLimiter();
@@ -162,6 +170,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      * @throws IOException
      *             if an I/O error occurs
      */
+    @Override
     public void close() throws IOException {
         buffer.dispose();
     }
@@ -175,6 +184,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      * @throws IOException
      *             If an error occurs while trying to decode an ASN1 element.
      */
+    @Override
     public boolean elementAvailable() throws IOException {
         return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(true))
                 && (state != ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE || needFirstLengthByteState(true))
@@ -192,11 +202,12 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      * @throws IOException
      *             If an error occurs while trying to decode an ASN1 element.
      */
+    @Override
     public boolean hasNextElement() throws IOException {
         return state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(true);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int peekLength() throws IOException {
         peekType();
 
@@ -212,7 +223,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return peekLength;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public byte peekType() throws IOException {
         if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             needTypeState(false);
@@ -221,7 +232,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return peekType;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean readBoolean() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -240,7 +251,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return readByte != 0x00;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readEndSequence() throws IOException {
         readLimiter = readLimiter.endSequence();
 
@@ -250,20 +261,19 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void readEndExplicitTag() throws DecodeException, IOException {
         readEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readEndSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int readEnumerated() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -278,7 +288,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return (int) readInteger();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public long readInteger() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -318,7 +328,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readNull() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -334,7 +344,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString readOctetString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -355,7 +365,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return ByteString.wrap(value);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteStringBuilder readOctetString(final ByteStringBuilder builder) throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -378,7 +388,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return builder;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String readOctetStringAsString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -415,7 +425,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return str;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readStartSequence() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -428,20 +438,19 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void readStartExplicitTag() throws DecodeException, IOException {
         readStartSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readStartSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readStartSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Reader skipElement() throws IOException {
         // Read the header if haven't done so already
         peekLength();

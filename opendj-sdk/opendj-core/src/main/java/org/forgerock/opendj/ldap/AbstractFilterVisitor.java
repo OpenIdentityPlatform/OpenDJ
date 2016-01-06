@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -57,6 +58,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitAndFilter(final P p, final List<Filter> subFilters) {
         return visitDefaultFilter(p);
     }
@@ -66,6 +68,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitApproxMatchFilter(final P p, final String attributeDescription,
             final ByteString assertionValue) {
         return visitDefaultFilter(p);
@@ -90,6 +93,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitEqualityMatchFilter(final P p, final String attributeDescription,
             final ByteString assertionValue) {
         return visitDefaultFilter(p);
@@ -100,6 +104,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitExtensibleMatchFilter(final P p, final String matchingRule,
             final String attributeDescription, final ByteString assertionValue,
             final boolean dnAttributes) {
@@ -111,6 +116,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitGreaterOrEqualFilter(final P p, final String attributeDescription,
             final ByteString assertionValue) {
         return visitDefaultFilter(p);
@@ -121,6 +127,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitLessOrEqualFilter(final P p, final String attributeDescription,
             final ByteString assertionValue) {
         return visitDefaultFilter(p);
@@ -131,6 +138,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitNotFilter(final P p, final Filter subFilter) {
         return visitDefaultFilter(p);
     }
@@ -140,6 +148,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitOrFilter(final P p, final List<Filter> subFilters) {
         return visitDefaultFilter(p);
     }
@@ -149,6 +158,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitPresentFilter(final P p, final String attributeDescription) {
         return visitDefaultFilter(p);
     }
@@ -158,6 +168,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitSubstringsFilter(final P p, final String attributeDescription,
             final ByteString initialSubstring, final List<ByteString> anySubstrings,
             final ByteString finalSubstring) {
@@ -169,6 +180,7 @@ public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P>
      * <p>
      * The default implementation is to call {@link #visitDefaultFilter(Object)}.
      */
+    @Override
     public R visitUnrecognizedFilter(final P p, final byte filterTag, final ByteString filterBytes) {
         return visitDefaultFilter(p);
     }

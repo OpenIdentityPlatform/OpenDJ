@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -73,6 +73,7 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
         final String normalStr = normalize(assertionValue);
 
         return new Assertion() {
+            @Override
             public ConditionResult matches(final ByteSequence attributeValue) {
                 // See if the assertion value is contained in the attribute
                 // value. If not, then it isn't a match.
@@ -133,6 +134,7 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
         return Collections.emptySet();
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return ByteString.valueOfUtf8(normalize(value));
     }

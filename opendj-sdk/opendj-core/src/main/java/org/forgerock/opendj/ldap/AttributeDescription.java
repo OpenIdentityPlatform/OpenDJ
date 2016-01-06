@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -84,7 +84,6 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         public abstract boolean isSuperTypeOf(Impl other);
 
         public abstract int size();
-
     }
 
     private static final class MultiOptionImpl extends Impl {
@@ -175,9 +174,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 return false;
             } else {
                 // Check this contains other's options.
-                //
-                // This could be optimized more if required, but it's probably
-                // not worth it.
+                // This could be optimized more if required, but it's probably not worth it.
                 final MultiOptionImpl tmp = (MultiOptionImpl) other;
                 for (final String normalizedOption : tmp.normalizedOptions) {
                     if (!hasOption(normalizedOption)) {
@@ -199,6 +196,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             return true;
         }
 
+        @Override
         public Iterator<String> iterator() {
             return Iterators.arrayIterator(options);
         }
@@ -272,6 +270,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             return other.hasOption(normalizedOption);
         }
 
+        @Override
         public Iterator<String> iterator() {
             return Iterators.singletonIterator(option);
         }
@@ -333,6 +332,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             return true;
         }
 
+        @Override
         public Iterator<String> iterator() {
             return Iterators.emptyIterator();
         }
@@ -347,7 +347,6 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE =
             new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>() {
 
-                /** {@inheritDoc} */
                 @Override
                 protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue() {
                     return new WeakHashMap<>();
@@ -1004,6 +1003,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @throws NullPointerException
      *             If {@code name} was {@code null}.
      */
+    @Override
     public int compareTo(final AttributeDescription other) {
         final int result = attributeType.compareTo(other.attributeType);
         if (result != 0) {

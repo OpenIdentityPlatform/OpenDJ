@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -41,6 +41,7 @@ final class NumericStringSubstringMatchingRuleImpl extends AbstractSubstringMatc
         super(SMR_NUMERIC_STRING_NAME, EMR_NUMERIC_STRING_NAME);
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return SchemaUtils.normalizeNumericStringAttributeValue(value);
     }

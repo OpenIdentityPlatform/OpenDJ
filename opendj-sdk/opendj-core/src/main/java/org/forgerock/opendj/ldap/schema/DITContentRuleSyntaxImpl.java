@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -53,15 +53,17 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OID_FIRST_COMPONENT_NAME;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_DIT_CONTENT_RULE_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We'll use the decodeDITContentRule method to determine if the

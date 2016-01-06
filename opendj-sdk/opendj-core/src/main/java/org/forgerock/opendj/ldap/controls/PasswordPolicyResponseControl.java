@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -99,10 +99,7 @@ import org.forgerock.util.Reject;
 public final class PasswordPolicyResponseControl implements Control {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-    /**
-     * The OID for the password policy control from
-     * draft-behera-ldap-password-policy.
-     */
+    /** The OID for the password policy control from draft-behera-ldap-password-policy. */
     public static final String OID = PasswordPolicyRequestControl.OID;
 
     private final int warningValue;
@@ -111,13 +108,11 @@ public final class PasswordPolicyResponseControl implements Control {
 
     private final PasswordPolicyWarningType warningType;
 
-    /**
-     * A decoder which can be used for decoding the password policy response
-     * control.
-     */
+    /** A decoder which can be used for decoding the password policy response control. */
     public static final ControlDecoder<PasswordPolicyResponseControl> DECODER =
             new ControlDecoder<PasswordPolicyResponseControl>() {
 
+                @Override
                 public PasswordPolicyResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -191,6 +186,7 @@ public final class PasswordPolicyResponseControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -260,14 +256,10 @@ public final class PasswordPolicyResponseControl implements Control {
 
     private final boolean isCritical;
 
-    /**
-     * The BER type value for the warning element of the control value.
-     */
+    /** The BER type value for the warning element of the control value. */
     private static final byte TYPE_WARNING_ELEMENT = (byte) 0xA0;
 
-    /**
-     * The BER type value for the error element of the control value.
-     */
+    /** The BER type value for the error element of the control value. */
     private static final byte TYPE_ERROR_ELEMENT = (byte) 0x81;
 
     private PasswordPolicyResponseControl(final boolean isCritical,
@@ -289,12 +281,12 @@ public final class PasswordPolicyResponseControl implements Control {
         return errorType;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -339,17 +331,16 @@ public final class PasswordPolicyResponseControl implements Control {
         return warningValue;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -67,6 +67,7 @@ public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
         };
     }
 
+    @Override
     @DataProvider(name = "matchingRuleInvalidAssertionValues")
     public Object[][] createMatchingRuleInvalidAssertionValues() {
         return new Object[][] {

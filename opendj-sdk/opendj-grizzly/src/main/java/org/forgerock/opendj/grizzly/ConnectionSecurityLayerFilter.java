@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -55,10 +55,12 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
             setMemoryManager(memoryManager);
         }
 
+        @Override
         public String getName() {
             return getClass().getName();
         }
 
+        @Override
         public boolean hasInputRemaining(final AttributeStorage storage, final Buffer input) {
             return input != null && input.hasRemaining();
         }
@@ -94,10 +96,12 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
             setMemoryManager(memoryManager);
         }
 
+        @Override
         public String getName() {
             return getClass().getName();
         }
 
+        @Override
         public boolean hasInputRemaining(final AttributeStorage storage, final Buffer input) {
             return input != null && input.hasRemaining();
         }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -51,6 +51,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         private ChildSequenceBuffer child;
         private final ByteStringBuilder buffer = new ByteStringBuilder(BUFFER_INIT_SIZE);
 
+        @Override
         public SequenceBuffer endSequence() throws IOException {
             writeLength(parent, buffer.length());
             parent.writeByteArray(buffer.getBackingArray(), 0, buffer.length());
@@ -59,6 +60,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             return parent;
         }
 
+        @Override
         public SequenceBuffer startSequence(final byte type) throws IOException {
             if (child == null) {
                 child = new ChildSequenceBuffer();
@@ -69,10 +71,12 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             return child;
         }
 
+        @Override
         public void writeByte(final byte b) throws IOException {
             buffer.appendByte(b);
         }
 
+        @Override
         public void writeByteArray(final byte[] bs, final int offset, final int length) throws IOException {
             buffer.appendBytes(bs, offset, length);
         }
@@ -112,11 +116,13 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     private class RootSequenceBuffer implements SequenceBuffer {
         private ChildSequenceBuffer child;
 
+        @Override
         public SequenceBuffer endSequence() throws IOException {
             final LocalizableMessage message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
             throw new IllegalStateException(message.toString());
         }
 
+        @Override
         public SequenceBuffer startSequence(final byte type) throws IOException {
             if (child == null) {
                 child = new ChildSequenceBuffer();
@@ -128,11 +134,13 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             return child;
         }
 
+        @Override
         public void writeByte(final byte b) throws IOException {
             outBuffer.ensureAdditionalCapacity(1);
             outBuffer.put(b);
         }
 
+        @Override
         public void writeByteArray(final byte[] bs, final int offset, final int length)
                 throws IOException {
             outBuffer.ensureAdditionalCapacity(length);
@@ -152,19 +160,12 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * Initial size of newly created buffers.
-     */
+    /** Initial size of newly created buffers. */
     private static final int BUFFER_INIT_SIZE = 1024;
-
-    /**
-     * Default maximum size for cached protocol/entry encoding buffers.
-     */
+    /** Default maximum size for cached protocol/entry encoding buffers. */
     private static final int DEFAULT_MAX_INTERNAL_BUFFER_SIZE = 32 * 1024;
 
-    /**
-     * Reset the writer.
-     */
+    /** Reset the writer. */
     void reset() {
         if (!outBuffer.usable) {
             // If the output buffer is unusable, create a new one.
@@ -177,9 +178,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     private RecyclableBuffer outBuffer;
     private final RootSequenceBuffer rootBuffer;
 
-    /**
-     * Creates a new ASN.1 writer that writes to a StreamWriter.
-     */
+    /** Creates a new ASN.1 writer that writes to a StreamWriter. */
     ASN1BufferWriter() {
         this.sequenceBuffer = this.rootBuffer = new RootSequenceBuffer();
         this.outBuffer = new RecyclableBuffer();
@@ -192,6 +191,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
      * @throws IOException
      *             if an error occurs while closing the stream.
      */
+    @Override
     public void close() throws IOException {
         outBuffer = null;
     }
@@ -202,19 +202,19 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
      * @throws IOException
      *             If an I/O error occurs
      */
+    @Override
     public void flush() throws IOException {
         // Do nothing
     }
 
-    /**
-     * Recycle the writer to allow re-use.
-     */
+    /** Recycle the writer to allow re-use. */
+    @Override
     public void recycle() {
         sequenceBuffer = rootBuffer;
         outBuffer.clear();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeBoolean(final byte type, final boolean booleanValue) throws IOException {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 1);
@@ -224,24 +224,24 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeEndSequence() throws IOException {
         sequenceBuffer = sequenceBuffer.endSequence();
 
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeEndSet() throws IOException {
         return writeEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeEnumerated(final byte type, final int intValue) throws IOException {
         return writeInteger(type, intValue);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeInteger(final byte type, final int intValue) throws IOException {
         sequenceBuffer.writeByte(type);
         if (((intValue < 0) && ((intValue & 0xFFFFFF80) == 0xFFFFFF80))
@@ -273,7 +273,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeInteger(final byte type, final long longValue) throws IOException {
         sequenceBuffer.writeByte(type);
         if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFFFF80L) == 0xFFFFFFFFFFFFFF80L))
@@ -347,7 +347,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeNull(final byte type) throws IOException {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 0);
@@ -356,7 +356,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeOctetString(final byte type, final byte[] value, final int offset,
             final int length) throws IOException {
         sequenceBuffer.writeByte(type);
@@ -367,7 +367,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeOctetString(final byte type, final ByteSequence value)
             throws IOException {
         sequenceBuffer.writeByte(type);
@@ -381,7 +381,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeOctetString(final byte type, final String value) throws IOException {
         sequenceBuffer.writeByte(type);
 
@@ -398,7 +398,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeStartSequence(final byte type) throws IOException {
         // Get a child sequence buffer
         sequenceBuffer = sequenceBuffer.startSequence(type);
@@ -407,7 +407,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Writer writeStartSet(final byte type) throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.

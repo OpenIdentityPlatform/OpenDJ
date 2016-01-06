@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -55,9 +56,7 @@ import org.forgerock.util.Reject;
  *      - Tree Delete Control </a>
  */
 public final class SubtreeDeleteRequestControl implements Control {
-    /**
-     * The OID for the subtree delete request control.
-     */
+    /** The OID for the subtree delete request control. */
     public static final String OID = "1.2.840.113556.1.4.805";
 
     private static final SubtreeDeleteRequestControl CRITICAL_INSTANCE =
@@ -66,13 +65,11 @@ public final class SubtreeDeleteRequestControl implements Control {
     private static final SubtreeDeleteRequestControl NONCRITICAL_INSTANCE =
             new SubtreeDeleteRequestControl(false);
 
-    /**
-     * A decoder which can be used for decoding the sub-tree delete request
-     * control.
-     */
+    /** A decoder which can be used for decoding the sub-tree delete request control. */
     public static final ControlDecoder<SubtreeDeleteRequestControl> DECODER =
             new ControlDecoder<SubtreeDeleteRequestControl>() {
 
+                @Override
                 public SubtreeDeleteRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -96,6 +93,7 @@ public final class SubtreeDeleteRequestControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -121,27 +119,26 @@ public final class SubtreeDeleteRequestControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

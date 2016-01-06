@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -110,6 +110,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
          *
          * @return the reader to read incoming LDAP messages
          */
+        @Override
         public LDAPReader<ASN1BufferReader> getReader() {
             return this.reader;
         }

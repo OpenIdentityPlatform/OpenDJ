@@ -54,6 +54,7 @@ public final class GetConnectionIDExtendedRequest extends
     private static final class RequestDecoder implements
             ExtendedRequestDecoder<GetConnectionIDExtendedRequest, GetConnectionIDExtendedResult> {
 
+        @Override
         public GetConnectionIDExtendedRequest decodeExtendedRequest(
                 final ExtendedRequest<?> request, final DecodeOptions options)
                 throws DecodeException {
@@ -69,7 +70,7 @@ public final class GetConnectionIDExtendedRequest extends
 
     private static final class ResultDecoder extends
             AbstractExtendedResultDecoder<GetConnectionIDExtendedResult> {
-        /** {@inheritDoc} */
+        @Override
         public GetConnectionIDExtendedResult newExtendedErrorResult(final ResultCode resultCode,
                 final String matchedDN, final String diagnosticMessage) {
             if (!resultCode.isExceptional()) {
@@ -82,6 +83,7 @@ public final class GetConnectionIDExtendedRequest extends
                     .setDiagnosticMessage(diagnosticMessage);
         }
 
+        @Override
         public GetConnectionIDExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             if (result instanceof GetConnectionIDExtendedResult) {
@@ -124,10 +126,7 @@ public final class GetConnectionIDExtendedRequest extends
     private static final GetConnectionIDExtendedRequest INSTANCE =
             new GetConnectionIDExtendedRequest();
 
-    /**
-     * A decoder which can be used to decode get connection ID extended
-     * operation requests.
-     */
+    /** A decoder which can be used to decode get connection ID extended operation requests. */
     public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
 
     /** No need to expose this. */
@@ -147,31 +146,26 @@ public final class GetConnectionIDExtendedRequest extends
         // Nothing to do.
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ExtendedResultDecoder<GetConnectionIDExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.AbstractSet;
@@ -140,18 +139,15 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return builder.toString();
     }
 
-    /**
-     * Sole constructor.
-     */
+    /** Sole constructor. */
     protected AbstractAttribute() {
         // No implementation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public abstract boolean add(ByteString value);
 
-    /** {@inheritDoc} */
+    @Override
     public boolean add(final Object... values) {
         Reject.ifNull(values);
         boolean modified = false;
@@ -161,13 +157,12 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean addAll(final Collection<? extends ByteString> values) {
         return addAll(values, null);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <T> boolean addAll(final Collection<T> values,
             final Collection<? super T> duplicateValues) {
         boolean modified = false;
@@ -181,11 +176,9 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /** {@inheritDoc} */
     @Override
     public abstract boolean contains(Object value);
 
-    /** {@inheritDoc} */
     @Override
     public boolean containsAll(final Collection<?> values) {
         for (final Object value : values) {
@@ -196,56 +189,51 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object object) {
         return equals(this, object);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString firstValue() {
         return iterator().next();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String firstValueAsString() {
         return firstValue().toString();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public abstract AttributeDescription getAttributeDescription();
 
-    /** {@inheritDoc} */
+    @Override
     public String getAttributeDescriptionAsString() {
         return getAttributeDescription().toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return hashCode(this);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public AttributeParser parse() {
         return AttributeParser.parseAttribute(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public abstract Iterator<ByteString> iterator();
 
-    /** {@inheritDoc} */
     @Override
     public abstract boolean remove(Object value);
 
-    /** {@inheritDoc} */
     @Override
     public boolean removeAll(final Collection<?> values) {
         return removeAll(values, null);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <T> boolean removeAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
         boolean modified = false;
@@ -259,13 +247,12 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean retainAll(final Collection<?> values) {
         return retainAll(values, null);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <T> boolean retainAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
         if (values.isEmpty()) {
@@ -307,17 +294,14 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /** {@inheritDoc} */
     @Override
     public abstract int size();
 
-    /** {@inheritDoc} */
     @Override
     public ByteString[] toArray() {
         return toArray(new ByteString[size()]);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return toString(this);

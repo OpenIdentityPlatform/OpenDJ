@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -55,14 +55,17 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OID_FIRST_COMPONENT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_NAME_FORM_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We'll use the decodeNameForm method to determine if the value is

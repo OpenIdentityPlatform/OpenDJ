@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.maven;
 
@@ -58,6 +58,7 @@ public class CheckCopyrightMojo extends CopyrightAbstractMojo {
      * @throws MojoExecutionException
      *             if any
      */
+    @Override
     public void execute() throws MojoFailureException, MojoExecutionException {
         if (checkDisabled) {
             getLog().info("Copyright check is disabled");

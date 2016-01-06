@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -90,6 +90,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
         }
     }
 
+    @Override
     @DataProvider(name = "equalsTestData")
     public Object[][] createEqualsTestData() throws SchemaException, DecodeException {
         return new Object[][] {
@@ -535,6 +536,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
         Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
     }
 
+    @Override
     protected SchemaElement getElement(final String description,
             final Map<String, List<String>> extraProperties) throws SchemaException {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -54,6 +55,7 @@ final class ChangeRecordVisitorWriter implements
         // Nothing to do.
     }
 
+    @Override
     public IOException visitChangeRecord(final ChangeRecordWriter p, final AddRequest change) {
         try {
             p.writeChangeRecord(change);
@@ -63,6 +65,7 @@ final class ChangeRecordVisitorWriter implements
         }
     }
 
+    @Override
     public IOException visitChangeRecord(final ChangeRecordWriter p, final DeleteRequest change) {
         try {
             p.writeChangeRecord(change);
@@ -72,6 +75,7 @@ final class ChangeRecordVisitorWriter implements
         }
     }
 
+    @Override
     public IOException visitChangeRecord(final ChangeRecordWriter p, final ModifyDNRequest change) {
         try {
             p.writeChangeRecord(change);
@@ -81,6 +85,7 @@ final class ChangeRecordVisitorWriter implements
         }
     }
 
+    @Override
     public IOException visitChangeRecord(final ChangeRecordWriter p, final ModifyRequest change) {
         try {
             p.writeChangeRecord(change);

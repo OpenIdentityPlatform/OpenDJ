@@ -23,6 +23,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 Manuel Gaupp
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -37,23 +38,22 @@ import org.forgerock.opendj.ldap.ByteSequence;
  */
 final class CertificateExactAssertionSyntaxImpl extends AbstractSyntaxImpl {
 
-    /** {@inheritDoc} */
+    @Override
     public String getName() {
         return SYNTAX_CERTIFICATE_EXACT_ASSERTION_NAME;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isBEREncodingRequired() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // This method will never be called because this syntax is only used

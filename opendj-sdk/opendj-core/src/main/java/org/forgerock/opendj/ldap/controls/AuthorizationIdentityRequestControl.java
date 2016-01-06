@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -70,9 +71,7 @@ import org.forgerock.util.Reject;
  *      Directory Access Protocol (LDAP) "Who am I?" Operation </a>
  */
 public final class AuthorizationIdentityRequestControl implements Control {
-    /**
-     * The OID for the authorization identity request control.
-     */
+    /** The OID for the authorization identity request control. */
     public static final String OID = "2.16.840.1.113730.3.4.16";
 
     private final boolean isCritical;
@@ -83,13 +82,11 @@ public final class AuthorizationIdentityRequestControl implements Control {
     private static final AuthorizationIdentityRequestControl NONCRITICAL_INSTANCE =
             new AuthorizationIdentityRequestControl(false);
 
-    /**
-     * A decoder which can be used for decoding the authorization identity
-     * request control.
-     */
+    /** A decoder which can be used for decoding the authorization identity request control. */
     public static final ControlDecoder<AuthorizationIdentityRequestControl> DECODER =
             new ControlDecoder<AuthorizationIdentityRequestControl>() {
 
+                @Override
                 public AuthorizationIdentityRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -112,6 +109,7 @@ public final class AuthorizationIdentityRequestControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -136,27 +134,26 @@ public final class AuthorizationIdentityRequestControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

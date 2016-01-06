@@ -22,18 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS
+ *      Portions copyright 2012-2016 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldif;
 
-import java.util.List;
-
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.controls.Control;
-import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.requests.Request;
 
 /**
@@ -113,14 +106,4 @@ public interface ChangeRecord extends Request {
      *             If {@code dn} was {@code null}.
      */
     // ChangeRecord setName(String dn);
-
-    /** {@inheritDoc} */
-    Request addControl(Control control);
-
-    /** {@inheritDoc} */
-    <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
-            throws DecodeException;
-
-    /** {@inheritDoc} */
-    List<Control> getControls();
 }

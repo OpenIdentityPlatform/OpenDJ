@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.controls;
 
@@ -44,9 +45,7 @@ import org.forgerock.util.Reject;
  * @see AccountUsabilityResponseControl
  */
 public final class AccountUsabilityRequestControl implements Control {
-    /**
-     * The OID for the account usability request control.
-     */
+    /** The OID for the account usability request control. */
     public static final String OID = "1.3.6.1.4.1.42.2.27.9.5.8";
 
     private final boolean isCritical;
@@ -56,13 +55,11 @@ public final class AccountUsabilityRequestControl implements Control {
     private static final AccountUsabilityRequestControl NONCRITICAL_INSTANCE =
             new AccountUsabilityRequestControl(false);
 
-    /**
-     * A decoder which can be used for decoding the account usability request
-     * control.
-     */
+    /** A decoder which can be used for decoding the account usability request control. */
     public static final ControlDecoder<AccountUsabilityRequestControl> DECODER =
             new ControlDecoder<AccountUsabilityRequestControl>() {
 
+                @Override
                 public AccountUsabilityRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -86,6 +83,7 @@ public final class AccountUsabilityRequestControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -110,27 +108,26 @@ public final class AccountUsabilityRequestControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

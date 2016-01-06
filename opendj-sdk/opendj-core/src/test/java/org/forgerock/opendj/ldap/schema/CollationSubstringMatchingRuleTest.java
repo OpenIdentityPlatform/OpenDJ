@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -39,11 +39,13 @@ import static org.testng.Assert.*;
 @Test
 public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
+    @Override
     @DataProvider(name = "substringInvalidAssertionValues")
     public Object[][] createMatchingRuleInvalidAssertionValues() {
         return new Object[][] { };
     }
 
+    @Override
     @DataProvider(name = "substringInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { };

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -141,14 +142,17 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_USER_PASSWORD_EXACT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_USER_PASSWORD_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We have to accept any value here because in many cases the value

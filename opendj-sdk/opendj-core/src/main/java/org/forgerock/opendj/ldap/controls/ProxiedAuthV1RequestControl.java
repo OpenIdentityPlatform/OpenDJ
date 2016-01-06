@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -65,18 +65,14 @@ import org.forgerock.util.Reject;
 public final class ProxiedAuthV1RequestControl implements Control {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-    /**
-     * The OID for the proxied authorization v1 control.
-     */
+    /** The OID for the proxied authorization v1 control. */
     public static final String OID = "2.16.840.1.113730.3.4.12";
 
-    /**
-     * A decoder which can be used for decoding the proxied authorization v1
-     * request control.
-     */
+    /** A decoder which can be used for decoding the proxied authorization v1 request control. */
     public static final ControlDecoder<ProxiedAuthV1RequestControl> DECODER =
             new ControlDecoder<ProxiedAuthV1RequestControl>() {
 
+                @Override
                 public ProxiedAuthV1RequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -131,6 +127,7 @@ public final class ProxiedAuthV1RequestControl implements Control {
                     return new ProxiedAuthV1RequestControl(authorizationDN);
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -188,12 +185,12 @@ public final class ProxiedAuthV1RequestControl implements Control {
         return authorizationName;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -208,17 +205,16 @@ public final class ProxiedAuthV1RequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();

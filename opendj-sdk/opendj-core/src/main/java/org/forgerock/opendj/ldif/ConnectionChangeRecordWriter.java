@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -74,6 +74,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * connection. Closing a previously closed change record writer has no
      * effect.
      */
+    @Override
     public void close() {
         connection.close();
     }
@@ -82,6 +83,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * Connection change record writers do not require flushing, so this method
      * has no effect.
      */
+    @Override
     public void flush() {
         // Do nothing.
     }
@@ -99,6 +101,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
+    @Override
     public ConnectionChangeRecordWriter writeChangeRecord(final AddRequest change) throws LdapException {
         Reject.ifNull(change);
         connection.add(change);
@@ -118,6 +121,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
+    @Override
     public ConnectionChangeRecordWriter writeChangeRecord(final ChangeRecord change) throws LdapException {
         Reject.ifNull(change);
 
@@ -148,6 +152,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
+    @Override
     public ConnectionChangeRecordWriter writeChangeRecord(final DeleteRequest change) throws LdapException {
         Reject.ifNull(change);
         connection.delete(change);
@@ -167,6 +172,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
+    @Override
     public ConnectionChangeRecordWriter writeChangeRecord(final ModifyDNRequest change) throws LdapException {
         Reject.ifNull(change);
         connection.modifyDN(change);
@@ -186,6 +192,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
+    @Override
     public ConnectionChangeRecordWriter writeChangeRecord(final ModifyRequest change) throws LdapException {
         Reject.ifNull(change);
         connection.modify(change);
@@ -202,6 +209,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @throws NullPointerException
      *             If {@code comment} was {@code null}.
      */
+    @Override
     public ConnectionChangeRecordWriter writeComment(final CharSequence comment) {
         Reject.ifNull(comment);
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -66,6 +66,7 @@ public final class LinkedHashMapEntry extends AbstractMapEntry {
      * An entry factory which can be used to create new linked hash map entries.
      */
     public static final EntryFactory FACTORY = new EntryFactory() {
+        @Override
         public Entry newEntry(final DN name) {
             return new LinkedHashMapEntry(name);
         }

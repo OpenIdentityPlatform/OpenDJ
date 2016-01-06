@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS
+ *      Portions copyright 2013-2016 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.extensions;
 
@@ -57,6 +57,7 @@ public final class GetSymmetricKeyExtendedRequest extends
     private static final class RequestDecoder implements
             ExtendedRequestDecoder<GetSymmetricKeyExtendedRequest, ExtendedResult> {
 
+        @Override
         public GetSymmetricKeyExtendedRequest decodeExtendedRequest(
                 final ExtendedRequest<?> request, final DecodeOptions options)
                 throws DecodeException {
@@ -102,12 +103,14 @@ public final class GetSymmetricKeyExtendedRequest extends
 
     private static final class ResultDecoder extends AbstractExtendedResultDecoder<ExtendedResult> {
 
+        @Override
         public ExtendedResult newExtendedErrorResult(final ResultCode resultCode,
                 final String matchedDN, final String diagnosticMessage) {
             return Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
                     .setDiagnosticMessage(diagnosticMessage);
         }
 
+        @Override
         public ExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             return result;

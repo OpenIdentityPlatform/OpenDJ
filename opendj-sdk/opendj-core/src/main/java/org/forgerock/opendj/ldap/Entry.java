@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -232,6 +232,7 @@ public interface Entry {
      * @return {@code true} if {@code object} is an entry which is equal to this
      *         entry, or {@code false} if not.
      */
+    @Override
     boolean equals(Object object);
 
     /**
@@ -330,6 +331,7 @@ public interface Entry {
      *
      * @return The hash code for this entry.
      */
+    @Override
     int hashCode();
 
     /**
@@ -525,5 +527,6 @@ public interface Entry {
      *
      * @return The string representation of this entry.
      */
+    @Override
     String toString();
 }

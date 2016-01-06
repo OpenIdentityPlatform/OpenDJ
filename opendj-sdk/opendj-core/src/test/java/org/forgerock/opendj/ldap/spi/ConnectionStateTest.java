@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -260,6 +260,7 @@ public class ConnectionStateTest extends LDAPTestCase {
         final ConnectionState state = new ConnectionState();
         final ConnectionEventListener listener1 = mock(ConnectionEventListener.class);
         doAnswer(new Answer<Void>() {
+            @Override
             public Void answer(InvocationOnMock invocation) {
                 state.notifyConnectionClosed();
                 return null;

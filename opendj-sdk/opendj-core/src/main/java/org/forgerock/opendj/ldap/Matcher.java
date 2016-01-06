@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -219,6 +219,7 @@ public final class Matcher {
      * A visitor which is used to transform a filter into a matcher.
      */
     private static final class Visitor implements FilterVisitor<MatcherImpl, Schema> {
+        @Override
         public MatcherImpl visitAndFilter(final Schema schema, final List<Filter> subFilters) {
             if (subFilters.isEmpty()) {
                 logger.trace(LocalizableMessage.raw("Empty add filter component. Will always return TRUE"));
@@ -232,6 +233,7 @@ public final class Matcher {
             return new AndMatcherImpl(subMatchers);
         }
 
+        @Override
         public MatcherImpl visitApproxMatchFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
             final AttributeDescription ad;
@@ -263,6 +265,7 @@ public final class Matcher {
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
         }
 
+        @Override
         public MatcherImpl visitEqualityMatchFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
             final AttributeDescription ad;
@@ -294,6 +297,7 @@ public final class Matcher {
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
         }
 
+        @Override
         public MatcherImpl visitExtensibleMatchFilter(final Schema schema,
                 final String matchingRule, final String attributeDescription,
                 final ByteString assertionValue, final boolean dnAttributes) {
@@ -369,6 +373,7 @@ public final class Matcher {
             return new AssertionMatcherImpl(ad, rule, ruleUse, assertion, dnAttributes);
         }
 
+        @Override
         public MatcherImpl visitGreaterOrEqualFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
             final AttributeDescription ad;
@@ -401,6 +406,7 @@ public final class Matcher {
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
         }
 
+        @Override
         public MatcherImpl visitLessOrEqualFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
             final AttributeDescription ad;
@@ -432,11 +438,13 @@ public final class Matcher {
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
         }
 
+        @Override
         public MatcherImpl visitNotFilter(final Schema schema, final Filter subFilter) {
             final MatcherImpl subMatcher = subFilter.accept(this, schema);
             return new NotMatcherImpl(subMatcher);
         }
 
+        @Override
         public MatcherImpl visitOrFilter(final Schema schema, final List<Filter> subFilters) {
             if (subFilters.isEmpty()) {
                 logger.trace(LocalizableMessage.raw("Empty or filter component. Will always return FALSE"));
@@ -450,6 +458,7 @@ public final class Matcher {
             return new OrMatcherImpl(subMatchers);
         }
 
+        @Override
         public MatcherImpl visitPresentFilter(final Schema schema, final String attributeDescription) {
             AttributeDescription ad;
             try {
@@ -464,6 +473,7 @@ public final class Matcher {
             return new PresentMatcherImpl(ad);
         }
 
+        @Override
         public MatcherImpl visitSubstringsFilter(final Schema schema,
                 final String attributeDescription, final ByteString initialSubstring,
                 final List<ByteString> anySubstrings, final ByteString finalSubstring) {
@@ -496,6 +506,7 @@ public final class Matcher {
             return new AssertionMatcherImpl(ad, rule, null, assertion, false);
         }
 
+        @Override
         public MatcherImpl visitUnrecognizedFilter(final Schema schema, final byte filterTag,
                 final ByteString filterBytes) {
             // TODO: I18N

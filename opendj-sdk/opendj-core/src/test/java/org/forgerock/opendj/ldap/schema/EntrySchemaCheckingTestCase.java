@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -1132,6 +1132,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
     private EntryResolver newResolver(final Entry e) {
         return new EntryResolver() {
 
+            @Override
             public Entry getEntry(final DN dn) throws LdapException {
                 if (e == null) {
                     throw newLdapException(ResultCode.NO_SUCH_OBJECT, "no such entry " + dn);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -41,9 +41,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SizeLimitInputStream;
 
-/**
- * An ASN1Reader that reads from an input stream.
- */
+/** An ASN1Reader that reads from an input stream. */
 final class ASN1InputStreamReader extends AbstractASN1Reader {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -72,14 +70,14 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         this.maxElementSize = maxElementSize;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void close() throws IOException {
         // Calling close of SizeLimitInputStream should close the parent stream.
         in.close();
         streamStack.clear();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean elementAvailable() throws IOException {
         return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(false, false))
             && (state != ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE || needFirstLengthByteState(false, false))
@@ -88,7 +86,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
             && peekLength <= in.available();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasNextElement() throws IOException {
         if (!streamStack.isEmpty()) {
             // We are reading a sub sequence. Return true as long as we
@@ -101,7 +99,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(true, false);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int peekLength() throws IOException {
         peekType();
         switch (state) {
@@ -117,7 +115,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return peekLength;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public byte peekType() throws IOException {
         if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             needTypeState(true, true);
@@ -126,7 +124,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return peekType;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean readBoolean() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -148,7 +146,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return readByte != 0x00;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readEndSequence() throws IOException {
         if (streamStack.isEmpty()) {
             final LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
@@ -171,20 +169,19 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void readEndExplicitTag() throws DecodeException, IOException {
         readEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readEndSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readEndSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int readEnumerated() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -199,7 +196,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return (int) readInteger();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public long readInteger() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -248,7 +245,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readNull() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -264,7 +261,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString readOctetString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -295,7 +292,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return ByteString.wrap(value);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteStringBuilder readOctetString(final ByteStringBuilder builder) throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -323,7 +320,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return builder;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String readOctetStringAsString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -365,7 +362,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         return str;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readStartSequence() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -381,20 +378,19 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void readStartExplicitTag() throws DecodeException, IOException {
         readStartSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void readStartSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readStartSequence();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ASN1Reader skipElement() throws IOException {
         // Read the header if haven't done so already
         peekLength();

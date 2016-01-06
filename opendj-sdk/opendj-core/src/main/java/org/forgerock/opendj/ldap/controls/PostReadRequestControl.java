@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -98,12 +98,11 @@ public final class PostReadRequestControl implements Control {
     private static final PostReadRequestControl NONCRITICAL_EMPTY_INSTANCE =
             new PostReadRequestControl(false, Collections.<String> emptyList());
 
-    /**
-     * A decoder which can be used for decoding the post-read request control.
-     */
+    /** A decoder which can be used for decoding the post-read request control. */
     public static final ControlDecoder<PostReadRequestControl> DECODER =
             new ControlDecoder<PostReadRequestControl>() {
 
+                @Override
                 public PostReadRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -160,6 +159,7 @@ public final class PostReadRequestControl implements Control {
                     }
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -244,12 +244,12 @@ public final class PostReadRequestControl implements Control {
         return attributes;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -268,17 +268,16 @@ public final class PostReadRequestControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

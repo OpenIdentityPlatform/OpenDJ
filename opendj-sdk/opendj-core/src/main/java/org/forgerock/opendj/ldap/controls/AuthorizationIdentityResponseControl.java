@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -77,9 +77,7 @@ import org.forgerock.util.Reject;
  */
 public final class AuthorizationIdentityResponseControl implements Control {
 
-    /**
-     * The OID for the authorization identity response control.
-     */
+    /** The OID for the authorization identity response control. */
     public static final String OID = "2.16.840.1.113730.3.4.15";
 
     /**
@@ -101,13 +99,11 @@ public final class AuthorizationIdentityResponseControl implements Control {
 
     private final boolean isCritical;
 
-    /**
-     * A decoder which can be used for decoding the authorization identity
-     * response control.
-     */
+    /** A decoder which can be used for decoding the authorization identity response control. */
     public static final ControlDecoder<AuthorizationIdentityResponseControl> DECODER =
             new ControlDecoder<AuthorizationIdentityResponseControl>() {
 
+                @Override
                 public AuthorizationIdentityResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -132,6 +128,7 @@ public final class AuthorizationIdentityResponseControl implements Control {
                     return new AuthorizationIdentityResponseControl(control.isCritical(), authID);
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -157,27 +154,26 @@ public final class AuthorizationIdentityResponseControl implements Control {
         return authorizationID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return ByteString.valueOfUtf8(authorizationID);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

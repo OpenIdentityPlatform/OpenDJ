@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -44,6 +44,7 @@ public interface EntryWriter extends Closeable, Flushable {
      * @throws IOException
      *             If an unexpected IO error occurred while closing.
      */
+    @Override
     void close() throws IOException;
 
     /**
@@ -60,6 +61,7 @@ public interface EntryWriter extends Closeable, Flushable {
      * @throws IOException
      *             If an unexpected IO error occurred while flushing.
      */
+    @Override
     void flush() throws IOException;
 
     /**

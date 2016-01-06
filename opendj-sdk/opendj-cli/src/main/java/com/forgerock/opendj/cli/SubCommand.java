@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS.
+ *      Portions Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -69,10 +69,7 @@ public class SubCommand implements DocDescriptionSupplement {
     /** The minimum number of unnamed trailing arguments that may be provided. */
     private int minTrailingArguments;
 
-    /**
-     * The display name that will be used for the trailing arguments in
-     * the usage information.
-     */
+    /** The display name that will be used for the trailing arguments in the usage information. */
     private String trailingArgsDisplayName;
 
     /**
@@ -166,12 +163,12 @@ public class SubCommand implements DocDescriptionSupplement {
      */
     private LocalizableMessage docDescriptionSupplement;
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getDocDescriptionSupplement() {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
         this.docDescriptionSupplement = docDescriptionSupplement;
     }
@@ -365,7 +362,6 @@ public class SubCommand implements DocDescriptionSupplement {
         this.isHidden = isHidden;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();

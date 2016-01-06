@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import org.forgerock.i18n.LocalizableException;
@@ -63,7 +63,7 @@ final class SchemaException extends Exception implements LocalizableException {
         this.message = message;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getMessageObject() {
         return this.message;
     }

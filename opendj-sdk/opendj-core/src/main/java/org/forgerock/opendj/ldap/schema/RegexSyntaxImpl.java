@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -64,6 +65,7 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_CASE_IGNORE_OID;
     }
 
+    @Override
     public String getName() {
         return "Regex(" + pattern + ")";
     }
@@ -78,10 +80,12 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl {
         return SMR_CASE_IGNORE_OID;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         final String strValue = value.toString();

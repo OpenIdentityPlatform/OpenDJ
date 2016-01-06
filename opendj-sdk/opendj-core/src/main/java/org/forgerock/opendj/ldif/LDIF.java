@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011-2015 ForgeRock AS
+ *      Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldif;
 
@@ -76,8 +76,11 @@ public final class LDIF {
     private static final class EntryIteratorReader implements EntryReader {
         private final Iterator<Entry> iterator;
         private EntryIteratorReader(final Iterator<Entry> iterator) { this.iterator = iterator; }
+        @Override
         public void close()      { }
+        @Override
         public boolean hasNext() { return iterator.hasNext(); }
+        @Override
         public Entry readEntry() { return iterator.next(); }
     }
     // @formatter:on
@@ -86,6 +89,7 @@ public final class LDIF {
      * Comparator ordering the DN ASC.
      */
     private static final Comparator<byte[][]> DN_ORDER2 = new Comparator<byte[][]>() {
+        @Override
         public int compare(byte[][] b1, byte[][] b2) {
             return DN_ORDER.compare(b1[0], b2[0]);
         }
@@ -95,6 +99,7 @@ public final class LDIF {
      * Comparator ordering the DN ASC.
      */
     private static final Comparator<byte[]> DN_ORDER = new Comparator<byte[]>() {
+        @Override
         public int compare(byte[] b1, byte[] b2) {
             final ByteString bs = ByteString.valueOfBytes(b1);
             final ByteString bs2 = ByteString.valueOfBytes(b2);
@@ -693,10 +698,12 @@ public final class LDIF {
             private Entry nextEntry = null;
             private int entryCount = 0;
 
+            @Override
             public void close() throws IOException {
                 input.close();
             }
 
+            @Override
             public boolean hasNext() throws IOException {
                 if (nextEntry == null) {
                     final int sizeLimit = search.getSizeLimit();
@@ -716,6 +723,7 @@ public final class LDIF {
                 return nextEntry != null;
             }
 
+            @Override
             public Entry readEntry() throws IOException {
                 if (hasNext()) {
                     final Entry entry = nextEntry;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS.
+ *      Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -44,7 +44,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractEqualityMa
         super(EMR_DN_NAME);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         try {

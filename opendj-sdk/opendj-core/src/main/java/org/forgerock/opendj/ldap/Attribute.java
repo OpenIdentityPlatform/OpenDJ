@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -60,6 +60,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code value} was {@code null}.
      */
+    @Override
     boolean add(ByteString value);
 
     /**
@@ -99,6 +100,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code values} was {@code null}.
      */
+    @Override
     boolean addAll(Collection<? extends ByteString> values);
 
     /**
@@ -134,6 +136,7 @@ public interface Attribute extends Set<ByteString> {
      *             If this attribute does not support removal of attribute
      *             values.
      */
+    @Override
     void clear();
 
     /**
@@ -150,6 +153,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code value} was {@code null}.
      */
+    @Override
     boolean contains(Object value);
 
     /**
@@ -167,6 +171,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code values} was {@code null}.
      */
+    @Override
     boolean containsAll(Collection<?> values);
 
     /**
@@ -181,6 +186,7 @@ public interface Attribute extends Set<ByteString> {
      * @return {@code true} if {@code object} is an attribute which is equal to
      *         this attribute, or {@code false} if not.
      */
+    @Override
     boolean equals(Object object);
 
     /**
@@ -226,6 +232,7 @@ public interface Attribute extends Set<ByteString> {
      *
      * @return The hash code for this attribute.
      */
+    @Override
     int hashCode();
 
     /**
@@ -233,6 +240,7 @@ public interface Attribute extends Set<ByteString> {
      *
      * @return {@code true} if this attribute contains no attribute values.
      */
+    @Override
     boolean isEmpty();
 
     /**
@@ -242,6 +250,7 @@ public interface Attribute extends Set<ByteString> {
      *
      * @return An iterator over the attribute values in this attribute.
      */
+    @Override
     Iterator<ByteString> iterator();
 
     /**
@@ -269,6 +278,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code value} was {@code null}.
      */
+    @Override
     boolean remove(Object value);
 
     /**
@@ -293,6 +303,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code values} was {@code null}.
      */
+    @Override
     boolean removeAll(Collection<?> values);
 
     /**
@@ -342,6 +353,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code values} was {@code null}.
      */
+    @Override
     boolean retainAll(Collection<?> values);
 
     /**
@@ -373,6 +385,7 @@ public interface Attribute extends Set<ByteString> {
      *
      * @return The number of attribute values in this attribute.
      */
+    @Override
     int size();
 
     /**
@@ -390,6 +403,7 @@ public interface Attribute extends Set<ByteString> {
      * @return An array containing all of the attribute values contained in this
      *         attribute.
      */
+    @Override
     ByteString[] toArray();
 
     /**
@@ -421,6 +435,7 @@ public interface Attribute extends Set<ByteString> {
      * @throws NullPointerException
      *             If {@code array} was {@code null}.
      */
+    @Override
     <T> T[] toArray(T[] array);
 
     /**
@@ -428,5 +443,6 @@ public interface Attribute extends Set<ByteString> {
      *
      * @return The string representation of this attribute.
      */
+    @Override
     String toString();
 }

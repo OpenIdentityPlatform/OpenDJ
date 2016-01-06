@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -42,6 +42,7 @@ final class OctetStringSubstringMatchingRuleImpl extends AbstractSubstringMatchi
         super(SMR_OCTET_STRING_NAME, EMR_OCTET_STRING_NAME);
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();
     }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -86,10 +86,7 @@ import org.forgerock.util.Reject;
  *      </a>
  */
 public final class PasswordPolicyRequestControl implements Control {
-    /**
-     * The OID for the password policy control from
-     * draft-behera-ldap-password-policy.
-     */
+    /** The OID for the password policy control from draft-behera-ldap-password-policy. */
     public static final String OID = "1.3.6.1.4.1.42.2.27.8.5.1";
 
     private final boolean isCritical;
@@ -99,13 +96,11 @@ public final class PasswordPolicyRequestControl implements Control {
     private static final PasswordPolicyRequestControl NONCRITICAL_INSTANCE =
             new PasswordPolicyRequestControl(false);
 
-    /**
-     * A decoder which can be used for decoding the password policy request
-     * control.
-     */
+    /** A decoder which can be used for decoding the password policy request control. */
     public static final ControlDecoder<PasswordPolicyRequestControl> DECODER =
             new ControlDecoder<PasswordPolicyRequestControl>() {
 
+                @Override
                 public PasswordPolicyRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
                     Reject.ifNull(control);
@@ -128,6 +123,7 @@ public final class PasswordPolicyRequestControl implements Control {
                     return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
                 }
 
+                @Override
                 public String getOID() {
                     return OID;
                 }
@@ -151,27 +147,26 @@ public final class PasswordPolicyRequestControl implements Control {
         this.isCritical = isCritical;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
