@@ -23,7 +23,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011-2012 ForgeRock AS
+rem      Portions Copyright 2011-2016 ForgeRock AS
 
 setlocal
 
@@ -44,6 +44,8 @@ if exist "%INSTALL_ROOT%\instance.loc" (
 ) else (
 set INSTANCE_DIR=.
 )
+if not exist "%INSTANCE_DIR%" mkdir "%INSTANCE_DIR%"
+
 set CUR_DIR=%CD%
 cd /d %INSTALL_ROOT%
 cd /d %INSTANCE_DIR%
