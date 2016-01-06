@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2015 ForgeRock AS.
+  !      Copyright 2011-2016 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -309,92 +309,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.4</version>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>index</report>
-                            <report>mailing-list</report>
-                            <report>issue-tracking</report>
-                            <report>license</report>
-                            <report>scm</report>
-                            <report>cim</report>
-                            <report>distribution-management</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-        </plugins>
-    </reporting>
-
-
-    <profiles>
-        <profile>
-            <id>precommit</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.forgerock.opendj</groupId>
-                        <artifactId>opendj-copyright-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>check-copyright</id>
-                                <goals>
-                                    <goal>check-copyright</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>update-copyrights</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.forgerock.opendj</groupId>
-                        <artifactId>opendj-copyright-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>check-copyright</id>
-                                <phase>none</phase>
-                                <goals>
-                                    <goal>check-copyright</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>update-copyright</id>
-                                <goals>
-                                    <goal>update-copyright</goal>
-                                </goals>
-                                <configuration>
-                                    <!-- We need to accept the second part of the following regular
-                                       ! expression for submodules:
-                                       ! * opendj-rest2ldap
-                                       !
-                                       ! Please note that the regexp
-                                       !  '\"Portions Copyright \[year\] \[name of copyright owner\]\"'
-                                       ! must never be found before 'CDDL HEADER END' in other submodules,
-                                       ! otherwise the plugin will fail.
-                                     -->
-                                    <lineBeforeCopyrightRegExp>
-                                        (CDDL HEADER END|\"Portions Copyright \[year\] \[name of copyright owner\]\")
-                                    </lineBeforeCopyrightRegExp>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
